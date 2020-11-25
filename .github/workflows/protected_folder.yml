@@ -9,7 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-20.04
+    steps:
     - name: Warning
+
       run: |
         echo "::warning This diff contains changes in protected folders!"
     
