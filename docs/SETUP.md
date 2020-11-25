@@ -36,3 +36,5 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 2. Your team's fork must pass CI + infrastructure team code reviews before it can be merged into the main repo. Make sure you detail your changes succinctly in your PR, and _KEEP DIFFS SMALL_. Infra might not need to read every line, but having small reviews to do is helpful. Again, DO NOT TOUCH CODE YOU'RE NOT SUPPOSED TO. 
 
+3. Make sure your fork is up-to-date with the main repo's `main` branch before submitting a PR.
+
