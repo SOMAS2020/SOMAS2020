@@ -38,3 +38,4 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 3. Make sure your fork is up-to-date with the main repo's `main` branch before submitting a PR.
 
+4. Your fork should inherit the Github Actions for CI as well, this means PRs into your `main` branch should run CI.
