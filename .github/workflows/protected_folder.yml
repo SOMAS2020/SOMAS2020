@@ -2,8 +2,14 @@ name: Protected folder guards
 
 on:
   pull_request:
-    paths-ignore:
-    - 'internal/clients/**'
+    paths:
+    - 'internal/server/**'
+    - 'internal/common/**'
+    - 'main.go'
+    - 'go.mod'
+    - '.github/**'
+    - 'README.md'
+    - '.gitignore'
     branches: [ main ]
 
 jobs:
