@@ -13,5 +13,5 @@ jobs:
     - name: Warning
 
       run: |
-        echo "::warning This diff contains changes in protected folders!"
+        echo "::warning:: This diff contains changes in protected folders!"
     
