@@ -1,0 +1,15 @@
+name: Protected folder guards
+
+on:
+  pull_request:
+    paths-ignore:
+    - 'internal/clients/**'
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    - name: Warning
+      run: |
+        echo "::warning This diff contains changes in protected folders!"
+    
