@@ -2,6 +2,7 @@ name: Protected folder guards
 
 on:
   pull_request:
+    branches: [ main ]
     paths:
     - 'internal/server/**'
     - 'internal/common/**'
@@ -10,7 +11,6 @@ on:
     - '.github/**'
     - 'README.md'
     - '.gitignore'
-    branches: [ main ]
 
 jobs:
   test:
