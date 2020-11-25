@@ -2,9 +2,9 @@ name: Protected folder guards
 
 on:
   pull_request:
-    paths-ignore:
-    - 'internal/clients/**'
     branches: [ main ]
+    paths:
+    - 'internal/server/**'
 
 jobs:
   test:
