@@ -38,6 +38,7 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 3. Make sure your fork is up-to-date with the main repo's `main` branch before submitting a PR.
 
+4. Your fork should inherit the Github Actions for CI as well, this means PRs into your `main` branch should run CI.
 ## Dependencies
 
 1. The usual way of getting dependencies for Golang should work, i.e. `go get <MODULE_LINK>`. Try to refrain from including rarely-used or dodgy-looking dependencies: everyone running the code needs to get the code on their computer (golang does this automatically). If in doubt, ask.
