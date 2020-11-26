@@ -8,6 +8,8 @@ Auxiliary information goes here.
 
 ## Test Plan
 
+- Add information on how you tested your changes.
+
 - `go test ./...`
 ```
 Paste logs here
