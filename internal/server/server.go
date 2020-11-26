@@ -57,7 +57,7 @@ func (s *SOMASServer) Logf(format string, a ...interface{}) {
 
 func (s *SOMASServer) StartForageRound() error {
 	s.Logf("Starting forage round!")
-	var teamForageInvestments map[int]int
+	teamForageInvestments := map[int]int{}
 	totalInvestments := 0
 
 	for _, c := range s.clients {
