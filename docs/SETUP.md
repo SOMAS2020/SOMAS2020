@@ -3,6 +3,8 @@
 - [Go 1.15.x](https://golang.org/dl/) (1.15.5 preferred)
     - `go version` should produce `go version go1.15....`
 
+(Note that the reference system as in CI is `Ubuntu 20.04`. It is preferable to run this OS, but if not, that's fine.)
+
 ## Text Editor & Language Server
 
 - You're encouraged to use [VSCode](https://code.visualstudio.com/), with the [Go extension](https://code.visualstudio.com/docs/languages/go).
