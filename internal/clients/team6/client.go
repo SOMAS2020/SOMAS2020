@@ -8,14 +8,14 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 )
 
-const id = 6
+const id = common.Team6
 
 func init() {
-	common.RegisterClient(&client{id: id})
+	common.RegisterClient(id, &client{id: id})
 }
 
 type client struct {
-	id int
+	id common.ClientID
 }
 
 func (c *client) Echo(s string) string {
@@ -23,7 +23,7 @@ func (c *client) Echo(s string) string {
 	return s
 }
 
-func (c *client) GetID() int {
+func (c *client) GetID() common.ClientID {
 	return c.id
 }
 
