@@ -1,4 +1,4 @@
-package forage
+package common
 
 import (
 	"reflect"
@@ -8,30 +8,30 @@ import (
 func TestForageSplitEven(t *testing.T) {
 	cases := []struct {
 		name                  string
-		teamForageInvestments map[int]int
-		totalPayoff           int
-		want                  map[int]int
+		teamForageInvestments map[ClientID]uint
+		totalPayoff           uint
+		want                  map[ClientID]uint
 	}{
 		{
 			name: "basic even split",
-			teamForageInvestments: map[int]int{
+			teamForageInvestments: map[ClientID]uint{
 				1: 123,
 				2: 123,
 			},
 			totalPayoff: 420,
-			want: map[int]int{
+			want: map[ClientID]uint{
 				1: 210,
 				2: 210,
 			},
 		},
 		{
 			name: "not completely divisible",
-			teamForageInvestments: map[int]int{
+			teamForageInvestments: map[ClientID]uint{
 				3: 123,
 				4: 123,
 			},
 			totalPayoff: 419,
-			want: map[int]int{
+			want: map[ClientID]uint{
 				3: 209,
 				4: 209,
 			},
@@ -52,42 +52,42 @@ func TestForageSplitEven(t *testing.T) {
 func TestForageSplitProportionate(t *testing.T) {
 	cases := []struct {
 		name                  string
-		teamForageInvestments map[int]int
-		totalPayoff           int
-		want                  map[int]int
+		teamForageInvestments map[ClientID]uint
+		totalPayoff           uint
+		want                  map[ClientID]uint
 	}{
 		{
 			name: "basic even split",
-			teamForageInvestments: map[int]int{
+			teamForageInvestments: map[ClientID]uint{
 				1: 123,
 				2: 123,
 			},
 			totalPayoff: 420,
-			want: map[int]int{
+			want: map[ClientID]uint{
 				1: 210,
 				2: 210,
 			},
 		},
 		{
 			name: "1:2 ratio",
-			teamForageInvestments: map[int]int{
+			teamForageInvestments: map[ClientID]uint{
 				3: 1,
 				4: 2,
 			},
 			totalPayoff: 30,
-			want: map[int]int{
+			want: map[ClientID]uint{
 				3: 10,
 				4: 20,
 			},
 		},
 		{
 			name: "not completely divisible, some resources discarded",
-			teamForageInvestments: map[int]int{
+			teamForageInvestments: map[ClientID]uint{
 				3: 1,
 				4: 2,
 			},
 			totalPayoff: 31,
-			want: map[int]int{
+			want: map[ClientID]uint{
 				3: 10,
 				4: 20,
 			},

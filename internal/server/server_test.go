@@ -8,29 +8,21 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 )
 
-// a factory function that allows us to inject custom stuff to facilitate testing
-func somasServerTester(clients []common.Client, gameState common.GameState) Server {
-	return &SOMASServer{
-		clients:   clients,
-		gameState: gameState,
-	}
-}
-
-// extend as required
 type mockClient struct {
 	common.Client
-	reply string
-	id    int
+	id   common.ClientID
+	echo string
 }
 
-func (c *mockClient) Echo(s string) string {
-	return c.reply
-}
-
-func (c *mockClient) GetID() int {
+func (c *mockClient) GetID() common.ClientID {
 	return c.id
 }
 
+func (c *mockClient) Echo(s string) string {
+	return c.echo
+}
+
+// TestGetEcho also exercises getClientInfoFromRegisteredClients
 func TestGetEcho(t *testing.T) {
 	cases := []struct {
 		name  string
@@ -55,11 +47,23 @@ func TestGetEcho(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			mClient := &mockClient{
-				id:    1,
-				reply: tc.reply,
+				id:   1,
+				echo: tc.reply,
 			}
-			clients := []common.Client{mClient}
-			server := somasServerTester(clients, common.GameState{})
+			clients := map[common.ClientID]common.Client{
+				common.Team1: mClient,
+				common.Team2: mClient,
+				common.Team3: mClient,
+				common.Team4: mClient,
+				common.Team5: mClient,
+				common.Team6: mClient,
+			}
+			server := &SOMASServer{
+				gameState: common.GameState{
+					ClientInfos: getClientInfoFromRegisteredClients(clients),
+				},
+			}
+
 			got := server.GetEcho(tc.input)
 			testutils.CompareTestErrors(tc.want, got, t)
 		})

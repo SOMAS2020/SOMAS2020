@@ -8,14 +8,14 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 )
 
-const id = 6
+const id = common.Team6
 
 func init() {
-	common.RegisterClient(&client{id: id})
+	common.RegisterClient(id, &client{id: id})
 }
 
 type client struct {
-	id int
+	id common.ClientID
 }
 
 func (c *client) Echo(s string) string {
@@ -23,7 +23,7 @@ func (c *client) Echo(s string) string {
 	return s
 }
 
-func (c *client) GetID() int {
+func (c *client) GetID() common.ClientID {
 	return c.id
 }
 
@@ -33,6 +33,6 @@ func (c *client) Logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
 }
 
-func (c *client) GetForageInvestment(gs common.GameState) int {
+func (c *client) GetForageInvestment(gs common.GameState) uint {
 	return 47
 }

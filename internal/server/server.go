@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/forage"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -19,27 +18,43 @@ type Server interface {
 
 // SOMASServer implements Server.
 type SOMASServer struct {
-	clients   []common.Client
 	gameState common.GameState
 }
 
 // SOMASServerFactory returns an instance of the main server we use.
 func SOMASServerFactory() Server {
 	return &SOMASServer{
-		clients: common.RegisteredClients,
 		gameState: common.GameState{
-			Day: 1,
+			Day:         1,
+			ClientInfos: getClientInfoFromRegisteredClients(common.RegisteredClients),
 			ForageRules: common.ForageRules{
-				SplitRuleKey:  forage.DefaultSplitRuleKey,
-				PayoffRuleKey: forage.DefaultPayoffRuleKey,
+				SplitRuleKey:  common.DefaultForageSplitRuleKey,
+				PayoffRuleKey: common.DefaultForagePayoffRuleKey,
 			},
 		},
 	}
 }
 
+func getClientInfoFromRegisteredClients(registeredClients map[common.ClientID]common.Client) map[common.ClientID]common.ClientInfo {
+	clientInfos := map[common.ClientID]common.ClientInfo{}
+
+	for id, c := range registeredClients {
+		clientInfos[id] = common.ClientInfo{
+			Client:    c,
+			Resources: common.DefaultResources,
+			Alive:     true,
+		}
+	}
+
+	return clientInfos
+}
+
 // GetEcho retrieves an echo from all the clients and make sure they are the same.
 func (s *SOMASServer) GetEcho(str string) error {
-	for _, c := range s.clients {
+	cis := s.gameState.ClientInfos
+	for _, id := range common.TeamIDs {
+		ci := cis[id]
+		c := ci.Client
 		got := c.Echo(str)
 		if str != got {
 			return fmt.Errorf("Echo error: want '%v' got '%v' from client %v",
@@ -53,36 +68,4 @@ func (s *SOMASServer) GetEcho(str string) error {
 // Logf is the server's default logger.
 func (s *SOMASServer) Logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
-}
-
-func (s *SOMASServer) StartForageRound() error {
-	s.Logf("Starting forage round!")
-	teamForageInvestments := map[int]int{}
-	totalInvestments := 0
-
-	for _, c := range s.clients {
-		inv := c.GetForageInvestment(s.gameState)
-
-		// the GameState should contain the number of available resources, which we need to check whether a team is "overinvesting".
-
-		teamForageInvestments[c.GetID()] = inv
-		totalInvestments += inv
-		s.Logf("Team %v invests %v resources into foraging", c.GetID(), inv)
-	}
-
-	s.Logf("Total forage investments: %v", totalInvestments)
-
-	// we just treat that everyone who wants to forage will collaborate for now...
-
-	totalPayoff := forage.ComputePayoff(s.gameState.ForageRules.PayoffRuleKey, totalInvestments)
-
-	s.Logf("Total payoff from forage: %v (using rule: %v)", totalPayoff, s.gameState.ForageRules.PayoffRuleKey)
-
-	split := forage.ComputeSplit(s.gameState.ForageRules.SplitRuleKey, teamForageInvestments, totalPayoff)
-
-	s.Logf("Split of payoff: %v", split)
-
-	// we should be sending a message back to the clients now updating their state :) - we should also update GameState
-
-	return nil
 }

@@ -1,12 +1,12 @@
-package forage
+package common
 
 import "testing"
 
 func TestForagePayoffSquare(t *testing.T) {
 	cases := []struct {
 		name  string
-		input int
-		want  int
+		input uint
+		want  uint
 	}{
 		{
 			name:  "basic 0",
@@ -38,8 +38,8 @@ func TestForagePayoffSquare(t *testing.T) {
 func TestForagePayoffCube(t *testing.T) {
 	cases := []struct {
 		name  string
-		input int
-		want  int
+		input uint
+		want  uint
 	}{
 		{
 			name:  "basic 0",

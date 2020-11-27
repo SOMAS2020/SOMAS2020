@@ -6,7 +6,7 @@
 ## Text Editor & Language Server
 
 - You're encouraged to use [VSCode](https://code.visualstudio.com/), with the [Go extension](https://code.visualstudio.com/docs/languages/go).
-- You _must_ use [gopls](https://godoc.org/golang.org/x/tools/gopls). This is a language server that ensures an even code style among members, and it helps catches mistakes as you type them. This should be available in most LSP-enabled editors. If you don't understand this, use VSCode.
+- You _must_ use [gopls](https://godoc.org/golang.org/x/tools/gopls). This is a language server that ensures an even code style among members, and it helps catches mistakes as you type them. This should be available in most LSP-enabled editors. If you don't understand this, use VSCode and the Go extension as in 1.
 
 ## Coding rules
 
