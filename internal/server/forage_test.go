@@ -11,10 +11,15 @@ import (
 type mockClientForage struct {
 	common.Client
 	forageInvestment uint
+	id               common.ClientID
 }
 
 func (c *mockClientForage) GetForageInvestment(g common.GameState) uint {
 	return c.forageInvestment
+}
+
+func (c *mockClientForage) GetID() common.ClientID {
+	return c.id
 }
 
 func TestGetTeamForageInvestments(t *testing.T) {
@@ -23,6 +28,7 @@ func TestGetTeamForageInvestments(t *testing.T) {
 			common.Team1: { // OK
 				Client: &mockClientForage{
 					forageInvestment: 9,
+					id:               common.Team1,
 				},
 				Resources: 10,
 				Alive:     true,
@@ -30,6 +36,7 @@ func TestGetTeamForageInvestments(t *testing.T) {
 			common.Team2: { // DEAD
 				Client: &mockClientForage{
 					forageInvestment: 9,
+					id:               common.Team2,
 				},
 				Resources: 10,
 				Alive:     false,
@@ -37,6 +44,7 @@ func TestGetTeamForageInvestments(t *testing.T) {
 			common.Team3: { // OVERINVEST
 				Client: &mockClientForage{
 					forageInvestment: 1000,
+					id:               common.Team3,
 				},
 				Resources: 10,
 				Alive:     true,
