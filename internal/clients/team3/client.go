@@ -6,6 +6,8 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"gonum.org/v1/gonum/mat"
 )
 
 const id = common.Team3
@@ -18,8 +20,71 @@ type client struct {
 	id common.ClientID
 }
 
+func BasicRuleEvaluator(ruleName string) bool {
+	rm := rules.AvailableRules[ruleName]
+
+	variables := rm.RequiredVariables
+
+	var variableVect []float64
+
+	for _, v := range variables {
+		variableVect = append(variableVect, rules.VariableMap[v]...)
+	}
+
+	variableVect = append(variableVect, 1)
+
+	variableFormalVect := mat.NewVecDense(len(variables)+1, variableVect)
+
+	rows, _ := rm.ApplicableMatrix.Dims()
+
+	actual := make([]float64, rows)
+
+	c := mat.NewVecDense(rows, actual)
+
+	c.MulVec(&rm.ApplicableMatrix, variableFormalVect)
+	aux := rm.AuxillaryVector
+
+	var resultVect []bool
+
+	for i := 0; i < rows; i++ {
+		switch interpret := aux.AtVec(i); interpret {
+		case 0:
+			if c.AtVec(i) > 0 {
+				resultVect = append(resultVect, true)
+			} else {
+				resultVect = append(resultVect, false)
+			}
+		case 1:
+			if c.AtVec(i) == 0 {
+				resultVect = append(resultVect, true)
+			} else {
+				resultVect = append(resultVect, false)
+			}
+		case -1:
+			if c.AtVec(i) >= 0 {
+				resultVect = append(resultVect, true)
+			} else {
+				resultVect = append(resultVect, false)
+			}
+		}
+	}
+
+	var finalBool = true
+
+	for _, v := range resultVect {
+		finalBool = finalBool && v
+	}
+
+	return finalBool
+}
+
 func (c *client) Echo(s string) string {
+
+	rules.RegisterCoolRool()
+	getEval := BasicRuleEvaluator("Kinda Complicated Rule")
+
 	c.Logf("Echo: '%v'", s)
+	c.Logf("Rule Eval: %t", getEval)
 	return s
 }
 
