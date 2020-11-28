@@ -22,7 +22,7 @@ go test ./...
 
 ## Structure
 
-### `Docs`
+### `docs`
 Important documents pertaining to codebase organisation, code conventions and project management. Read before writing code.
 
 ### `internal`
@@ -36,3 +36,4 @@ All code goes in here.
 
  #### `server`
  Self-explanatory.
+ 
