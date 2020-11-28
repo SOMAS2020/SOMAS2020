@@ -6,7 +6,7 @@ TBC
 | Rep? | Name      | Shortcode | Github ID |
 | - | --------- | --------- | --------- |
 | Design | Naim Govani | ng2517 | NGovani |
-| Infrastructure | Lee Lin Hao (LH) | lhl2617 | lhl2617 |
+| Infrastructure | Lin Hao Lee (LH) | lhl2617 | lhl2617 |
 | Infrastructure  | Yusuf Ismail | ymi17 | QFSW |
 | | Olly Larkin | oll16 | olly-larkin |
 | | Michalis Pardalos | mp5617 | mpardalos |
