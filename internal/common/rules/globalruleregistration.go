@@ -4,15 +4,13 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-func RegisterCoolRool() {
+func init() {
+	registerDemoRule()
+}
+
+func registerDemoRule() {
 
 	//A very contrived rule//
-
-	registerNewVariable("number_of_islands_contributing_to_common_pool", 5)
-	registerNewVariable("number_of_failed_forages", 0.5)
-	registerNewVariable("number_of_broken_agreements", 1)
-	registerNewVariable("max_severity_of_sanctions", 2)
-
 	name := "Kinda Complicated Rule"
 	reqVar := []string{
 		"number_of_islands_contributing_to_common_pool",
@@ -26,6 +24,6 @@ func RegisterCoolRool() {
 	aux := []float64{1, 1, 2, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	registerNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 }

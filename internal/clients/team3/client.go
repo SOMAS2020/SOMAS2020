@@ -28,7 +28,12 @@ func BasicRuleEvaluator(ruleName string) bool {
 	var variableVect []float64
 
 	for _, v := range variables {
-		variableVect = append(variableVect, rules.VariableMap[v]...)
+		if rules.VariableMap[v].Multivalued {
+			variableVect = append(variableVect, rules.VariableMap[v].MultiValue...)
+		} else {
+			variableVect = append(variableVect, rules.VariableMap[v].SingleValue)
+		}
+
 	}
 
 	variableVect = append(variableVect, 1)
@@ -77,7 +82,6 @@ func (c *client) Echo(s string) string {
 }
 
 func (c *client) DemoEvaluation() {
-	rules.RegisterCoolRool()
 	getEval := BasicRuleEvaluator("Kinda Complicated Rule")
 	c.Logf("Rule Eval: %t", getEval)
 }
