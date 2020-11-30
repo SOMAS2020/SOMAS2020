@@ -4,9 +4,7 @@ import "errors"
 
 type VariableValuePair struct {
 	VariableName string
-	Multivalued  bool
-	SingleValue  float64
-	MultiValue   []float64
+	Values       []float64
 }
 
 var VariableMap = map[string]VariableValuePair{}

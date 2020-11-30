@@ -57,13 +57,9 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 
 		for _, v := range variables {
 			if val, varOk := rules.VariableMap[v]; varOk {
-				if val.Multivalued {
-					variableVect = append(variableVect, val.MultiValue...)
-				} else {
-					variableVect = append(variableVect, val.SingleValue)
-				}
+				variableVect = append(variableVect, val.Values...)
 			} else {
-				return false, errors.New("Variable: " + v + " not found in global variable cache")
+				return false, errors.New(fmt.Sprintf("Variable: '%v' not found in global variable cache", v))
 			}
 		}
 
@@ -73,7 +69,12 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 		rows, cols := rm.ApplicableMatrix.Dims()
 
 		if cols != len(variableVect) {
-			return false, errors.New("dimension mismatch in evaluating rule: " + ruleName + " rule matrix has " + strconv.Itoa(cols) + " columns, while we sourced " + strconv.Itoa(len(variableVect)) + " variables")
+			return false, errors.New(
+				fmt.Sprintf("dimension mismatch in evaluating rule: '%v' rule matrix has '%v' columns, while we sourced '%v' variables",
+					ruleName,
+					strconv.Itoa(cols),
+					strconv.Itoa(len(variableVect)),
+				))
 		}
 
 		variableFormalVect := mat.NewVecDense(len(variableVect), variableVect)
@@ -110,6 +111,6 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 
 		return finalBool, nil
 	} else {
-		return false, errors.New("rule name: " + ruleName + " provided doesn't exist in global rule list")
+		return false, errors.New(fmt.Sprintf("rule name: '%v' provided doesn't exist in global rule list", ruleName))
 	}
 }

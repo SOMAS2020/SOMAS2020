@@ -9,8 +9,8 @@ func TestRegisterNewVariable(t *testing.T) {
 	if val, ok := VariableMap["Test variable"]; !ok {
 		t.Errorf("Global variable map unable to register new variables")
 	} else {
-		if val.SingleValue != 5 {
-			t.Errorf("Global variable map didn't register correct value for variable, wanted '%v' got '%v'", 5, val.SingleValue)
+		if val.Values[0] != 5 {
+			t.Errorf("Global variable map didn't register correct value for variable, wanted '%v' got '%v'", 5, val.Values[0])
 		}
 	}
 }
@@ -18,9 +18,7 @@ func TestRegisterNewVariable(t *testing.T) {
 func registerTestVariable() {
 	pair := VariableValuePair{
 		VariableName: "Test variable",
-		Multivalued:  false,
-		SingleValue:  5,
-		MultiValue:   nil,
+		Values:       []float64{5},
 	}
 	_ = RegisterNewVariable(pair)
 }
