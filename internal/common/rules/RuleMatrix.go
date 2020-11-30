@@ -33,6 +33,14 @@ func registerNewVariable(variableName string, value float64) {
 
 }
 
+func registerNewSliceVariable(variableName string, value []float64) {
+	if _, ok := AvailableRules[variableName]; ok {
+		//Some form of anger at this point
+	}
+
+	VariableMap[variableName] = value
+}
+
 func modifyVariable(variableName string, newValue float64) {
 	if _, ok := VariableMap[variableName]; ok {
 		VariableMap[variableName] = []float64{newValue}

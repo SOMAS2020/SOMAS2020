@@ -26,5 +26,5 @@ func RegisterCoolRool() {
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
 	registerNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
-
+	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 }
