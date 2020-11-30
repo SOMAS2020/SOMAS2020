@@ -6,17 +6,17 @@ type RuleMatrix struct {
 	ruleName          string
 	RequiredVariables []string
 	ApplicableMatrix  mat.Dense
-	AuxillaryVector   mat.VecDense
+	AuxiliaryVector   mat.VecDense
 }
 
 var AvailableRules = map[string]RuleMatrix{}
 
-func registerNewRule(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxillaryVector mat.VecDense) *RuleMatrix {
+func registerNewRule(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense) *RuleMatrix {
 	if _, ok := AvailableRules[ruleName]; ok {
 		//Some form of anger at this point
 	}
 
-	rm := RuleMatrix{ruleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxillaryVector: auxillaryVector}
+	rm := RuleMatrix{ruleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxiliaryVector: auxiliaryVector}
 	AvailableRules[ruleName] = rm
 	return &rm
 }

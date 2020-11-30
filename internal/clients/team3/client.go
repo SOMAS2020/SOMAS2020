@@ -42,7 +42,7 @@ func BasicRuleEvaluator(ruleName string) bool {
 	c := mat.NewVecDense(rows, actual)
 
 	c.MulVec(&rm.ApplicableMatrix, variableFormalVect)
-	aux := rm.AuxillaryVector
+	aux := rm.AuxiliaryVector
 
 	var resultVect []bool
 

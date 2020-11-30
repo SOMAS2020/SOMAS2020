@@ -23,8 +23,8 @@ func RegisterCoolRool() {
 	v := []float64{1, 0, 0, 0, -4, 0, -1, -1, 0, 2, 0, 0, 0, 1, -2, 0, 0, 1, 0, -1}
 	CoreMatrix := mat.NewDense(4, 5, v)
 	aux := []float64{0, 0, 1, -1}
-	AuxillaryVector := mat.NewVecDense(4, aux)
+	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	registerNewRule(name, reqVar, *CoreMatrix, *AuxillaryVector)
+	registerNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
 
 }
