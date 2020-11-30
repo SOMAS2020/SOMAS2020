@@ -1,6 +1,12 @@
 package common
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"gonum.org/v1/gonum/mat"
+	"strconv"
+)
 
 // ClientID is an enum for client IDs
 type ClientID int
@@ -41,4 +47,69 @@ func RegisterClient(id ClientID, c Client) {
 		panic(fmt.Sprintf("Duplicate client ID %v in RegisterClient!", id))
 	}
 	RegisteredClients[id] = c
+}
+
+func BasicRuleEvaluator(ruleName string) (bool, error) {
+	if rm, ok := rules.AvailableRules[ruleName]; ok {
+		variables := rm.RequiredVariables
+
+		var variableVect []float64
+
+		for _, v := range variables {
+			if val, varOk := rules.VariableMap[v]; varOk {
+				if val.Multivalued {
+					variableVect = append(variableVect, val.MultiValue...)
+				} else {
+					variableVect = append(variableVect, val.SingleValue)
+				}
+			} else {
+				return false, errors.New("Variable: " + v + " not found in global variable cache")
+			}
+		}
+
+		variableVect = append(variableVect, 1)
+
+		//Checking dimensions line up
+		rows, cols := rm.ApplicableMatrix.Dims()
+
+		if cols != len(variableVect) {
+			return false, errors.New("dimension mismatch in evaluating rule: " + ruleName + " rule matrix has " + strconv.Itoa(cols) + " columns, while we sourced " + strconv.Itoa(len(variableVect)) + " variables")
+		}
+
+		variableFormalVect := mat.NewVecDense(len(variableVect), variableVect)
+
+		actual := make([]float64, rows)
+
+		c := mat.NewVecDense(rows, actual)
+
+		c.MulVec(&rm.ApplicableMatrix, variableFormalVect)
+		aux := rm.AuxiliaryVector
+
+		var resultVect []bool
+
+		for i := 0; i < rows; i++ {
+			res := false
+			switch interpret := aux.AtVec(i); interpret {
+			case 0:
+				res = c.AtVec(i) == 0
+			case 1:
+				res = c.AtVec(i) > 0
+			case 2:
+				res = c.AtVec(i) >= 0
+			case 3:
+				res = c.AtVec(i) != 0
+			}
+			resultVect = append(resultVect, res)
+		}
+
+		var finalBool = true
+
+		for _, v := range resultVect {
+			finalBool = finalBool && v
+		}
+
+		return finalBool, nil
+	} else {
+		return false, errors.New("rule name: " + ruleName + " provided doesn't exist in global rule list")
+	}
 }

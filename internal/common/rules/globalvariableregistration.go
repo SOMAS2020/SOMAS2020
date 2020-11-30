@@ -4,7 +4,7 @@ func init() {
 	for _, v := range StaticVariables {
 		e := RegisterNewVariable(v)
 		if e != nil {
-			panic("variable registration gone wrong, variable " + v.VariableName + " has been registered multiple times")
+			panic("variable registration gone wrong, variable: " + v.VariableName + " has been registered multiple times")
 		}
 	}
 }
