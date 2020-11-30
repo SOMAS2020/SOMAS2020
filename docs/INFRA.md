@@ -12,3 +12,5 @@
 1. You do not have access to the main repo's `main` branch. Make your own branch, and PR into `main`. You need to have at least one other approval to merge the change into `main`.
 
 2. Try to be the one pulling in your team's code, so that you don't review them yourselves. It kind of defeats the code review aspect. Unless circumstances dictate, don't approve your own team's code.
+
+3. Review PRs in a timely manner.
