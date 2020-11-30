@@ -4,10 +4,12 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+// Init Registers all global scoped rules
 func init() {
 	registerDemoRule()
 }
 
+// registerDemoRule Defines and registers demo rule
 func registerDemoRule() {
 
 	//A very contrived rule//

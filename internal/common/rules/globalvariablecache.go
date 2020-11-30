@@ -9,6 +9,7 @@ type VariableValuePair struct {
 
 var VariableMap = map[string]VariableValuePair{}
 
+// RegisterNewVariable Registers the provided variable in the global variable cache
 func RegisterNewVariable(pair VariableValuePair) error {
 	if _, ok := VariableMap[pair.VariableName]; ok {
 		return errors.New("attempted to re-register a variable that had already been registered")
@@ -18,6 +19,7 @@ func RegisterNewVariable(pair VariableValuePair) error {
 	}
 }
 
+// UpdateVariable Updates variable in global cache with new value
 func UpdateVariable(variableName string, newValue VariableValuePair) error {
 	if _, ok := VariableMap[variableName]; ok {
 		VariableMap[variableName] = newValue

@@ -2,6 +2,7 @@ package rules
 
 import "testing"
 
+// TestGlobalRuleRegistration checks whether required rules are registered
 func TestGlobalRuleRegistration(t *testing.T) {
 	rulesToFind := []string{
 		"Kinda Complicated Rule",

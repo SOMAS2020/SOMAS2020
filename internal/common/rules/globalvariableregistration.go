@@ -2,6 +2,7 @@ package rules
 
 import "fmt"
 
+// init Registers all veriables defined in Static variables list
 func init() {
 	for _, v := range StaticVariables {
 		e := RegisterNewVariable(v)
@@ -11,6 +12,7 @@ func init() {
 	}
 }
 
+// StaticVariables holds all globally defined variables
 var StaticVariables = []VariableValuePair{
 	{
 		VariableName: "number_of_islands_contributing_to_common_pool",

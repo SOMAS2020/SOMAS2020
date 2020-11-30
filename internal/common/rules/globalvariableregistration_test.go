@@ -2,6 +2,7 @@ package rules
 
 import "testing"
 
+// TestGlobalVariableRegistration checks whether global cache contains all required variable
 func TestGlobalVariableRegistration(t *testing.T) {
 	variablesToFind := []string{
 		"number_of_islands_contributing_to_common_pool",

@@ -49,6 +49,7 @@ func RegisterClient(id ClientID, c Client) {
 	RegisteredClients[id] = c
 }
 
+// BasicRuleEvaluator implements a basic version of the Matrix rule evaluator, provides single boolean output (and error if present)
 func BasicRuleEvaluator(ruleName string) (bool, error) {
 	if rm, ok := rules.AvailableRules[ruleName]; ok {
 		variables := rm.RequiredVariables

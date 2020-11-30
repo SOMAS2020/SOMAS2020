@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestBasicRuleEvaluatorPositive Checks whether rule we expect to evaluate as true actually evaluates as such
 func TestBasicRuleEvaluatorPositive(t *testing.T) {
 	result, err := BasicRuleEvaluator("Kinda Complicated Rule")
 	if !result {
@@ -13,6 +14,7 @@ func TestBasicRuleEvaluatorPositive(t *testing.T) {
 	}
 }
 
+// TestBasicRuleEvaluatorNegative Checks whether rule we expect to evaluate as false actually evaluates as such
 func TestBasicRuleEvaluatorNegative(t *testing.T) {
 	registerTestRule()
 	result, err := BasicRuleEvaluator("Kinda Test Rule")

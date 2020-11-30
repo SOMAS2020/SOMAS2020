@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// TestRegisterNewRule Tests whether the global rule cache is able to register new rules
 func TestRegisterNewRule(t *testing.T) {
 	registerTestRule()
 	if _, ok := AvailableRules["Kinda Test Rule"]; !ok {
