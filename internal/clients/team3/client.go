@@ -71,11 +71,15 @@ func BasicRuleEvaluator(ruleName string) bool {
 func (c *client) Echo(s string) string {
 
 	rules.RegisterCoolRool()
-	getEval := BasicRuleEvaluator("Kinda Complicated Rule")
-
+	//c.DemoEvaluation()
 	c.Logf("Echo: '%v'", s)
-	c.Logf("Rule Eval: %t", getEval)
+
 	return s
+}
+
+func (c *client) DemoEvaluation() {
+	getEval := BasicRuleEvaluator("Kinda Complicated Rule")
+	c.Logf("Rule Eval: %t", getEval)
 }
 
 func (c *client) GetID() common.ClientID {
