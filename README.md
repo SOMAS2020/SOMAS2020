@@ -29,11 +29,10 @@ Important documents pertaining to codebase organisation, code conventions and pr
 All code goes in here.
 
 #### `clients`
- Individual team code goes into the respective folders in this directory.
+Individual team code goes into the respective folders in this directory.
 
- #### `common`
- Common utilities, or system-wide code such as game specification etc.
+#### `common`
+Common utilities, or system-wide code such as game specification etc.
 
- #### `server`
- Self-explanatory.
- 
+#### `server`
+Self-explanatory.
