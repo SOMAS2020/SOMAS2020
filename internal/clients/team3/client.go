@@ -49,23 +49,13 @@ func BasicRuleEvaluator(ruleName string) bool {
 	for i := 0; i < rows; i++ {
 		switch interpret := aux.AtVec(i); interpret {
 		case 0:
-			if c.AtVec(i) > 0 {
-				resultVect = append(resultVect, true)
-			} else {
-				resultVect = append(resultVect, false)
-			}
+			resultVect = append(resultVect, c.AtVec(i) == 0)
 		case 1:
-			if c.AtVec(i) == 0 {
-				resultVect = append(resultVect, true)
-			} else {
-				resultVect = append(resultVect, false)
-			}
-		case -1:
-			if c.AtVec(i) >= 0 {
-				resultVect = append(resultVect, true)
-			} else {
-				resultVect = append(resultVect, false)
-			}
+			resultVect = append(resultVect, c.AtVec(i) > 0)
+		case 2:
+			resultVect = append(resultVect, c.AtVec(i) >= 0)
+		case 3:
+			resultVect = append(resultVect, c.AtVec(i) != 0)
 		}
 	}
 
