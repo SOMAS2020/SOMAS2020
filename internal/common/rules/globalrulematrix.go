@@ -1,6 +1,9 @@
 package rules
 
-import "gonum.org/v1/gonum/mat"
+import (
+	"errors"
+	"gonum.org/v1/gonum/mat"
+)
 
 type RuleMatrix struct {
 	ruleName          string
@@ -41,8 +44,11 @@ func registerNewSliceVariable(variableName string, value []float64) {
 	VariableMap[variableName] = value
 }
 
-func modifyVariable(variableName string, newValue float64) {
+func modifyVariable(variableName string, newValue float64) error {
 	if _, ok := VariableMap[variableName]; ok {
 		VariableMap[variableName] = []float64{newValue}
+		return nil
+	} else {
+		return errors.New("attempted to modify a variable has not been defined")
 	}
 }
