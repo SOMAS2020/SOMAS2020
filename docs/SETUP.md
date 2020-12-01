@@ -30,9 +30,11 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 3. DO NOT TOUCH code you don't own unless you have a good reason to. If you have a good reason to, do it in a separate PR and notify the owners of the code.
 
-4. Keep your team repo base up to date with the main repo.
+4. Do not use `panic` or `die`--return an `error` instead!
 
 5. Do not use system-specific pacakges (e.g. `internal/syscall/unix`).
+
+6. Keep your team repo base up to date with the main repo.
 
 ## Repo
 
