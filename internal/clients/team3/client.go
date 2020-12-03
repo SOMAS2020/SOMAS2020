@@ -3,9 +3,8 @@ package team3
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"log"
 )
 
 const id = common.Team3
@@ -19,8 +18,19 @@ type client struct {
 }
 
 func (c *client) Echo(s string) string {
+
+	//c.DemoEvaluation()
 	c.Logf("Echo: '%v'", s)
+
 	return s
+}
+
+func (c *client) DemoEvaluation() {
+	evalResult, err := common.BasicRuleEvaluator("Kinda Complicated Rule")
+	if err != nil {
+		panic(err.Error())
+	}
+	c.Logf("Rule Eval: %t", evalResult)
 }
 
 func (c *client) GetID() common.ClientID {
