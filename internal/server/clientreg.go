@@ -9,3 +9,5 @@ import (
 	_ "github.com/SOMAS2020/SOMAS2020/internal/clients/team5"
 	_ "github.com/SOMAS2020/SOMAS2020/internal/clients/team6"
 )
+
+// lol
