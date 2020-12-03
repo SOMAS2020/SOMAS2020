@@ -1,7 +1,7 @@
 name: Protected folder guards
 
 on:
-  pull_request:
+  [create, pull_request]:
     branches: [ main ]
     paths:
     - 'internal/server/**'
