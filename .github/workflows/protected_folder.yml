@@ -3,8 +3,8 @@ name: Protected folder guards
 on:
   [create, pull_request]:
     branches: [ main ]
-    paths:
-    - '!internal/client/**'
+    paths-ignore:
+    - 'internal/client/**'
 
 jobs:
   test:
