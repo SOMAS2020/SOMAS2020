@@ -1,10 +1,13 @@
 name: Protected folder guards
 
 on:
-  [create, pull_request]:
-    branches: [ main ]
+  pull_request:
+    types:
+      - opened
+    branches:
+      - main
     paths-ignore:
-    - 'internal/client/**'
+      - 'internal/client/**'
 
 jobs:
   test:
