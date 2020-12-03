@@ -10,7 +10,7 @@ import (
 func TestBasicRuleEvaluatorPositive(t *testing.T) {
 	result, err := BasicRuleEvaluator("Kinda Complicated Rule")
 	if !result {
-		t.Errorf("Rule evaluation came as false, when it waqs expected to be true, potential error with value '%v'", err)
+		t.Errorf("Rule evaluation came as false, when it was expected to be true, potential error with value '%v'", err)
 	}
 }
 
