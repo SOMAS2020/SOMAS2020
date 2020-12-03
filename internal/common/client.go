@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"gonum.org/v1/gonum/mat"
-	"strconv"
 )
 
 // ClientID is an enum for client IDs
@@ -51,10 +50,9 @@ func RegisterClient(id ClientID, c Client) {
 
 // BasicRuleEvaluator implements a basic version of the Matrix rule evaluator, provides single boolean output (and error if present)
 func BasicRuleEvaluator(ruleName string) (bool, error) {
+	var variableVect []float64
 	if rm, ok := rules.AvailableRules[ruleName]; ok {
 		variables := rm.RequiredVariables
-
-		var variableVect []float64
 
 		for _, v := range variables {
 			if val, varOk := rules.VariableMap[v]; varOk {
@@ -67,29 +65,29 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 		variableVect = append(variableVect, 1)
 
 		//Checking dimensions line up
-		rows, cols := rm.ApplicableMatrix.Dims()
+		nRows, nCols := rm.ApplicableMatrix.Dims()
 
-		if cols != len(variableVect) {
+		if nCols != len(variableVect) {
 			return false, errors.New(
 				fmt.Sprintf("dimension mismatch in evaluating rule: '%v' rule matrix has '%v' columns, while we sourced '%v' variables",
 					ruleName,
-					strconv.Itoa(cols),
-					strconv.Itoa(len(variableVect)),
+					nCols,
+					len(variableVect),
 				))
 		}
 
 		variableFormalVect := mat.NewVecDense(len(variableVect), variableVect)
 
-		actual := make([]float64, rows)
+		actual := make([]float64, nRows)
 
-		c := mat.NewVecDense(rows, actual)
+		c := mat.NewVecDense(nRows, actual)
 
 		c.MulVec(&rm.ApplicableMatrix, variableFormalVect)
 		aux := rm.AuxiliaryVector
 
 		var resultVect []bool
 
-		for i := 0; i < rows; i++ {
+		for i := 0; i < nRows; i++ {
 			res := false
 			switch interpret := aux.AtVec(i); interpret {
 			case 0:
@@ -100,6 +98,8 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 				res = c.AtVec(i) >= 0
 			case 3:
 				res = c.AtVec(i) != 0
+			default:
+				return false, errors.New(fmt.Sprintf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret))
 			}
 			resultVect = append(resultVect, res)
 		}

@@ -26,11 +26,11 @@ func (c *client) Echo(s string) string {
 }
 
 func (c *client) DemoEvaluation() {
-	getEval, err := common.BasicRuleEvaluator("Kinda Complicated Rule")
+	evalResult, err := common.BasicRuleEvaluator("Kinda Complicated Rule")
 	if err != nil {
 		panic(err.Error())
 	}
-	c.Logf("Rule Eval: %t", getEval)
+	c.Logf("Rule Eval: %t", evalResult)
 }
 
 func (c *client) GetID() common.ClientID {

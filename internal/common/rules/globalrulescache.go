@@ -1,16 +1,20 @@
 package rules
 
-import "gonum.org/v1/gonum/mat"
+import (
+	"errors"
+	"fmt"
+	"gonum.org/v1/gonum/mat"
+)
 
 var AvailableRules = map[string]RuleMatrix{}
 
 // RegisterNewRule Creates and registers new rule based on inputs
-func RegisterNewRule(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense) *RuleMatrix {
+func RegisterNewRule(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense) (*RuleMatrix, error) {
 	if _, ok := AvailableRules[ruleName]; ok {
-		panic("attempt to re-register rule with name " + ruleName)
+		return nil, errors.New(fmt.Sprintf("Rule '%v' has already bene registered", ruleName))
 	}
 
 	rm := RuleMatrix{ruleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxiliaryVector: auxiliaryVector}
 	AvailableRules[ruleName] = rm
-	return &rm
+	return &rm, nil
 }
