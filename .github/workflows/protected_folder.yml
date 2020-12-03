@@ -4,7 +4,7 @@ on:
   [create, pull_request]:
     branches: [ main ]
     paths:
-    - 'internal/server/**'
+    - '!internal/client/**'
 
 jobs:
   test:
