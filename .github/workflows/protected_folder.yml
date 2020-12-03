@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Warning
-
-      run: |
-        echo "::warning:: This diff contains changes in protected folders!"
+      uses: mb2dev/github-action-comment-pull-request@1.0.0
+      with:
+        message: "Warning! This diff contains changes in protected folders."
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
