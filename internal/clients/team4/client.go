@@ -6,16 +6,17 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = common.Team4
+const id = shared.Team4
 
 func init() {
 	common.RegisterClient(id, &client{id: id})
 }
 
 type client struct {
-	id common.ClientID
+	id shared.ClientID
 }
 
 func (c *client) Echo(s string) string {
@@ -23,7 +24,7 @@ func (c *client) Echo(s string) string {
 	return s
 }
 
-func (c *client) GetID() common.ClientID {
+func (c *client) GetID() shared.ClientID {
 	return c.id
 }
 
