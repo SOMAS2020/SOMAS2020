@@ -1,5 +1,7 @@
 package common
 
+import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+
 // DefaultResources is the default number of resources at the start of the game
 const DefaultResources = 100
 
@@ -26,9 +28,9 @@ func (c ClientInfo) Copy() ClientInfo {
 type GameState struct {
 	// Day represents the current (1-index) day of the game.
 	Day int
-	// ClientInfos map from the ClientID to ClientInfo.
+	// ClientInfos map from the shared.ClientID to ClientInfo.
 	// EXTRA note: Golang maps are made to be random!
-	ClientInfos map[ClientID]ClientInfo
+	ClientInfos map[shared.ClientID]ClientInfo
 
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
@@ -41,8 +43,8 @@ func (g GameState) Copy() GameState {
 	return ret
 }
 
-func copyClientInfos(m map[ClientID]ClientInfo) map[ClientID]ClientInfo {
-	ret := make(map[ClientID]ClientInfo, len(m))
+func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]ClientInfo {
+	ret := make(map[shared.ClientID]ClientInfo, len(m))
 	for k, v := range m {
 		ret[k] = v.Copy()
 	}

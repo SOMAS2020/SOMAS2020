@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -59,7 +60,7 @@ func (s *SOMASServer) runRound() error {
 // getEcho retrieves an echo from all the clients and make sure they are the same.
 func (s *SOMASServer) getEcho(str string) error {
 	cis := s.gameState.ClientInfos
-	for _, id := range common.TeamIDs {
+	for _, id := range shared.TeamIDs {
 		ci := cis[id]
 		c := ci.Client
 		got := c.Echo(str)
@@ -75,7 +76,7 @@ func (s *SOMASServer) getEcho(str string) error {
 // killAllClients sets all the Alive states of the clients to false to end the game.
 // Only used for testing to preemptively end the game.
 func (s *SOMASServer) killAllClients() {
-	for _, id := range common.TeamIDs {
+	for _, id := range shared.TeamIDs {
 		ci := s.gameState.ClientInfos[id]
 		ci.Alive = false
 		s.gameState.ClientInfos[id] = ci

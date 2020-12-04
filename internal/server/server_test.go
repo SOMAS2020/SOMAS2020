@@ -5,16 +5,17 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 )
 
 type mockClientEcho struct {
 	common.Client
-	id   common.ClientID
+	id   shared.ClientID
 	echo string
 }
 
-func (c *mockClientEcho) GetID() common.ClientID {
+func (c *mockClientEcho) GetID() shared.ClientID {
 	return c.id
 }
 
@@ -40,23 +41,23 @@ func TestGetEcho(t *testing.T) {
 			name:  "wrong reply",
 			input: "42",
 			reply: "43",
-			want:  fmt.Errorf("Echo error: want '42' got '43' from Team1"),
+			want:  fmt.Errorf("Echo error: want '42' got '43' from client Team1"),
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			mClient := &mockClientEcho{
-				id:   common.Team1,
+				id:   shared.Team1,
 				echo: tc.reply,
 			}
-			clients := map[common.ClientID]common.Client{
-				common.Team1: mClient,
-				common.Team2: mClient,
-				common.Team3: mClient,
-				common.Team4: mClient,
-				common.Team5: mClient,
-				common.Team6: mClient,
+			clients := map[shared.ClientID]common.Client{
+				shared.Team1: mClient,
+				shared.Team2: mClient,
+				shared.Team3: mClient,
+				shared.Team4: mClient,
+				shared.Team5: mClient,
+				shared.Team6: mClient,
 			}
 			server := &SOMASServer{
 				gameState: common.GameState{
