@@ -13,6 +13,13 @@ type ClientInfo struct {
 	Alive bool
 
 	// [INFRA] add more client information here
+	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
+}
+
+// Copy returns a deep copy of the ClientInfo.
+func (c ClientInfo) Copy() ClientInfo {
+	ret := c
+	return ret
 }
 
 // GameState represents the game's state.
@@ -37,7 +44,7 @@ func (g GameState) Copy() GameState {
 func copyClientInfos(m map[ClientID]ClientInfo) map[ClientID]ClientInfo {
 	ret := make(map[ClientID]ClientInfo, len(m))
 	for k, v := range m {
-		ret[k] = v
+		ret[k] = v.Copy()
 	}
 	return ret
 }
