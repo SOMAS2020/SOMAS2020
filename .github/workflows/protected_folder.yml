@@ -14,8 +14,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Warning
-      uses: mb2dev/github-action-comment-pull-request@1.0.0
+      uses: mshick/add-pr-comment@v1
       with:
         message: "# ⚠️Warning! This diff contains changes in protected folders"
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        proxy-url: https://add-pr-comment-proxy-64rv25thfq-ew.a.run.app
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
     
