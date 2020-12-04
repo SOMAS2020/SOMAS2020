@@ -33,14 +33,14 @@ func SOMASServerFactory() Server {
 // EntryPoint function that returns a list of historic common.GameStates until the
 // game ends.
 func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
-	states := []common.GameState{s.gameState}
+	states := []common.GameState{s.gameState.Copy()}
 
 	for anyClientsAlive(s.gameState.ClientInfos) {
 		s.gameState.Day++
 		if err := s.runRound(); err != nil {
 			return states, fmt.Errorf("Error running round '%v': %v", s.gameState.Day, err)
 		}
-		states = append(states, s.gameState)
+		states = append(states, s.gameState.Copy())
 	}
 
 	return states, nil

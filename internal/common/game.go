@@ -23,5 +23,21 @@ type GameState struct {
 	// EXTRA note: Golang maps are made to be random!
 	ClientInfos map[ClientID]ClientInfo
 
-	// 	[INFRA] add more details regarding state of game here
+	// [INFRA] add more details regarding state of game here
+	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, lists etc.)
+}
+
+// Copy returns a deep copy of the GameState.
+func (g GameState) Copy() GameState {
+	ret := g
+	ret.ClientInfos = copyClientInfos(g.ClientInfos)
+	return ret
+}
+
+func copyClientInfos(m map[ClientID]ClientInfo) map[ClientID]ClientInfo {
+	ret := make(map[ClientID]ClientInfo, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
 }
