@@ -3,18 +3,20 @@ package team3
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"log"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = common.Team3
+const id = shared.Team3
 
 func init() {
 	common.RegisterClient(id, &client{id: id})
 }
 
 type client struct {
-	id common.ClientID
+	id shared.ClientID
 }
 
 func (c *client) Echo(s string) string {
@@ -33,7 +35,7 @@ func (c *client) DemoEvaluation() {
 	c.Logf("Rule Eval: %t", evalResult)
 }
 
-func (c *client) GetID() common.ClientID {
+func (c *client) GetID() shared.ClientID {
 	return c.id
 }
 

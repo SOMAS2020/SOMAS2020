@@ -3,43 +3,24 @@ package common
 import (
 	"errors"
 	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
 )
-
-// ClientID is an enum for client IDs
-type ClientID int
-
-const (
-	// Team1 ID
-	Team1 ClientID = iota
-	// Team2 ID
-	Team2
-	// Team3 ID
-	Team3
-	// Team4 ID
-	Team4
-	// Team5 ID
-	Team5
-	// Team6 ID
-	Team6
-)
-
-// TeamIDs contain sequential IDs of all teams
-var TeamIDs = [...]ClientID{Team1, Team2, Team3, Team4, Team5, Team6}
 
 // Client is a base interface to be implemented by each client struct.
 type Client interface {
 	Echo(s string) string
-	GetID() ClientID
+	GetID() shared.ClientID
 	Logf(format string, a ...interface{})
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
-var RegisteredClients = map[ClientID]Client{}
+var RegisteredClients = map[shared.ClientID]Client{}
 
 // RegisterClient registers clients into RegisteredClients
-func RegisterClient(id ClientID, c Client) {
+func RegisterClient(id shared.ClientID, c Client) {
 	// prevent double registrations
 	if _, ok := RegisteredClients[id]; ok {
 		// OK to panic here, as this is a _crucial_ step.
