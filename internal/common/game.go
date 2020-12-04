@@ -24,7 +24,7 @@ type GameState struct {
 	ClientInfos map[ClientID]ClientInfo
 
 	// [INFRA] add more details regarding state of game here
-	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, lists etc.)
+	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
 }
 
 // Copy returns a deep copy of the GameState.
