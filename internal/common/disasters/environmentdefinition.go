@@ -56,7 +56,7 @@ func (e *Environment) SampleForDisaster() DisasterReport {
 	pdfMag := distuv.Exponential{Rate: e.disasterParams.MagnitudeLambda} // Rate = lambda
 	pdfGlobal := distuv.Bernoulli{P: e.disasterParams.GlobalProb}        // Bernoulli RV where `P` = P(X=1)
 
-	dR := DisasterReport{0, -1, -18} // default: no disaster. Zero magnitude with arb co-ords
+	dR := DisasterReport{0, -1, -1} // default: no disaster. Zero magnitude with arb co-ords
 
 	if pdfGlobal.Rand() == 1.0 { // D Day
 		dR = DisasterReport{pdfMag.Rand(), pdfX.Rand(), pdfY.Rand()}
@@ -70,7 +70,7 @@ func (e Environment) DisasterEffects() map[string]float64 {
 	out := map[string]float64{}                                  // TODO: change key type to ClientID
 	epiX, epiY := e.lastDisasterReport.x, e.lastDisasterReport.x // epicentre of the disaster (peak mag)
 	for _, island := range e.geography.islands {
-		out[island.name] = math.Sqrt(math.Pow(island.x-epiX, 2) + math.Pow(island.y-epiY, 2))
+		out[island.name] = e.lastDisasterReport.magnitude / (math.Sqrt(math.Pow(island.x-epiX, 2) + math.Pow(island.y-epiY, 2))) // effect on island i is inverse prop. to square of distance to epicentre
 	}
 	return out
 }
