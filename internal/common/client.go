@@ -3,6 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"gonum.org/v1/gonum/mat"
 )

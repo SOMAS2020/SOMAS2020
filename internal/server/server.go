@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -25,6 +26,7 @@ func SOMASServerFactory() Server {
 		gameState: common.GameState{
 			Day:         1,
 			ClientInfos: getClientInfoFromRegisteredClients(common.RegisteredClients),
+			Environment: initEnvironment(),
 		},
 	}
 }
@@ -62,4 +64,16 @@ func (s *SOMASServer) GetEcho(str string) error {
 // Logf is the server's default logger.
 func (s *SOMASServer) Logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
+}
+
+func initEnvironment() *disasters.Environment {
+	islandNames := []string{}
+	for id := range common.RegisteredClients {
+		islandNames = append(islandNames, fmt.Sprintf("Island %v", id))
+	}
+	xBounds := [2]float64{0, 10}
+	yBounds := [2]float64{0, 10}
+	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0}
+	env, _ := disasters.InitEnvironment(islandNames, xBounds, yBounds, dp)
+	return env
 }
