@@ -12,7 +12,7 @@ import (
 type Server interface {
 	// EntryPoint function that returns a list of historic common.GameStates until the
 	// game ends.
-	EntryPoint() []common.GameState
+	EntryPoint() ([]common.GameState, error)
 }
 
 // SOMASServer implements Server.
@@ -32,23 +32,28 @@ func SOMASServerFactory() Server {
 
 // EntryPoint function that returns a list of historic common.GameStates until the
 // game ends.
-func (s *SOMASServer) EntryPoint() []common.GameState {
+func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
 	states := []common.GameState{s.gameState}
 
 	for anyClientsAlive(s.gameState.ClientInfos) {
 		s.gameState.Day++
-		s.runRound()
+		if err := s.runRound(); err != nil {
+			return states, fmt.Errorf("Error running round '%v': %v", s.gameState.Day, err)
+		}
 		states = append(states, s.gameState)
 	}
 
-	return states
+	return states, nil
 }
 
 // runRound runs a round (day) of the game.
-func (s *SOMASServer) runRound() {
+func (s *SOMASServer) runRound() error {
 	// TODO: Implement round logic
-	s.getEcho("HELLO WORLD!")
+	if err := s.getEcho("HELLO WORLD!"); err != nil {
+		return fmt.Errorf("getEcho failed with: %v", err)
+	}
 	s.killAllClients()
+	return nil
 }
 
 // getEcho retrieves an echo from all the clients and make sure they are the same.

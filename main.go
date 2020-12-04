@@ -9,9 +9,13 @@ import (
 
 func main() {
 	s := server.SOMASServerFactory()
-	gameStates := s.EntryPoint()
-	for _, st := range gameStates {
-		fmt.Printf("DAY: %v\n", st.Day)
-		fmt.Printf("%#v\n", st)
+	if gameStates, err := s.EntryPoint(); err != nil {
+		fmt.Printf("Run failed with: %v", err)
+	} else {
+		for _, st := range gameStates {
+			fmt.Printf("DAY: %v\n", st.Day)
+			fmt.Printf("%#v\n", st)
+		}
 	}
+
 }
