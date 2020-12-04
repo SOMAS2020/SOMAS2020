@@ -41,7 +41,7 @@ func TestGetEcho(t *testing.T) {
 			name:  "wrong reply",
 			input: "42",
 			reply: "43",
-			want:  fmt.Errorf("Echo error: want '42' got '43' from client Team1"),
+			want:  fmt.Errorf("Echo error: want '42' got '43' from Team1"),
 		},
 	}
 
