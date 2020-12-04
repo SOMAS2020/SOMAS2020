@@ -8,17 +8,17 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 )
 
-type mockClient struct {
+type mockClientEcho struct {
 	common.Client
 	id   common.ClientID
 	echo string
 }
 
-func (c *mockClient) GetID() common.ClientID {
+func (c *mockClientEcho) GetID() common.ClientID {
 	return c.id
 }
 
-func (c *mockClient) Echo(s string) string {
+func (c *mockClientEcho) Echo(s string) string {
 	return c.echo
 }
 
@@ -40,14 +40,14 @@ func TestGetEcho(t *testing.T) {
 			name:  "wrong reply",
 			input: "42",
 			reply: "43",
-			want:  fmt.Errorf("Echo error: want '42' got '43' from client 1"),
+			want:  fmt.Errorf("Echo error: want '42' got '43' from Team1"),
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			mClient := &mockClient{
-				id:   1,
+			mClient := &mockClientEcho{
+				id:   common.Team1,
 				echo: tc.reply,
 			}
 			clients := map[common.ClientID]common.Client{
@@ -64,7 +64,7 @@ func TestGetEcho(t *testing.T) {
 				},
 			}
 
-			got := server.GetEcho(tc.input)
+			got := server.getEcho(tc.input)
 			testutils.CompareTestErrors(tc.want, got, t)
 		})
 	}

@@ -3,6 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"gonum.org/v1/gonum/mat"
 )
@@ -27,6 +28,10 @@ const (
 
 // TeamIDs contain sequential IDs of all teams
 var TeamIDs = [...]ClientID{Team1, Team2, Team3, Team4, Team5, Team6}
+
+func (c ClientID) String() string {
+	return [...]string{"Team1", "Team2", "Team3", "Team4", "Team5", "Team6"}[c]
+}
 
 // Client is a base interface to be implemented by each client struct.
 type Client interface {
