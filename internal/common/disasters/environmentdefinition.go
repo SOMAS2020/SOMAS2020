@@ -12,14 +12,14 @@ type Island struct {
 	x, y float64
 }
 
-// ArchipeligoGeography captures the collection of island geographies including bounding region of whole archipelago
-type ArchipeligoGeography struct {
+// ArchipelagoGeography captures the collection of island geographies including bounding region of whole archipelago
+type ArchipelagoGeography struct {
 	islands          []Island
 	xBounds, ybounds [2]float64
 }
 
 // IslandLocation is a convenience method to extract an island's location given its index
-func (a ArchipeligoGeography) IslandLocation(index int) []float64 {
+func (a ArchipelagoGeography) IslandLocation(index int) []float64 {
 	island := a.islands[index]
 	return []float64{island.x, island.y}
 }
@@ -39,7 +39,7 @@ type DisasterReport struct {
 
 // Environment holds the state of the enivornment
 type Environment struct {
-	geography          ArchipeligoGeography
+	geography          ArchipelagoGeography
 	disasterParams     DisasterParameters
 	lastDisasterReport DisasterReport
 }
