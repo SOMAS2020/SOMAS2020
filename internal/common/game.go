@@ -15,6 +15,13 @@ type ClientInfo struct {
 	Alive bool
 
 	// [INFRA] add more client information here
+	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
+}
+
+// Copy returns a deep copy of the ClientInfo.
+func (c ClientInfo) Copy() ClientInfo {
+	ret := c
+	return ret
 }
 
 // GameState represents the game's state.
@@ -25,5 +32,21 @@ type GameState struct {
 	// EXTRA note: Golang maps are made to be random!
 	ClientInfos map[shared.ClientID]ClientInfo
 
-	// 	[INFRA] add more details regarding state of game here
+	// [INFRA] add more details regarding state of game here
+	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
+}
+
+// Copy returns a deep copy of the GameState.
+func (g GameState) Copy() GameState {
+	ret := g
+	ret.ClientInfos = copyClientInfos(g.ClientInfos)
+	return ret
+}
+
+func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]ClientInfo {
+	ret := make(map[shared.ClientID]ClientInfo, len(m))
+	for k, v := range m {
+		ret[k] = v.Copy()
+	}
+	return ret
 }

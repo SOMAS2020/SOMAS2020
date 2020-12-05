@@ -11,8 +11,9 @@ import (
 
 // Server represents the primary server interface exposed to the simulation.
 type Server interface {
-	GetEcho(s string) error
-	Logf(format string, a ...interface{})
+	// EntryPoint function that returns a list of historic common.GameStates until the
+	// game ends.
+	EntryPoint() ([]common.GameState, error)
 }
 
 // SOMASServer implements Server.
@@ -30,37 +31,59 @@ func SOMASServerFactory() Server {
 	}
 }
 
-func getClientInfoFromRegisteredClients(registeredClients map[shared.ClientID]common.Client) map[shared.ClientID]common.ClientInfo {
-	clientInfos := map[shared.ClientID]common.ClientInfo{}
+// EntryPoint function that returns a list of historic common.GameStates until the
+// game ends.
+func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
+	states := []common.GameState{s.gameState.Copy()}
 
-	for id, c := range registeredClients {
-		clientInfos[id] = common.ClientInfo{
-			Client:    c,
-			Resources: common.DefaultResources,
-			Alive:     true,
+	for anyClientsAlive(s.gameState.ClientInfos) {
+		s.gameState.Day++
+		if err := s.runRound(); err != nil {
+			return states, fmt.Errorf("Error running round '%v': %v", s.gameState.Day, err)
 		}
+		states = append(states, s.gameState.Copy())
 	}
 
-	return clientInfos
+	return states, nil
 }
 
-// GetEcho retrieves an echo from all the clients and make sure they are the same.
-func (s *SOMASServer) GetEcho(str string) error {
+// runRound runs a round (day) of the game.
+func (s *SOMASServer) runRound() error {
+	// TODO: Implement round logic
+	if err := s.getEcho("HELLO WORLD!"); err != nil {
+		return fmt.Errorf("getEcho failed with: %v", err)
+	}
+	s.killAllClients()
+	return nil
+}
+
+// getEcho retrieves an echo from all the clients and make sure they are the same.
+func (s *SOMASServer) getEcho(str string) error {
 	cis := s.gameState.ClientInfos
 	for _, id := range shared.TeamIDs {
 		ci := cis[id]
 		c := ci.Client
 		got := c.Echo(str)
 		if str != got {
-			return fmt.Errorf("Echo error: want '%v' got '%v' from client %v",
+			return fmt.Errorf("Echo error: want '%v' got '%v' from %v",
 				str, got, c.GetID())
 		}
-		s.Logf("Received echo `%v` from client %v", str, c.GetID())
+		s.logf("Received echo `%v` from %v", str, c.GetID())
 	}
 	return nil
 }
 
-// Logf is the server's default logger.
-func (s *SOMASServer) Logf(format string, a ...interface{}) {
+// killAllClients sets all the Alive states of the clients to false to end the game.
+// Only used for testing to preemptively end the game.
+func (s *SOMASServer) killAllClients() {
+	for _, id := range shared.TeamIDs {
+		ci := s.gameState.ClientInfos[id]
+		ci.Alive = false
+		s.gameState.ClientInfos[id] = ci
+	}
+}
+
+// logf is the server's default logger.
+func (s *SOMASServer) logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
 }
