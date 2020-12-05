@@ -7,6 +7,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -31,8 +32,8 @@ func SOMASServerFactory() Server {
 	}
 }
 
-func getClientInfoFromRegisteredClients(registeredClients map[common.ClientID]common.Client) map[common.ClientID]common.ClientInfo {
-	clientInfos := map[common.ClientID]common.ClientInfo{}
+func getClientInfoFromRegisteredClients(registeredClients map[shared.ClientID]common.Client) map[shared.ClientID]common.ClientInfo {
+	clientInfos := map[shared.ClientID]common.ClientInfo{}
 
 	for id, c := range registeredClients {
 		clientInfos[id] = common.ClientInfo{
@@ -48,7 +49,7 @@ func getClientInfoFromRegisteredClients(registeredClients map[common.ClientID]co
 // GetEcho retrieves an echo from all the clients and make sure they are the same.
 func (s *SOMASServer) GetEcho(str string) error {
 	cis := s.gameState.ClientInfos
-	for _, id := range common.TeamIDs {
+	for _, id := range shared.TeamIDs {
 		ci := cis[id]
 		c := ci.Client
 		got := c.Echo(str)
