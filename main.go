@@ -2,10 +2,23 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 )
 
 func main() {
 	s := server.SOMASServerFactory()
-	s.GetEcho("Hello World")
+	if gameStates, err := s.EntryPoint(); err != nil {
+		log.Printf("Run failed with: %v", err)
+		os.Exit(1)
+	} else {
+		for _, st := range gameStates {
+			fmt.Printf("===== DAY %v =====\n", st.Day)
+			// this is fine for now, we shall visualise the data later on
+			fmt.Printf("%#v\n", st)
+		}
+	}
 }
