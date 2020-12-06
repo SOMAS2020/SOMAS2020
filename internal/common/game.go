@@ -1,6 +1,9 @@
 package common
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 // DefaultResources is the default number of resources at the start of the game
 const DefaultResources = 100
@@ -30,6 +33,7 @@ type GameState struct {
 	Day int
 	// ClientInfos map from the shared.ClientID to ClientInfo.
 	// EXTRA note: Golang maps are made to be random!
+	Environment *disasters.Environment
 	ClientInfos map[shared.ClientID]ClientInfo
 
 	// [INFRA] add more details regarding state of game here
