@@ -1,7 +1,9 @@
 package disasters
 
+import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+
 // InitEnvironment initialises environment according to definitions
-func InitEnvironment(islandNames []string, xBounds [2]float64, yBounds [2]float64, disasterParams DisasterParameters) (*Environment, error) {
+func InitEnvironment(islandNames []shared.ClientID, xBounds [2]float64, yBounds [2]float64, disasterParams DisasterParameters) (*Environment, error) {
 
 	ag := ArchipelagoGeography{[]Island{}, xBounds, yBounds}
 
