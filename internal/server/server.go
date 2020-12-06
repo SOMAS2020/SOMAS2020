@@ -52,6 +52,8 @@ func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
 // runRound runs a round (day) of the game.
 func (s *SOMASServer) runRound() error {
 	// TODO: Implement round logic
+	s.gameState.Environment.SampleForDisaster()
+	fmt.Println(s.gameState.Environment.DisplayReport())
 	if err := s.getEcho("HELLO WORLD!"); err != nil {
 		return fmt.Errorf("getEcho failed with: %v", err)
 	}
