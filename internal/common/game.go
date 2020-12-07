@@ -8,8 +8,10 @@ type ClientInfo struct {
 	// Made an integer so an island can "owe" resources.
 	Resources int
 
-	Alive bool
-
+	// Normal Condition: Alive = true, Critical = false, CriticalConsecutiveTurnsLeft = config.MaxCriticalConsecutiveTurnsLeft
+	// Critical Condition: Alive = true, Critical = false, CriticalConsecutiveTurnsLeft <= config.MaxCriticalConsecutiveTurnsLeft
+	// Dead: Alive = false
+	Alive                        bool
 	Critical                     bool
 	CriticalConsecutiveTurnsLeft uint
 
