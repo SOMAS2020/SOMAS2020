@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -25,7 +26,8 @@ type SOMASServer struct {
 func SOMASServerFactory() Server {
 	return &SOMASServer{
 		gameState: common.GameState{
-			Day:         1,
+			Season:      config.InitialSeason,
+			Turn:        config.InitialTurn,
 			ClientInfos: getClientInfoFromRegisteredClients(common.RegisteredClients),
 		},
 	}
@@ -36,25 +38,13 @@ func SOMASServerFactory() Server {
 func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
 	states := []common.GameState{s.gameState.Copy()}
 
-	for anyClientsAlive(s.gameState.ClientInfos) {
-		s.gameState.Day++
-		if err := s.runRound(); err != nil {
-			return states, fmt.Errorf("Error running round '%v': %v", s.gameState.Day, err)
+	for !s.gameOver(config.MaxTurns, config.MaxSeasons) {
+		if err := s.runTurn(); err != nil {
+			return states, err
 		}
 		states = append(states, s.gameState.Copy())
 	}
-
 	return states, nil
-}
-
-// runRound runs a round (day) of the game.
-func (s *SOMASServer) runRound() error {
-	// TODO: Implement round logic
-	if err := s.getEcho("HELLO WORLD!"); err != nil {
-		return fmt.Errorf("getEcho failed with: %v", err)
-	}
-	s.killAllClients()
-	return nil
 }
 
 // getEcho retrieves an echo from all the clients and make sure they are the same.
@@ -71,16 +61,6 @@ func (s *SOMASServer) getEcho(str string) error {
 		s.logf("Received echo `%v` from %v", str, c.GetID())
 	}
 	return nil
-}
-
-// killAllClients sets all the Alive states of the clients to false to end the game.
-// Only used for testing to preemptively end the game.
-func (s *SOMASServer) killAllClients() {
-	for _, id := range shared.TeamIDs {
-		ci := s.gameState.ClientInfos[id]
-		ci.Alive = false
-		s.gameState.ClientInfos[id] = ci
-	}
 }
 
 // logf is the server's default logger.

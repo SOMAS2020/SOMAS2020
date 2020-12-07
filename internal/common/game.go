@@ -2,17 +2,18 @@ package common
 
 import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
-// DefaultResources is the default number of resources at the start of the game
-const DefaultResources = 100
-
 // ClientInfo contains the client struct as well as the client's attributes
 type ClientInfo struct {
 	Client Client
 
 	// Resources contains the amount of resources owned by the client.
-	Resources uint
+	// Made an integer so an island can "owe" resources.
+	Resources int
 
 	Alive bool
+
+	Critical                     bool
+	CriticalConsecutiveTurnsLeft uint
 
 	// [INFRA] add more client information here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
@@ -26,8 +27,12 @@ func (c ClientInfo) Copy() ClientInfo {
 
 // GameState represents the game's state.
 type GameState struct {
-	// Day represents the current (1-index) day of the game.
-	Day int
+	// Season represents the current (1-index) season of the game.
+	Season uint
+
+	// Turn represents the current (1-index) Turn of the game.
+	Turn uint
+
 	// ClientInfos map from the shared.ClientID to ClientInfo.
 	// EXTRA note: Golang maps are made to be random!
 	ClientInfos map[shared.ClientID]ClientInfo

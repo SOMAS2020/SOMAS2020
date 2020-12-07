@@ -14,6 +14,9 @@ type Client interface {
 	Echo(s string) string
 	GetID() shared.ClientID
 	Logf(format string, a ...interface{})
+	// ReceiveGameStateUpdate is where SOMASServer.updateIsland sends the game state over
+	// at start of turn.
+	ReceiveGameStateUpdate(gameState GameState)
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.

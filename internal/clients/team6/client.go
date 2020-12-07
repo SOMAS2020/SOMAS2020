@@ -33,3 +33,8 @@ func (c *client) GetID() shared.ClientID {
 func (c *client) Logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
 }
+
+func (c *client) ReceiveGameStateUpdate(gameState common.GameState) {
+	c.Logf("Received game state update: %v", gameState)
+	// TODO
+}
