@@ -22,7 +22,7 @@ type client struct {
 func (c *client) Echo(s string) string {
 
 	//c.DemoEvaluation()
-	c.Logf("Echo: '%v'", s)
+	c.logf("Echo: '%v'", s)
 
 	return s
 }
@@ -32,20 +32,20 @@ func (c *client) DemoEvaluation() {
 	if err != nil {
 		panic(err.Error())
 	}
-	c.Logf("Rule Eval: %t", evalResult)
+	c.logf("Rule Eval: %t", evalResult)
 }
 
 func (c *client) GetID() shared.ClientID {
 	return c.id
 }
 
-// Logf is the client's logger that prepends logs with your ID. This makes
+// logf is the client's logger that prepends logs with your ID. This makes
 // it easier to read logs. DO NOT use other loggers that will mess logs up!
-func (c *client) Logf(format string, a ...interface{}) {
+func (c *client) logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
 }
 
 func (c *client) ReceiveGameStateUpdate(gameState common.GameState) {
-	c.Logf("Received game state update: %v", gameState)
+	c.logf("Received game state update: %v", gameState)
 	// TODO
 }
