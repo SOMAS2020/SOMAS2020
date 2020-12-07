@@ -13,7 +13,6 @@ import (
 type Client interface {
 	Echo(s string) string
 	GetID() shared.ClientID
-	Logf(format string, a ...interface{})
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
