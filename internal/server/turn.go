@@ -13,19 +13,7 @@ func (s *SOMASServer) runTurn() error {
 		return err
 	}
 
-	if err := s.runIIFO(); err != nil {
-		return err
-	}
-
-	if err := s.runIITO(); err != nil {
-		return err
-	}
-
-	if err := s.runIIGO(); err != nil {
-		return err
-	}
-
-	if err := s.getIslandsActions(); err != nil {
+	if err := s.runOrgs(); err != nil {
 		return err
 	}
 
@@ -36,19 +24,26 @@ func (s *SOMASServer) runTurn() error {
 	return nil
 }
 
-// updateIsland updates resources for each island and on global game state - what
-// information is included in the global game state and a resource update will depend
-// heavily on the infrastructure team, and the design implementations of the environment
-// and the IIGO and for this reason cannot be specified without further discussion (this is
-// the primary source of information that can be used in any strategic algorithms for the
-// iterative game). An island update could, for example, include the amount of resources
-// an island currently has, the amount of resources currently in the common pool, whether
-// or not an agent cheated in the last turn, whether there were any proposed rule changes
-// in the previous turn, whether any rules were broken in the previous turn, etc. (these are
-// all examples and should be agreed on collectively potentially in a dedicated meeting on
-// this subject once the rest of the specification is established - from an implementation
-// point of view adding more/less parameters does not seem to be a major concern at this
-// stage).
+// runOrgs runs all the orgs
+func (s *SOMASServer) runOrgs() error {
+	s.logf("start runOrgs")
+	defer s.logf("finish runOrgs")
+
+	if err := s.runIITO(); err != nil {
+		return err
+	}
+
+	if err := s.runIIFO(); err != nil {
+		return err
+	}
+
+	if err := s.runIIGO(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// updateIsland sends all the island the gameState at the start of the turn.
 func (s *SOMASServer) updateIslands() error {
 	s.logf("start updateIsland")
 	defer s.logf("finish updateIsland")
@@ -62,49 +57,6 @@ func (s *SOMASServer) updateIslands() error {
 	}
 
 	return nil
-}
-
-// runIIFO : IIFO makes recommendations about the optimal (and fairest) contributions this term.
-// to mitigate common risk dilemma.
-func (s *SOMASServer) runIIFO() error {
-	s.logf("start runIIFO")
-	defer s.logf("finish runIIFO")
-	// TODO:- IIFO team
-	return nil
-}
-
-// runIITO : IITO makes recommendations about the optimal (and fairest) contributions this term
-// to mitigate the common pool dilemma
-func (s *SOMASServer) runIITO() error {
-	s.logf("start runIITO")
-	defer s.logf("finish runIITO")
-	// TOOD:- IITO team
-	return nil
-}
-
-// runIIGO : IIGO decides rule changes, elections, sanctions
-func (s *SOMASServer) runIIGO() error {
-	s.logf("start runIITO")
-	defer s.logf("finish runIITO")
-	// TOOD:- IIGO team
-	return nil
-}
-
-// getIslandsAction obtains islands' decisions on their actions to the server to
-// formally end the turn.
-func (s *SOMASServer) getIslandsActions() error {
-	s.logf("start getIslandsActions")
-	defer s.logf("finish getIslandsActions")
-	// TODO:- ?
-	return nil
-}
-
-// probeDisaster checks if a disaster occurs this turn
-func (s *SOMASServer) probeDisaster() (bool, error) {
-	s.logf("start probeDisaster")
-	defer s.logf("finish probeDisaster")
-	// TOOD:- env team
-	return false, nil
 }
 
 // endOfTurn performs end of turn actions
