@@ -20,15 +20,23 @@ type Server interface {
 // SOMASServer implements Server.
 type SOMASServer struct {
 	gameState common.GameState
+
+	// ClientMap maps from the ClientID to the Client object.
+	// We don't store this in gameState--gameState is shared to clients and should
+	// not contain pointers to other clients!
+	clientMap map[shared.ClientID]common.Client
 }
 
 // SOMASServerFactory returns an instance of the main server we use.
 func SOMASServerFactory() Server {
+	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(common.RegisteredClients)
+
 	return &SOMASServer{
+		clientMap: clientMap,
 		gameState: common.GameState{
 			Season:      config.InitialSeason,
 			Turn:        config.InitialTurn,
-			ClientInfos: getClientInfoFromRegisteredClients(common.RegisteredClients),
+			ClientInfos: clientInfos,
 		},
 	}
 }
@@ -49,10 +57,7 @@ func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
 
 // getEcho retrieves an echo from all the clients and make sure they are the same.
 func (s *SOMASServer) getEcho(str string) error {
-	cis := s.gameState.ClientInfos
-	for _, id := range shared.TeamIDs {
-		ci := cis[id]
-		c := ci.Client
+	for _, c := range s.clientMap {
 		got := c.Echo(str)
 		if str != got {
 			return fmt.Errorf("Echo error: want '%v' got '%v' from %v",

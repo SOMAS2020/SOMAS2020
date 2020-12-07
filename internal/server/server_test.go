@@ -51,17 +51,9 @@ func TestGetEcho(t *testing.T) {
 				id:   shared.Team1,
 				echo: tc.reply,
 			}
-			clients := map[shared.ClientID]common.Client{
-				shared.Team1: mClient,
-				shared.Team2: mClient,
-				shared.Team3: mClient,
-				shared.Team4: mClient,
-				shared.Team5: mClient,
-				shared.Team6: mClient,
-			}
 			server := &SOMASServer{
-				gameState: common.GameState{
-					ClientInfos: getClientInfoFromRegisteredClients(clients),
+				clientMap: map[shared.ClientID]common.Client{
+					shared.Team1: mClient,
 				},
 			}
 

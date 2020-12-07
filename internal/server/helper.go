@@ -6,20 +6,23 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func getClientInfoFromRegisteredClients(registeredClients map[shared.ClientID]common.Client) map[shared.ClientID]common.ClientInfo {
+func getClientInfosAndMapFromRegisteredClients(
+	registeredClients map[shared.ClientID]common.Client,
+) (map[shared.ClientID]common.ClientInfo, map[shared.ClientID]common.Client) {
 	clientInfos := map[shared.ClientID]common.ClientInfo{}
+	clientMap := map[shared.ClientID]common.Client{}
 
 	for id, c := range registeredClients {
 		clientInfos[id] = common.ClientInfo{
-			Client:                       c,
 			Resources:                    config.InitialResources,
 			Alive:                        true,
 			Critical:                     false,
 			CriticalConsecutiveTurnsLeft: config.MaxCriticalConsecutiveTurns,
 		}
+		clientMap[id] = c
 	}
 
-	return clientInfos
+	return clientInfos, clientMap
 }
 
 // anyClientsAlive returns true if any one client is Alive (including critical).

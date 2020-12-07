@@ -4,8 +4,6 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
 // ClientInfo contains the client struct as well as the client's attributes
 type ClientInfo struct {
-	Client Client
-
 	// Resources contains the amount of resources owned by the client.
 	// Made an integer so an island can "owe" resources.
 	Resources int

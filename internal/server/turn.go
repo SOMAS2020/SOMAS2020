@@ -54,9 +54,10 @@ func (s *SOMASServer) updateIslands() error {
 	defer s.logf("finish updateIsland")
 
 	// send update of entire gameState to alive clients
-	for _, ci := range s.gameState.ClientInfos {
+	for id, ci := range s.gameState.ClientInfos {
 		if ci.Alive {
-			ci.Client.ReceiveGameStateUpdate(s.gameState)
+			c := s.clientMap[id]
+			c.ReceiveGameStateUpdate(s.gameState)
 		}
 	}
 
