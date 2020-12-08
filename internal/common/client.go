@@ -1,11 +1,11 @@
 package common
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -38,7 +38,7 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 			if val, varOk := rules.VariableMap[v]; varOk {
 				variableVect = append(variableVect, val.Values...)
 			} else {
-				return false, errors.New(fmt.Sprintf("Variable: '%v' not found in global variable cache", v))
+				return false, errors.Errorf("Variable: '%v' not found in global variable cache", v)
 			}
 		}
 
@@ -48,12 +48,12 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 		nRows, nCols := rm.ApplicableMatrix.Dims()
 
 		if nCols != len(variableVect) {
-			return false, errors.New(
-				fmt.Sprintf("dimension mismatch in evaluating rule: '%v' rule matrix has '%v' columns, while we sourced '%v' variables",
-					ruleName,
-					nCols,
-					len(variableVect),
-				))
+			return false, errors.Errorf(
+				"dimension mismatch in evaluating rule: '%v' rule matrix has '%v' columns, while we sourced '%v' variables",
+				ruleName,
+				nCols,
+				len(variableVect),
+			)
 		}
 
 		variableFormalVect := mat.NewVecDense(len(variableVect), variableVect)
@@ -79,7 +79,7 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 			case 3:
 				res = c.AtVec(i) != 0
 			default:
-				return false, errors.New(fmt.Sprintf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret))
+				return false, errors.Errorf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret)
 			}
 			resultVect = append(resultVect, res)
 		}
@@ -92,6 +92,6 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 
 		return finalBool, nil
 	} else {
-		return false, errors.New(fmt.Sprintf("rule name: '%v' provided doesn't exist in global rule list", ruleName))
+		return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 	}
 }
