@@ -14,9 +14,9 @@ type Client interface {
 	Echo(s string) string
 	GetID() shared.ClientID
 
-	// ReceiveGameStateUpdate is where SOMASServer.updateIsland sends the game state over
+	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
 	// at start of turn.
-	ReceiveGameStateUpdate(gameState GameState)
+	StartOfTurnUpdate(gameState GameState)
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.

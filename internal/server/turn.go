@@ -52,7 +52,7 @@ func (s *SOMASServer) updateIslands() error {
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.Alive {
 			c := s.clientMap[id]
-			c.ReceiveGameStateUpdate(s.gameState)
+			c.StartOfTurnUpdate(s.gameState)
 		}
 	}
 
