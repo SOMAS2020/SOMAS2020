@@ -59,7 +59,7 @@ func (s *SOMASServer) updateIslands() error {
 	return nil
 }
 
-// endOfTurn performs end of turn actions
+// endOfTurn performs end of turn updates
 func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
 	defer s.logf("finish endOfTurn")
