@@ -40,7 +40,7 @@ func (c *client) StartOfTurnUpdate(gameState common.GameState) {
 	// TODO
 }
 
-func (c *client) EndOfTurnActions() ([]action.Action, error) {
+func (c *client) EndOfTurnActions() []action.Action {
 	c.logf("EndOfTurnActions")
-	return nil, nil
+	return nil
 }

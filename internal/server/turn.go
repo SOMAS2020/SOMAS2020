@@ -105,12 +105,8 @@ func (s *SOMASServer) getEndOfTurnActions() ([]action.Action, error) {
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.Alive {
 			c := s.clientMap[id]
-			if actions, err := c.EndOfTurnActions(); err != nil {
-				s.logf("EndOfTurnActions error for client '%v' ignored, treated as no action: %v",
-					id, err)
-			} else {
-				allActions = append(allActions, actions...)
-			}
+			actions := c.EndOfTurnActions()
+			allActions = append(allActions, actions...)
 		}
 	}
 

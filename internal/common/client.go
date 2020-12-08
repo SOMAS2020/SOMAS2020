@@ -16,11 +16,11 @@ type Client interface {
 	GetID() shared.ClientID
 
 	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
-	// at start of turn.
+	// at start of turn. Do whatever you like here :).
 	StartOfTurnUpdate(gameState GameState)
 
 	// EndOfTurnActions should return all end of turn actions.
-	EndOfTurnActions() ([]action.Action, error)
+	EndOfTurnActions() []action.Action
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
