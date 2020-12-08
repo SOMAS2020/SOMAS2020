@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/action"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -48,4 +49,9 @@ func (c *client) logf(format string, a ...interface{}) {
 func (c *client) ReceiveGameStateUpdate(gameState common.GameState) {
 	c.logf("Received game state update: %v", gameState)
 	// TODO
+}
+
+func (c *client) EndOfTurnActions() ([]action.Action, error) {
+	c.logf("EndOfTurnActions")
+	return nil, nil
 }

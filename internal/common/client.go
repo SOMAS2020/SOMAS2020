@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/action"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
@@ -17,6 +18,9 @@ type Client interface {
 	// ReceiveGameStateUpdate is where SOMASServer.updateIsland sends the game state over
 	// at start of turn.
 	ReceiveGameStateUpdate(gameState GameState)
+
+	// EndOfTurnActions should return all end of turn actions.
+	EndOfTurnActions() ([]action.Action, error)
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
