@@ -1,8 +1,9 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/action"
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 // runTurn runs a turn
@@ -16,7 +17,7 @@ func (s *SOMASServer) runTurn() error {
 		return err
 	}
 
-	allActions := []action.Action{}
+	allActions := []common.Action{}
 
 	// run all orgs and get all actions
 	if actions, err := s.runOrgs(); err != nil {
@@ -32,8 +33,21 @@ func (s *SOMASServer) runTurn() error {
 		allActions = append(allActions, actions...)
 	}
 
+	// !!!!!!!!!!!!
+	// TESTING ONLY
+	// !!!!!!!!!!!!
+	exampleAction := common.Action{
+		ActionType: common.GiveClientResource,
+		GiveClientResourceAction: &common.GiveClientResourceAction{
+			SourceClientID: shared.Team1,
+			TargetClientID: shared.Team2,
+			Resources:      1,
+		},
+	}
+	allActions = append(allActions, exampleAction)
+
 	// dispatch actions
-	if err := s.dispatchActions(allActions); err != nil {
+	if err := s.gameState.DispatchActions(allActions); err != nil {
 		return err
 	}
 
@@ -45,11 +59,11 @@ func (s *SOMASServer) runTurn() error {
 }
 
 // runOrgs runs all the orgs
-func (s *SOMASServer) runOrgs() ([]action.Action, error) {
+func (s *SOMASServer) runOrgs() ([]common.Action, error) {
 	s.logf("start runOrgs")
 	defer s.logf("finish runOrgs")
 
-	allActions := []action.Action{}
+	allActions := []common.Action{}
 
 	if actions, err := s.runIITO(); err != nil {
 		return nil, err
@@ -88,19 +102,11 @@ func (s *SOMASServer) updateIslands() error {
 	return nil
 }
 
-// dispatchActions applies all the actions and mutates game state
-func (s *SOMASServer) dispatchActions([]action.Action) error {
-	s.logf("start dispatchActions")
-	defer s.logf("finish dispatchActions")
-	// TODO
-	return nil
-}
-
 // getEndOfTurnActions gets all end of turn actions from the clients
-func (s *SOMASServer) getEndOfTurnActions() ([]action.Action, error) {
+func (s *SOMASServer) getEndOfTurnActions() ([]common.Action, error) {
 	s.logf("start getEndOfTurnActions")
 	defer s.logf("finish getEndOfTurnActions")
-	allActions := []action.Action{}
+	allActions := []common.Action{}
 
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.Alive {
@@ -113,7 +119,7 @@ func (s *SOMASServer) getEndOfTurnActions() ([]action.Action, error) {
 	return allActions, nil
 }
 
-// endOfTurn performs end of turn actions
+// endOfTurn performs end of turn updates
 func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
 	defer s.logf("finish endOfTurn")

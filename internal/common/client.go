@@ -1,12 +1,11 @@
 package common
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/action"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -20,7 +19,7 @@ type Client interface {
 	StartOfTurnUpdate(gameState GameState)
 
 	// EndOfTurnActions should return all end of turn actions.
-	EndOfTurnActions() []action.Action
+	EndOfTurnActions() []Action
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
@@ -46,7 +45,7 @@ func BasicRuleEvaluator(ruleName string) (bool, error) {
 			if val, varOk := rules.VariableMap[v]; varOk {
 				variableVect = append(variableVect, val.Values...)
 			} else {
-				return false, errors.New(fmt.Sprintf("Variable: '%v' not found in global variable cache", v))
+				return false, errors.Errorf("Variable: '%v' not found in global variable cache", v)
 			}
 		}
 

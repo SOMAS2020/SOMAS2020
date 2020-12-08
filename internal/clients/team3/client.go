@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/action"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -51,7 +50,7 @@ func (c *client) StartOfTurnUpdate(gameState common.GameState) {
 	// TODO
 }
 
-func (c *client) EndOfTurnActions() []action.Action {
+func (c *client) EndOfTurnActions() []common.Action {
 	c.logf("EndOfTurnActions")
 	return nil
 }
