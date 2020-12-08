@@ -61,6 +61,8 @@ func (s *SOMASServer) updateIslands() error {
 
 // endOfTurn performs end of turn actions
 func (s *SOMASServer) endOfTurn() error {
+	s.logf("start endOfTurn")
+	defer s.logf("finish endOfTurn")
 	// increment turn
 	s.gameState.Turn++
 
@@ -88,6 +90,8 @@ func (s *SOMASServer) endOfTurn() error {
 
 // deductCostOfLiving deducts CoL for all living islands, including critical ones
 func (s *SOMASServer) deductCostOfLiving() error {
+	s.logf("start deductCostOfLiving")
+	defer s.logf("finish deductCostOfLiving")
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.Alive {
 			ci.Resources -= config.CostOfLiving
@@ -101,6 +105,8 @@ func (s *SOMASServer) deductCostOfLiving() error {
 // on the island's resource state.
 // Dead islands are not resurrected.
 func (s *SOMASServer) updateIslandLivingStatus() error {
+	s.logf("start updateIslandLivingStatus")
+	defer s.logf("finish updateIslandLivingStatus")
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.Alive {
 			s.gameState.ClientInfos[id] = updateIslandLivingStatusForClient(ci,
