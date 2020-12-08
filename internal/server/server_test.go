@@ -1,12 +1,12 @@
 package server
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
+	"github.com/pkg/errors"
 )
 
 type mockClientEcho struct {
@@ -41,7 +41,7 @@ func TestGetEcho(t *testing.T) {
 			name:  "wrong reply",
 			input: "42",
 			reply: "43",
-			want:  fmt.Errorf("Echo error: want '42' got '43' from Team1"),
+			want:  errors.Errorf("Echo error: want '42' got '43' from Team1"),
 		},
 	}
 

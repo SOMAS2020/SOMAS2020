@@ -7,6 +7,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -39,7 +40,7 @@ func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
 	for anyClientsAlive(s.gameState.ClientInfos) {
 		s.gameState.Day++
 		if err := s.runRound(); err != nil {
-			return states, fmt.Errorf("Error running round '%v': %v", s.gameState.Day, err)
+			return states, errors.Errorf("Error running round '%v': %v", s.gameState.Day, err)
 		}
 		states = append(states, s.gameState.Copy())
 	}
@@ -51,7 +52,7 @@ func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
 func (s *SOMASServer) runRound() error {
 	// TODO: Implement round logic
 	if err := s.getEcho("HELLO WORLD!"); err != nil {
-		return fmt.Errorf("getEcho failed with: %v", err)
+		return errors.Errorf("getEcho failed with: %v", err)
 	}
 	s.killAllClients()
 	return nil
@@ -65,7 +66,7 @@ func (s *SOMASServer) getEcho(str string) error {
 		c := ci.Client
 		got := c.Echo(str)
 		if str != got {
-			return fmt.Errorf("Echo error: want '%v' got '%v' from %v",
+			return errors.Errorf("Echo error: want '%v' got '%v' from %v",
 				str, got, c.GetID())
 		}
 		s.logf("Received echo `%v` from %v", str, c.GetID())
