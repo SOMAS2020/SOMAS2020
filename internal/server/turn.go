@@ -88,6 +88,7 @@ func (s *SOMASServer) updateIslands() error {
 	return nil
 }
 
+// dispatchActions applies all the actions and mutates game state
 func (s *SOMASServer) dispatchActions([]action.Action) error {
 	s.logf("start dispatchActions")
 	defer s.logf("finish dispatchActions")
@@ -95,6 +96,7 @@ func (s *SOMASServer) dispatchActions([]action.Action) error {
 	return nil
 }
 
+// getEndOfTurnActions gets all end of turn actions from the clients
 func (s *SOMASServer) getEndOfTurnActions() ([]action.Action, error) {
 	s.logf("start getEndOfTurnActions")
 	defer s.logf("finish getEndOfTurnActions")
