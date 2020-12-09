@@ -38,3 +38,8 @@ func (c *client) StartOfTurnUpdate(gameState common.GameState) {
 	c.logf("Received game state update: %v", gameState)
 	// TODO
 }
+
+func (c *client) EndOfTurnActions() []common.Action {
+	c.logf("EndOfTurnActions")
+	return nil
+}

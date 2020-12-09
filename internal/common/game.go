@@ -1,6 +1,11 @@
 package common
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"fmt"
+	"log"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 // GameState represents the game's state.
 type GameState struct {
@@ -31,6 +36,10 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 		ret[k] = v.Copy()
 	}
 	return ret
+}
+
+func (g GameState) logf(format string, a ...interface{}) {
+	log.Printf("[GAMESTATE]: %v", fmt.Sprintf(format, a...))
 }
 
 // ClientInfo contains the client struct as well as the client's attributes
