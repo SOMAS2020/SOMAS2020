@@ -15,21 +15,21 @@ func (s *SOMASServer) runTurn() error {
 	s.logf("TURN: %v, Season: %v", s.gameState.Turn, s.gameState.Season)
 
 	if err := s.updateIslands(); err != nil {
-		return err
+		return errors.Errorf("Error updating islands: %v", err)
 	}
 
 	allActions := []common.Action{}
 
 	// run all orgs and get all actions
 	if actions, err := s.runOrgs(); err != nil {
-		return err
+		return errors.Errorf("Error running orgs: %v", err)
 	} else {
 		allActions = append(allActions, actions...)
 	}
 
 	// get all end of turn actions
 	if actions, err := s.getEndOfTurnActions(); err != nil {
-		return err
+		return errors.Errorf("Error in getEndOfTurnActions: %v", err)
 	} else {
 		allActions = append(allActions, actions...)
 	}
@@ -49,11 +49,11 @@ func (s *SOMASServer) runTurn() error {
 
 	// dispatch actions
 	if err := s.gameState.DispatchActions(allActions); err != nil {
-		return err
+		return errors.Errorf("Error dispatching actions: %v", err)
 	}
 
 	if err := s.endOfTurn(); err != nil {
-		return err
+		return errors.Errorf("Error running end of turn procedures: %v", err)
 	}
 
 	return nil
@@ -67,19 +67,19 @@ func (s *SOMASServer) runOrgs() ([]common.Action, error) {
 	allActions := []common.Action{}
 
 	if actions, err := s.runIITO(); err != nil {
-		return nil, err
+		return nil, errors.Errorf("IITO error: %v", err)
 	} else {
 		allActions = append(allActions, actions...)
 	}
 
 	if actions, err := s.runIIFO(); err != nil {
-		return nil, err
+		return nil, errors.Errorf("IIFO error: %v", err)
 	} else {
 		allActions = append(allActions, actions...)
 	}
 
 	if actions, err := s.runIIGO(); err != nil {
-		return nil, err
+		return nil, errors.Errorf("IIGO error: %v", err)
 	} else {
 		allActions = append(allActions, actions...)
 	}
