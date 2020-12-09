@@ -2,12 +2,6 @@
 // DO NOT depend on other packages outside this folder!
 package config
 
-// InitialSeason is the 1-indexed season the game starts with.
-const InitialSeason = 1 // default: 1
-
-// InitialTurn is the 1-indexed turn the game starts with.
-const InitialTurn = 1 // default: 1
-
 // MaxSeasons is the maximum number of 1-indexed seasons to run the game.
 const MaxSeasons = 100
 

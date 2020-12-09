@@ -4,6 +4,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 )
 
 func getClientInfosAndMapFromRegisteredClients(
@@ -14,10 +15,8 @@ func getClientInfosAndMapFromRegisteredClients(
 
 	for id, c := range registeredClients {
 		clientInfos[id] = common.ClientInfo{
-			Resources:                    config.InitialResources,
-			Alive:                        true,
-			Critical:                     false,
-			CriticalConsecutiveTurnsLeft: config.MaxCriticalConsecutiveTurns,
+			Resources:  config.InitialResources,
+			LifeStatus: shared.Alive,
 		}
 		clientMap[id] = c
 	}
@@ -28,7 +27,7 @@ func getClientInfosAndMapFromRegisteredClients(
 // anyClientsAlive returns true if any one client is Alive (including critical).
 func anyClientsAlive(clientInfos map[shared.ClientID]common.ClientInfo) bool {
 	for _, ci := range clientInfos {
-		if ci.Alive {
+		if ci.LifeStatus != shared.Dead {
 			return true
 		}
 	}
@@ -38,32 +37,39 @@ func anyClientsAlive(clientInfos map[shared.ClientID]common.ClientInfo) bool {
 // updateIslandLivingStatusForClient returns an updated copy of the clientInfo after updating
 // the Alive, Critical, and CriticalConsecutiveTurnsLeft attribs according to the resource levels and
 // the game's configuration.
-func updateIslandLivingStatusForClient(ci common.ClientInfo, minimumResourceThreshold int, MaxCriticalConsecutiveTurns uint) common.ClientInfo {
-	// we don't resurrect dead clients!
-	if !ci.Alive {
-		return ci
-	}
+func updateIslandLivingStatusForClient(
+	ci common.ClientInfo,
+	minimumResourceThreshold int,
+	maxCriticalConsecutiveTurns uint,
+) (common.ClientInfo, error) {
+	switch ci.LifeStatus {
+	case shared.Alive:
+		if ci.Resources < minimumResourceThreshold {
+			ci.LifeStatus = shared.Critical
+			ci.CriticalConsecutiveTurnsCounter = 0
+		}
+		return ci, nil
 
-	if ci.Resources < minimumResourceThreshold {
-		if !ci.Critical {
-			ci.Critical = true
-			ci.CriticalConsecutiveTurnsLeft = MaxCriticalConsecutiveTurns
-		} else {
-			// Critical!
-			if ci.CriticalConsecutiveTurnsLeft == 0 {
-				// RIP!
-				ci.Alive = false
+	case shared.Critical:
+		if ci.Resources < minimumResourceThreshold {
+			if ci.CriticalConsecutiveTurnsCounter == maxCriticalConsecutiveTurns {
+				ci.LifeStatus = shared.Dead
 			} else {
-				ci.CriticalConsecutiveTurnsLeft--
+				ci.CriticalConsecutiveTurnsCounter++
 			}
+			return ci, nil
 		}
-	} else {
-		// have got above threshold!
-		if ci.Critical {
-			ci.Critical = false
-			ci.CriticalConsecutiveTurnsLeft = MaxCriticalConsecutiveTurns
-		}
-	}
+		ci.LifeStatus = shared.Alive
+		ci.CriticalConsecutiveTurnsCounter = 0
+		return ci, nil
 
-	return ci
+	case shared.Dead:
+		// dead clients are not resurrected
+		return ci, nil
+
+	default:
+		return ci,
+			errors.Errorf("updateIslandLivingStatusForClient not implemented for LifeStatus %v",
+				ci.LifeStatus)
+	}
 }

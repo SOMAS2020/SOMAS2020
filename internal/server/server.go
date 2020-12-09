@@ -35,8 +35,8 @@ func SOMASServerFactory() Server {
 	return &SOMASServer{
 		clientMap: clientMap,
 		gameState: common.GameState{
-			Season:      config.InitialSeason,
-			Turn:        config.InitialTurn,
+			Season:      1,
+			Turn:        1,
 			ClientInfos: clientInfos,
 		},
 	}
