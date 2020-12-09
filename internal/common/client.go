@@ -18,7 +18,6 @@ type Client interface {
 	// at start of turn. Do whatever you like here :).
 	StartOfTurnUpdate(gameState GameState)
 
-	// EndOfTurnActions should return all end of turn actions.
 	EndOfTurnActions() []Action
 }
 

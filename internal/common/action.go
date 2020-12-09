@@ -26,6 +26,7 @@ type GiveClientResourceAction struct {
 	Resources      int
 }
 
+// DispatchActions runs all actions and alters GameState
 func (g *GameState) DispatchActions(actions []Action) error {
 	g.logf("start DispatchActions")
 	defer g.logf("finish DispatchActions")
