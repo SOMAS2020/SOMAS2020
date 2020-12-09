@@ -4,6 +4,8 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+
+	"github.com/pkg/errors"
 )
 
 // runTurn runs a turn
@@ -93,7 +95,7 @@ func (s *SOMASServer) updateIslands() error {
 
 	// send update of entire gameState to alive clients
 	for id, ci := range s.gameState.ClientInfos {
-		if ci.Alive {
+		if ci.LifeStatus != shared.Dead {
 			c := s.clientMap[id]
 			c.StartOfTurnUpdate(s.gameState)
 		}
@@ -109,7 +111,7 @@ func (s *SOMASServer) getEndOfTurnActions() ([]common.Action, error) {
 	allActions := []common.Action{}
 
 	for id, ci := range s.gameState.ClientInfos {
-		if ci.Alive {
+		if ci.LifeStatus != shared.Dead {
 			c := s.clientMap[id]
 			actions := c.EndOfTurnActions()
 			allActions = append(allActions, actions...)
@@ -153,7 +155,7 @@ func (s *SOMASServer) deductCostOfLiving() error {
 	s.logf("start deductCostOfLiving")
 	defer s.logf("finish deductCostOfLiving")
 	for id, ci := range s.gameState.ClientInfos {
-		if ci.Alive {
+		if ci.LifeStatus != shared.Dead {
 			ci.Resources -= config.CostOfLiving
 			s.gameState.ClientInfos[id] = ci
 		}
@@ -168,9 +170,14 @@ func (s *SOMASServer) updateIslandLivingStatus() error {
 	s.logf("start updateIslandLivingStatus")
 	defer s.logf("finish updateIslandLivingStatus")
 	for id, ci := range s.gameState.ClientInfos {
-		if ci.Alive {
-			s.gameState.ClientInfos[id] = updateIslandLivingStatusForClient(ci,
+		if ci.LifeStatus != shared.Dead {
+			ci, err := updateIslandLivingStatusForClient(ci,
 				config.MinimumResourceThreshold, config.MaxCriticalConsecutiveTurns)
+			if err != nil {
+				return errors.Errorf("Unable to update island living status for %v: %v",
+					id, err)
+			}
+			s.gameState.ClientInfos[id] = ci
 		}
 	}
 	return nil

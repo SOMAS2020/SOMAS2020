@@ -6,6 +6,8 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
+	"github.com/pkg/errors"
 )
 
 func TestAnyClientsAlive(t *testing.T) {
@@ -18,10 +20,10 @@ func TestAnyClientsAlive(t *testing.T) {
 			name: "all alive",
 			cis: map[shared.ClientID]common.ClientInfo{
 				shared.Team1: {
-					Alive: true,
+					LifeStatus: shared.Alive,
 				},
 				shared.Team2: {
-					Alive: true,
+					LifeStatus: shared.Critical, // still alive
 				},
 			},
 			want: true,
@@ -30,10 +32,10 @@ func TestAnyClientsAlive(t *testing.T) {
 			name: "one alive",
 			cis: map[shared.ClientID]common.ClientInfo{
 				shared.Team1: {
-					Alive: false,
+					LifeStatus: shared.Alive,
 				},
 				shared.Team2: {
-					Alive: true,
+					LifeStatus: shared.Dead,
 				},
 			},
 			want: true,
@@ -41,10 +43,10 @@ func TestAnyClientsAlive(t *testing.T) {
 			name: "none alive",
 			cis: map[shared.ClientID]common.ClientInfo{
 				shared.Team1: {
-					Alive: false,
+					LifeStatus: shared.Dead,
 				},
 				shared.Team2: {
-					Alive: false,
+					LifeStatus: shared.Dead,
 				},
 			},
 			want: false,
@@ -65,108 +67,119 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 	const minResThres = 10
 	const maxConsCritTurns = 3
 	cases := []struct {
-		name string
-		ci   common.ClientInfo
-		want common.ClientInfo
+		name    string
+		ci      common.ClientInfo
+		want    common.ClientInfo
+		wantErr error
 	}{
 		{
 			name: "alive and well",
 			ci: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     false,
-				Resources:                    minResThres,
-				CriticalConsecutiveTurnsLeft: 42,
+				LifeStatus:                      shared.Alive,
+				Resources:                       minResThres,
+				CriticalConsecutiveTurnsCounter: 0,
 			},
 			want: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     false,
-				Resources:                    minResThres,
-				CriticalConsecutiveTurnsLeft: 42,
+				LifeStatus:                      shared.Alive,
+				Resources:                       minResThres,
+				CriticalConsecutiveTurnsCounter: 0,
 			},
+			wantErr: nil,
 		},
 		{
 			name: "already dead",
 			ci: common.ClientInfo{
-				Alive:                        false,
-				Critical:                     true,
-				Resources:                    minResThres - 1,
-				CriticalConsecutiveTurnsLeft: 42,
+				LifeStatus:                      shared.Dead,
+				Resources:                       minResThres - 1,
+				CriticalConsecutiveTurnsCounter: 3,
 			},
 			want: common.ClientInfo{
-				Alive:                        false,
-				Critical:                     true,
-				Resources:                    minResThres - 1,
-				CriticalConsecutiveTurnsLeft: 42,
+				LifeStatus:                      shared.Dead,
+				Resources:                       minResThres - 1,
+				CriticalConsecutiveTurnsCounter: 3,
 			},
+			wantErr: nil,
 		},
 		{
 			name: "turn critical",
 			ci: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     false,
-				Resources:                    minResThres - 1,
-				CriticalConsecutiveTurnsLeft: 100,
+				LifeStatus:                      shared.Alive,
+				Resources:                       minResThres - 1,
+				CriticalConsecutiveTurnsCounter: 100,
 			},
 			want: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     true,
-				Resources:                    minResThres - 1,
-				CriticalConsecutiveTurnsLeft: maxConsCritTurns,
+				LifeStatus:                      shared.Critical,
+				Resources:                       minResThres - 1,
+				CriticalConsecutiveTurnsCounter: 0,
 			},
+			wantErr: nil,
 		},
 		{
-			name: "deduct critical",
+			name: "add critical",
 			ci: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     true,
-				Resources:                    minResThres - 1,
-				CriticalConsecutiveTurnsLeft: 100,
+				LifeStatus:                      shared.Critical,
+				Resources:                       minResThres - 1,
+				CriticalConsecutiveTurnsCounter: 1,
 			},
 			want: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     true,
-				Resources:                    minResThres - 1,
-				CriticalConsecutiveTurnsLeft: 99,
+				LifeStatus:                      shared.Critical,
+				Resources:                       minResThres - 1,
+				CriticalConsecutiveTurnsCounter: 2,
 			},
+			wantErr: nil,
 		},
 		{
 			name: "ran out of critical turns",
 			ci: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     true,
-				Resources:                    minResThres - 1,
-				CriticalConsecutiveTurnsLeft: 0,
+				LifeStatus:                      shared.Critical,
+				Resources:                       minResThres - 1,
+				CriticalConsecutiveTurnsCounter: 3,
 			},
 			want: common.ClientInfo{
-				Alive:                        false,
-				Critical:                     true,
-				Resources:                    minResThres - 1,
-				CriticalConsecutiveTurnsLeft: 0,
+				LifeStatus:                      shared.Dead,
+				Resources:                       minResThres - 1,
+				CriticalConsecutiveTurnsCounter: 3,
 			},
+			wantErr: nil,
 		},
 		{
 			name: "turn non-critical",
 			ci: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     true,
-				Resources:                    minResThres,
-				CriticalConsecutiveTurnsLeft: 0,
+				LifeStatus:                      shared.Critical,
+				Resources:                       minResThres,
+				CriticalConsecutiveTurnsCounter: 2,
 			},
 			want: common.ClientInfo{
-				Alive:                        true,
-				Critical:                     false,
-				Resources:                    minResThres,
-				CriticalConsecutiveTurnsLeft: maxConsCritTurns,
+				LifeStatus:                      shared.Alive,
+				Resources:                       minResThres,
+				CriticalConsecutiveTurnsCounter: 0,
 			},
+			wantErr: nil,
+		},
+		{
+			name: "bogus LifeStatus",
+			ci: common.ClientInfo{
+				LifeStatus:                      99999,
+				Resources:                       minResThres,
+				CriticalConsecutiveTurnsCounter: 2,
+			},
+			want: common.ClientInfo{
+				LifeStatus:                      99999,
+				Resources:                       minResThres,
+				CriticalConsecutiveTurnsCounter: 2,
+			},
+			wantErr: errors.Errorf("updateIslandLivingStatusForClient not implemented " +
+				"for LifeStatus UNKNOWN ClientLifeStatus '99999'"),
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := updateIslandLivingStatusForClient(tc.ci, minResThres, maxConsCritTurns)
+			got, err := updateIslandLivingStatusForClient(tc.ci, minResThres, maxConsCritTurns)
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Errorf("want '%#v' got '%#v'", tc.want, got)
 			}
+			testutils.CompareTestErrors(tc.wantErr, err, t)
 		})
 	}
 }

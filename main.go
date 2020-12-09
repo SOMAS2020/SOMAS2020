@@ -12,7 +12,7 @@ import (
 func main() {
 	s := server.SOMASServerFactory()
 	if gameStates, err := s.EntryPoint(); err != nil {
-		log.Printf("Run failed with: %v", err)
+		log.Printf("Run failed with: %+v", err)
 		os.Exit(1)
 	} else {
 		for _, st := range gameStates {

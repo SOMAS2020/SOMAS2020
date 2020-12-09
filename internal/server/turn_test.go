@@ -21,7 +21,7 @@ func TestGameOver(t *testing.T) {
 			name: "game not over",
 			clientInfos: map[shared.ClientID]common.ClientInfo{
 				shared.Team2: {
-					Alive: true,
+					LifeStatus: shared.Alive,
 				},
 			},
 			turn:   10,
@@ -32,7 +32,7 @@ func TestGameOver(t *testing.T) {
 			name: "all clients dead",
 			clientInfos: map[shared.ClientID]common.ClientInfo{
 				shared.Team2: {
-					Alive: false,
+					LifeStatus: shared.Dead,
 				},
 			},
 			turn:   10,
@@ -43,7 +43,7 @@ func TestGameOver(t *testing.T) {
 			name: "maxTurns reached",
 			clientInfos: map[shared.ClientID]common.ClientInfo{
 				shared.Team2: {
-					Alive: true,
+					LifeStatus: shared.Alive,
 				},
 			},
 			turn:   11,
@@ -54,7 +54,7 @@ func TestGameOver(t *testing.T) {
 			name: "maxSeasons reached",
 			clientInfos: map[shared.ClientID]common.ClientInfo{
 				shared.Team2: {
-					Alive: true,
+					LifeStatus: shared.Alive,
 				},
 			},
 			turn:   10,
