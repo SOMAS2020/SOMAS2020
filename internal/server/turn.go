@@ -37,15 +37,15 @@ func (s *SOMASServer) runTurn() error {
 	// !!!!!!!!!!!!
 	// TESTING ONLY
 	// !!!!!!!!!!!!
-	exampleAction := common.Action{
-		ActionType: common.GiveClientResource,
-		GiveClientResourceAction: &common.GiveClientResourceAction{
-			SourceClientID: shared.Team1,
-			TargetClientID: shared.Team2,
-			Resources:      1,
-		},
-	}
-	allActions = append(allActions, exampleAction)
+	// exampleAction := common.Action{
+	// 	ActionType: common.GiveClientResource,
+	// 	GiveClientResourceAction: &common.GiveClientResourceAction{
+	// 		SourceClientID: shared.Team1,
+	// 		TargetClientID: shared.Team2,
+	// 		Resources:      1,
+	// 	},
+	// }
+	// allActions = append(allActions, exampleAction)
 
 	// dispatch actions
 	if err := s.gameState.DispatchActions(allActions); err != nil {
