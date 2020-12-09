@@ -13,6 +13,10 @@ import (
 type Client interface {
 	Echo(s string) string
 	GetID() shared.ClientID
+
+	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
+	// at start of turn. Do whatever you like here :).
+	StartOfTurnUpdate(gameState GameState)
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
