@@ -32,3 +32,8 @@ func (c ClientID) String() string {
 	}
 	return fmt.Sprintf("UNKNOWN ClientID '%v'", int(c))
 }
+
+// GoString implements GoStringer
+func (c ClientID) GoString() string {
+	return c.String()
+}

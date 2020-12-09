@@ -21,3 +21,8 @@ func (c ClientLifeStatus) String() string {
 	}
 	return fmt.Sprintf("UNKNOWN ClientLifeStatus '%v'", int(c))
 }
+
+// GoString implements GoStringer (for %#v printing)
+func (c ClientLifeStatus) GoString() string {
+	return c.String()
+}
