@@ -8,6 +8,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -60,7 +61,7 @@ func (s *SOMASServer) getEcho(str string) error {
 	for _, c := range s.clientMap {
 		got := c.Echo(str)
 		if str != got {
-			return fmt.Errorf("Echo error: want '%v' got '%v' from %v",
+			return errors.Errorf("Echo error: want '%v' got '%v' from %v",
 				str, got, c.GetID())
 		}
 		s.logf("Received echo `%v` from %v", str, c.GetID())
