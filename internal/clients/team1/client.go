@@ -9,7 +9,7 @@ import (
 const id = shared.Team1
 
 func init() {
-	common.RegisterClient(id, &client{id: id, Client: common.NewClient()})
+	common.RegisterClient(id, &client{id: id, Client: common.NewClient(id)})
 }
 
 type client struct {

@@ -9,8 +9,8 @@ import (
 
 const id = 420
 
-func NewClient() Client {
-	return &BaseClient{}
+func NewClient(id shared.ClientID) Client {
+	return &BaseClient{id: id}
 }
 
 type BaseClient struct {
