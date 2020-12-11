@@ -25,7 +25,7 @@ type BaseClient struct {
 //Echo prints a message to show that the client exists
 // BASE: Do not overwrite in team client.
 func (c *BaseClient) Echo(s string) string {
-	c.logf("Echo: '%v'", s)
+	c.Logf("Echo: '%v'", s)
 	return s
 }
 
@@ -35,10 +35,10 @@ func (c *BaseClient) GetID() shared.ClientID {
 	return c.id
 }
 
-// logf is the client's logger that prepends logs with your ID. This makes
+// Logf is the client's logger that prepends logs with your ID. This makes
 // it easier to read logs. DO NOT use other loggers that will mess logs up!
 // BASE: Do not overwrite in team client.
-func (c *BaseClient) logf(format string, a ...interface{}) {
+func (c *BaseClient) Logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
 }
 
@@ -46,13 +46,13 @@ func (c *BaseClient) logf(format string, a ...interface{}) {
 // The gameState is served by the server.
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *BaseClient) StartOfTurnUpdate(gameState GameState) {
-	c.logf("Received game state update: %v", gameState)
+	c.Logf("Received game state update: %v", gameState)
 	// TODO
 }
 
 // EndOfTurnActions executes and returns the actions done by the client that turn.
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *BaseClient) EndOfTurnActions() []Action {
-	c.logf("EndOfTurnActions")
+	c.Logf("EndOfTurnActions")
 	return nil
 }
