@@ -20,7 +20,7 @@ type BaseClient struct {
 	id shared.ClientID
 }
 
-//Echo prints a message to show that the client exists
+// Echo prints a message to show that the client exists
 // BASE: Do not overwrite in team client.
 func (c *BaseClient) Echo(s string) string {
 	c.Logf("Echo: '%v'", s)
