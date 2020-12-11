@@ -9,6 +9,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/simulation"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -52,6 +53,9 @@ func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
 
 // runRound runs a round (day) of the game.
 func (s *SOMASServer) runRound() error {
+	if err := s.getEcho("HELLO WORLD!"); err != nil {
+		return fmt.Errorf("getEcho failed with: %v", err)
+	}
 	s.gameState.Environment.SampleForDisaster()
 	fmt.Println(s.gameState.Environment.DisplayReport())
 
@@ -59,9 +63,7 @@ func (s *SOMASServer) runRound() error {
 	deerHunt := createDeerHunt(huntParticipants)
 	fmt.Printf("\nResults of deer hunt: return of %.3f at cost of %.3f\n", deerHunt.Hunt(), deerHunt.TotalInput())
 
-	if err := s.getEcho("HELLO WORLD!"); err != nil {
-		return fmt.Errorf("getEcho failed with: %v", err)
-	}
+	simulation.TestSolve()
 	s.killAllClients()
 	return nil
 }
