@@ -7,6 +7,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -51,9 +52,13 @@ func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
 
 // runRound runs a round (day) of the game.
 func (s *SOMASServer) runRound() error {
-	// TODO: Implement round logic
 	s.gameState.Environment.SampleForDisaster()
 	fmt.Println(s.gameState.Environment.DisplayReport())
+
+	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
+	deerHunt := createDeerHunt(huntParticipants)
+	fmt.Printf("\nResults of deer hunt: return of %.3f at cost of %.3f\n", deerHunt.Hunt(), deerHunt.TotalInput())
+
 	if err := s.getEcho("HELLO WORLD!"); err != nil {
 		return fmt.Errorf("getEcho failed with: %v", err)
 	}
@@ -102,4 +107,9 @@ func initEnvironment() *disasters.Environment {
 	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0}
 	env, _ := disasters.InitEnvironment(islandIDs, xBounds, yBounds, dp)
 	return env
+}
+
+func createDeerHunt(teamResourceInputs map[shared.ClientID]float64) foraging.DeerHunt {
+	params := foraging.DeerHuntParams{P: 0.95, Lam: 1.0} // TODO: move to central config store
+	return foraging.DeerHunt{Participants: teamResourceInputs, Params: params}
 }
