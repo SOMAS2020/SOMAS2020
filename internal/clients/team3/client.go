@@ -44,3 +44,13 @@ func (c *client) GetID() shared.ClientID {
 func (c *client) logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
 }
+
+func (c *client) StartOfTurnUpdate(gameState common.GameState) {
+	c.logf("Received game state update: %v", gameState)
+	// TODO
+}
+
+func (c *client) EndOfTurnActions() []common.Action {
+	c.logf("EndOfTurnActions")
+	return nil
+}
