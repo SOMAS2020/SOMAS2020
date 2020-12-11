@@ -9,12 +9,11 @@ import (
 const id = shared.Team4
 
 func init() {
-	common.RegisterClient(id, &client{id: id, Client: common.NewClient(id)})
+	common.RegisterClient(id, &client{Client: common.NewClient(id)})
 }
 
 type client struct {
 	common.Client
-	id shared.ClientID
 }
 
 // StartOfTurnUpdate is updates the gamestate of the client at the start of each turn.

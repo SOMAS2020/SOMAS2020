@@ -7,8 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = 420
-
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
 func NewClient(id shared.ClientID) Client {
