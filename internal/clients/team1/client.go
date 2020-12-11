@@ -2,9 +2,6 @@
 package team1
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -12,13 +9,15 @@ import (
 const id = shared.Team1
 
 func init() {
-	common.RegisterClient(id, &client{id: id})
+	common.RegisterClient(id, &client{id: id, Client: common.NewClient()})
 }
 
 type client struct {
+	common.Client
 	id shared.ClientID
 }
 
+/*
 func (c *client) Echo(s string) string {
 	c.logf("Echo: '%v'", s)
 	return s
@@ -43,3 +42,4 @@ func (c *client) EndOfTurnActions() []common.Action {
 	c.logf("EndOfTurnActions")
 	return nil
 }
+*/
