@@ -1,5 +1,5 @@
 // Package team1 contains code for team 1's client implementation
-package team1
+package template
 
 import (
 	"fmt"
