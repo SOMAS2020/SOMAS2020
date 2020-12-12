@@ -26,7 +26,7 @@ func registerTestRule() {
 
 	v := []float64{1, 0, 0, 0, -4, 0, -1, -1, 0, 2, 0, 0, 0, 1, -2, 0, 0, 1, 0, -1}
 	CoreMatrix := mat.NewDense(4, 5, v)
-	aux := []float64{2, 2, 2, 2}
+	aux := []float64{2, 3, 3, 2}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
 	RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
