@@ -27,6 +27,6 @@ func (c *client) StartOfTurnUpdate(gameState common.GameState) {
 // EndOfTurnActions executes and returns the actions done by the client that turn.
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *client) EndOfTurnActions() []common.Action {
-	c.Client.Logf("EndOfTurnActions")
+	c.Logf("EndOfTurnActions")
 	return nil
 }
