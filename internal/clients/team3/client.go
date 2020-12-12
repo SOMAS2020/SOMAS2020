@@ -3,6 +3,7 @@ package team3
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
@@ -21,14 +22,13 @@ type client struct {
 
 func (c *client) Echo(s string) string {
 
-	//c.DemoEvaluation()
 	c.logf("Echo: '%v'", s)
 
 	return s
 }
 
 func (c *client) DemoEvaluation() {
-	evalResult, err := common.BasicRuleEvaluator("Kinda Complicated Rule")
+	evalResult, err := rules.BasicBooleanRuleEvaluator("Kinda Complicated Rule")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -47,6 +47,8 @@ func (c *client) logf(format string, a ...interface{}) {
 
 func (c *client) StartOfTurnUpdate(gameState common.GameState) {
 	c.logf("Received game state update: %v", gameState)
+	//c.DemoEvaluation()
+
 	// TODO
 }
 
