@@ -14,7 +14,6 @@ func init() {
 
 type client struct {
 	common.Client
-	id shared.ClientID
 }
 
 // StartOfTurnUpdate is updates the gamestate of the client at the start of each turn.
