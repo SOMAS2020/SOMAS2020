@@ -5,8 +5,9 @@ import (
 	"math"
 )
 
-type ypFunc func(t, y float64) float64
-type ypStepFunc func(t, y, dt float64) float64
+type ypFunc func(t, y float64) float64         // dy/dt definition
+type ypStepFunc func(t, y, dt float64) float64 // step function for computing dy/dt
+type yActual func(t float64) float64           // func to provide actual solution y(t) if known for comparisn
 
 // newRKStep takes a function representing an ODE
 // and returns a function that performs a single step of the 4th order
@@ -21,39 +22,50 @@ func newRK4Step(yp ypFunc) ypStepFunc {
 	}
 }
 
-// differential equation func
-func yprime(t, y float64) float64 {
-	return 2 * t //t * math.Sqrt(y)
+// Utility func to compare error of numerical solution to actual solution at t
+func printErr(t, y float64, yActual yActual) {
+	fmt.Printf("y(%.1f) = %f Error: %e\n", t, y, math.Abs(yActual(t)-y))
 }
 
-// exact solution for comparison
-func actual(t float64) float64 {
-	return t * t
-}
-func printErr(t, y float64) {
-	fmt.Printf("y(%.1f) = %f Error: %e\n", t, y, math.Abs(actual(t)-y))
+// ODEProblem is simply a struct to initialise the parts of and ODE IVP
+type ODEProblem struct {
+	YPrime ypFunc  // func that returns dy/dt
+	T0     int     // initial integer timestep
+	Y0     float64 // initial y value for IVP
+	DtStep float64 // solver step size. Typically 0.1
 }
 
-// SolveRK4 provides an approximate ODE solution using the 4th order Runge-Kutta method
-func SolveRK4(yprime ypFunc, t0 int, tFinal int, y0 float64) {
-	dtPrint := 1 // and to print at whole numbers.
-	dtStep := .1 // step value.
+// Step is a closure that initialises t, y and returns a function that allows you to perform a solution
+// step in the DE solution. Performs approx. 1/dtStep iterations in a step.
+func (de ODEProblem) Step() func() (t2, y2 float64) {
+	t, y := float64(de.T0), de.Y0
 
-	t, y := float64(t0), y0
-	ypStep := newRK4Step(yprime)
-	for t1 := t0 + dtPrint; t1 <= tFinal; t1 += dtPrint {
-		printErr(t, y) // print intermediate result
-		for steps := int(float64(dtPrint)/dtStep + .5); steps > 1; steps-- {
-			y = ypStep(t, y, dtStep)
-			t += dtStep
-		}
-		y = ypStep(t, y, float64(t1)-t) // adjust step to integer time
-		t = float64(t1)
+	return func() (t2, y2 float64) {
+		t, y = solveStep(t, y, de.DtStep, de.YPrime)
+		return t, y
 	}
-	printErr(t, y) // print final result
 }
 
-// TestSolve solves a sample DE
-func TestSolve() {
-	SolveRK4(yprime, 0, 10, 0)
+// SolveStep performs an update towards solving a DE using RK4. Performs approx. 1/dtStep iterations in a step.
+func solveStep(t, y, dtStep float64, yPrime ypFunc) (t2, y2 float64) {
+	ypStep := newRK4Step(yPrime)
+
+	for steps := int(1 / dtStep); steps > 1; steps-- {
+		y = ypStep(t, y, dtStep)
+		t += dtStep
+	}
+	tUp := math.Ceil(t)
+	dtFinal := float64(tUp) - t // perform last step over remaining dt to finish integer time increment
+	y = ypStep(t, y, dtFinal)
+	return tUp, y
+}
+
+// SolveUntilT solves a DE from T0 (from initialisation) to tFinal
+func (de ODEProblem) SolveUntilT(tFinal int) {
+	dtPrint := 1 // and to print at whole numbers.
+	t, y := float64(de.T0), de.Y0
+	for t1 := de.T0 + dtPrint; t1 <= tFinal; t1 += dtPrint {
+		t, y = solveStep(t, y, de.DtStep, de.YPrime)
+		fmt.Println(t, y)
+	}
 }

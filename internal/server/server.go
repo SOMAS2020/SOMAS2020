@@ -9,7 +9,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/simulation"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -63,7 +62,7 @@ func (s *SOMASServer) runRound() error {
 	deerHunt := createDeerHunt(huntParticipants)
 	fmt.Printf("\nResults of deer hunt: return of %.3f at cost of %.3f\n", deerHunt.Hunt(), deerHunt.TotalInput())
 
-	simulation.TestSolve()
+	foraging.TestSolve() // testing for now
 	s.killAllClients()
 	return nil
 }

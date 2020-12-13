@@ -29,6 +29,7 @@ func (d DeerHunt) TotalInput() float64 {
 	return i
 }
 
+// Hunt returns the utility from a deer hunt
 func (d DeerHunt) Hunt() float64 {
 	input := d.TotalInput()
 	maxDeer := deerUtilityTier(input, deerUtilityIncrements) // get max number of deer allowed for given resource input
