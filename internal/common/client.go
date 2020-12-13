@@ -22,13 +22,13 @@ type Client interface {
 	EndOfTurnActions() []Action
 
 	// IITO functions:
-	RequestGift() int
-	OfferGifts(giftRequestDict shared.GiftDict) shared.GiftDict
-	AcceptGifts(receivedGiftDict shared.GiftDict) shared.GiftInfoDict
-	UpdateGiftInfo(acceptedGifts shared.GiftInfoDict)
+	RequestGift() (int, error)
+	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
+	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
+	UpdateGiftInfo(acceptedGifts shared.GiftInfoDict) error
 	//Actions? Need to talk to LH and our team about this one:
-	SendGift(receivingClient shared.ClientID, amount int)
-	ReceiveGift(sendingClient shared.ClientID, amount int)
+	SendGift(receivingClient shared.ClientID, amount int) error
+	ReceiveGift(sendingClient shared.ClientID, amount int) error
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
