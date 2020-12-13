@@ -1,12 +1,12 @@
 package server
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
+	"github.com/pkg/errors"
 )
 
 type mockClientEcho struct {
@@ -41,7 +41,7 @@ func TestGetEcho(t *testing.T) {
 			name:  "wrong reply",
 			input: "42",
 			reply: "43",
-			want:  fmt.Errorf("Echo error: want '42' got '43' from Team1"),
+			want:  errors.Errorf("Echo error: want '42' got '43' from Team1"),
 		},
 	}
 
@@ -51,17 +51,9 @@ func TestGetEcho(t *testing.T) {
 				id:   shared.Team1,
 				echo: tc.reply,
 			}
-			clients := map[shared.ClientID]common.Client{
-				shared.Team1: mClient,
-				shared.Team2: mClient,
-				shared.Team3: mClient,
-				shared.Team4: mClient,
-				shared.Team5: mClient,
-				shared.Team6: mClient,
-			}
 			server := &SOMASServer{
-				gameState: common.GameState{
-					ClientInfos: getClientInfoFromRegisteredClients(clients),
+				clientMap: map[shared.ClientID]common.Client{
+					shared.Team1: mClient,
 				},
 			}
 

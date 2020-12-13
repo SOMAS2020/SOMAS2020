@@ -36,6 +36,8 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 6. Keep your team repo base up to date with the main repo.
 
+7. Use the superior `errors.Errorf` to create your errors so that we have a stack trace.
+
 ## Repo
 
 1. Each team will work off a fork of the main repo. Your team is responsible for all development happening in the fork, and are responsible to keep your own fork up-to-date, as well as to pull in changes to the main repo periodically. (Remember to give your teammates _write access_ to the fork!)
