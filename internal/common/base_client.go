@@ -57,24 +57,28 @@ func (c *BaseClient) EndOfTurnActions() []Action {
 
 // RequestGift allows clients to signalize that they want a gift
 // This information is fed to OfferGifts of all other clients.
+// COMPULSORY, you need to implement this method
 func (c *BaseClient) RequestGift() int {
 	return 0
 }
 
 // OfferGifts allows clients to offer to give the gifts requested by other clients.
 // It can offer multiple partial gifts
+// COMPULSORY, you need to implement this method
 func (c *BaseClient) OfferGifts(giftRequestDict shared.GiftDict) shared.GiftDict {
 	return nil
 }
 
 // AcceptGifts allows clients to accept gifts offered by other clients.
 // It also needs to provide a reasoning should it not accept the full amount.
+// COMPULSORY, you need to implement this method
 func (c *BaseClient) AcceptGifts(receivedGiftDict shared.GiftDict) shared.GiftInfoDict {
 	return nil
 }
 
 // UpdateGiftInfo gives information about the outcome from AcceptGifts.
 // This allows for opinion formation.
+// COMPULSORY, you need to implement this method
 func (c *BaseClient) UpdateGiftInfo(acceptedGifts shared.GiftInfoDict) {
 
 }
@@ -83,12 +87,14 @@ func (c *BaseClient) UpdateGiftInfo(acceptedGifts shared.GiftInfoDict) {
 
 // SendGift is executed at the end of each turn and allows clients to
 // send the gifts promised in the IITO
+// COMPULSORY, you need to implement this method
 func (c *BaseClient) SendGift(receivingClient shared.ClientID, amount int) {
 
 }
 
 // ReceiveGift is executed at the end of each turn and allows clients to
 // receive the gifts promised in the IITO
+// COMPULSORY, you need to implement this method
 func (c *BaseClient) ReceiveGift(sendingClient shared.ClientID, amount int) {
 
 }
