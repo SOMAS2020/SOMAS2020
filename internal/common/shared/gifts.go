@@ -16,14 +16,14 @@ const (
 )
 
 // GiftInfoDict key is island index of the island who received your gift
-type GiftInfoDict map[int]GiftInfo
+type GiftInfoDict map[ClientID]GiftInfo
 
 // GiftInfo is a struct containing the information describing a gift
 // exchange between two islands
 type GiftInfo struct {
-	receivingTeam  ClientID
-	offeringTeam   ClientID
-	offerAmount    int
-	acceptedAmount int
-	reason         AcceptReason
+	ReceivingTeam  ClientID
+	OfferingTeam   ClientID
+	OfferAmount    int
+	AcceptedAmount int
+	Reason         AcceptReason
 }

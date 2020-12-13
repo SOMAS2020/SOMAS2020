@@ -66,14 +66,23 @@ func (c *BaseClient) RequestGift() int {
 // It can offer multiple partial gifts
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) OfferGifts(giftRequestDict shared.GiftDict) shared.GiftDict {
-	return nil
+	return giftRequestDict
 }
 
 // AcceptGifts allows clients to accept gifts offered by other clients.
 // It also needs to provide a reasoning should it not accept the full amount.
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) AcceptGifts(receivedGiftDict shared.GiftDict) shared.GiftInfoDict {
-	return nil
+	acceptedGifts := shared.GiftInfoDict{}
+	for client, offer := range receivedGiftDict {
+		acceptedGifts[client] = shared.GiftInfo{
+			ReceivingTeam:  client,
+			OfferingTeam:   c.GetID(),
+			OfferAmount:    offer,
+			AcceptedAmount: offer,
+			Reason:         shared.Accept}
+	}
+	return acceptedGifts
 }
 
 // UpdateGiftInfo gives information about the outcome from AcceptGifts.
