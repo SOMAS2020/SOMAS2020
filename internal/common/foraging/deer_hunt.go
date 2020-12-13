@@ -15,12 +15,13 @@ type DeerHuntParams struct {
 	Lam float64 // Exponential lambda (scale) param for W (weight variable)
 }
 
-// Island captures the location of a single island
+// DeerHunt captures the hunt participants (teams) and their resource contributions, as well as hunt params
 type DeerHunt struct {
 	Participants map[shared.ClientID]float64
 	Params       DeerHuntParams
 }
 
+// TotalInput simply sums the total group resource input of hunt participants
 func (d DeerHunt) TotalInput() float64 {
 	i := 0.0
 	for _, x := range d.Participants {

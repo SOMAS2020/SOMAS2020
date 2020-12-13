@@ -7,7 +7,6 @@ import (
 
 type ypFunc func(t, y float64) float64         // dy/dt definition
 type ypStepFunc func(t, y, dt float64) float64 // step function for computing dy/dt
-type yActual func(t float64) float64           // func to provide actual solution y(t) if known for comparisn
 
 // newRKStep takes a function representing an ODE
 // and returns a function that performs a single step of the 4th order
@@ -22,9 +21,18 @@ func newRK4Step(yp ypFunc) ypStepFunc {
 	}
 }
 
-// Utility func to compare error of numerical solution to actual solution at t
-func printErr(t, y float64, yActual yActual) {
-	fmt.Printf("y(%.1f) = %f Error: %e\n", t, y, math.Abs(yActual(t)-y))
+// SolveStep performs an update towards solving a DE using RK4. Performs approx. 1/dtStep iterations in a step.
+func solveStep(t, y, dtStep float64, yPrime ypFunc) (t2, y2 float64) {
+	ypStep := newRK4Step(yPrime)
+
+	for steps := int(1 / dtStep); steps > 1; steps-- {
+		y = ypStep(t, y, dtStep)
+		t += dtStep
+	}
+	tUp := math.Ceil(t)
+	dtFinal := float64(tUp) - t // perform last step over remaining dt to finish integer time increment
+	y = ypStep(t, y, dtFinal)
+	return tUp, y
 }
 
 // ODEProblem is simply a struct to initialise the parts of and ODE IVP
@@ -46,18 +54,15 @@ func (de ODEProblem) Step() func() (t2, y2 float64) {
 	}
 }
 
-// SolveStep performs an update towards solving a DE using RK4. Performs approx. 1/dtStep iterations in a step.
-func solveStep(t, y, dtStep float64, yPrime ypFunc) (t2, y2 float64) {
-	ypStep := newRK4Step(yPrime)
+// StepDeltaY is the same as Step but allows for manipulation of y by providing a deltaY arg. Internal y
+// will then be modified: y -> y+deltaY. Useful for modifiying y between steps to model external disturbances (e.g. resource consumption)
+func (de ODEProblem) StepDeltaY() func(float64) (t2, y2 float64) {
+	t, y := float64(de.T0), de.Y0
 
-	for steps := int(1 / dtStep); steps > 1; steps-- {
-		y = ypStep(t, y, dtStep)
-		t += dtStep
+	return func(deltaY float64) (t2, y2 float64) {
+		t, y = solveStep(t, y+deltaY, de.DtStep, de.YPrime) // adjust y by deltaY
+		return t, y
 	}
-	tUp := math.Ceil(t)
-	dtFinal := float64(tUp) - t // perform last step over remaining dt to finish integer time increment
-	y = ypStep(t, y, dtFinal)
-	return tUp, y
 }
 
 // SolveUntilT solves a DE from T0 (from initialisation) to tFinal

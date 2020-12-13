@@ -62,7 +62,9 @@ func (s *SOMASServer) runRound() error {
 	deerHunt := createDeerHunt(huntParticipants)
 	fmt.Printf("\nResults of deer hunt: return of %.3f at cost of %.3f\n", deerHunt.Hunt(), deerHunt.TotalInput())
 
-	foraging.TestSolve() // testing for now
+	dp := foraging.CreateBasicDeerPopulationModel()
+	consumption := []int{0, 0, 2, 0, 0, 1, 0, 3, 0, 0} // simulate deer consumption (no. deer hunted each day) over 10 days
+	dp.Simulate(consumption)
 	s.killAllClients()
 	return nil
 }
