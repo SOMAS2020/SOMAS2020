@@ -6,6 +6,18 @@ import (
 	"math"
 )
 
+func getSmallest(values []float64) int {
+	currentLowest := values[0]
+	currentLowestIndex := 0
+	for i, v := range values {
+		if v <= currentLowest {
+			currentLowest = v
+			currentLowestIndex = i
+		}
+	}
+	return currentLowestIndex
+}
+
 func findInSlice(input []int, val int) bool {
 	for _, v := range input {
 		if v == val {
