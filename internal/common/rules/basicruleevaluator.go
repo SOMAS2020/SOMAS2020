@@ -68,7 +68,7 @@ func genRealResult(aux mat.VecDense, c *mat.VecDense) ([]bool, float64, error) {
 	outputVal := 0.0
 
 	for i := 0; i < nRows; i++ {
-		res := false
+		res := true
 		switch interpret := aux.AtVec(i); interpret {
 		case 0:
 			res = c.AtVec(i) == 0
