@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"fmt"
 	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
 )
@@ -13,7 +12,7 @@ func createVarList(variables []string) ([]float64, error) {
 		if val, varOk := VariableMap[v]; varOk {
 			variableVect = append(variableVect, val.Values...)
 		} else {
-			return nil, errors.New(fmt.Sprintf("Variable: '%v' not found in global variable cache", v))
+			return nil, errors.Errorf("Variable: '%v' not found in global variable cache", v)
 		}
 	}
 
@@ -53,7 +52,7 @@ func genResult(aux mat.VecDense, c *mat.VecDense) ([]bool, error) {
 		case 3:
 			res = c.AtVec(i) != 0
 		default:
-			return nil, errors.New(fmt.Sprintf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret))
+			return nil, errors.Errorf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret)
 		}
 		resultVect = append(resultVect, res)
 	}
@@ -82,7 +81,7 @@ func genRealResult(aux mat.VecDense, c *mat.VecDense) ([]bool, float64, error) {
 		case 4:
 			outputVal = c.AtVec(i)
 		default:
-			return nil, 0.0, errors.New(fmt.Sprintf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret))
+			return nil, 0.0, errors.Errorf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret)
 		}
 		resultVect = append(resultVect, res)
 	}
@@ -92,13 +91,13 @@ func genRealResult(aux mat.VecDense, c *mat.VecDense) ([]bool, float64, error) {
 
 func checkForFalse(resultVect []bool) bool {
 
-	var finalBool = true
-
 	for _, v := range resultVect {
-		finalBool = finalBool && v
+		if !v {
+			return false
+		}
 	}
 
-	return finalBool
+	return true
 
 }
 
