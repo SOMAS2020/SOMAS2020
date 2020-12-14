@@ -23,14 +23,14 @@ func TestBasicRuleEvaluatorNegative(t *testing.T) {
 }
 
 func TestBasicRealValuedRuleEvaluator(t *testing.T) {
-	registerNewRealValuedRule()
+	registerNewRealValuedRule(t)
 	result, value, _ := BasicRealValuedRuleEvaluator("Real Test rule")
 	if !result && value != 2.0 {
 		t.Errorf("Real values rule evaluation error, expected true got '%v', value expected '2' got '%v'", result, value)
 	}
 }
 
-func registerNewRealValuedRule() {
+func registerNewRealValuedRule(t *testing.T) {
 	//A very contrived rule//
 	name := "Real Test rule"
 	reqVar := []string{
@@ -45,6 +45,9 @@ func registerNewRealValuedRule() {
 	aux := []float64{1, 1, 3, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	_, err := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	if err != nil {
+		t.Errorf("Probblem with registering new real valued rule in test, error message : '%v'", err)
+	}
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 }

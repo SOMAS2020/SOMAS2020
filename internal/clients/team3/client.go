@@ -2,29 +2,19 @@
 package team3
 
 import (
-	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-	"log"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 const id = shared.Team3
 
 func init() {
-	common.RegisterClient(id, &client{id: id})
+	common.RegisterClient(id, &client{Client: common.NewClient(id)})
 }
 
 type client struct {
-	id shared.ClientID
-}
-
-func (c *client) Echo(s string) string {
-
-	c.logf("Echo: '%v'", s)
-
-	return s
+	common.Client
 }
 
 func (c *client) DemoEvaluation() {
@@ -32,27 +22,20 @@ func (c *client) DemoEvaluation() {
 	if err != nil {
 		panic(err.Error())
 	}
-	c.logf("Rule Eval: %t", evalResult)
+	c.Logf("Rule Eval: %t", evalResult)
 }
 
-func (c *client) GetID() shared.ClientID {
-	return c.id
-}
-
-// logf is the client's logger that prepends logs with your ID. This makes
-// it easier to read logs. DO NOT use other loggers that will mess logs up!
-func (c *client) logf(format string, a ...interface{}) {
-	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
-}
-
+// StartOfTurnUpdate is updates the gamestate of the client at the start of each turn.
+// The gameState is served by the server.
+// OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *client) StartOfTurnUpdate(gameState common.GameState) {
-	c.logf("Received game state update: %v", gameState)
-	//c.DemoEvaluation()
-
+	c.Logf("Received game state update: %v", gameState)
 	// TODO
 }
 
+// EndOfTurnActions executes and returns the actions done by the client that turn.
+// OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *client) EndOfTurnActions() []common.Action {
-	c.logf("EndOfTurnActions")
+	c.Logf("EndOfTurnActions")
 	return nil
 }
