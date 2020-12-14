@@ -1,24 +1,25 @@
 package server
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
+	"github.com/pkg/errors"
 )
 
-type mockClient struct {
+type mockClientEcho struct {
 	common.Client
-	id   common.ClientID
+	id   shared.ClientID
 	echo string
 }
 
-func (c *mockClient) GetID() common.ClientID {
+func (c *mockClientEcho) GetID() shared.ClientID {
 	return c.id
 }
 
-func (c *mockClient) Echo(s string) string {
+func (c *mockClientEcho) Echo(s string) string {
 	return c.echo
 }
 
@@ -40,31 +41,23 @@ func TestGetEcho(t *testing.T) {
 			name:  "wrong reply",
 			input: "42",
 			reply: "43",
-			want:  fmt.Errorf("Echo error: want '42' got '43' from client 1"),
+			want:  errors.Errorf("Echo error: want '42' got '43' from Team1"),
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			mClient := &mockClient{
-				id:   1,
+			mClient := &mockClientEcho{
+				id:   shared.Team1,
 				echo: tc.reply,
 			}
-			clients := map[common.ClientID]common.Client{
-				common.Team1: mClient,
-				common.Team2: mClient,
-				common.Team3: mClient,
-				common.Team4: mClient,
-				common.Team5: mClient,
-				common.Team6: mClient,
-			}
 			server := &SOMASServer{
-				gameState: common.GameState{
-					ClientInfos: getClientInfoFromRegisteredClients(clients),
+				clientMap: map[shared.ClientID]common.Client{
+					shared.Team1: mClient,
 				},
 			}
 
-			got := server.GetEcho(tc.input)
+			got := server.getEcho(tc.input)
 			testutils.CompareTestErrors(tc.want, got, t)
 		})
 	}

@@ -19,3 +19,20 @@ go build # build step
 ```bash
 go test ./...
 ```
+
+## Structure
+
+### `docs`
+Important documents pertaining to codebase organisation, code conventions and project management. Read before writing code.
+
+### `internal`
+All code goes in here.
+
+#### `clients`
+Individual team code goes into the respective folders in this directory.
+
+#### `common`
+Common utilities, or system-wide code such as game specification etc.
+
+#### `server`
+Self-explanatory.

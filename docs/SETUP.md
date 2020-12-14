@@ -3,6 +3,8 @@
 - [Go 1.15.x](https://golang.org/dl/) (1.15.5 preferred)
     - `go version` should produce `go version go1.15....`
 
+(Note that the reference system as in CI is `Ubuntu 20.04`. It is preferable to run this OS, but if not, that's fine.)
+
 ## Text Editor & Language Server
 
 - You're encouraged to use [VSCode](https://code.visualstudio.com/), with the [Go extension](https://code.visualstudio.com/docs/languages/go).
@@ -28,17 +30,27 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 3. DO NOT TOUCH code you don't own unless you have a good reason to. If you have a good reason to, do it in a separate PR and notify the owners of the code.
 
-4. Keep your team repo base up to date with the main repo.
+4. Do not use `panic` or `die`--return an `error` instead!
+
+5. Do not use system-specific pacakges (e.g. `internal/syscall/unix`).
+
+6. Keep your team repo base up to date with the main repo.
+
+7. Use the superior `errors.Errorf` to create your errors so that we have a stack trace.
 
 ## Repo
 
-1. Each team will work off a fork of the main repo. Your team is responsible for all development happening in the fork, and are responsible to keep your own fork up-to-date, as well as to pull in changes to the main repo periodically.
+1. Each team will work off a fork of the main repo. Your team is responsible for all development happening in the fork, and are responsible to keep your own fork up-to-date, as well as to pull in changes to the main repo periodically. (Remember to give your teammates _write access_ to the fork!)
 
 2. Your team's fork must pass CI + infrastructure team code reviews before it can be merged into the main repo. Make sure you detail your changes succinctly in your PR, and _KEEP DIFFS SMALL_. Infra might not need to read every line, but having small reviews to do is helpful. Again, DO NOT TOUCH CODE YOU'RE NOT SUPPOSED TO. 
 
 3. Make sure your fork is up-to-date with the main repo's `main` branch before submitting a PR.
 
 4. Your fork should inherit the Github Actions for CI as well, this means PRs into your `main` branch should run CI.
+
+5. Feel free to link your PR in the Discord infrastructure channel to request a review.
+
+
 ## Dependencies
 
 1. The usual way of getting dependencies for Golang should work, i.e. `go get <MODULE_LINK>`. Try to refrain from including rarely-used or dodgy-looking dependencies: everyone running the code needs to get the code on their computer (golang does this automatically). If in doubt, ask.

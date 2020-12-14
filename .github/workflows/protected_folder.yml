@@ -2,16 +2,21 @@ name: Protected folder guards
 
 on:
   pull_request:
-    branches: [ main ]
-    paths:
-    - 'internal/server/**'
+    types:
+      - opened
+    branches:
+      - main
+    paths-ignore:
+      - 'internal/client/**'
 
 jobs:
   test:
     runs-on: ubuntu-20.04
     steps:
     - name: Warning
-
-      run: |
-        echo "::warning:: This diff contains changes in protected folders!"
+      uses: mshick/add-pr-comment@v1
+      with:
+        message: "# ⚠️Warning! This diff contains changes in protected folders"
+        proxy-url: https://add-pr-comment-proxy-64rv25thfq-ew.a.run.app
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
     

@@ -3,42 +3,56 @@ package team3
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"log"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = common.Team3
+const id = shared.Team3
 
 func init() {
 	common.RegisterClient(id, &client{id: id})
 }
 
 type client struct {
-	id common.ClientID
+	id shared.ClientID
 }
 
 func (c *client) Echo(s string) string {
 
-	//c.DemoEvaluation()
-	c.Logf("Echo: '%v'", s)
+	c.logf("Echo: '%v'", s)
 
 	return s
 }
 
 func (c *client) DemoEvaluation() {
-	evalResult, err := common.BasicRuleEvaluator("Kinda Complicated Rule")
+	evalResult, err := rules.BasicBooleanRuleEvaluator("Kinda Complicated Rule")
 	if err != nil {
 		panic(err.Error())
 	}
-	c.Logf("Rule Eval: %t", evalResult)
+	c.logf("Rule Eval: %t", evalResult)
 }
 
-func (c *client) GetID() common.ClientID {
+func (c *client) GetID() shared.ClientID {
 	return c.id
 }
 
-// Logf is the client's logger that prepends logs with your ID. This makes
+// logf is the client's logger that prepends logs with your ID. This makes
 // it easier to read logs. DO NOT use other loggers that will mess logs up!
-func (c *client) Logf(format string, a ...interface{}) {
+func (c *client) logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
+}
+
+func (c *client) StartOfTurnUpdate(gameState common.GameState) {
+	c.logf("Received game state update: %v", gameState)
+	//c.DemoEvaluation()
+
+	// TODO
+}
+
+func (c *client) EndOfTurnActions() []common.Action {
+	c.logf("EndOfTurnActions")
+	return nil
 }
