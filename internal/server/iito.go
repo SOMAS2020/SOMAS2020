@@ -7,6 +7,6 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common"
 func (s *SOMASServer) runIITO() ([]common.Action, error) {
 	s.logf("start runIITO")
 	defer s.logf("finish runIITO")
-	// TOOD:- IITO team
+	// TODO:- IITO team
 	return nil, nil
 }
