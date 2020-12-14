@@ -3,6 +3,7 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -17,7 +18,7 @@ type client struct {
 }
 
 func (c *client) DemoEvaluation() {
-	evalResult, err := common.BasicRuleEvaluator("Kinda Complicated Rule")
+	evalResult, err := rules.BasicBooleanRuleEvaluator("Kinda Complicated Rule")
 	if err != nil {
 		panic(err.Error())
 	}
