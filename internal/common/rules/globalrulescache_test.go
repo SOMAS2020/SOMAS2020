@@ -13,6 +13,23 @@ func TestRegisterNewRule(t *testing.T) {
 	}
 }
 
+func TestPullRuleIntoPlay(t *testing.T) {
+	registerTestRule()
+	x := PullRuleIntoPlay("Kinda Test Rule")
+	if x != nil {
+		t.Errorf("Rule wasn't able to be pulled into play from global rule cache")
+	}
+}
+
+func TestPullRuleOutOfPlay(t *testing.T) {
+	registerTestRule()
+	_ = PullRuleIntoPlay("Kinda Test Rule")
+	y := PullRuleOutOfPlay("Kinda Test Rule")
+	if y != nil {
+		t.Errorf("Rule wasn't able to be pulled into play from global rule cache")
+	}
+}
+
 func registerTestRule() {
 
 	//A very contrived rule//
