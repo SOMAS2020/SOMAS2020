@@ -3,10 +3,7 @@ package common
 import (
 	"fmt"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/pkg/errors"
-	"gonum.org/v1/gonum/mat"
 )
 
 // Client is a base interface to be implemented by each client struct.
@@ -17,7 +14,7 @@ type Client interface {
 	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
 	// at start of turn. Do whatever you like here :).
 	StartOfTurnUpdate(gameState GameState)
-
+	Logf(format string, a ...interface{})
 	// EndOfTurnActions should return all end of turn actions.
 	EndOfTurnActions() []Action
 }
@@ -33,72 +30,4 @@ func RegisterClient(id shared.ClientID, c Client) {
 		panic(fmt.Sprintf("Duplicate client ID %v in RegisterClient!", id))
 	}
 	RegisteredClients[id] = c
-}
-
-// BasicRuleEvaluator implements a basic version of the Matrix rule evaluator, provides single boolean output (and error if present)
-func BasicRuleEvaluator(ruleName string) (bool, error) {
-	var variableVect []float64
-	if rm, ok := rules.AvailableRules[ruleName]; ok {
-		variables := rm.RequiredVariables
-
-		for _, v := range variables {
-			if val, varOk := rules.VariableMap[v]; varOk {
-				variableVect = append(variableVect, val.Values...)
-			} else {
-				return false, errors.Errorf("Variable: '%v' not found in global variable cache", v)
-			}
-		}
-
-		variableVect = append(variableVect, 1)
-
-		//Checking dimensions line up
-		nRows, nCols := rm.ApplicableMatrix.Dims()
-
-		if nCols != len(variableVect) {
-			return false, errors.Errorf(
-				"dimension mismatch in evaluating rule: '%v' rule matrix has '%v' columns, while we sourced '%v' variables",
-				ruleName,
-				nCols,
-				len(variableVect),
-			)
-		}
-
-		variableFormalVect := mat.NewVecDense(len(variableVect), variableVect)
-
-		actual := make([]float64, nRows)
-
-		c := mat.NewVecDense(nRows, actual)
-
-		c.MulVec(&rm.ApplicableMatrix, variableFormalVect)
-		aux := rm.AuxiliaryVector
-
-		var resultVect []bool
-
-		for i := 0; i < nRows; i++ {
-			res := false
-			switch interpret := aux.AtVec(i); interpret {
-			case 0:
-				res = c.AtVec(i) == 0
-			case 1:
-				res = c.AtVec(i) > 0
-			case 2:
-				res = c.AtVec(i) >= 0
-			case 3:
-				res = c.AtVec(i) != 0
-			default:
-				return false, errors.Errorf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret)
-			}
-			resultVect = append(resultVect, res)
-		}
-
-		var finalBool = true
-
-		for _, v := range resultVect {
-			finalBool = finalBool && v
-		}
-
-		return finalBool, nil
-	} else {
-		return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
-	}
 }
