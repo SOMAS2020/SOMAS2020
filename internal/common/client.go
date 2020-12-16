@@ -20,6 +20,15 @@ type Client interface {
 	Logf(format string, a ...interface{})
 	// EndOfTurnActions should return all end of turn actions.
 	EndOfTurnActions() []Action
+
+	// IITO functions:
+	RequestGift() (int, error)
+	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
+	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
+	UpdateGiftInfo(acceptedGifts shared.GiftInfoDict) error
+	//Actions? Need to talk to LH and our team about this one:
+	SendGift(receivingClient shared.ClientID, amount int) error
+	ReceiveGift(sendingClient shared.ClientID, amount int) error
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
