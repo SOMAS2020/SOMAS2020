@@ -31,8 +31,8 @@ type Client interface {
 	ReceiveGift(sendingClient shared.ClientID, amount int) error
 
 	// IIFO functions:
-	MakePrediction() (shared.Prediction, []shared.ClientID, error)
-	RecievePredictions(recievedPredictions shared.RecievedPredictions) error
+	MakePrediction() (shared.PredictionInfo, error)
+	RecievePredictions(recievedPredictions *shared.RecievedPredictions) error
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.

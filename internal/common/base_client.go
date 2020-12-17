@@ -112,7 +112,7 @@ func (c *BaseClient) ReceiveGift(sendingClient shared.ClientID, amount int) erro
 // MakePrediction is called on each client for them to make a prediction about a disaster
 // Prediction includes location, magnitude, confidence etc
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) MakePrediction() (shared.Prediction, []shared.ClientID, error) {
+func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 	prediction := shared.Prediction{
 		CoordinateX: 0,
 		CoordinateY: 0,
@@ -126,12 +126,17 @@ func (c *BaseClient) MakePrediction() (shared.Prediction, []shared.ClientID, err
 		trustedIslands[index] = id
 	}
 
-	return prediction, trustedIslands, nil
+	predictionInfo := shared.PredictionInfo{
+		PredictionMade: prediction,
+		TeamsOfferedTo: trustedIslands,
+	}
+
+	return predictionInfo, nil
 }
 
 // RecievePredictions provides each client with the prediction info, in addition to the source island,
 // that they have been granted access to see
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) RecievePredictions(recievedPredictions shared.RecievedPredictions) error {
+func (c *BaseClient) RecievePredictions(recievedPredictions *shared.RecievedPredictions) error {
 	return nil
 }
