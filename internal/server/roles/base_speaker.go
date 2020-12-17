@@ -1,10 +1,10 @@
 package roles
 
 type BaseSpeaker struct {
-	id					int
-	budget				int
-	judgeSalary 		int
-	ruleToVote			int
+	id	int
+	budget	int
+	judgeSalary int
+	ruleToVote	int
 }
 
 func (s *BaseSpeaker) WithdrawJudgeSalary() {
