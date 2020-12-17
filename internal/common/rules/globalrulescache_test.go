@@ -9,7 +9,7 @@ import (
 
 // TestRegisterNewRule Tests whether the global rule cache is able to register new rules
 func TestRegisterNewRule(t *testing.T) {
-	AvailableRulesTesting, _ := generateTestStores()
+	AvailableRulesTesting, _ := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
 	if _, ok := AvailableRulesTesting["Kinda Test Rule"]; !ok {
 		t.Errorf("Global rule register unable to register new rules")
@@ -17,7 +17,7 @@ func TestRegisterNewRule(t *testing.T) {
 }
 
 func TestPullRuleIntoPlay(t *testing.T) {
-	AvailableRulesTesting, RulesInPlayTesting := generateTestStores()
+	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
 	_ = pullRuleIntoPlayInternal("Kinda Test Rule 2", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
@@ -50,7 +50,7 @@ func TestPullRuleIntoPlay(t *testing.T) {
 }
 
 func TestPullRuleOutOfPlay(t *testing.T) {
-	AvailableRulesTesting, RulesInPlayTesting := generateTestStores()
+	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
 	_ = pullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
@@ -77,10 +77,8 @@ func TestPullRuleOutOfPlay(t *testing.T) {
 	}
 }
 
-func generateTestStores() (map[string]RuleMatrix, map[string]RuleMatrix) {
-	AvailableRulesTesting := map[string]RuleMatrix{}
-	RulesInPlayTesting := map[string]RuleMatrix{}
-	return AvailableRulesTesting, RulesInPlayTesting
+func generateRulesTestStores() (map[string]RuleMatrix, map[string]RuleMatrix) {
+	return map[string]RuleMatrix{}, map[string]RuleMatrix{}
 }
 
 func registerTestRule(rulesStore map[string]RuleMatrix) {
