@@ -16,6 +16,7 @@ func RegisterNewRule(ruleName string, requiredVariables []string, applicableMatr
 	return registerNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules)
 }
 
+// registerNewRuleInternal provides primal register logic for any rule cache
 func registerNewRuleInternal(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix) (*RuleMatrix, error) {
 	if _, ok := ruleStore[ruleName]; ok {
 		return nil, errors.Errorf("Rule '%v' already registered", ruleName)
@@ -26,10 +27,12 @@ func registerNewRuleInternal(ruleName string, requiredVariables []string, applic
 	return &rm, nil
 }
 
+// PullRuleIntoPlay provides engagement logic for global rules in play cache
 func PullRuleIntoPlay(rulename string) error {
 	return pullRuleIntoPlayInternal(rulename, AvailableRules, RulesInPlay)
 }
 
+// pullRuleIntoPlayInternal provides primal rule engagement logic for any pair of caches
 func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
@@ -42,10 +45,12 @@ func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, p
 	}
 }
 
+// PullRuleOutOfPlay provides disengagement logic for global rules in play cache
 func PullRuleOutOfPlay(rulename string) error {
 	return pullRuleOutOfPlayInternal(rulename, AvailableRules, RulesInPlay)
 }
 
+// pullRuleOutOfPlayInternal provides primal rule disengagement logic for any pair of caches
 func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
