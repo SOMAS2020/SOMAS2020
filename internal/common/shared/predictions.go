@@ -17,15 +17,8 @@ type PredictionInfo struct {
 	TeamsOfferedTo []ClientID
 }
 
-// IslandPredictionDict is a dictonary to PredictionInfo
+// PredictionInfoDict is a dictionary of PredictionInfo
 type PredictionInfoDict = map[ClientID]PredictionInfo
 
-// RecievedPredictions is a struct containing the pointers to the predictions an island should recieve and
-// the IDs of the islands that these predictions came from
-type RecievedPredictions struct {
-	Predictions   []Prediction
-	SourceIslands []ClientID
-}
-
-// RecievedPredictionsDict is a dictonary of RecievedPredictions
+// RecievedPredictionsDict is a dictionary of PredictionInfoDict
 type RecievedPredictionsDict = map[ClientID]PredictionInfoDict
