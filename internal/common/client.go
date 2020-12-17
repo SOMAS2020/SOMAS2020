@@ -29,6 +29,10 @@ type Client interface {
 	//Actions? Need to talk to LH and our team about this one:
 	SendGift(receivingClient shared.ClientID, amount int) error
 	ReceiveGift(sendingClient shared.ClientID, amount int) error
+
+	// IIFO functions:
+	MakePrediction() (shared.Prediction, []shared.ClientID, error)
+	RecievePredictions(recievedPredictions shared.RecievedPredictions) error
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
