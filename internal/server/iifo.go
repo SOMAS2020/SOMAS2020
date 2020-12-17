@@ -47,11 +47,13 @@ func (s *SOMASServer) distributePredictions(islandPredictionDict shared.Predicti
 	recievedPredictionsDict := make(shared.RecievedPredictionsDict)
 	var err error
 	// Add the predictions/sources to the dict which determines which predictions each island should recieve
+	// Don't allow teams to know who these predictions were shared with in MVP
 	for idSource, info := range islandPredictionDict {
 		for _, idShare := range info.TeamsOfferedTo {
 			if recievedPredictionsDict[idShare] == nil {
 				recievedPredictionsDict[idShare] = make(shared.PredictionInfoDict)
 			}
+			info.TeamsOfferedTo = nil
 			recievedPredictionsDict[idShare][idSource] = info
 		}
 	}
