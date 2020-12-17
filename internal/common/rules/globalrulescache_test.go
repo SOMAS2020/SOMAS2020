@@ -9,15 +9,17 @@ import (
 
 // TestRegisterNewRule Tests whether the global rule cache is able to register new rules
 func TestRegisterNewRule(t *testing.T) {
-	registerTestRule()
-	if _, ok := AvailableRules["Kinda Test Rule"]; !ok {
+	AvailableRulesTesting, _ := generateTestStores()
+	registerTestRule(AvailableRulesTesting)
+	if _, ok := AvailableRulesTesting["Kinda Test Rule"]; !ok {
 		t.Errorf("Global rule register unable to register new rules")
 	}
 }
 
 func TestPullRuleIntoPlay(t *testing.T) {
-	registerTestRule()
-	_ = PullRuleIntoPlay("Kinda Test Rule 2")
+	AvailableRulesTesting, RulesInPlayTesting := generateTestStores()
+	registerTestRule(AvailableRulesTesting)
+	_ = pullRuleIntoPlayInternal("Kinda Test Rule 2", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
 		name string
 		rule string
@@ -41,16 +43,16 @@ func TestPullRuleIntoPlay(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := PullRuleIntoPlay(tc.rule)
+			got := pullRuleIntoPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
 			testutils.CompareTestErrors(tc.want, got, t)
 		})
 	}
 }
 
 func TestPullRuleOutOfPlay(t *testing.T) {
-	registerTestRule()
-	_ = PullRuleOutOfPlay("Kinda Test Rule 2")
-	_ = PullRuleIntoPlay("Kinda Test Rule")
+	AvailableRulesTesting, RulesInPlayTesting := generateTestStores()
+	registerTestRule(AvailableRulesTesting)
+	_ = pullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
 		name string
 		rule string
@@ -69,13 +71,19 @@ func TestPullRuleOutOfPlay(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := PullRuleOutOfPlay(tc.rule)
+			got := pullRuleOutOfPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
 			testutils.CompareTestErrors(tc.want, got, t)
 		})
 	}
 }
 
-func registerTestRule() {
+func generateTestStores() (map[string]RuleMatrix, map[string]RuleMatrix) {
+	AvailableRulesTesting := map[string]RuleMatrix{}
+	RulesInPlayTesting := map[string]RuleMatrix{}
+	return AvailableRulesTesting, RulesInPlayTesting
+}
+
+func registerTestRule(rulesStore map[string]RuleMatrix) {
 
 	//A very contrived rule//
 	name := "Kinda Test Rule"
@@ -91,7 +99,7 @@ func registerTestRule() {
 	aux := []float64{2, 3, 3, 2}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, e1 := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	_, e1 := registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore)
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 	//A very contrived rule//
 	if e1 != nil {
@@ -99,7 +107,7 @@ func registerTestRule() {
 	}
 	name = "Kinda Test Rule 2"
 
-	_, e1 = RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	_, e1 = registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore)
 	if e1 != nil {
 		panic("Couldn't register Rule during test")
 	}

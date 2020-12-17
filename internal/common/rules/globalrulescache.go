@@ -13,21 +13,29 @@ var RulesInPlay = map[string]RuleMatrix{}
 
 // RegisterNewRule Creates and registers new rule based on inputs
 func RegisterNewRule(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense) (*RuleMatrix, error) {
-	if _, ok := AvailableRules[ruleName]; ok {
+	return registerNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules)
+}
+
+func registerNewRuleInternal(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix) (*RuleMatrix, error) {
+	if _, ok := ruleStore[ruleName]; ok {
 		return nil, errors.Errorf("Rule '%v' already registered", ruleName)
 	}
 
 	rm := RuleMatrix{ruleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxiliaryVector: auxiliaryVector}
-	AvailableRules[ruleName] = rm
+	ruleStore[ruleName] = rm
 	return &rm, nil
 }
 
 func PullRuleIntoPlay(rulename string) error {
-	if _, ok := AvailableRules[rulename]; ok {
-		if _, ok := RulesInPlay[rulename]; ok {
+	return pullRuleIntoPlayInternal(rulename, AvailableRules, RulesInPlay)
+}
+
+func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
+	if _, ok := allRules[rulename]; ok {
+		if _, ok := playRules[rulename]; ok {
 			return errors.Errorf("Rule '%v' is already in play", rulename)
 		}
-		RulesInPlay[rulename] = AvailableRules[rulename]
+		playRules[rulename] = allRules[rulename]
 		return nil
 	} else {
 		return errors.Errorf("Rule '%v' is not available in rules cache", rulename)
@@ -35,10 +43,18 @@ func PullRuleIntoPlay(rulename string) error {
 }
 
 func PullRuleOutOfPlay(rulename string) error {
-	if _, ok := RulesInPlay[rulename]; ok {
-		delete(RulesInPlay, rulename)
-		return nil
+	return pullRuleOutOfPlayInternal(rulename, AvailableRules, RulesInPlay)
+}
+
+func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
+	if _, ok := allRules[rulename]; ok {
+		if _, ok := playRules[rulename]; ok {
+			delete(playRules, rulename)
+			return nil
+		} else {
+			return errors.Errorf("Rule '%v' is not in play", rulename)
+		}
 	} else {
-		return errors.Errorf("Rule '%v' is not in play", rulename)
+		return errors.Errorf("Rule '%v' is not available in rules cache", rulename)
 	}
 }
