@@ -5,8 +5,10 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+// AvailableRules is a global cache of all rules that are available to agents
 var AvailableRules = map[string]RuleMatrix{}
 
+// RulesInPlay is a global cache of all rules currently in effect
 var RulesInPlay = map[string]RuleMatrix{}
 
 // RegisterNewRule Creates and registers new rule based on inputs
@@ -37,6 +39,6 @@ func PullRuleOutOfPlay(rulename string) error {
 		delete(RulesInPlay, rulename)
 		return nil
 	} else {
-		return errors.Errorf("Rule '%v' is already in play", rulename)
+		return errors.Errorf("Rule '%v' is not in play", rulename)
 	}
 }

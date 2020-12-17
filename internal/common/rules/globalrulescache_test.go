@@ -1,6 +1,8 @@
 package rules
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
+	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
 	"testing"
 )
@@ -15,18 +17,61 @@ func TestRegisterNewRule(t *testing.T) {
 
 func TestPullRuleIntoPlay(t *testing.T) {
 	registerTestRule()
-	x := PullRuleIntoPlay("Kinda Test Rule")
-	if x != nil {
-		t.Errorf("Rule wasn't able to be pulled into play from global rule cache")
+	_ = PullRuleIntoPlay("Kinda Test Rule 2")
+	cases := []struct {
+		name string
+		rule string
+		want error
+	}{
+		{
+			name: "normal working",
+			rule: "Kinda Test Rule",
+			want: nil,
+		},
+		{
+			name: "unidentified rule name",
+			rule: "Unknown Rule",
+			want: errors.Errorf("Rule '%v' is not available in rules cache", "Unknown Rule"),
+		},
+		{
+			name: "Rule already in play",
+			rule: "Kinda Test Rule 2",
+			want: errors.Errorf("Rule '%v' is already in play", "Kinda Test Rule 2"),
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := PullRuleIntoPlay(tc.rule)
+			testutils.CompareTestErrors(tc.want, got, t)
+		})
 	}
 }
 
 func TestPullRuleOutOfPlay(t *testing.T) {
 	registerTestRule()
+	_ = PullRuleOutOfPlay("Kinda Test Rule 2")
 	_ = PullRuleIntoPlay("Kinda Test Rule")
-	y := PullRuleOutOfPlay("Kinda Test Rule")
-	if y != nil {
-		t.Errorf("Rule wasn't able to be pulled into play from global rule cache")
+	cases := []struct {
+		name string
+		rule string
+		want error
+	}{
+		{
+			name: "normal working",
+			rule: "Kinda Test Rule",
+			want: nil,
+		},
+		{
+			name: "Rule already in play",
+			rule: "Kinda Test Rule 2",
+			want: errors.Errorf("Rule '%v' is not in play", "Kinda Test Rule 2"),
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := PullRuleOutOfPlay(tc.rule)
+			testutils.CompareTestErrors(tc.want, got, t)
+		})
 	}
 }
 
@@ -48,4 +93,8 @@ func registerTestRule() {
 
 	RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
+	//A very contrived rule//
+	name = "Kinda Test Rule 2"
+
+	RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
 }
