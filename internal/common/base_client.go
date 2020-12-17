@@ -137,6 +137,6 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 // RecievePredictions provides each client with the prediction info, in addition to the source island,
 // that they have been granted access to see
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) RecievePredictions(recievedPredictions *shared.RecievedPredictions) error {
+func (c *BaseClient) RecievePredictions(recievedPredictions shared.PredictionInfoDict) error {
 	return nil
 }

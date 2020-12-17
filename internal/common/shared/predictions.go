@@ -18,7 +18,7 @@ type PredictionInfo struct {
 }
 
 // IslandPredictionDict is a dictonary to PredictionInfo
-type IslandPredictionDict = map[ClientID]PredictionInfo
+type PredictionInfoDict = map[ClientID]PredictionInfo
 
 // RecievedPredictions is a struct containing the pointers to the predictions an island should recieve and
 // the IDs of the islands that these predictions came from
@@ -28,4 +28,4 @@ type RecievedPredictions struct {
 }
 
 // RecievedPredictionsDict is a dictonary of RecievedPredictions
-type RecievedPredictionsDict = map[ClientID]*RecievedPredictions
+type RecievedPredictionsDict = map[ClientID]PredictionInfoDict

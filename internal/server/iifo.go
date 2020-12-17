@@ -30,8 +30,8 @@ func (s *SOMASServer) runPredictionSession() ([]common.Action, error) {
 	return nil, nil
 }
 
-func (s *SOMASServer) getPredictions() (shared.IslandPredictionDict, error) {
-	islandPredictionsDict := shared.IslandPredictionDict{}
+func (s *SOMASServer) getPredictions() (shared.PredictionInfoDict, error) {
+	islandPredictionsDict := shared.PredictionInfoDict{}
 	tempPredictionInfo := shared.PredictionInfo{}
 	var err error
 	for id, client := range s.clientMap {
@@ -43,20 +43,16 @@ func (s *SOMASServer) getPredictions() (shared.IslandPredictionDict, error) {
 	}
 	return islandPredictionsDict, nil
 }
-func (s *SOMASServer) distributePredictions(islandPredictionDict shared.IslandPredictionDict) error {
-	recievedPredictionsDict := shared.RecievedPredictionsDict{}
-	tempPredictionSlice := []shared.Prediction{}
-	tempClientIDSlice := make([]shared.ClientID, len(s.clientMap))
+func (s *SOMASServer) distributePredictions(islandPredictionDict shared.PredictionInfoDict) error {
+	recievedPredictionsDict := make(shared.RecievedPredictionsDict)
 	var err error
-
 	// Add the predictions/sources to the dict which determines which predictions each island should recieve
 	for idSource, info := range islandPredictionDict {
 		for _, idShare := range info.TeamsOfferedTo {
-			//s.logf("Gifts from %v\n", &recievedPredictionsDict[idShare].Predictions)
-			tempPredictionSlice = append(recievedPredictionsDict[idShare].Predictions, islandPredictionDict[idSource].PredictionMade)
-			tempClientIDSlice = append(recievedPredictionsDict[idShare].SourceIslands, idSource)
-			recievedPredictionsDict[idShare].Predictions = tempPredictionSlice
-			recievedPredictionsDict[idShare].SourceIslands = tempClientIDSlice
+			if recievedPredictionsDict[idShare] == nil {
+				recievedPredictionsDict[idShare] = make(shared.PredictionInfoDict)
+			}
+			recievedPredictionsDict[idShare][idSource] = info
 		}
 	}
 

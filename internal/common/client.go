@@ -32,7 +32,7 @@ type Client interface {
 
 	// IIFO functions:
 	MakePrediction() (shared.PredictionInfo, error)
-	RecievePredictions(recievedPredictions *shared.RecievedPredictions) error
+	RecievePredictions(recievedPredictions shared.PredictionInfoDict) error
 }
 
 // RegisteredClients contain all registered clients, exposed for the server.
