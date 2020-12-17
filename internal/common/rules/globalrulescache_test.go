@@ -91,10 +91,16 @@ func registerTestRule() {
 	aux := []float64{2, 3, 3, 2}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, _ = RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	_, e1 := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 	//A very contrived rule//
+	if e1 != nil {
+		panic("Couldn't register Rule during test")
+	}
 	name = "Kinda Test Rule 2"
 
-	_, _ = RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	_, e1 = RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	if e1 != nil {
+		panic("Couldn't register Rule during test")
+	}
 }
