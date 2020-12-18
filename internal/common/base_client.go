@@ -113,12 +113,14 @@ func (c *BaseClient) ReceiveGift(sendingClient shared.ClientID, amount int) erro
 // Prediction includes location, magnitude, confidence etc
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
+	idFloat := float32(c.GetID())
+	idInt := int(c.GetID())
 	prediction := shared.Prediction{
-		CoordinateX: 0,
-		CoordinateY: 0,
-		Magnitude:   0,
-		TimeLeft:    0,
-		Confidence:  0,
+		CoordinateX: idFloat,
+		CoordinateY: idFloat,
+		Magnitude:   idInt,
+		TimeLeft:    idInt,
+		Confidence:  idInt,
 	}
 
 	trustedIslands := make([]shared.ClientID, 6)
@@ -130,7 +132,6 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 		PredictionMade: prediction,
 		TeamsOfferedTo: trustedIslands,
 	}
-
 	return predictionInfo, nil
 }
 
@@ -138,5 +139,10 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 // that they have been granted access to see
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) RecievePredictions(recievedPredictions shared.PredictionInfoDict) error {
+	/*
+		for key, value := range recievedPredictions {
+			c.Logf("Source[%v] Prediction[%v]\n", key, value.PredictionMade)
+		}
+	*/
 	return nil
 }
