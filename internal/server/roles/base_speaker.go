@@ -22,3 +22,7 @@ func (s *BaseSpeaker) RunVote() {
 func (s *BaseSpeaker) UpdateRules() {
 
 }
+
+func (s *BaseSpeaker) voteNewJudge() {
+	
+}
