@@ -3,14 +3,14 @@ package server
 import (
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 	"github.com/pkg/errors"
 )
 
 type mockClientEcho struct {
-	common.Client
+	baseclient.Client
 	id   shared.ClientID
 	echo string
 }
@@ -51,7 +51,7 @@ func TestGetEcho(t *testing.T) {
 				echo: tc.reply,
 			}
 			server := &SOMASServer{
-				clientMap: map[shared.ClientID]common.Client{
+				clientMap: map[shared.ClientID]baseclient.Client{
 					shared.Team1: mClient,
 				},
 			}
