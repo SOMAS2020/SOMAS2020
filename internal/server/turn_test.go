@@ -8,105 +8,98 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-type mockClientUpdate struct {
-	common.Client
-	StartOfTurnUpdateCalled bool
-	GameStateUpdateCalled   bool
+func TestIncrementTurnAndSeason(t *testing.T) {
+	cases := []struct {
+		name             string
+		initialGameState common.GameState
+		disasterHappened bool
+		wantTurn         uint
+		wantSeason       uint
+	}{
+		{
+			name: "no disaster",
+			initialGameState: common.GameState{
+				Turn:   42,
+				Season: 69,
+			},
+			disasterHappened: false,
+			wantTurn:         43,
+			wantSeason:       69,
+		},
+		{
+			name: "disaster happened",
+			initialGameState: common.GameState{
+				Turn:   42,
+				Season: 69,
+			},
+			disasterHappened: false,
+			wantTurn:         43,
+			wantSeason:       69,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := SOMASServer{
+				gameState: tc.initialGameState,
+			}
+
+			s.incrementTurnAndSeason(tc.disasterHappened)
+
+			gotTurn := s.gameState.Turn
+			gotSeason := s.gameState.Season
+
+			if gotTurn != tc.wantTurn {
+				t.Errorf("Turn: want '%v' got '%v'", tc.wantTurn, gotTurn)
+			}
+			if gotSeason != tc.wantSeason {
+				t.Errorf("Season: want '%v' got '%v'", tc.wantSeason, gotSeason)
+			}
+		})
+	}
 }
 
-func (c *mockClientUpdate) StartOfTurnUpdate(g common.GameState) {
-	c.StartOfTurnUpdateCalled = true
-}
-
-func (c *mockClientUpdate) GameStateUpdate(g common.GameState) {
-	c.GameStateUpdateCalled = true
-}
-
-func TestStartOfTurnUpdate(t *testing.T) {
+func TestDeductCostOfLiving(t *testing.T) {
+	const costOfLiving = 42
 	clientInfos := map[shared.ClientID]common.ClientInfo{
 		shared.Team1: {
+			Resources:  43,
 			LifeStatus: shared.Alive,
 		},
 		shared.Team2: {
+			Resources:  44,
 			LifeStatus: shared.Critical,
 		},
 		shared.Team3: {
+			Resources:  45,
 			LifeStatus: shared.Dead,
 		},
 	}
-	clientMap := map[shared.ClientID]common.Client{
-		shared.Team1: &mockClientUpdate{},
-		shared.Team2: &mockClientUpdate{},
-		shared.Team3: &mockClientUpdate{},
-	}
-	wantCalled := map[shared.ClientID]bool{
-		shared.Team1: true,
-		shared.Team2: true,
-		shared.Team3: false,
-	}
-
-	s := &SOMASServer{
-		gameState: common.GameState{
-			ClientInfos: clientInfos,
-		},
-		clientMap: clientMap,
-	}
-
-	s.startOfTurnUpdate()
-
-	for id, want := range wantCalled {
-		v, ok := clientMap[id].(*mockClientUpdate)
-		if !ok {
-			t.Errorf("Can't coerce type!")
-		}
-		got := v.StartOfTurnUpdateCalled
-		if want != got {
-			t.Errorf("For id %v, want '%v' got '%v'", id, want, got)
-		}
-	}
-}
-
-func TestGameStateUpdate(t *testing.T) {
-	clientInfos := map[shared.ClientID]common.ClientInfo{
+	wantClientInfos := map[shared.ClientID]common.ClientInfo{
 		shared.Team1: {
+			Resources:  1,
 			LifeStatus: shared.Alive,
 		},
 		shared.Team2: {
+			Resources:  2,
 			LifeStatus: shared.Critical,
 		},
 		shared.Team3: {
+			Resources:  45,
 			LifeStatus: shared.Dead,
 		},
 	}
-	clientMap := map[shared.ClientID]common.Client{
-		shared.Team1: &mockClientUpdate{},
-		shared.Team2: &mockClientUpdate{},
-		shared.Team3: &mockClientUpdate{},
-	}
-	wantCalled := map[shared.ClientID]bool{
-		shared.Team1: true,
-		shared.Team2: true,
-		shared.Team3: false,
-	}
 
-	s := &SOMASServer{
+	s := SOMASServer{
 		gameState: common.GameState{
 			ClientInfos: clientInfos,
 		},
-		clientMap: clientMap,
 	}
 
-	s.gameStateUpdate()
+	s.deductCostOfLiving(costOfLiving)
 
-	for id, want := range wantCalled {
-		v, ok := clientMap[id].(*mockClientUpdate)
-		if !ok {
-			t.Errorf("Can't coerce type!")
-		}
-		got := v.GameStateUpdateCalled
-		if want != got {
-			t.Errorf("For id %v, want '%v' got '%v'", id, want, got)
-		}
+	if !reflect.DeepEqual(wantClientInfos, s.gameState.ClientInfos) {
+		t.Errorf("want '%v' got '%v'", wantClientInfos, s.gameState.ClientInfos)
 	}
 }
 

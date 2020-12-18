@@ -14,10 +14,13 @@ func (s *SOMASServer) runTurn() error {
 
 	s.logf("TURN: %v, Season: %v", s.gameState.Turn, s.gameState.Season)
 
-	s.startOfTurnUpdate()
+	err := s.updateIslands()
+	if err != nil {
+		return errors.Errorf("Error updating islands: %v", err)
+	}
 
 	// run all orgs
-	err := s.runOrgs()
+	err = s.runOrgs()
 	if err != nil {
 		return errors.Errorf("Error running orgs: %v", err)
 	}
@@ -55,31 +58,20 @@ func (s *SOMASServer) runOrgs() error {
 	return nil
 }
 
-// startOfTurnUpdate sends the gameState at the start of the turn to all non-Dead clients.
-func (s *SOMASServer) startOfTurnUpdate() {
-	s.logf("start startOfTurnUpdate")
-	defer s.logf("finish startOfTurnUpdate")
+// updateIsland sends all the island the gameState at the start of the turn.
+func (s *SOMASServer) updateIslands() error {
+	s.logf("start updateIsland")
+	defer s.logf("finish updateIsland")
 
+	// send update of entire gameState to alive clients
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.LifeStatus != shared.Dead {
 			c := s.clientMap[id]
 			c.StartOfTurnUpdate(s.gameState)
 		}
 	}
-}
 
-// startOfTurnUpdate sends the gameState mid-turn to all non-Dead clients.
-// For use by orgs to update game state after dispatching actions.
-func (s *SOMASServer) gameStateUpdate() {
-	s.logf("start gameStateUpdate")
-	defer s.logf("finish gameStateUpdate")
-
-	for id, ci := range s.gameState.ClientInfos {
-		if ci.LifeStatus != shared.Dead {
-			c := s.clientMap[id]
-			c.GameStateUpdate(s.gameState)
-		}
-	}
+	return nil
 }
 
 // getAndDispatchEndOfTurnActions gets all end of turn actions from the clients
@@ -101,9 +93,6 @@ func (s *SOMASServer) getAndDispatchEndOfTurnActions() error {
 	if err != nil {
 		return errors.Errorf("Error dispatching end of turn actions: %v", err)
 	}
-
-	// send updates
-	s.gameStateUpdate()
 
 	return nil
 }
