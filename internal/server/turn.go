@@ -101,42 +101,48 @@ func (s *SOMASServer) getAndDispatchEndOfTurnActions() error {
 func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
 	defer s.logf("finish endOfTurn")
-	// increment turn
-	s.gameState.Turn++
 
-	// increment season if disaster happened
+	// probe for disaster
 	disasterHappened, err := s.probeDisaster()
 	if err != nil {
-		return err
+		return errors.Errorf("Failed to probe disaster: %v", err)
 	}
-	if disasterHappened {
-		s.gameState.Season++
-	}
+	// increment turn & season if needed
+	s.incrementTurnAndSeason(disasterHappened)
 
-	err = s.deductCostOfLiving()
-	if err != nil {
-		return err
-	}
+	// deduct cost of living
+	s.deductCostOfLiving(config.CostOfLiving)
 
 	err = s.updateIslandLivingStatus()
 	if err != nil {
-		return err
+		return errors.Errorf("Failed to update island living status: %v", err)
 	}
 
 	return nil
 }
 
+// incrementTurnAndSeason increments turn, and season if a disaster happened.
+func (s *SOMASServer) incrementTurnAndSeason(disasterHappened bool) {
+	s.logf("start incrementTurnAndSeason")
+	defer s.logf("finish incrementTurnAndSeason")
+
+	s.gameState.Turn++
+	if disasterHappened {
+		s.gameState.Season++
+	}
+}
+
 // deductCostOfLiving deducts CoL for all living islands, including critical ones
-func (s *SOMASServer) deductCostOfLiving() error {
+func (s *SOMASServer) deductCostOfLiving(costOfLiving int) {
 	s.logf("start deductCostOfLiving")
 	defer s.logf("finish deductCostOfLiving")
+
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.LifeStatus != shared.Dead {
-			ci.Resources -= config.CostOfLiving
+			ci.Resources -= costOfLiving
 			s.gameState.ClientInfos[id] = ci
 		}
 	}
-	return nil
 }
 
 // updateIslandLivingStatus changes the islands Alive and Critical state depending
