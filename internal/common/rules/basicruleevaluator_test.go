@@ -15,7 +15,7 @@ func TestBasicRuleEvaluatorPositive(t *testing.T) {
 
 // TestBasicRuleEvaluatorNegative Checks whether rule we expect to evaluate as false actually evaluates as such
 func TestBasicRuleEvaluatorNegative(t *testing.T) {
-	registerTestRule()
+	registerTestRule(AvailableRules)
 	result, err := BasicBooleanRuleEvaluator("Kinda Test Rule")
 	if result || err != nil {
 		t.Errorf("Rule evaluation came as true, when it was expected to be false, potential error with value '%v'", err)

@@ -14,42 +14,21 @@ func (s *SOMASServer) runTurn() error {
 
 	s.logf("TURN: %v, Season: %v", s.gameState.Turn, s.gameState.Season)
 
-	if err := s.updateIslands(); err != nil {
+	err := s.updateIslands()
+	if err != nil {
 		return errors.Errorf("Error updating islands: %v", err)
 	}
 
-	allActions := []common.Action{}
-
-	// run all orgs and get all actions
-	if actions, err := s.runOrgs(); err != nil {
+	// run all orgs
+	err = s.runOrgs()
+	if err != nil {
 		return errors.Errorf("Error running orgs: %v", err)
-	} else {
-		allActions = append(allActions, actions...)
 	}
 
 	// get all end of turn actions
-	if actions, err := s.getEndOfTurnActions(); err != nil {
-		return errors.Errorf("Error in getEndOfTurnActions: %v", err)
-	} else {
-		allActions = append(allActions, actions...)
-	}
-
-	// !!!!!!!!!!!!
-	// TESTING ONLY
-	// !!!!!!!!!!!!
-	// exampleAction := common.Action{
-	// 	ActionType: common.GiveClientResource,
-	// 	GiveClientResourceAction: &common.GiveClientResourceAction{
-	// 		SourceClientID: shared.Team1,
-	// 		TargetClientID: shared.Team2,
-	// 		Resources:      1,
-	// 	},
-	// }
-	// allActions = append(allActions, exampleAction)
-
-	// dispatch actions
-	if err := s.gameState.DispatchActions(allActions); err != nil {
-		return errors.Errorf("Error dispatching actions: %v", err)
+	err = s.getAndDispatchEndOfTurnActions()
+	if err != nil {
+		return errors.Errorf("Error running end of turn actions: %v", err)
 	}
 
 	if err := s.endOfTurn(); err != nil {
@@ -60,31 +39,23 @@ func (s *SOMASServer) runTurn() error {
 }
 
 // runOrgs runs all the orgs
-func (s *SOMASServer) runOrgs() ([]common.Action, error) {
+func (s *SOMASServer) runOrgs() error {
 	s.logf("start runOrgs")
 	defer s.logf("finish runOrgs")
 
-	allActions := []common.Action{}
-
-	if actions, err := s.runIITO(); err != nil {
-		return nil, errors.Errorf("IITO error: %v", err)
-	} else {
-		allActions = append(allActions, actions...)
+	if err := s.runIIGO(); err != nil {
+		return errors.Errorf("IIGO error: %v", err)
 	}
 
-	if actions, err := s.runIIFO(); err != nil {
-		return nil, errors.Errorf("IIFO error: %v", err)
-	} else {
-		allActions = append(allActions, actions...)
+	if err := s.runIIFO(); err != nil {
+		return errors.Errorf("IIFO error: %v", err)
 	}
 
-	if actions, err := s.runIIGO(); err != nil {
-		return nil, errors.Errorf("IIGO error: %v", err)
-	} else {
-		allActions = append(allActions, actions...)
+	if err := s.runIITO(); err != nil {
+		return errors.Errorf("IITO error: %v", err)
 	}
 
-	return allActions, nil
+	return nil
 }
 
 // updateIsland sends all the island the gameState at the start of the turn.
@@ -103,10 +74,10 @@ func (s *SOMASServer) updateIslands() error {
 	return nil
 }
 
-// getEndOfTurnActions gets all end of turn actions from the clients
-func (s *SOMASServer) getEndOfTurnActions() ([]common.Action, error) {
-	s.logf("start getEndOfTurnActions")
-	defer s.logf("finish getEndOfTurnActions")
+// getAndDispatchEndOfTurnActions gets all end of turn actions from the clients
+func (s *SOMASServer) getAndDispatchEndOfTurnActions() error {
+	s.logf("start getAndDispatchEndOfTurnActions")
+	defer s.logf("finish getAndDispatchEndOfTurnActions")
 	allActions := []common.Action{}
 
 	for id, ci := range s.gameState.ClientInfos {
@@ -117,7 +88,13 @@ func (s *SOMASServer) getEndOfTurnActions() ([]common.Action, error) {
 		}
 	}
 
-	return allActions, nil
+	// dispatch actions
+	err := s.gameState.DispatchActions(allActions)
+	if err != nil {
+		return errors.Errorf("Error dispatching end of turn actions: %v", err)
+	}
+
+	return nil
 }
 
 // endOfTurn performs end of turn updates
