@@ -17,6 +17,11 @@ type BaseJudge struct {
 	evaluationResults map[int]EvaluationReturn
 }
 
+func (j *BaseJudge) init() {
+	j.ballotID = 0
+	j.resAlocID = 0
+}
+
 func (j *BaseJudge) withdrawPresidentSalary() {
 	// Withdraw president salary from the common pool
 	// Call common withdraw function with president as parameter
@@ -34,7 +39,7 @@ func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId int, presidentId int) {
 
 type EvaluationReturn struct {
 	rules       []rules.RuleMatrix
-	evaulations []bool
+	evaluations []bool
 }
 
 func (j *BaseJudge) inspectHistory() (
@@ -59,7 +64,7 @@ func (j *BaseJudge) inspectHistory() (
 		if _, ok := outputMap[clientID]; !ok {
 			tempTemp := EvaluationReturn{
 				rules:       []rules.RuleMatrix{},
-				evaulations: []bool{},
+				evaluations: []bool{},
 			}
 			outputMap[clientID] = tempTemp
 		}
@@ -67,7 +72,7 @@ func (j *BaseJudge) inspectHistory() (
 		for _, v3 := range rulesAffected {
 			evaluation, _ := rules.BasicBooleanRuleEvaluator(v3)
 			tempReturn.rules = append(tempReturn.rules, rules.RulesInPlay[v3])
-			tempReturn.evaulations = append(tempReturn.evaulations, evaluation)
+			tempReturn.evaluations = append(tempReturn.evaluations, evaluation)
 		}
 	}
 	j.evaluationResults = outputMap
@@ -81,7 +86,7 @@ func (j *BaseJudge) inspectBallot() (bool, error) {
 	rulesAffectedBySpeaker := j.evaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.rules)
 	if err == nil {
-		return rulesAffectedBySpeaker.evaulations[indexOfBallotRule], nil
+		return rulesAffectedBySpeaker.evaluations[indexOfBallotRule], nil
 	} else {
 		return true, errors.Errorf("Speaker did not conduct any ballots")
 	}
@@ -96,7 +101,7 @@ func (j *BaseJudge) inspectAllocation() (bool, error) {
 	rulesAffectedBySpeaker := j.evaluationResults[j.presidentID]
 	indexOfBallotRule, err := searchForRule("inspect_allocation_rule", rulesAffectedBySpeaker.rules)
 	if err == nil {
-		return rulesAffectedBySpeaker.evaulations[indexOfBallotRule], nil
+		return rulesAffectedBySpeaker.evaluations[indexOfBallotRule], nil
 	} else {
 		return true, errors.Errorf("President didn't conduct any allocations")
 	}
@@ -111,12 +116,22 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 	return 0, errors.Errorf("The rule name '%v' was not found", ruleName)
 }
 
-func (j *BaseJudge) declareSpeakerPerformance() {
-	// result := "pass/fail" based on outcome of audit in inspectBallot()
-	// Broadcast (j.ballotID, result, "Speaker") to all islands
+func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool) {
+
+	j.ballotID++
+	result, err := j.inspectBallot()
+
+	conductedRole := err == nil
+
+	return j.ballotID, result, j.speakerID, conductedRole
 }
 
-func (j *BaseJudge) declarePresidentPerformance() {
-	// result := "pass/fail" based on outcome of audit in inspectAllocation()
-	// Broadcast (j.resAlocID, result, "President") to all islands
+func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool) {
+
+	j.resAlocID++
+	result, err := j.inspectAllocation()
+
+	conductedRole := err == nil
+
+	return j.resAlocID, result, j.presidentID, conductedRole
 }
