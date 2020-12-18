@@ -11,7 +11,7 @@ type BaseJudge struct {
 	budget            int
 	presidentSalary   int
 	ballotID          int
-	resAlocID         int
+	resAllocID        int
 	speakerID         int
 	presidentID       int
 	evaluationResults map[int]EvaluationReturn
@@ -19,7 +19,7 @@ type BaseJudge struct {
 
 func (j *BaseJudge) init() {
 	j.ballotID = 0
-	j.resAlocID = 0
+	j.resAllocID = 0
 }
 
 func (j *BaseJudge) withdrawPresidentSalary() {
@@ -98,10 +98,10 @@ func (j *BaseJudge) inspectAllocation() (bool, error) {
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
-	rulesAffectedBySpeaker := j.evaluationResults[j.presidentID]
-	indexOfBallotRule, err := searchForRule("inspect_allocation_rule", rulesAffectedBySpeaker.rules)
+	rulesAffectedByPresident := j.evaluationResults[j.presidentID]
+	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.rules)
 	if err == nil {
-		return rulesAffectedBySpeaker.evaluations[indexOfBallotRule], nil
+		return rulesAffectedByPresident.evaluations[indexOfAllocRule], nil
 	} else {
 		return true, errors.Errorf("President didn't conduct any allocations")
 	}
@@ -128,10 +128,10 @@ func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool) {
 
 func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool) {
 
-	j.resAlocID++
+	j.resAllocID++
 	result, err := j.inspectAllocation()
 
 	conductedRole := err == nil
 
-	return j.resAlocID, result, j.presidentID, conductedRole
+	return j.resAllocID, result, j.presidentID, conductedRole
 }
