@@ -44,8 +44,15 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 // The gameState is served by the server.
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *BaseClient) StartOfTurnUpdate(gameState GameState) {
-	c.Logf("Received game state update: %v", gameState)
+	c.Logf("Received start of turn game state update: %v", gameState)
 	// TODO
+}
+
+// GameStateUpdate updates game state mid-turn.
+// The gameState is served by the server.
+// OPTIONAL. Base should be able to handle it but feel free to implement your own.
+func (c *BaseClient) GameStateUpdate(gameState GameState) {
+	c.Logf("Received game state update: %v", gameState)
 }
 
 // EndOfTurnActions executes and returns the actions done by the client that turn.
