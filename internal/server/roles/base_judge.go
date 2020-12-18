@@ -2,21 +2,28 @@ package roles
 
 // base Judge object
 type BaseJudge struct {
-	id 	   int
-	budget int
+	id              int
+	budget          int
 	presidentSalary int
-	ballotID int
-	resAlocID int
-	actionLog map[int]string // not sure about this currently
+	ballotID        int
+	resAlocID       int
+	actionLog       map[int]string // not sure about this currently
 }
-
 
 func (j *BaseJudge) withdrawPresidentSalary() {
 	// Withdraw president salary from the common pool
+	// Call common withdraw function with president as parameter
 }
 
 func (j *BaseJudge) payPresident() {
 	// Pay the president
+	// Call common pay function with president as parameter
+}
+
+func (j *BaseJudge) inspectHistory() {
+	for (i, v) := range TurnHistory {
+		
+	}
 }
 
 func (j *BaseJudge) inspectBallot() {
