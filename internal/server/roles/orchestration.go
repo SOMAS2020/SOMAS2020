@@ -1,6 +1,8 @@
 package roles
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+)
 
 // callVote possible implementation of voting
 func callVote(speakerID int, whateverIsBeingVotedOn string) {
