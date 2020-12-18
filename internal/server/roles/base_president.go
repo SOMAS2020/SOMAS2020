@@ -27,7 +27,7 @@ func (p *BasePresident) setTaxationAmount(islands_resources map[int]int) {
 }
 
 // Set allowed resource allocation based on each islands requests
-func (p *BasePresident) setAllocationRequest() {
+func (p *BasePresident) evaluateAllocationRequests() {
 	resourceAllocation := make(map[int]int)
 	for id, request := range p.resourceRequests {
 		resourceAllocation[id] = rand.Intn(request)
@@ -36,7 +36,7 @@ func (p *BasePresident) setAllocationRequest() {
 }
 
 // Chose a rule proposal from all the proposals
-func (p *BasePresident) choseRuleFromProposals() {
+func (p *BasePresident) pickRuleToVote() {
 	if len(p.rulesProposals) == 0 {
 		// No rules were proposed by the islands
 		p.ruleToVote = -1
