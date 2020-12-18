@@ -6,10 +6,10 @@ import (
 )
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables
-func PickUpRulesByVariable(variableName string) ([]string, error) {
+func PickUpRulesByVariable(variableName string, ruleStore map[string]rules.RuleMatrix) ([]string, error) {
 	var Rules []string
 	if _, ok := rules.VariableMap[variableName]; ok {
-		for k, v := range rules.AvailableRules {
+		for k, v := range ruleStore {
 			_, err := searchForStringInArray(variableName, v.RequiredVariables)
 			if err != nil {
 				Rules = append(Rules, k)
