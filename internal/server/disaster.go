@@ -4,6 +4,6 @@ package server
 func (s *SOMASServer) probeDisaster() (bool, error) {
 	s.logf("start probeDisaster")
 	defer s.logf("finish probeDisaster")
-	// TOOD:- env team
+	// TODO:- env team
 	return false, nil
 }
