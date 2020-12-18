@@ -2,7 +2,7 @@ package roles
 
 import "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 
-// callVote is team6's function for speaker to call
+// callVote possible implementation of voting
 func callVote(speakerID int, whateverIsBeingVotedOn string) {
 	// Do voting
 
