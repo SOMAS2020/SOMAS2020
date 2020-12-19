@@ -8,6 +8,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+type clientInfoUpdateResult struct {
+	Id  shared.ClientID
+	Ci  gamestate.ClientInfo
+	Err error
+}
+
 func getClientInfosAndMapFromRegisteredClients(
 	registeredClients map[shared.ClientID]baseclient.Client,
 ) (map[shared.ClientID]gamestate.ClientInfo, map[shared.ClientID]baseclient.Client) {
