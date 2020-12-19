@@ -91,8 +91,11 @@ func runIIGO() error {
 
 	//TODO: Add election setting
 	// Set JudgeIDGlobal
+	// Set judgePointer
 	// Set SpeakerIDGlobal
+	// Set speakerPointer
 	// Set PresidentIDGlobal
+	// Set presidentPointer
 	return nil
 }
 
