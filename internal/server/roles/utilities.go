@@ -30,20 +30,26 @@ func searchForStringInArray(val string, array []string) (int, error) {
 	return 0, errors.Errorf("Not found")
 }
 
+type DataPacket struct {
+	integerData int
+	textData    string
+	booleanData bool
+}
+
 type Communication struct {
 	recipient int
 	sender    int
-	data      map[int]int
+	data      map[int]DataPacket
 }
 
-func broadcastToAllIslands(sender int, data map[int]int) {
+func broadcastToAllIslands(sender int, data map[int]DataPacket) {
 	islandsAlive := rules.VariableMap["islands_alive"]
 	for _, v := range islandsAlive.Values {
 		communicateWithIslands(int(v), sender, data)
 	}
 }
 
-func communicateWithIslands(recipient int, sender int, data map[int]int) {
+func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) {
 	communication := Communication{
 		recipient: recipient,
 		sender:    sender,

@@ -19,15 +19,11 @@ func (s *baseSpeaker) RunVote() {
 
 }
 
-<<<<<<< HEAD
-func (s* BaseSpeaker) DeclareResult() {
+func (s *baseSpeaker) DeclareResult() {
 
 }
 
-func (s *BaseSpeaker) UpdateRules() {
-=======
 func (s *baseSpeaker) UpdateRules() {
->>>>>>> origin/orchestration
 
 }
 

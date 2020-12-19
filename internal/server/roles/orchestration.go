@@ -99,23 +99,39 @@ func runIIGO() error {
 	return nil
 }
 
-func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]int {
-	returnMap := map[int]int{}
+func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]DataPacket {
+	returnMap := map[int]DataPacket{}
 
-	returnMap[BallotID] = BID
-	returnMap[SpeakerBallotCheck] = collapseBoolean(result)
-	returnMap[SpeakerID] = SID
-	returnMap[RoleConducted] = collapseBoolean(conductedRole)
+	returnMap[BallotID] = DataPacket{
+		integerData: BID,
+	}
+	returnMap[SpeakerBallotCheck] = DataPacket{
+		booleanData: result,
+	}
+	returnMap[SpeakerID] = DataPacket{
+		integerData: SID,
+	}
+	returnMap[RoleConducted] = DataPacket{
+		booleanData: conductedRole,
+	}
 	return returnMap
 }
 
-func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]int {
-	returnMap := map[int]int{}
+func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]DataPacket {
+	returnMap := map[int]DataPacket{}
 
-	returnMap[ResAllocID] = RID
-	returnMap[PresidentAllocationCheck] = collapseBoolean(result)
-	returnMap[PresidentID] = PID
-	returnMap[RoleConducted] = collapseBoolean(conductedRole)
+	returnMap[ResAllocID] = DataPacket{
+		integerData: RID,
+	}
+	returnMap[PresidentAllocationCheck] = DataPacket{
+		booleanData: result,
+	}
+	returnMap[PresidentID] = DataPacket{
+		integerData: PID,
+	}
+	returnMap[RoleConducted] = DataPacket{
+		booleanData: conductedRole,
+	}
 	return returnMap
 }
 
