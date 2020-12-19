@@ -4,8 +4,7 @@ package roles
 // optionally implemented by individual islands.
 type Judge interface {
 	payPresident() error
-	inspectBallot() error
-	inspectAllocation() error
-	declareSpeakerPerformance() error
-	declarePresidentPerformance() error
+	inspectHistory()
+	declareSpeakerPerformance() (int, bool, int, bool)
+	declarePresidentPerformance() (int, bool, int, bool)
 }

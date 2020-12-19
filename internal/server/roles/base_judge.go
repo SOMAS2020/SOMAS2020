@@ -42,10 +42,7 @@ type EvaluationReturn struct {
 	evaluations []bool
 }
 
-func (j *BaseJudge) inspectHistory() (
-	map[int]EvaluationReturn,
-	error,
-) {
+func (j *BaseJudge) inspectHistory() {
 	outputMap := map[int]EvaluationReturn{}
 	for _, v := range TurnHistory {
 		variablePairs := v.pairs
@@ -58,7 +55,7 @@ func (j *BaseJudge) inspectHistory() (
 			}
 			err = rules.UpdateVariable(v2.VariableName, v2)
 			if err != nil {
-				return map[int]EvaluationReturn{}, err
+				return
 			}
 		}
 		if _, ok := outputMap[clientID]; !ok {
@@ -76,7 +73,6 @@ func (j *BaseJudge) inspectHistory() (
 		}
 	}
 	j.evaluationResults = outputMap
-	return outputMap, nil
 }
 
 func (j *BaseJudge) inspectBallot() (bool, error) {
