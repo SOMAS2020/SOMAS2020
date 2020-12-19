@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
@@ -23,12 +22,6 @@ func (s *SOMASServer) runTurn() error {
 	err = s.runOrgs()
 	if err != nil {
 		return errors.Errorf("Error running orgs: %v", err)
-	}
-
-	// get all end of turn actions
-	err = s.getAndDispatchEndOfTurnActions()
-	if err != nil {
-		return errors.Errorf("Error running end of turn actions: %v", err)
 	}
 
 	if err := s.endOfTurn(); err != nil {
@@ -69,29 +62,6 @@ func (s *SOMASServer) updateIslands() error {
 			c := s.clientMap[id]
 			c.StartOfTurnUpdate(s.gameState)
 		}
-	}
-
-	return nil
-}
-
-// getAndDispatchEndOfTurnActions gets all end of turn actions from the clients
-func (s *SOMASServer) getAndDispatchEndOfTurnActions() error {
-	s.logf("start getAndDispatchEndOfTurnActions")
-	defer s.logf("finish getAndDispatchEndOfTurnActions")
-	allActions := []gamestate.Action{}
-
-	for id, ci := range s.gameState.ClientInfos {
-		if ci.LifeStatus != shared.Dead {
-			c := s.clientMap[id]
-			actions := c.EndOfTurnActions()
-			allActions = append(allActions, actions...)
-		}
-	}
-
-	// dispatch actions
-	err := s.gameState.DispatchActions(allActions)
-	if err != nil {
-		return errors.Errorf("Error dispatching end of turn actions: %v", err)
 	}
 
 	return nil
