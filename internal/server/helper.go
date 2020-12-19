@@ -16,7 +16,7 @@ func getClientInfosAndMapFromRegisteredClients(
 
 	for id, c := range registeredClients {
 		clientInfos[id] = gamestate.ClientInfo{
-			Resources:  config.InitialResources,
+			Resources:  config.GameConfig.InitialResources,
 			LifeStatus: shared.Alive,
 		}
 		clientMap[id] = c

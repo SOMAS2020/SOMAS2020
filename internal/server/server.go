@@ -47,7 +47,7 @@ func SOMASServerFactory() Server {
 func (s *SOMASServer) EntryPoint() ([]gamestate.GameState, error) {
 	states := []gamestate.GameState{s.gameState.Copy()}
 
-	for !s.gameOver(config.MaxTurns, config.MaxSeasons) {
+	for !s.gameOver(config.GameConfig.MaxTurns, config.GameConfig.MaxSeasons) {
 		if err := s.runTurn(); err != nil {
 			return states, err
 		}
