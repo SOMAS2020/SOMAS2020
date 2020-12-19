@@ -22,8 +22,6 @@ type Client interface {
 	GameStateUpdate(gameState gamestate.GameState)
 
 	Logf(format string, a ...interface{})
-	// EndOfTurnActions should return all end of turn actions.
-	EndOfTurnActions() []gamestate.Action
 }
 
 // NewClient produces a new client with the BaseClient already implemented.
@@ -72,11 +70,4 @@ func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.GameState) {
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *BaseClient) GameStateUpdate(gameState gamestate.GameState) {
 	c.Logf("Received game state update: %v", gameState)
-}
-
-// EndOfTurnActions executes and returns the actions done by the client that turn.
-// OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) EndOfTurnActions() []gamestate.Action {
-	c.Logf("EndOfTurnActions")
-	return nil
 }
