@@ -29,11 +29,11 @@ func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int) 
 // Chose a rule proposal from all the proposals
 // need to pass in since this is now functional for the sake of client side
 func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) {
-	if len(p.rulesProposals) == 0 {
+	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
 		return "", nil
 	}
-	return p.rulesProposals[rand.Intn(len(p.rulesProposals))], nil
+	return rulesProposals[rand.Intn(len(rulesProposals))], nil
 }
 
 // Get rule proposals to be voted on from remaining islands
@@ -63,7 +63,7 @@ func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int
 func (p *basePresident) getRuleForSpeaker() string {
 	if p.clientPresident != nil {
 		result, error := p.pickRuleToVote(p.rulesProposals)
-		if error != nil {
+		if error == nil {
 			return result
 		}
 	}
@@ -76,7 +76,7 @@ func (p *basePresident) getRuleForSpeaker() string {
 func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	if p.clientPresident != nil {
 		result, error := p.setTaxationAmount(islandsResources)
-		if error != nil {
+		if error == nil {
 			return result
 		}
 	}
@@ -89,7 +89,7 @@ func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 func (p *basePresident) getAllocationRequests() map[int]int {
 	if p.clientPresident != nil {
 		result, error := p.clientPresident.evaluateAllocationRequests(p.resourceRequests)
-		if error != nil {
+		if error == nil {
 			return result
 		}
 	}
