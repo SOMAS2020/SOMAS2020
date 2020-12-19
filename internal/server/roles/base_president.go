@@ -5,29 +5,19 @@ import (
 )
 
 //base President Objectlist
-type BasePresident struct {
+type basePresident struct {
 	id                 int
 	budget             int
 	speakerSalary      int
-	rulesProposals     []int
+	rulesProposals     []string
 	resourceRequests   map[int]int
 	resourceAllocation map[int]int
-	ruleToVote         int
+	ruleToVote         string
 	taxAmountMap       map[int]int
 }
 
-// Set taxation amount for all of the living islands
-// island_resources: map of all the living islands and their remaing resources
-func (p *BasePresident) setTaxationAmount(islands_resources map[int]int) {
-	taxAmountMap := make(map[int]int)
-	for id, resource_left := range islands_resources {
-		taxAmountMap[id] = rand.Intn(resource_left)
-	}
-	p.taxAmountMap = taxAmountMap
-}
-
 // Set allowed resource allocation based on each islands requests
-func (p *BasePresident) evaluateAllocationRequests() {
+func (p *basePresident) evaluateAllocationRequests() {
 	resourceAllocation := make(map[int]int)
 	for id, request := range p.resourceRequests {
 		resourceAllocation[id] = rand.Intn(request)
@@ -36,29 +26,53 @@ func (p *BasePresident) evaluateAllocationRequests() {
 }
 
 // Chose a rule proposal from all the proposals
-func (p *BasePresident) pickRuleToVote() {
+func (p *basePresident) pickRuleToVote() {
 	if len(p.rulesProposals) == 0 {
 		// No rules were proposed by the islands
-		p.ruleToVote = -1
+		p.ruleToVote = ""
 	} else {
-		p.ruleToVote = rand.Intn(len(p.rulesProposals))
+		p.ruleToVote = p.rulesProposals[rand.Intn(len(p.rulesProposals))]
 	}
 }
 
-// Send rule to be voted on to Speaker
+// Get rule proposals to be voted on from remaining islands
+// Called by orchestration
+func (p *basePresident) SetRuleProposals(rulesProposals []string) {
+	p.rulesProposals = rulesProposals
+	p.pickRuleToVote()
+}
+
+// Set approved resources request for all the remaining islands
+// Called by orchestration
+func (p *basePresident) SetAllocationRequest(resourceRequests map[int]int) {
+	p.resourceRequests = resourceRequests
+	p.evaluateAllocationRequests()
+}
+
+// Set taxation amount for all of the living islands
+// island_resources: map of all the living islands and their remaing resources
+func (p *basePresident) SetTaxationAmount(islands_resources map[int]int) {
+	taxAmountMap := make(map[int]int)
+	for id, resource_left := range islands_resources {
+		taxAmountMap[id] = rand.Intn(resource_left)
+	}
+	p.taxAmountMap = taxAmountMap
+}
+
+// Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
-func (p *BasePresident) GetRuleForSpeaker() int {
+func (p *basePresident) GetRuleForSpeaker() string {
 	return p.ruleToVote
 }
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (p *BasePresident) GetTaxMap() map[int]int {
+func (p *basePresident) GetTaxMap() map[int]int {
 	return p.taxAmountMap
 }
 
 // Send approved resources request for all the remaining islands
 // Called by orchestration at the end of the turn
-func (p *BasePresident) GetAllocationRequest() map[int]int {
+func (p *basePresident) GetAllocationRequest() map[int]int {
 	return p.resourceAllocation
 }
