@@ -1,4 +1,3 @@
-// Package server contains server-side code
 package server
 
 import (

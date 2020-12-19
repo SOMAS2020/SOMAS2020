@@ -84,6 +84,11 @@ func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
 	defer s.logf("finish endOfTurn")
 
+	err := s.runOrgsEndOfTurn()
+	if err != nil {
+		return errors.Errorf("Failed to run orgs end of turn: %v", err)
+	}
+
 	// probe for disaster
 	disasterHappened, err := s.probeDisaster()
 	if err != nil {
@@ -98,6 +103,26 @@ func (s *SOMASServer) endOfTurn() error {
 	err = s.updateIslandLivingStatus()
 	if err != nil {
 		return errors.Errorf("Failed to update island living status: %v", err)
+	}
+
+	return nil
+}
+
+// runOrgsEndOfTurn runs all the end of turn variants of the orgs.
+func (s *SOMASServer) runOrgsEndOfTurn() error {
+	s.logf("start runOrgsEndOfTurn")
+	defer s.logf("finish runOrgsEndOfTurn")
+
+	if err := s.runIIGOEndOfTurn(); err != nil {
+		return errors.Errorf("IIGO EndOfTurn error: %v", err)
+	}
+
+	if err := s.runIIFOEndOfTurn(); err != nil {
+		return errors.Errorf("IIFO EndOfTurn error: %v", err)
+	}
+
+	if err := s.runIITOEndOfTurn(); err != nil {
+		return errors.Errorf("IITO EndOfTurn error: %v", err)
 	}
 
 	return nil

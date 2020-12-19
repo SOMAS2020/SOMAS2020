@@ -7,3 +7,10 @@ func (s *SOMASServer) runIIGO() error {
 	// TODO:- IIGO team
 	return nil
 }
+
+func (s *SOMASServer) runIIGOEndOfTurn() error {
+	s.logf("start runIIGOEndOfTurn")
+	defer s.logf("finish runIIGOEndOfTurn")
+	// TODO:- IIGO team
+	return nil
+}
