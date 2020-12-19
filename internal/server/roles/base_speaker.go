@@ -19,7 +19,7 @@ func (s *baseSpeaker) RunVote() {
 
 }
 
-func (s *baseSpeaker) DeclareResult() {
+func (s* baseSpeaker) DeclareResult() {
 
 }
 
