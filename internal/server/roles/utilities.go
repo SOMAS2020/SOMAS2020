@@ -59,14 +59,6 @@ func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) 
 	print(communication) //// Get rid of this
 }
 
-func collapseBoolean(val bool) int {
-	if val {
-		return 1
-	} else {
-		return 0
-	}
-}
-
 const (
 	BallotID                 = iota
 	PresidentAllocationCheck = iota
@@ -75,4 +67,6 @@ const (
 	ResAllocID               = iota
 	SpeakerBallotCheck       = iota
 	PresidentID              = iota
+	RuleName                 = iota
+	RuleVoteResult           = iota
 )
