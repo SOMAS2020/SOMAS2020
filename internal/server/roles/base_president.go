@@ -1,7 +1,7 @@
 package roles
 
 import (
-    "math/rand"
+	"math/rand"
 )
 
 //base President Object
@@ -14,18 +14,19 @@ type basePresident struct {
 	ruleToVote         int
 	taxAmount          int
 }
-func (p* basePresident) withdrawSpeakerSalary() error{
-    return nil
+
+func (p *basePresident) withdrawSpeakerSalary() error {
+	return nil
 }
-func (p* basePresident) signalAllocationRequests(int) error{
-    return nil
+func (p *basePresident) signalAllocationRequests(int) map[int]int {
+	return nil
 }
-func (p* basePresident) replyAllocationRequests(int) error{
-    return nil
+func (p *basePresident) replyAllocationRequests(int) error {
+	return nil
 }
-func (p* basePresident) sendRuleToSpeaker(int) error{
-    return nil
+func (p *basePresident) sendRuleToSpeaker(int) error {
+	return nil
 }
-func (p* basePresident) appointNextSpeaker() int{
-    return rand.Intn(5)
+func (p *basePresident) appointNextSpeaker() int {
+	return rand.Intn(5)
 }

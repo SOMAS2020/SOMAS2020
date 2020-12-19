@@ -29,3 +29,13 @@ func searchForStringInArray(val string, array []string) (int, error) {
 	}
 	return 0, errors.Errorf("Not found")
 }
+
+func communicateWithIslands(recipient int, sender int, data map[string]interface{}) {
+	communication := Communication{
+		recipient: recipient,
+		sender:    sender,
+		data:      data,
+	}
+	//Send to islands
+	print(communication) //// Get rid of this
+}

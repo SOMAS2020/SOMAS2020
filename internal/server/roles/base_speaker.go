@@ -1,28 +1,28 @@
 package roles
 
-type BaseSpeaker struct {
-	id	int
-	budget	int
+type baseSpeaker struct {
+	id          int
+	budget      int
 	judgeSalary int
-	ruleToVote	int
+	ruleToVote  int
 }
 
-func (s *BaseSpeaker) WithdrawJudgeSalary() {
-
-}
-
-func (s *BaseSpeaker) PayJudge() {
+func (s *baseSpeaker) WithdrawJudgeSalary() {
 
 }
 
-func (s *BaseSpeaker) RunVote() {
+func (s *baseSpeaker) PayJudge() {
 
 }
 
-func (s *BaseSpeaker) UpdateRules() {
+func (s *baseSpeaker) RunVote() {
 
 }
 
-func (s *BaseSpeaker) voteNewJudge() {
-	
+func (s *baseSpeaker) UpdateRules() {
+
+}
+
+func (s *baseSpeaker) voteNewJudge() {
+
 }
