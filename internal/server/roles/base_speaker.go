@@ -19,6 +19,10 @@ func (s *BaseSpeaker) RunVote() {
 
 }
 
+func (s* BaseSpeaker) DeclareResult() {
+
+}
+
 func (s *BaseSpeaker) UpdateRules() {
 
 }
