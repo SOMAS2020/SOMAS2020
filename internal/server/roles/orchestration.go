@@ -4,6 +4,12 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 )
 
+type Communication struct {
+	recipient string
+	sender    string
+	data      map[string]interface{}
+}
+
 // callVote possible implementation of voting
 func callVote(speakerID int, whateverIsBeingVotedOn string) {
 	// Do voting
