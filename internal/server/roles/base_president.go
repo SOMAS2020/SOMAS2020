@@ -62,7 +62,7 @@ func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int
 // Called by orchestration at the end of the turn
 func (p *basePresident) getRuleForSpeaker() string {
 	if p.clientPresident != nil {
-		result, error := p.pickRuleToVote(p.rulesProposals)
+		result, error := p.clientPresident.pickRuleToVote(p.rulesProposals)
 		if error == nil {
 			return result
 		}
@@ -75,7 +75,7 @@ func (p *basePresident) getRuleForSpeaker() string {
 // Called by orchestration at the end of the turn
 func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	if p.clientPresident != nil {
-		result, error := p.setTaxationAmount(islandsResources)
+		result, error := p.clientPresident.setTaxationAmount(islandsResources)
 		if error == nil {
 			return result
 		}
