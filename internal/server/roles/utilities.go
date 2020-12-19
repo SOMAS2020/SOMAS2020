@@ -30,7 +30,20 @@ func searchForStringInArray(val string, array []string) (int, error) {
 	return 0, errors.Errorf("Not found")
 }
 
-func communicateWithIslands(recipient int, sender int, data map[string]interface{}) {
+type Communication struct {
+	recipient int
+	sender    int
+	data      map[int]int
+}
+
+func broadcastToAllIslands(sender int, data map[int]int) {
+	islandsAlive := rules.VariableMap["islands_alive"]
+	for _, v := range islandsAlive.Values {
+		communicateWithIslands(int(v), sender, data)
+	}
+}
+
+func communicateWithIslands(recipient int, sender int, data map[int]int) {
 	communication := Communication{
 		recipient: recipient,
 		sender:    sender,
@@ -39,3 +52,21 @@ func communicateWithIslands(recipient int, sender int, data map[string]interface
 	//Send to islands
 	print(communication) //// Get rid of this
 }
+
+func collapseBoolean(val bool) int {
+	if val {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+const (
+	BallotID                 = iota
+	PresidentAllocationCheck = iota
+	SpeakerID                = iota
+	RoleConducted            = iota
+	ResAllocID               = iota
+	SpeakerBallotCheck       = iota
+	PresidentID              = iota
+)

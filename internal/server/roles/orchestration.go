@@ -5,12 +5,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Communication struct {
-	recipient int
-	sender    int
-	data      map[string]interface{}
-}
-
 var Base_judge = BaseJudge{
 	id:                0,
 	budget:            0,
@@ -50,6 +44,9 @@ func runIIGO(judgePointer Judge, speakerPointer Speaker, presidentPointer Presid
 	Base_speaker.id = SpeakerIDGlobal
 	Base_President.id = PresidentIDGlobal
 
+	// Initialise roles with their clientVersions
+	Base_judge.clientJudge = judgePointer
+
 	// Pay the salaries
 	errPayPresident := judgePointer.payPresident()
 	errPayJudge := speakerPointer.PayJudge()
@@ -69,15 +66,47 @@ func runIIGO(judgePointer Judge, speakerPointer Speaker, presidentPointer Presid
 	}
 
 	// 1 Judge actions - inspect history
+	_, judgeInspectingHistoryError := Base_judge.inspectHistory()
 
 	// 2 Speaker actions
 
 	// 3 President actions
 
 	// 4 Declare performance (Judge) (in future all the roles)
+	if judgeInspectingHistoryError != nil {
+		RID, result1, PID, checkRole1, judgeDeclaringPresidentPerformanceError := Base_judge.declarePresidentPerformance()
+		if judgeDeclaringPresidentPerformanceError == nil {
+			broadcastToAllIslands(Base_judge.id, generatePresidentPerformanceMessage(RID, result1, PID, checkRole1))
+		}
+
+		BID, result2, SID, checkRole2, judgeDeclaringSpeakerPerformanceError := Base_judge.declareSpeakerPerformance()
+		if judgeDeclaringSpeakerPerformanceError == nil {
+			broadcastToAllIslands(Base_judge.id, generateSpeakerPerformanceMessage(BID, result2, SID, checkRole2))
+		}
+	}
 
 	//TODO: Add election setting
 	return nil
+}
+
+func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]int {
+	returnMap := map[int]int{}
+
+	returnMap[BallotID] = BID
+	returnMap[SpeakerBallotCheck] = collapseBoolean(result)
+	returnMap[SpeakerID] = SID
+	returnMap[RoleConducted] = collapseBoolean(conductedRole)
+	return returnMap
+}
+
+func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]int {
+	returnMap := map[int]int{}
+
+	returnMap[ResAllocID] = RID
+	returnMap[PresidentAllocationCheck] = collapseBoolean(result)
+	returnMap[PresidentID] = PID
+	returnMap[RoleConducted] = collapseBoolean(conductedRole)
+	return returnMap
 }
 
 // callVote possible implementation of voting
