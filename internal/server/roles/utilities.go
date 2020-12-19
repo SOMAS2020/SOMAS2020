@@ -1,6 +1,7 @@
 package roles
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 )
@@ -58,6 +59,36 @@ func collapseBoolean(val bool) int {
 		return 1
 	} else {
 		return 0
+	}
+}
+
+func withdrawSalary(role int, value int) {
+	if role == 0 {
+		common.GameState.CommonPool.checkEnoughInCommonPool(value)
+		Base_President.speakerSalary = value
+	}
+	if role == 1 {
+		common.GameState.CommonPool.checkEnoughInCommonPool(value)
+		Base_judge.presidentSalary = value
+	}
+	if role == 2 {
+		common.GameState.CommonPool.checkEnoughInCommonPool(value)
+		Base_speaker.judgeSalary = value
+	}
+}
+
+func paySalary(role int, value int) {
+	if role == 0 {
+		common.GameState.CommonPool.withdrawFromCommonPool(value)
+		Base_President.budget = value
+	}
+	if role == 1 {
+		common.GameState.CommonPool.withdrawFromCommonPool(value)
+		Base_judge.budget = value
+	}
+	if role == 2 {
+		common.GameState.CommonPool.withdrawFromCommonPool(value)
+		Base_speaker.budget = value
 	}
 }
 

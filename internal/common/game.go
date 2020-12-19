@@ -15,6 +15,8 @@ type GameState struct {
 	// Turn represents the current (1-index) Turn of the game.
 	Turn uint
 
+	CommonPool baseCommonPool
+
 	// ClientInfos map from the shared.ClientID to ClientInfo.
 	// EXTRA note: Golang maps are made to be random!
 	ClientInfos map[shared.ClientID]ClientInfo
