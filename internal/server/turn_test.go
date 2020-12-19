@@ -11,14 +11,14 @@ import (
 func TestIncrementTurnAndSeason(t *testing.T) {
 	cases := []struct {
 		name             string
-		initialGameState common.GameState
+		initialGameState gamestate.GameState
 		disasterHappened bool
 		wantTurn         uint
 		wantSeason       uint
 	}{
 		{
 			name: "no disaster",
-			initialGameState: common.GameState{
+			initialGameState: gamestate.GameState{
 				Turn:   42,
 				Season: 69,
 			},
@@ -28,7 +28,7 @@ func TestIncrementTurnAndSeason(t *testing.T) {
 		},
 		{
 			name: "disaster happened",
-			initialGameState: common.GameState{
+			initialGameState: gamestate.GameState{
 				Turn:   42,
 				Season: 69,
 			},
@@ -61,7 +61,7 @@ func TestIncrementTurnAndSeason(t *testing.T) {
 
 func TestDeductCostOfLiving(t *testing.T) {
 	const costOfLiving = 42
-	clientInfos := map[shared.ClientID]common.ClientInfo{
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
 		shared.Team1: {
 			Resources:  43,
 			LifeStatus: shared.Alive,
@@ -75,7 +75,7 @@ func TestDeductCostOfLiving(t *testing.T) {
 			LifeStatus: shared.Dead,
 		},
 	}
-	wantClientInfos := map[shared.ClientID]common.ClientInfo{
+	wantClientInfos := map[shared.ClientID]gamestate.ClientInfo{
 		shared.Team1: {
 			Resources:  1,
 			LifeStatus: shared.Alive,
@@ -91,7 +91,7 @@ func TestDeductCostOfLiving(t *testing.T) {
 	}
 
 	s := SOMASServer{
-		gameState: common.GameState{
+		gameState: gamestate.GameState{
 			ClientInfos: clientInfos,
 		},
 	}
