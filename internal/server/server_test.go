@@ -23,7 +23,6 @@ func (c *mockClientEcho) Echo(s string) string {
 	return c.echo
 }
 
-// TestGetEcho also exercises getClientInfoFromRegisteredClients
 func TestGetEcho(t *testing.T) {
 	cases := []struct {
 		name  string

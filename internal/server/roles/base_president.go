@@ -4,7 +4,7 @@ import (
 	"math/rand"
 )
 
-//base President Objectlist
+//base President Object
 type basePresident struct {
 	id                 int
 	budget             int
@@ -39,14 +39,12 @@ func (p *basePresident) pickRuleToVote() {
 // Called by orchestration
 func (p *basePresident) SetRuleProposals(rulesProposals []string) {
 	p.rulesProposals = rulesProposals
-	p.pickRuleToVote()
 }
 
 // Set approved resources request for all the remaining islands
 // Called by orchestration
 func (p *basePresident) SetAllocationRequest(resourceRequests map[int]int) {
 	p.resourceRequests = resourceRequests
-	p.evaluateAllocationRequests()
 }
 
 // Set taxation amount for all of the living islands
@@ -62,6 +60,7 @@ func (p *basePresident) SetTaxationAmount(islands_resources map[int]int) {
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
 func (p *basePresident) GetRuleForSpeaker() string {
+	p.pickRuleToVote()
 	return p.ruleToVote
 }
 
@@ -71,8 +70,13 @@ func (p *basePresident) GetTaxMap() map[int]int {
 	return p.taxAmountMap
 }
 
-// Send approved resources request for all the remaining islands
+// Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (p *basePresident) GetAllocationRequest() map[int]int {
+func (p *basePresident) GetAllocationRequests() map[int]int {
+	p.evaluateAllocationRequests()
 	return p.resourceAllocation
+}
+
+func (p *basePresident) appointNextSpeaker() int {
+	return rand.Intn(5)
 }
