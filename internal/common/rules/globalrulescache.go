@@ -22,7 +22,7 @@ func registerNewRuleInternal(ruleName string, requiredVariables []string, applic
 		return nil, errors.Errorf("Rule '%v' already registered", ruleName)
 	}
 
-	rm := RuleMatrix{ruleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxiliaryVector: auxiliaryVector}
+	rm := RuleMatrix{RuleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxiliaryVector: auxiliaryVector}
 	ruleStore[ruleName] = rm
 	return &rm, nil
 }
