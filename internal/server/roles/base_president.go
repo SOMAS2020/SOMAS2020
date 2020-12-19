@@ -10,3 +10,15 @@ type basePresident struct {
 	ruleToVote         int
 	taxAmount          int
 }
+func (p* basePresident) withdrawSpeakerSalary() error{
+    return nil
+}
+func (p* basePresident) signalAllocationRequests(int) error{
+    return nil
+}
+func (p* basePresident) replyAllocationRequests(int) error{
+    return nil
+}
+func (p* basePresident) sendRuleToSpeaker(int) error{
+    return nil
+}
