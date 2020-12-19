@@ -37,7 +37,11 @@ var SpeakerIDGlobal = 0
 var JudgeIDGlobal = 0
 var PresidentIDGlobal = 0
 
-func runIIGO(judgePointer Judge, speakerPointer Speaker, presidentPointer President) error {
+var judgePointer = Base_judge
+var speakerPointer = Base_speaker
+var presidentPointer = Base_President
+
+func runIIGO() error {
 
 	// Initialise IDs
 	Base_judge.id = JudgeIDGlobal
@@ -45,7 +49,7 @@ func runIIGO(judgePointer Judge, speakerPointer Speaker, presidentPointer Presid
 	Base_President.id = PresidentIDGlobal
 
 	// Initialise roles with their clientVersions
-	Base_judge.clientJudge = judgePointer
+	Base_judge.clientJudge = &judgePointer
 
 	// Pay the salaries
 	errPayPresident := judgePointer.payPresident()
@@ -86,6 +90,9 @@ func runIIGO(judgePointer Judge, speakerPointer Speaker, presidentPointer Presid
 	}
 
 	//TODO: Add election setting
+	// Set JudgeIDGlobal
+	// Set SpeakerIDGlobal
+	// Set PresidentIDGlobal
 	return nil
 }
 

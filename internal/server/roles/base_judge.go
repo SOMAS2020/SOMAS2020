@@ -28,9 +28,10 @@ func (j *BaseJudge) withdrawPresidentSalary() {
 	// Call common withdraw function with president as parameter
 }
 
-func (j *BaseJudge) payPresident() {
+func (j *BaseJudge) payPresident() error {
 	// Pay the president
 	// Call common pay function with president as parameter
+	return nil
 }
 
 func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId int, presidentId int) {
