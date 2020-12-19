@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
@@ -78,7 +78,7 @@ func (s *SOMASServer) updateIslands() error {
 func (s *SOMASServer) getAndDispatchEndOfTurnActions() error {
 	s.logf("start getAndDispatchEndOfTurnActions")
 	defer s.logf("finish getAndDispatchEndOfTurnActions")
-	allActions := []common.Action{}
+	allActions := []gamestate.Action{}
 
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.LifeStatus != shared.Dead {

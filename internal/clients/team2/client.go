@@ -2,16 +2,16 @@
 package team2
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 const id = shared.Team2
 
 func init() {
-	common.RegisterClient(id, &client{Client: common.NewClient(id)})
+	baseclient.RegisterClient(id, &client{Client: baseclient.NewClient(id)})
 }
 
 type client struct {
-	common.Client
+	baseclient.Client
 }

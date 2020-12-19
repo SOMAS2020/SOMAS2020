@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -108,14 +108,14 @@ func TestGameOver(t *testing.T) {
 	const maxSeasons = 10
 	cases := []struct {
 		name        string
-		clientInfos map[shared.ClientID]common.ClientInfo
+		clientInfos map[shared.ClientID]gamestate.ClientInfo
 		turn        uint
 		season      uint
 		want        bool
 	}{
 		{
 			name: "game not over",
-			clientInfos: map[shared.ClientID]common.ClientInfo{
+			clientInfos: map[shared.ClientID]gamestate.ClientInfo{
 				shared.Team2: {
 					LifeStatus: shared.Alive,
 				},
@@ -126,7 +126,7 @@ func TestGameOver(t *testing.T) {
 		},
 		{
 			name: "all clients dead",
-			clientInfos: map[shared.ClientID]common.ClientInfo{
+			clientInfos: map[shared.ClientID]gamestate.ClientInfo{
 				shared.Team2: {
 					LifeStatus: shared.Dead,
 				},
@@ -137,7 +137,7 @@ func TestGameOver(t *testing.T) {
 		},
 		{
 			name: "maxTurns reached",
-			clientInfos: map[shared.ClientID]common.ClientInfo{
+			clientInfos: map[shared.ClientID]gamestate.ClientInfo{
 				shared.Team2: {
 					LifeStatus: shared.Alive,
 				},
@@ -148,7 +148,7 @@ func TestGameOver(t *testing.T) {
 		},
 		{
 			name: "maxSeasons reached",
-			clientInfos: map[shared.ClientID]common.ClientInfo{
+			clientInfos: map[shared.ClientID]gamestate.ClientInfo{
 				shared.Team2: {
 					LifeStatus: shared.Alive,
 				},
@@ -161,7 +161,7 @@ func TestGameOver(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			server := SOMASServer{
-				gameState: common.GameState{
+				gameState: gamestate.GameState{
 					ClientInfos: tc.clientInfos,
 					Turn:        tc.turn,
 					Season:      tc.season,
