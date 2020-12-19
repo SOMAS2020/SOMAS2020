@@ -4,6 +4,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/logger"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/SOMAS2020/SOMAS2020/pkg/fileutils"
 )
@@ -22,10 +24,12 @@ type output struct {
 }
 
 const outputJSONFileName = "output.json"
+const outputLogFileName = "log.txt"
 
 var cwd = fileutils.GetCurrFileDir()
 var outputDir = path.Join(cwd, "output")
 var outputJSONFilePath = path.Join(outputDir, outputJSONFileName)
+var outputLogFilePath = path.Join(outputDir, outputLogFileName)
 
 func init() {
 	// cleanup output
@@ -38,6 +42,17 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	initLogger()
+}
+
+func initLogger() {
+	f, err := os.OpenFile(outputLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic("Unable to open log file to output")
+	}
+	log.SetOutput(
+		logger.NewLogWriter([]io.Writer{os.Stderr, f}),
+	)
 }
 
 func main() {
