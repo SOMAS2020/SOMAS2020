@@ -10,16 +10,17 @@ type BaseJudge struct {
 	id                int
 	budget            int
 	presidentSalary   int
-	ballotID          int
-	resAllocID        int
+	BallotID          int
+	ResAllocID        int
 	speakerID         int
 	presidentID       int
 	evaluationResults map[int]EvaluationReturn
+	clientJudge       Judge
 }
 
 func (j *BaseJudge) init() {
-	j.ballotID = 0
-	j.resAllocID = 0
+	j.BallotID = 0
+	j.ResAllocID = 0
 }
 
 func (j *BaseJudge) withdrawPresidentSalary() {
@@ -42,7 +43,7 @@ type EvaluationReturn struct {
 	evaluations []bool
 }
 
-func (j *BaseJudge) inspectHistory() {
+func (j *BaseJudge) inspectHistoryInternal() {
 	outputMap := map[int]EvaluationReturn{}
 	for _, v := range TurnHistory {
 		variablePairs := v.pairs
@@ -73,6 +74,20 @@ func (j *BaseJudge) inspectHistory() {
 		}
 	}
 	j.evaluationResults = outputMap
+}
+
+func (j *BaseJudge) inspectHistory() (map[int]EvaluationReturn, error) {
+	if j.clientJudge != nil {
+		outputMap, err := j.clientJudge.inspectHistory()
+		if err != nil {
+			j.inspectHistoryInternal()
+		} else {
+			j.evaluationResults = outputMap
+		}
+	} else {
+		j.inspectHistoryInternal()
+	}
+	return j.evaluationResults, nil
 }
 
 func (j *BaseJudge) inspectBallot() (bool, error) {
@@ -112,22 +127,49 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 	return 0, errors.Errorf("The rule name '%v' was not found", ruleName)
 }
 
-func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool) {
+func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
 
-	j.ballotID++
+	if j.clientJudge != nil {
+		BID, result, SID, checkRole, err := j.clientJudge.declareSpeakerPerformance()
+		if err != nil {
+			return BID, result, SID, checkRole, nil
+		} else {
+			return j.declareSpeakerPerformanceInternal()
+		}
+	} else {
+		return j.declareSpeakerPerformanceInternal()
+	}
+
+}
+
+func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
+	j.BallotID++
 	result, err := j.inspectBallot()
 
 	conductedRole := err == nil
 
-	return j.ballotID, result, j.speakerID, conductedRole
+	return j.BallotID, result, j.speakerID, conductedRole, nil
 }
 
-func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool) {
+func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) {
+	if j.clientJudge != nil {
+		RID, result, PID, checkRole, err := j.clientJudge.declarePresidentPerformance()
+		if err != nil {
+			return RID, result, PID, checkRole, nil
+		} else {
+			return j.declarePresidentPerformanceInternal()
+		}
+	} else {
+		return j.declarePresidentPerformanceInternal()
+	}
+}
 
-	j.resAllocID++
+func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool, error) {
+
+	j.ResAllocID++
 	result, err := j.inspectAllocation()
 
 	conductedRole := err == nil
 
-	return j.resAllocID, result, j.presidentID, conductedRole
+	return j.ResAllocID, result, j.presidentID, conductedRole, nil
 }
