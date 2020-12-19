@@ -4,7 +4,7 @@ type baseSpeaker struct {
 	id          	int
 	budget      	int
 	judgeSalary 	int
-	ruleToVote  	int
+	ruleToVote  	string
 	votingResult	bool
 	clientSpeaker 	Speaker
 }
@@ -61,16 +61,16 @@ func (s *baseSpeaker) DeclareResult(){
 		//TODO:
 		rule, result, err := s.clientSpeaker.DeclareResult(ruleToVote)
 		if err != nil {
-			//TODO: broadcast
+			broadcastToAllIslands(s.id, generateVotingResultMessage(s.ruleToVote, s.votingResult))
 			//TODO:
 			s.UpdateRules(s.ruleToVote, s.votingResult)
 		} else {
-			//TODO: broadcast
+			broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
 			//TODO:
 			s.UpdateRules(rule, result)
 		}
 	} else{
-		//TODO: broadcast
+		broadcastToAllIslands(s.id, generateVotingResultMessage(s.ruleToVote, s.votingResult))
 		//TODO:
 		s.UpdateRules(s.ruleToVote, s.votingResult)
 	}
@@ -81,6 +81,18 @@ func (s *baseSpeaker) DeclareResult(){
 
 }
 
+func generateVotingResultMessage(ruleID string, result bool) map[int]DataPacket {
+	returnMap := map[int]DataPacket{}
+
+	returnMap[RuleName] = DataPacket{
+		textData: ruleID,
+	}
+	returnMap[RuleVoteResult] = DataPacket{
+		booleanData: result,
+	}
+
+	return returnMap
+}
 
 func (s *baseSpeaker) UpdateRules() {
 
