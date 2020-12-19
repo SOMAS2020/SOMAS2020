@@ -5,6 +5,7 @@ type baseSpeaker struct {
 	budget      	int
 	judgeSalary 	int
 	ruleToVote  	int
+	votingResult	bool
 	clientSpeaker 	Speaker
 }
 
@@ -17,43 +18,69 @@ func (s *baseSpeaker) PayJudge() {
 }
 
 // Receive a rule to call a vote on
-func (s *BaseSpeaker) SetRuleToVote(r int) {
+func (s *baseSpeaker) SetRuleToVote(r int) {
 	s.ruleToVote = r
 }
 
-func (s *BaseSpeaker) RunVote() {
-
-	if s.ruleToVote == -1 {
-		// No rules were proposed by the islands
-		return
+func (s *baseSpeaker) RunVote() {
+	if s.clientSpeaker != nil {
+		//TODO:
+		result, err := s.clientSpeaker.RunVote(s.ruleToVote)
+		if err != nil {
+			s.votingResult = s.runVoteInternal()
+		} else {
+			s.votingResult = result
+		}
 	} else{
-		//Run the vote
-		//Creating the object = opening the ballot?
-		v := voting.VoteRule{s.ruleToVote}
-		//TODO: updateTurnHistory of rule given to vote on vs ruleToVote
-
-		//Providing optional array of islandID-s = closing ballot early/
-		//controlling which islands are allowed to vote if some are not permitted?
-		//Providing optional string of result counting method
-
-		//Receive result, number of islands alive, number of islands that voted
-		ballots := v.CallVote(s.id)
-		//Speaker Id passed in for robust logging
-
-		result := v.CountVotes(votes, "majority")
-		s.DeclareResult(result, s.ruleToVote)
-
+		s.votingResult = s.runVoteInternal()
 	}
 }
 
-func (s *BaseSpeaker) DeclareResult(result bool, rule int){
+func (s *baseSpeaker) runVoteInternal() bool{
+	if s.ruleToVote == -1 {
+		// No rules were proposed by the islands
+		return false
+	} else{
+		//Run the vote
+		//TODO: updateTurnHistory of rule given to vote on vs , so need to pass in
+		v := voting.VoteRule{s.ruleToVote}
 
-	s.UpdateRules(result, rule)
+		//Receive ballots
+		//Speaker Id passed in for logging
+		//TODO:
+		ballots := v.CallVote(s.id)
+
+		//TODO:
+		return v.CountVotes(ballots, "majority")
+	}
 }
 
-func (s* baseSpeaker) DeclareResult() {
+func (s *baseSpeaker) DeclareResult(){
+	if s.clientSpeaker != nil {
+		//Power to change what is declared completely
+		//TODO:
+		rule, result, err := s.clientSpeaker.DeclareResult(ruleToVote)
+		if err != nil {
+			//TODO: broadcast
+			//TODO:
+			s.UpdateRules(s.ruleToVote, s.votingResult)
+		} else {
+			//TODO: broadcast
+			//TODO:
+			s.UpdateRules(rule, result)
+		}
+	} else{
+		//TODO: broadcast
+		//TODO:
+		s.UpdateRules(s.ruleToVote, s.votingResult)
+	}
+
+	//Reset
+	s.ruleToVote = -1
+	s.votingResult = false
 
 }
+
 
 func (s *baseSpeaker) UpdateRules() {
 
