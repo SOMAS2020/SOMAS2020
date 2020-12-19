@@ -6,4 +6,5 @@ type Speaker interface {
 	PayJudge() error
 	RunVote() error
 	UpdateRules() error
+	DeclareResult() error
 }
