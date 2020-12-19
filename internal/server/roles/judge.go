@@ -4,7 +4,7 @@ package roles
 // optionally implemented by individual islands.
 type Judge interface {
 	payPresident() error
-	inspectHistory() (map[int]EvaluationReturn, error)
+	inspectHistory()
 	declareSpeakerPerformance() (int, bool, int, bool)
 	declarePresidentPerformance() (int, bool, int, bool)
 }
