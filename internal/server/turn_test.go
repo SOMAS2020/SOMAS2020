@@ -4,10 +4,112 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
+type mockClientUpdate struct {
+	baseclient.Client
+	StartOfTurnUpdateCalled bool
+	GameStateUpdateCalled   bool
+}
+
+func (c *mockClientUpdate) StartOfTurnUpdate(g gamestate.GameState) {
+	c.StartOfTurnUpdateCalled = true
+}
+
+func (c *mockClientUpdate) GameStateUpdate(g gamestate.GameState) {
+	c.GameStateUpdateCalled = true
+}
+
+func TestStartOfTurnUpdate(t *testing.T) {
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Critical,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Dead,
+		},
+	}
+	clientMap := map[shared.ClientID]baseclient.Client{
+		shared.Team1: &mockClientUpdate{},
+		shared.Team2: &mockClientUpdate{},
+		shared.Team3: &mockClientUpdate{},
+	}
+	wantCalled := map[shared.ClientID]bool{
+		shared.Team1: true,
+		shared.Team2: true,
+		shared.Team3: false,
+	}
+
+	s := &SOMASServer{
+		gameState: gamestate.GameState{
+			ClientInfos: clientInfos,
+		},
+		clientMap: clientMap,
+	}
+
+	s.startOfTurnUpdate()
+
+	for id, want := range wantCalled {
+		v, ok := clientMap[id].(*mockClientUpdate)
+		if !ok {
+			t.Errorf("Can't coerce type!")
+		}
+		got := v.StartOfTurnUpdateCalled
+		if want != got {
+			t.Errorf("For id %v, want '%v' got '%v'", id, want, got)
+		}
+	}
+}
+
+func TestGameStateUpdate(t *testing.T) {
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Critical,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Dead,
+		},
+	}
+	clientMap := map[shared.ClientID]baseclient.Client{
+		shared.Team1: &mockClientUpdate{},
+		shared.Team2: &mockClientUpdate{},
+		shared.Team3: &mockClientUpdate{},
+	}
+	wantCalled := map[shared.ClientID]bool{
+		shared.Team1: true,
+		shared.Team2: true,
+		shared.Team3: false,
+	}
+
+	s := &SOMASServer{
+		gameState: gamestate.GameState{
+			ClientInfos: clientInfos,
+		},
+		clientMap: clientMap,
+	}
+
+	s.gameStateUpdate()
+
+	for id, want := range wantCalled {
+		v, ok := clientMap[id].(*mockClientUpdate)
+		if !ok {
+			t.Errorf("Can't coerce type!")
+		}
+		got := v.GameStateUpdateCalled
+		if want != got {
+			t.Errorf("For id %v, want '%v' got '%v'", id, want, got)
+		}
+	}
+}
 func TestIncrementTurnAndSeason(t *testing.T) {
 	cases := []struct {
 		name             string
