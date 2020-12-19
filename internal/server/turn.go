@@ -95,7 +95,7 @@ func (s *SOMASServer) endOfTurn() error {
 	s.incrementTurnAndSeason(disasterHappened)
 
 	// deduct cost of living
-	s.deductCostOfLiving(config.GameConfig.CostOfLiving)
+	s.deductCostOfLiving(config.GameConfig().CostOfLiving)
 
 	err = s.updateIslandLivingStatus()
 	if err != nil {
@@ -158,7 +158,7 @@ func (s *SOMASServer) updateIslandLivingStatus() error {
 	for id, ci := range s.gameState.ClientInfos {
 		if ci.LifeStatus != shared.Dead {
 			ci, err := updateIslandLivingStatusForClient(ci,
-				config.GameConfig.MinimumResourceThreshold, config.GameConfig.MaxCriticalConsecutiveTurns)
+				config.GameConfig().MinimumResourceThreshold, config.GameConfig().MaxCriticalConsecutiveTurns)
 			if err != nil {
 				return errors.Errorf("Unable to update island living status for %v: %v",
 					id, err)

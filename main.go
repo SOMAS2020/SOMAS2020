@@ -41,7 +41,7 @@ func main() {
 		os.Exit(1)
 	} else {
 		fmt.Printf("===== GAME CONFIGURATION =====\n")
-		fmt.Printf("%#v\n", config.GameConfig)
+		fmt.Printf("%#v\n", config.GameConfig())
 		for _, st := range gameStates {
 			fmt.Printf("===== START OF TURN %v (END OF TURN %v) =====\n", st.Turn, st.Turn-1)
 			fmt.Printf("%#v\n", st)
@@ -49,7 +49,7 @@ func main() {
 
 		outputJSON(output{
 			GameStates: gameStates,
-			Config:     config.GameConfig,
+			Config:     config.GameConfig(),
 		})
 	}
 }

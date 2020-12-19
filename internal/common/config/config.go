@@ -27,12 +27,15 @@ type Config struct {
 	MaxCriticalConsecutiveTurns uint
 }
 
-// GameConfig is the configuration for the game.
-var GameConfig = Config{
-	MaxSeasons:                  100,
-	MaxTurns:                    2,
-	InitialResources:            100,
-	CostOfLiving:                10,
-	MinimumResourceThreshold:    5,
-	MaxCriticalConsecutiveTurns: 3,
+// GameConfig returns the configuration of the game.
+// (Made a function so it cannot be altered mid-game).
+func GameConfig() Config {
+	return Config{
+		MaxSeasons:                  100,
+		MaxTurns:                    2,
+		InitialResources:            100,
+		CostOfLiving:                10,
+		MinimumResourceThreshold:    5,
+		MaxCriticalConsecutiveTurns: 3,
+	}
 }
