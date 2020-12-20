@@ -20,7 +20,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Run
-      run: sudo go run .
+      run: go run .
     - name: Build website
       run: |
         cd website
