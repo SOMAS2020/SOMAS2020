@@ -158,11 +158,32 @@ func (s *SOMASServer) deductCostOfLiving(costOfLiving int) {
 	s.logf("start deductCostOfLiving")
 	defer s.logf("finish deductCostOfLiving")
 
+	N := len(s.gameState.ClientInfos)
+	resChan := make(chan clientInfoUpdateResult, N)
+	wg := &sync.WaitGroup{}
+	wg.Add(N)
+
 	for id, ci := range s.gameState.ClientInfos {
-		if ci.LifeStatus != shared.Dead {
-			ci.Resources -= costOfLiving
-			s.gameState.ClientInfos[id] = ci
-		}
+		go func(id shared.ClientID, ci gamestate.ClientInfo) {
+			defer wg.Done()
+			if ci.LifeStatus != shared.Dead {
+				ci.Resources -= costOfLiving
+			}
+			resChan <- clientInfoUpdateResult{
+				Id:  id,
+				Ci:  ci,
+				Err: nil,
+			}
+		}(id, ci)
+	}
+
+	wg.Wait()
+	close(resChan)
+
+	for res := range resChan {
+		id, ci := res.Id, res.Ci
+		// fine to ignore error, always nil
+		s.gameState.ClientInfos[id] = ci
 	}
 }
 
@@ -172,17 +193,42 @@ func (s *SOMASServer) deductCostOfLiving(costOfLiving int) {
 func (s *SOMASServer) updateIslandLivingStatus() error {
 	s.logf("start updateIslandLivingStatus")
 	defer s.logf("finish updateIslandLivingStatus")
+
+	N := len(s.gameState.ClientInfos)
+	resChan := make(chan clientInfoUpdateResult, N)
+	wg := &sync.WaitGroup{}
+	wg.Add(N)
+
 	for id, ci := range s.gameState.ClientInfos {
-		if ci.LifeStatus != shared.Dead {
-			ci, err := updateIslandLivingStatusForClient(ci,
-				config.MinimumResourceThreshold, config.MaxCriticalConsecutiveTurns)
-			if err != nil {
-				return errors.Errorf("Unable to update island living status for %v: %v",
-					id, err)
+		go func(id shared.ClientID, ci gamestate.ClientInfo) {
+			defer wg.Done()
+			var ciNew gamestate.ClientInfo
+			var err error
+			if ci.LifeStatus != shared.Dead {
+				ciNew, err = updateIslandLivingStatusForClient(ci,
+					config.MinimumResourceThreshold, config.MaxCriticalConsecutiveTurns)
+			} else {
+				ciNew = ci
 			}
-			s.gameState.ClientInfos[id] = ci
-		}
+			resChan <- clientInfoUpdateResult{
+				Id:  id,
+				Ci:  ciNew,
+				Err: err,
+			}
+		}(id, ci)
 	}
+
+	wg.Wait()
+	close(resChan)
+
+	for res := range resChan {
+		id, ci, err := res.Id, res.Ci, res.Err
+		if err != nil {
+			return errors.Errorf("Failed to update island living status for '%v': %v", id, err)
+		}
+		s.gameState.ClientInfos[id] = ci
+	}
+
 	return nil
 }
 
