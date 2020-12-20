@@ -5,8 +5,10 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 )
 
 type mockClientUpdate struct {
@@ -201,6 +203,43 @@ func TestDeductCostOfLiving(t *testing.T) {
 	s.deductCostOfLiving(costOfLiving)
 
 	if !reflect.DeepEqual(wantClientInfos, s.gameState.ClientInfos) {
+		t.Errorf("want '%v' got '%v'", wantClientInfos, s.gameState.ClientInfos)
+	}
+}
+
+func TestUpdateIslandLivingStatus(t *testing.T) {
+	// this does not test for updateIslandLivingStatusForClient
+	// those are covered in TestUpdateIslandLivingStatusForClient
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+			Resources:  config.GameConfig().MinimumResourceThreshold - 1,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Critical,
+			Resources:  config.GameConfig().MinimumResourceThreshold,
+		},
+	}
+	wantClientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Critical,
+			Resources:  config.GameConfig().MinimumResourceThreshold - 1,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Alive,
+			Resources:  config.GameConfig().MinimumResourceThreshold,
+		},
+	}
+
+	s := SOMASServer{
+		gameState: gamestate.GameState{
+			ClientInfos: clientInfos,
+		},
+	}
+
+	err := s.updateIslandLivingStatus()
+	testutils.CompareTestErrors(nil, err, t)
+	if !reflect.DeepEqual(s.gameState.ClientInfos, wantClientInfos) {
 		t.Errorf("want '%v' got '%v'", wantClientInfos, s.gameState.ClientInfos)
 	}
 }
