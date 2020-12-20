@@ -1,12 +1,17 @@
 package roles
 
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/pkg/errors"
+)
+
 type baseSpeaker struct {
-	id          	int
-	budget      	int
-	judgeSalary 	int
-	ruleToVote  	string
-	votingResult	bool
-	clientSpeaker 	Speaker
+	id            int
+	budget        int
+	judgeSalary   int
+	ruleToVote    string
+	votingResult  bool
+	clientSpeaker Speaker
 }
 
 func (s *baseSpeaker) WithdrawJudgeSalary() {
@@ -21,6 +26,7 @@ func (s *baseSpeaker) PayJudge() {
 func (s *baseSpeaker) SetRuleToVote(r string) {
 	s.ruleToVote = r
 }
+
 
 //Asks islands to vote on a rule
 //Called by orchestration
@@ -108,7 +114,30 @@ func generateVotingResultMessage(ruleID string, result bool) map[int]DataPacket 
 	return returnMap
 }
 
-func (s *baseSpeaker) UpdateRules() {
+
+func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
+	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
+	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
+	if ruleVotedIn {
+		// _ = rules.PullRuleIntoPlay(ruleName)
+		err := rules.PullRuleIntoPlay(ruleName)
+		if err != nil {
+			if err.Error() == notInRulesCache.Error() {
+				return err
+			}
+		}
+	} else {
+		// _ = rules.PullRuleOutOfPlay(ruleName)
+		err := rules.PullRuleOutOfPlay(ruleName)
+		if err != nil {
+			if err.Error() == notInRulesCache.Error() {
+				return err
+			}
+		}
+
+	}
+	return nil
+
 }
 
 func (s *baseSpeaker) voteNewJudge() {

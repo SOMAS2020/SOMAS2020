@@ -6,5 +6,4 @@ type Speaker interface {
 	PayJudge() error
 	RunVote(string) (bool, error)
 	DecideAnnouncement(string, bool) (string, bool, error)
-	UpdateRules() error
 }
