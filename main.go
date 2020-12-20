@@ -40,7 +40,7 @@ func init() {
 		panic(err)
 	}
 	// make output directory
-	err = os.Mkdir(outputDir, 0644)
+	err = os.Mkdir(outputDir, 0777)
 	if err != nil {
 		panic(err)
 	}
@@ -48,9 +48,9 @@ func init() {
 }
 
 func initLogger() {
-	f, err := os.OpenFile(outputLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(outputLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
-		panic("Unable to open log file to output")
+		panic(fmt.Sprintf("Unable to open log file, try running using sudo: %v", err))
 	}
 	log.SetOutput(
 		logger.NewLogWriter([]io.Writer{os.Stderr, f}),
@@ -85,7 +85,7 @@ func outputJSON(o output) {
 		log.Printf("Failed to Marshal gameStates: %v", err)
 		os.Exit(1)
 	}
-	err = ioutil.WriteFile(outputJSONFilePath, jsonBuf, 0644)
+	err = ioutil.WriteFile(outputJSONFilePath, jsonBuf, 0777)
 	if err != nil {
 		log.Printf("Failed to write file: %v", err)
 		os.Exit(1)
