@@ -27,77 +27,93 @@ func (s *baseSpeaker) SetRuleToVote(r string) {
 	s.ruleToVote = r
 }
 
-// func (s *baseSpeaker) RunVote() {
-// 	if s.clientSpeaker != nil {
-// 		//TODO:
-// 		result, err := s.clientSpeaker.RunVote(s.ruleToVote)
-// 		if err != nil {
-// 			s.votingResult = s.runVoteInternal()
-// 		} else {
-// 			s.votingResult = result
-// 		}
-// 	} else{
-// 		s.votingResult = s.runVoteInternal()
-// 	}
-// }
 
-// func (s *baseSpeaker) runVoteInternal() bool{
-// 	if s.ruleToVote == -1 {
-// 		// No rules were proposed by the islands
-// 		return false
-// 	} else{
-// 		//Run the vote
-// 		//TODO: updateTurnHistory of rule given to vote on vs , so need to pass in
-// 		v := voting.VoteRule{s.ruleToVote}
+//Asks islands to vote on a rule
+//Called by orchestration
+func (s *baseSpeaker) setVotingResult() {
+	if s.clientSpeaker != nil {
+		result, err := s.clientSpeaker.RunVote(s.ruleToVote)
+		if err != nil {
+			s.votingResult, _ = s.runVote(s.ruleToVote)
+		} else {
+			s.votingResult = result
+		}
+	} else{
+		s.votingResult, _ = s.runVote(s.ruleToVote)
+	}
+}
 
-// 		//Receive ballots
-// 		//Speaker Id passed in for logging
-// 		//TODO:
-// 		ballots := v.CallVote(s.id)
+//Creates the voting object, collect ballots & count the votes
+//Functional so it corresponds to the interface, to the client implementation
+func (s *baseSpeaker) runVote(ruleID string) (bool,error){
+	if ruleID == "" {
+		// No rules were proposed by the islands
+		return false, nil
+	} else{
+		////Run the vote
+		////TODO: updateTurnHistory of rule given to vote on vs , so need to pass in
+		//v := voting.VoteRule{s.ruleToVote}
+		//
+		////Receive ballots
+		////Speaker Id passed in for logging
+		////TODO:
+		//ballots := v.CallVote(s.id)
+		//
+		////TODO:
+		//return v.CountVotes(ballots, "majority")
 
-// 		//TODO:
-// 		return v.CountVotes(ballots, "majority")
-// 	}
-// }
+		//For testing while voting is not finished
+		return true, nil
+	}
+}
 
-// func (s *baseSpeaker) DeclareResult(){
-// 	if s.clientSpeaker != nil {
-// 		//Power to change what is declared completely
-// 		//TODO:
-// 		rule, result, err := s.clientSpeaker.DeclareResult(ruleToVote)
-// 		if err != nil {
-// 			broadcastToAllIslands(s.id, generateVotingResultMessage(s.ruleToVote, s.votingResult))
-// 			//TODO:
-// 			s.UpdateRules(s.ruleToVote, s.votingResult)
-// 		} else {
-// 			broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
-// 			//TODO:
-// 			s.UpdateRules(rule, result)
-// 		}
-// 	} else{
-// 		broadcastToAllIslands(s.id, generateVotingResultMessage(s.ruleToVote, s.votingResult))
-// 		//TODO:
-// 		s.UpdateRules(s.ruleToVote, s.votingResult)
-// 	}
+//Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
+//Called by orchestration
+func (s *baseSpeaker) announceVotingResult(){
 
-// 	//Reset
-// 	s.ruleToVote = -1
-// 	s.votingResult = false
+	rule := ""
+	result := false
+	err := error(nil)
 
-// }
+	if s.clientSpeaker != nil {
+		//Power to change what is declared completely
+		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.ruleToVote, s.votingResult)
+		//TODO: log of given vs. returned rule and result
+		if err != nil {
+			rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
+		}
+	} else{
+		rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
+	}
 
-// func generateVotingResultMessage(ruleID string, result bool) map[int]DataPacket {
-// 	returnMap := map[int]DataPacket{}
+	broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
+	s.updateRules(s.ruleToVote, s.votingResult)
 
-// 	returnMap[RuleName] = DataPacket{
-// 		textData: ruleID,
-// 	}
-// 	returnMap[RuleVoteResult] = DataPacket{
-// 		booleanData: result,
-// 	}
+	//Reset
+	s.ruleToVote = ""
+	s.votingResult = false
+}
 
-// 	return returnMap
-// }
+//Example of the client implementation of DecideAnnouncement
+//A well behaved speaker announces what had been voted on and the corresponding result
+func (s *baseSpeaker) decideAnnouncement(ruleId string, result bool) (string, bool, error){
+	return ruleId, result, nil
+}
+
+
+func generateVotingResultMessage(ruleID string, result bool) map[int]DataPacket {
+	returnMap := map[int]DataPacket{}
+
+	returnMap[RuleName] = DataPacket{
+		textData: ruleID,
+	}
+	returnMap[RuleVoteResult] = DataPacket{
+		booleanData: result,
+	}
+
+	return returnMap
+}
+
 
 func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
@@ -121,6 +137,7 @@ func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
 
 	}
 	return nil
+
 }
 
 func (s *baseSpeaker) voteNewJudge() {
