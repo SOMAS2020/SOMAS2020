@@ -78,9 +78,9 @@ func runIIGO() error {
 
 	// 4 Declare performance (Judge) (in future all the roles)
 	if judgeInspectingHistoryError != nil {
-		_, _, _, _, _ = Base_judge.declarePresidentPerformance()
+		Base_judge.declarePresidentPerformanceWrapped()
 
-		_, _, _, _, _ = Base_judge.declareSpeakerPerformance()
+		Base_judge.declareSpeakerPerformanceWrapped()
 	}
 
 	//TODO: Add election setting

@@ -128,7 +128,7 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 	return 0, errors.Errorf("The rule name '%v' was not found", ruleName)
 }
 
-func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
+func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
 	var BID int
 	var result bool
@@ -148,7 +148,6 @@ func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
 		broadcastToAllIslands(j.id, message)
 	}
-	return BID, result, SID, checkRole, err
 }
 
 func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
@@ -160,7 +159,7 @@ func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, e
 	return j.BallotID, result, j.speakerID, conductedRole, nil
 }
 
-func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) {
+func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
 	var RID int
 	var result bool
@@ -180,7 +179,6 @@ func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) 
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
 		broadcastToAllIslands(j.id, message)
 	}
-	return RID, result, PID, checkRole, err
 }
 
 func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool, error) {
