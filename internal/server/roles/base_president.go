@@ -26,11 +26,12 @@ func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, 
 		requestSum += request
 	}
 
-	if requestSum < 0.75*availCommonPool {
+	if requestSum < 3*availCommonPool/4 {
 		resourceAllocation = resourceRequest
 	} else {
 		for id, request := range resourceRequest {
-			resourceAllocation[id] = int((request / requestSum)* 0.75 * availCommonPool)
+			resourceAllocation[id] = int((request / requestSum) * 3 * availCommonPool / 4)
+		}
 	}
 	return resourceAllocation, nil
 }
@@ -95,14 +96,14 @@ func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (p *basePresident) getAllocationRequests() map[int]int {
+func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.evaluateAllocationRequests(p.resourceRequests)
+		result, error := p.clientPresident.evaluateAllocationRequests(p.resourceRequests, commonPool)
 		if error == nil {
 			return result
 		}
 	}
-	result, _ := p.evaluateAllocationRequests(p.resourceRequests)
+	result, _ := p.evaluateAllocationRequests(p.resourceRequests, commonPool)
 	return result
 }
 
