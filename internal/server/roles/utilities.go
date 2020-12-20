@@ -1,8 +1,6 @@
 package roles
 
 import (
-	"math/rand"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
@@ -65,7 +63,6 @@ func collapseBoolean(val bool) int {
 }
 
 func CheckEnoughInCommonPool(value int, gameState *common.GameState) bool {
-	gameState.CommonPool = rand.Intn(1000)
 	return gameState.CommonPool >= value
 }
 
