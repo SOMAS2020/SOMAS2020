@@ -50,6 +50,8 @@ func (p *basePresident) requestRuleProposal() {
 	var rules []string
 	//TODO: request Island for the rules (this function havnt been implemented
 	//just create some mock function we need so they can write it up for us accordingly)
+	// use this mock
+	// mockfunction -> getIslandRuleProposed(islandID)string
 
 	p.setRuleProposals(rules)
 }
@@ -122,7 +124,9 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 
 func (p *basePresident) requestAllocationRequest() {
 	allocRequests := make(map[int]int)
-	//TODO: create a mock function for client so Neelesh can use the function signature
+	//TODO: use mock function that to get the requests so neelesh can deal
+	// mockfunction -> getIslandRequest(islandID)int
+	//
 	p.setAllocationRequest(allocRequests)
 
 }
