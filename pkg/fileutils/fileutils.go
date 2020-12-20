@@ -62,7 +62,7 @@ func pathExists(path string, stat func(name string) (os.FileInfo, error)) bool {
 
 // RemovePathIfExists removes the path pointed by path if it exists.
 func RemovePathIfExists(path string) error {
-	return removePathIfExists(path, os.Remove, PathExists)
+	return removePathIfExists(path, os.RemoveAll, PathExists)
 }
 
 func removePathIfExists(
