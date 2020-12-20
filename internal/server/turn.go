@@ -65,7 +65,7 @@ func (s *SOMASServer) startOfTurnUpdate() {
 			defer wg.Done()
 			if ci.LifeStatus != shared.Dead {
 				c := s.clientMap[id]
-				c.StartOfTurnUpdate(s.gameState.Copy())
+				c.StartOfTurnUpdate(s.gameState.GetClientGameStateCopy(id))
 			}
 		}(id, ci)
 	}
@@ -86,7 +86,7 @@ func (s *SOMASServer) gameStateUpdate() {
 			defer wg.Done()
 			if ci.LifeStatus != shared.Dead {
 				c := s.clientMap[id]
-				c.GameStateUpdate(s.gameState.Copy())
+				c.GameStateUpdate(s.gameState.GetClientGameStateCopy(id))
 			}
 		}(id, ci)
 	}

@@ -17,11 +17,11 @@ type mockClientUpdate struct {
 	GameStateUpdateCalled   bool
 }
 
-func (c *mockClientUpdate) StartOfTurnUpdate(g gamestate.GameState) {
+func (c *mockClientUpdate) StartOfTurnUpdate(g gamestate.ClientGameState) {
 	c.StartOfTurnUpdateCalled = true
 }
 
-func (c *mockClientUpdate) GameStateUpdate(g gamestate.GameState) {
+func (c *mockClientUpdate) GameStateUpdate(g gamestate.ClientGameState) {
 	c.GameStateUpdateCalled = true
 }
 
