@@ -213,21 +213,21 @@ func TestUpdateIslandLivingStatus(t *testing.T) {
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
 		shared.Team1: {
 			LifeStatus: shared.Alive,
-			Resources:  config.MinimumResourceThreshold - 1,
+			Resources:  config.GameConfig().MinimumResourceThreshold - 1,
 		},
 		shared.Team2: {
 			LifeStatus: shared.Critical,
-			Resources:  config.MinimumResourceThreshold,
+			Resources:  config.GameConfig().MinimumResourceThreshold,
 		},
 	}
 	wantClientInfos := map[shared.ClientID]gamestate.ClientInfo{
 		shared.Team1: {
 			LifeStatus: shared.Critical,
-			Resources:  config.MinimumResourceThreshold - 1,
+			Resources:  config.GameConfig().MinimumResourceThreshold - 1,
 		},
 		shared.Team2: {
 			LifeStatus: shared.Alive,
-			Resources:  config.MinimumResourceThreshold,
+			Resources:  config.GameConfig().MinimumResourceThreshold,
 		},
 	}
 
