@@ -57,7 +57,6 @@ func broadcastToAllIslands(sender int, data map[int]DataPacket) {
 	}
 }
 
-
 func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) {
 	communication := Communication{
 		recipient: recipient,
@@ -67,7 +66,6 @@ func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) 
 	//Send to islands
 	print(communication) //// Get rid of this
 }
-
 
 func collapseBoolean(val bool) int {
 	if val {
@@ -104,4 +102,6 @@ const (
 	PresidentID              = iota
 	RuleName                 = iota
 	RuleVoteResult           = iota
+	TaxAmount                = iota
+	AllocationAmount         = iota
 )
