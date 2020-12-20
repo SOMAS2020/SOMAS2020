@@ -18,68 +18,82 @@ func (s *baseSpeaker) PayJudge() {
 }
 
 // Receive a rule to call a vote on
-func (s *baseSpeaker) SetRuleToVote(r int) {
+func (s *baseSpeaker) SetRuleToVote(r string) {
 	s.ruleToVote = r
 }
 
-func (s *baseSpeaker) RunVote() {
+//Asks islands to vote on a rule
+//Called by orchestration
+func (s *baseSpeaker) setVotingResult() {
 	if s.clientSpeaker != nil {
-		//TODO:
 		result, err := s.clientSpeaker.RunVote(s.ruleToVote)
 		if err != nil {
-			s.votingResult = s.runVoteInternal()
+			s.votingResult, _ = s.runVote(s.ruleToVote)
 		} else {
 			s.votingResult = result
 		}
 	} else{
-		s.votingResult = s.runVoteInternal()
+		s.votingResult, _ = s.runVote(s.ruleToVote)
 	}
 }
 
-func (s *baseSpeaker) runVoteInternal() bool{
-	if s.ruleToVote == -1 {
+//Creates the voting object, collect ballots & count the votes
+//Functional so it corresponds to the interface, to the client implementation
+func (s *baseSpeaker) runVote(ruleID string) (bool,error){
+	if ruleID == "" {
 		// No rules were proposed by the islands
-		return false
+		return false, nil
 	} else{
-		//Run the vote
-		//TODO: updateTurnHistory of rule given to vote on vs , so need to pass in
-		v := voting.VoteRule{s.ruleToVote}
+		////Run the vote
+		////TODO: updateTurnHistory of rule given to vote on vs , so need to pass in
+		//v := voting.VoteRule{s.ruleToVote}
+		//
+		////Receive ballots
+		////Speaker Id passed in for logging
+		////TODO:
+		//ballots := v.CallVote(s.id)
+		//
+		////TODO:
+		//return v.CountVotes(ballots, "majority")
 
-		//Receive ballots
-		//Speaker Id passed in for logging
-		//TODO:
-		ballots := v.CallVote(s.id)
-
-		//TODO:
-		return v.CountVotes(ballots, "majority")
+		//For testing while voting is not finished
+		return true, nil
 	}
 }
 
-func (s *baseSpeaker) DeclareResult(){
+//Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
+//Called by orchestration
+func (s *baseSpeaker) announceVotingResult(){
+
+	rule := ""
+	result := false
+	err := error(nil)
+
 	if s.clientSpeaker != nil {
 		//Power to change what is declared completely
-		//TODO:
-		rule, result, err := s.clientSpeaker.DeclareResult(ruleToVote)
+		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.ruleToVote, s.votingResult)
+		//TODO: log of given vs. returned rule and result
 		if err != nil {
-			broadcastToAllIslands(s.id, generateVotingResultMessage(s.ruleToVote, s.votingResult))
-			//TODO:
-			s.UpdateRules(s.ruleToVote, s.votingResult)
-		} else {
-			broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
-			//TODO:
-			s.UpdateRules(rule, result)
+			rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
 		}
 	} else{
-		broadcastToAllIslands(s.id, generateVotingResultMessage(s.ruleToVote, s.votingResult))
-		//TODO:
-		s.UpdateRules(s.ruleToVote, s.votingResult)
+		rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
 	}
 
-	//Reset
-	s.ruleToVote = -1
-	s.votingResult = false
+	broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
+	s.updateRules(s.ruleToVote, s.votingResult)
 
+	//Reset
+	s.ruleToVote = ""
+	s.votingResult = false
 }
+
+//Example of the client implementation of DecideAnnouncement
+//A well behaved speaker announces what had been voted on and the corresponding result
+func (s *baseSpeaker) decideAnnouncement(ruleId string, result bool) (string, bool, error){
+	return ruleId, result, nil
+}
+
 
 func generateVotingResultMessage(ruleID string, result bool) map[int]DataPacket {
 	returnMap := map[int]DataPacket{}
@@ -95,7 +109,6 @@ func generateVotingResultMessage(ruleID string, result bool) map[int]DataPacket 
 }
 
 func (s *baseSpeaker) UpdateRules() {
-
 }
 
 func (s *baseSpeaker) voteNewJudge() {

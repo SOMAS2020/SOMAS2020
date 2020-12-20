@@ -4,7 +4,7 @@ package roles
 // optionally implemented by individual islands.
 type Speaker interface {
 	PayJudge() error
-	RunVote() error
+	RunVote(string) (bool, error)
+	DecideAnnouncement(string, bool) (string, bool, error)
 	UpdateRules() error
-	DeclareResult() error
 }
