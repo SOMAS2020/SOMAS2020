@@ -3,7 +3,9 @@
 // Original author: lhl2617, Facebook, (GPLv2)
 package testutils
 
-import "testing"
+import (
+	"testing"
+)
 
 // CompareTestErrors is used to test and compare errors in testing.
 func CompareTestErrors(want error, got error, t *testing.T) {

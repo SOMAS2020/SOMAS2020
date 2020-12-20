@@ -1,11 +1,28 @@
-package common
+// Package baseclient contains the Client interface as well as a base client implementation.
+package baseclient
 
 import (
 	"fmt"
 	"log"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+// Client is a base interface to be implemented by each client struct.
+type Client interface {
+	Echo(s string) string
+	GetID() shared.ClientID
+
+	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
+	// at start of turn. Do whatever you like here :).
+	StartOfTurnUpdate(gameState gamestate.ClientGameState)
+
+	// GameStateUpdate updates game state mid-turn.
+	GameStateUpdate(gameState gamestate.ClientGameState)
+
+	Logf(format string, a ...interface{})
+}
 
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
@@ -17,7 +34,8 @@ func NewClient(id shared.ClientID) Client {
 // All clients should be based off of this BaseClient to ensure that all clients implement the interface,
 // even when new features are added.
 type BaseClient struct {
-	id shared.ClientID
+	id              shared.ClientID
+	clientGameState gamestate.ClientGameState
 }
 
 // Echo prints a message to show that the client exists
@@ -43,21 +61,16 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 // StartOfTurnUpdate is updates the gamestate of the client at the start of each turn.
 // The gameState is served by the server.
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) StartOfTurnUpdate(gameState GameState) {
-	c.Logf("Received start of turn game state update: %v", gameState)
+func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.ClientGameState) {
+	c.Logf("Received start of turn game state update: %#v", gameState)
+	c.clientGameState = gameState
 	// TODO
 }
 
 // GameStateUpdate updates game state mid-turn.
 // The gameState is served by the server.
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) GameStateUpdate(gameState GameState) {
-	c.Logf("Received game state update: %v", gameState)
-}
-
-// EndOfTurnActions executes and returns the actions done by the client that turn.
-// OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) EndOfTurnActions() []Action {
-	c.Logf("EndOfTurnActions")
-	return nil
+func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
+	c.Logf("Received game state update: %#v", gameState)
+	c.clientGameState = gameState
 }

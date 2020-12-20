@@ -1,15 +1,15 @@
 package roles
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 )
 
-var gamestate *common.GameState
+var gamestateVal *gamestate.GameState
 
-func setGameState(gameState *common.GameState) {
-	gamestate = gameState
+func setGameState(gameState *gamestate.GameState) {
+	gamestateVal = gameState
 }
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables
@@ -57,13 +57,13 @@ func broadcastToAllIslands(sender int, data map[int]DataPacket) {
 }
 
 func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) {
-	communication := Communication{
-		recipient: recipient,
-		sender:    sender,
-		data:      data,
-	}
-	//Send to islands
-	print(communication) //// Get rid of this
+	//communication := Communication{
+	//	recipient: recipient,
+	//	sender:    sender,
+	//	data:      data,
+	//}
+	////Send to islands
+	//print(communication) //// Get rid of this
 }
 
 func collapseBoolean(val bool) int {
@@ -74,11 +74,11 @@ func collapseBoolean(val bool) int {
 	}
 }
 
-func CheckEnoughInCommonPool(value int, gameState *common.GameState) bool {
+func CheckEnoughInCommonPool(value int, gameState *gamestate.GameState) bool {
 	return gameState.CommonPool >= value
 }
 
-func WithdrawFromCommonPool(value int, gameState *common.GameState) error {
+func WithdrawFromCommonPool(value int, gameState *gamestate.GameState) error {
 	if CheckEnoughInCommonPool(value, gameState) {
 		gameState.CommonPool -= value
 		return nil
@@ -87,7 +87,7 @@ func WithdrawFromCommonPool(value int, gameState *common.GameState) error {
 	}
 }
 
-func withdrawSalary(value int, gameState *common.GameState) (int, error) {
+func withdrawSalary(value int, gameState *gamestate.GameState) (int, error) {
 	return value, WithdrawFromCommonPool(value, gameState)
 }
 

@@ -3,11 +3,11 @@ package roles
 import (
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 )
 
 func TestWithdrawFromCommonPoolThrowsError(t *testing.T) {
-	fakeGameState := common.GameState{CommonPool: 100}
+	fakeGameState := gamestate.GameState{CommonPool: 100}
 	// Withdraw more than we have in it
 	valueToWithdraw := 120
 	err := WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
@@ -17,7 +17,7 @@ func TestWithdrawFromCommonPoolThrowsError(t *testing.T) {
 }
 
 func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
-	fakeGameState := common.GameState{CommonPool: 100}
+	fakeGameState := gamestate.GameState{CommonPool: 100}
 	valueToWithdraw := 60
 	_ = WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
 	unexpectedAmountRemaining := fakeGameState.CommonPool != 40

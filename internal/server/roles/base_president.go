@@ -1,7 +1,7 @@
 package roles
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -162,7 +162,7 @@ func (p *basePresident) appointNextSpeaker() int {
 	return rand.Intn(5)
 }
 
-func (p *basePresident) withdrawSpeakerSalary(gameState *common.GameState) error {
+func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
 	var speakerSalary = int(rules.VariableMap["speakerSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
 	if withdrawError != nil {

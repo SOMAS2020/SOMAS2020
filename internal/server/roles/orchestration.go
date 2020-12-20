@@ -1,7 +1,7 @@
 package roles
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/pkg/errors"
 )
 
@@ -38,7 +38,7 @@ var judgePointer = Base_judge
 var speakerPointer = Base_speaker
 var presidentPointer = Base_President
 
-func RunIIGO(g *common.GameState) error {
+func RunIIGO(g *gamestate.GameState) error {
 	// Initialise IDs
 	Base_judge.id = JudgeIDGlobal
 	Base_speaker.id = SpeakerIDGlobal

@@ -1,7 +1,7 @@
 package roles
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 	"math/rand"
@@ -16,7 +16,7 @@ type baseSpeaker struct {
 	clientSpeaker Speaker
 }
 
-func (s *baseSpeaker) withdrawJudgeSalary(gameState *common.GameState) error {
+func (s *baseSpeaker) withdrawJudgeSalary(gameState *gamestate.GameState) error {
 	var judgeSalary = int(rules.VariableMap["judgeSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(judgeSalary, gameState)
 	if withdrawError != nil {

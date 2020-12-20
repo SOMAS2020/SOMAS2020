@@ -8,3 +8,10 @@ func (s *SOMASServer) runIITO() error {
 	// TODO:- IITO team
 	return nil
 }
+
+func (s *SOMASServer) runIITOEndOfTurn() error {
+	s.logf("start runIITOEndOfTurn")
+	defer s.logf("finish runIITOEndOfTurn")
+	// TODO:- IITO team
+	return nil
+}
