@@ -18,10 +18,12 @@ import (
 // }
 
 func TestRuleVotedIn(t *testing.T) {
-	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
+	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	// registerTestRule(AvailableRulesTesting)
-	var s *baseSpeaker
-	// _ = s.updateRules("Kinda Test Rule 2", true)
+	// var s *baseSpeaker
+	// s = new(baseSpeaker)
+	s := baseSpeaker{}
+	// // _ = s.updateRules("Kinda Test Rule 2", true)
 	cases := []struct {
 		name string
 		rule string
