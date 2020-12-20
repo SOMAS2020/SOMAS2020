@@ -18,7 +18,7 @@ func (s *baseSpeaker) PayJudge() {
 }
 
 // Receive a rule to call a vote on
-func (s *baseSpeaker) SetRuleToVote(r int) {
+func (s *baseSpeaker) SetRuleToVote(r string) {
 	s.ruleToVote = r
 }
 
