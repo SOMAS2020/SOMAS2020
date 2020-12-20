@@ -2,6 +2,7 @@ package roles
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/pkg/errors"
 )
 
 type baseSpeaker struct {
@@ -28,13 +29,21 @@ func (s *baseSpeaker) DeclareResult() {
 
 }
 
-func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) {
-	//TODO: check with Neelesh: maybe PullRuleInto and OutOf play shouldn't return error when a rule is already in/out?
+func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
+	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
+	notInRulesCache := errors.Errorf("Rule '%v' not available in rules cache", ruleName)
 	if ruleVotedIn {
-		rules.PullRuleIntoPlay(ruleName)
+		err := rules.PullRuleIntoPlay(ruleName)
+		if err.Error() == notInRulesCache.Error() {
+			return err
+		}
 	} else {
-		rules.PullRuleOutOfPlay(ruleName)
+		err := rules.PullRuleOutOfPlay(ruleName)
+		if err.Error() == notInRulesCache.Error() {
+			return err
+		}
 	}
+	return nil
 }
 
 func (s *baseSpeaker) voteNewJudge() {
