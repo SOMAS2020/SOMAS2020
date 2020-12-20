@@ -57,12 +57,19 @@ func (s *SOMASServer) startOfTurnUpdate() {
 	defer s.logf("finish startOfTurnUpdate")
 
 	// send update of entire gameState to alive clients
+	N := len(s.gameState.ClientInfos)
+	var wg sync.WaitGroup
+	wg.Add(N)
 	for id, ci := range s.gameState.ClientInfos {
-		if ci.LifeStatus != shared.Dead {
-			c := s.clientMap[id]
-			c.StartOfTurnUpdate(s.gameState.Copy())
-		}
+		go func(id shared.ClientID, ci gamestate.ClientInfo) {
+			defer wg.Done()
+			if ci.LifeStatus != shared.Dead {
+				c := s.clientMap[id]
+				c.StartOfTurnUpdate(s.gameState.Copy())
+			}
+		}(id, ci)
 	}
+	wg.Wait()
 }
 
 // gameStateUpdate sends the gameState mid-turn to all non-Dead clients.
@@ -71,12 +78,19 @@ func (s *SOMASServer) gameStateUpdate() {
 	s.logf("start gameStateUpdate")
 	defer s.logf("finish gameStateUpdate")
 
+	N := len(s.gameState.ClientInfos)
+	var wg sync.WaitGroup
+	wg.Add(N)
 	for id, ci := range s.gameState.ClientInfos {
-		if ci.LifeStatus != shared.Dead {
-			c := s.clientMap[id]
-			c.GameStateUpdate(s.gameState.Copy())
-		}
+		go func(id shared.ClientID, ci gamestate.ClientInfo) {
+			defer wg.Done()
+			if ci.LifeStatus != shared.Dead {
+				c := s.clientMap[id]
+				c.GameStateUpdate(s.gameState.Copy())
+			}
+		}(id, ci)
 	}
+	wg.Wait()
 }
 
 // endOfTurn performs end of turn updates
