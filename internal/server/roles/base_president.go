@@ -2,6 +2,8 @@ package roles
 
 import (
 	"math/rand"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 )
 
 //base President Object
@@ -48,11 +50,12 @@ func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) 
 
 func (p *basePresident) requestRuleProposal() {
 	var rules []string
-	//TODO: request Island for the rules (this function havnt been implemented
-	//just create some mock function we need so they can write it up for us accordingly)
 	// use this mock
-	// mockfunction -> getIslandRuleProposed(islandID)string
-
+	// mockfunction -> getIslandRuleProposed(islandID int)string
+	// TODO (neelesh): get this working pls
+	//for _, v := range getIslandAlive() {
+	//	rules = append(rules, getIslandRuleProposed(int(v)))
+	//}
 	p.setRuleProposals(rules)
 }
 
@@ -106,7 +109,12 @@ func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 
 func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 	taxAmountMap := p.getTaxMap(islandsResources)
-	//TODO: broadcastTaxation to every island
+	for _, v := range getIslandAlive() {
+		d := DataPacket{integerData: taxAmountMap[int(v)]}
+		data := make(map[int]DataPacket)
+		data[TaxAmount] = d
+		communicateWithIslands(int(v), p.id, data)
+	}
 }
 
 // Send Tax map all the remaining islands
@@ -124,16 +132,21 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 
 func (p *basePresident) requestAllocationRequest() {
 	allocRequests := make(map[int]int)
-	//TODO: use mock function that to get the requests so neelesh can deal
-	// mockfunction -> getIslandRequest(islandID)int
-	//
+	//for _, v := range getIslandAlive() {
+	//	allocRequests[int(v)] = getIslandRequest(int(v)
+	//}
 	p.setAllocationRequest(allocRequests)
 
 }
 
 func (p *basePresident) replyAllocationRequest(commonPool int) {
-	allocation := p.getAllocationRequests(commonPool)
-	//TODO: broadcast the result
+	allocationMap := p.getAllocationRequests(commonPool)
+	for _, v := range getIslandAlive() {
+		d := DataPacket{integerData: allocationMap[int(v)]}
+		data := make(map[int]DataPacket)
+		data[AllocationAmount] = d
+		communicateWithIslands(int(v), p.id, data)
+	}
 }
 
 func (p *basePresident) appointNextSpeaker() int {
@@ -141,7 +154,9 @@ func (p *basePresident) appointNextSpeaker() int {
 }
 
 func (p *basePresident) withdrawSpeakerSalary(int) {
-	//TODO: need to discuss with neelesh on how to be integrated
+	//TODO (ramon): need to discuss with neelesh on how to be integrated
 }
 
-//TODO (optional): you can write a helper function (either put it here or orchestration.go) that you can use to broadcast or reply island
+func getIslandAlive() []float64 {
+	return rules.VariableMap["islands_alive"].Values
+}
