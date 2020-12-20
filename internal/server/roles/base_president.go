@@ -1,6 +1,7 @@
 package roles
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -153,8 +154,19 @@ func (p *basePresident) appointNextSpeaker() int {
 	return rand.Intn(5)
 }
 
-func (p *basePresident) withdrawSpeakerSalary(int) {
-	//TODO (ramon): need to discuss with neelesh on how to be integrated
+func (p *basePresident) withdrawSpeakerSalary(gameState *common.GameState) error {
+	var speakerSalary = int(rules.VariableMap["speakerSalary"].Values[0])
+	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
+	if withdrawError != nil {
+		Base_President.speakerSalary = speakerSalary
+	}
+	return withdrawError
+}
+
+// Pay the speaker
+func (p *basePresident) paySpeaker() {
+	Base_speaker.budget = Base_President.speakerSalary
+	Base_President.speakerSalary = 0
 }
 
 func getIslandAlive() []float64 {
