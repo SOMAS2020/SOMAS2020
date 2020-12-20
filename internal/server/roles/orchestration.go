@@ -51,23 +51,28 @@ func runIIGO() error {
 	// Initialise roles with their clientVersions
 	Base_judge.clientJudge = &judgePointer
 
+	// Withdraw the salaries
+	errWithdrawPresident := judgePointer.withdrawPresidentSalary()
+	errWithdrawJudge := speakerPointer.WithdrawJudgeSalary()
+	errWithdrawSpeaker := presidentPointer.withdrawSpeakerSalary()
+
+	// Handle the lack of resources
+	if errWithdrawPresident != nil {
+		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
+	} else {
+
+	if errWithdrawJudge != nil {
+		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
+	}
+
+	if errWithdrawSpeaker != nil {
+		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
+	}
+
 	// Pay the salaries
 	errPayPresident := judgePointer.payPresident()
 	errPayJudge := speakerPointer.PayJudge()
 	errPaySpeaker := presidentPointer.paySpeaker()
-
-	// Handle the lack of resources
-	if errPayPresident == nil {
-		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
-	}
-
-	if errPayJudge == nil {
-		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
-	}
-
-	if errPaySpeaker == nil {
-		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
-	}
 
 	// 1 Judge actions - inspect history
 	_, judgeInspectingHistoryError := Base_judge.inspectHistory()
