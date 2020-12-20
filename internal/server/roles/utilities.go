@@ -75,4 +75,6 @@ const (
 	ResAllocID               = iota
 	SpeakerBallotCheck       = iota
 	PresidentID              = iota
+	RuleName				 = iota
+	RuleVoteResult			 = iota
 )
