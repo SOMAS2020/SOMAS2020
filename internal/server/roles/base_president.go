@@ -18,10 +18,19 @@ type basePresident struct {
 }
 
 // Set allowed resource allocation based on each islands requests
-func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int) (map[int]int, error) {
+func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, availCommonPool int) (map[int]int, error) {
+	var requestSum int
 	resourceAllocation := make(map[int]int)
-	for id, request := range p.resourceRequests {
-		resourceAllocation[id] = rand.Intn(request)
+
+	for _, request := range resourceRequest {
+		requestSum += request
+	}
+
+	if requestSum < 0.75*availCommonPool {
+		resourceAllocation = resourceRequest
+	} else {
+		for id, request := range resourceRequest {
+			resourceAllocation[id] = int((request / requestSum)* 0.75 * availCommonPool)
 	}
 	return resourceAllocation, nil
 }
