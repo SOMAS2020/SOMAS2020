@@ -24,13 +24,19 @@ type output struct {
 const outputJSONFileName = "output.json"
 
 var cwd = fileutils.GetCurrFileDir()
-var outputJSONFilePath = path.Join(cwd, outputJSONFileName)
+var outputDir = path.Join(cwd, "output")
+var outputJSONFilePath = path.Join(outputDir, outputJSONFileName)
 
 func init() {
-	// cleanup json and log file
-	err := fileutils.RemovePathIfExists(outputJSONFilePath)
+	// cleanup output
+	err := fileutils.RemovePathIfExists(outputDir)
 	if err != nil {
-		log.Printf("Ignoring error in removing '%v': %v", outputJSONFilePath, err)
+		panic("Cannot remove output directory.")
+	}
+	// make output directory
+	err = os.Mkdir(outputDir, 0644)
+	if err != nil {
+		panic("Cannot make output directory.")
 	}
 }
 
@@ -61,7 +67,7 @@ func outputJSON(o output) {
 		log.Printf("Failed to Marshal gameStates: %v", err)
 		os.Exit(1)
 	}
-	err = ioutil.WriteFile(outputJSONFileName, jsonBuf, 0644)
+	err = ioutil.WriteFile(outputJSONFilePath, jsonBuf, 0644)
 	if err != nil {
 		log.Printf("Failed to write file: %v", err)
 		os.Exit(1)
