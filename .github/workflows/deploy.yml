@@ -1,8 +1,7 @@
-name: CI
+name: Deploy
 
 on:
-  pull_request:
-    types: [opened, synchronize, edited, reopened]
+  push:
     branches: [ main ]
 
 jobs:
@@ -20,15 +19,14 @@ jobs:
         node-version: 14
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Test
-      run: go test ./...
     - name: Run
       run: sudo go run .
-    - name: Output output.json
-      run: sudo cat output/output.json
-    - name: Test build website
+    - name: Build and deploy website
       run: |
         cd website
         npm i -g yarn
         yarn install
         yarn build
+        yarn deploy
+      
+    
