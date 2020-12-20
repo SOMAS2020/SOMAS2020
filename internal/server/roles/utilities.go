@@ -1,6 +1,8 @@
 package roles
 
 import (
+	"math/rand"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
@@ -62,34 +64,22 @@ func collapseBoolean(val bool) int {
 	}
 }
 
-func withdrawSalary(role int, value int) {
-	if role == 0 {
-		common.GameState.CommonPool.checkEnoughInCommonPool(value)
-		Base_President.speakerSalary = value
-	}
-	if role == 1 {
-		common.GameState.CommonPool.checkEnoughInCommonPool(value)
-		Base_judge.presidentSalary = value
-	}
-	if role == 2 {
-		common.GameState.CommonPool.checkEnoughInCommonPool(value)
-		Base_speaker.judgeSalary = value
+func CheckEnoughInCommonPool(value int, gameState *common.GameState) bool {
+	gameState.CommonPool = rand.Intn(1000)
+	return gameState.CommonPool >= value
+}
+
+func WithdrawFromCommonPool(value int, gameState *common.GameState) error {
+	if CheckEnoughInCommonPool(value, gameState) {
+		gameState.CommonPool -= value
+		return nil
+	} else {
+		return errors.Errorf("Not enough ressources in the common pool to withdraw the amount '%v'", value)
 	}
 }
 
-func paySalary(role int, value int) {
-	if role == 0 {
-		common.GameState.CommonPool.withdrawFromCommonPool(value)
-		Base_President.budget = value
-	}
-	if role == 1 {
-		common.GameState.CommonPool.withdrawFromCommonPool(value)
-		Base_judge.budget = value
-	}
-	if role == 2 {
-		common.GameState.CommonPool.withdrawFromCommonPool(value)
-		Base_speaker.budget = value
-	}
+func withdrawSalary(value int, gameState *common.GameState) (int, error) {
+	return value, WithdrawFromCommonPool(value, gameState)
 }
 
 const (
