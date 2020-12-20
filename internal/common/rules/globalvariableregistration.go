@@ -30,4 +30,8 @@ var StaticVariables = []VariableValuePair{
 		VariableName: "max_severity_of_sanctions",
 		Values:       []float64{2},
 	},
+	{
+		VariableName: "islands_alive",
+		Values:       []float64{1, 2, 3, 4, 5, 6},
+	},
 }

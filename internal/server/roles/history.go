@@ -16,3 +16,7 @@ func updateTurnHistory(clientID int, pairs []rules.VariableValuePair) error {
 	})
 	return nil
 }
+
+func clearHistory() {
+	TurnHistory = []Accountability{}
+}

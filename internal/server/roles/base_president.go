@@ -30,7 +30,8 @@ func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, 
 		resourceAllocation = resourceRequest
 	} else {
 		for id, request := range resourceRequest {
-			resourceAllocation[id] = int((request / requestSum)* 0.75 * availCommonPool)
+			resourceAllocation[id] = int((request / requestSum) * 0.75 * availCommonPool)
+		}
 	}
 	return resourceAllocation, nil
 }
@@ -108,4 +109,8 @@ func (p *basePresident) getAllocationRequests() map[int]int {
 
 func (p *basePresident) appointNextSpeaker() int {
 	return rand.Intn(5)
+}
+
+func (p *basePresident) withdrawSpeakerSalary(int) {
+	//to be integrated
 }
