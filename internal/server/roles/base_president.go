@@ -30,7 +30,7 @@ func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, 
 		resourceAllocation = resourceRequest
 	} else {
 		for id, request := range resourceRequest {
-			resourceAllocation[id] = int((request / requestSum) * 3 * availCommonPool / 4)
+			resourceAllocation[id] = int(request * availCommonPool * 3 / (4 * requestSum))
 		}
 	}
 	return resourceAllocation, nil
