@@ -1,6 +1,7 @@
 package roles
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 )
@@ -41,7 +42,7 @@ var judgePointer = Base_judge
 var speakerPointer = Base_speaker
 var presidentPointer = Base_President
 
-func runIIGO() error {
+func runIIGO(g *common.GameState) error {
 	// Initialise IDs
 	Base_judge.id = JudgeIDGlobal
 	Base_speaker.id = SpeakerIDGlobal
@@ -51,9 +52,9 @@ func runIIGO() error {
 	Base_judge.clientJudge = &judgePointer
 
 	// Withdraw the salaries
-	errWithdrawPresident := judgePointer.withdrawPresidentSalary()
-	errWithdrawJudge := speakerPointer.withdrawJudgeSalary()
-	errWithdrawSpeaker := presidentPointer.withdrawSpeakerSalary()
+	errWithdrawPresident := judgePointer.withdrawPresidentSalary(g)
+	errWithdrawJudge := speakerPointer.withdrawJudgeSalary(g)
+	errWithdrawSpeaker := presidentPointer.withdrawSpeakerSalary(g)
 
 	// Handle the lack of resources
 	if errWithdrawPresident != nil {
