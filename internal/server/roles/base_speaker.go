@@ -46,6 +46,7 @@ func (s *baseSpeaker) setVotingResult() {
 //Creates the voting object, collect ballots & count the votes
 //Functional so it corresponds to the interface, to the client implementation
 func (s *baseSpeaker) runVote(ruleID string) (bool,error){
+	s.budget -= 10
 	if ruleID == "" {
 		// No rules were proposed by the islands
 		return false, nil
@@ -70,7 +71,7 @@ func (s *baseSpeaker) runVote(ruleID string) (bool,error){
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
 func (s *baseSpeaker) announceVotingResult(){
-
+	s.budget -= 10
 	rule := ""
 	result := false
 	err := error(nil)
@@ -116,6 +117,7 @@ func generateVotingResultMessage(ruleID string, result bool) map[int]DataPacket 
 
 
 func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
+	s.budget -= 10
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
 	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
 	if ruleVotedIn {
