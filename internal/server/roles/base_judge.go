@@ -4,6 +4,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
+	"math/rand"
 )
 
 // base Judge object
@@ -85,6 +86,7 @@ func (j *BaseJudge) inspectHistoryInternal() {
 }
 
 func (j *BaseJudge) inspectHistory() (map[int]EvaluationReturn, error) {
+	j.budget -= 10
 	if j.clientJudge != nil {
 		outputMap, err := j.clientJudge.inspectHistory()
 		if err != nil {
@@ -102,6 +104,7 @@ func (j *BaseJudge) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with ruleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
+	j.budget -= 10
 	rulesAffectedBySpeaker := j.evaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.rules)
 	if err == nil {
@@ -117,6 +120,7 @@ func (j *BaseJudge) inspectAllocation() (bool, error) {
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
+	j.budget -= 10
 	rulesAffectedByPresident := j.evaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.rules)
 	if err == nil {
@@ -146,6 +150,7 @@ func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, e
 
 func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
 
+	j.budget -= 10
 	var BID int
 	var result bool
 	var SID int
@@ -175,6 +180,7 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
 func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) {
 
+	j.budget -= 10
 	var RID int
 	var result bool
 	var PID int
@@ -211,6 +217,11 @@ func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool,
 	conductedRole := err == nil
 
 	return j.ResAllocID, result, j.presidentID, conductedRole, nil
+}
+
+func (j *BaseJudge) appointNextPresident() int {
+	j.budget -= 10
+	return rand.Intn(5)
 }
 
 func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]DataPacket {

@@ -19,7 +19,7 @@ func TestWithdrawFromCommonPoolThrowsError(t *testing.T) {
 func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 	fakeGameState := common.GameState{CommonPool: 100}
 	valueToWithdraw := 60
-	WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
+	_ = WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
 	unexpectedAmountRemaining := fakeGameState.CommonPool != 40
 	if unexpectedAmountRemaining == true {
 		t.Errorf("Not withdrawing resources from CommonPool correctly.")
