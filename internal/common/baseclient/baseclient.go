@@ -16,10 +16,10 @@ type Client interface {
 
 	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
 	// at start of turn. Do whatever you like here :).
-	StartOfTurnUpdate(gameState gamestate.GameState)
+	StartOfTurnUpdate(gameState gamestate.ClientGameState)
 
 	// GameStateUpdate updates game state mid-turn.
-	GameStateUpdate(gameState gamestate.GameState)
+	GameStateUpdate(gameState gamestate.ClientGameState)
 
 	Logf(format string, a ...interface{})
 }
@@ -60,14 +60,14 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 // StartOfTurnUpdate is updates the gamestate of the client at the start of each turn.
 // The gameState is served by the server.
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.GameState) {
-	c.Logf("Received start of turn game state update: %v", gameState)
+func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.ClientGameState) {
+	c.Logf("Received start of turn game state update: %#v", gameState)
 	// TODO
 }
 
 // GameStateUpdate updates game state mid-turn.
 // The gameState is served by the server.
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) GameStateUpdate(gameState gamestate.GameState) {
-	c.Logf("Received game state update: %v", gameState)
+func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
+	c.Logf("Received game state update: %#v", gameState)
 }
