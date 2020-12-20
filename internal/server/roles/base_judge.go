@@ -1,6 +1,7 @@
 package roles
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 )
@@ -23,15 +24,21 @@ func (j *BaseJudge) init() {
 	j.ResAllocID = 0
 }
 
-func (j *BaseJudge) withdrawPresidentSalary() {
-	// Withdraw president salary from the common pool
-	// Call common withdraw function with president as parameter
+// Withdraw president salary from the common pool
+// Call common withdraw function with president as parameter
+func (j *BaseJudge) withdrawPresidentSalary(gameState *common.GameState) error {
+	var presidentSalary = int(rules.VariableMap["presidentSalary"].Values[0])
+	var withdrawError = WithdrawFromCommonPool(presidentSalary, gameState)
+	if withdrawError != nil {
+		Base_judge.presidentSalary = presidentSalary
+	}
+	return withdrawError
 }
 
-func (j *BaseJudge) payPresident() error {
-	// Pay the president
-	// Call common pay function with president as parameter
-	return nil
+// Pay the president
+func (j *BaseJudge) payPresident(gameState *common.GameState) {
+	Base_President.budget = Base_judge.presidentSalary
+	Base_judge.presidentSalary = 0
 }
 
 func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId int, presidentId int) {
