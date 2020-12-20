@@ -31,12 +31,12 @@ func init() {
 	// cleanup output
 	err := fileutils.RemovePathIfExists(outputDir)
 	if err != nil {
-		panic("Cannot remove output directory.")
+		panic(err)
 	}
 	// make output directory
 	err = os.Mkdir(outputDir, 0644)
 	if err != nil {
-		panic("Cannot make output directory.")
+		panic(err)
 	}
 }
 
