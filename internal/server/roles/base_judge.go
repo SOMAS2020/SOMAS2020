@@ -1,8 +1,10 @@
 package roles
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
+	"math/rand"
 )
 
 // base Judge object
@@ -23,15 +25,21 @@ func (j *BaseJudge) init() {
 	j.ResAllocID = 0
 }
 
-func (j *BaseJudge) withdrawPresidentSalary() {
-	// Withdraw president salary from the common pool
-	// Call common withdraw function with president as parameter
+// Withdraw president salary from the common pool
+// Call common withdraw function with president as parameter
+func (j *BaseJudge) withdrawPresidentSalary(gameState *common.GameState) error {
+	var presidentSalary = int(rules.VariableMap["presidentSalary"].Values[0])
+	var withdrawError = WithdrawFromCommonPool(presidentSalary, gameState)
+	if withdrawError != nil {
+		Base_judge.presidentSalary = presidentSalary
+	}
+	return withdrawError
 }
 
-func (j *BaseJudge) payPresident() error {
-	// Pay the president
-	// Call common pay function with president as parameter
-	return nil
+// Pay the president
+func (j *BaseJudge) payPresident() {
+	Base_President.budget = Base_judge.presidentSalary
+	Base_judge.presidentSalary = 0
 }
 
 func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId int, presidentId int) {
@@ -78,6 +86,7 @@ func (j *BaseJudge) inspectHistoryInternal() {
 }
 
 func (j *BaseJudge) inspectHistory() (map[int]EvaluationReturn, error) {
+	j.budget -= 10
 	if j.clientJudge != nil {
 		outputMap, err := j.clientJudge.inspectHistory()
 		if err != nil {
@@ -95,6 +104,7 @@ func (j *BaseJudge) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with ruleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
+	j.budget -= 10
 	rulesAffectedBySpeaker := j.evaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.rules)
 	if err == nil {
@@ -110,6 +120,7 @@ func (j *BaseJudge) inspectAllocation() (bool, error) {
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
+	j.budget -= 10
 	rulesAffectedByPresident := j.evaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.rules)
 	if err == nil {
@@ -128,8 +139,18 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 	return 0, errors.Errorf("The rule name '%v' was not found", ruleName)
 }
 
-func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
+func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
+	j.BallotID++
+	result, err := j.inspectBallot()
 
+	conductedRole := err == nil
+
+	return j.BallotID, result, j.speakerID, conductedRole, nil
+}
+
+func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
+
+	j.budget -= 10
 	var BID int
 	var result bool
 	var SID int
@@ -144,23 +165,22 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 	} else {
 		BID, result, SID, checkRole, err = j.declareSpeakerPerformanceInternal()
 	}
+	return BID, result, SID, checkRole, err
+}
+
+func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
+
+	BID, result, SID, checkRole, err := j.declareSpeakerPerformance()
+
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
 		broadcastToAllIslands(j.id, message)
 	}
 }
 
-func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
-	j.BallotID++
-	result, err := j.inspectBallot()
+func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) {
 
-	conductedRole := err == nil
-
-	return j.BallotID, result, j.speakerID, conductedRole, nil
-}
-
-func (j *BaseJudge) declarePresidentPerformanceWrapped() {
-
+	j.budget -= 10
 	var RID int
 	var result bool
 	var PID int
@@ -175,6 +195,14 @@ func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 	} else {
 		RID, result, PID, checkRole, err = j.declarePresidentPerformanceInternal()
 	}
+
+	return RID, result, PID, checkRole, err
+}
+
+func (j *BaseJudge) declarePresidentPerformanceWrapped() {
+
+	RID, result, PID, checkRole, err := j.declarePresidentPerformance()
+
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
 		broadcastToAllIslands(j.id, message)
@@ -189,6 +217,11 @@ func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool,
 	conductedRole := err == nil
 
 	return j.ResAllocID, result, j.presidentID, conductedRole, nil
+}
+
+func (j *BaseJudge) appointNextPresident() int {
+	j.budget -= 10
+	return rand.Intn(5)
 }
 
 func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]DataPacket {

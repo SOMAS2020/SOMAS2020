@@ -1,7 +1,7 @@
 package roles
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/pkg/errors"
 )
 
@@ -24,13 +24,10 @@ var Base_speaker = baseSpeaker{
 }
 
 var Base_President = basePresident{
-	id:                 0,
-	budget:             0,
-	speakerSalary:      0,
-	resourceRequests:   nil,
-	resourceAllocation: nil,
-	ruleToVote:         0,
-	taxAmount:          0,
+	id:               0,
+	budget:           0,
+	speakerSalary:    0,
+	resourceRequests: nil,
 }
 
 var SpeakerIDGlobal = 0
@@ -41,8 +38,7 @@ var judgePointer = Base_judge
 var speakerPointer = Base_speaker
 var presidentPointer = Base_President
 
-func runIIGO() error {
-
+func RunIIGO(g *common.GameState) error {
 	// Initialise IDs
 	Base_judge.id = JudgeIDGlobal
 	Base_speaker.id = SpeakerIDGlobal
@@ -50,31 +46,42 @@ func runIIGO() error {
 
 	// Initialise roles with their clientVersions
 	Base_judge.clientJudge = &judgePointer
+	Base_President.clientPresident = &presidentPointer
 
-	// Pay the salaries
-	errPayPresident := judgePointer.payPresident()
-	errPayJudge := speakerPointer.PayJudge()
-	errPaySpeaker := presidentPointer.paySpeaker()
+	// Withdraw the salaries
+	errWithdrawPresident := judgePointer.withdrawPresidentSalary(g)
+	errWithdrawJudge := speakerPointer.withdrawJudgeSalary(g)
+	errWithdrawSpeaker := presidentPointer.withdrawSpeakerSalary(g)
 
 	// Handle the lack of resources
-	if errPayPresident == nil {
+	if errWithdrawPresident != nil {
 		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
 	}
-
-	if errPayJudge == nil {
+	if errWithdrawJudge != nil {
 		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
 	}
 
-	if errPaySpeaker == nil {
+	if errWithdrawSpeaker != nil {
 		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
 	}
+
+	// Pay salaries into budgets
+	judgePointer.payPresident()
+	speakerPointer.payJudge()
+	presidentPointer.paySpeaker()
 
 	// 1 Judge actions - inspect history
 	_, judgeInspectingHistoryError := Base_judge.inspectHistory()
 
-	// 2 Speaker actions
+	// 2 President actions
+	presidentPointer.requestAllocationRequest()
+	presidentPointer.replyAllocationRequest(g.CommonPool)
+	presidentPointer.requestRuleProposal()
+	ruleToVote := presidentPointer.getRuleForSpeaker()
 
-	// 3 President actions
+	// 3 Speaker actions
+
+	// speakerPointer.SetRuleToVote(ruleToVote)
 
 	// 4 Declare performance (Judge) (in future all the roles)
 	if judgeInspectingHistoryError != nil {
@@ -90,25 +97,6 @@ func runIIGO() error {
 	// Set speakerPointer
 	// Set PresidentIDGlobal
 	// Set presidentPointer
+
 	return nil
-}
-
-// callVote possible implementation of voting
-func callVote(speakerID int, whateverIsBeingVotedOn string) {
-	// Do voting
-
-	noIslandAlive := rules.VariableValuePair{
-		VariableName: "no_islands_alive",
-		Values:       []float64{5},
-	}
-	noIslandsVoting := rules.VariableValuePair{
-		VariableName: "no_islands_voted",
-		Values:       []float64{5},
-	}
-	err := updateTurnHistory(speakerID, []rules.VariableValuePair{noIslandAlive, noIslandsVoting})
-	if err != nil {
-		// exit with error
-	} else {
-		// carry on
-	}
 }
