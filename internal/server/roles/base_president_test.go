@@ -8,14 +8,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func mapSum(in_map map[int]int) int {
-	sum := 0
-	for _, val := range in_map {
-		sum += val
-	}
-	return sum
-}
-
 type allocInput struct {
 	resourceRequests   map[int]int
 	commonPoolResource int
@@ -61,7 +53,116 @@ func TestAllocationRequests(t *testing.T) {
 				if !reflect.DeepEqual(tc.reply, val) {
 					t.Errorf("%v - Failed. Expected %v, got %v", tc.name, tc.reply, val)
 				}
+			} else {
+				if err != tc.want {
+					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, err, tc.want)
+				}
 			}
+		})
+	}
+}
+
+func checkIfInList(s string, lst []string) bool {
+	for _, i := range lst {
+		if s == i {
+			return true
+		}
+	}
+	return false
+}
+func TestPickRuleToVote(t *testing.T) {
+	cases := []struct {
+		name  string
+		input []string
+		reply string
+		want  error
+	}{
+		{
+			name:  "Basic rule",
+			input: []string{"rule"},
+			reply: "rule",
+			want:  nil,
+		},
+		{
+			name:  "Empty string",
+			input: []string{""},
+			reply: "",
+			want:  nil,
+		},
+		{
+			name:  "Longer list",
+			input: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			reply: "",
+			want:  nil,
+		},
+		{
+			name:  "Empty list",
+			input: []string{},
+			reply: "",
+			want:  nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			president := &basePresident{}
+
+			val, err := president.pickRuleToVote(tc.input)
+			if err == nil && tc.want == nil {
+				if len(tc.input) == 0 {
+					if val != "" {
+						t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, val)
+					}
+				} else if !checkIfInList(val, tc.input) {
+					t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, val, tc.input)
+				}
+			} else {
+				if err != tc.want {
+					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, err, tc.want)
+				}
+			}
+		})
+	}
+}
+
+func TestSetRuleProposals(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    []string
+		expected []string
+	}{
+		{
+			name:     "Single Rule",
+			input:    []string{"rule"},
+			expected: []string{"rule"},
+		},
+		{
+			name:     "No Rule",
+			input:    []string{""},
+			expected: []string{""},
+		},
+		{
+			name:     "Multiple Rules",
+			input:    []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			president := &basePresident{
+				id:             int(shared.Team1),
+				rulesProposals: []string{},
+			}
+
+			president.setRuleProposals(tc.input)
+
+			if !reflect.DeepEqual(president.rulesProposals, tc.expected) {
+				t.Errorf("%v - Failed. RulesProposals set to '%v', expected '%v'", tc.name, president.rulesProposals, tc.expected)
+			}
+
 		})
 	}
 }
