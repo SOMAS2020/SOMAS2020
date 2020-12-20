@@ -78,15 +78,9 @@ func runIIGO() error {
 
 	// 4 Declare performance (Judge) (in future all the roles)
 	if judgeInspectingHistoryError != nil {
-		RID, result1, PID, checkRole1, judgeDeclaringPresidentPerformanceError := Base_judge.declarePresidentPerformance()
-		if judgeDeclaringPresidentPerformanceError == nil {
-			broadcastToAllIslands(Base_judge.id, generatePresidentPerformanceMessage(RID, result1, PID, checkRole1))
-		}
+		Base_judge.declarePresidentPerformanceWrapped()
 
-		BID, result2, SID, checkRole2, judgeDeclaringSpeakerPerformanceError := Base_judge.declareSpeakerPerformance()
-		if judgeDeclaringSpeakerPerformanceError == nil {
-			broadcastToAllIslands(Base_judge.id, generateSpeakerPerformanceMessage(BID, result2, SID, checkRole2))
-		}
+		Base_judge.declareSpeakerPerformanceWrapped()
 	}
 
 	//TODO: Add election setting
@@ -97,42 +91,6 @@ func runIIGO() error {
 	// Set PresidentIDGlobal
 	// Set presidentPointer
 	return nil
-}
-
-func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
-
-	returnMap[BallotID] = DataPacket{
-		integerData: BID,
-	}
-	returnMap[SpeakerBallotCheck] = DataPacket{
-		booleanData: result,
-	}
-	returnMap[SpeakerID] = DataPacket{
-		integerData: SID,
-	}
-	returnMap[RoleConducted] = DataPacket{
-		booleanData: conductedRole,
-	}
-	return returnMap
-}
-
-func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
-
-	returnMap[ResAllocID] = DataPacket{
-		integerData: RID,
-	}
-	returnMap[PresidentAllocationCheck] = DataPacket{
-		booleanData: result,
-	}
-	returnMap[PresidentID] = DataPacket{
-		integerData: PID,
-	}
-	returnMap[RoleConducted] = DataPacket{
-		booleanData: conductedRole,
-	}
-	return returnMap
 }
 
 // callVote possible implementation of voting

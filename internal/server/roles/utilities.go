@@ -2,8 +2,15 @@ package roles
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/pkg/errors"
 )
+
+var serverReference *server.SOMASServer
+
+func setServerReference(serverRef *server.SOMASServer) {
+	serverReference = serverRef
+}
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables
 func PickUpRulesByVariable(variableName string, ruleStore map[string]rules.RuleMatrix) ([]string, error) {
@@ -59,14 +66,6 @@ func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) 
 	print(communication) //// Get rid of this
 }
 
-func collapseBoolean(val bool) int {
-	if val {
-		return 1
-	} else {
-		return 0
-	}
-}
-
 const (
 	BallotID                 = iota
 	PresidentAllocationCheck = iota
@@ -75,6 +74,11 @@ const (
 	ResAllocID               = iota
 	SpeakerBallotCheck       = iota
 	PresidentID              = iota
+<<<<<<< HEAD
 	RuleName				 = iota
 	RuleVoteResult			 = iota
+=======
+	RuleName                 = iota
+	RuleVoteResult           = iota
+>>>>>>> orchestration
 )
