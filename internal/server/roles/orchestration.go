@@ -25,13 +25,10 @@ var Base_speaker = baseSpeaker{
 }
 
 var Base_President = basePresident{
-	id:                 0,
-	budget:             0,
-	speakerSalary:      0,
-	resourceRequests:   nil,
-	resourceAllocation: nil,
-	ruleToVote:         0,
-	taxAmount:          0,
+	id:               0,
+	budget:           0,
+	speakerSalary:    0,
+	resourceRequests: nil,
 }
 
 var SpeakerIDGlobal = 0
@@ -91,6 +88,13 @@ func runIIGO(g *common.GameState) error {
 	// Set SpeakerIDGlobal
 	// Set speakerPointer
 	// Set PresidentIDGlobal
+	var commonPool int
+	//TODO: need to get commonPool in somehow
+	presidentPointer.requestAllocationRequest()
+	presidentPointer.replyAllocationRequest(commonPool)
+	presidentPointer.requestRuleProposal()
+	ruleToVote := presidentPointer.getRuleForSpeaker()
+	// speakerPointer.SetRuleToVote(ruleToVote)
 	// Set presidentPointer
 	return nil
 }

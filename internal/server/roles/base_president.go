@@ -46,6 +46,14 @@ func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) 
 	return rulesProposals[rand.Intn(len(rulesProposals))], nil
 }
 
+func (p *basePresident) requestRuleProposal() {
+	var rules []string
+	//TODO: request Island for the rules (this function havnt been implemented
+	//just create some mock function we need so they can write it up for us accordingly)
+
+	p.setRuleProposals(rules)
+}
+
 // Get rule proposals to be voted on from remaining islands
 // Called by orchestration
 func (p *basePresident) setRuleProposals(rulesProposals []string) {
@@ -94,6 +102,11 @@ func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	return result
 }
 
+func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
+	taxAmountMap := p.getTaxMap(islandsResources)
+	//TODO: broadcastTaxation to every island
+}
+
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
 func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
@@ -107,10 +120,24 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 	return result
 }
 
+func (p *basePresident) requestAllocationRequest() {
+	allocRequests := make(map[int]int)
+	//TODO: create a mock function for client so Neelesh can use the function signature
+	p.setAllocationRequest(allocRequests)
+
+}
+
+func (p *basePresident) replyAllocationRequest(commonPool int) {
+	allocation := p.getAllocationRequests(commonPool)
+	//TODO: broadcast the result
+}
+
 func (p *basePresident) appointNextSpeaker() int {
 	return rand.Intn(5)
 }
 
 func (p *basePresident) withdrawSpeakerSalary(int) {
-	//to be integrated
+	//TODO: need to discuss with neelesh on how to be integrated
 }
+
+//TODO (optional): you can write a helper function (either put it here or orchestration.go) that you can use to broadcast or reply island
