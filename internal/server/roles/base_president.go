@@ -6,75 +6,95 @@ import (
 
 //base President Object
 type basePresident struct {
-	id                 int
-	budget             int
-	speakerSalary      int
-	rulesProposals     []string
-	resourceRequests   map[int]int
-	resourceAllocation map[int]int
-	ruleToVote         string
-	taxAmountMap       map[int]int
+	id               int
+	clientPresident  President
+	budget           int
+	speakerSalary    int
+	rulesProposals   []string
+	resourceRequests map[int]int
+	//resourceAllocation map[int]int
+	//ruleToVote         string
+	//taxAmountMap       map[int]int
 }
 
 // Set allowed resource allocation based on each islands requests
-func (p *basePresident) evaluateAllocationRequests() {
+func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int) (map[int]int, error) {
 	resourceAllocation := make(map[int]int)
 	for id, request := range p.resourceRequests {
 		resourceAllocation[id] = rand.Intn(request)
 	}
-	p.resourceAllocation = resourceAllocation
+	return resourceAllocation, nil
 }
 
 // Chose a rule proposal from all the proposals
-func (p *basePresident) pickRuleToVote() {
-	if len(p.rulesProposals) == 0 {
+// need to pass in since this is now functional for the sake of client side
+func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) {
+	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
-		p.ruleToVote = ""
-	} else {
-		p.ruleToVote = p.rulesProposals[rand.Intn(len(p.rulesProposals))]
+		return "", nil
 	}
+	return rulesProposals[rand.Intn(len(rulesProposals))], nil
 }
 
 // Get rule proposals to be voted on from remaining islands
 // Called by orchestration
-func (p *basePresident) SetRuleProposals(rulesProposals []string) {
+func (p *basePresident) setRuleProposals(rulesProposals []string) {
 	p.rulesProposals = rulesProposals
 }
 
 // Set approved resources request for all the remaining islands
 // Called by orchestration
-func (p *basePresident) SetAllocationRequest(resourceRequests map[int]int) {
+func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
 	p.resourceRequests = resourceRequests
 }
 
 // Set taxation amount for all of the living islands
 // island_resources: map of all the living islands and their remaing resources
-func (p *basePresident) SetTaxationAmount(islands_resources map[int]int) {
+func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
 	taxAmountMap := make(map[int]int)
-	for id, resource_left := range islands_resources {
-		taxAmountMap[id] = rand.Intn(resource_left)
+	for id, resourceLeft := range islandsResources {
+		taxAmountMap[id] = rand.Intn(resourceLeft)
 	}
-	p.taxAmountMap = taxAmountMap
+	return taxAmountMap, nil
 }
 
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
-func (p *basePresident) GetRuleForSpeaker() string {
-	p.pickRuleToVote()
-	return p.ruleToVote
+func (p *basePresident) getRuleForSpeaker() string {
+	if p.clientPresident != nil {
+		result, error := p.clientPresident.pickRuleToVote(p.rulesProposals)
+		if error == nil {
+			return result
+		}
+	}
+	result, _ := p.pickRuleToVote(p.rulesProposals)
+	return result
 }
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (p *basePresident) GetTaxMap() map[int]int {
-	return p.taxAmountMap
+func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
+	if p.clientPresident != nil {
+		result, error := p.clientPresident.setTaxationAmount(islandsResources)
+		if error == nil {
+			return result
+		}
+	}
+	result, _ := p.setTaxationAmount(islandsResources)
+	return result
 }
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (p *basePresident) GetAllocationRequests() map[int]int {
-	p.evaluateAllocationRequests()
-	return p.resourceAllocation
+func (p *basePresident) getAllocationRequests() map[int]int {
+	if p.clientPresident != nil {
+		result, error := p.clientPresident.evaluateAllocationRequests(p.resourceRequests)
+		if error == nil {
+			return result
+		}
+	}
+	result, _ := p.evaluateAllocationRequests(p.resourceRequests)
+	return result
 }
 
 func (p *basePresident) appointNextSpeaker() int {

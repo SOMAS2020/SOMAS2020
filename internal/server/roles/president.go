@@ -3,10 +3,8 @@ package roles
 //President Object
 type President interface {
 	paySpeaker() error
-	setTaxationAmount(int, int) error
-	evaluateAllocationRequest() map[int]int
-	pickRuleToVote() error
+	setTaxationAmount(map[int]int) (map[int]int, error)
+	evaluateAllocationRequests(map[int]int) (map[int]int, error)
+	pickRuleToVote([]string) (string, error)
 	reset(string) error
 }
-
-	
