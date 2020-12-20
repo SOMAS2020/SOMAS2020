@@ -19,4 +19,4 @@ jobs:
     - name: Test
       run: go test ./...
     - name: Run
-      run: go run .
+      run: sudo go run .
