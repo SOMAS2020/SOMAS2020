@@ -130,17 +130,25 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 
 func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
 
+	var BID int
+	var result bool
+	var SID int
+	var checkRole bool
+	var err error
+
 	if j.clientJudge != nil {
-		BID, result, SID, checkRole, err := j.clientJudge.declareSpeakerPerformance()
-		if err != nil {
-			return BID, result, SID, checkRole, nil
-		} else {
-			return j.declareSpeakerPerformanceInternal()
+		BID, result, SID, checkRole, err = j.clientJudge.declareSpeakerPerformance()
+		if err == nil {
+			BID, result, SID, checkRole, err = j.declareSpeakerPerformanceInternal()
 		}
 	} else {
-		return j.declareSpeakerPerformanceInternal()
+		BID, result, SID, checkRole, err = j.declareSpeakerPerformanceInternal()
 	}
-
+	if err == nil {
+		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
+		broadcastToAllIslands(j.id, message)
+	}
+	return BID, result, SID, checkRole, err
 }
 
 func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
@@ -153,16 +161,26 @@ func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, e
 }
 
 func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) {
+
+	var RID int
+	var result bool
+	var PID int
+	var checkRole bool
+	var err error
+
 	if j.clientJudge != nil {
-		RID, result, PID, checkRole, err := j.clientJudge.declarePresidentPerformance()
-		if err != nil {
-			return RID, result, PID, checkRole, nil
-		} else {
-			return j.declarePresidentPerformanceInternal()
+		RID, result, PID, checkRole, err = j.clientJudge.declarePresidentPerformance()
+		if err == nil {
+			RID, result, PID, checkRole, err = j.declarePresidentPerformanceInternal()
 		}
 	} else {
-		return j.declarePresidentPerformanceInternal()
+		RID, result, PID, checkRole, err = j.declarePresidentPerformanceInternal()
 	}
+	if err == nil {
+		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
+		broadcastToAllIslands(j.id, message)
+	}
+	return RID, result, PID, checkRole, err
 }
 
 func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool, error) {
@@ -173,4 +191,40 @@ func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool,
 	conductedRole := err == nil
 
 	return j.ResAllocID, result, j.presidentID, conductedRole, nil
+}
+
+func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]DataPacket {
+	returnMap := map[int]DataPacket{}
+
+	returnMap[BallotID] = DataPacket{
+		integerData: BID,
+	}
+	returnMap[SpeakerBallotCheck] = DataPacket{
+		booleanData: result,
+	}
+	returnMap[SpeakerID] = DataPacket{
+		integerData: SID,
+	}
+	returnMap[RoleConducted] = DataPacket{
+		booleanData: conductedRole,
+	}
+	return returnMap
+}
+
+func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]DataPacket {
+	returnMap := map[int]DataPacket{}
+
+	returnMap[ResAllocID] = DataPacket{
+		integerData: RID,
+	}
+	returnMap[PresidentAllocationCheck] = DataPacket{
+		booleanData: result,
+	}
+	returnMap[PresidentID] = DataPacket{
+		integerData: PID,
+	}
+	returnMap[RoleConducted] = DataPacket{
+		booleanData: conductedRole,
+	}
+	return returnMap
 }
