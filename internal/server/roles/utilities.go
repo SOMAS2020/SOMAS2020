@@ -3,14 +3,13 @@ package roles
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/pkg/errors"
 )
 
-var serverReference *server.SOMASServer
+var gamestate *common.GameState
 
-func setServerReference(serverRef *server.SOMASServer) {
-	serverReference = serverRef
+func setGameState(gameState *common.GameState) {
+	gamestate = gameState
 }
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables
@@ -100,9 +99,8 @@ const (
 	ResAllocID               = iota
 	SpeakerBallotCheck       = iota
 	PresidentID              = iota
-	RuleName				         = iota
-	RuleVoteResult			     = iota
+	RuleName                 = iota
+	RuleVoteResult           = iota
 	TaxAmount                = iota
 	AllocationAmount         = iota
-
 )

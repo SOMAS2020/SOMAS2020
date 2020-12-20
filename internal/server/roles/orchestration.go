@@ -20,7 +20,7 @@ var Base_speaker = baseSpeaker{
 	id:          0,
 	budget:      0,
 	judgeSalary: 0,
-	ruleToVote:  0,
+	ruleToVote:  "",
 }
 
 var Base_President = basePresident{
@@ -47,6 +47,7 @@ func RunIIGO(g *common.GameState) error {
 	// Initialise roles with their clientVersions
 	Base_judge.clientJudge = &judgePointer
 	Base_President.clientPresident = &presidentPointer
+	Base_speaker.clientSpeaker = &speakerPointer
 
 	// Withdraw the salaries
 	errWithdrawPresident := judgePointer.withdrawPresidentSalary(g)
@@ -80,8 +81,9 @@ func RunIIGO(g *common.GameState) error {
 	ruleToVote := presidentPointer.getRuleForSpeaker()
 
 	// 3 Speaker actions
-
-	// speakerPointer.SetRuleToVote(ruleToVote)
+	speakerPointer.SetRuleToVote(ruleToVote)
+	speakerPointer.setVotingResult()
+	speakerPointer.announceVotingResult()
 
 	// 4 Declare performance (Judge) (in future all the roles)
 	if judgeInspectingHistoryError != nil {
@@ -90,12 +92,17 @@ func RunIIGO(g *common.GameState) error {
 		Base_judge.declareSpeakerPerformanceWrapped()
 	}
 
-	//TODO: Add election setting
-	// Set JudgeIDGlobal
+	// Get new Judge ID
+	JudgeIDGlobal = speakerPointer.appointNextJudge()
+	// Get new Speaker ID
+	SpeakerIDGlobal = presidentPointer.appointNextSpeaker()
+	// Get new President ID
+	PresidentIDGlobal = judgePointer.appointNextPresident()
+
 	// Set judgePointer
-	// Set SpeakerIDGlobal
+
 	// Set speakerPointer
-	// Set PresidentIDGlobal
+
 	// Set presidentPointer
 
 	return nil
