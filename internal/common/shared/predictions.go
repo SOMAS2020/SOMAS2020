@@ -3,8 +3,8 @@ package shared
 // Prediction is a struct containing the necessary parameters for an island to
 // make a prediction about a disaster
 type Prediction struct {
-	CoordinateX float32
-	CoordinateY float32
+	CoordinateX float64
+	CoordinateY float64
 	Magnitude   int
 	TimeLeft    int
 	Confidence  int
