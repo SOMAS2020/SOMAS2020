@@ -15,12 +15,14 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/logger"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/SOMAS2020/SOMAS2020/pkg/fileutils"
+	"github.com/SOMAS2020/SOMAS2020/pkg/gitinfo"
 )
 
 // output represents what is output into the output.json file
 type output struct {
 	GameStates []gamestate.GameState
 	Config     config.Config
+	GitInfo    gitinfo.GitInfo
 }
 
 const outputJSONFileName = "output.json"
@@ -71,6 +73,7 @@ func main() {
 		outputJSON(output{
 			GameStates: gameStates,
 			Config:     config.GameConfig(),
+			GitInfo:    getGitInfo(),
 		})
 	}
 }
@@ -88,4 +91,12 @@ func outputJSON(o output) {
 		os.Exit(1)
 	}
 	log.Printf("Finished writing JSON output to '%v'", outputJSONFilePath)
+}
+
+func getGitInfo() gitinfo.GitInfo {
+	gitInfo, err := gitinfo.GetGitInfo(cwd)
+	if err != nil {
+		log.Printf("Ignoring error in getting git info--are you running this in a valid git repo? Error: %v", err)
+	}
+	return gitInfo
 }

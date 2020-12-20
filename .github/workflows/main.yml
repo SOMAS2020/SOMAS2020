@@ -20,3 +20,5 @@ jobs:
       run: go test ./...
     - name: Run
       run: sudo go run .
+    - name: Output output.json
+      run: sudo cat output/output.json
