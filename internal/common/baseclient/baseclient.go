@@ -35,7 +35,9 @@ func NewClient(id shared.ClientID) Client {
 // even when new features are added.
 type BaseClient struct {
 	id shared.ClientID
-	clientInfo ClientInfo
+	clientInfo gamestate.ClientInfo
+	turn uint
+	season uint
 }
 
 // Echo prints a message to show that the client exists
@@ -71,5 +73,7 @@ func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.ClientGameState) {
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientInfo = gameState.ClientInfo.Copy()
+	c.turn = gameState.Turn
+	c.season = gameState.Season
 	c.Logf("Received game state update: %#v", gameState)
 }
