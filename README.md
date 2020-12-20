@@ -15,6 +15,11 @@ go build # build step
 ./SOMAS2020 # SOMAS2020.exe if you're on Windows
 ```
 
+### Output
+After running, the `output` directory will contain the output of the program.
+- `output.json`: JSON file containing the game's historic states and configuration.
+- `log.txt`: logs of the run
+
 ## Testing
 ```bash
 go test ./...
