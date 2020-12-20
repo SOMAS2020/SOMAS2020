@@ -36,7 +36,7 @@ func (j *BaseJudge) withdrawPresidentSalary(gameState *common.GameState) error {
 }
 
 // Pay the president
-func (j *BaseJudge) payPresident(gameState *common.GameState) {
+func (j *BaseJudge) payPresident() {
 	Base_President.budget = Base_judge.presidentSalary
 	Base_judge.presidentSalary = 0
 }
@@ -135,7 +135,16 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 	return 0, errors.Errorf("The rule name '%v' was not found", ruleName)
 }
 
-func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
+func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
+	j.BallotID++
+	result, err := j.inspectBallot()
+
+	conductedRole := err == nil
+
+	return j.BallotID, result, j.speakerID, conductedRole, nil
+}
+
+func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
 
 	var BID int
 	var result bool
@@ -151,22 +160,20 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 	} else {
 		BID, result, SID, checkRole, err = j.declareSpeakerPerformanceInternal()
 	}
+	return BID, result, SID, checkRole, err
+}
+
+func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
+
+	BID, result, SID, checkRole, err := j.declareSpeakerPerformance()
+
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
 		broadcastToAllIslands(j.id, message)
 	}
 }
 
-func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
-	j.BallotID++
-	result, err := j.inspectBallot()
-
-	conductedRole := err == nil
-
-	return j.BallotID, result, j.speakerID, conductedRole, nil
-}
-
-func (j *BaseJudge) declarePresidentPerformanceWrapped() {
+func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) {
 
 	var RID int
 	var result bool
@@ -182,6 +189,14 @@ func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 	} else {
 		RID, result, PID, checkRole, err = j.declarePresidentPerformanceInternal()
 	}
+
+	return RID, result, PID, checkRole, err
+}
+
+func (j *BaseJudge) declarePresidentPerformanceWrapped() {
+
+	RID, result, PID, checkRole, err := j.declarePresidentPerformance()
+
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
 		broadcastToAllIslands(j.id, message)
