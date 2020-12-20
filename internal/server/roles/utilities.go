@@ -100,8 +100,9 @@ const (
 	ResAllocID               = iota
 	SpeakerBallotCheck       = iota
 	PresidentID              = iota
-	RuleName                 = iota
-	RuleVoteResult           = iota
+	RuleName				         = iota
+	RuleVoteResult			     = iota
 	TaxAmount                = iota
 	AllocationAmount         = iota
+
 )
