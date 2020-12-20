@@ -12,7 +12,7 @@ type baseSpeaker struct {
 	ruleToVote  int
 }
 
-func (s *baseSpeaker) WithdrawJudgeSalary(gameState *common.GameState) error {
+func (s *baseSpeaker) withdrawJudgeSalary(gameState *common.GameState) error {
 	var judgeSalary = int(rules.VariableMap["judgeSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(judgeSalary, gameState)
 	if withdrawError != nil {
@@ -22,7 +22,7 @@ func (s *baseSpeaker) WithdrawJudgeSalary(gameState *common.GameState) error {
 }
 
 // Pay the judge
-func (s *baseSpeaker) PayJudge() {
+func (s *baseSpeaker) payJudge() {
 	Base_judge.budget = Base_speaker.judgeSalary
 	Base_speaker.judgeSalary = 0
 }

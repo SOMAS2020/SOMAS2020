@@ -45,13 +45,14 @@ func broadcastToAllIslands(sender int, data map[int]int) {
 }
 
 func communicateWithIslands(recipient int, sender int, data map[int]int) {
-	communication := Communication{
+	/*communication := Communication{
 		recipient: recipient,
 		sender:    sender,
 		data:      data,
 	}
 	//Send to islands
 	print(communication) //// Get rid of this
+	*/
 }
 
 func collapseBoolean(val bool) int {

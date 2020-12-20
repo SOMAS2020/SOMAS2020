@@ -6,21 +6,22 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common"
 )
 
-// TestBasicRuleEvaluatorPositive Checks whether rule we expect to evaluate as true actually evaluates as such
-func TestBasicRuleEvaluatorPositive(t *testing.T) {
-	result, err := BasicBooleanRuleEvaluator("Kinda Complicated Rule")
-	if !result {
-		t.Errorf("Rule evaluation came as false, when it was expected to be true, potential error with value '%v'", err)
+func TestWithdrawFromCommonPoolThrowsError(t *testing.T) {
+	fakeGameState := common.GameState{CommonPool: 100}
+	// Withdraw more than we have in it
+	valueToWithdraw := 120
+	err := WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
+	if err == nil {
+		t.Errorf("We can withdraw more from the common pool than it actually has.")
 	}
 }
 
-func TestEnoughInCommonPoolNegative(t *testing.T) {
-fakeGameState:
-	common.GameState{CommonPool: 100}
-	// Withdraw more than we have in it
-	valueToWithdraw := 120
-	status = CheckEnoughInCommonPool(valueToWithdraw, fakeGameState)
-	if status {
-		t.Errorf("We were able to withdraw 120 from the common pool, when there was only 100 in it. Error in internal.server.roles.utilities.CheckEnoughInCommonPool")
+func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
+	fakeGameState := common.GameState{CommonPool: 100}
+	valueToWithdraw := 60
+	WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
+	unexpectedAmountRemaining := fakeGameState.CommonPool != 40
+	if unexpectedAmountRemaining == true {
+		t.Errorf("Not withdrawing resources from CommonPool correctly.")
 	}
 }

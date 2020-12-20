@@ -2,7 +2,7 @@ package roles
 
 //President Object
 type President interface {
-	paySpeaker() error
+	paySpeaker(common.GameState)
 	setTaxationAmount(int, int) error
 	evaluateAllocationRequest() map[int]int
 	pickRuleToVote() string
