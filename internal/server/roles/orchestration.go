@@ -56,38 +56,29 @@ func runIIGO() error {
 		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
 	} else {
 
-		if errWithdrawJudge != nil {
-			return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
-		}
 
-		if errWithdrawSpeaker != nil {
-			return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
-		}
+  if errWithdrawJudge != nil {
+    return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
+  }
 
-		// Pay the salaries
-		errPayPresident := judgePointer.payPresident()
-		errPayJudge := speakerPointer.payJudge()
-		errPaySpeaker := presidentPointer.paySpeaker()
+  if errWithdrawSpeaker != nil {
+    return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
+  }
 
-		// 1 Judge actions - inspect history
-		_, judgeInspectingHistoryError := Base_judge.inspectHistory()
+  // 1 Judge actions - inspect history
+  _, judgeInspectingHistoryError := Base_judge.inspectHistory()
 
-		// 2 Speaker actions
+  // 2 Speaker actions
 
-		// 3 President actions
+  // 3 President actions
+    
+    
+	// 4 Declare performance (Judge) (in future all the roles)
+	if judgeInspectingHistoryError != nil {
+		Base_judge.declarePresidentPerformanceWrapped()
 
-		// 4 Declare performance (Judge) (in future all the roles)
-		if judgeInspectingHistoryError != nil {
-			RID, result1, PID, checkRole1, judgeDeclaringPresidentPerformanceError := Base_judge.declarePresidentPerformance()
-			if judgeDeclaringPresidentPerformanceError == nil {
-				broadcastToAllIslands(Base_judge.id, generatePresidentPerformanceMessage(RID, result1, PID, checkRole1))
-			}
-
-			BID, result2, SID, checkRole2, judgeDeclaringSpeakerPerformanceError := Base_judge.declareSpeakerPerformance()
-			if judgeDeclaringSpeakerPerformanceError == nil {
-				broadcastToAllIslands(Base_judge.id, generateSpeakerPerformanceMessage(BID, result2, SID, checkRole2))
-			}
-		}
+		Base_judge.declareSpeakerPerformanceWrapped()
+	}
 
 		//TODO: Add election setting
 		// Set JudgeIDGlobal
@@ -97,45 +88,25 @@ func runIIGO() error {
 		// Set PresidentIDGlobal
 		// Set presidentPointer
 		return nil
-	}
+}
 
-	   func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]int {
-	   	returnMap := map[int]int{}
+// callVote possible implementation of voting
+func callVote(speakerID int, whateverIsBeingVotedOn string) {
+  // Do voting
 
-	   	returnMap[BallotID] = BID
-	   	returnMap[SpeakerBallotCheck] = collapseBoolean(result)
-	   	returnMap[SpeakerID] = SID
-	   	returnMap[RoleConducted] = collapseBoolean(conductedRole)
-	   	return returnMap
-	   }
-
-	   func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]int {
-	   	returnMap := map[int]int{}
-
-	   	returnMap[ResAllocID] = RID
-	   	returnMap[PresidentAllocationCheck] = collapseBoolean(result)
-	   	returnMap[PresidentID] = PID
-	   	returnMap[RoleConducted] = collapseBoolean(conductedRole)
-	   	return returnMap
-	   }
-
-	   // callVote possible implementation of voting
-	   func callVote(speakerID int, whateverIsBeingVotedOn string) {
-	   	// Do voting
-
-	   	noIslandAlive := rules.VariableValuePair{
-	   		VariableName: "no_islands_alive",
-	   		Values:       []float64{5},
-	   	}
-	   	noIslandsVoting := rules.VariableValuePair{
-	   		VariableName: "no_islands_voted",
-	   		Values:       []float64{5},
-	   	}
-	   	err := updateTurnHistory(speakerID, []rules.VariableValuePair{noIslandAlive, noIslandsVoting})
-	   	if err != nil {
-	   		// exit with error
-	   	} else {
-	   		// carry on
-	   	}
+  noIslandAlive := rules.VariableValuePair{
+    VariableName: "no_islands_alive",
+    Values:       []float64{5},
+  }
+  noIslandsVoting := rules.VariableValuePair{
+    VariableName: "no_islands_voted",
+    Values:       []float64{5},
+  }
+  err := updateTurnHistory(speakerID, []rules.VariableValuePair{noIslandAlive, noIslandsVoting})
+  if err != nil {
+    // exit with error
+  } else {
+    // carry on
+  }
 }
 
