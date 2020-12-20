@@ -2,8 +2,15 @@ package roles
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/pkg/errors"
 )
+
+var serverReference *server.SOMASServer
+
+func setServerReference(serverRef *server.SOMASServer) {
+	serverReference = serverRef
+}
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables
 func PickUpRulesByVariable(variableName string, ruleStore map[string]rules.RuleMatrix) ([]string, error) {
