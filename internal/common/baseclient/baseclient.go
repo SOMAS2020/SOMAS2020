@@ -22,7 +22,13 @@ type Client interface {
 	GameStateUpdate(gameState gamestate.ClientGameState)
 
 	Logf(format string, a ...interface{})
+
+	//IIFO: OPTIONAL
+	MakePrediction() (shared.PredictionInfo, error)
+	RecievePredictions(recievedPredictions shared.PredictionInfoDict) error
 }
+
+var ourPredictionInfo shared.PredictionInfo
 
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
@@ -34,7 +40,7 @@ func NewClient(id shared.ClientID) Client {
 // All clients should be based off of this BaseClient to ensure that all clients implement the interface,
 // even when new features are added.
 type BaseClient struct {
-	id shared.ClientID
+	id              shared.ClientID
 	clientGameState gamestate.ClientGameState
 }
 
