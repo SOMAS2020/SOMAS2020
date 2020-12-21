@@ -96,7 +96,7 @@ func (s *baseSpeaker) announceVotingResult() {
 	}
 
 	broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
-	s.updateRules(s.ruleToVote, s.votingResult)
+	_ = s.updateRules(s.ruleToVote, s.votingResult)
 
 	//Reset
 	s.ruleToVote = ""

@@ -1,12 +1,14 @@
 package rules
 
 import (
+	"fmt"
 	"gonum.org/v1/gonum/mat"
 )
 
 // Init Registers all global scoped rules
 func init() {
 	registerDemoRule()
+	registerRulesByMass()
 }
 
 // registerDemoRule Defines and registers demo rule
@@ -28,4 +30,46 @@ func registerDemoRule() {
 
 	RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
+}
+
+func registerRulesByMass() {
+	ruleSpecs := []struct {
+		name   string
+		reqVar []string
+		v      []float64
+		aux    []float64
+	}{
+		{
+			name: "inspect_ballot_rule",
+			reqVar: []string{
+				"no_islands_alive",
+				"no_ballots_cast",
+			},
+			v:   []float64{1, -1, 0},
+			aux: []float64{0},
+		},
+		{
+			name: "inspect_allocation_rule",
+			reqVar: []string{
+				"no_islands_alive",
+				"no_allocations_sent",
+			},
+			v:   []float64{1, -1, 0},
+			aux: []float64{0},
+		},
+	}
+
+	for _, rs := range ruleSpecs {
+		rowLength := len(rs.reqVar) + 1
+		if len(rs.v)%rowLength != 0 {
+			panic(fmt.Sprintf("Rule '%v' was registered without correct matrix dimensions", rs.name))
+		}
+		nrows := len(rs.v) / rowLength
+		CoreMatrix := mat.NewDense(nrows, rowLength, rs.v)
+		AuxiliaryVector := mat.NewVecDense(nrows, rs.aux)
+		_, err := RegisterNewRule(rs.name, rs.reqVar, *CoreMatrix, *AuxiliaryVector)
+		if err != nil {
+			panic(fmt.Sprintf("%v", err.Error()))
+		}
+	}
 }

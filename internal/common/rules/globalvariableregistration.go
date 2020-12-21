@@ -31,6 +31,18 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{2},
 	},
 	{
+		VariableName: "no_islands_alive",
+		Values:       []float64{6},
+	},
+	{
+		VariableName: "no_ballots_cast",
+		Values:       []float64{6},
+	},
+	{
+		VariableName: "no_allocations_sent",
+		Values:       []float64{6},
+	},
+	{
 		VariableName: "islands_alive",
 		Values:       []float64{1, 2, 3, 4, 5, 6},
 	},
