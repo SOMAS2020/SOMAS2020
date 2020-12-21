@@ -13,7 +13,7 @@ type DisasterInfo struct {
 	CoordinateX float64
 	CoordinateY float64
 	Magnitude   float64
-	TurnNumber  int
+	Turn uint
 }
 
 // PastDisastersDict is a helpful construct for
