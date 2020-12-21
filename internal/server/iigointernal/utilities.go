@@ -1,8 +1,10 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
 
@@ -50,14 +52,38 @@ func broadcastToAllIslands(sender int, data map[int]DataPacket) {
 	}
 }
 
+func dataPacketToCommunication(d *DataPacket) baseclient.Communication {
+	return baseclient.Communication{
+		IntegerData: d.integerData,
+		TextData:    d.textData,
+		BooleanData: d.booleanData,
+	}
+}
+
+func setIIGOClients(clientMap *map[shared.ClientID]baseclient.Client) {
+	iigoClients = *clientMap
+}
+
 func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) {
-	//communication := Communication{
-	//	recipient: recipient,
-	//	sender:    sender,
-	//	data:      data,
-	//}
-	////Send to islands
-	//print(communication) //// Get rid of this
+	// for client := range []int{recipient, sender} {
+	// 	if client > len(shared.TeamIDs) {
+	// 		return errors.Errorf("%v is not a valid TeamID", client)
+	// 	}
+	// }
+
+	communication := map[int]baseclient.Communication{}
+	for k, v := range data {
+		communication[k] = dataPacketToCommunication(&v)
+	}
+
+	recipientID := shared.TeamIDs[recipient]
+	senderID := shared.TeamIDs[sender]
+	clients := iigoClients
+
+	if recipientClient, ok := clients[recipientID]; ok {
+		recipientClient.ReceiveCommunication(senderID, communication)
+	}
+
 }
 
 func collapseBoolean(val bool) int {
