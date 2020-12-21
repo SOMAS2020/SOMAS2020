@@ -1,29 +1,27 @@
 package vote
 
-import (
-	"math/rand"
-	"time"
-)
+//will be generated from client
+var voteForRule map[int][]int
+var voteForElect map[int][]int
 
-func GetVotesForRule(ruleID string, NumOFIslands int) map[int][]int {
+func GetVotesForRule(ruleID string, numOfIslands int) map[int][]int {
 	votesLayoutRule := make(map[int][]int)
-	rand.Seed(time.Now().UTC().UnixNano())
 	i := 1
 	for {
-		votesLayoutRule[i] = []int{rand.Intn(100), rand.Intn(100)}
+		votesLayoutRule[i] = voteForRule[i]
 		i++
-		if i > NumOFIslands {
+		if i > numOfIslands {
 			break
 		}
 	}
 	return votesLayoutRule
 }
 
-func VoteRule(ruleID string, NumOFIslands int) (int, int, bool) {
+func VoteRule(ruleID string, numOfIslands int) (int, int, bool, map[int][]int) {
 
 	//Get votes from islands for the rule changes.
 	//var votesLayoutRule map[int][]int
-	votesLayoutRule := GetVotesForRule(ruleID, NumOFIslands)
+	votesLayoutRule := GetVotesForRule(ruleID, numOfIslands)
 
 	//Calculate results of each island.
 	resultsOfAllIslands := make(map[int][]int)
@@ -36,7 +34,7 @@ func VoteRule(ruleID string, NumOFIslands int) (int, int, bool) {
 			resultsOfAllIslands[j] = []int{0, 1}
 		}
 		j++
-		if j > NumOFIslands {
+		if j > numOfIslands {
 			break
 		}
 	}
@@ -59,18 +57,16 @@ func VoteRule(ruleID string, NumOFIslands int) (int, int, bool) {
 	if numacc <= numrej {
 		ans = false
 	}
-	return numacc, numrej, ans
+	return numacc, numrej, ans, votesLayoutRule
 }
 
-func GetVotesForElect(NumOFIslands int) map[int][]int {
-	rand.Seed(time.Now().UTC().UnixNano())
+func GetVotesForElect(numOfIslands int) map[int][]int {
 	votesLayoutElect := make(map[int][]int)
 	i := 1
 	for {
-		votesLayoutElect[i] = []int{rand.Intn(100), rand.Intn(100),
-			rand.Intn(100), rand.Intn(100), rand.Intn(100), rand.Intn(100)}
+		votesLayoutElect[i] = voteForElect[i]
 		i++
-		if i > NumOFIslands {
+		if i > numOfIslands {
 			break
 		}
 	}
@@ -78,17 +74,17 @@ func GetVotesForElect(NumOFIslands int) map[int][]int {
 	return votesLayoutElect
 }
 
-func VoteElect(NumOFIslands int) (int, []int, map[int][]int) {
+func VoteElect(numOfIslands int) (int, []int, map[int][]int) {
 
 	//Get votes from each island for the election.
 	//var votesLayoutElect map[int][]int
-	votesLayoutElect := GetVotesForElect(NumOFIslands)
+	votesLayoutElect := GetVotesForElect(numOfIslands)
 
 	//Calculate the preference map.
 	var order []int
 	var index []int
 	var score []int
-	PreferenceMap := make(map[int][]int)
+	preferenceMap := make(map[int][]int)
 	for k, v := range votesLayoutElect {
 		t := 0
 		i := 0
@@ -97,7 +93,7 @@ func VoteElect(NumOFIslands int) (int, []int, map[int][]int) {
 		for {
 			order[t] = v[t]
 			t++
-			if t > NumOFIslands-1 {
+			if t > numOfIslands-1 {
 				break
 			}
 		}
@@ -114,7 +110,7 @@ func VoteElect(NumOFIslands int) (int, []int, map[int][]int) {
 				}
 
 				j++
-				if j > NumOFIslands-1 {
+				if j > numOfIslands-1 {
 					break
 				}
 			}
@@ -123,7 +119,7 @@ func VoteElect(NumOFIslands int) (int, []int, map[int][]int) {
 			order[j] = 101
 
 			i++
-			if i > NumOFIslands-1 {
+			if i > numOfIslands-1 {
 				break
 			}
 		}
@@ -136,23 +132,23 @@ func VoteElect(NumOFIslands int) (int, []int, map[int][]int) {
 			score[itrans] = s
 			s++
 			i++
-			if i > NumOFIslands-1 {
+			if i > numOfIslands-1 {
 				break
 			}
 		}
 
-		PreferenceMap[k] = score
+		preferenceMap[k] = score
 
 	}
 
 	//Calculate the final score for six island and ditermine the winner.
 	var FinalScore []int
-	for _, v := range PreferenceMap {
+	for _, v := range preferenceMap {
 		i := 0
 		for {
 			FinalScore[i] = FinalScore[i] + v[i]
 			i++
-			if i > NumOFIslands-1 {
+			if i > numOfIslands-1 {
 				break
 			}
 		}
@@ -166,27 +162,27 @@ func VoteElect(NumOFIslands int) (int, []int, map[int][]int) {
 			win = i
 		}
 		i++
-		if i > NumOFIslands-1 {
+		if i > numOfIslands-1 {
 			break
 		}
 	}
 
 	win = win + 1
 
-	return win, FinalScore, PreferenceMap
+	return win, FinalScore, preferenceMap
 }
 
-func VoteElectJudge(NumOFIslands int) (int, []int, map[int][]int) {
-	win, FinalScore, PreferenceMap := VoteElect(NumOFIslands)
-	return win, FinalScore, PreferenceMap
+func VoteElectJudge(numOfIslands int) (int, []int, map[int][]int) {
+	win, FinalScore, preferenceMap := VoteElect(numOfIslands)
+	return win, FinalScore, preferenceMap
 }
 
-func VoteElectSpeaker(NumOFIslands int) (int, []int, map[int][]int) {
-	win, FinalScore, PreferenceMap := VoteElect(NumOFIslands)
-	return win, FinalScore, PreferenceMap
+func VoteElectSpeaker(numOfIslands int) (int, []int, map[int][]int) {
+	win, FinalScore, preferenceMap := VoteElect(numOfIslands)
+	return win, FinalScore, preferenceMap
 }
 
-func VoteElectPresident(NumOFIslands int) (int, []int, map[int][]int) {
-	win, FinalScore, PreferenceMap := VoteElect(NumOFIslands)
-	return win, FinalScore, PreferenceMap
+func VoteElectPresident(numOfIslands int) (int, []int, map[int][]int) {
+	win, FinalScore, preferenceMap := VoteElect(numOfIslands)
+	return win, FinalScore, preferenceMap
 }
