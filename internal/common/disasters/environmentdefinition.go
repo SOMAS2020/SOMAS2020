@@ -2,7 +2,6 @@ package disasters
 
 import (
 	"math"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
 )
@@ -37,6 +36,7 @@ type Environment struct {
 	geography          ArchipelagoGeography
 	disasterParams     DisasterParameters
 	lastDisasterReport DisasterReport
+	CommonPool		   Commonpool
 }
 
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
@@ -68,4 +68,22 @@ func (e Environment) DisasterEffects() map[shared.ClientID]float64 {
 		out[island.id] = e.lastDisasterReport.magnitude / (math.Sqrt(math.Pow(island.x-epiX, 2) + math.Pow(island.y-epiY, 2))) // effect on island i is inverse prop. to square of distance to epicentre
 	}
 	return out
+}
+
+// DisasterEffects returns the porportional effects of the most recent DisasterReport held in the environment state
+func (e Environment) DisasterPorpotionalEffects() map[shared.ClientID]float64 {
+	out := map[shared.ClientID]float64{}                         // TODO: change key type to ClientID
+	porportionalEffect := map[shared.ClientID]float64{}
+	totalEffect := 0.0   
+
+	epiX, epiY := e.lastDisasterReport.x, e.lastDisasterReport.x // epicentre of the disaster (peak mag)
+	for _, island := range e.geography.islands {
+		out[island.id] = e.lastDisasterReport.magnitude / (math.Sqrt(math.Pow(island.x-epiX, 2) + math.Pow(island.y-epiY, 2))) // effect on island i is inverse prop. to square of distance to epicentre
+		totalEffect = totalEffect + out[island.id]
+	}
+	for _, island := range e.geography.islands {
+		porportionalEffect[island.id] =  out[island.id] / totalEffect
+	}
+
+	return porportionalEffect
 }

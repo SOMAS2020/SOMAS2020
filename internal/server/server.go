@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -39,6 +40,7 @@ func SOMASServerFactory() Server {
 			Season:      1,
 			Turn:        1,
 			ClientInfos: clientInfos,
+			Environment: initEnvironment(),
 		},
 	}
 }
@@ -76,6 +78,7 @@ func (s *SOMASServer) logf(format string, a ...interface{}) {
 }
 
 func initEnvironment() *disasters.Environment {
+	var cp = disasters.Commonpool{900, 1000}
 	_, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
 	islandIDs := make([]shared.ClientID, 0, len(clientMap))
 	for id := range clientMap {
@@ -83,7 +86,34 @@ func initEnvironment() *disasters.Environment {
 	}
 	xBounds := [2]float64{0, 10}
 	yBounds := [2]float64{0, 10}
-	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0}
-	env, _ := disasters.InitEnvironment(islandIDs, xBounds, yBounds, dp)
+	dp := disasters.DisasterParameters{GlobalProb: 1, SpatialPDF: "uniform", MagnitudeLambda: 1.0}
+	env, _ := disasters.InitEnvironment(islandIDs, xBounds, yBounds, dp, cp)
 	return env
+}
+
+//islandDistribute distributes leftover resource after disaster's mitigation
+func (s *SOMASServer) islandDistribute(leftover uint, disasterReport string) { //receives 
+	if disasterReport != "No disaster reported." {
+		var clientPortion int
+		clientPortion = int(leftover / 6) // equally divide leftover
+		for _, id := range shared.TeamIDs {
+		ci := s.gameState.ClientInfos[id]
+		ci.Resources = ci.Resources + clientPortion //adds to each client its portion
+		s.gameState.ClientInfos[id] = ci
+		s.gameState.Environment.CommonPool.Resource = 0;
+	}
+		
+	}
+	
+
+}
+
+//islandDeplete depletes island's resource based on the severity of the storm
+func (s *SOMASServer) islandDeplete(porpotionEffect map[shared.ClientID]float64) {
+	temp := 0.0
+	for id, ci := range s.gameState.ClientInfos {
+		temp = math.Max(float64(ci.Resources)-porpotionEffect[id], 0.0) //adds to each client its portion	
+		ci.Resources = int(temp)
+		s.gameState.ClientInfos[id] = ci
+	}
 }
