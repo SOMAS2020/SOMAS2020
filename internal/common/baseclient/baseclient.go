@@ -3,6 +3,7 @@ package baseclient
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/roles"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -22,6 +23,12 @@ type Client interface {
 	GameStateUpdate(gameState gamestate.ClientGameState)
 
 	Logf(format string, a ...interface{})
+	CommonPoolResourceRequest() int
+	ResourceReport() int
+	RuleProposal() string
+	GetClientPresidentPointer() roles.President
+	GetClientJudgePointer() roles.Judge
+	GetClientSpeakerPointer() roles.Speaker
 }
 
 // NewClient produces a new client with the BaseClient already implemented.

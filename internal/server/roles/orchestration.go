@@ -1,8 +1,10 @@
 package roles
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
 
@@ -52,13 +54,13 @@ var speakerPointer Speaker = nil
 var presidentPointer President = nil
 
 // iigoClients holds pointers to all the clients
-// var iigoClients *map[int]Client
+var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
-func RunIIGO(g *gamestate.GameState) error {
+func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) error {
 
 	// TODO: Get Client pointers from gamestate https://imgur.com/a/HjVZIkh
-	// iigoClients = g.getClients()
+	iigoClients = *clientMap
 
 	// Initialise IDs
 	featureJudge.id = JudgeIDGlobal
@@ -97,8 +99,7 @@ func RunIIGO(g *gamestate.GameState) error {
 	// 2 President actions
 	resourceReports := map[int]int{}
 	for _, v := range rules.VariableMap["islands_alive"].Values {
-		_ = v // For compilation
-		// resourceReports[v] = iigoClients[v].ResourceReport()
+		resourceReports[int(v)] = iigoClients[shared.ClientID(int(v))].ResourceReport()
 	}
 	featurePresident.broadcastTaxation(resourceReports)
 	featurePresident.requestAllocationRequest()
@@ -126,11 +127,11 @@ func RunIIGO(g *gamestate.GameState) error {
 	PresidentIDGlobal = featureJudge.appointNextPresident()
 
 	// Set judgePointer
-	// judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
+	judgePointer = iigoClients[shared.ClientID(JudgeIDGlobal)].GetClientJudgePointer()
 	// Set speakerPointer
-	// speakerPointer = iigoClients[SpeakerIDGlobal].GetClientSpeakerPointer()
+	speakerPointer = iigoClients[shared.ClientID(SpeakerIDGlobal)].GetClientSpeakerPointer()
 	// Set presidentPointer
-	// presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
+	presidentPointer = iigoClients[shared.ClientID(PresidentIDGlobal)].GetClientPresidentPointer()
 
 	return nil
 }

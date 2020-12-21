@@ -7,7 +7,7 @@ func (s *SOMASServer) runIIGO() error {
 	s.logf("start runIIGO")
 	defer s.logf("finish runIIGO")
 	// TODO:- IIGO team
-	_ = roles.RunIIGO(&s.gameState)
+	_ = roles.RunIIGO(&s.gameState, &s.clientMap)
 	return nil
 }
 

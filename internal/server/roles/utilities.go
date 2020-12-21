@@ -6,12 +6,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var gamestateVal *gamestate.GameState
-
-func setGameState(gameState *gamestate.GameState) {
-	gamestateVal = gameState
-}
-
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables
 func PickUpRulesByVariable(variableName string, ruleStore map[string]rules.RuleMatrix) ([]string, error) {
 	var Rules []string

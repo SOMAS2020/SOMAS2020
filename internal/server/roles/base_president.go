@@ -2,6 +2,7 @@ package roles
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -54,9 +55,9 @@ func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) 
 func (p *basePresident) requestRuleProposal() {
 	p.budget -= 10
 	var rules []string
-	//for _, v := range getIslandAlive() {
-	//	rules = append(rules, clients[int(v)].RuleProposal()))
-	//}
+	for _, v := range getIslandAlive() {
+		rules = append(rules, iigoClients[shared.ClientID(int(v))].RuleProposal())
+	}
 	p.setRuleProposals(rules)
 }
 
@@ -136,9 +137,9 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 
 func (p *basePresident) requestAllocationRequest() {
 	allocRequests := make(map[int]int)
-	//for _, v := range getIslandAlive() {
-	//	allocRequests[int(v)] = clients[int(v)].CommonPoolResourceRequest()
-	//}
+	for _, v := range getIslandAlive() {
+		allocRequests[int(v)] = iigoClients[shared.ClientID(int(v))].CommonPoolResourceRequest()
+	}
 	p.setAllocationRequest(allocRequests)
 
 }
