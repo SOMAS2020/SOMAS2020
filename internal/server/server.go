@@ -95,13 +95,15 @@ func (s *SOMASServer) logf(format string, a ...interface{}) {
 }
 
 func initEnvironment() *disasters.Environment {
-	islandIDs := make([]shared.ClientID, 0, len(common.RegisteredClients))
-	for id := range common.RegisteredClients {
+	_, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
+	islandIDs := make([]shared.ClientID, 0, len(clientMap))
+
+	for id := range clientMap {
 		islandIDs = append(islandIDs, id)
 	}
-	xBounds := [2]float64{0, 10}
+	xBounds := [2]float64{0, 10} //TODO: move to config package
 	yBounds := [2]float64{0, 10}
-	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0}
+	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0} // TODO: move to config package
 	env, _ := disasters.InitEnvironment(islandIDs, xBounds, yBounds, dp)
 	return env
 }

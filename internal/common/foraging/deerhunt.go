@@ -3,6 +3,8 @@ package foraging
 // see https://colab.research.google.com/drive/1g1tiX27Ds7FGjj4_WjFB3OLj8Fat_Ur5?usp=sharing for experiments + simulations
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
 )
@@ -46,12 +48,13 @@ func deerUtilityTier(input float64, increments []float64) int {
 	if len(increments) == 0 || input < increments[0] {
 		return 0
 	}
-	sum := increments[0]
-	for i := 1; i < len(increments); i++ {
-		if input < sum {
-			return i - 1
-		}
+	sum := 0.0
+	for i := 0; i < len(increments); i++ {
 		sum += increments[i]
+		fmt.Println(sum)
+		if input < sum {
+			return i
+		}
 	}
 	return len(increments)
 }
