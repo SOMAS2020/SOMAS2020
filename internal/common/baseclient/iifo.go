@@ -17,7 +17,7 @@ type DisasterInfo struct {
 }
 
 // PastDisastersDict is a helpful construct for
-type PastDisastersDict = map[int]DisasterInfo
+type PastDisastersList = []DisasterInfo
 
 var ourPredictionInfo shared.PredictionInfo
 
@@ -26,18 +26,18 @@ var ourPredictionInfo shared.PredictionInfo
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 	// Set up dummy disasters for testing purposes
-	pastDisastersDict := make(PastDisastersDict)
+	pastDisastersList := make(PastDisastersList, 5)
 	for i := 0; i < 4; i++ {
-		pastDisastersDict[i] = DisasterInfo{
+		pastDisastersList[i] = (DisasterInfo{
 			CoordinateX: float64(i),
 			CoordinateY: float64(i),
 			Magnitude:   float64(i),
 			Turn:        uint(i),
-		}
+		})
 	}
 
 	// Use the sample mean of each field as our prediction
-	meanDisaster, err := getMeanDisaster(pastDisastersDict)
+	meanDisaster, err := getMeanDisaster(pastDisastersList)
 	if err != nil {
 		return shared.PredictionInfo{}, err
 	}
@@ -52,13 +52,13 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 	// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
 	// Use a variance limit of 100 for now
 	varianceLimit := 100.0
-	prediction.Confidence, err = determineConfidence(pastDisastersDict, meanDisaster, varianceLimit)
+	prediction.Confidence, err = determineConfidence(pastDisastersList, meanDisaster, varianceLimit)
 	if err != nil {
 		return shared.PredictionInfo{}, err
 	}
 
 	// For MVP, share this prediction with all islands since trust has not yet been implemented
-	trustedIslands := make([]shared.ClientID, 6)
+	trustedIslands := make([]shared.ClientID, len(RegisteredClients))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
@@ -72,11 +72,11 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 	return predictionInfo, nil
 }
 
-func getMeanDisaster(pastDisastersDict PastDisastersDict) (DisasterInfo, error) {
+func getMeanDisaster(pastDisastersList PastDisastersList) (DisasterInfo, error) {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
-	numberDisastersPassed := float64(len(pastDisastersDict))
+	numberDisastersPassed := float64(len(pastDisastersList))
 
-	for _, disaster := range pastDisastersDict {
+	for _, disaster := range pastDisastersList {
 		totalCoordinateX += disaster.CoordinateX
 		totalCoordinateY += disaster.CoordinateY
 		totalMagnitude += float64(disaster.Magnitude)
@@ -92,13 +92,13 @@ func getMeanDisaster(pastDisastersDict PastDisastersDict) (DisasterInfo, error) 
 	return meanDisaster, nil
 }
 
-func determineConfidence(pastDisastersDict PastDisastersDict, meanDisaster DisasterInfo, varianceLimit float64) (float64, error) {
+func determineConfidence(pastDisastersList PastDisastersList, meanDisaster DisasterInfo, varianceLimit float64) (float64, error) {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	totalDisaster := DisasterInfo{}
-	numberDisastersPassed := float64(len(pastDisastersDict))
+	numberDisastersPassed := float64(len(pastDisastersList))
 
 	// Find the sum of the square of the difference between the actual and mean, for each field
-	for _, disaster := range pastDisastersDict {
+	for _, disaster := range pastDisastersList {
 		totalDisaster.CoordinateX += math.Pow(disaster.CoordinateX-meanDisaster.CoordinateX, 2)
 		totalDisaster.CoordinateY += math.Pow(disaster.CoordinateY-meanDisaster.CoordinateY, 2)
 		totalDisaster.Magnitude += math.Pow(disaster.Magnitude-meanDisaster.Magnitude, 2)
