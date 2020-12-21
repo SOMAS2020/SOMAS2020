@@ -10,9 +10,9 @@ import (
 // These disasters will be stored in PastDisastersDict (maps round number to disaster that occurred)
 // TODO: Agree with environment team on disaster struct representation
 type DisasterInfo struct {
-	CoordinateX float64
-	CoordinateY float64
-	Magnitude   float64
+	CoordinateX shared.Coordinate
+	CoordinateY shared.Coordinate
+	Magnitude   shared.Magnitude
 	Turn        uint
 }
 
