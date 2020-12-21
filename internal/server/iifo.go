@@ -76,7 +76,7 @@ func (s *SOMASServer) distributePredictions(islandPredictionDict shared.Predicti
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		err = c.RecievePredictions(recievedPredictionsDict[id])
+		err = c.ReceivePredictions(receivedPredictionsDict[id])
 		if err != nil {
 			return errors.Errorf("Failed to receive prediction from client %v: %v", id, err)
 		}
