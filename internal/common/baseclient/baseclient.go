@@ -34,7 +34,7 @@ func NewClient(id shared.ClientID) Client {
 // All clients should be based off of this BaseClient to ensure that all clients implement the interface,
 // even when new features are added.
 type BaseClient struct {
-	id shared.ClientID
+	id              shared.ClientID
 	clientGameState gamestate.ClientGameState
 }
 
