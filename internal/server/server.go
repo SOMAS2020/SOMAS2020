@@ -70,16 +70,6 @@ func (s *SOMASServer) runRound() error {
 	if err := s.getEcho("HELLO WORLD!"); err != nil {
 		return fmt.Errorf("getEcho failed with: %v", err)
 	}
-	s.gameState.Environment.SampleForDisaster()
-	fmt.Println(s.gameState.Environment.DisplayReport())
-
-	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
-	deerHunt := foraging.CreateDeerHunt(huntParticipants)
-	fmt.Printf("\nResults of deer hunt: return of %.3f at cost of %.3f\n", deerHunt.Hunt(), deerHunt.TotalInput())
-
-	dp := foraging.CreateBasicDeerPopulationModel()
-	consumption := []int{0, 0, 2, 0, 0, 1, 0, 3, 0, 0} // simulate deer consumption (no. deer hunted each day) over 10 days
-	dp.Simulate(consumption)
 	return nil
 }
 

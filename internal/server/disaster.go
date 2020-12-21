@@ -8,5 +8,6 @@ func (s *SOMASServer) probeDisaster() (disasters.DisasterReport, error) {
 	defer s.logf("finish probeDisaster")
 
 	disasterReport := s.gameState.Environment.SampleForDisaster()
+	s.logf(s.gameState.Environment.DisplayReport())
 	return disasterReport, nil
 }
