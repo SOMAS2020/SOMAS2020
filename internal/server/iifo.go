@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -21,20 +20,20 @@ func (s *SOMASServer) runIIFOEndOfTurn() error {
 	return nil
 }
 
-func (s *SOMASServer) runPredictionSession() ([]common.Action, error) {
+func (s *SOMASServer) runPredictionSession() error {
 	s.logf("start runPredictionSession")
 	islandPredictionDict, err := s.getPredictions()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = s.distributePredictions(islandPredictionDict)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer s.logf("finish runPredictionSession")
-	return nil, nil
+	return nil
 }
 
 func (s *SOMASServer) getPredictions() (shared.PredictionInfoDict, error) {
