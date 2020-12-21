@@ -36,13 +36,15 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 6. Keep your team repo base up to date with the main repo.
 
+7. Use the superior `errors.Errorf` to create your errors so that we have a stack trace.
+
 ## Repo
 
 1. Each team will work off a fork of the main repo. Your team is responsible for all development happening in the fork, and are responsible to keep your own fork up-to-date, as well as to pull in changes to the main repo periodically. (Remember to give your teammates _write access_ to the fork!)
 
 2. Your team's fork must pass CI + infrastructure team code reviews before it can be merged into the main repo. Make sure you detail your changes succinctly in your PR, and _KEEP DIFFS SMALL_. Infra might not need to read every line, but having small reviews to do is helpful. Again, DO NOT TOUCH CODE YOU'RE NOT SUPPOSED TO. 
 
-3. Make sure your fork is up-to-date with the main repo's `main` branch before submitting a PR.
+3. Make sure your fork is up-to-date with the main repo's `main` branch before submitting a PR. You should install [https://github.com/wei/pull](https://github.com/wei/pull) on your fork to automate this.
 
 4. Your fork should inherit the Github Actions for CI as well, this means PRs into your `main` branch should run CI.
 
