@@ -13,7 +13,7 @@ type DisasterInfo struct {
 	CoordinateX float64
 	CoordinateY float64
 	Magnitude   float64
-	Turn uint
+	Turn        uint
 }
 
 // PastDisastersDict is a helpful construct for
@@ -32,7 +32,7 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 			CoordinateX: float64(i),
 			CoordinateY: float64(i),
 			Magnitude:   float64(i),
-			TurnNumber:  i,
+			Turn:        uint(i),
 		}
 	}
 
@@ -46,7 +46,7 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 		CoordinateX: meanDisaster.CoordinateX,
 		CoordinateY: meanDisaster.CoordinateY,
 		Magnitude:   meanDisaster.Magnitude,
-		TimeLeft:    meanDisaster.TurnNumber,
+		TimeLeft:    int(meanDisaster.Turn),
 	}
 
 	// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
@@ -73,27 +73,27 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 }
 
 func getMeanDisaster(pastDisastersDict PastDisastersDict) (DisasterInfo, error) {
-	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurnNumber := 0.0, 0.0, 0.0, 0.0
+	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	numberDisastersPassed := float64(len(pastDisastersDict))
 
 	for _, disaster := range pastDisastersDict {
 		totalCoordinateX += disaster.CoordinateX
 		totalCoordinateY += disaster.CoordinateY
 		totalMagnitude += float64(disaster.Magnitude)
-		totalTurnNumber += float64(disaster.TurnNumber)
+		totalTurn += float64(disaster.Turn)
 	}
 
 	meanDisaster := DisasterInfo{
 		CoordinateX: totalCoordinateX / numberDisastersPassed,
 		CoordinateY: totalCoordinateY / numberDisastersPassed,
 		Magnitude:   totalMagnitude / numberDisastersPassed,
-		TurnNumber:  int(math.Round(totalTurnNumber/numberDisastersPassed + 0.5)),
+		Turn:        uint(math.Round(totalTurn / numberDisastersPassed)),
 	}
 	return meanDisaster, nil
 }
 
 func determineConfidence(pastDisastersDict PastDisastersDict, meanDisaster DisasterInfo, varianceLimit float64) (float64, error) {
-	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurnNumber := 0.0, 0.0, 0.0, 0.0
+	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	totalDisaster := DisasterInfo{}
 	numberDisastersPassed := float64(len(pastDisastersDict))
 
@@ -102,11 +102,11 @@ func determineConfidence(pastDisastersDict PastDisastersDict, meanDisaster Disas
 		totalDisaster.CoordinateX += math.Pow(disaster.CoordinateX-meanDisaster.CoordinateX, 2)
 		totalDisaster.CoordinateY += math.Pow(disaster.CoordinateY-meanDisaster.CoordinateY, 2)
 		totalDisaster.Magnitude += math.Pow(disaster.Magnitude-meanDisaster.Magnitude, 2)
-		totalDisaster.TurnNumber += int(math.Round(math.Pow(float64(disaster.TurnNumber-meanDisaster.TurnNumber), 2)))
+		totalDisaster.Turn += uint(math.Round(math.Pow(float64(disaster.Turn-meanDisaster.Turn), 2)))
 	}
 
 	// Find the sum of the variances and the average variance
-	varianceSum := (totalCoordinateX + totalCoordinateY + totalMagnitude + totalTurnNumber) / numberDisastersPassed
+	varianceSum := (totalCoordinateX + totalCoordinateY + totalMagnitude + totalTurn) / numberDisastersPassed
 	averageVariance := varianceSum / 4
 
 	// Implement the variance cap chosen
