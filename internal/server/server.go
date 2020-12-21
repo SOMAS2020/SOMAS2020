@@ -74,7 +74,6 @@ func (s *SOMASServer) runRound() error {
 	dp := foraging.CreateBasicDeerPopulationModel()
 	consumption := []int{0, 0, 2, 0, 0, 1, 0, 3, 0, 0} // simulate deer consumption (no. deer hunted each day) over 10 days
 	dp.Simulate(consumption)
-	s.killAllClients()
 	return nil
 }
 
