@@ -6,7 +6,7 @@ func(c *BaseClient) CommonPoolResourceRequest(){
 
 }
 
-// ResourceReport is an islands self-report of its own resources.
+// ResourceReport is an island's self-report of its own resources.
 func(c *BaseClient) ResourceReport()int{
 	return c.clientGameState.ClientInfo.Resources
 }
