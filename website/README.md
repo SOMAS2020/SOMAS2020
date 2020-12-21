@@ -1,6 +1,6 @@
 # SOMAS2020 Visualisation Website
 
-https://somas2020.github.com/SOMAS2020
+https://somas2020.github.io/SOMAS2020
 
 ## Getting started 
 
