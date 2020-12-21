@@ -62,8 +62,8 @@ func (e *Environment) SampleForDisaster() DisasterReport {
 
 // DisasterEffects returns the effects of the most recent DisasterReport held in the environment state
 func (e Environment) DisasterEffects() map[shared.ClientID]float64 {
-	out := map[shared.ClientID]float64{}                         // TODO: change key type to ClientID
-	epiX, epiY := e.lastDisasterReport.x, e.lastDisasterReport.x // epicentre of the disaster (peak mag)
+	out := map[shared.ClientID]float64{}
+	epiX, epiY := e.lastDisasterReport.x, e.lastDisasterReport.y // epicentre of the disaster (peak mag)
 	for _, island := range e.geography.islands {
 		out[island.id] = e.lastDisasterReport.magnitude / (math.Sqrt(math.Pow(island.x-epiX, 2) + math.Pow(island.y-epiY, 2))) // effect on island i is inverse prop. to square of distance to epicentre
 	}

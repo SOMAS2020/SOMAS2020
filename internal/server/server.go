@@ -7,6 +7,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
@@ -57,6 +58,24 @@ func (s *SOMASServer) EntryPoint() ([]gamestate.GameState, error) {
 	return states, nil
 }
 
+// runRound runs a round (day) of the game.
+func (s *SOMASServer) runRound() error {
+	if err := s.getEcho("HELLO WORLD!"); err != nil {
+		return fmt.Errorf("getEcho failed with: %v", err)
+	}
+	s.gameState.Environment.SampleForDisaster()
+	fmt.Println(s.gameState.Environment.DisplayReport())
+
+	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
+	deerHunt := foraging.CreateDeerHunt(huntParticipants)
+	fmt.Printf("\nResults of deer hunt: return of %.3f at cost of %.3f\n", deerHunt.Hunt(), deerHunt.TotalInput())
+
+	dp := foraging.CreateBasicDeerPopulationModel()
+	consumption := []int{0, 0, 2, 0, 0, 1, 0, 3, 0, 0} // simulate deer consumption (no. deer hunted each day) over 10 days
+	dp.Simulate(consumption)
+	return nil
+}
+
 // getEcho retrieves an echo from all the clients and make sure they are the same.
 func (s *SOMASServer) getEcho(str string) error {
 	for _, c := range s.clientMap {
@@ -78,12 +97,13 @@ func (s *SOMASServer) logf(format string, a ...interface{}) {
 func initEnvironment() *disasters.Environment {
 	_, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
 	islandIDs := make([]shared.ClientID, 0, len(clientMap))
+
 	for id := range clientMap {
 		islandIDs = append(islandIDs, id)
 	}
-	xBounds := [2]float64{0, 10}
+	xBounds := [2]float64{0, 10} //TODO: move to config package
 	yBounds := [2]float64{0, 10}
-	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0}
+	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0} // TODO: move to config package
 	env, _ := disasters.InitEnvironment(islandIDs, xBounds, yBounds, dp)
 	return env
 }
