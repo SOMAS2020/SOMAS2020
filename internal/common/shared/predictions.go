@@ -5,9 +5,9 @@ package shared
 type Prediction struct {
 	CoordinateX float64
 	CoordinateY float64
-	Magnitude   int
+	Magnitude   float64
 	TimeLeft    int
-	Confidence  int
+	Confidence  float64
 }
 
 // PredictionInfo is a struct containing the information describing a prediction
