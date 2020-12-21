@@ -1,13 +1,18 @@
 package baseclient
 
-func(c *BaseClient) getCommonPoolResourceRequest(){
+// CommonPoolResourceRequest is called by the President in IIGO to
+// request an allocation of resources from the common pool.
+func(c *BaseClient) CommonPoolResourceRequest(){
 
 }
 
-func(c *BaseClient) getResourceReport()int{
+// ResourceReport is an islands self-report of its own resources.
+func(c *BaseClient) ResourceReport()int{
 	return c.clientGameState.ClientInfo.Resources
 }
 
-func(c *BaseClient) getRuleProposal(){
+// RuleProposal is called by the President in IIGO to propose a
+// rule to be voted on.
+func(c *BaseClient) RuleProposal(){
 
 }
