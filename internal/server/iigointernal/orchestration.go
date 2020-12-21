@@ -1,8 +1,9 @@
-package roles
+package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
@@ -49,9 +50,9 @@ var JudgeIDGlobal = 0
 var PresidentIDGlobal = 0
 
 // Pointers allow clients to customise implementations of mutable functions
-var judgePointer Judge = nil
-var speakerPointer Speaker = nil
-var presidentPointer President = nil
+var judgePointer roles.Judge = nil
+var speakerPointer roles.Speaker = nil
+var presidentPointer roles.President = nil
 
 // iigoClients holds pointers to all the clients
 var iigoClients map[shared.ClientID]baseclient.Client
@@ -67,7 +68,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	featureSpeaker.id = SpeakerIDGlobal
 	featurePresident.id = PresidentIDGlobal
 
-	// Initialise roles with their clientVersions
+	// Initialise iigointernal with their clientVersions
 	featureJudge.clientJudge = judgePointer
 	featurePresident.clientPresident = presidentPointer
 	featureSpeaker.clientSpeaker = speakerPointer
@@ -112,7 +113,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	featureSpeaker.setVotingResult()
 	featureSpeaker.announceVotingResult()
 
-	// 4 Declare performance (Judge) (in future all the roles)
+	// 4 Declare performance (Judge) (in future all the iigointernal)
 	if judgeInspectingHistoryError != nil {
 		featureJudge.declarePresidentPerformanceWrapped()
 

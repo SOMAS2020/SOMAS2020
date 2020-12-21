@@ -1,7 +1,8 @@
-package roles
+package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"math/rand"
 
@@ -11,7 +12,7 @@ import (
 //base President Object
 type basePresident struct {
 	id               int
-	clientPresident  President
+	clientPresident  roles.President
 	budget           int
 	speakerSalary    int
 	rulesProposals   []string
@@ -88,7 +89,7 @@ func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int
 // Called by orchestration at the end of the turn
 func (p *basePresident) getRuleForSpeaker() string {
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.pickRuleToVote(p.rulesProposals)
+		result, error := p.clientPresident.PickRuleToVote(p.rulesProposals)
 		if error == nil {
 			return result
 		}
@@ -102,7 +103,7 @@ func (p *basePresident) getRuleForSpeaker() string {
 func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	p.budget -= 10
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.setTaxationAmount(islandsResources)
+		result, error := p.clientPresident.SetTaxationAmount(islandsResources)
 		if error == nil {
 			return result
 		}
@@ -126,7 +127,7 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 // Called by orchestration at the end of the turn
 func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.evaluateAllocationRequests(p.resourceRequests, commonPool)
+		result, error := p.clientPresident.EvaluateAllocationRequests(p.resourceRequests, commonPool)
 		if error == nil {
 			return result
 		}
@@ -171,7 +172,7 @@ func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) er
 
 func (p *basePresident) sendSpeakerSalary() {
 	if p.clientPresident != nil {
-		amount, err := p.clientPresident.paySpeaker()
+		amount, err := p.clientPresident.PaySpeaker()
 		if err == nil {
 			featureSpeaker.budget = amount
 			return

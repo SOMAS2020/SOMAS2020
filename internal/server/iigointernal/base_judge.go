@@ -1,7 +1,8 @@
-package roles
+package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 	"math/rand"
@@ -16,8 +17,8 @@ type BaseJudge struct {
 	ResAllocID        int
 	speakerID         int
 	presidentID       int
-	evaluationResults map[int]EvaluationReturn
-	clientJudge       Judge
+	evaluationResults map[int]roles.EvaluationReturn
+	clientJudge       roles.Judge
 }
 
 func (j *BaseJudge) init() {
@@ -38,7 +39,7 @@ func (j *BaseJudge) withdrawPresidentSalary(gameState *gamestate.GameState) erro
 
 func (j *BaseJudge) sendPresidentSalary() {
 	if j.clientJudge != nil {
-		amount, err := j.clientJudge.payPresident()
+		amount, err := j.clientJudge.PayPresident()
 		if err == nil {
 			featurePresident.budget = amount
 			return
@@ -60,13 +61,8 @@ func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId int, presidentId int) {
 	j.presidentID = presidentId
 }
 
-type EvaluationReturn struct {
-	rules       []rules.RuleMatrix
-	evaluations []bool
-}
-
 func (j *BaseJudge) inspectHistoryInternal() {
-	outputMap := map[int]EvaluationReturn{}
+	outputMap := map[int]roles.EvaluationReturn{}
 	for _, v := range TurnHistory {
 		variablePairs := v.pairs
 		clientID := v.clientID
@@ -82,26 +78,26 @@ func (j *BaseJudge) inspectHistoryInternal() {
 			}
 		}
 		if _, ok := outputMap[clientID]; !ok {
-			tempTemp := EvaluationReturn{
-				rules:       []rules.RuleMatrix{},
-				evaluations: []bool{},
+			tempTemp := roles.EvaluationReturn{
+				Rules:       []rules.RuleMatrix{},
+				Evaluations: []bool{},
 			}
 			outputMap[clientID] = tempTemp
 		}
 		tempReturn := outputMap[clientID]
 		for _, v3 := range rulesAffected {
 			evaluation, _ := rules.BasicBooleanRuleEvaluator(v3)
-			tempReturn.rules = append(tempReturn.rules, rules.RulesInPlay[v3])
-			tempReturn.evaluations = append(tempReturn.evaluations, evaluation)
+			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[v3])
+			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
 		}
 	}
 	j.evaluationResults = outputMap
 }
 
-func (j *BaseJudge) inspectHistory() (map[int]EvaluationReturn, error) {
+func (j *BaseJudge) inspectHistory() (map[int]roles.EvaluationReturn, error) {
 	j.budget -= 10
 	if j.clientJudge != nil {
-		outputMap, err := j.clientJudge.inspectHistory()
+		outputMap, err := j.clientJudge.InspectHistory()
 		if err != nil {
 			j.inspectHistoryInternal()
 		} else {
@@ -119,9 +115,9 @@ func (j *BaseJudge) inspectBallot() (bool, error) {
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
 	j.budget -= 10
 	rulesAffectedBySpeaker := j.evaluationResults[j.speakerID]
-	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.rules)
+	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err == nil {
-		return rulesAffectedBySpeaker.evaluations[indexOfBallotRule], nil
+		return rulesAffectedBySpeaker.Evaluations[indexOfBallotRule], nil
 	} else {
 		return true, errors.Errorf("Speaker did not conduct any ballots")
 	}
@@ -135,9 +131,9 @@ func (j *BaseJudge) inspectAllocation() (bool, error) {
 	//    matrix
 	j.budget -= 10
 	rulesAffectedByPresident := j.evaluationResults[j.presidentID]
-	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.rules)
+	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
 	if err == nil {
-		return rulesAffectedByPresident.evaluations[indexOfAllocRule], nil
+		return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
 	} else {
 		return true, errors.Errorf("President didn't conduct any allocations")
 	}
@@ -171,7 +167,7 @@ func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
 	var err error
 
 	if j.clientJudge != nil {
-		BID, result, SID, checkRole, err = j.clientJudge.declareSpeakerPerformance()
+		BID, result, SID, checkRole, err = j.clientJudge.DeclareSpeakerPerformance()
 		if err == nil {
 			BID, result, SID, checkRole, err = j.declareSpeakerPerformanceInternal()
 		}
@@ -201,7 +197,7 @@ func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) 
 	var err error
 
 	if j.clientJudge != nil {
-		RID, result, PID, checkRole, err = j.clientJudge.declarePresidentPerformance()
+		RID, result, PID, checkRole, err = j.clientJudge.DeclarePresidentPerformance()
 		if err == nil {
 			RID, result, PID, checkRole, err = j.declarePresidentPerformanceInternal()
 		}

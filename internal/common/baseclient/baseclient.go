@@ -3,7 +3,7 @@ package baseclient
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/server/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"

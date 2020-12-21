@@ -1,4 +1,4 @@
-package roles
+package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
