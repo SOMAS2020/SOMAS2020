@@ -32,6 +32,8 @@ type Client interface {
 	GetClientSpeakerPointer() roles.Speaker
 	ReceiveCommunication(sender shared.ClientID, data map[int]Communication)
 	GetCommunications() *map[shared.ClientID][]map[int]Communication
+	GetTaxContribution() int
+	RequestAllocation() int
 }
 
 // NewClient produces a new client with the BaseClient already implemented.
