@@ -101,8 +101,8 @@ func generateRulesTestStores() (map[string](rules.RuleMatrix), map[string](rules
 			"Kinda Test Rule":   ruleMatrixExample,
 			"Kinda Test Rule 2": ruleMatrixExample,
 			"Kinda Test Rule 3": ruleMatrixExample,
-			"Rule1": ruleMatrixExample,
-			"Rule2": ruleMatrixExample,
+			"TestingRule1": ruleMatrixExample,
+			"TestingRule2": ruleMatrixExample,
 		},
 		map[string](rules.RuleMatrix){
 			"Kinda Test Rule 2": ruleMatrixExample,
@@ -112,35 +112,34 @@ func generateRulesTestStores() (map[string](rules.RuleMatrix), map[string](rules
 
 type speakerState struct{
 	ruleToVote    string
-	votingResult  bool
+	VotingResult  bool
 }
 
-func TestSetRuleToVote (t *testing.T) {
+func TestVoting (t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	s := baseSpeaker{clientSpeaker: nil}
 	cases := []struct {
 		name   string
 		ruleID string
 		expectedStates []speakerState
-
 		want   error
 	}{
 		{
 			name:   "Rule given",
-			ruleID: "Rule1",
-			expectedStates: []speakerState{ speakerState{"Rule1", false}, speakerState{"Rule1", true}},
+			ruleID: "TestingRule1",
+			expectedStates: []speakerState{speakerState{"TestingRule1", false}, {"TestingRule1", true}},
 			want:   nil,
 		},
 		{
 			name: "Another rule given",
-			ruleID: "Rule2",
-			expectedStates: []speakerState{ speakerState{"Rule2", false}, speakerState{"Rule2", true}},
+			ruleID: "TestingRule2",
+			expectedStates: []speakerState{speakerState{"TestingRule2", false}, {"TestingRule2", true}},
 			want: nil,
 		},
 		{
 			name: "No rule given",
 			ruleID: "",
-			expectedStates: []speakerState{ speakerState{"", false}, speakerState{"", false}},
+			expectedStates: []speakerState{speakerState{"", false}, {"", false}},
 			want: nil,
 		},
 	}
@@ -155,6 +154,7 @@ func TestSetRuleToVote (t *testing.T) {
 			got := s.announceVotingResult()
 
 			stateTransfer = append(stateTransfer, []speakerState{state1,state2})
+			tc.expectedStates[1].VotingResult = state2.VotingResult //Result is random
 			expectedStateTransfer = append(expectedStateTransfer, tc.expectedStates)
 
 			testutils.CompareTestErrors(tc.want, got, t)

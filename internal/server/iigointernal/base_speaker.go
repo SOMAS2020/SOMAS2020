@@ -6,6 +6,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 	"math/rand"
+	"time"
 )
 
 type baseSpeaker struct {
@@ -56,12 +57,12 @@ func (s *baseSpeaker) setVotingResult() {
 	if s.clientSpeaker != nil {
 		result, err := s.clientSpeaker.RunVote(s.ruleToVote)
 		if err != nil {
-			s.votingResult, _ = s.RunVote(s.ruleToVote)
+			s.votingResult, _ = s.runVote(s.ruleToVote)
 		} else {
 			s.votingResult = result
 		}
 	} else {
-		s.votingResult, _ = s.RunVote(s.ruleToVote)
+		s.votingResult, _ = s.runVote(s.ruleToVote)
 	}
 }
 
@@ -73,45 +74,41 @@ func (s *baseSpeaker) runVote(ruleID string) (bool,error){
 	if ruleID == "" {
 		// No rules were proposed by the islands
 		return false, nil
-	} else {
-		////Run the vote
-		////TODO: updateTurnHistory of rule given to vote on vs , so need to pass in
-		//v := voting.VoteRule{s.ruleToVote}
-		//
-		////Receive ballots
-		////Speaker Id passed in for logging
-		////TODO:
-		//ballots := v.CallVote(s.id)
-		//
-		////TODO:
-		//return v.CountVotes(ballots, "majority")
+	}else {
+		////TODO: updateTurnHistory of rule-given-to-vote vs ruleToVote
+		//TODO: pass in islandID for log
+		//ballotsFor, ballotsAgainst, result = voting.VoteRule(ruleID, getIslandAlive())
 
-		//For testing while voting is not finished
-		return true, nil
+		//Return a random result for now
+		rand.Seed(time.Now().UnixNano())
+		return rand.Int31()&0x01 == 0, nil
 	}
-	//TODO: voting with team 6 implementation
 }
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
 func (s *baseSpeaker) announceVotingResult() error{
-	s.budget -= 10
-	rule := ""
-	result := false
-	err := error(nil)
+
+	var rule string
+	var result bool
+	var err error
 
 	if s.clientSpeaker != nil {
 		//Power to change what is declared completely, return "", _ for no announcement to occur
 		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.ruleToVote, s.votingResult)
 		//TODO: log of given vs. returned rule and result
 		if err != nil {
-			rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
+			rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
 		}
 	} else {
-		rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
+		rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
 	}
 
 	if rule != ""{
+		//Deduct action cost
+		s.budget -= 10
+
+		//Perform announcement
 		broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
 		return s.updateRules(s.ruleToVote, s.votingResult)
 	}
