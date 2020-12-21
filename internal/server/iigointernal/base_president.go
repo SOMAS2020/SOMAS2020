@@ -1,11 +1,11 @@
 package iigointernal
 
 import (
+	"math/rand"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"math/rand"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 )
 
