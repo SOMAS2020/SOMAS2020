@@ -46,7 +46,7 @@ func (s *SOMASServer) getPredictions() (shared.PredictionInfoDict, error) {
 	for id, client := range s.clientMap {
 		islandPredictionsDict[id], err = client.MakePrediction()
 		if err != nil {
-			return islandPredictionsDict, err
+			return islandPredictionsDict, errors.Errorf("Failed to get prediction from %v: %v", id, err)
 		}
 	}
 	return islandPredictionsDict, nil
