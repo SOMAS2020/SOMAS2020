@@ -110,3 +110,7 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 func (p *basePresident) appointNextSpeaker() int {
 	return rand.Intn(5)
 }
+
+func (p *basePresident) paySpeaker() error {
+	return nil
+}
