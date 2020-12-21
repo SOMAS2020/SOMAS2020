@@ -166,3 +166,86 @@ func TestSetRuleProposals(t *testing.T) {
 		})
 	}
 }
+
+func TestGetTaxMap(t *testing.T) {
+	cases := []struct {
+		name           string
+		input          map[int]int
+		bPresident     basePresident // base
+		expectedLength int
+	}{
+		{
+			name:  "Empty tax map base",
+			input: map[int]int{},
+			bPresident: basePresident{
+				id:              3,
+				clientPresident: nil,
+			},
+			expectedLength: 0,
+		},
+		{
+			name:  "Short tax map base",
+			input: map[int]int{1: 5},
+			bPresident: basePresident{
+				id:              3,
+				clientPresident: nil,
+			},
+			expectedLength: 1,
+		},
+		{
+			name:  "Long tax map base",
+			input: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			bPresident: basePresident{
+				id:              4,
+				clientPresident: nil,
+			},
+			expectedLength: 6,
+		},
+		{
+			name:  "Client empty tax map base",
+			input: map[int]int{},
+			bPresident: basePresident{
+				id: 5,
+				clientPresident: &basePresident{
+					id:               3,
+					resourceRequests: nil,
+				},
+			},
+			expectedLength: 0,
+		},
+		{
+			name:  "Client short tax map base",
+			input: map[int]int{1: 5},
+			bPresident: basePresident{
+				id: 5,
+				clientPresident: &basePresident{
+					id:               3,
+					resourceRequests: nil,
+				},
+			},
+			expectedLength: 1,
+		},
+		{
+			name:  "Client long tax map base",
+			input: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			bPresident: basePresident{
+				id: 5,
+				clientPresident: &basePresident{
+					id:               3,
+					resourceRequests: nil,
+				},
+			},
+			expectedLength: 6,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			val := tc.bPresident.getTaxMap(tc.input)
+			if len(val) != tc.expectedLength {
+				t.Errorf("%v - Failed. RulesProposals set to '%v', expected '%v'", tc.name, val, tc.input)
+			}
+
+		})
+	}
+}
