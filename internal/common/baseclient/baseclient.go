@@ -29,6 +29,8 @@ type Client interface {
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
+	GetTaxContribution() int
+	RequestAllocation() int
 }
 
 // NewClient produces a new client with the BaseClient already implemented.

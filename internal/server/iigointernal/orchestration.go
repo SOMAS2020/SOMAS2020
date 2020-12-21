@@ -49,6 +49,12 @@ var JudgeIDGlobal = 0
 // PresidentIDGlobal is the single source of truth for president ID (MVP)
 var PresidentIDGlobal = 0
 
+// TaxAmountMapExport is a local tax amount cache for checking of rules
+var TaxAmountMapExport map[int]int
+
+// AllocationAmountMapExport is a local allocation map for checking of rules
+var AllocationAmountMapExport map[int]int
+
 // Pointers allow clients to customise implementations of mutable functions
 var judgePointer roles.Judge = nil
 var speakerPointer roles.Speaker = nil

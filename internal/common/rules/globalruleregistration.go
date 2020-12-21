@@ -57,6 +57,24 @@ func registerRulesByMass() {
 			v:   []float64{1, -1, 0},
 			aux: []float64{0},
 		},
+		{
+			name: "check_taxation_rule",
+			reqVar: []string{
+				"island_tax_contribution",
+				"expected_tax_contribution",
+			},
+			v:   []float64{1, -1, 0},
+			aux: []float64{2},
+		},
+		{
+			name: "check_allocation_rule",
+			reqVar: []string{
+				"island_allocation",
+				"expected_allocation",
+			},
+			v:   []float64{1, -1, 0},
+			aux: []float64{0},
+		},
 	}
 
 	for _, rs := range ruleSpecs {
