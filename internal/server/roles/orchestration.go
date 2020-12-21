@@ -2,10 +2,13 @@ package roles
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 )
 
-var Base_judge = BaseJudge{
+// featureJudge is an instantiation of the Judge interface
+// with both the Base Judge features and a reference to client judges
+var featureJudge = BaseJudge{
 	id:                0,
 	budget:            0,
 	presidentSalary:   0,
@@ -16,43 +19,62 @@ var Base_judge = BaseJudge{
 	evaluationResults: nil,
 }
 
-var Base_speaker = baseSpeaker{
+// featureSpeaker is an instantiation of the Speaker interface
+// with both the baseSpeaker features and a reference to client speakers
+var featureSpeaker = baseSpeaker{
 	id:          0,
 	budget:      0,
 	judgeSalary: 0,
 	ruleToVote:  "",
 }
 
-var Base_President = basePresident{
+// featurePresident is an instantiation of the President interface
+// with both the basePresident features and a reference to client presidents
+var featurePresident = basePresident{
 	id:               0,
 	budget:           0,
 	speakerSalary:    0,
 	resourceRequests: nil,
 }
 
+// SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
 var SpeakerIDGlobal = 0
+
+// JudgeIDGlobal is the single source of truth for judge ID (MVP)
 var JudgeIDGlobal = 0
+
+// PresidentIDGlobal is the single source of truth for president ID (MVP)
 var PresidentIDGlobal = 0
 
-var judgePointer = Base_judge
-var speakerPointer = Base_speaker
-var presidentPointer = Base_President
+// Pointers allow clients to customise implementations of mutable functions
+var judgePointer Judge = nil
+var speakerPointer Speaker = nil
+var presidentPointer President = nil
 
+// iigoClients holds pointers to all the clients
+// var iigoClients *map[int]Client
+
+// RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState) error {
+
+	// TODO: Get Client pointers from gamestate
+	// https://imgur.com/a/HjVZIkh
+	// iigoClients = g.getClients()
+
 	// Initialise IDs
-	Base_judge.id = JudgeIDGlobal
-	Base_speaker.id = SpeakerIDGlobal
-	Base_President.id = PresidentIDGlobal
+	featureJudge.id = JudgeIDGlobal
+	featureSpeaker.id = SpeakerIDGlobal
+	featurePresident.id = PresidentIDGlobal
 
 	// Initialise roles with their clientVersions
-	Base_judge.clientJudge = &judgePointer
-	Base_President.clientPresident = &presidentPointer
-	Base_speaker.clientSpeaker = &speakerPointer
+	featureJudge.clientJudge = judgePointer
+	featurePresident.clientPresident = presidentPointer
+	featureSpeaker.clientSpeaker = speakerPointer
 
 	// Withdraw the salaries
-	errWithdrawPresident := judgePointer.withdrawPresidentSalary(g)
-	errWithdrawJudge := speakerPointer.withdrawJudgeSalary(g)
-	errWithdrawSpeaker := presidentPointer.withdrawSpeakerSalary(g)
+	errWithdrawPresident := featureJudge.withdrawPresidentSalary(g)
+	errWithdrawJudge := featureSpeaker.withdrawJudgeSalary(g)
+	errWithdrawSpeaker := featurePresident.withdrawSpeakerSalary(g)
 
 	// Handle the lack of resources
 	if errWithdrawPresident != nil {
@@ -66,43 +88,50 @@ func RunIIGO(g *gamestate.GameState) error {
 	}
 
 	// Pay salaries into budgets
-	judgePointer.payPresident()
-	speakerPointer.payJudge()
-	presidentPointer.paySpeaker()
+	featureJudge.sendPresidentSalary()
+	featureSpeaker.sendJudgeSalary()
+	featurePresident.sendSpeakerSalary()
 
 	// 1 Judge actions - inspect history
-	_, judgeInspectingHistoryError := Base_judge.inspectHistory()
+	_, judgeInspectingHistoryError := featureJudge.inspectHistory()
 
 	// 2 President actions
-	presidentPointer.requestAllocationRequest()
-	presidentPointer.replyAllocationRequest(g.CommonPool)
-	presidentPointer.requestRuleProposal()
-	ruleToVote := presidentPointer.getRuleForSpeaker()
+	resourceReports := map[int]int{}
+	for _, v := range rules.VariableMap["islands_alive"].Values {
+		_ = v // For compilation
+		// resourceReports[v] = iigoClients[v].ResourceReport()
+	}
+	featurePresident.broadcastTaxation(resourceReports)
+	featurePresident.requestAllocationRequest()
+	featurePresident.replyAllocationRequest(g.CommonPool)
+	featurePresident.requestRuleProposal()
+	ruleToVote := featurePresident.getRuleForSpeaker()
 
 	// 3 Speaker actions
-	speakerPointer.SetRuleToVote(ruleToVote)
-	speakerPointer.setVotingResult()
-	speakerPointer.announceVotingResult()
+	featureSpeaker.SetRuleToVote(ruleToVote)
+	featureSpeaker.setVotingResult()
+	featureSpeaker.announceVotingResult()
 
 	// 4 Declare performance (Judge) (in future all the roles)
 	if judgeInspectingHistoryError != nil {
-		Base_judge.declarePresidentPerformanceWrapped()
+		featureJudge.declarePresidentPerformanceWrapped()
 
-		Base_judge.declareSpeakerPerformanceWrapped()
+		featureJudge.declareSpeakerPerformanceWrapped()
 	}
 
 	// Get new Judge ID
-	JudgeIDGlobal = speakerPointer.appointNextJudge()
+	JudgeIDGlobal = featureSpeaker.appointNextJudge()
 	// Get new Speaker ID
-	SpeakerIDGlobal = presidentPointer.appointNextSpeaker()
+	SpeakerIDGlobal = featurePresident.appointNextSpeaker()
 	// Get new President ID
-	PresidentIDGlobal = judgePointer.appointNextPresident()
+	PresidentIDGlobal = featureJudge.appointNextPresident()
 
 	// Set judgePointer
-	// https://imgur.com/a/HjVZIkh
+	// judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
 	// Set speakerPointer
-
+	// speakerPointer = iigoClients[SpeakerIDGlobal].GetClientSpeakerPointer()
 	// Set presidentPointer
+	// presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
 
 	return nil
 }

@@ -27,16 +27,16 @@ func (c *BaseClient) RuleProposal() string {
 }
 
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role
-func (c *BaseClient) GetClientPresidentPointer() *roles.President {
+func (c *BaseClient) GetClientPresidentPointer() roles.President {
 	return nil
 }
 
 // GetClientJudgePointer is called by IIGO to get the client's implementation of the Judge Role
-func (c *BaseClient) GetClientJudgePointer() *roles.Judge {
+func (c *BaseClient) GetClientJudgePointer() roles.Judge {
 	return nil
 }
 
 // GetClientSpeakerPointer is called by IIGO to get the client's implementation of the Speaker Role
-func (c *BaseClient) GetClientSpeakerPointer() *roles.Speaker {
+func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return nil
 }

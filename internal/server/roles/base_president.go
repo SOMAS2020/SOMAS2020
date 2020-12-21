@@ -54,11 +54,8 @@ func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) 
 func (p *basePresident) requestRuleProposal() {
 	p.budget -= 10
 	var rules []string
-	// use this mock
-	// mockfunction -> getIslandRuleProposed(islandID int)string
-	// TODO (neelesh): get this working pls
 	//for _, v := range getIslandAlive() {
-	//	rules = append(rules, getIslandRuleProposed(int(v)))
+	//	rules = append(rules, clients[int(v)].RuleProposal()))
 	//}
 	p.setRuleProposals(rules)
 }
@@ -140,7 +137,7 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 func (p *basePresident) requestAllocationRequest() {
 	allocRequests := make(map[int]int)
 	//for _, v := range getIslandAlive() {
-	//	allocRequests[int(v)] = getIslandRequest(int(v)
+	//	allocRequests[int(v)] = clients[int(v)].CommonPoolResourceRequest()
 	//}
 	p.setAllocationRequest(allocRequests)
 
@@ -166,15 +163,28 @@ func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) er
 	var speakerSalary = int(rules.VariableMap["speakerSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
 	if withdrawError != nil {
-		Base_President.speakerSalary = speakerSalary
+		featurePresident.speakerSalary = speakerSalary
 	}
 	return withdrawError
 }
 
+func (p *basePresident) sendSpeakerSalary() {
+	if p.clientPresident != nil {
+		amount, err := p.clientPresident.paySpeaker()
+		if err == nil {
+			featureSpeaker.budget = amount
+			return
+		}
+	}
+	amount, _ := p.paySpeaker()
+	featureSpeaker.budget = amount
+}
+
 // Pay the speaker
-func (p *basePresident) paySpeaker() {
-	Base_speaker.budget = Base_President.speakerSalary
-	Base_President.speakerSalary = 0
+func (p *basePresident) paySpeaker() (int, error) {
+	hold := p.speakerSalary
+	p.speakerSalary = 0
+	return hold, nil
 }
 
 func getIslandAlive() []float64 {

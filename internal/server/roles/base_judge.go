@@ -31,15 +31,28 @@ func (j *BaseJudge) withdrawPresidentSalary(gameState *gamestate.GameState) erro
 	var presidentSalary = int(rules.VariableMap["presidentSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(presidentSalary, gameState)
 	if withdrawError != nil {
-		Base_judge.presidentSalary = presidentSalary
+		featureJudge.presidentSalary = presidentSalary
 	}
 	return withdrawError
 }
 
+func (j *BaseJudge) sendPresidentSalary() {
+	if j.clientJudge != nil {
+		amount, err := j.clientJudge.payPresident()
+		if err == nil {
+			featurePresident.budget = amount
+			return
+		}
+	}
+	amount, _ := j.payPresident()
+	featurePresident.budget = amount
+}
+
 // Pay the president
-func (j *BaseJudge) payPresident() {
-	Base_President.budget = Base_judge.presidentSalary
-	Base_judge.presidentSalary = 0
+func (j *BaseJudge) payPresident() (int, error) {
+	hold := j.presidentSalary
+	j.presidentSalary = 0
+	return hold, nil
 }
 
 func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId int, presidentId int) {

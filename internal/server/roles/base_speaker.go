@@ -20,15 +20,28 @@ func (s *baseSpeaker) withdrawJudgeSalary(gameState *gamestate.GameState) error 
 	var judgeSalary = int(rules.VariableMap["judgeSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(judgeSalary, gameState)
 	if withdrawError != nil {
-		Base_speaker.judgeSalary = judgeSalary
+		featureSpeaker.judgeSalary = judgeSalary
 	}
 	return withdrawError
 }
 
+func (s *baseSpeaker) sendJudgeSalary() {
+	if s.clientSpeaker != nil {
+		amount, err := s.clientSpeaker.payJudge()
+		if err == nil {
+			featureJudge.budget = amount
+			return
+		}
+	}
+	amount, _ := s.payJudge()
+	featureJudge.budget = amount
+}
+
 // Pay the judge
-func (s *baseSpeaker) payJudge() {
-	Base_judge.budget = Base_speaker.judgeSalary
-	Base_speaker.judgeSalary = 0
+func (s *baseSpeaker) payJudge() (int, error) {
+	hold := s.judgeSalary
+	s.judgeSalary = 0
+	return hold, nil
 }
 
 // Receive a rule to call a vote on
