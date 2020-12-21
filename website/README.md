@@ -11,6 +11,9 @@
 ### Install dependencies
 `yarn install`
 
+### Make sure you have the output from the Go program
+The `output` folder in the root of the repository must be present. 
+
 ## Scripts
 
 ### `yarn start`
@@ -40,7 +43,7 @@ This should be run automatically by CI. -->
 
 ## Information
 - This website uses [React](https://reactjs.org/) and [TypeScript](https://www.typescriptlang.org/).
-- The library used for UI/UX is [antd](https://ant.design/).
+- The library used for UI/UX is [React Bootstrap](https://react-bootstrap.github.io/).
 - The graphing library used is [d3.js](https://d3js.org/). 
     - You do not strictly need to use d3: You can use any language to produce visualisations, then include them
     in the website.
