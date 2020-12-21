@@ -13,27 +13,28 @@ var params = DeerHuntParams{P: 0.95, Lam: 1.0}
 var hunt = DeerHunt{Participants: huntParticipants, Params: params}
 
 func TestDeerUtilityTier(t *testing.T) {
-	dI := []float64{1.0, 0.75, 0.5, 0.25} // define the incremental resource input requirements across tiers
+
+	decay := 0.8 // use an arbitrary decay param
+	maxDeer := 4
 
 	var tests = []struct {
 		inputR float64 // cumulative resource input from hunt participants
 		want   int     // output tier
 	}{
 		{0.0, 0},
-		{dI[0] - 0.001, 0},
-		{dI[0] + 0.001, 1},
-		{dI[0] + dI[1], 2},
-		{dI[0] + dI[1] + 0.8*dI[2], 2},
-		{dI[0] + dI[1] + dI[2], 3},
-		{dI[0] + dI[1] + dI[2] + dI[3], 4},
-		{dI[0] + dI[1] + dI[2] + dI[3]*100, len(dI)},
+		{0.99, 0},
+		{1.0, 1},
+		{1.8, 2},
+		{2.45, 3},
+		{2.96, 4},
+		{1000.0, 4},
 	}
 	for i, tt := range tests {
 		testname := fmt.Sprintf("%.3f", tt.inputR)
 		t.Run(testname, func(t *testing.T) {
-			ans := deerUtilityTier(tt.inputR, dI)
+			ans := deerUtilityTier(tt.inputR, uint(maxDeer), decay)
 			fmt.Println(i)
-			if ans != tt.want {
+			if ans != uint(tt.want) {
 				t.Errorf("got %d, want %d", ans, tt.want)
 			}
 		})

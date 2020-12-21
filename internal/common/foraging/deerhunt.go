@@ -3,12 +3,16 @@ package foraging
 // see https://colab.research.google.com/drive/1g1tiX27Ds7FGjj4_WjFB3OLj8Fat_Ur5?usp=sharing for experiments + simulations
 
 import (
+	"math"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
 // defines the incremental increase in input resources required to move up a utility tier (to be able to hunt another deer)
-var deerUtilityIncrements = []float64{1.0, 0.75, 0.5, 0.25} //TODO: move this to central config store
+
+var gameConf = config.GameConfig()
 
 type DeerHuntParams struct {
 	P   float64 // Bernoulli p variable (whether or not a deer is caught)
@@ -33,27 +37,26 @@ func (d DeerHunt) TotalInput() float64 {
 // Hunt returns the utility from a deer hunt
 func (d DeerHunt) Hunt() float64 {
 	input := d.TotalInput()
-	maxDeer := deerUtilityTier(input, deerUtilityIncrements) // get max number of deer allowed for given resource input
+	decay := gameConf.ForagingConfig.IncrementalInputDecay
+	maxDeer := gameConf.ForagingConfig.MaxDeerPerHunt
+	nDeerFromInput := deerUtilityTier(input, maxDeer, decay) // get max number of deer allowed for given resource input
 	utility := 0.0
-	for i := 1; i < maxDeer; i++ {
+	for i := uint(1); i < nDeerFromInput; i++ {
 		utility += deerReturn(d.Params)
 	}
 	return utility
 }
 
 // deerUtilityTier gets the discrete utility tier (i.e. max number of deer) for given scalar input
-func deerUtilityTier(input float64, increments []float64) int {
-	if len(increments) == 0 || input < increments[0] {
-		return 0
-	}
+func deerUtilityTier(input float64, maxDeerPerHunt uint, decay float64) uint {
 	sum := 0.0
-	for i := 0; i < len(increments); i++ {
-		sum += increments[i]
+	for i := uint(0); i < maxDeerPerHunt; i++ {
+		sum += math.Pow(decay, float64(i))
 		if input < sum {
 			return i
 		}
 	}
-	return len(increments)
+	return maxDeerPerHunt
 }
 
 // deerReturn() is effectively the combination of two other RVs:

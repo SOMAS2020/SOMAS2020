@@ -25,11 +25,22 @@ type Config struct {
 
 	// MaxCriticalConsecutiveTurns is the maximum consecutive turns an island can be in the critical state.
 	MaxCriticalConsecutiveTurns uint
+
+	// Wrapped foraging config
+	ForagingConfig ForagingConfig
+}
+
+type ForagingConfig struct {
+	MaxDeerPopulation     uint    // Maximimum possible deer population. Reserved for post-MVP functionality
+	MaxDeerPerHunt        uint    // Maximimum possible number of deer on a single hunt (regardless of number of participants)
+	IncrementalInputDecay float64 // Determines decay of incremental input cost of hunting more deer
+	// TOOD: add other pertinent params here (for fishing etc)
 }
 
 // GameConfig returns the configuration of the game.
 // (Made a function so it cannot be altered mid-game).
 func GameConfig() Config {
+	foragingConf := ForagingConfig{MaxDeerPopulation: 12, MaxDeerPerHunt: 4}
 	return Config{
 		MaxSeasons:                  100,
 		MaxTurns:                    2,
@@ -37,5 +48,6 @@ func GameConfig() Config {
 		CostOfLiving:                10,
 		MinimumResourceThreshold:    5,
 		MaxCriticalConsecutiveTurns: 3,
+		ForagingConfig:              foragingConf,
 	}
 }
