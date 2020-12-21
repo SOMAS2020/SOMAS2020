@@ -33,12 +33,7 @@ func getClientInfosAndMapFromRegisteredClients(
 
 // anyClientsAlive returns true if any one client is Alive (including critical).
 func anyClientsAlive(clientInfos map[shared.ClientID]gamestate.ClientInfo) bool {
-	for _, ci := range clientInfos {
-		if ci.LifeStatus != shared.Dead {
-			return true
-		}
-	}
-	return false
+	return len(getNonDeadClientIDs(clientInfos)) != 0
 }
 // getNonDeadClients returns a map of all clients with a non-dead status
 func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo, 
@@ -90,4 +85,18 @@ func updateIslandLivingStatusForClient(
 			errors.Errorf("updateIslandLivingStatusForClient not implemented for LifeStatus %v",
 				ci.LifeStatus)
 	}
+}
+
+// getNonDeadClients return ClientIDs of clients that are not dead (alive + critical).
+// The result is NOT ordered.
+func getNonDeadClientIDs(clientInfos map[shared.ClientID]gamestate.ClientInfo) []shared.ClientID {
+	nonDeadClients := []shared.ClientID{}
+
+	for id, ci := range clientInfos {
+		if ci.LifeStatus != shared.Dead {
+			nonDeadClients = append(nonDeadClients, id)
+		}
+	}
+
+	return nonDeadClients
 }

@@ -20,6 +20,9 @@ After running, the `output` directory will contain the output of the program.
 - `output.json`: JSON file containing the game's historic states and configuration.
 - `log.txt`: logs of the run
 
+### Visualisation Website
+See [`website/README.md`](website/README.md)
+
 ## Testing
 ```bash
 go test ./...
@@ -27,17 +30,26 @@ go test ./...
 
 ## Structure
 
-### `docs`
+### [`docs`](docs)
 Important documents pertaining to codebase organisation, code conventions and project management. Read before writing code.
 
-### `internal`
-All code goes in here.
+### [`internal`](internal)
+Internal SOMAS2020 packages. Most development occurs here, including client and server code.
 
-#### `clients`
+- [`clients`](internal/clients)
 Individual team code goes into the respective folders in this directory.
 
-#### `common`
+- [`common`](internal/common)
 Common utilities, or system-wide code such as game specification etc.
 
-#### `server`
+- [`server`](internal/server)
 Self-explanatory.
+
+- [`logger`](internal/logger)
+Logger for the application.
+
+### [`pkg`](pkg)
+More generic packages dealing with general use-cases, such as system-related or file-operation utilities.
+
+### [`website`](website)
+Source code for visualisation website.

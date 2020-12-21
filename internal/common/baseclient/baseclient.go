@@ -23,6 +23,7 @@ type Client interface {
 	GameStateUpdate(gameState gamestate.ClientGameState)
 
 	Logf(format string, a ...interface{})
+  
 	CommonPoolResourceRequest() int
 	ResourceReport() int
 	RuleProposal() string
@@ -33,7 +34,13 @@ type Client interface {
 	GetCommunications() *map[shared.ClientID][]map[int]Communication
 	GetTaxContribution() int
 	RequestAllocation() int
+  
+	//IIFO: OPTIONAL
+	MakePrediction() (shared.PredictionInfo, error)
+	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 }
+
+var ourPredictionInfo shared.PredictionInfo
 
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
