@@ -91,6 +91,7 @@ func getMeanDisaster(pastDisastersDict PastDisastersDict) (DisasterInfo, error) 
 	}
 	return meanDisaster, nil
 }
+
 func determineConfidence(pastDisastersDict PastDisastersDict, meanDisaster DisasterInfo, varianceLimit float64) (float64, error) {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurnNumber := 0.0, 0.0, 0.0, 0.0
 	totalDisaster := DisasterInfo{}
