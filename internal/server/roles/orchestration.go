@@ -57,8 +57,7 @@ var presidentPointer President = nil
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState) error {
 
-	// TODO: Get Client pointers from gamestate
-	// https://imgur.com/a/HjVZIkh
+	// TODO: Get Client pointers from gamestate https://imgur.com/a/HjVZIkh
 	// iigoClients = g.getClients()
 
 	// Initialise IDs
