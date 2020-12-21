@@ -25,7 +25,7 @@ type Client interface {
 
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
-	RecievePredictions(recievedPredictions shared.PredictionInfoDict) error
+	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 }
 
 var ourPredictionInfo shared.PredictionInfo
