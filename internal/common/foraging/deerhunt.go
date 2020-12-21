@@ -5,14 +5,9 @@ package foraging
 import (
 	"math"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
 )
-
-// defines the incremental increase in input resources required to move up a utility tier (to be able to hunt another deer)
-
-var gameConf = config.GameConfig()
 
 type DeerHuntParams struct {
 	P   float64 // Bernoulli p variable (whether or not a deer is caught)

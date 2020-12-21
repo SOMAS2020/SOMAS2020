@@ -67,7 +67,7 @@ func (s *SOMASServer) runRound() error {
 	fmt.Println(s.gameState.Environment.DisplayReport())
 
 	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
-	deerHunt := createDeerHunt(huntParticipants)
+	deerHunt := foraging.CreateDeerHunt(huntParticipants)
 	fmt.Printf("\nResults of deer hunt: return of %.3f at cost of %.3f\n", deerHunt.Hunt(), deerHunt.TotalInput())
 
 	dp := foraging.CreateBasicDeerPopulationModel()
@@ -106,9 +106,4 @@ func initEnvironment() *disasters.Environment {
 	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0} // TODO: move to config package
 	env, _ := disasters.InitEnvironment(islandIDs, xBounds, yBounds, dp)
 	return env
-}
-
-func createDeerHunt(teamResourceInputs map[shared.ClientID]float64) foraging.DeerHunt {
-	params := foraging.DeerHuntParams{P: 0.95, Lam: 1.0} // TODO: move to central config store
-	return foraging.DeerHunt{Participants: teamResourceInputs, Params: params}
 }

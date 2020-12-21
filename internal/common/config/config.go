@@ -30,17 +30,34 @@ type Config struct {
 	ForagingConfig ForagingConfig
 }
 
+// ForagingConfig captures foraging-specific config
 type ForagingConfig struct {
-	MaxDeerPopulation     uint    // Maximimum possible deer population. Reserved for post-MVP functionality
+	// Deer Hunting
 	MaxDeerPerHunt        uint    // Maximimum possible number of deer on a single hunt (regardless of number of participants)
 	IncrementalInputDecay float64 // Determines decay of incremental input cost of hunting more deer
+	BernoulliProb         float64 // `p` param in D variable (see README). Controls prob of catching a deer or not
+	ExponentialRate       float64 // `lambda` param in W variable (see README). Controls distribution of deer sizes.
+
+	// Deer Population
+	MaxDeerPopulation     uint    // Maximimum possible deer population. Reserved for post-MVP functionality
+	DeerGrowthCoefficient float64 // Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster
+
 	// TOOD: add other pertinent params here (for fishing etc)
 }
 
 // GameConfig returns the configuration of the game.
 // (Made a function so it cannot be altered mid-game).
 func GameConfig() Config {
-	foragingConf := ForagingConfig{MaxDeerPopulation: 12, MaxDeerPerHunt: 4}
+	foragingConf := ForagingConfig{
+		MaxDeerPerHunt:        4,
+		IncrementalInputDecay: 0.8,
+		BernoulliProb:         0.95,
+		ExponentialRate:       1,
+
+		MaxDeerPopulation:     12,
+		DeerGrowthCoefficient: 0.4,
+	}
+
 	return Config{
 		MaxSeasons:                  100,
 		MaxTurns:                    2,
