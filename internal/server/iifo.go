@@ -26,6 +26,7 @@ func (s *SOMASServer) runIIFOEndOfTurn() error {
 
 func (s *SOMASServer) runPredictionSession() error {
 	s.logf("start runPredictionSession")
+	defer s.logf("finish runPredictionSession")
 	islandPredictionDict, err := s.getPredictions()
 	if err != nil {
 		return err
@@ -36,7 +37,6 @@ func (s *SOMASServer) runPredictionSession() error {
 		return err
 	}
 
-	defer s.logf("finish runPredictionSession")
 	return nil
 }
 
