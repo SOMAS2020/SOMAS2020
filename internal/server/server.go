@@ -6,7 +6,6 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -92,18 +91,4 @@ func (s *SOMASServer) getEcho(str string) error {
 // logf is the server's default logger.
 func (s *SOMASServer) logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
-}
-
-func initEnvironment() *disasters.Environment {
-	_, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
-	islandIDs := make([]shared.ClientID, 0, len(clientMap))
-
-	for id := range clientMap {
-		islandIDs = append(islandIDs, id)
-	}
-	xBounds := [2]float64{0, 10} //TODO: move to config package
-	yBounds := [2]float64{0, 10}
-	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0} // TODO: move to config package
-	env, _ := disasters.InitEnvironment(islandIDs, xBounds, yBounds, dp)
-	return env
 }

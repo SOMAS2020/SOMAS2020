@@ -19,12 +19,12 @@ type ArchipelagoGeography struct {
 	xBounds, ybounds [2]float64
 }
 
-// DisasterParameters encapsulates a disaster's information - when and how it occurs. Disaster occurring is a Bernoulli random var with `p`=GlobalProb
+// disasterParameters encapsulates a disaster's information - when and how it occurs. Disaster occurring is a Bernoulli random var with `p`=GlobalProb
 // SpatialPDF determines the distribution type for the XY-location of the disaster peak. MagnitudeLambda is the lambda param in an exponential distr.
-type DisasterParameters struct {
-	GlobalProb      float64
-	SpatialPDF      string
-	MagnitudeLambda float64
+type disasterParameters struct {
+	globalProb      float64
+	spatialPDF      string
+	magnitudeLambda float64
 }
 
 // DisasterReport encapsulates a disaster location and magnitude. Note: magnitude of 0 => no disaster
@@ -35,7 +35,7 @@ type DisasterReport struct {
 // Environment holds the state of the enivornment
 type Environment struct {
 	geography          ArchipelagoGeography
-	disasterParams     DisasterParameters
+	disasterParams     disasterParameters
 	lastDisasterReport DisasterReport
 }
 
@@ -48,8 +48,8 @@ func (e *Environment) SampleForDisaster() DisasterReport {
 	pdfX := distuv.Uniform{Min: xBounds[0], Max: xBounds[1]}
 	pdfY := distuv.Uniform{Min: yBounds[0], Max: yBounds[1]}
 
-	pdfMag := distuv.Exponential{Rate: e.disasterParams.MagnitudeLambda} // Rate = lambda
-	pdfGlobal := distuv.Bernoulli{P: e.disasterParams.GlobalProb}        // Bernoulli RV where `P` = P(X=1)
+	pdfMag := distuv.Exponential{Rate: e.disasterParams.magnitudeLambda} // Rate = lambda
+	pdfGlobal := distuv.Bernoulli{P: e.disasterParams.globalProb}        // Bernoulli RV where `P` = P(X=1)
 
 	dR := DisasterReport{0, -1, -1} // default: no disaster. Zero magnitude with arb co-ords
 
