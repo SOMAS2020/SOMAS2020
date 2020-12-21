@@ -7,7 +7,10 @@ import (
 // runIIFO : IIFO allows sharing of disaster predictions between islands
 func (s *SOMASServer) runIIFO() error {
 	s.logf("start runIIFO")
-	s.runPredictionSession()
+	err := s.runPredictionSession()
+	if err != nil {
+		return err
+	}
 	defer s.logf("finish runIIFO")
 	// TODO:- IIFO team
 	return nil
@@ -38,11 +41,9 @@ func (s *SOMASServer) runPredictionSession() error {
 
 func (s *SOMASServer) getPredictions() (shared.PredictionInfoDict, error) {
 	islandPredictionsDict := shared.PredictionInfoDict{}
-	tempPredictionInfo := shared.PredictionInfo{}
 	var err error
 	for id, client := range s.clientMap {
-		tempPredictionInfo, err = client.MakePrediction()
-		islandPredictionsDict[id] = tempPredictionInfo
+		islandPredictionsDict[id], err = client.MakePrediction()
 		if err != nil {
 			return islandPredictionsDict, err
 		}
