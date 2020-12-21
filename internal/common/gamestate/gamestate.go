@@ -14,7 +14,7 @@ type GameState struct {
 	Turn uint
 
 	// CommonPool represents the amount of resources in the common pool.
-	CommonPool uint
+	CommonPool int
 
 	// ClientInfos map from the shared.ClientID to ClientInfo.
 	// EXTRA note: Golang maps are made to be random!
