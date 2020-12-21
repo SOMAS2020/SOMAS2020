@@ -8,7 +8,7 @@ import (
 
 func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) error {
 	s.logf("start runDeerHunt")
-	defer s.logf("finish runIIFO")
+	defer s.logf("finish runDeerHunt")
 
 	hunt, err := foraging.CreateDeerHunt(participants)
 	if err != nil {
@@ -19,9 +19,9 @@ func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) erro
 	return nil
 }
 
-func (s *SOMASServer) runDummyHunt() {
+func (s *SOMASServer) runDummyHunt() error {
 	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
-	s.runDeerHunt(huntParticipants)
+	return s.runDeerHunt(huntParticipants)
 }
 
 // updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt. Note that len(consumption) implies the number of
