@@ -28,6 +28,9 @@ type Config struct {
 
 	// Wrapped foraging config
 	ForagingConfig ForagingConfig
+
+	// Wrapped disaster config
+	DisasterConfig DisasterConfig
 }
 
 // ForagingConfig captures foraging-specific config
@@ -45,6 +48,15 @@ type ForagingConfig struct {
 	// TOOD: add other pertinent params here (for fishing etc)
 }
 
+// DisasterConfig captures disaster-specific config
+type DisasterConfig struct {
+	XBounds         [2]float64 // [min, max] x bounds of archipelago
+	YBounds         [2]float64 // [min, max] y bounds of arch.
+	GlobalProb      float64    // Bernoulli 'p' param. Chance of a disaster occurring
+	SpatialPDFType  string     // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
+	MagnitudeLambda float64    // Exponential rate param for disaster magnitude
+}
+
 // GameConfig returns the configuration of the game.
 // (Made a function so it cannot be altered mid-game).
 func GameConfig() Config {
@@ -57,6 +69,13 @@ func GameConfig() Config {
 		MaxDeerPopulation:     12,
 		DeerGrowthCoefficient: 0.4,
 	}
+	disasterConf := DisasterConfig{
+		XBounds:         [2]float64{0, 10},
+		YBounds:         [2]float64{0, 10},
+		GlobalProb:      0.1,
+		SpatialPDFType:  "uniform",
+		MagnitudeLambda: 1.0,
+	}
 
 	return Config{
 		MaxSeasons:                  100,
@@ -66,5 +85,6 @@ func GameConfig() Config {
 		MinimumResourceThreshold:    5,
 		MaxCriticalConsecutiveTurns: 3,
 		ForagingConfig:              foragingConf,
+		DisasterConfig:              disasterConf,
 	}
 }
