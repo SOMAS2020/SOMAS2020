@@ -99,7 +99,7 @@ func RunIIGO(g *gamestate.GameState) error {
 	PresidentIDGlobal = judgePointer.appointNextPresident()
 
 	// Set judgePointer
-
+	// https://imgur.com/a/HjVZIkh
 	// Set speakerPointer
 
 	// Set presidentPointer
