@@ -116,13 +116,13 @@ func determineConfidence(pastDisastersList PastDisastersList, meanDisaster Disas
 	return math.Round(varianceLimit - averageVariance), nil
 }
 
-// RecievePredictions provides each client with the prediction info, in addition to the source island,
+// ReceivePredictions provides each client with the prediction info, in addition to the source island,
 // that they have been granted access to see
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) RecievePredictions(recievedPredictions shared.PredictionInfoDict) error {
+func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error {
 	// If we assume that we trust each island equally (including ourselves), then take the final prediction
 	// of disaster as being the weighted mean of predictions according to confidence
-	numberOfPredictions := float64(len(recievedPredictions) + 1)
+	numberOfPredictions := float64(len(receivedPredictions) + 1)
 	selfConfidence := ourPredictionInfo.PredictionMade.Confidence
 
 	// Initialise running totals using our own island's predictions
@@ -133,7 +133,7 @@ func (c *BaseClient) RecievePredictions(recievedPredictions shared.PredictionInf
 	totalConfidence := selfConfidence
 
 	// Add other island's predictions using their confidence values
-	for _, prediction := range recievedPredictions {
+	for _, prediction := range receivedPredictions {
 		totalCoordinateX += prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateX
 		totalCoordinateY += prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateY
 		totalMagnitude += prediction.PredictionMade.Confidence * prediction.PredictionMade.Magnitude
