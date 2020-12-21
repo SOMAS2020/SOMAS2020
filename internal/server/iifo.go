@@ -43,17 +43,17 @@ func (s *SOMASServer) runPredictionSession() error {
 func (s *SOMASServer) getPredictions() (shared.PredictionInfoDict, error) {
 	islandPredictionsDict := shared.PredictionInfoDict{}
 	var err error
-	for id, ci := range s.gameState.ClientInfos {
-		if ci.LifeStatus != shared.Dead {
-			c := s.clientMap[id]
-			islandPredictionsDict[id], err = c.MakePrediction()
-			if err != nil {
-				return islandPredictionsDict, errors.Errorf("Failed to get prediction from %v: %v", id, err)
-			}
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		islandPredictionsDict[id], err = c.MakePrediction()
+		if err != nil {
+			return islandPredictionsDict, errors.Errorf("Failed to get prediction from %v: %v", id, err)
 		}
 	}
 	return islandPredictionsDict, nil
 }
+
 func (s *SOMASServer) distributePredictions(islandPredictionDict shared.PredictionInfoDict) error {
 	recievedPredictionsDict := make(shared.RecievedPredictionsDict)
 	var err error
@@ -73,13 +73,12 @@ func (s *SOMASServer) distributePredictions(islandPredictionDict shared.Predicti
 	}
 
 	// Now distribute these predictions to the islands
-	for id, ci := range s.gameState.ClientInfos {
-		if ci.LifeStatus != shared.Dead {
-			c := s.clientMap[id]
-			err = c.RecievePredictions(recievedPredictionsDict[id])
-			if err != nil {
-				return errors.Errorf("Failed to receive prediction from client %v: %v", id, err)
-			}
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		err = c.RecievePredictions(recievedPredictionsDict[id])
+		if err != nil {
+			return errors.Errorf("Failed to receive prediction from client %v: %v", id, err)
 		}
 	}
 
