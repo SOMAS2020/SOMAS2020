@@ -1,17 +1,18 @@
-package roles
+package iigointernal
 
 import (
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
-
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 //base President Object
 type basePresident struct {
 	id               int
-	clientPresident  President
+	clientPresident  roles.President
 	budget           int
 	speakerSalary    int
 	rulesProposals   []string
@@ -22,7 +23,7 @@ type basePresident struct {
 }
 
 // Set allowed resource allocation based on each islands requests
-func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, availCommonPool int) (map[int]int, error) {
+func (p *basePresident) EvaluateAllocationRequests(resourceRequest map[int]int, availCommonPool int) (map[int]int, error) {
 	p.budget -= 10
 	var requestSum int
 	resourceAllocation := make(map[int]int)
@@ -43,7 +44,7 @@ func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, 
 
 // Chose a rule proposal from all the proposals
 // need to pass in since this is now functional for the sake of client side
-func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) {
+func (p *basePresident) PickRuleToVote(rulesProposals []string) (string, error) {
 	p.budget -= 10
 	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
@@ -55,9 +56,9 @@ func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) 
 func (p *basePresident) requestRuleProposal() {
 	p.budget -= 10
 	var rules []string
-	//for _, v := range getIslandAlive() {
-	//	rules = append(rules, clients[int(v)].RuleProposal()))
-	//}
+	for _, v := range getIslandAlive() {
+		rules = append(rules, iigoClients[shared.ClientID(int(v))].RuleProposal())
+	}
 	p.setRuleProposals(rules)
 }
 
@@ -75,12 +76,13 @@ func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
 
 // Set taxation amount for all of the living islands
 // island_resources: map of all the living islands and their remaing resources
-func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
+func (p *basePresident) SetTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
 	p.budget -= 10
 	taxAmountMap := make(map[int]int)
 	for id, resourceLeft := range islandsResources {
 		taxAmountMap[id] = rand.Intn(resourceLeft)
 	}
+	TaxAmountMapExport = taxAmountMap
 	return taxAmountMap, nil
 }
 
@@ -88,12 +90,12 @@ func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int
 // Called by orchestration at the end of the turn
 func (p *basePresident) getRuleForSpeaker() string {
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.pickRuleToVote(p.rulesProposals)
+		result, error := p.clientPresident.PickRuleToVote(p.rulesProposals)
 		if error == nil {
 			return result
 		}
 	}
-	result, _ := p.pickRuleToVote(p.rulesProposals)
+	result, _ := p.PickRuleToVote(p.rulesProposals)
 	return result
 }
 
@@ -102,12 +104,12 @@ func (p *basePresident) getRuleForSpeaker() string {
 func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	p.budget -= 10
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.setTaxationAmount(islandsResources)
+		result, error := p.clientPresident.SetTaxationAmount(islandsResources)
 		if error == nil {
 			return result
 		}
 	}
-	result, _ := p.setTaxationAmount(islandsResources)
+	result, _ := p.SetTaxationAmount(islandsResources)
 	return result
 }
 
@@ -126,20 +128,21 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 // Called by orchestration at the end of the turn
 func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.evaluateAllocationRequests(p.resourceRequests, commonPool)
+		result, error := p.clientPresident.EvaluateAllocationRequests(p.resourceRequests, commonPool)
 		if error == nil {
 			return result
 		}
 	}
-	result, _ := p.evaluateAllocationRequests(p.resourceRequests, commonPool)
+	result, _ := p.EvaluateAllocationRequests(p.resourceRequests, commonPool)
 	return result
 }
 
 func (p *basePresident) requestAllocationRequest() {
 	allocRequests := make(map[int]int)
-	//for _, v := range getIslandAlive() {
-	//	allocRequests[int(v)] = clients[int(v)].CommonPoolResourceRequest()
-	//}
+	for _, v := range getIslandAlive() {
+		allocRequests[int(v)] = iigoClients[shared.ClientID(int(v))].CommonPoolResourceRequest()
+	}
+	AllocationAmountMapExport = allocRequests
 	p.setAllocationRequest(allocRequests)
 
 }
@@ -171,18 +174,18 @@ func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) er
 
 func (p *basePresident) sendSpeakerSalary() {
 	if p.clientPresident != nil {
-		amount, err := p.clientPresident.paySpeaker()
+		amount, err := p.clientPresident.PaySpeaker()
 		if err == nil {
 			featureSpeaker.budget = amount
 			return
 		}
 	}
-	amount, _ := p.paySpeaker()
+	amount, _ := p.PaySpeaker()
 	featureSpeaker.budget = amount
 }
 
 // Pay the speaker
-func (p *basePresident) paySpeaker() (int, error) {
+func (p *basePresident) PaySpeaker() (int, error) {
 	hold := p.speakerSalary
 	p.speakerSalary = 0
 	return hold, nil
@@ -192,7 +195,7 @@ func getIslandAlive() []float64 {
 	return rules.VariableMap["islands_alive"].Values
 }
 
-func (p *basePresident) reset(val string) error {
+func (p *basePresident) Reset(val string) error {
 	p.id = 0
 	p.clientPresident = nil
 	p.budget = 0

@@ -1,4 +1,4 @@
-package roles
+package iigointernal
 
 import (
 	"testing"
@@ -48,7 +48,7 @@ func TestAllocationRequests(t *testing.T) {
 				budget: 50,
 			}
 
-			val, err := president.evaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
+			val, err := president.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
 			if err == nil && tc.want == nil {
 				if !reflect.DeepEqual(tc.reply, val) {
 					t.Errorf("%v - Failed. Expected %v, got %v", tc.name, tc.reply, val)
@@ -108,7 +108,7 @@ func TestPickRuleToVote(t *testing.T) {
 
 			president := &basePresident{}
 
-			val, err := president.pickRuleToVote(tc.input)
+			val, err := president.PickRuleToVote(tc.input)
 			if err == nil && tc.want == nil {
 				if len(tc.input) == 0 {
 					if val != "" {

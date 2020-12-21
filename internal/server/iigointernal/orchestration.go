@@ -1,8 +1,11 @@
-package roles
+package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
 
@@ -46,26 +49,32 @@ var JudgeIDGlobal = 0
 // PresidentIDGlobal is the single source of truth for president ID (MVP)
 var PresidentIDGlobal = 0
 
+// TaxAmountMapExport is a local tax amount cache for checking of rules
+var TaxAmountMapExport map[int]int
+
+// AllocationAmountMapExport is a local allocation map for checking of rules
+var AllocationAmountMapExport map[int]int
+
 // Pointers allow clients to customise implementations of mutable functions
-var judgePointer Judge = nil
-var speakerPointer Speaker = nil
-var presidentPointer President = nil
+var judgePointer roles.Judge = nil
+var speakerPointer roles.Speaker = nil
+var presidentPointer roles.President = nil
 
 // iigoClients holds pointers to all the clients
-// var iigoClients *map[int]Client
+var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
-func RunIIGO(g *gamestate.GameState) error {
+func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) error {
 
 	// TODO: Get Client pointers from gamestate https://imgur.com/a/HjVZIkh
-	// iigoClients = g.getClients()
+	iigoClients = *clientMap
 
 	// Initialise IDs
 	featureJudge.id = JudgeIDGlobal
 	featureSpeaker.id = SpeakerIDGlobal
 	featurePresident.id = PresidentIDGlobal
 
-	// Initialise roles with their clientVersions
+	// Initialise iigointernal with their clientVersions
 	featureJudge.clientJudge = judgePointer
 	featurePresident.clientPresident = presidentPointer
 	featureSpeaker.clientSpeaker = speakerPointer
@@ -97,8 +106,7 @@ func RunIIGO(g *gamestate.GameState) error {
 	// 2 President actions
 	resourceReports := map[int]int{}
 	for _, v := range rules.VariableMap["islands_alive"].Values {
-		_ = v // For compilation
-		// resourceReports[v] = iigoClients[v].ResourceReport()
+		resourceReports[int(v)] = iigoClients[shared.ClientID(int(v))].ResourceReport()
 	}
 	featurePresident.broadcastTaxation(resourceReports)
 	featurePresident.requestAllocationRequest()
@@ -111,7 +119,7 @@ func RunIIGO(g *gamestate.GameState) error {
 	featureSpeaker.setVotingResult()
 	featureSpeaker.announceVotingResult()
 
-	// 4 Declare performance (Judge) (in future all the roles)
+	// 4 Declare performance (Judge) (in future all the iigointernal)
 	if judgeInspectingHistoryError != nil {
 		featureJudge.declarePresidentPerformanceWrapped()
 
@@ -126,11 +134,11 @@ func RunIIGO(g *gamestate.GameState) error {
 	PresidentIDGlobal = featureJudge.appointNextPresident()
 
 	// Set judgePointer
-	// judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
+	judgePointer = iigoClients[shared.ClientID(JudgeIDGlobal)].GetClientJudgePointer()
 	// Set speakerPointer
-	// speakerPointer = iigoClients[SpeakerIDGlobal].GetClientSpeakerPointer()
+	speakerPointer = iigoClients[shared.ClientID(SpeakerIDGlobal)].GetClientSpeakerPointer()
 	// Set presidentPointer
-	// presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
+	presidentPointer = iigoClients[shared.ClientID(PresidentIDGlobal)].GetClientPresidentPointer()
 
 	return nil
 }

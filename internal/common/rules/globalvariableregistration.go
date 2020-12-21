@@ -58,4 +58,20 @@ var StaticVariables = []VariableValuePair{
 		VariableName: "presidentSalary",
 		Values:       []float64{50},
 	},
+	{
+		VariableName: "expected_tax_contribution",
+		Values:       []float64{0},
+	},
+	{
+		VariableName: "expected_allocation",
+		Values:       []float64{0},
+	},
+	{
+		VariableName: "island_tax_contribution",
+		Values:       []float64{0},
+	},
+	{
+		VariableName: "island_allocation",
+		Values:       []float64{0},
+	},
 }

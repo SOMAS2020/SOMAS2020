@@ -1,7 +1,8 @@
-package roles
+package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
 	"math/rand"
@@ -13,7 +14,7 @@ type baseSpeaker struct {
 	judgeSalary   int
 	ruleToVote    string
 	votingResult  bool
-	clientSpeaker Speaker
+	clientSpeaker roles.Speaker
 }
 
 func (s *baseSpeaker) withdrawJudgeSalary(gameState *gamestate.GameState) error {
@@ -27,7 +28,7 @@ func (s *baseSpeaker) withdrawJudgeSalary(gameState *gamestate.GameState) error 
 
 func (s *baseSpeaker) sendJudgeSalary() {
 	if s.clientSpeaker != nil {
-		amount, err := s.clientSpeaker.payJudge()
+		amount, err := s.clientSpeaker.PayJudge()
 		if err == nil {
 			featureJudge.budget = amount
 			return
