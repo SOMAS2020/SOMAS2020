@@ -61,7 +61,6 @@ func RunIIGO(g *gamestate.GameState) error {
 	if errWithdrawJudge != nil {
 		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
 	}
-
 	if errWithdrawSpeaker != nil {
 		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
 	}
