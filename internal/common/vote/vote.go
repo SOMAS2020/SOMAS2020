@@ -5,91 +5,91 @@ import (
 	"time"
 )
 
-func GetVotesForRule(ruleID string, islandID int) map[int][]int {
-	votes_layout := make(map[int][]int)
+func Getvotesforrule(ruleID string, Numofislands int) map[int][]int {
+	voteslayout := make(map[int][]int)
 	rand.Seed(time.Now().UTC().UnixNano())
 	i := 1
 	for {
-		votes_layout[i] = []int{rand.Intn(100), rand.Intn(100)}
+		voteslayout[i] = []int{rand.Intn(100), rand.Intn(100)}
 		i++
-		if i > 6 {
+		if i > Numofislands {
 			break
 		}
 	}
-	return votes_layout
+	return voteslayout
 }
 
-func VoteRule(ruleID string, islandID int) (int, int, bool) {
+func VoteRule(ruleID string, Numofislands int) (int, int, bool) {
 
 	//Get votes from islands for the rule changes.
-	votes_layout := make(map[int][]int)
-	votes_layout = Get_votes_for_rule(ruleID, islandID)
+	voteslayout := make(map[int][]int)
+	voteslayout = Getvotesforrule(ruleID, Numofislands)
 
 	//Calculate results of each island.
-	results_of_all_islands := make(map[int][]int)
+	resultsofallislands := make(map[int][]int)
 	j := 1
 	for {
-		if votes_layout[j][0] > votes_layout[j][1] {
-			results_of_all_islands[j] = []int{1, 0}
+		if voteslayout[j][0] > voteslayout[j][1] {
+			resultsofallislands[j] = []int{1, 0}
 		}
-		if votes_layout[j][0] <= votes_layout[j][1] {
-			results_of_all_islands[j] = []int{0, 1}
+		if voteslayout[j][0] <= voteslayout[j][1] {
+			resultsofallislands[j] = []int{0, 1}
 		}
 		j++
-		if j > 6 {
+		if j > Numofislands {
 			break
 		}
 	}
 
 	//Announce voting result
-	num_acc := 0
-	num_rej := 0
+	numacc := 0
+	numrej := 0
 	var ans bool
-	for _, v := range results_of_all_islands {
+	for _, v := range resultsofallislands {
 		if v[0] == 1 {
-			num_acc++
+			numacc++
 		}
 		if v[1] == 1 {
-			num_rej++
+			numrej++
 		}
 	}
-	if num_acc > num_rej {
+	if numacc > numrej {
 		ans = true
 	}
-	if num_acc <= num_rej {
+	if numacc <= numrej {
 		ans = false
 	}
-	return num_acc, num_rej, ans
+	return numacc, numrej, ans
 }
 
-func Get_votes_for_elect() map[int][]int {
+func Getvotesforelect(Numofislands int) map[int][]int {
 	rand.Seed(time.Now().UTC().UnixNano())
-	votes_layout_e := make(map[int][]int)
+	voteslayoute := make(map[int][]int)
 	i := 1
 	for {
-		votes_layout_e[i] = []int{rand.Intn(100), rand.Intn(100),
+		voteslayoute[i] = []int{rand.Intn(100), rand.Intn(100),
 			rand.Intn(100), rand.Intn(100), rand.Intn(100), rand.Intn(100)}
 		i++
-		if i > 6 {
+		if i > Numofislands {
 			break
 		}
 	}
 
-	return votes_layout_e
+	return voteslayoute
 }
 
-func Vote_Elect() (int, [6]int, map[int][]int) {
+func VoteElect(Numofislands int) (int, []int, map[int][]int) {
 
 	//Get votes from each island for the election.
-	votes_layout_e := make(map[int][]int)
-	votes_layout_e = Get_votes_for_elect()
+	voteslayoute := make(map[int][]int)
+	voteslayoute = Getvotesforelect(Numofislands)
 
 	//Calculate the preference map.
-	var order [6]int
-	var index [6]int
-	var score [6]int
+	var order []int
+	var index []int
+	var score []int
 	PreferenceMap := make(map[int][]int)
-	for k, v := range votes_layout_e {
+	for k, v := range voteslayoute {
 		t := 0
 		i := 0
 		j := 0
@@ -97,24 +97,24 @@ func Vote_Elect() (int, [6]int, map[int][]int) {
 		for {
 			order[t] = v[t]
 			t++
-			if t > 5 {
+			if t > Numofislands-1 {
 				break
 			}
 		}
 
 		for {
 
-			p := 100
+			maxlim := 100
 			j = 0
 
 			for {
-				if p > order[j] {
-					p = order[j]
+				if maxlim > order[j] {
+					maxlim = order[j]
 					index[i] = j
 				}
 
 				j++
-				if j > 5 {
+				if j > Numofislands-1 {
 					break
 				}
 			}
@@ -123,69 +123,70 @@ func Vote_Elect() (int, [6]int, map[int][]int) {
 			order[j] = 101
 
 			i++
-			if i > 5 {
+			if i > Numofislands-1 {
 				break
 			}
 		}
 
-		o := 0
-		r := 0
+		i = 0
+		itrans := 0
 		s := 1
 		for {
-			r = index[o]
-			score[r] = s
+			itrans = index[i]
+			score[itrans] = s
 			s++
-			o++
-			if o > 5 {
+			i++
+			if i > Numofislands-1 {
 				break
 			}
 		}
 
-		PreferenceMap[k] = []int{score[0], score[1], score[2],
-			score[3], score[4], score[5]}
+		PreferenceMap[k] = score
 
 	}
 
 	//Calculate the final score for six island and ditermine the winner.
-	var Final_score = [6]int{0, 0, 0, 0, 0, 0}
+	var Finalscore []int
 	for _, v := range PreferenceMap {
-		Final_score[0] = Final_score[0] + v[0]
-		Final_score[1] = Final_score[1] + v[1]
-		Final_score[2] = Final_score[2] + v[2]
-		Final_score[3] = Final_score[3] + v[3]
-		Final_score[4] = Final_score[4] + v[4]
-		Final_score[5] = Final_score[5] + v[5]
+		i := 0
+		for {
+			Finalscore[i] = Finalscore[i] + v[i]
+			i++
+			if i > Numofislands-1 {
+				break
+			}
+		}
 	}
-	h := 0
-	l := 0
+	i := 0
+	maxscore := 0
 	win := 0
 	for {
-		if l < Final_score[h] {
-			l = Final_score[h]
-			win = h
+		if maxscore < Finalscore[i] {
+			maxscore = Finalscore[i]
+			win = i
 		}
-		h++
-		if h > 5 {
+		i++
+		if i > Numofislands-1 {
 			break
 		}
 	}
 
 	win = win + 1
 
-	return win, Final_score, PreferenceMap
+	return win, Finalscore, PreferenceMap
 }
 
-func VoteElectJudge() (int, [6]int, map[int][]int) {
-	win, Final_score, PreferenceMap := Vote_Elect()
-	return win, Final_score, PreferenceMap
+func VoteElectJudge(Numofislands int) (int, []int, map[int][]int) {
+	win, Finalscore, PreferenceMap := VoteElect(Numofislands)
+	return win, Finalscore, PreferenceMap
 }
 
-func VoteElectSpeaker() (int, [6]int, map[int][]int) {
-	win, Final_score, PreferenceMap := Vote_Elect()
-	return win, Final_score, PreferenceMap
+func VoteElectSpeaker(Numofislands int) (int, []int, map[int][]int) {
+	win, Finalscore, PreferenceMap := VoteElect(Numofislands)
+	return win, Finalscore, PreferenceMap
 }
 
-func VoteElectPresident() (int, [6]int, map[int][]int) {
-	win, Final_score, PreferenceMap := Vote_Elect()
-	return win, Final_score, PreferenceMap
+func VoteElectPresident(Numofislands int) (int, []int, map[int][]int) {
+	win, Finalscore, PreferenceMap := VoteElect(Numofislands)
+	return win, Finalscore, PreferenceMap
 }
