@@ -73,7 +73,7 @@ func (s *SOMASServer) distributePredictions(islandPredictionDict shared.Predicti
 	for id, client := range s.clientMap {
 		err = client.RecievePredictions(recievedPredictionsDict[id])
 		if err != nil {
-			return err
+			return errors.Errorf("Failed to receive prediction from client %v: %v", id, err)
 		}
 	}
 	return nil
