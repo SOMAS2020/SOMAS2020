@@ -9,7 +9,7 @@ func (s *SOMASServer) runIIFO() error {
 	s.logf("start runIIFO")
 	err := s.runPredictionSession()
 	if err != nil {
-		return err
+		return errors.Errorf("Error running prediction session: %v", err)
 	}
 	defer s.logf("finish runIIFO")
 	// TODO:- IIFO team
