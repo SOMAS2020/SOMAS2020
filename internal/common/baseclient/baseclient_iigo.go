@@ -40,3 +40,11 @@ func (c *BaseClient) GetClientJudgePointer() roles.Judge {
 func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return nil
 }
+
+func (c *BaseClient) GetTaxContribution() int {
+	return 0
+}
+
+func (c *BaseClient) RequestAllocation() int {
+	return 0
+}

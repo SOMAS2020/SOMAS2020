@@ -82,6 +82,7 @@ func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int
 	for id, resourceLeft := range islandsResources {
 		taxAmountMap[id] = rand.Intn(resourceLeft)
 	}
+	TaxAmountMapExport = taxAmountMap
 	return taxAmountMap, nil
 }
 
@@ -141,6 +142,7 @@ func (p *basePresident) requestAllocationRequest() {
 	for _, v := range getIslandAlive() {
 		allocRequests[int(v)] = iigoClients[shared.ClientID(int(v))].CommonPoolResourceRequest()
 	}
+	AllocationAmountMapExport = allocRequests
 	p.setAllocationRequest(allocRequests)
 
 }
