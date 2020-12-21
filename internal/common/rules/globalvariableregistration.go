@@ -31,6 +31,18 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{2},
 	},
 	{
+		VariableName: "no_islands_alive",
+		Values:       []float64{6},
+	},
+	{
+		VariableName: "no_ballots_cast",
+		Values:       []float64{6},
+	},
+	{
+		VariableName: "no_allocations_sent",
+		Values:       []float64{6},
+	},
+	{
 		VariableName: "islands_alive",
 		Values:       []float64{1, 2, 3, 4, 5, 6},
 	},
@@ -45,5 +57,21 @@ var StaticVariables = []VariableValuePair{
 	{
 		VariableName: "presidentSalary",
 		Values:       []float64{50},
+	},
+	{
+		VariableName: "expected_tax_contribution",
+		Values:       []float64{0},
+	},
+	{
+		VariableName: "expected_allocation",
+		Values:       []float64{0},
+	},
+	{
+		VariableName: "island_tax_contribution",
+		Values:       []float64{0},
+	},
+	{
+		VariableName: "island_allocation",
+		Values:       []float64{0},
 	},
 }
