@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 )
 
 // runIIFO : IIFO allows sharing of disaster predictions between islands
