@@ -37,7 +37,7 @@ type Client interface {
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
 func NewClient(id shared.ClientID) Client {
-	return &BaseClient{id: id, communications: make(map[shared.ClientID][]map[int]Communication, 0)}
+	return &BaseClient{id: id, communications: map[shared.ClientID][]map[int]Communication{}}
 }
 
 // BaseClient provides a basic implementation for all functions of the client interface and should always the interface fully.
@@ -98,7 +98,7 @@ func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[int]C
 	c.communications[sender] = append(c.communications[sender], data)
 }
 
-// GetCommunications is used for testin communications for testing
+// GetCommunications is used for testing communications
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[int]Communication {
 	return &c.communications
 }
