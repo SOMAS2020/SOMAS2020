@@ -16,7 +16,7 @@ func (s *SOMASServer) runIIGO() error {
 func (s *SOMASServer) runIIGOEndOfTurn() error {
 	s.logf("start runIIGOEndOfTurn")
 	defer s.logf("finish runIIGOEndOfTurn")
-	clientMap := s.clientMap
+	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for i, v := range clientMap {
 		tax := v.GetTaxContribution()
 		s.gameState.CommonPool += tax
@@ -40,7 +40,7 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 func (s *SOMASServer) runIIGOAllocations() error {
 	s.logf("start runIIGOAllocations")
 	defer s.logf("finish runIIGOAllocations")
-	clientMap := s.clientMap
+	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for i, v := range clientMap {
 		allocation := v.RequestAllocation()
 		s.gameState.CommonPool -= allocation
