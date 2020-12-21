@@ -24,5 +24,5 @@ type PredictionInfo struct {
 // PredictionInfoDict is a dictionary of PredictionInfo
 type PredictionInfoDict = map[ClientID]PredictionInfo
 
-// RecievedPredictionsDict is a dictionary of PredictionInfoDict
-type RecievedPredictionsDict = map[ClientID]PredictionInfoDict
+// ReceivedPredictionsDict is a dictionary of PredictionInfoDict
+type ReceivedPredictionsDict = map[ClientID]PredictionInfoDict
