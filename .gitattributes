@@ -1,0 +1,4 @@
+* text=auto
+
+*.go text
+*.json text
