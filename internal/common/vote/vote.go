@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func Get_votes_for_rule(ruleID string, islandID int) map[int][]int {
+func GetVotesForRule(ruleID string, islandID int) map[int][]int {
 	votes_layout := make(map[int][]int)
 	rand.Seed(time.Now().UTC().UnixNano())
 	i := 1
