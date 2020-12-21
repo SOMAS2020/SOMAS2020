@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"log"
+	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -66,6 +67,78 @@ func (c *BaseClient) RequestGift() (int, error) {
 // It can offer multiple partial gifts
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error) {
+	//******PSEUDO CODE**********
+
+	// Assume we have knowledge about:
+	//	a. Islands in Critical Condition
+	//
+	//	1. Check if our island is in Critical State:
+	//		If yes then offer no gifts
+	//		If no continue;
+	//	2. Let x = number of islands in critical state
+	//		If (x!=0)
+	//			total no. of islands not in critical state = 6-x
+	//			LOOP: for i=0; i<x; i++
+	//				let y = resources requested by critical island i
+	//				our contribution to island i (critical condition) = y/(6-x)
+	//			end
+	//	3. 	If (x==0)
+	//			Contribute 20% of requested sum to all islands
+	//
+	//			NOTE: For agent implementation, take into consideration:
+	//				a. possibility of disaster
+	//				b. Confidence level or risk aversion parameters
+	//				c. Agents current gamestate
+	//				d. Rating of other agents based on previous turn
+	//				e. variability of your own resources
+	//			This is not part of MVP so should be handled by agents indiviually.
+	//***************************
+
+	//Setup Dummy Data for island conditions
+	crit_cond_dict := shared.GiftDict{}
+	//0 means not critical
+	//1 means critical
+	for client := range giftRequestDict {
+		crit_cond_dict[client] = rand.Intn(2)
+	}
+
+	// We check ourselves if we are in critical
+	if crit_cond_dict[c.id] == 1 {
+		for client := range giftRequestDict {
+			giftRequestDict[client] = 0
+		}
+		return giftRequestDict, nil
+	}
+
+	var critical_islands = 0
+
+	for client := range giftRequestDict {
+		if crit_cond_dict[client] == 1 {
+			critical_islands++
+			// sum_req_crit_isl += giftRequestDict[client]
+		}
+	}
+
+	var amount_req_crit_isl = 0
+
+	if critical_islands != 0 {
+		var non_critical_islands = 6 - critical_islands
+		for client := range giftRequestDict {
+			if crit_cond_dict[client] == 1 {
+				amount_req_crit_isl = giftRequestDict[client]
+				giftRequestDict[client] = amount_req_crit_isl / non_critical_islands
+			}
+			giftRequestDict[client] = 0
+		}
+		return giftRequestDict, nil
+	}
+
+	//return 20% of requested value for all if no one is critical
+	for client := range giftRequestDict {
+		var amount = giftRequestDict[client]
+		giftRequestDict[client] = amount / 5
+	}
+
 	return giftRequestDict, nil
 }
 
