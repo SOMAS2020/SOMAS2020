@@ -1,0 +1,8 @@
+.enlargeOnHover {
+    transition: transform .2s;
+    max-height: 42px;
+}
+
+.enlargeOnHover:hover {
+    transform: scale(1.1);
+}

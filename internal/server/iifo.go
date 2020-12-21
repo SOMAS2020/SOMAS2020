@@ -6,12 +6,19 @@ import (
 )
 
 // runIIFO : IIFO allows sharing of disaster predictions between islands
-func (s *SOMASServer) runIIFO() ([]common.Action, error) {
+func (s *SOMASServer) runIIFO() error {
 	s.logf("start runIIFO")
 	s.runPredictionSession()
 	defer s.logf("finish runIIFO")
 	// TODO:- IIFO team
-	return nil, nil
+	return nil
+}
+
+func (s *SOMASServer) runIIFOEndOfTurn() error {
+	s.logf("start runIIFOEndOfTurn")
+	defer s.logf("finish runIIFOEndOfTurn")
+	// TODO:- IIFO team
+	return nil
 }
 
 func (s *SOMASServer) runPredictionSession() ([]common.Action, error) {

@@ -1,40 +1,40 @@
-// Package server contains server-side code
 package server
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
 
 // Server represents the primary server interface exposed to the simulation.
 type Server interface {
-	// EntryPoint function that returns a list of historic common.GameStates until the
+	// EntryPoint function that returns a list of historic gamestate.ClientInfos until the
 	// game ends.
-	EntryPoint() ([]common.GameState, error)
+	EntryPoint() ([]gamestate.GameState, error)
 }
 
 // SOMASServer implements Server.
 type SOMASServer struct {
-	gameState common.GameState
+	gameState gamestate.GameState
 
 	// ClientMap maps from the ClientID to the Client object.
 	// We don't store this in gameState--gameState is shared to clients and should
 	// not contain pointers to other clients!
-	clientMap map[shared.ClientID]common.Client
+	clientMap map[shared.ClientID]baseclient.Client
 }
 
 // SOMASServerFactory returns an instance of the main server we use.
 func SOMASServerFactory() Server {
-	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(common.RegisteredClients)
+	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
 
 	return &SOMASServer{
 		clientMap: clientMap,
-		gameState: common.GameState{
+		gameState: gamestate.GameState{
 			Season:      1,
 			Turn:        1,
 			ClientInfos: clientInfos,
@@ -42,12 +42,12 @@ func SOMASServerFactory() Server {
 	}
 }
 
-// EntryPoint function that returns a list of historic common.GameStates until the
+// EntryPoint function that returns a list of historic gamestate.GameState until the
 // game ends.
-func (s *SOMASServer) EntryPoint() ([]common.GameState, error) {
-	states := []common.GameState{s.gameState.Copy()}
+func (s *SOMASServer) EntryPoint() ([]gamestate.GameState, error) {
+	states := []gamestate.GameState{s.gameState.Copy()}
 
-	for !s.gameOver(config.MaxTurns, config.MaxSeasons) {
+	for !s.gameOver(config.GameConfig().MaxTurns, config.GameConfig().MaxSeasons) {
 		if err := s.runTurn(); err != nil {
 			return states, err
 		}

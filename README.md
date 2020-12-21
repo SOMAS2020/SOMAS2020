@@ -8,12 +8,17 @@ Main repository for SOMAS2020 Coursework.
 ## Running code
 ```bash
 # Approach 1
-go run .
+go run . # Linux and macOS: Use `sudo go run .` if you encounter any "Permission denied" errors.
 
 # Approach 2
 go build # build step
-./SOMAS2020 # SOMAS2020.exe if you're on Windows
+./SOMAS2020 # SOMAS2020.exe if you're on Windows. Use `sudo` on Linux and macOS as Approach 1 if required.
 ```
+
+### Output
+After running, the `output` directory will contain the output of the program.
+- `output.json`: JSON file containing the game's historic states and configuration.
+- `log.txt`: logs of the run
 
 ## Testing
 ```bash
