@@ -249,3 +249,143 @@ func TestGetTaxMap(t *testing.T) {
 		})
 	}
 }
+
+func TestGetRuleForSpeaker(t *testing.T) {
+	cases := []struct {
+		name       string
+		bPresident basePresident // base
+		expected   []string
+	}{
+		{
+			name: "Empty tax map base",
+			bPresident: basePresident{
+				id:              3,
+				rulesProposals:  []string{},
+				clientPresident: nil,
+			},
+			expected: []string{""},
+		},
+		{
+			name: "Short tax map base",
+			bPresident: basePresident{
+				id:              3,
+				rulesProposals:  []string{"test"},
+				clientPresident: nil,
+			},
+			expected: []string{"test"},
+		},
+		{
+			name: "Long tax map base",
+			bPresident: basePresident{
+				id:              3,
+				rulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				clientPresident: nil,
+			},
+			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+		},
+		{
+			name: "Client empty tax map base",
+			bPresident: basePresident{
+				id:             5,
+				rulesProposals: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				clientPresident: &basePresident{
+					id:             3,
+					rulesProposals: []string{},
+				},
+			},
+			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+		},
+		{
+			name: "Client tax map base override",
+			bPresident: basePresident{
+				id:             5,
+				rulesProposals: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				clientPresident: &basePresident{
+					id:             3,
+					rulesProposals: []string{"test1", "test2", "test3"},
+				},
+			},
+			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			val := tc.bPresident.getRuleForSpeaker()
+			if len(tc.expected) == 0 {
+				if val != "" {
+					t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, val)
+				}
+			} else if !checkIfInList(val, tc.expected) {
+				t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, val, tc.expected)
+			}
+		})
+	}
+}
+
+func TestGetAllocationRequests(t *testing.T) {
+	cases := []struct {
+		name       string
+		bPresident basePresident // base
+		input      int
+		expected   map[int]int
+	}{
+		{
+			name: "Limited Resources",
+			bPresident: basePresident{
+				id:               3,
+				resourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+				clientPresident:  nil,
+			},
+			input:    100,
+			expected: map[int]int{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
+		},
+		{
+			name: "Excess Resources",
+			bPresident: basePresident{
+				id:               3,
+				resourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+				clientPresident:  nil,
+			},
+			input:    150,
+			expected: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+		},
+		{
+			name: "Client override limited resourceRequests",
+			bPresident: basePresident{
+				id:               5,
+				resourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+				clientPresident: &basePresident{
+					id:               3,
+					resourceRequests: map[int]int{1: 15, 2: 20, 25: 3, 100: 4, 35: 5, 6: 30},
+				},
+			},
+			input:    100,
+			expected: map[int]int{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
+		},
+		{
+			name: "Client override excess resourceRequests",
+			bPresident: basePresident{
+				id:               5,
+				resourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+				clientPresident: &basePresident{
+					id:               3,
+					resourceRequests: map[int]int{1: 15, 2: 20, 25: 3, 100: 4, 35: 5, 6: 30},
+				},
+			},
+			input:    150,
+			expected: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			val := tc.bPresident.getAllocationRequests(tc.input)
+			if !reflect.DeepEqual(val, tc.expected) {
+				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, val, tc.expected)
+			}
+		})
+	}
+}
