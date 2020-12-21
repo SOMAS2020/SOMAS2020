@@ -115,7 +115,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	ruleToVote := featurePresident.getRuleForSpeaker()
 
 	// 3 Speaker actions
-	featureSpeaker.SetRuleToVote(ruleToVote)
+	featureSpeaker.setRuleToVote(ruleToVote)
 	featureSpeaker.setVotingResult()
 	featureSpeaker.announceVotingResult()
 

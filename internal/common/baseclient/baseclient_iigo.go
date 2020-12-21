@@ -8,6 +8,7 @@ import (
 // CommonPoolResourceRequest is called by the President in IIGO to
 // request an allocation of resources from the common pool.
 func (c *BaseClient) CommonPoolResourceRequest() int {
+	// TODO: Implement needs based resource request.
 	return 20
 }
 
@@ -42,9 +43,11 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 }
 
 func (c *BaseClient) GetTaxContribution() int {
+	// TODO: Implement common pool contribution greater than or equal to tax.
 	return 0
 }
 
 func (c *BaseClient) RequestAllocation() int {
+	// TODO: Implement request equal to the allocation permitted by President.
 	return 0
 }
