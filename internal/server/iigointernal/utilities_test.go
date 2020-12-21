@@ -29,37 +29,115 @@ func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 	}
 }
 
+// func communicateHelper(sender int, receiver int, packetCount int) map[int]map[int][]map[int]DataPacket {
+// 	charSet := "abcdedfghijklmnopqrst"
+// 	strLength := 10
+// 	connections := map[int]map[int][]map[int]DataPacket{}
+
+// 	for i := 0; i < packetCount; i++ {
+// 		var output strings.Builder
+// 		for j := 0; j < strLength; j++ {
+// 			random := rand.Intn(len(charSet))
+// 			randomChar := charSet[random]
+// 			output.WriteString(string(randomChar))
+// 		}
+
+// 		connections[sender][receiver] = append(connections[sender][receiver], DataPacket{})
+
+// 	}
+// }
+
 func TestCommunicateWithIslands(t *testing.T) {
-	fakeClientMap := map[shared.ClientID]baseclient.Client{}
-	sender := 1
-	senderID := shared.TeamIDs[sender]
-	senderClient := baseclient.NewClient(senderID)
-	receiver := 3
-	receiverID := shared.TeamIDs[receiver]
-	receiverClient := baseclient.NewClient(receiverID)
 
-	fakeClientMap[senderID] = senderClient
-	fakeClientMap[receiverID] = receiverClient
-
-	data := map[int]DataPacket{
-		0: {integerData: 5, textData: "Hello World", booleanData: true},
-		1: {integerData: 22, textData: "SOMAS", booleanData: false},
+	dataA := map[int]DataPacket{
+		3:  {integerData: 123, textData: "Hello World - dataA", booleanData: true},
+		1:  {textData: "SOMAS", booleanData: false},
+		22: {booleanData: false},
+		14: {integerData: 420, booleanData: false},
 	}
 
-	dataComm := map[int]baseclient.Communication{}
-	for k, dp := range data {
-		dataComm[k] = dataPacketToCommunication(&dp)
+	dataB := map[int]DataPacket{
+		0: {integerData: 11, textData: "SOMAS", booleanData: true},
 	}
 
-	setIIGOClients(&fakeClientMap)
-	communicateWithIslands(receiver, sender, data)
+	dataC := map[int]DataPacket{
+		5:  {booleanData: true},
+		4:  {textData: "communication test"},
+		16: {integerData: 7832},
+		73: {integerData: 234511, textData: "dataC", booleanData: false},
+	}
 
-	recieverGot := receiverClient.GetCommunications()
-	// t.Log(fakeClientMap[receiverID])
-	// t.Log(fakeClientMap[senderID])
-	recievedFromSender := (*recieverGot)[senderID][0]
+	cases := []struct {
+		name           string
+		senders        []int
+		sendersPayload map[int][]map[int]DataPacket
+		receiver       int
+	}{
+		{
+			name:    "single transmission",
+			senders: []int{1},
+			sendersPayload: map[int][]map[int]DataPacket{
+				1: {dataA},
+			},
+			receiver: 4,
+		},
+		{
+			name:    "2 transmissions",
+			senders: []int{1, 2},
+			sendersPayload: map[int][]map[int]DataPacket{
+				1: {dataA},
+				2: {dataB},
+			},
+			receiver: 5,
+		},
+		{
+			name:    "1 sender, 2 transmissions",
+			senders: []int{4},
+			sendersPayload: map[int][]map[int]DataPacket{
+				4: {dataA, dataC},
+			},
+			receiver: 0,
+		},
+	}
 
-	if !reflect.DeepEqual(dataComm, recievedFromSender) {
-		t.Errorf("Communication failed. Sent: %v\nGot: %v", data, recievedFromSender)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			fakeClientMap := map[shared.ClientID]baseclient.Client{}
+
+			// Register clients
+			receiverID := shared.TeamIDs[tc.receiver]
+			fakeClientMap[receiverID] = baseclient.NewClient(receiverID)
+
+			for sender := range tc.sendersPayload {
+				senderID := shared.TeamIDs[sender]
+				fakeClientMap[senderID] = baseclient.NewClient(senderID)
+			}
+
+			setIIGOClients(&fakeClientMap)
+
+			// Perform communications + build expected output
+			expectedResult := map[shared.ClientID][]map[int]baseclient.Communication{}
+
+			for sender, dataList := range tc.sendersPayload {
+				for _, data := range dataList {
+					communicateWithIslands(tc.receiver, sender, data)
+
+					dataComm := map[int]baseclient.Communication{}
+					for k, dp := range data {
+						dataComm[k] = dataPacketToCommunication(&dp)
+					}
+
+					expectedResult[shared.TeamIDs[sender]] = append(expectedResult[shared.TeamIDs[sender]], dataComm)
+				}
+			}
+
+			// Check internals of clients
+			recieverGot := *(fakeClientMap[receiverID]).GetCommunications()
+
+			if !reflect.DeepEqual(expectedResult, recieverGot) {
+				t.Errorf("Communication failed. Sent: %v\nGot: %v", expectedResult, recieverGot)
+			}
+
+		})
 	}
 }
