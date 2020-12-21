@@ -1,11 +1,10 @@
 package roles
 
-// Judge is an interface that is implemented by BaseJudge but can also be
+// Judge is an interface that is implemented by baseJudge but can also be
 // optionally implemented by individual islands.
 type Judge interface {
-	payPresident() error
-	inspectBallot() error
-	inspectAllocation() error
-	declareSpeakerPerformance() error
-	declarePresidentPerformance() error
+	payPresident() (int, error)
+	inspectHistory() (map[int]EvaluationReturn, error)
+	declareSpeakerPerformance() (int, bool, int, bool, error)
+	declarePresidentPerformance() (int, bool, int, bool, error)
 }

@@ -2,6 +2,10 @@ package roles
 
 import (
 	"math/rand"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 )
 
 //base President Object
@@ -19,6 +23,7 @@ type basePresident struct {
 
 // Set allowed resource allocation based on each islands requests
 func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, availCommonPool int) (map[int]int, error) {
+	p.budget -= 10
 	var requestSum int
 	resourceAllocation := make(map[int]int)
 
@@ -39,11 +44,21 @@ func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, 
 // Chose a rule proposal from all the proposals
 // need to pass in since this is now functional for the sake of client side
 func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) {
+	p.budget -= 10
 	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
 		return "", nil
 	}
 	return rulesProposals[rand.Intn(len(rulesProposals))], nil
+}
+
+func (p *basePresident) requestRuleProposal() {
+	p.budget -= 10
+	var rules []string
+	//for _, v := range getIslandAlive() {
+	//	rules = append(rules, clients[int(v)].RuleProposal()))
+	//}
+	p.setRuleProposals(rules)
 }
 
 // Get rule proposals to be voted on from remaining islands
@@ -61,6 +76,7 @@ func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
 // Set taxation amount for all of the living islands
 // island_resources: map of all the living islands and their remaing resources
 func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
+	p.budget -= 10
 	taxAmountMap := make(map[int]int)
 	for id, resourceLeft := range islandsResources {
 		taxAmountMap[id] = rand.Intn(resourceLeft)
@@ -84,6 +100,7 @@ func (p *basePresident) getRuleForSpeaker() string {
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
 func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
+	p.budget -= 10
 	if p.clientPresident != nil {
 		result, error := p.clientPresident.setTaxationAmount(islandsResources)
 		if error == nil {
@@ -92,6 +109,17 @@ func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	}
 	result, _ := p.setTaxationAmount(islandsResources)
 	return result
+}
+
+func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
+	p.budget -= 10
+	taxAmountMap := p.getTaxMap(islandsResources)
+	for _, v := range getIslandAlive() {
+		d := DataPacket{integerData: taxAmountMap[int(v)]}
+		data := make(map[int]DataPacket)
+		data[TaxAmount] = d
+		communicateWithIslands(int(v), p.id, data)
+	}
 }
 
 // Send Tax map all the remaining islands
@@ -107,10 +135,69 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 	return result
 }
 
+func (p *basePresident) requestAllocationRequest() {
+	allocRequests := make(map[int]int)
+	//for _, v := range getIslandAlive() {
+	//	allocRequests[int(v)] = clients[int(v)].CommonPoolResourceRequest()
+	//}
+	p.setAllocationRequest(allocRequests)
+
+}
+
+func (p *basePresident) replyAllocationRequest(commonPool int) {
+	p.budget -= 10
+	allocationMap := p.getAllocationRequests(commonPool)
+	for _, v := range getIslandAlive() {
+		d := DataPacket{integerData: allocationMap[int(v)]}
+		data := make(map[int]DataPacket)
+		data[AllocationAmount] = d
+		communicateWithIslands(int(v), p.id, data)
+	}
+}
+
 func (p *basePresident) appointNextSpeaker() int {
+	p.budget -= 10
 	return rand.Intn(5)
 }
 
-func (p *basePresident) paySpeaker() error {
+func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
+	var speakerSalary = int(rules.VariableMap["speakerSalary"].Values[0])
+	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
+	if withdrawError != nil {
+		featurePresident.speakerSalary = speakerSalary
+	}
+	return withdrawError
+}
+
+func (p *basePresident) sendSpeakerSalary() {
+	if p.clientPresident != nil {
+		amount, err := p.clientPresident.paySpeaker()
+		if err == nil {
+			featureSpeaker.budget = amount
+			return
+		}
+	}
+	amount, _ := p.paySpeaker()
+	featureSpeaker.budget = amount
+}
+
+// Pay the speaker
+func (p *basePresident) paySpeaker() (int, error) {
+	hold := p.speakerSalary
+	p.speakerSalary = 0
+	return hold, nil
+}
+
+func getIslandAlive() []float64 {
+	return rules.VariableMap["islands_alive"].Values
+}
+
+func (p *basePresident) reset(val string) error {
+	p.id = 0
+	p.clientPresident = nil
+	p.budget = 0
+	p.resourceRequests = map[int]int{}
+	p.rulesProposals = []string{}
+	p.speakerSalary = 0
 	return nil
 }

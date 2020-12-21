@@ -9,10 +9,14 @@ type Accountability struct {
 
 var TurnHistory []Accountability
 
-func updateTurnHistory(clientID int, pairs []rules.VariableValuePair) error {
+func UpdateTurnHistory(clientID int, pairs []rules.VariableValuePair) error {
 	TurnHistory = append(TurnHistory, Accountability{
 		clientID: clientID,
 		pairs:    pairs,
 	})
 	return nil
+}
+
+func clearHistory() {
+	TurnHistory = []Accountability{}
 }

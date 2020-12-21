@@ -1,6 +1,10 @@
 package shared
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
+)
 
 // ClientLifeStatus represents the three states a client's life can be in.
 type ClientLifeStatus int
@@ -25,4 +29,14 @@ func (c ClientLifeStatus) String() string {
 // GoString implements GoStringer (for %#v printing)
 func (c ClientLifeStatus) GoString() string {
 	return c.String()
+}
+
+// MarshalText implements TextMarshaler
+func (c ClientLifeStatus) MarshalText() ([]byte, error) {
+	return miscutils.MarshalTextForString(c.String())
+}
+
+// MarshalJSON implements RawMessage
+func (c ClientLifeStatus) MarshalJSON() ([]byte, error) {
+	return miscutils.MarshalJSONForString(c.String())
 }

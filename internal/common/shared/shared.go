@@ -2,7 +2,11 @@
 // packages to prevent import cycles.
 package shared
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
+)
 
 // ClientID is an enum for client IDs
 type ClientID int
@@ -36,4 +40,14 @@ func (c ClientID) String() string {
 // GoString implements GoStringer
 func (c ClientID) GoString() string {
 	return c.String()
+}
+
+// MarshalText implements TextMarshaler
+func (c ClientID) MarshalText() ([]byte, error) {
+	return miscutils.MarshalTextForString(c.String())
+}
+
+// MarshalJSON implements RawMessage
+func (c ClientID) MarshalJSON() ([]byte, error) {
+	return miscutils.MarshalJSONForString(c.String())
 }
