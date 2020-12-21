@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-// TestRegisterNewVariable tests whther the global variable cache can register new values
+// TestRegisterNewVariable tests whether the global variable cache can register new values
 func TestRegisterNewVariable(t *testing.T) {
 	VariableMapTesting := generateTestVariableStore()
 	registerTestVariable(VariableMapTesting)
