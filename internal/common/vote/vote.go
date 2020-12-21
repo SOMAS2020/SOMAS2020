@@ -22,8 +22,8 @@ func GetVotesForRule(ruleID string, NumOFIslands int) map[int][]int {
 func VoteRule(ruleID string, NumOFIslands int) (int, int, bool) {
 
 	//Get votes from islands for the rule changes.
-	var votesLayoutRule map[int][]int
-	votesLayoutRule = GetVotesForRule(ruleID, NumOFIslands)
+	//var votesLayoutRule map[int][]int
+	votesLayoutRule := GetVotesForRule(ruleID, NumOFIslands)
 
 	//Calculate results of each island.
 	resultsOfAllIslands := make(map[int][]int)
@@ -81,8 +81,8 @@ func GetVotesForElect(NumOFIslands int) map[int][]int {
 func VoteElect(NumOFIslands int) (int, []int, map[int][]int) {
 
 	//Get votes from each island for the election.
-	var votesLayoutElect map[int][]int
-	votesLayoutElect = GetVotesForElect(NumOFIslands)
+	//var votesLayoutElect map[int][]int
+	votesLayoutElect := GetVotesForElect(NumOFIslands)
 
 	//Calculate the preference map.
 	var order []int
