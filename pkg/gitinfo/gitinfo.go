@@ -28,7 +28,13 @@ func GetGitInfo(wd string) (GitInfo, error) {
 	gitInfo.Hash = hash
 	gitInfo.ShortHash = hash[:7]
 
-	gitInfo.GithubURL = fmt.Sprintf("https://github.com/SOMAS2020/SOMAS2020/tree/%v", hash)
+	remoteURLBuf, err := sysutils.RunCommandInDir("git", []string{"config", "--get", "remote.origin.url"}, wd)
+	if err != nil {
+		return gitInfo, errors.Errorf("Failed to get git remote origin url: %v", err)
+	}
+	remoteURL := strings.TrimSpace(string(remoteURLBuf))
+
+	gitInfo.GithubURL = fmt.Sprintf("%v/tree/%v", string(remoteURL), hash)
 
 	return gitInfo, nil
 }

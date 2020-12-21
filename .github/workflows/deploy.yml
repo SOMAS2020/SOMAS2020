@@ -21,6 +21,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Run
       run: go run .
+    - name: Output output.json
+      run: cat output/output.json
     - name: Build website
       run: |
         cd website
@@ -28,11 +30,9 @@ jobs:
         yarn install
         yarn build
     - name: Deploy website
-      uses: JamesIves/github-pages-deploy-action@3.7.1
-      with:
+      uses: Cecilapp/GitHub-Pages-deploy@v3
+      env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages 
-        FOLDER: website/build 
-        CLEAN: true
-      
-    
+      with:
+        build_dir: website/build
+        branch: gh-pages
