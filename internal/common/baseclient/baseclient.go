@@ -95,14 +95,10 @@ type Communication struct {
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
 func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[int]Communication) {
-	// d := map[int]Communication{
-	// 	0: {IntegerData: 5, TextData: "Hello World", BooleanData: true},
-	// 	1: {IntegerData: 22, TextData: "SOMAS", BooleanData: false},
-	// }
 	c.communications[sender] = append(c.communications[sender], data)
-
 }
 
+// GetCommunications is used for testin communications for testing
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[int]Communication {
 	return &c.communications
 }
