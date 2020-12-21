@@ -3,8 +3,9 @@ package baseclient
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"log"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -29,12 +30,14 @@ type Client interface {
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
+	ReceiveCommunication(sender shared.ClientID, data map[int]Communication)
+	GetCommunications() *map[shared.ClientID][]map[int]Communication
 }
 
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
 func NewClient(id shared.ClientID) Client {
-	return &BaseClient{id: id}
+	return &BaseClient{id: id, communications: make(map[shared.ClientID][]map[int]Communication, 0)}
 }
 
 // BaseClient provides a basic implementation for all functions of the client interface and should always the interface fully.
@@ -43,6 +46,7 @@ func NewClient(id shared.ClientID) Client {
 type BaseClient struct {
 	id              shared.ClientID
 	clientGameState gamestate.ClientGameState
+	communications  map[shared.ClientID][]map[int]Communication
 }
 
 // Echo prints a message to show that the client exists
@@ -80,4 +84,25 @@ func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.ClientGameState) {
 func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.Logf("Received game state update: %#v", gameState)
 	c.clientGameState = gameState
+}
+
+// Communication is a general datastructure used for communications
+type Communication struct {
+	IntegerData int
+	TextData    string
+	BooleanData bool
+}
+
+// ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
+func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[int]Communication) {
+	// d := map[int]Communication{
+	// 	0: {IntegerData: 5, TextData: "Hello World", BooleanData: true},
+	// 	1: {IntegerData: 22, TextData: "SOMAS", BooleanData: false},
+	// }
+	c.communications[sender] = append(c.communications[sender], data)
+
+}
+
+func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[int]Communication {
+	return &c.communications
 }
