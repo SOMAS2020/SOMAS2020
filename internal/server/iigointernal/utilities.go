@@ -86,14 +86,6 @@ func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) 
 
 }
 
-func collapseBoolean(val bool) int {
-	if val {
-		return 1
-	} else {
-		return 0
-	}
-}
-
 func CheckEnoughInCommonPool(value int, gameState *gamestate.GameState) bool {
 	return gameState.CommonPool >= value
 }
@@ -103,7 +95,7 @@ func WithdrawFromCommonPool(value int, gameState *gamestate.GameState) error {
 		gameState.CommonPool -= value
 		return nil
 	} else {
-		return errors.Errorf("Not enough ressources in the common pool to withdraw the amount '%v'", value)
+		return errors.Errorf("Not enough resources in the common pool to withdraw the amount '%v'", value)
 	}
 }
 
