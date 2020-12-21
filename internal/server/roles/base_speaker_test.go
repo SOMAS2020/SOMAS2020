@@ -101,9 +101,68 @@ func generateRulesTestStores() (map[string](rules.RuleMatrix), map[string](rules
 			"Kinda Test Rule":   ruleMatrixExample,
 			"Kinda Test Rule 2": ruleMatrixExample,
 			"Kinda Test Rule 3": ruleMatrixExample,
+			"Rule1": ruleMatrixExample,
+			"Rule2": ruleMatrixExample,
 		},
 		map[string](rules.RuleMatrix){
 			"Kinda Test Rule 2": ruleMatrixExample,
 		}
 
+}
+
+type speakerState struct{
+	ruleToVote    string
+	votingResult  bool
+}
+
+func TestSetRuleToVote (t *testing.T) {
+	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
+	s := baseSpeaker{clientSpeaker: nil}
+	cases := []struct {
+		name   string
+		ruleID string
+		expectedStates []speakerState
+
+		want   error
+	}{
+		{
+			name:   "Rule given",
+			ruleID: "Rule1",
+			expectedStates: []speakerState{ speakerState{"Rule1", false}, speakerState{"Rule1", true}},
+			want:   nil,
+		},
+		{
+			name: "Another rule given",
+			ruleID: "Rule2",
+			expectedStates: []speakerState{ speakerState{"Rule2", false}, speakerState{"Rule2", true}},
+			want: nil,
+		},
+		{
+			name: "No rule given",
+			ruleID: "",
+			expectedStates: []speakerState{ speakerState{"", false}, speakerState{"", false}},
+			want: nil,
+		},
+	}
+	var stateTransfer [][]speakerState
+	var expectedStateTransfer [][]speakerState
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s.setRuleToVote(tc.ruleID)
+			state1 := speakerState{s.ruleToVote, s.votingResult}
+			s.setVotingResult()
+			state2 := speakerState{s.ruleToVote, s.votingResult}
+			got := s.announceVotingResult()
+
+			stateTransfer = append(stateTransfer, []speakerState{state1,state2})
+			expectedStateTransfer = append(expectedStateTransfer, tc.expectedStates)
+
+			testutils.CompareTestErrors(tc.want, got, t)
+		})
+	}
+
+	eq := reflect.DeepEqual(stateTransfer, expectedStateTransfer)
+	if !eq {
+		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedStateTransfer, stateTransfer)
+	}
 }
