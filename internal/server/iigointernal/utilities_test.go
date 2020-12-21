@@ -29,24 +29,6 @@ func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 	}
 }
 
-// func communicateHelper(sender int, receiver int, packetCount int) map[int]map[int][]map[int]DataPacket {
-// 	charSet := "abcdedfghijklmnopqrst"
-// 	strLength := 10
-// 	connections := map[int]map[int][]map[int]DataPacket{}
-
-// 	for i := 0; i < packetCount; i++ {
-// 		var output strings.Builder
-// 		for j := 0; j < strLength; j++ {
-// 			random := rand.Intn(len(charSet))
-// 			randomChar := charSet[random]
-// 			output.WriteString(string(randomChar))
-// 		}
-
-// 		connections[sender][receiver] = append(connections[sender][receiver], DataPacket{})
-
-// 	}
-// }
-
 func TestCommunicateWithIslands(t *testing.T) {
 
 	dataA := map[int]DataPacket{
@@ -67,23 +49,22 @@ func TestCommunicateWithIslands(t *testing.T) {
 		73: {integerData: 234511, textData: "dataC", booleanData: false},
 	}
 
+	dataEmpty := map[int]DataPacket{}
+
 	cases := []struct {
 		name           string
-		senders        []int
 		sendersPayload map[int][]map[int]DataPacket
 		receiver       int
 	}{
 		{
-			name:    "single transmission",
-			senders: []int{1},
+			name: "single transmission",
 			sendersPayload: map[int][]map[int]DataPacket{
 				1: {dataA},
 			},
 			receiver: 4,
 		},
 		{
-			name:    "2 transmissions",
-			senders: []int{1, 2},
+			name: "2 senders, 1 transmission each",
 			sendersPayload: map[int][]map[int]DataPacket{
 				1: {dataA},
 				2: {dataB},
@@ -91,10 +72,46 @@ func TestCommunicateWithIslands(t *testing.T) {
 			receiver: 5,
 		},
 		{
-			name:    "1 sender, 2 transmissions",
-			senders: []int{4},
+			name: "1 sender, 2 transmissions",
 			sendersPayload: map[int][]map[int]DataPacket{
 				4: {dataA, dataC},
+			},
+			receiver: 0,
+		},
+		{
+			name: "multiple transmissions",
+			sendersPayload: map[int][]map[int]DataPacket{
+				1: {dataA, dataC, dataA, dataC},
+				2: {dataB, dataB, dataC},
+				3: {dataA, dataB, dataC, dataC},
+				4: {dataB, dataC, dataC, dataC},
+			},
+			receiver: 5,
+		},
+		{
+			name: "multiple transmissions v2",
+			sendersPayload: map[int][]map[int]DataPacket{
+				1: {dataA, dataC, dataA, dataC},
+				2: {dataB, dataB, dataC},
+				3: {dataA, dataB, dataC, dataC},
+				4: {dataB, dataC, dataC, dataC},
+				5: {dataB, dataC, dataC, dataC},
+			},
+			receiver: 0,
+		},
+		{
+			name: "1 sender, many transmissions",
+			sendersPayload: map[int][]map[int]DataPacket{
+				1: {dataA, dataC, dataA, dataC, dataB, dataB, dataC, dataA, dataB, dataC,
+					dataC, dataB, dataC, dataC, dataC, dataA, dataC, dataA, dataC, dataB,
+					dataB, dataC, dataA, dataB, dataC, dataC, dataB, dataC, dataC, dataC},
+			},
+			receiver: 0,
+		},
+		{
+			name: "Empty transmission",
+			sendersPayload: map[int][]map[int]DataPacket{
+				1: {dataEmpty},
 			},
 			receiver: 0,
 		},
@@ -119,6 +136,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 			expectedResult := map[shared.ClientID][]map[int]baseclient.Communication{}
 
 			for sender, dataList := range tc.sendersPayload {
+				senderID := shared.TeamIDs[sender]
 				for _, data := range dataList {
 					communicateWithIslands(tc.receiver, sender, data)
 
@@ -127,7 +145,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 						dataComm[k] = dataPacketToCommunication(&dp)
 					}
 
-					expectedResult[shared.TeamIDs[sender]] = append(expectedResult[shared.TeamIDs[sender]], dataComm)
+					expectedResult[senderID] = append(expectedResult[senderID], dataComm)
 				}
 			}
 
