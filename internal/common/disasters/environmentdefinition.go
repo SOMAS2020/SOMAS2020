@@ -16,7 +16,7 @@ type Island struct {
 // ArchipelagoGeography captures the collection of island geographies including bounding region of whole archipelago
 type ArchipelagoGeography struct {
 	islands          map[shared.ClientID]Island
-	xBounds, ybounds [2]float64
+	xBounds, yBounds [2]float64
 }
 
 // disasterParameters encapsulates a disaster's information - when and how it occurs. Disaster occurring is a Bernoulli random var with `p`=GlobalProb
@@ -29,7 +29,7 @@ type disasterParameters struct {
 
 // DisasterReport encapsulates a disaster location and magnitude. Note: magnitude of 0 => no disaster
 type DisasterReport struct {
-	magnitude, x, y float64
+	Magnitude, X, Y float64
 }
 
 // Environment holds the state of the enivornment
@@ -42,7 +42,7 @@ type Environment struct {
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
 func (e *Environment) SampleForDisaster() DisasterReport {
 	xBounds := e.geography.xBounds
-	yBounds := e.geography.ybounds
+	yBounds := e.geography.yBounds
 
 	// spatial distr info
 	pdfX := distuv.Uniform{Min: xBounds[0], Max: xBounds[1]}
@@ -63,9 +63,9 @@ func (e *Environment) SampleForDisaster() DisasterReport {
 // DisasterEffects returns the effects of the most recent DisasterReport held in the environment state
 func (e Environment) DisasterEffects() map[shared.ClientID]float64 {
 	out := map[shared.ClientID]float64{}
-	epiX, epiY := e.lastDisasterReport.x, e.lastDisasterReport.y // epicentre of the disaster (peak mag)
+	epiX, epiY := e.lastDisasterReport.X, e.lastDisasterReport.Y // epicentre of the disaster (peak mag)
 	for _, island := range e.geography.islands {
-		out[island.id] = e.lastDisasterReport.magnitude / (math.Sqrt(math.Pow(island.x-epiX, 2) + math.Pow(island.y-epiY, 2))) // effect on island i is inverse prop. to square of distance to epicentre
+		out[island.id] = e.lastDisasterReport.Magnitude / (math.Sqrt(math.Pow(island.x-epiX, 2) + math.Pow(island.y-epiY, 2))) // effect on island i is inverse prop. to square of distance to epicentre
 	}
 	return out
 }

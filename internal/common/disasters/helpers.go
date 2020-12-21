@@ -15,16 +15,16 @@ func (a ArchipelagoGeography) IslandLocation(id shared.ClientID) []float64 {
 
 // Display is simply a string format method to viz a `DisasterReport` in console
 func (report DisasterReport) Display() string {
-	if report.magnitude == 0 {
+	if report.Magnitude == 0 {
 		return "No disaster reported."
 	}
-	return fmt.Sprintf("\nALERT: Disaster of magnitude %.3f recorded at co-ordinates (%.2f, %.2f)\n", report.magnitude, report.x, report.y)
+	return fmt.Sprintf("\nALERT: Disaster of magnitude %.3f recorded at co-ordinates (%.2f, %.2f)\n", report.Magnitude, report.X, report.Y)
 }
 
 // DisplayReport is a string format method to viz a disaster report and its effect
 func (env Environment) DisplayReport() string {
 	disasterReport := env.lastDisasterReport.Display()
-	if env.lastDisasterReport.magnitude == 0 {
+	if env.lastDisasterReport.Magnitude == 0 {
 		return disasterReport // just return default no disaster message. Not necessary to report affected islands.
 	}
 	var sb strings.Builder

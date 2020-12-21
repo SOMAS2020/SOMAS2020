@@ -3,6 +3,7 @@ package gamestate
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -16,8 +17,9 @@ type GameState struct {
 
 	// ClientInfos map from the shared.ClientID to ClientInfo.
 	// EXTRA note: Golang maps are made to be random!
-	Environment *disasters.Environment
-	ClientInfos map[shared.ClientID]ClientInfo
+	ClientInfos    map[shared.ClientID]ClientInfo
+	Environment    *disasters.Environment
+	DeerPopulation foraging.DeerPopulationModel
 
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)

@@ -104,11 +104,12 @@ func (s *SOMASServer) endOfTurn() error {
 	}
 
 	// probe for disaster
-	disasterHappened, err := s.probeDisaster()
+	disasterReport, err := s.probeDisaster()
 	if err != nil {
 		return errors.Errorf("Failed to probe disaster: %v", err)
 	}
 	// increment turn & season if needed
+	disasterHappened := disasterReport.Magnitude > 0
 	s.incrementTurnAndSeason(disasterHappened)
 
 	// deduct cost of living
