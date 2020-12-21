@@ -2,7 +2,7 @@ package baseclient
 
 // CommonPoolResourceRequest is called by the President in IIGO to
 // request an allocation of resources from the common pool.
-func(c *BaseClient) CommonPoolResourceRequest(){
+func(c *BaseClient) CommonPoolResourceRequest()int{
 
 }
 
@@ -13,6 +13,6 @@ func(c *BaseClient) ResourceReport()int{
 
 // RuleProposal is called by the President in IIGO to propose a
 // rule to be voted on.
-func(c *BaseClient) RuleProposal(){
+func(c *BaseClient) RuleProposal()string{
 
 }
