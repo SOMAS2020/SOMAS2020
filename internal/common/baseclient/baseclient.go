@@ -28,6 +28,8 @@ type Client interface {
 	RecievePredictions(recievedPredictions shared.PredictionInfoDict) error
 }
 
+var ourPredictionInfo shared.PredictionInfo
+
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
 func NewClient(id shared.ClientID) Client {

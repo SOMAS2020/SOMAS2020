@@ -19,8 +19,6 @@ type DisasterInfo struct {
 // PastDisastersDict is a helpful construct for
 type PastDisastersList = []DisasterInfo
 
-var ourPredictionInfo shared.PredictionInfo
-
 // MakePrediction is called on each client for them to make a prediction about a disaster
 // Prediction includes location, magnitude, confidence etc
 // COMPULSORY, you need to implement this method
