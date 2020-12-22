@@ -21,6 +21,15 @@ type DeerHunt struct {
 	params                   deerHuntParams
 }
 
+// DeerHuntReport holds information about the result of a deer hunt
+type DeerHuntReport struct {
+	InputResources   float64
+	NumberHunters    uint
+	NumberDeerCaught uint
+	TotalUtility     float64
+	DeerWeights      []float64
+}
+
 // TotalInput simply sums the total group resource input of hunt participants
 func (d DeerHunt) TotalInput() float64 {
 	i := 0.0
@@ -31,18 +40,23 @@ func (d DeerHunt) TotalInput() float64 {
 }
 
 // Hunt returns the utility from a deer hunt
-func (d DeerHunt) Hunt() float64 {
+func (d DeerHunt) Hunt() DeerHuntReport {
 	dhConf := config.GameConfig().ForagingConfig.DeerHuntConfig
 
 	input := d.TotalInput()
 	decay := dhConf.IncrementalInputDecay
 	maxDeer := dhConf.MaxDeerPerHunt
 	nDeerFromInput := deerUtilityTier(input, maxDeer, decay) // get max number of deer allowed for given resource input
-	utility := 0.0
+	dR := DeerHuntReport{InputResources: input, NumberHunters: uint(len(d.ParticipantContributions))}
 	for i := uint(1); i < nDeerFromInput; i++ {
-		utility += deerReturn(d.params)
+		utility := deerReturn(d.params) // if non-zero, represents weight of deer caught
+		dR.TotalUtility += utility
+		if utility > 0.0 {
+			dR.DeerWeights = append(dR.DeerWeights, utility)
+		}
 	}
-	return utility
+	dR.NumberDeerCaught = uint(len(dR.DeerWeights))
+	return dR
 }
 
 // deerUtilityTier gets the discrete utility tier (i.e. max number of deer) for given scalar input

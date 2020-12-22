@@ -27,6 +27,7 @@ func (s *SOMASServer) runForage() error {
 		(*target[decision.Type])[id] = decision.Contribution
 	}
 	errD := s.runDeerHunt(deerHunters)
+
 	errF := s.runFishingExpedition(fishers)
 
 	if errD != nil {
@@ -58,8 +59,12 @@ func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) erro
 	if err != nil {
 		return errors.Errorf("Error running deer hunt: %v", err)
 	}
-	totalReturn := hunt.Hunt()
-	s.logf("Hunt generated a return of %.3f from input of %.3f", totalReturn, hunt.TotalInput())
+	huntReport := hunt.Hunt()
+	s.logf("Hunt generated a return of %.3f from input of %.3f", huntReport.TotalUtility, huntReport.InputResources)
+
+	s.logf("Updating deer population after %v deer hunted", huntReport.NumberDeerCaught)
+	s.updateDeerPopulation([]int{int(huntReport.NumberDeerCaught)}) // update deer population based on hunt
+
 	return nil
 }
 
