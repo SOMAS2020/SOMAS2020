@@ -18,8 +18,8 @@ func (s *SOMASServer) runForage() error {
 	deerHunters := make(map[shared.ClientID]float64)
 	for id, decision := range foragingParticipants {
 		if decision.Type == shared.DeerForageType {
+			deerHunters[id] = decision.Contribution
 		}
-		deerHunters[id] = decision.Contribution
 	}
 	err = s.runDeerHunt(deerHunters)
 	if err != nil {
