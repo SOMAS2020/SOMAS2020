@@ -16,7 +16,6 @@ type GameState struct {
 	Turn uint
 
 	// ClientInfos map from the shared.ClientID to ClientInfo.
-	// EXTRA note: Golang maps are made to be random!
 	ClientInfos    map[shared.ClientID]ClientInfo
 	Environment    disasters.Environment
 	DeerPopulation foraging.DeerPopulationModel
@@ -29,8 +28,8 @@ type GameState struct {
 func (g GameState) Copy() GameState {
 	ret := g
 	ret.ClientInfos = copyClientInfos(g.ClientInfos)
-	ret.Environment = copyEnv(g.Environment)
-	ret.DeerPopulation = copyDeerPopulation()
+	ret.Environment = g.Environment.Copy()
+	ret.DeerPopulation = g.DeerPopulation.Copy()
 	return ret
 }
 
@@ -49,14 +48,6 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 		ret[k] = v.Copy()
 	}
 	return ret
-}
-
-func copyEnv(e disasters.Environment) disasters.Environment {
-	return disasters.InitEnvironment(e.GetIslandIDs())
-}
-
-func copyDeerPopulation() foraging.DeerPopulationModel {
-	return foraging.CreateDeerPopulationModel()
 }
 
 // ClientInfo contains the client struct as well as the client's attributes
