@@ -48,6 +48,7 @@ type ForagingConfig struct {
 	DeerGrowthCoefficient float64 // Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster
 
 	// TOOD: add other pertinent params here (for fishing etc)
+
 }
 
 // DisasterConfig captures disaster-specific config
