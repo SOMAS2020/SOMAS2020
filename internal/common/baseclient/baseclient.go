@@ -98,14 +98,12 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 }
 
 
-func (c *BaseClient) GetVotesForRule(ruleID int, numOfIslands int) map[int][]int {
-	var votesLayoutRule map[int][]int
-	return votesLayoutRule
+func (c *BaseClient) GetVoteForRule(ruleName string) bool {
+	return true
 }
 
-func (c *BaseClient) GetVotesForElect(numOfIslands int) map[int][]int {
-	var votesLayoutElect map[int][]int
-	return votesLayoutElect
+func (c *BaseClient) GetVoteForRole(numOfIslands int) error {
+}
 
 type CommunicationContentType = int
 
