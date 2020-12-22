@@ -88,7 +88,7 @@ func (s *SOMASServer) getGiftAcceptance(giftOffersDict map[shared.ClientID]share
 func (s *SOMASServer) distributeGiftHistory(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error {
 	//Process acceptedGifts
 	for id, client := range s.clientMap {
-		err := client.UpdateGiftInfo(acceptedGifts[id])
+		err := client.UpdateGiftInfo(acceptedGifts)
 		if err != nil {
 			return err
 		}

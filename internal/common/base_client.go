@@ -161,11 +161,18 @@ func (c *BaseClient) AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftI
 	return acceptedGifts, nil
 }
 
+// type GiftHistory = map[int]map[ClientID]GiftInfoDict
+
+// var PreviousGifts shared.GiftHistory
+
+// var count = 0
+
 // UpdateGiftInfo gives information about the outcome from AcceptGifts.
 // This allows for opinion formation.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) UpdateGiftInfo(acceptedGifts shared.GiftInfoDict) error {
-
+func (c *BaseClient) UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error {
+	// PreviousGifts[count] = acceptedGifts
+	// count++
 	return nil
 }
 

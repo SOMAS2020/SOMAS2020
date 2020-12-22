@@ -25,7 +25,7 @@ type Client interface {
 	RequestGift() (int, error)
 	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
 	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
-	UpdateGiftInfo(acceptedGifts shared.GiftInfoDict) error
+	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
 	//Actions? Need to talk to LH and our team about this one:
 	SendGift(receivingClient shared.ClientID, amount int) error
 	ReceiveGift(sendingClient shared.ClientID, amount int) error
