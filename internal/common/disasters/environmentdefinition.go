@@ -9,14 +9,14 @@ import (
 
 // IslandLocationInfo captures the location of a single island
 type IslandLocationInfo struct {
-	id   shared.ClientID
-	x, y shared.Coordinate
+	ID   shared.ClientID
+	X, Y shared.Coordinate
 }
 
 // ArchipelagoGeography captures the collection of island geographies including bounding region of whole archipelago
 type ArchipelagoGeography struct {
-	islands                map[shared.ClientID]IslandLocationInfo
-	xMin, xMax, yMin, yMax shared.Coordinate
+	Islands                map[shared.ClientID]IslandLocationInfo
+	XMin, XMax, YMin, YMax shared.Coordinate
 }
 
 // disasterParameters encapsulates a disaster's information - when and how it occurs. Disaster occurring is a Bernoulli random var with `p`=GlobalProb
@@ -43,8 +43,8 @@ type Environment struct {
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
 func (e Environment) SampleForDisaster() Environment {
 	// spatial distr info
-	pdfX := distuv.Uniform{Min: e.Geography.xMin, Max: e.Geography.xMax}
-	pdfY := distuv.Uniform{Min: e.Geography.yMin, Max: e.Geography.yMax}
+	pdfX := distuv.Uniform{Min: e.Geography.XMin, Max: e.Geography.XMax}
+	pdfY := distuv.Uniform{Min: e.Geography.YMin, Max: e.Geography.YMax}
 
 	pdfMag := distuv.Exponential{Rate: e.DisasterParams.magnitudeLambda} // Rate = lambda
 	pdfGlobal := distuv.Bernoulli{P: e.DisasterParams.globalProb}        // Bernoulli RV where `P` = P(X=1)
@@ -62,9 +62,9 @@ func (e Environment) SampleForDisaster() Environment {
 func (e Environment) DisasterEffects() map[shared.ClientID]shared.Magnitude {
 	out := map[shared.ClientID]shared.Magnitude{}
 	epiX, epiY := e.LastDisasterReport.X, e.LastDisasterReport.Y // epicentre of the disaster (peak mag)
-	for _, island := range e.Geography.islands {
-		effect := e.LastDisasterReport.Magnitude / math.Hypot(island.x-epiX, island.y-epiY) // effect on island i is inverse prop. to square of distance to epicentre
-		out[island.id] = math.Min(effect, e.LastDisasterReport.Magnitude)                   // to prevent divide by zero -> inf
+	for _, island := range e.Geography.Islands {
+		effect := e.LastDisasterReport.Magnitude / math.Hypot(island.X-epiX, island.Y-epiY) // effect on island i is inverse prop. to square of distance to epicentre
+		out[island.ID] = math.Min(effect, e.LastDisasterReport.Magnitude)                   // to prevent divide by zero -> inf
 	}
 	return out
 }
