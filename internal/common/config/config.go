@@ -47,7 +47,11 @@ type ForagingConfig struct {
 	MaxDeerPopulation     uint    // Maximimum possible deer population. Reserved for post-MVP functionality
 	DeerGrowthCoefficient float64 // Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster
 
-	// TODO: add other pertinent params here (for fishing etc)
+	// Fih hunting
+	MaxFishPerHunt            uint
+	FishIncrementalInputDecay float64
+	FishingMean               float64
+	FishingVariance           float64
 }
 
 // DisasterConfig captures disaster-specific config
@@ -62,6 +66,7 @@ type DisasterConfig struct {
 // (Made a function so it cannot be altered mid-game).
 func GameConfig() Config {
 	foragingConf := ForagingConfig{
+		//Deer parameters
 		MaxDeerPerHunt:        4,
 		IncrementalInputDecay: 0.8,
 		BernoulliProb:         0.95,
@@ -69,6 +74,12 @@ func GameConfig() Config {
 
 		MaxDeerPopulation:     12,
 		DeerGrowthCoefficient: 0.4,
+
+		// Fish parameters
+		MaxFishPerHunt:            6,
+		FishIncrementalInputDecay: 0.8,
+		FishingMean:               0.9,
+		FishingVariance:           0.2,
 	}
 	disasterConf := DisasterConfig{
 		XMin:            0.0,

@@ -19,9 +19,27 @@ func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) erro
 	return nil
 }
 
+func (s *SOMASServer) runFishHunt(participants map[shared.ClientID]float64) error {
+	s.logf("start runFishHunt")
+	defer s.logf("finish runFishHunt")
+
+	huntF, err := foraging.CreateFishHunt(participants)
+	if err != nil {
+		return errors.Errorf("Error running fish hunt: %v", err)
+	}
+	totalReturn := huntF.HuntFish()
+	s.logf("Fish Hunt generated a return of %.3f from input of %.3f", totalReturn, huntF.TotalInput())
+	return nil
+}
+
 func (s *SOMASServer) runDummyHunt() error {
 	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
 	return s.runDeerHunt(huntParticipants)
+}
+
+func (s *SOMASServer) runDummyFishHunt() error {
+	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
+	return s.runFishHunt(huntParticipants)
 }
 
 // updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt. Note that len(consumption) implies the number of
