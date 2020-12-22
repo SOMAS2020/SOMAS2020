@@ -10,7 +10,7 @@ import (
 
 // DeerPopulationModel encapsulates a deer population over time (governed by a predefined DE)
 type DeerPopulationModel struct {
-	deProblem  simulation.ODEProblem // defintion of DE governing rate of change of deeer pop.
+	deProblem  simulation.ODEProblem // definition of DE governing rate of change of deeer pop.
 	population float64               // current number of deer in env
 	t          float64               // temporal parameter. Time, turn or whatever other incarnation
 }
