@@ -22,6 +22,8 @@ func (s *SOMASServer) runIITOEndOfTurn() error {
 
 func (s *SOMASServer) runGiftSession() error {
 	s.logf("start runGiftSession")
+	defer s.logf("finish runGiftSession")
+
 	giftRequestDict, err := s.getGiftRequests()
 	if err != nil {
 		return err
