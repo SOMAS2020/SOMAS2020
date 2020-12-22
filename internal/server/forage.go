@@ -16,14 +16,24 @@ func (s *SOMASServer) runForage() error {
 		return errors.Errorf("Something went wrong getting the foraging decision:%v", err)
 	}
 	deerHunters := make(map[shared.ClientID]float64)
+	fishers := make(map[shared.ClientID]float64)
+
 	for id, decision := range foragingParticipants {
-		if decision.Type == shared.DeerForageType {
-			deerHunters[id] = decision.Contribution
+
+		target := map[shared.ForageType]*map[shared.ClientID]float64{
+			shared.DeerForageType: &deerHunters,
+			shared.FishForageType: &fishers,
 		}
+		(*target[decision.Type])[id] = decision.Contribution
 	}
-	err = s.runDeerHunt(deerHunters)
-	if err != nil {
-		return errors.Errorf("Deer hunt returned with an error:%v", err)
+	errD := s.runDeerHunt(deerHunters)
+	errF := s.runFishingExpedition(fishers)
+
+	if errD != nil {
+		return errors.Errorf("Deer hunt returned with an error:%v", errD)
+	}
+	if errF != nil {
+		return errors.Errorf("Fishing expedition returned with an error:%v", errF)
 	}
 	return nil
 }
