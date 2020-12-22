@@ -9,7 +9,10 @@ import (
 func (s *SOMASServer) runIITO() error {
 	s.logf("start runIITO")
 	defer s.logf("finish runIITO")
-	s.runGiftSession()
+	err := s.runGiftSession()
+	if err != nil {
+		return err
+	}
 	// TODO:- IITO team
 	return nil
 }
