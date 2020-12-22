@@ -1,6 +1,7 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -159,9 +160,13 @@ func (p *basePresident) replyAllocationRequest(commonPool int) {
 	}
 }
 
-func (p *basePresident) appointNextSpeaker() int {
+func (p *basePresident) appointNextSpeaker(clientIDs []shared.ClientID) int {
 	p.budget -= 10
-	return rand.Intn(5)
+	var election voting.Election
+	election.ProposeElection(baseclient.Speaker, voting.Plurality)
+	election.OpenBallot(clientIDs)
+	election.Vote(iigoClients)
+	return int(election.CloseBallot())
 }
 
 func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) error {

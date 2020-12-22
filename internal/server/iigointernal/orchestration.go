@@ -113,7 +113,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 2 President actions
 	resourceReports := map[int]int{}
+	var aliveClientIds []shared.ClientID
 	for _, v := range rules.VariableMap["islands_alive"].Values {
+		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
 		resourceReports[int(v)] = iigoClients[shared.ClientID(int(v))].ResourceReport()
 	}
 	featurePresident.broadcastTaxation(resourceReports)
@@ -125,7 +127,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// 3 Speaker actions
 	featureSpeaker.setRuleToVote(ruleToVote)
 	featureSpeaker.setVotingResult()
-	featureSpeaker.announceVotingResult()
+	_ = featureSpeaker.announceVotingResult()
 
 	// 4 Declare performance (Judge) (in future all the iigointernal)
 	if judgeInspectingHistoryError != nil {
@@ -135,11 +137,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// Get new Judge ID
-	JudgeIDGlobal = featureSpeaker.appointNextJudge()
+	JudgeIDGlobal = featureSpeaker.appointNextJudge(aliveClientIds)
 	// Get new Speaker ID
-	SpeakerIDGlobal = featurePresident.appointNextSpeaker()
+	SpeakerIDGlobal = featurePresident.appointNextSpeaker(aliveClientIds)
 	// Get new President ID
-	PresidentIDGlobal = featureJudge.appointNextPresident()
+	PresidentIDGlobal = featureJudge.appointNextPresident(aliveClientIds)
 
 	// Set judgePointer
 	judgePointer = iigoClients[shared.ClientID(JudgeIDGlobal)].GetClientJudgePointer()
