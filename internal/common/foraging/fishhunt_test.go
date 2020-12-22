@@ -53,14 +53,15 @@ func TestTotalFishInput(t *testing.T) {
 }
 
 func TestFishReturn(t *testing.T) {
-	params := FishHuntParams{Mu: 0.9, Sigma: 0.2}
+	params := fishHuntParams{Mu: 0.9, Sigma: 0.2}
 	avReturn := 0.0
 	for i := 1; i <= 1000; i++ { // calculate empirical mean return over 1000 trials
 		d := fishReturn(params)
 		avReturn = (avReturn*(float64(i)-1) + d) / float64(i)
 	}
-	expectedReturn := params.Mu // theoretical mean based on def of expectation
-	if math.Abs(1-expectedReturn/avReturn) > 0.006 {
-		t.Errorf("Empirical mean return deviated from theoretical by > 5 percent: got %.3f, want %.3f", avReturn, expectedReturn)
+	expectedReturn := params.Mu                      // theoretical mean based on defined expectation
+	if math.Abs(1-expectedReturn/avReturn) > 0.012 { // The mean deviation from the theoretical mean with 99.7% confidence
+		// (needs to be 3standard deviations out to return error)
+		t.Errorf("Empirical mean return deviated from theoretical for > 1.2 percent: got %.5f, want %.5f", avReturn, expectedReturn)
 	}
 }

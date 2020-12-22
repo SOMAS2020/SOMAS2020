@@ -11,11 +11,11 @@ import (
 // FishHunt The teams that are involved and the resources they put in.
 type FishHunt struct {
 	Participants map[shared.ClientID]float64
-	Params       FishHuntParams
+	Params       fishHuntParams
 }
 
-// FishHuntParams : Defines the parameters for the normal distibution for the fishing returns
-type FishHuntParams struct {
+// fishHuntParams : Defines the parameters for the normal distibution for the fishing returns
+type fishHuntParams struct {
 	Mu    float64
 	Sigma float64
 }
@@ -43,7 +43,7 @@ func fishUtilityTier(input float64, maxFishPerHunt uint, decay float64) uint {
 }
 
 // fishReturn is the normal distibtuion
-func fishReturn(params FishHuntParams) float64 {
+func fishReturn(params fishHuntParams) float64 {
 	D := distuv.Normal{
 		Mu:    params.Mu,    // mean of the normal dist
 		Sigma: params.Sigma, // Var of the normal dist

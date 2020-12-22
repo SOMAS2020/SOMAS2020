@@ -15,7 +15,7 @@ func CreateDeerHunt(teamResourceInputs map[shared.ClientID]float64) (DeerHunt, e
 // CreateFishHunt sees the participants and their contributions and returns the value of FishHunt
 func CreateFishHunt(teamResourceInputs map[shared.ClientID]float64) (FishHunt, error) {
 	fConf := config.GameConfig().ForagingConfig
-	params := FishHuntParams{Mu: fConf.Mean, Sigma: fConf.Varience}
+	params := fishHuntParams{Mu: fConf.Mean, Sigma: fConf.Varience}
 	return FishHunt{Participants: teamResourceInputs, Params: params}, nil // returning error too for future use
 }
 
