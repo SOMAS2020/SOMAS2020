@@ -39,6 +39,8 @@ type Client interface {
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 
+	//Foraging
+	DecideForage() (shared.ForageDecision, error)
 	//IITO: COMPULSORY
 	RequestGift() uint
 	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
