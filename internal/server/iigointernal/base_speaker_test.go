@@ -148,9 +148,9 @@ func TestVoting(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			s.setRuleToVote(tc.ruleID)
-			state1 := speakerState{s.ruleToVote, s.votingResult}
+			state1 := speakerState{s.RuleToVote, s.VotingResult}
 			s.setVotingResult()
-			state2 := speakerState{s.ruleToVote, s.votingResult}
+			state2 := speakerState{s.RuleToVote, s.VotingResult}
 			got := s.announceVotingResultTest()
 
 			stateTransfer = append(stateTransfer, []speakerState{state1, state2})
@@ -175,25 +175,25 @@ func (s *baseSpeaker) announceVotingResultTest() error {
 
 	if s.clientSpeaker != nil {
 		//Power to change what is declared completely, return "", _ for no announcement to occur
-		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.ruleToVote, s.votingResult)
+		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.RuleToVote, s.VotingResult)
 		//TODO: log of given vs. returned rule and result
 		if err != nil {
-			rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
+			rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
 		}
 	} else {
-		rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
+		rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
 	}
 
 	//Reset
-	s.ruleToVote = ""
-	s.votingResult = false
+	s.RuleToVote = ""
+	s.VotingResult = false
 
 	if rule != "" {
 		//Deduct action cost
 		s.budget -= 10
 
 		//Perform announcement
-		//broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
+		//broadcastToAllIslands(s.Id, generateVotingResultMessage(rule, result))
 		return s.updateRules(rule, result)
 	}
 

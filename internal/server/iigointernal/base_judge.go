@@ -13,14 +13,14 @@ import (
 
 // base Judge object
 type BaseJudge struct {
-	id                int
+	Id                int
 	budget            int
 	presidentSalary   int
 	BallotID          int
 	ResAllocID        int
 	speakerID         int
 	presidentID       int
-	evaluationResults map[int]roles.EvaluationReturn
+	EvaluationResults map[int]roles.EvaluationReturn
 	clientJudge       roles.Judge
 }
 
@@ -94,7 +94,7 @@ func (j *BaseJudge) inspectHistoryInternal() {
 			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
 		}
 	}
-	j.evaluationResults = outputMap
+	j.EvaluationResults = outputMap
 }
 
 func (j *BaseJudge) InspectHistory() (map[int]roles.EvaluationReturn, error) {
@@ -104,20 +104,20 @@ func (j *BaseJudge) InspectHistory() (map[int]roles.EvaluationReturn, error) {
 		if err != nil {
 			j.inspectHistoryInternal()
 		} else {
-			j.evaluationResults = outputMap
+			j.EvaluationResults = outputMap
 		}
 	} else {
 		j.inspectHistoryInternal()
 	}
-	return j.evaluationResults, nil
+	return j.EvaluationResults, nil
 }
 
 func (j *BaseJudge) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
-	//    rule changes are in line with ruleToVote in previous ballot
+	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
 	j.budget -= 10
-	rulesAffectedBySpeaker := j.evaluationResults[j.speakerID]
+	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err == nil {
 		return rulesAffectedBySpeaker.Evaluations[indexOfBallotRule], nil
@@ -128,12 +128,12 @@ func (j *BaseJudge) inspectBallot() (bool, error) {
 
 func (j *BaseJudge) inspectAllocation() (bool, error) {
 	// 1. Evaluate difference between commonPoolNew and commonPoolOld
-	//    to check resource allocation changes are in line with resourceRequests
+	//    to check resource allocation changes are in line with ResourceRequests
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
 	j.budget -= 10
-	rulesAffectedByPresident := j.evaluationResults[j.presidentID]
+	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
 	if err == nil {
 		return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
@@ -186,7 +186,7 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
-		broadcastToAllIslands(shared.TeamIDs[j.id], message)
+		broadcastToAllIslands(shared.TeamIDs[j.Id], message)
 	}
 }
 
@@ -217,7 +217,7 @@ func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
-		broadcastToAllIslands(shared.TeamIDs[j.id], message)
+		broadcastToAllIslands(shared.TeamIDs[j.Id], message)
 	}
 }
 

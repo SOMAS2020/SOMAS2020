@@ -13,11 +13,11 @@ import (
 )
 
 type baseSpeaker struct {
-	id            int
+	Id            int
 	budget        int
 	judgeSalary   int
-	ruleToVote    string
-	votingResult  bool
+	RuleToVote    string
+	VotingResult  bool
 	clientSpeaker roles.Speaker
 }
 
@@ -51,21 +51,21 @@ func (s *baseSpeaker) PayJudge() (int, error) {
 
 // Receive a rule to call a vote on
 func (s *baseSpeaker) setRuleToVote(r string) {
-	s.ruleToVote = r
+	s.RuleToVote = r
 }
 
 //Asks islands to vote on a rule
 //Called by orchestration
 func (s *baseSpeaker) setVotingResult() {
 	if s.clientSpeaker != nil {
-		result, err := s.clientSpeaker.RunVote(s.ruleToVote)
+		result, err := s.clientSpeaker.RunVote(s.RuleToVote)
 		if err != nil {
-			s.votingResult, _ = s.RunVote(s.ruleToVote)
+			s.VotingResult, _ = s.RunVote(s.RuleToVote)
 		} else {
-			s.votingResult = result
+			s.VotingResult = result
 		}
 	} else {
-		s.votingResult, _ = s.RunVote(s.ruleToVote)
+		s.VotingResult, _ = s.RunVote(s.RuleToVote)
 	}
 }
 
@@ -78,7 +78,7 @@ func (s *baseSpeaker) RunVote(ruleID string) (bool, error) {
 		// No rules were proposed by the islands
 		return false, nil
 	} else {
-		////TODO: updateTurnHistory of rule-given-to-vote vs ruleToVote
+		////TODO: updateTurnHistory of rule-given-to-vote vs RuleToVote
 		//TODO: pass in islandID for log
 		//ballotsFor, ballotsAgainst, result = voting.VoteRule(ruleID, getIslandAlive())
 
@@ -98,13 +98,13 @@ func (s *baseSpeaker) announceVotingResult() error {
 
 	if s.clientSpeaker != nil {
 		//Power to change what is declared completely, return "", _ for no announcement to occur
-		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.ruleToVote, s.votingResult)
+		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.RuleToVote, s.VotingResult)
 		//TODO: log of given vs. returned rule and result
 		if err != nil {
-			rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
+			rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
 		}
 	} else {
-		rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
+		rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
 	}
 
 	if rule != "" {
@@ -112,11 +112,11 @@ func (s *baseSpeaker) announceVotingResult() error {
 		s.budget -= 10
 
 		//Reset
-		s.ruleToVote = ""
-		s.votingResult = false
+		s.RuleToVote = ""
+		s.VotingResult = false
 
 		//Perform announcement
-		broadcastToAllIslands(shared.TeamIDs[s.id], generateVotingResultMessage(rule, result))
+		broadcastToAllIslands(shared.TeamIDs[s.Id], generateVotingResultMessage(rule, result))
 		return s.updateRules(rule, result)
 	}
 	return nil

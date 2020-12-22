@@ -12,14 +12,14 @@ import (
 
 //base President Object
 type basePresident struct {
-	id               int
+	Id               int
 	clientPresident  roles.President
 	budget           int
 	speakerSalary    int
-	rulesProposals   []string
-	resourceRequests map[int]int
+	RulesProposals   []string
+	ResourceRequests map[int]int
 	//resourceAllocation map[int]int
-	//ruleToVote         string
+	//RuleToVote         string
 	//taxAmountMap       map[int]int
 }
 
@@ -66,13 +66,13 @@ func (p *basePresident) requestRuleProposal() {
 // Get rule proposals to be voted on from remaining islands
 // Called by orchestration
 func (p *basePresident) setRuleProposals(rulesProposals []string) {
-	p.rulesProposals = rulesProposals
+	p.RulesProposals = rulesProposals
 }
 
 // Set approved resources request for all the remaining islands
 // Called by orchestration
 func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
-	p.resourceRequests = resourceRequests
+	p.ResourceRequests = resourceRequests
 }
 
 // Set taxation amount for all of the living islands
@@ -91,12 +91,12 @@ func (p *basePresident) SetTaxationAmount(islandsResources map[int]int) (map[int
 // Called by orchestration at the end of the turn
 func (p *basePresident) getRuleForSpeaker() string {
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.PickRuleToVote(p.rulesProposals)
+		result, error := p.clientPresident.PickRuleToVote(p.RulesProposals)
 		if error == nil {
 			return result
 		}
 	}
-	result, _ := p.PickRuleToVote(p.rulesProposals)
+	result, _ := p.PickRuleToVote(p.RulesProposals)
 	return result
 }
 
@@ -121,7 +121,7 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: taxAmountMap[int(v)]}
 		data := make(map[int]baseclient.Communication)
 		data[TaxAmount] = d
-		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.id], data)
+		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.Id], data)
 	}
 }
 
@@ -129,12 +129,12 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 // Called by orchestration at the end of the turn
 func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 	if p.clientPresident != nil {
-		result, error := p.clientPresident.EvaluateAllocationRequests(p.resourceRequests, commonPool)
+		result, error := p.clientPresident.EvaluateAllocationRequests(p.ResourceRequests, commonPool)
 		if error == nil {
 			return result
 		}
 	}
-	result, _ := p.EvaluateAllocationRequests(p.resourceRequests, commonPool)
+	result, _ := p.EvaluateAllocationRequests(p.ResourceRequests, commonPool)
 	return result
 }
 
@@ -155,7 +155,7 @@ func (p *basePresident) replyAllocationRequest(commonPool int) {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: allocationMap[int(v)]}
 		data := make(map[int]baseclient.Communication)
 		data[AllocationAmount] = d
-		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.id], data)
+		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.Id], data)
 	}
 }
 
@@ -197,11 +197,11 @@ func getIslandAlive() []float64 {
 }
 
 func (p *basePresident) Reset(val string) error {
-	p.id = 0
+	p.Id = 0
 	p.clientPresident = nil
 	p.budget = 0
-	p.resourceRequests = map[int]int{}
-	p.rulesProposals = []string{}
+	p.ResourceRequests = map[int]int{}
+	p.RulesProposals = []string{}
 	p.speakerSalary = 0
 	return nil
 }
