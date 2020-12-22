@@ -111,15 +111,14 @@ func (s *baseSpeaker) announceVotingResult() error {
 		//Deduct action cost
 		s.budget -= 10
 
+		//Reset
+		s.ruleToVote = ""
+		s.votingResult = false
+
 		//Perform announcement
 		broadcastToAllIslands(shared.TeamIDs[s.id], generateVotingResultMessage(rule, result))
-		return s.updateRules(s.ruleToVote, s.votingResult)
+		return s.updateRules(rule, result)
 	}
-
-	//Reset
-	s.ruleToVote = ""
-	s.votingResult = false
-
 	return nil
 }
 
