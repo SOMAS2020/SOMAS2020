@@ -9,6 +9,7 @@ import (
 func (s *SOMASServer) runIITO() error {
 	s.logf("start runIITO")
 	defer s.logf("finish runIITO")
+	s.runGiftSession()
 	// TODO:- IITO team
 	return nil
 }
@@ -66,17 +67,23 @@ func (s *SOMASServer) getGiftAcceptance(giftOffersDict map[shared.ClientID]share
 	acceptedGifts := map[shared.ClientID]shared.GiftInfoDict{}
 	var err error
 
-	received_by_client_dict := make(map[shared.ClientID]shared.GiftDict)
+	receivedByClientDict := make(map[shared.ClientID]shared.GiftDict)
 
 	//puts all the gifts received by a certain client accesible by the id of that client
-	for idsend, _ := range giftOffersDict {
-		for idto, _ := range giftOffersDict {
-			received_by_client_dict[idsend][idto] = giftOffersDict[idto][idsend]
+	for idsend := range giftOffersDict {
+		for idto := range giftOffersDict {
+			if idsend == idto {
+				continue
+			}
+			if receivedByClientDict[idsend] == nil {
+				receivedByClientDict[idsend] = make(shared.GiftDict)
+			}
+			receivedByClientDict[idsend][idto] = giftOffersDict[idto][idsend]
 		}
 	}
 
 	for id, client := range s.clientMap {
-		acceptedGifts[id], err = client.AcceptGifts(received_by_client_dict[id])
+		acceptedGifts[id], err = client.AcceptGifts(receivedByClientDict[id])
 		if err != nil {
 			return acceptedGifts, err
 		}
