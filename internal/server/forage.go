@@ -23,12 +23,12 @@ func (s *SOMASServer) runFishHunt(participants map[shared.ClientID]float64) erro
 	s.logf("start runFishHunt")
 	defer s.logf("finish runFishHunt")
 
-	hunt, err := foraging.CreateFishHunt(participants)
+	huntF, err := foraging.CreateFishHunt(participants)
 	if err != nil {
 		return errors.Errorf("Error running fish hunt: %v", err)
 	}
-	totalReturn := hunt.HuntFish()
-	s.logf("Fish Hunt generated a return of %.3f from input of %.3f", totalReturn, hunt.TotalInput())
+	totalReturn := huntF.HuntFish()
+	s.logf("Fish Hunt generated a return of %.3f from input of %.3f", totalReturn, huntF.TotalInput())
 	return nil
 }
 
@@ -38,7 +38,7 @@ func (s *SOMASServer) runDummyHunt() error {
 }
 
 func (s *SOMASServer) runDummyFishHunt() error {
-	huntParticipants := map[shared.ClientID]float64{shared.Team1: 2.1, shared.Team2: 0.9} // just to test for now
+	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
 	return s.runFishHunt(huntParticipants)
 }
 
