@@ -35,14 +35,15 @@ func getClientInfosAndMapFromRegisteredClients(
 func anyClientsAlive(clientInfos map[shared.ClientID]gamestate.ClientInfo) bool {
 	return len(getNonDeadClientIDs(clientInfos)) != 0
 }
+
 // getNonDeadClients returns a map of all clients with a non-dead status
 func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo, 
 	clientMap map[shared.ClientID]baseclient.Client) map[shared.ClientID]baseclient.Client {
+
 	nonDeadClientMap := map[shared.ClientID]baseclient.Client{}
-	for id, ci := range clientInfos {
-		if ci.LifeStatus != shared.Dead {
-			nonDeadClientMap[id] = clientMap[id]
-		}
+	clientIDs := getNonDeadClientIDs(clientInfos)
+	for _, id := range clientIDs {
+		nonDeadClientMap[id] = clientMap[id]
 	}
 	return nonDeadClientMap
 }
