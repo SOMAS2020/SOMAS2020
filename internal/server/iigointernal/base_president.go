@@ -45,8 +45,9 @@ func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, 
 	return resourceAllocation, nil
 }
 
-// Chose a rule proposal from all the proposals
-// need to pass in since this is now functional for the sake of client side
+// pickRuleToVote choses a rule proposal from all the proposals made by the islands.
+// It returns an empty string if no rules were proposed, and the rule name (string)
+// of the selected rule otherwise.
 func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) {
 	p.budget -= 10
 	if len(rulesProposals) == 0 {
@@ -65,20 +66,22 @@ func (p *basePresident) requestRuleProposal() {
 	p.setRuleProposals(rules)
 }
 
-// Get rule proposals to be voted on from remaining islands
-// Called by orchestration
+// setRuleProposals takes in a array of rules, uses that array to set
+// the class p.rulesProposal class attribute to it.
 func (p *basePresident) setRuleProposals(rulesProposals []string) {
 	p.rulesProposals = rulesProposals
 }
 
-// Set approved resources request for all the remaining islands
-// Called by orchestration
+// setAllocationRequests a map of the resourceRequests, uses that array to set
+// the class p.resourceRequests class attribute to it.
 func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
 	p.resourceRequests = resourceRequests
 }
 
-// Set taxation amount for all of the living islands
-// island_resources: map of all the living islands and their remaing resources
+// setTaxationAmount sets the tax rate for all of the living islands. It requires
+// the remaining resources as an input to ensure the tax required is not higher than what
+// islands can afford. It returns a map indexed with the island IDs, containing the amount of
+// resources required as tax in the form of an integer.
 func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
 	p.budget -= 10
 	taxAmountMap := make(map[int]int)
@@ -89,8 +92,8 @@ func (p *basePresident) setTaxationAmount(islandsResources map[int]int) (map[int
 	return taxAmountMap, nil
 }
 
-// Get rules to be voted on to Speaker
-// Called by orchestration at the end of the turn
+// getRuleForSpeaker returns the rule to be voted on to Speaker.
+// It returns the name of the rule to be voted on as a string.
 func (p *basePresident) getRuleForSpeaker() string {
 	if p.clientPresident != nil {
 		result, error := p.clientPresident.PickRuleToVote(p.rulesProposals)
@@ -102,8 +105,7 @@ func (p *basePresident) getRuleForSpeaker() string {
 	return result
 }
 
-// Send Tax map all the remaining islands
-// Called by orchestration at the end of the turn
+// getTaxMap returns the taxation map calculated by setTaxationAmount as a map of integers.
 func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	p.budget -= 10
 	if p.clientPresident != nil {
@@ -127,8 +129,9 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 	}
 }
 
-// Send Tax map all the remaining islands
-// Called by orchestration at the end of the turn
+// getAllocationRequests returns the allowed allocation requests from the common
+// pool calculated by evaluateAllocationRequests. It returns the allocation requests
+// as a map of ints indexed by islands ids.
 func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 	if p.clientPresident != nil {
 		result, error := p.clientPresident.EvaluateAllocationRequests(p.resourceRequests, commonPool)
