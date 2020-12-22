@@ -10,8 +10,8 @@ type Commonpool struct {
 }
 
 //islandContribution takes the resource donation from island to common pool
-func (e Environment) islandContribution(resource uint) {
-	e.CommonPool.Resource = resource
+func (e *Environment) islandContribution(resource uint) {
+	e.CommonPool.Resource += resource
 }
 
 //disasterMitigate mitigates the disaster's damage using CP efore it hits the island
