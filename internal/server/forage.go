@@ -6,10 +6,44 @@ import (
 	"github.com/pkg/errors"
 )
 
+// runForage runs the foraging session, interacting with the alive agents and the environment
+func (s *SOMASServer) runForage() error {
+	s.logf("start runForage")
+	defer s.logf("finish runForage")
+
+	foragingParticipants, err := s.getForagingDecisions()
+	if err != nil {
+		return errors.Errorf("Something went wrong getting the foraging decision:", err)
+	}
+	deerHunters := make(map[shared.ClientID]float64)
+	for id, decision := range foragingParticipants {
+		if decision.Type == shared.DeerForageType {
+		}
+		deerHunters[id] = decision.Contribution
+	}
+	err = s.runDeerHunt(deerHunters)
+	if err != nil {
+		return errors.Errorf("Deer hunt returned with an error:", err)
+	}
+	return nil
+}
+
+func (s *SOMASServer) getForagingDecisions() (shared.ForagingDecisionsDict, error) {
+	participants := shared.ForagingDecisionsDict{}
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	var err error
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		participants[id], err = c.DecideForage()
+		if err != nil {
+			return participants, errors.Errorf("Failed to get foraging decision from %v: %v", id, err)
+		}
+	}
+	return participants, nil
+}
 func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) error {
 	s.logf("start runDeerHunt")
 	defer s.logf("finish runDeerHunt")
-
 	hunt, err := foraging.CreateDeerHunt(participants)
 	if err != nil {
 		return errors.Errorf("Error running deer hunt: %v", err)
@@ -19,10 +53,10 @@ func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) erro
 	return nil
 }
 
-func (s *SOMASServer) runDummyHunt() error {
+/*func (s *SOMASServer) runDummyHunt() error {
 	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
 	return s.runDeerHunt(huntParticipants)
-}
+}*/
 
 // updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt. Note that len(consumption) implies the number of
 // days/turns that are to be simulated. If the intention is just to update after one turn, len(consumption) should be 1 and should
