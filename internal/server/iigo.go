@@ -72,7 +72,7 @@ func updateAliveIslands(aliveIslands []shared.ClientID) {
 	for _, v := range aliveIslands {
 		forVariables = append(forVariables, float64(v))
 	}
-	rules.UpdateVariable("islands_alive", rules.VariableValuePair{
+	_ = rules.UpdateVariable("islands_alive", rules.VariableValuePair{
 		VariableName: "islands_alive",
 		Values:       forVariables,
 	})
