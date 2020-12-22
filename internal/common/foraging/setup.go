@@ -9,10 +9,10 @@ import (
 func CreateDeerHunt(teamResourceInputs map[shared.ClientID]float64) (DeerHunt, error) {
 	fConf := config.GameConfig().ForagingConfig
 	params := deerHuntParams{p: fConf.BernoulliProb, lam: fConf.ExponentialRate}
-	return DeerHunt{Participants: teamResourceInputs, params: params}, nil // returning error too for future use
+	return DeerHunt{ParticipantContributions: teamResourceInputs, params: params}, nil // returning error too for future use
 }
 
-// CreateDeerPopulationModel returns the target population mdoel. The formulation of this model should be changed here before runtime
+// CreateDeerPopulationModel returns the target population model. The formulation of this model should be changed here before runtime
 func CreateDeerPopulationModel() DeerPopulationModel {
 	return createBasicDeerPopulationModel()
 }

@@ -17,14 +17,14 @@ type deerHuntParams struct {
 
 // DeerHunt captures the hunt participants (teams) and their resource contributions, as well as hunt params
 type DeerHunt struct {
-	Participants map[shared.ClientID]float64
-	params       deerHuntParams
+	ParticipantContributions map[shared.ClientID]float64
+	params                   deerHuntParams
 }
 
 // TotalInput simply sums the total group resource input of hunt participants
 func (d DeerHunt) TotalInput() float64 {
 	i := 0.0
-	for _, x := range d.Participants {
+	for _, x := range d.ParticipantContributions {
 		i += x
 	}
 	return i

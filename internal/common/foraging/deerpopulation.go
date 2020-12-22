@@ -30,7 +30,11 @@ func createBasicDeerPopulationModel() DeerPopulationModel {
 	deerPopulationGrowth := func(t, y float64) float64 {
 		return fConf.DeerGrowthCoefficient * (float64(maxDeer) - y) // DE of form dy/dt = k(N-y) where k, N are constants
 	}
-	return DeerPopulationModel{deProblem: simulation.ODEProblem{YPrime: deerPopulationGrowth, Y0: float64(maxDeer), T0: 0, DtStep: 0.1}, population: float64(maxDeer), t: .0}
+	return DeerPopulationModel{
+		deProblem:  simulation.ODEProblem{YPrime: deerPopulationGrowth, Y0: float64(maxDeer), T0: 0, DtStep: 0.1},
+		population: float64(maxDeer),
+		t:          .0,
+	}
 }
 
 // Simulate method simulates the reaction of a deer pop. over i=len(deerConsumption) days where [0, maxDeer] are hunted each day i.

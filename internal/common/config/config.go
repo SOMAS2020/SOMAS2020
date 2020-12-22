@@ -2,6 +2,8 @@
 // DO NOT depend on other packages outside this folder!
 package config
 
+import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+
 // Config is the type for the game configuration.
 type Config struct {
 	// MaxSeasons is the maximum number of 1-indexed seasons to run the game.
@@ -50,10 +52,10 @@ type ForagingConfig struct {
 
 // DisasterConfig captures disaster-specific config
 type DisasterConfig struct {
-	XMin, XMax, YMin, YMax float64 // [min, max] x,y bounds of archipelago (bounds for possible disaster)
-	GlobalProb             float64 // Bernoulli 'p' param. Chance of a disaster occurring
-	SpatialPDFType         string  // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
-	MagnitudeLambda        float64 // Exponential rate param for disaster magnitude
+	XMin, XMax, YMin, YMax shared.Coordinate     // [min, max] x,y bounds of archipelago (bounds for possible disaster)
+	GlobalProb             float64               // Bernoulli 'p' param. Chance of a disaster occurring
+	SpatialPDFType         shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
+	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
 }
 
 // GameConfig returns the configuration of the game.
@@ -74,7 +76,7 @@ func GameConfig() Config {
 		YMin:            0.0,
 		YMax:            10.0,
 		GlobalProb:      0.1,
-		SpatialPDFType:  "uniform",
+		SpatialPDFType:  shared.Uniform,
 		MagnitudeLambda: 1.0,
 	}
 
