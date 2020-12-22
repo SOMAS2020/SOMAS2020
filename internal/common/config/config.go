@@ -47,7 +47,7 @@ type ForagingConfig struct {
 	MaxDeerPopulation     uint    // Maximimum possible deer population. Reserved for post-MVP functionality
 	DeerGrowthCoefficient float64 // Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster
 
-	// TOOD: add other pertinent params here (for fishing etc)
+	// TODO: add other pertinent params here (for fishing etc)
 }
 
 // DisasterConfig captures disaster-specific config
