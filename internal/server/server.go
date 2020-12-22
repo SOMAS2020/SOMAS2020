@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -33,11 +34,11 @@ type SOMASServer struct {
 // SOMASServerFactory returns an instance of the main server we use.
 func SOMASServerFactory() Server {
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
-
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
 	}
+	judge, speaker, president := iigointernal.GetFeaturedRoles()
 
 	return &SOMASServer{
 		clientMap: clientMap,
@@ -47,6 +48,7 @@ func SOMASServerFactory() Server {
 			ClientInfos:    clientInfos,
 			Environment:    disasters.InitEnvironment(clientIDs),
 			DeerPopulation: foraging.CreateDeerPopulationModel(),
+			IIGOInfo:    gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
 		},
 	}
 }
