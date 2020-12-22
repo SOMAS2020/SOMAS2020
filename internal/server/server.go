@@ -65,14 +65,6 @@ func (s *SOMASServer) EntryPoint() ([]gamestate.GameState, error) {
 	return states, nil
 }
 
-// runRound runs a round (day) of the game.
-func (s *SOMASServer) runRound() error {
-	if err := s.getEcho("HELLO WORLD!"); err != nil {
-		return fmt.Errorf("getEcho failed with: %v", err)
-	}
-	return nil
-}
-
 // getEcho retrieves an echo from all the clients and make sure they are the same.
 func (s *SOMASServer) getEcho(str string) error {
 	for _, c := range s.clientMap {

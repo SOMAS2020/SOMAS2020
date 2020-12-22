@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-type yActual func(t float64) float64 // func to provide actual solution y(t) if known for comparisn
+type yActual func(t float64) float64 // func to provide actual solution y(t) if known for comparison
 
 // Utility func to compare error of numerical solution to actual solution at t
 func printErr(t, y float64, yActual yActual) {

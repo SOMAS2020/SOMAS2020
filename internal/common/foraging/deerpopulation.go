@@ -23,7 +23,7 @@ func (dp *DeerPopulationModel) Logf(format string, a ...interface{}) {
 }
 
 // CreateBasicDeerPopulationModel returns a basic population model based on dP/dt = k(N-y) model. k = growth coeff., N = max deer (constants).
-func CreateBasicDeerPopulationModel() DeerPopulationModel {
+func createBasicDeerPopulationModel() DeerPopulationModel {
 	fConf := config.GameConfig().ForagingConfig
 	// definition of deer pop. gradient. Provides dy/dt given y, t.
 	maxDeer := fConf.MaxDeerPopulation

@@ -6,7 +6,7 @@ import (
 )
 
 // InitEnvironment initialises environment according to definitions
-func InitEnvironment(islandIDs []shared.ClientID) *Environment {
+func InitEnvironment(islandIDs []shared.ClientID) Environment {
 	envConf := config.GameConfig().DisasterConfig
 
 	ag := ArchipelagoGeography{islands: map[shared.ClientID]IslandLocationInfo{}, xMin: envConf.XMin, xMax: envConf.XMax, yMin: envConf.YMin, yMax: envConf.YMin}
@@ -16,6 +16,5 @@ func InitEnvironment(islandIDs []shared.ClientID) *Environment {
 		island := IslandLocationInfo{id, float64(i), float64(0)} // begin with equidistant points on x axis
 		ag.islands[id] = island
 	}
-	//TODO: think about possible security concerns of returning a pointer
-	return &Environment{geography: ag, disasterParams: dp, lastDisasterReport: DisasterReport{}} // returning a pointer so that other methods can modify returned Environment instance
+	return Environment{geography: ag, disasterParams: dp, lastDisasterReport: DisasterReport{}} // returning a pointer so that other methods can modify returned Environment instance
 }

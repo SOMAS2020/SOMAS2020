@@ -7,10 +7,29 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
+// SpatialPDFType is an enum for xy prob. density function types for disaster simulation
+type SpatialPDFType int
+
+const (
+	// Uniform xy distribution: disaster peak occurs uniformally over xy bounds of env
+	Uniform SpatialPDFType = iota
+
+	// add other PDFs here post-MVP
+)
+
 // IslandLocation is a convenience method to extract an island's location given its index
 func (a ArchipelagoGeography) IslandLocation(id shared.ClientID) []float64 {
 	island := a.islands[id]
 	return []float64{island.x, island.y}
+}
+
+// GetIslandIDs is a helper function to return the IDs of islands currently in env
+func (env Environment) GetIslandIDs() []shared.ClientID {
+	IDs := make([]shared.ClientID, 0, len(env.geography.islands))
+	for k := range env.geography.islands {
+		IDs = append(IDs, k)
+	}
+	return IDs
 }
 
 // Display is simply a string format method to viz a `DisasterReport` in console

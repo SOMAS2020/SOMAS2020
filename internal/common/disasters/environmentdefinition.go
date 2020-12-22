@@ -40,7 +40,7 @@ type Environment struct {
 }
 
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
-func (e *Environment) SampleForDisaster() DisasterReport {
+func (e Environment) SampleForDisaster() DisasterReport {
 	// spatial distr info
 	pdfX := distuv.Uniform{Min: e.geography.xMin, Max: e.geography.xMax}
 	pdfY := distuv.Uniform{Min: e.geography.yMin, Max: e.geography.yMax}
@@ -53,7 +53,7 @@ func (e *Environment) SampleForDisaster() DisasterReport {
 	if pdfGlobal.Rand() == 1.0 { // D Day
 		dR = DisasterReport{Magnitude: pdfMag.Rand(), X: pdfX.Rand(), Y: pdfY.Rand()}
 	}
-	e.lastDisasterReport = dR // record last report in env state
+	e.lastDisasterReport = dR // record last report in env state // TODO: change - won't currently do anything
 	return dR
 }
 

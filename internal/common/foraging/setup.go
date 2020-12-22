@@ -11,3 +11,8 @@ func CreateDeerHunt(teamResourceInputs map[shared.ClientID]float64) (DeerHunt, e
 	params := deerHuntParams{p: fConf.BernoulliProb, lam: fConf.ExponentialRate}
 	return DeerHunt{Participants: teamResourceInputs, params: params}, nil // returning error too for future use
 }
+
+// CreateDeerPopulationModel returns the target population mdoel. The formulation of this model should be changed here before runtime
+func CreateDeerPopulationModel() DeerPopulationModel {
+	return createBasicDeerPopulationModel()
+}
