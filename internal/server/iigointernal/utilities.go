@@ -65,17 +65,11 @@ func setIIGOClients(clientMap *map[shared.ClientID]baseclient.Client) {
 }
 
 func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) {
-	// for client := range []int{recipient, sender} {
-	// 	if client > len(shared.TeamIDs) {
-	// 		return errors.Errorf("%v is not a valid TeamID", client)
-	// 	}
-	// }
 
 	communication := map[int]baseclient.Communication{}
 	for k, v := range data {
 		communication[k] = dataPacketToCommunication(&v)
 	}
-
 	recipientID := shared.TeamIDs[recipient]
 	senderID := shared.TeamIDs[sender]
 	clients := iigoClients
@@ -97,10 +91,6 @@ func WithdrawFromCommonPool(value int, gameState *gamestate.GameState) error {
 	} else {
 		return errors.Errorf("Not enough resources in the common pool to withdraw the amount '%v'", value)
 	}
-}
-
-func withdrawSalary(value int, gameState *gamestate.GameState) (int, error) {
-	return value, WithdrawFromCommonPool(value, gameState)
 }
 
 const (

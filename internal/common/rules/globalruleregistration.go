@@ -28,7 +28,10 @@ func registerDemoRule() {
 	aux := []float64{1, 1, 2, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	_, err := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	if err != nil {
+		panic(err)
+	}
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 }
 
