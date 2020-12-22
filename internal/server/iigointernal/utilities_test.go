@@ -1,6 +1,8 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
+	"github.com/pkg/errors"
 	"reflect"
 	"testing"
 
@@ -20,12 +22,43 @@ func TestWithdrawFromCommonPoolThrowsError(t *testing.T) {
 }
 
 func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
-	fakeGameState := gamestate.GameState{CommonPool: 100}
-	valueToWithdraw := 60
-	_ = WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
-	unexpectedAmountRemaining := fakeGameState.CommonPool != 40
-	if unexpectedAmountRemaining == true {
-		t.Errorf("Not withdrawing resources from CommonPool correctly.")
+	cases := []struct {
+		name              string
+		fakeGameState     gamestate.GameState
+		valueToWithdraw   int
+		expectedRemainder int
+		expectedError     error
+	}{
+		{
+			name:              "Basic Common Pool deduction test",
+			fakeGameState:     gamestate.GameState{CommonPool: 100},
+			valueToWithdraw:   60,
+			expectedRemainder: 40,
+			expectedError:     nil,
+		},
+		{
+			name:              "Checking error created for withdrawing more than available",
+			fakeGameState:     gamestate.GameState{CommonPool: 10},
+			valueToWithdraw:   50,
+			expectedRemainder: 10,
+			expectedError:     errors.Errorf("Not enough resources in the common pool to withdraw the amount '%v'", 50),
+		},
+		{
+			name:              "Checking that you can extract entire common pool",
+			fakeGameState:     gamestate.GameState{CommonPool: 100},
+			valueToWithdraw:   100,
+			expectedRemainder: 0,
+			expectedError:     nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := WithdrawFromCommonPool(tc.valueToWithdraw, &tc.fakeGameState)
+			got := tc.fakeGameState.CommonPool
+			testutils.CompareTestIntegers(tc.expectedRemainder, got, t)
+			testutils.CompareTestErrors(err, tc.expectedError, t)
+		})
 	}
 }
 
