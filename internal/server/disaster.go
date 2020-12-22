@@ -3,11 +3,11 @@ package server
 import "github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 
 // probeDisaster checks if a disaster occurs this turn
-func (s *SOMASServer) probeDisaster() (disasters.DisasterReport, error) {
+func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 	s.logf("start probeDisaster")
 	defer s.logf("finish probeDisaster")
 
-	disasterReport := s.gameState.Environment.SampleForDisaster()
-	s.logf(s.gameState.Environment.DisplayReport())
-	return disasterReport, nil
+	e := s.gameState.Environment.SampleForDisaster()
+	s.logf(e.DisplayReport())
+	return e, nil
 }

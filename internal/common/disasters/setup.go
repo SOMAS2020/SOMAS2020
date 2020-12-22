@@ -16,5 +16,5 @@ func InitEnvironment(islandIDs []shared.ClientID) Environment {
 		island := IslandLocationInfo{id, float64(i), float64(0)} // begin with equidistant points on x axis
 		ag.islands[id] = island
 	}
-	return Environment{geography: ag, disasterParams: dp, lastDisasterReport: DisasterReport{}} // returning a pointer so that other methods can modify returned Environment instance
+	return Environment{Geography: ag, DisasterParams: dp, LastDisasterReport: DisasterReport{}} // returning a pointer so that other methods can modify returned Environment instance
 }

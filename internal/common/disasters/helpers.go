@@ -25,8 +25,8 @@ func (a ArchipelagoGeography) IslandLocation(id shared.ClientID) []float64 {
 
 // GetIslandIDs is a helper function to return the IDs of islands currently in env
 func (env Environment) GetIslandIDs() []shared.ClientID {
-	IDs := make([]shared.ClientID, 0, len(env.geography.islands))
-	for k := range env.geography.islands {
+	IDs := make([]shared.ClientID, 0, len(env.Geography.islands))
+	for k := range env.Geography.islands {
 		IDs = append(IDs, k)
 	}
 	return IDs
@@ -42,15 +42,15 @@ func (report DisasterReport) Display() string {
 
 // DisplayReport is a string format method to viz a disaster report and its effect
 func (env Environment) DisplayReport() string {
-	disasterReport := env.lastDisasterReport.Display()
-	if env.lastDisasterReport.Magnitude == 0 {
+	disasterReport := env.LastDisasterReport.Display()
+	if env.LastDisasterReport.Magnitude == 0 {
 		return disasterReport // just return default no disaster message. Not necessary to report affected islands.
 	}
 	var sb strings.Builder
 	sb.WriteString(disasterReport + "\n")
 	sb.WriteString("------------------------ Disaster Effects ------------------------\n")
 	for islandID, effect := range env.DisasterEffects() {
-		island := env.geography.islands[islandID]
+		island := env.Geography.islands[islandID]
 		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f \n", islandID, island.x, island.y, effect))
 	}
 	return sb.String()

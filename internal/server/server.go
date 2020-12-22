@@ -46,7 +46,7 @@ func SOMASServerFactory() Server {
 			Turn:           1,
 			ClientInfos:    clientInfos,
 			Environment:    disasters.InitEnvironment(clientIDs),
-			DeerPopulation: foraging.CreateBasicDeerPopulationModel(),
+			DeerPopulation: foraging.CreateDeerPopulationModel(),
 		},
 	}
 }
