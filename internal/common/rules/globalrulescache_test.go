@@ -1,10 +1,11 @@
 package rules
 
 import (
+	"testing"
+
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
-	"testing"
 )
 
 // TestRegisterNewRule Tests whether the global rule cache is able to register new rules
