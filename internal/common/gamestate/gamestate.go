@@ -3,6 +3,8 @@ package gamestate
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -25,7 +27,9 @@ type GameState struct {
 
 	// ClientInfos map from the shared.ClientID to ClientInfo.
 	// EXTRA note: Golang maps are made to be random!
-	ClientInfos map[shared.ClientID]ClientInfo
+	ClientInfos    map[shared.ClientID]ClientInfo
+	Environment    disasters.Environment
+	DeerPopulation foraging.DeerPopulationModel
 
 	// IIGOInfo contains states of the base versions of all roles
 	IIGOInfo IIGOBaseRoles
@@ -38,6 +42,8 @@ type GameState struct {
 func (g GameState) Copy() GameState {
 	ret := g
 	ret.ClientInfos = copyClientInfos(g.ClientInfos)
+	ret.Environment = copyEnv(g.Environment)
+	ret.DeerPopulation = copyDeerPopulation()
 	return ret
 }
 
@@ -56,6 +62,14 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 		ret[k] = v.Copy()
 	}
 	return ret
+}
+
+func copyEnv(e disasters.Environment) disasters.Environment {
+	return disasters.InitEnvironment(e.GetIslandIDs())
+}
+
+func copyDeerPopulation() foraging.DeerPopulationModel {
+	return foraging.CreateDeerPopulationModel()
 }
 
 // ClientInfo contains the client struct as well as the client's attributes
