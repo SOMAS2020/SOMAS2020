@@ -97,11 +97,13 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientGameState = gameState
 }
 
-
+// GetVoteForRule returns the client's vote in favour of or against a rule.
 func (c *BaseClient) GetVoteForRule(ruleName string) bool {
+	// TODO implement decision on voting that considers the rule
 	return true
 }
 
+// GetVoteForElection returns the client's Borda vote for the role to be elected.
 func (c *BaseClient) GetVoteForElection(numOfIslands int) error {
 	return nil
 }
