@@ -66,8 +66,18 @@ func (s *SOMASServer) getGiftOffers(giftRequestDict shared.GiftDict) (map[shared
 func (s *SOMASServer) getGiftAcceptance(giftOffersDict map[shared.ClientID]shared.GiftDict) (map[shared.ClientID]shared.GiftInfoDict, error) {
 	acceptedGifts := map[shared.ClientID]shared.GiftInfoDict{}
 	var err error
+
+	received_by_client_dict := make(map[shared.ClientID]shared.GiftDict)
+
+	//puts all the gifts received by a certain client accesible by the id of that client
+	for idsend, _ := range giftOffersDict {
+		for idto, _ := range giftOffersDict {
+			received_by_client_dict[idsend][idto] = giftOffersDict[idto][idsend]
+		}
+	}
+
 	for id, client := range s.clientMap {
-		acceptedGifts[id], err = client.AcceptGifts(giftOffersDict[id])
+		acceptedGifts[id], err = client.AcceptGifts(received_by_client_dict[id])
 		if err != nil {
 			return acceptedGifts, err
 		}

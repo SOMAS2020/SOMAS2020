@@ -146,11 +146,23 @@ func (c *BaseClient) OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDic
 // It also needs to provide a reasoning should it not accept the full amount.
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error) {
+
+	// In baseclient we assume all the gifts being offered are accepted.
+	// Later, the agents have freedom to come up with their own logic to reject and accept
+	// acceptedGifts := shared.GiftInfoDict{}
+	// for client, offer := range receivedGiftDict {
+	// 	acceptedGifts[client] = shared.GiftInfo{
+	// 		ReceivingTeam:  client,
+	// 		OfferingTeam:   c.GetID(),
+	// 		OfferAmount:    offer,
+	// 		AcceptedAmount: offer,
+	// 		Reason:         shared.Accept}
+	// }
 	acceptedGifts := shared.GiftInfoDict{}
 	for client, offer := range receivedGiftDict {
 		acceptedGifts[client] = shared.GiftInfo{
-			ReceivingTeam:  client,
-			OfferingTeam:   c.GetID(),
+			ReceivingTeam:  c.GetID(),
+			OfferingTeam:   client,
 			OfferAmount:    offer,
 			AcceptedAmount: offer,
 			Reason:         shared.Accept}
