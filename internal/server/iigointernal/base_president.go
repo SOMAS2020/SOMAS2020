@@ -17,9 +17,6 @@ type basePresident struct {
 	speakerSalary    int
 	rulesProposals   []string
 	resourceRequests map[int]int
-	//resourceAllocation map[int]int
-	//ruleToVote         string
-	//taxAmountMap       map[int]int
 }
 
 // evaluateAllocationRequests takes in resource requests from all islands and
@@ -57,6 +54,7 @@ func (p *basePresident) pickRuleToVote(rulesProposals []string) (string, error) 
 	return rulesProposals[rand.Intn(len(rulesProposals))], nil
 }
 
+//requestRuleProposal asks each island alive for its rule proposal
 func (p *basePresident) requestRuleProposal() {
 	p.budget -= 10
 	var rules []string
@@ -118,6 +116,7 @@ func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	return result
 }
 
+// broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game
 func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 	p.budget -= 10
 	taxAmountMap := p.getTaxMap(islandsResources)
@@ -143,6 +142,7 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 	return result
 }
 
+// requestAllocationRequest asks all alive islands for its resource allocation request
 func (p *basePresident) requestAllocationRequest() {
 	allocRequests := make(map[int]int)
 	for _, v := range getIslandAlive() {
@@ -153,6 +153,8 @@ func (p *basePresident) requestAllocationRequest() {
 
 }
 
+// replyAllocationRequest broadcasts the allocation of resources decided by the president
+// to all islands alive
 func (p *basePresident) replyAllocationRequest(commonPool int) {
 	p.budget -= 10
 	allocationMap := p.getAllocationRequests(commonPool)
@@ -164,11 +166,13 @@ func (p *basePresident) replyAllocationRequest(commonPool int) {
 	}
 }
 
+// appointNextSpeaker returns the island id of the island appointed to be speaker in the next turn
 func (p *basePresident) appointNextSpeaker() int {
 	p.budget -= 10
 	return rand.Intn(5)
 }
 
+// withdrawSpeakerSalary withdraws the salary for speaker from the common pool
 func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
 	var speakerSalary = int(rules.VariableMap["speakerSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
@@ -178,6 +182,7 @@ func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) er
 	return withdrawError
 }
 
+// sendSpeakerSalary send speaker's salary to the speaker
 func (p *basePresident) sendSpeakerSalary() {
 	if p.clientPresident != nil {
 		amount, err := p.clientPresident.PaySpeaker()
@@ -190,7 +195,7 @@ func (p *basePresident) sendSpeakerSalary() {
 	featureSpeaker.budget = amount
 }
 
-// Pay the speaker
+// paySpeaker pays speaker salary
 func (p *basePresident) paySpeaker() (int, error) {
 	hold := p.speakerSalary
 	p.speakerSalary = 0
