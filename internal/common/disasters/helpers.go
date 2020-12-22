@@ -18,7 +18,7 @@ func (report DisasterReport) Display() string {
 	if report.Magnitude == 0 {
 		return "No disaster reported."
 	}
-	return fmt.Sprintf("\nALERT: Disaster of magnitude %.3f recorded at co-ordinates (%.2f, %.2f)\n", report.Magnitude, report.X, report.Y)
+	return fmt.Sprintf("ALERT: Disaster of magnitude %.3f recorded at co-ordinates (%.2f, %.2f)\n", report.Magnitude, report.X, report.Y)
 }
 
 // DisplayReport is a string format method to viz a disaster report and its effect
@@ -28,8 +28,8 @@ func (env Environment) DisplayReport() string {
 		return disasterReport // just return default no disaster message. Not necessary to report affected islands.
 	}
 	var sb strings.Builder
-	sb.WriteString(disasterReport)
-	sb.WriteString("\n------------------------ Disaster Effects ------------------------\n")
+	sb.WriteString(disasterReport + "\n")
+	sb.WriteString("------------------------ Disaster Effects ------------------------\n")
 	for islandID, effect := range env.DisasterEffects() {
 		island := env.geography.islands[islandID]
 		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f \n", islandID, island.x, island.y, effect))
