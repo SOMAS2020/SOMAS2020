@@ -53,13 +53,31 @@ func (e *Election) CloseBallot() shared.ClientID {
 }
 
 func (e* Election) bordaCountResult() shared.ClientID {
-
+	// TODO implement Borda count winner selection method.
+	return pluralityResult()
 }
 
 func (e* Election) pluralityResult() shared.ClientID {
-	
+
+	// How many first place votes did each island get
+	votesPerIsland := map[shared.ClientID]int
+	for _,ranking := range votes {
+		votesPerIsland[ranking[0]] += 1
+	}
+
+	// Who got the most first place votes
+	winVote = 0
+	winner = shared.ClientID(1)
+	for island, votes := range votesPerIsland {
+		if votes >= winVote{
+			winVote = votes
+			winner = island
+		}
+	}
+	return winner
 }
 
 func (e* Election) majorityResult() shared.ClientID {
-	
+	// TODO implement majority winner selection method.
+	return pluralityResult()
 }
