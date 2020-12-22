@@ -9,14 +9,14 @@ import (
 
 // IslandLocation is a convenience method to extract an island's location given its index
 func (a ArchipelagoGeography) IslandLocation(id shared.ClientID) (shared.Coordinate, shared.Coordinate) {
-	island := a.islands[id]
-	return island.x, island.y
+	island := a.Islands[id]
+	return island.X, island.Y
 }
 
 // GetIslandIDs is a helper function to return the IDs of islands currently in env
 func (env Environment) GetIslandIDs() []shared.ClientID {
-	IDs := make([]shared.ClientID, 0, len(env.Geography.islands))
-	for k := range env.Geography.islands {
+	IDs := make([]shared.ClientID, 0, len(env.Geography.Islands))
+	for k := range env.Geography.Islands {
 		IDs = append(IDs, k)
 	}
 	return IDs
@@ -40,8 +40,8 @@ func (env Environment) DisplayReport() string {
 	sb.WriteString(disasterReport + "\n")
 	sb.WriteString("------------------------ Disaster Effects ------------------------\n")
 	for islandID, effect := range env.DisasterEffects() {
-		island := env.Geography.islands[islandID]
-		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f \n", islandID, island.x, island.y, effect))
+		island := env.Geography.Islands[islandID]
+		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f \n", islandID, island.X, island.Y, effect))
 	}
 	return sb.String()
 }
