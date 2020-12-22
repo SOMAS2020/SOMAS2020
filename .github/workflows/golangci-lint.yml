@@ -15,6 +15,13 @@ jobs:
         uses: reviewdog/action-golangci-lint@v1
         with: 
           tool_name: golangci-lint
+
+  golangci-lint-other:
+    name: golangci-lint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
       - name: golint
         uses: reviewdog/action-golangci-lint@v1
         with:
