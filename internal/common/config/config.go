@@ -50,8 +50,8 @@ type ForagingConfig struct {
 	// Fih hunting
 	MaxFishPerHunt            uint
 	FishIncrementalInputDecay float64
-	Mean                      float64
-	Varience                  float64
+	FishingMean               float64
+	FishingVariance           float64
 }
 
 // DisasterConfig captures disaster-specific config
@@ -78,8 +78,8 @@ func GameConfig() Config {
 		// Fish parameters
 		MaxFishPerHunt:            6,
 		FishIncrementalInputDecay: 0.8,
-		Mean:                      0.9,
-		Varience:                  0.2,
+		FishingMean:               0.9,
+		FishingVariance:           0.2,
 	}
 	disasterConf := DisasterConfig{
 		XMin:            0.0,

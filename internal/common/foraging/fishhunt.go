@@ -44,7 +44,7 @@ func fishUtilityTier(input float64, maxFishPerHunt uint, decay float64) uint {
 
 // fishReturn is the normal distibtuion
 func fishReturn(params fishHuntParams) float64 {
-	D := distuv.Normal{
+	F := distuv.Normal{
 		Mu:    params.Mu,    // mean of the normal dist
 		Sigma: params.Sigma, // Var of the normal dist
 	}
@@ -58,7 +58,7 @@ func fishReturn(params fishHuntParams) float64 {
 	// rand.Seed(time.Now().UnixNano())
 	// return Value[rand.Intn(limit)]
 
-	return D.Rand()
+	return F.Rand()
 }
 
 // HuntFish computes the fishing
@@ -67,7 +67,7 @@ func (f FishHunt) HuntFish() float64 {
 	input := f.TotalInput()
 	decay := fConf.FishIncrementalInputDecay
 	maxFish := fConf.MaxFishPerHunt
-	nFishFromInput := fishUtilityTier(input, maxFish, decay) // get max number of deer allowed for given resource input
+	nFishFromInput := fishUtilityTier(input, maxFish, decay) // get max number of fish allowed for given resource input
 	utility := 0.0
 	for i := uint(1); i < nFishFromInput; i++ {
 		utility += fishReturn(f.Params)
