@@ -21,11 +21,17 @@ type Client interface {
 	// GameStateUpdate updates game state mid-turn.
 	GameStateUpdate(gameState gamestate.ClientGameState)
 
+	Logf(format string, a ...interface{})
+
+	//IIFO: OPTIONAL
+	MakePrediction() (shared.PredictionInfo, error)
+	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
+
 	GetVotesForRule(ruleID int, numOfIslands int) map[int][]int
 	GetVotesForElect(numOfIslands int) map[int][]int
-
-	Logf(format string, a ...interface{})
 }
+
+var ourPredictionInfo shared.PredictionInfo
 
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
