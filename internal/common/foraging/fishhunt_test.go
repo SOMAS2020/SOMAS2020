@@ -19,8 +19,8 @@ func TestFishUtilityTier(t *testing.T) {
 		wantF  int     // output tier
 	}{
 		// Tiers and coressponding thresholds and cumlative cost
-		// Tiers		 					0			1			2			3				4				5					6
-		// Thresholds 					0.0		0.8		0.64	0.512		0.4096	0.32768		0.262144
+		// Tiers		 			0		1		2		3			4		5			6
+		// Thresholds 				0.0		0.8		0.64	0.512		0.4096	0.32768		0.262144
 		// Cumlative cost 			0.0		0.8		1.44	1.952		2.3616	2.68928		2.951424
 		{0.0, 0},
 		{0.1, 0},
@@ -45,7 +45,7 @@ func TestFishUtilityTier(t *testing.T) {
 // Checks if total fish input is correct
 func TestTotalFishInput(t *testing.T) {
 	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
-	huntF, _ := CreateFishHunt(huntParticipants)
+	huntF, _ := CreateFishingExpedition(huntParticipants)
 	ans := huntF.TotalInput()
 	if ans != 1.9 {
 		t.Errorf("TotalInput() = %.2f; want 1.9", ans)
@@ -53,10 +53,10 @@ func TestTotalFishInput(t *testing.T) {
 }
 
 func TestFishReturn(t *testing.T) {
-	params := fishHuntParams{Mu: 0.9, Sigma: 0.2}
+	params := fishingParams{Mu: 0.9, Sigma: 0.2}
 	avReturn := 0.0
 	for i := 1; i <= 1000; i++ { // calculate empirical mean return over 1000 trials
-		d := fishReturn(params)
+		d := fishingReturn(params)
 		avReturn = (avReturn*(float64(i)-1) + d) / float64(i)
 	}
 	expectedReturn := params.Mu                      // theoretical mean based on defined expectation

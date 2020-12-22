@@ -8,20 +8,20 @@ import (
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
-// FishHunt The teams that are involved and the resources they put in.
-type FishHunt struct {
+// FishingExpedition The teams that are involved and the resources they put in.
+type FishingExpedition struct {
 	ParticipantContributions map[shared.ClientID]float64
-	Params                   fishHuntParams
+	Params                   fishingParams
 }
 
-// fishHuntParams : Defines the parameters for the normal distibution for the fishing returns
-type fishHuntParams struct {
+// fishingParams : Defines the parameters for the normal distibution for the fishing returns
+type fishingParams struct {
 	Mu    float64
 	Sigma float64
 }
 
 // TotalInput provides a sum of the total inputs
-func (f FishHunt) TotalInput() float64 {
+func (f FishingExpedition) TotalInput() float64 {
 	i := 0.0                                       // Sum of the inputs INIT
 	for _, x := range f.ParticipantContributions { // Check for every particpant ("_" ignore the index)
 		i += x // Sum the values within each index
@@ -40,8 +40,8 @@ func fishUtilityTier(input float64, maxFishPerHunt uint, decay float64) uint {
 	return maxFishPerHunt
 }
 
-// fishReturn is the normal distibtuion
-func fishReturn(params fishHuntParams) float64 {
+// fishingReturn is the normal distibtuion
+func fishingReturn(params fishingParams) float64 {
 	F := distuv.Normal{
 		Mu:    params.Mu,    // mean of the normal dist
 		Sigma: params.Sigma, // Var of the normal dist
@@ -49,8 +49,8 @@ func fishReturn(params fishHuntParams) float64 {
 	return F.Rand()
 }
 
-// HuntFish computes the return from a fishing expedition
-func (f FishHunt) HuntFish() float64 {
+// Fish computes the return from a fishing expedition
+func (f FishingExpedition) Fish() float64 {
 	fConf := config.GameConfig().ForagingConfig.FishingConfig
 	input := f.TotalInput()
 	decay := fConf.IncrementalInputDecay
@@ -58,7 +58,7 @@ func (f FishHunt) HuntFish() float64 {
 	nFishFromInput := fishUtilityTier(input, maxFish, decay) // get max number of fish allowed for given resource input
 	utility := 0.0
 	for i := uint(1); i < nFishFromInput; i++ {
-		utility += fishReturn(f.Params)
+		utility += fishingReturn(f.Params)
 	}
 	return utility
 }

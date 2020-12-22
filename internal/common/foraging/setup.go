@@ -12,11 +12,11 @@ func CreateDeerHunt(teamResourceInputs map[shared.ClientID]float64) (DeerHunt, e
 	return DeerHunt{ParticipantContributions: teamResourceInputs, params: params}, nil // returning error too for future use
 }
 
-// CreateFishHunt sees the participants and their contributions and returns the value of FishHunt
-func CreateFishHunt(teamResourceInputs map[shared.ClientID]float64) (FishHunt, error) {
+// CreateFishingExpedition sees the participants and their contributions and returns the value of FishHunt
+func CreateFishingExpedition(teamResourceInputs map[shared.ClientID]float64) (FishingExpedition, error) {
 	fConf := config.GameConfig().ForagingConfig.FishingConfig
-	params := fishHuntParams{Mu: fConf.Mean, Sigma: fConf.Variance}
-	return FishHunt{ParticipantContributions: teamResourceInputs, Params: params}, nil // returning error too for future use
+	params := fishingParams{Mu: fConf.Mean, Sigma: fConf.Variance}
+	return FishingExpedition{ParticipantContributions: teamResourceInputs, Params: params}, nil // returning error too for future use
 }
 
 // CreateDeerPopulationModel returns the target population model. The formulation of this model should be changed here before runtime

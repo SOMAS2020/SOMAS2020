@@ -109,7 +109,7 @@ func (s *SOMASServer) endOfTurn() error {
 	}
 
 	// Run Fish hunt test
-	err = s.runDummyFishHunt()
+	err = s.runDummyFishingExpedition()
 	if err != nil {
 		return errors.Errorf("Failed to run Fish hunt at end of turn: %v", err)
 	}
