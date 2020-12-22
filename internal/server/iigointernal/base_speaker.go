@@ -189,6 +189,11 @@ func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
 
 }
 
-func (s *baseSpeaker) appointNextJudge() int {
-	return rand.Intn(5)
+func (s *baseSpeaker) appointNextJudge(clientIDs []shared.ClientID) int {
+	s.budget -= 10
+	var election voting.Election
+	election.ProposeElection(baseclient.Judge, voting.Plurality)
+	election.OpenBallot(clientIDs)
+	election.Vote(iigoClients)
+	return election.CloseBallot()
 }
