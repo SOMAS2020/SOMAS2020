@@ -126,7 +126,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 3 Speaker actions
 	featureSpeaker.setRuleToVote(ruleToVote)
-	featureSpeaker.setVotingResult()
+	featureSpeaker.setVotingResult(iigoClients)
 	_ = featureSpeaker.announceVotingResult()
 
 	// 4 Declare performance (Judge) (in future all the iigointernal)
