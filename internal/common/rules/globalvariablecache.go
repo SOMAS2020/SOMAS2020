@@ -18,10 +18,9 @@ func RegisterNewVariable(pair VariableValuePair) error {
 func registerNewVariableInternal(pair VariableValuePair, variableStore map[string]VariableValuePair) error {
 	if _, ok := variableStore[pair.VariableName]; ok {
 		return errors.Errorf("attempted to re-register a variable that had already been registered")
-	} else {
-		variableStore[pair.VariableName] = pair
-		return nil
 	}
+	variableStore[pair.VariableName] = pair
+	return nil
 }
 
 // UpdateVariable Updates variable in global cache with new value
@@ -34,7 +33,6 @@ func updateVariableInternal(variableName string, newValue VariableValuePair, var
 	if _, ok := variableStore[variableName]; ok {
 		variableStore[variableName] = newValue
 		return nil
-	} else {
-		return errors.Errorf("attempted to modify a variable has not been defined")
 	}
+	return errors.Errorf("attempted to modify a variable has not been defined")
 }
