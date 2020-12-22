@@ -34,7 +34,7 @@ func GetGitInfo(wd string) (GitInfo, error) {
 	}
 	remoteURL := strings.TrimSpace(string(remoteURLBuf))
 
-	gitInfo.GithubURL = fmt.Sprintf("%v/tree/%v", string(remoteURL), hash)
+	gitInfo.GithubURL = fmt.Sprintf("%v/tree/%v", remoteURL, hash)
 
 	return gitInfo, nil
 }
