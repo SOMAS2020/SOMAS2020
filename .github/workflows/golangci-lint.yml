@@ -33,6 +33,7 @@ jobs:
         with:
           golangci_lint_flags: "--disable-all -E exhaustive"
           tool_name: exhaustive 
+          level: warning 
           fail_on_error: true
       - name: exhaustivestruct
         uses: reviewdog/action-golangci-lint@v1
@@ -45,4 +46,5 @@ jobs:
         with:
           golangci_lint_flags: "--disable-all -E goimports"
           tool_name: goimports 
+          level: warning
           fail_on_error: true
