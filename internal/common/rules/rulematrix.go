@@ -5,7 +5,7 @@ import (
 )
 
 type RuleMatrix struct {
-	RuleName          string
+	ruleName          string
 	RequiredVariables []string
 	ApplicableMatrix  mat.Dense
 	AuxiliaryVector   mat.VecDense

@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -24,17 +23,6 @@ type Client interface {
 
 	Logf(format string, a ...interface{})
 
-	CommonPoolResourceRequest() int
-	ResourceReport() int
-	RuleProposal() string
-	GetClientPresidentPointer() roles.President
-	GetClientJudgePointer() roles.Judge
-	GetClientSpeakerPointer() roles.Speaker
-	ReceiveCommunication(sender shared.ClientID, data map[int]Communication)
-	GetCommunications() *map[shared.ClientID][]map[int]Communication
-	GetTaxContribution() int
-	RequestAllocation() int
-
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
@@ -48,7 +36,7 @@ var ourPredictionInfo shared.PredictionInfo
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
 func NewClient(id shared.ClientID) Client {
-	return &BaseClient{id: id, communications: map[shared.ClientID][]map[int]Communication{}}
+	return &BaseClient{id: id}
 }
 
 // BaseClient provides a basic implementation for all functions of the client interface and should always the interface fully.
@@ -57,7 +45,6 @@ func NewClient(id shared.ClientID) Client {
 type BaseClient struct {
 	id              shared.ClientID
 	clientGameState gamestate.ClientGameState
-	communications  map[shared.ClientID][]map[int]Communication
 }
 
 // Echo prints a message to show that the client exists
@@ -97,7 +84,6 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientGameState = gameState
 }
 
-
 func (c *BaseClient) GetVotesForRule(ruleID int, numOfIslands int) map[int][]int {
 	var votesLayoutRule map[int][]int
 	return votesLayoutRule
@@ -106,30 +92,4 @@ func (c *BaseClient) GetVotesForRule(ruleID int, numOfIslands int) map[int][]int
 func (c *BaseClient) GetVotesForElect(numOfIslands int) map[int][]int {
 	var votesLayoutElect map[int][]int
 	return votesLayoutElect
-
-type CommunicationContentType = int
-
-const (
-	CommunicationInt CommunicationContentType = iota
-	CommunicationString
-	CommunicationBool
-)
-
-// Communication is a general datastructure used for communications
-type Communication struct {
-	T           CommunicationContentType
-	IntegerData int
-	TextData    string
-	BooleanData bool
-}
-
-// ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
-func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[int]Communication) {
-	c.communications[sender] = append(c.communications[sender], data)
-}
-
-// GetCommunications is used for testing communications
-func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[int]Communication {
-	return &c.communications
-
 }

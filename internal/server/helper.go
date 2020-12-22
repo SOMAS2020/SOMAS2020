@@ -36,18 +36,6 @@ func anyClientsAlive(clientInfos map[shared.ClientID]gamestate.ClientInfo) bool 
 	return len(getNonDeadClientIDs(clientInfos)) != 0
 }
 
-// getNonDeadClients returns a map of all clients with a non-dead status
-func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo, 
-	clientMap map[shared.ClientID]baseclient.Client) map[shared.ClientID]baseclient.Client {
-
-	nonDeadClientMap := map[shared.ClientID]baseclient.Client{}
-	clientIDs := getNonDeadClientIDs(clientInfos)
-	for _, id := range clientIDs {
-		nonDeadClientMap[id] = clientMap[id]
-	}
-	return nonDeadClientMap
-}
-
 // updateIslandLivingStatusForClient returns an updated copy of the clientInfo after updating
 // the Alive, Critical, and CriticalConsecutiveTurnsLeft attribs according to the resource levels and
 // the game's configuration.
