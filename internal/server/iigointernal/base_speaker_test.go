@@ -101,8 +101,8 @@ func generateRulesTestStores() (map[string]rules.RuleMatrix, map[string]rules.Ru
 			"Kinda Test Rule":   ruleMatrixExample,
 			"Kinda Test Rule 2": ruleMatrixExample,
 			"Kinda Test Rule 3": ruleMatrixExample,
-			"TestingRule1": ruleMatrixExample,
-			"TestingRule2": ruleMatrixExample,
+			"TestingRule1":      ruleMatrixExample,
+			"TestingRule2":      ruleMatrixExample,
 		},
 		map[string]rules.RuleMatrix{
 			"Kinda Test Rule 2": ruleMatrixExample,
@@ -110,37 +110,37 @@ func generateRulesTestStores() (map[string]rules.RuleMatrix, map[string]rules.Ru
 
 }
 
-type speakerState struct{
-	ruleToVote    string
-	VotingResult  bool
+type speakerState struct {
+	ruleToVote   string
+	VotingResult bool
 }
 
-func TestVoting (t *testing.T) {
+func TestVoting(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	s := baseSpeaker{clientSpeaker: nil}
 	cases := []struct {
-		name   string
-		ruleID string
+		name           string
+		ruleID         string
 		expectedStates []speakerState
-		want   error
+		want           error
 	}{
 		{
-			name:   "Rule given",
-			ruleID: "TestingRule1",
+			name:           "Rule given",
+			ruleID:         "TestingRule1",
 			expectedStates: []speakerState{{"TestingRule1", false}, {"TestingRule1", true}},
-			want:   nil,
+			want:           nil,
 		},
 		{
-			name: "Another rule given",
-			ruleID: "TestingRule2",
+			name:           "Another rule given",
+			ruleID:         "TestingRule2",
 			expectedStates: []speakerState{{"TestingRule2", false}, {"TestingRule2", true}},
-			want: nil,
+			want:           nil,
 		},
 		{
-			name: "No rule given",
-			ruleID: "",
+			name:           "No rule given",
+			ruleID:         "",
 			expectedStates: []speakerState{{"", false}, {"", false}},
-			want: nil,
+			want:           nil,
 		},
 	}
 	var stateTransfer [][]speakerState
@@ -153,7 +153,7 @@ func TestVoting (t *testing.T) {
 			state2 := speakerState{s.ruleToVote, s.votingResult}
 			got := s.announceVotingResultTest()
 
-			stateTransfer = append(stateTransfer, []speakerState{state1,state2})
+			stateTransfer = append(stateTransfer, []speakerState{state1, state2})
 			tc.expectedStates[1].VotingResult = state2.VotingResult //Result is random
 			expectedStateTransfer = append(expectedStateTransfer, tc.expectedStates)
 
@@ -167,8 +167,7 @@ func TestVoting (t *testing.T) {
 	}
 }
 
-
-func (s *baseSpeaker) announceVotingResultTest() error{
+func (s *baseSpeaker) announceVotingResultTest() error {
 
 	var rule string
 	var result bool
@@ -179,17 +178,17 @@ func (s *baseSpeaker) announceVotingResultTest() error{
 		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.ruleToVote, s.votingResult)
 		//TODO: log of given vs. returned rule and result
 		if err != nil {
-			rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
+			rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
 		}
 	} else {
-		rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
+		rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
 	}
 
 	//Reset
 	s.ruleToVote = ""
 	s.votingResult = false
 
-	if rule != ""{
+	if rule != "" {
 		//Deduct action cost
 		s.budget -= 10
 

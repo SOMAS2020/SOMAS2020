@@ -40,6 +40,11 @@ var featurePresident = basePresident{
 	resourceRequests: nil,
 }
 
+// GetFeaturedRoles returns featured versions of the roles
+func GetFeaturedRoles() (roles.Judge, roles.Speaker, roles.President) {
+	return &featureJudge, &featureSpeaker, &featurePresident
+}
+
 // SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
 var SpeakerIDGlobal = 0
 
@@ -63,11 +68,14 @@ var presidentPointer roles.President = nil
 // iigoClients holds pointers to all the clients
 var iigoClients map[shared.ClientID]baseclient.Client
 
+var iigoRoleStates gamestate.IIGOBaseRoles
+
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) error {
 
 	// TODO: Get Client pointers from gamestate https://imgur.com/a/HjVZIkh
 	iigoClients = *clientMap
+	iigoRoleStates = g.IIGOInfo
 
 	// Initialise IDs
 	featureJudge.id = JudgeIDGlobal
@@ -101,7 +109,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	featurePresident.sendSpeakerSalary()
 
 	// 1 Judge actions - inspect history
-	_, judgeInspectingHistoryError := featureJudge.inspectHistory()
+	_, judgeInspectingHistoryError := featureJudge.InspectHistory()
 
 	// 2 President actions
 	resourceReports := map[int]int{}

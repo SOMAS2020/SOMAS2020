@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -32,12 +33,15 @@ type SOMASServer struct {
 func SOMASServerFactory() Server {
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
 
+	judge, speaker, president := iigointernal.GetFeaturedRoles()
+
 	return &SOMASServer{
 		clientMap: clientMap,
 		gameState: gamestate.GameState{
 			Season:      1,
 			Turn:        1,
 			ClientInfos: clientInfos,
+			IIGOInfo:    gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
 		},
 	}
 }

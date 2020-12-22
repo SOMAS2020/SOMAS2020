@@ -6,5 +6,5 @@ type President interface {
 	SetTaxationAmount(map[int]int) (map[int]int, error)
 	EvaluateAllocationRequests(map[int]int, int) (map[int]int, error)
 	PickRuleToVote([]string) (string, error)
-	reset(string) error
+	Reset(string) error
 }

@@ -48,12 +48,12 @@ func (j *BaseJudge) sendPresidentSalary() {
 			return
 		}
 	}
-	amount, _ := j.payPresident()
+	amount, _ := j.PayPresident()
 	featurePresident.budget = amount
 }
 
 // Pay the president
-func (j *BaseJudge) payPresident() (int, error) {
+func (j *BaseJudge) PayPresident() (int, error) {
 	hold := j.presidentSalary
 	j.presidentSalary = 0
 	return hold, nil
@@ -97,7 +97,7 @@ func (j *BaseJudge) inspectHistoryInternal() {
 	j.evaluationResults = outputMap
 }
 
-func (j *BaseJudge) inspectHistory() (map[int]roles.EvaluationReturn, error) {
+func (j *BaseJudge) InspectHistory() (map[int]roles.EvaluationReturn, error) {
 	j.budget -= 10
 	if j.clientJudge != nil {
 		outputMap, err := j.clientJudge.InspectHistory()
@@ -160,7 +160,7 @@ func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, e
 	return j.BallotID, result, j.speakerID, conductedRole, nil
 }
 
-func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
+func (j *BaseJudge) DeclareSpeakerPerformance() (int, bool, int, bool, error) {
 
 	j.budget -= 10
 	var BID int
@@ -182,7 +182,7 @@ func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
 
 func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
-	BID, result, SID, checkRole, err := j.declareSpeakerPerformance()
+	BID, result, SID, checkRole, err := j.DeclareSpeakerPerformance()
 
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
@@ -190,7 +190,7 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 	}
 }
 
-func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) {
+func (j *BaseJudge) DeclarePresidentPerformance() (int, bool, int, bool, error) {
 
 	j.budget -= 10
 	var RID int
@@ -213,7 +213,7 @@ func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) 
 
 func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
-	RID, result, PID, checkRole, err := j.declarePresidentPerformance()
+	RID, result, PID, checkRole, err := j.DeclarePresidentPerformance()
 
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)

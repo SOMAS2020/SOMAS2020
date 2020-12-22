@@ -38,12 +38,12 @@ func (s *baseSpeaker) sendJudgeSalary() {
 			return
 		}
 	}
-	amount, _ := s.payJudge()
+	amount, _ := s.PayJudge()
 	featureJudge.budget = amount
 }
 
 // Pay the judge
-func (s *baseSpeaker) payJudge() (int, error) {
+func (s *baseSpeaker) PayJudge() (int, error) {
 	hold := s.judgeSalary
 	s.judgeSalary = 0
 	return hold, nil
@@ -60,19 +60,19 @@ func (s *baseSpeaker) setVotingResult() {
 	if s.clientSpeaker != nil {
 		result, err := s.clientSpeaker.RunVote(s.ruleToVote)
 		if err != nil {
-			s.votingResult, _ = s.runVote(s.ruleToVote)
+			s.votingResult, _ = s.RunVote(s.ruleToVote)
 		} else {
 			s.votingResult = result
 		}
 	} else {
-		s.votingResult, _ = s.runVote(s.ruleToVote)
+		s.votingResult, _ = s.RunVote(s.ruleToVote)
 	}
 }
 
 //Creates the voting object, collect ballots & count the votes
 //Functional so it corresponds to the interface, to the client implementation
 //If agent decides not to use voting functions, it is assumed they have not performed them
-func (s *baseSpeaker) runVote(ruleID string) (bool, error) {
+func (s *baseSpeaker) RunVote(ruleID string) (bool, error) {
 	s.budget -= 10
 	if ruleID == "" {
 		// No rules were proposed by the islands
@@ -101,10 +101,10 @@ func (s *baseSpeaker) announceVotingResult() error {
 		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.ruleToVote, s.votingResult)
 		//TODO: log of given vs. returned rule and result
 		if err != nil {
-			rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
+			rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
 		}
 	} else {
-		rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
+		rule, result, _ = s.DecideAnnouncement(s.ruleToVote, s.votingResult)
 	}
 
 	if rule != "" {
@@ -125,7 +125,7 @@ func (s *baseSpeaker) announceVotingResult() error {
 //Example of the client implementation of DecideAnnouncement
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
-func (s *baseSpeaker) decideAnnouncement(ruleId string, result bool) (string, bool, error) {
+func (s *baseSpeaker) DecideAnnouncement(ruleId string, result bool) (string, bool, error) {
 	return ruleId, result, nil
 }
 
