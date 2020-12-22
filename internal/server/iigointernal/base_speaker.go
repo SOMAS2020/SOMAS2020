@@ -122,6 +122,7 @@ func (s *baseSpeaker) announceVotingResult() error {
 	return nil
 }
 
+
 //Example of the client implementation of DecideAnnouncement
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
