@@ -5,8 +5,8 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 //base President Object
@@ -22,7 +22,10 @@ type basePresident struct {
 	//taxAmountMap       map[int]int
 }
 
-// Set allowed resource allocation based on each islands requests
+// evaluateAllocationRequests takes in resource requests from all islands and
+// the available common pool. Returns map of allocated resources in which either
+// meets demand if <75% of common pool is used, else scales allocations such that
+// the 75% threshold usage is met.
 func (p *basePresident) evaluateAllocationRequests(resourceRequest map[int]int, availCommonPool int) (map[int]int, error) {
 	p.budget -= 10
 	var requestSum int
