@@ -1,27 +1,15 @@
 package vote
 
-//will be generated from client
-var voteForRule map[int][]int
-var voteForElect map[int][]int
+import "github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 
-func GetVotesForRule(ruleID string, numOfIslands int) map[int][]int {
-	votesLayoutRule := make(map[int][]int)
-	i := 1
-	for {
-		votesLayoutRule[i] = voteForRule[i]
-		i++
-		if i > numOfIslands {
-			break
-		}
-	}
-	return votesLayoutRule
-}
-
-func VoteRule(ruleID string, numOfIslands int) (int, int, bool, map[int][]int) {
+//output of this function is number of people for the rule, against the rule,
+//and number of people for and againet the rule on each island
+func VoteRule(ruleID int, numOfIslands int) (int, int, bool, map[int][]int) {
 
 	//Get votes from islands for the rule changes.
-	//var votesLayoutRule map[int][]int
-	votesLayoutRule := GetVotesForRule(ruleID, numOfIslands)
+	var clientVoteForRule baseclient.Client
+	clientVoteForRule = new(baseclient.BaseClient)
+	votesLayoutRule := clientVoteForRule.GetVotesForRule(ruleID, numOfIslands)
 
 	//Calculate results of each island.
 	resultsOfAllIslands := make(map[int][]int)
@@ -60,25 +48,15 @@ func VoteRule(ruleID string, numOfIslands int) (int, int, bool, map[int][]int) {
 	return numacc, numrej, ans, votesLayoutRule
 }
 
-func GetVotesForElect(numOfIslands int) map[int][]int {
-	votesLayoutElect := make(map[int][]int)
-	i := 1
-	for {
-		votesLayoutElect[i] = voteForElect[i]
-		i++
-		if i > numOfIslands {
-			break
-		}
-	}
-
-	return votesLayoutElect
-}
-
+//ouput of this function is winnerID, final score of each candidate,
+//and preference list provided by each island
 func VoteElect(numOfIslands int) (int, []int, map[int][]int) {
 
 	//Get votes from each island for the election.
 	//var votesLayoutElect map[int][]int
-	votesLayoutElect := GetVotesForElect(numOfIslands)
+	var clientVoteForElect baseclient.Client
+	clientVoteForElect = new(baseclient.BaseClient)
+	votesLayoutElect := clientVoteForElect.GetVotesForElect(numOfIslands)
 
 	//Calculate the preference map.
 	var order []int
@@ -172,16 +150,19 @@ func VoteElect(numOfIslands int) (int, []int, map[int][]int) {
 	return win, FinalScore, preferenceMap
 }
 
+//vote for judge
 func VoteElectJudge(numOfIslands int) (int, []int, map[int][]int) {
 	win, FinalScore, preferenceMap := VoteElect(numOfIslands)
 	return win, FinalScore, preferenceMap
 }
 
+//vote for speaker
 func VoteElectSpeaker(numOfIslands int) (int, []int, map[int][]int) {
 	win, FinalScore, preferenceMap := VoteElect(numOfIslands)
 	return win, FinalScore, preferenceMap
 }
 
+//vote for president
 func VoteElectPresident(numOfIslands int) (int, []int, map[int][]int) {
 	win, FinalScore, preferenceMap := VoteElect(numOfIslands)
 	return win, FinalScore, preferenceMap
