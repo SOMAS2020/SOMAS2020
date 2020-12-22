@@ -149,15 +149,6 @@ func (c *BaseClient) AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftI
 
 	// In baseclient we assume all the gifts being offered are accepted.
 	// Later, the agents have freedom to come up with their own logic to reject and accept
-	// acceptedGifts := shared.GiftInfoDict{}
-	// for client, offer := range receivedGiftDict {
-	// 	acceptedGifts[client] = shared.GiftInfo{
-	// 		ReceivingTeam:  client,
-	// 		OfferingTeam:   c.GetID(),
-	// 		OfferAmount:    offer,
-	// 		AcceptedAmount: offer,
-	// 		Reason:         shared.Accept}
-	// }
 	acceptedGifts := shared.GiftInfoDict{}
 	for client, offer := range receivedGiftDict {
 		acceptedGifts[client] = shared.GiftInfo{
