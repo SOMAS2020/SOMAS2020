@@ -9,7 +9,7 @@ import (
 )
 
 type clientInfoUpdateResult struct {
-	Id  shared.ClientID
+	ID  shared.ClientID
 	Ci  gamestate.ClientInfo
 	Err error
 }

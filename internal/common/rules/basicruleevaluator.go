@@ -132,9 +132,8 @@ func BasicBooleanRuleEvaluator(ruleName string) (bool, error) {
 		}
 
 		return checkForFalse(resultVect), nil
-	} else {
-		return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 	}
+	return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 }
 
 // BasicRealValuedRuleEvaluator implements real valued rule evaluation in the same form as the boolean one
@@ -165,7 +164,6 @@ func BasicRealValuedRuleEvaluator(ruleName string) (bool, float64, error) {
 		}
 
 		return checkForFalse(resultVect), outputVal, nil
-	} else {
-		return false, 0, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 	}
+	return false, 0, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 }
