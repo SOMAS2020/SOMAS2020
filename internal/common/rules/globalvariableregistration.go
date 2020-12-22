@@ -44,7 +44,7 @@ var StaticVariables = []VariableValuePair{
 	},
 	{
 		VariableName: "islands_alive",
-		Values:       []float64{1, 2, 3, 4, 5, 6},
+		Values:       []float64{0, 1, 2, 3, 4, 5},
 	},
 	{
 		VariableName: "speakerSalary",
