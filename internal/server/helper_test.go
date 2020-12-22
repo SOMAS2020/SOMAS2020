@@ -2,9 +2,10 @@ package server
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 	"github.com/pkg/errors"
@@ -13,12 +14,12 @@ import (
 func TestAnyClientsAlive(t *testing.T) {
 	cases := []struct {
 		name string
-		cis  map[shared.ClientID]common.ClientInfo
+		cis  map[shared.ClientID]gamestate.ClientInfo
 		want bool
 	}{
 		{
 			name: "all alive",
-			cis: map[shared.ClientID]common.ClientInfo{
+			cis: map[shared.ClientID]gamestate.ClientInfo{
 				shared.Team1: {
 					LifeStatus: shared.Alive,
 				},
@@ -30,7 +31,7 @@ func TestAnyClientsAlive(t *testing.T) {
 		},
 		{
 			name: "one alive",
-			cis: map[shared.ClientID]common.ClientInfo{
+			cis: map[shared.ClientID]gamestate.ClientInfo{
 				shared.Team1: {
 					LifeStatus: shared.Alive,
 				},
@@ -41,7 +42,7 @@ func TestAnyClientsAlive(t *testing.T) {
 			want: true,
 		}, {
 			name: "none alive",
-			cis: map[shared.ClientID]common.ClientInfo{
+			cis: map[shared.ClientID]gamestate.ClientInfo{
 				shared.Team1: {
 					LifeStatus: shared.Dead,
 				},
@@ -68,18 +69,18 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 	const maxConsCritTurns = 3
 	cases := []struct {
 		name    string
-		ci      common.ClientInfo
-		want    common.ClientInfo
+		ci      gamestate.ClientInfo
+		want    gamestate.ClientInfo
 		wantErr error
 	}{
 		{
 			name: "alive and well",
-			ci: common.ClientInfo{
+			ci: gamestate.ClientInfo{
 				LifeStatus:                      shared.Alive,
 				Resources:                       minResThres,
 				CriticalConsecutiveTurnsCounter: 0,
 			},
-			want: common.ClientInfo{
+			want: gamestate.ClientInfo{
 				LifeStatus:                      shared.Alive,
 				Resources:                       minResThres,
 				CriticalConsecutiveTurnsCounter: 0,
@@ -88,12 +89,12 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 		},
 		{
 			name: "already dead",
-			ci: common.ClientInfo{
+			ci: gamestate.ClientInfo{
 				LifeStatus:                      shared.Dead,
 				Resources:                       minResThres - 1,
 				CriticalConsecutiveTurnsCounter: 3,
 			},
-			want: common.ClientInfo{
+			want: gamestate.ClientInfo{
 				LifeStatus:                      shared.Dead,
 				Resources:                       minResThres - 1,
 				CriticalConsecutiveTurnsCounter: 3,
@@ -102,12 +103,12 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 		},
 		{
 			name: "turn critical",
-			ci: common.ClientInfo{
+			ci: gamestate.ClientInfo{
 				LifeStatus:                      shared.Alive,
 				Resources:                       minResThres - 1,
 				CriticalConsecutiveTurnsCounter: 100,
 			},
-			want: common.ClientInfo{
+			want: gamestate.ClientInfo{
 				LifeStatus:                      shared.Critical,
 				Resources:                       minResThres - 1,
 				CriticalConsecutiveTurnsCounter: 0,
@@ -116,12 +117,12 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 		},
 		{
 			name: "add critical",
-			ci: common.ClientInfo{
+			ci: gamestate.ClientInfo{
 				LifeStatus:                      shared.Critical,
 				Resources:                       minResThres - 1,
 				CriticalConsecutiveTurnsCounter: 1,
 			},
-			want: common.ClientInfo{
+			want: gamestate.ClientInfo{
 				LifeStatus:                      shared.Critical,
 				Resources:                       minResThres - 1,
 				CriticalConsecutiveTurnsCounter: 2,
@@ -130,12 +131,12 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 		},
 		{
 			name: "ran out of critical turns",
-			ci: common.ClientInfo{
+			ci: gamestate.ClientInfo{
 				LifeStatus:                      shared.Critical,
 				Resources:                       minResThres - 1,
 				CriticalConsecutiveTurnsCounter: 3,
 			},
-			want: common.ClientInfo{
+			want: gamestate.ClientInfo{
 				LifeStatus:                      shared.Dead,
 				Resources:                       minResThres - 1,
 				CriticalConsecutiveTurnsCounter: 3,
@@ -144,12 +145,12 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 		},
 		{
 			name: "turn non-critical",
-			ci: common.ClientInfo{
+			ci: gamestate.ClientInfo{
 				LifeStatus:                      shared.Critical,
 				Resources:                       minResThres,
 				CriticalConsecutiveTurnsCounter: 2,
 			},
-			want: common.ClientInfo{
+			want: gamestate.ClientInfo{
 				LifeStatus:                      shared.Alive,
 				Resources:                       minResThres,
 				CriticalConsecutiveTurnsCounter: 0,
@@ -158,12 +159,12 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 		},
 		{
 			name: "bogus LifeStatus",
-			ci: common.ClientInfo{
+			ci: gamestate.ClientInfo{
 				LifeStatus:                      99999,
 				Resources:                       minResThres,
 				CriticalConsecutiveTurnsCounter: 2,
 			},
-			want: common.ClientInfo{
+			want: gamestate.ClientInfo{
 				LifeStatus:                      99999,
 				Resources:                       minResThres,
 				CriticalConsecutiveTurnsCounter: 2,
@@ -181,5 +182,30 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 			}
 			testutils.CompareTestErrors(tc.wantErr, err, t)
 		})
+	}
+}
+
+func TestGetNonDeadClientIDs(t *testing.T) {
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Critical,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Dead,
+		},
+	}
+	want := []shared.ClientID{
+		shared.Team1, shared.Team2,
+	}
+	got := getNonDeadClientIDs(clientInfos)
+
+	sort.Sort(shared.SortClientByID(want))
+	sort.Sort(shared.SortClientByID(got))
+
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("want '%v' got '%v'", want, got)
 	}
 }

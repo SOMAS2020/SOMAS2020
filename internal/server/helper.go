@@ -1,21 +1,28 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
 
+type clientInfoUpdateResult struct {
+	ID  shared.ClientID
+	Ci  gamestate.ClientInfo
+	Err error
+}
+
 func getClientInfosAndMapFromRegisteredClients(
-	registeredClients map[shared.ClientID]common.Client,
-) (map[shared.ClientID]common.ClientInfo, map[shared.ClientID]common.Client) {
-	clientInfos := map[shared.ClientID]common.ClientInfo{}
-	clientMap := map[shared.ClientID]common.Client{}
+	registeredClients map[shared.ClientID]baseclient.Client,
+) (map[shared.ClientID]gamestate.ClientInfo, map[shared.ClientID]baseclient.Client) {
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{}
+	clientMap := map[shared.ClientID]baseclient.Client{}
 
 	for id, c := range registeredClients {
-		clientInfos[id] = common.ClientInfo{
-			Resources:  config.InitialResources,
+		clientInfos[id] = gamestate.ClientInfo{
+			Resources:  config.GameConfig().InitialResources,
 			LifeStatus: shared.Alive,
 		}
 		clientMap[id] = c
@@ -25,23 +32,18 @@ func getClientInfosAndMapFromRegisteredClients(
 }
 
 // anyClientsAlive returns true if any one client is Alive (including critical).
-func anyClientsAlive(clientInfos map[shared.ClientID]common.ClientInfo) bool {
-	for _, ci := range clientInfos {
-		if ci.LifeStatus != shared.Dead {
-			return true
-		}
-	}
-	return false
+func anyClientsAlive(clientInfos map[shared.ClientID]gamestate.ClientInfo) bool {
+	return len(getNonDeadClientIDs(clientInfos)) != 0
 }
 
 // updateIslandLivingStatusForClient returns an updated copy of the clientInfo after updating
 // the Alive, Critical, and CriticalConsecutiveTurnsLeft attribs according to the resource levels and
 // the game's configuration.
 func updateIslandLivingStatusForClient(
-	ci common.ClientInfo,
+	ci gamestate.ClientInfo,
 	minimumResourceThreshold int,
 	maxCriticalConsecutiveTurns uint,
-) (common.ClientInfo, error) {
+) (gamestate.ClientInfo, error) {
 	switch ci.LifeStatus {
 	case shared.Alive:
 		if ci.Resources < minimumResourceThreshold {
@@ -72,4 +74,18 @@ func updateIslandLivingStatusForClient(
 			errors.Errorf("updateIslandLivingStatusForClient not implemented for LifeStatus %v",
 				ci.LifeStatus)
 	}
+}
+
+// getNonDeadClients return ClientIDs of clients that are not dead (alive + critical).
+// The result is NOT ordered.
+func getNonDeadClientIDs(clientInfos map[shared.ClientID]gamestate.ClientInfo) []shared.ClientID {
+	nonDeadClients := []shared.ClientID{}
+
+	for id, ci := range clientInfos {
+		if ci.LifeStatus != shared.Dead {
+			nonDeadClients = append(nonDeadClients, id)
+		}
+	}
+
+	return nonDeadClients
 }

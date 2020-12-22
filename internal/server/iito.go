@@ -1,44 +1,49 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 // runIITO : IITO makes recommendations about the optimal (and fairest) contributions this term
 // to mitigate the common pool dilemma
-func (s *SOMASServer) runIITO() ([]common.Action, error) {
+func (s *SOMASServer) runIITO() error {
 	s.logf("start runIITO")
-	s.runGiftSession()
 	defer s.logf("finish runIITO")
-	// TOOD:- IITO team
-	return nil, nil
+	// TODO:- IITO team
+	return nil
 }
 
-func (s *SOMASServer) runGiftSession() ([]common.Action, error) {
+func (s *SOMASServer) runIITOEndOfTurn() error {
+	s.logf("start runIITOEndOfTurn")
+	defer s.logf("finish runIITOEndOfTurn")
+	// TODO:- IITO team
+	return nil
+}
+
+func (s *SOMASServer) runGiftSession() error {
 	s.logf("start runGiftSession")
 	giftRequestDict, err := s.getGiftRequests()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	giftOffersDict, err := s.getGiftOffers(giftRequestDict)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	giftHistoryDict, err := s.getGiftAcceptance(giftOffersDict)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = s.distributeGiftHistory(giftHistoryDict)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	// Process actions
 	for key, value := range giftHistoryDict {
 		s.logf("Gifts from %s: %v\n", key, value)
 	}
 	defer s.logf("finish runGiftSession")
-	return nil, nil
+	return nil
 }
 
 func (s *SOMASServer) getGiftRequests() (shared.GiftDict, error) {
@@ -87,7 +92,7 @@ func (s *SOMASServer) getGiftAcceptance(giftOffersDict map[shared.ClientID]share
 
 func (s *SOMASServer) distributeGiftHistory(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error {
 	//Process acceptedGifts
-	for id, client := range s.clientMap {
+	for _, client := range s.clientMap {
 		err := client.UpdateGiftInfo(acceptedGifts)
 		if err != nil {
 			return err
