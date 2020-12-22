@@ -49,7 +49,7 @@ func (p *basePresident) PickRuleToVote(rulesProposals []string) (string, error) 
 	p.budget -= 10
 	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
-		return "", nil
+		return "Agrim", nil
 	}
 	return rulesProposals[rand.Intn(len(rulesProposals))], nil
 }
