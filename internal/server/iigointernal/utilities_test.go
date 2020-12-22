@@ -31,41 +31,41 @@ func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 
 func TestCommunicateWithIslands(t *testing.T) {
 
-	dataA := map[int]DataPacket{
-		3:  {integerData: 123, textData: "Hello World - dataA", booleanData: true},
-		1:  {textData: "SOMAS", booleanData: false},
-		22: {booleanData: false},
-		14: {integerData: 420, booleanData: false},
+	dataA := map[int]baseclient.Communication{
+		3:  {IntegerData: 123, TextData: "Hello World - dataA", BooleanData: true},
+		1:  {TextData: "SOMAS", BooleanData: false},
+		22: {BooleanData: false},
+		14: {IntegerData: 420, BooleanData: false},
 	}
 
-	dataB := map[int]DataPacket{
-		0: {integerData: 11, textData: "SOMAS", booleanData: true},
+	dataB := map[int]baseclient.Communication{
+		0: {IntegerData: 11, TextData: "SOMAS", BooleanData: true},
 	}
 
-	dataC := map[int]DataPacket{
-		5:  {booleanData: true},
-		4:  {textData: "communication test"},
-		16: {integerData: 7832},
-		73: {integerData: 234511, textData: "dataC", booleanData: false},
+	dataC := map[int]baseclient.Communication{
+		5:  {BooleanData: true},
+		4:  {TextData: "communication test"},
+		16: {IntegerData: 7832},
+		73: {IntegerData: 234511, TextData: "dataC", BooleanData: false},
 	}
 
-	dataEmpty := map[int]DataPacket{}
+	dataEmpty := map[int]baseclient.Communication{}
 
 	cases := []struct {
 		name           string
-		sendersPayload map[int][]map[int]DataPacket
+		sendersPayload map[int][]map[int]baseclient.Communication
 		receiver       int
 	}{
 		{
 			name: "single transmission",
-			sendersPayload: map[int][]map[int]DataPacket{
+			sendersPayload: map[int][]map[int]baseclient.Communication{
 				1: {dataA},
 			},
 			receiver: 4,
 		},
 		{
 			name: "2 senders, 1 transmission each",
-			sendersPayload: map[int][]map[int]DataPacket{
+			sendersPayload: map[int][]map[int]baseclient.Communication{
 				1: {dataA},
 				2: {dataB},
 			},
@@ -73,14 +73,14 @@ func TestCommunicateWithIslands(t *testing.T) {
 		},
 		{
 			name: "1 sender, 2 transmissions",
-			sendersPayload: map[int][]map[int]DataPacket{
+			sendersPayload: map[int][]map[int]baseclient.Communication{
 				4: {dataA, dataC},
 			},
 			receiver: 0,
 		},
 		{
 			name: "multiple transmissions",
-			sendersPayload: map[int][]map[int]DataPacket{
+			sendersPayload: map[int][]map[int]baseclient.Communication{
 				1: {dataA, dataC, dataA, dataC},
 				2: {dataB, dataB, dataC},
 				3: {dataA, dataB, dataC, dataC},
@@ -90,7 +90,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 		},
 		{
 			name: "multiple transmissions v2",
-			sendersPayload: map[int][]map[int]DataPacket{
+			sendersPayload: map[int][]map[int]baseclient.Communication{
 				1: {dataA, dataC, dataA, dataC},
 				2: {dataB, dataB, dataC},
 				3: {dataA, dataB, dataC, dataC},
@@ -101,7 +101,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 		},
 		{
 			name: "1 sender, many transmissions",
-			sendersPayload: map[int][]map[int]DataPacket{
+			sendersPayload: map[int][]map[int]baseclient.Communication{
 				1: {dataA, dataC, dataA, dataC, dataB, dataB, dataC, dataA, dataB, dataC,
 					dataC, dataB, dataC, dataC, dataC, dataA, dataC, dataA, dataC, dataB,
 					dataB, dataC, dataA, dataB, dataC, dataC, dataB, dataC, dataC, dataC},
@@ -110,7 +110,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 		},
 		{
 			name: "Empty transmission",
-			sendersPayload: map[int][]map[int]DataPacket{
+			sendersPayload: map[int][]map[int]baseclient.Communication{
 				1: {dataEmpty},
 			},
 			receiver: 0,
@@ -140,12 +140,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 				for _, data := range dataList {
 					communicateWithIslands(tc.receiver, sender, data)
 
-					dataComm := map[int]baseclient.Communication{}
-					for k, dp := range data {
-						dataComm[k] = dataPacketToCommunication(&dp)
-					}
-
-					expectedResult[senderID] = append(expectedResult[senderID], dataComm)
+					expectedResult[senderID] = append(expectedResult[senderID], data)
 				}
 			}
 

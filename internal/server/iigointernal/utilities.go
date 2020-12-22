@@ -33,30 +33,10 @@ func searchForStringInArray(val string, array []string) (int, error) {
 	return 0, errors.Errorf("Not found")
 }
 
-type DataPacket struct {
-	integerData int
-	textData    string
-	booleanData bool
-}
-
-type Communication struct {
-	recipient int
-	sender    int
-	data      map[int]DataPacket
-}
-
-func broadcastToAllIslands(sender int, data map[int]DataPacket) {
+func broadcastToAllIslands(sender int, data map[int]baseclient.Communication) {
 	islandsAlive := rules.VariableMap["islands_alive"]
 	for _, v := range islandsAlive.Values {
 		communicateWithIslands(int(v), sender, data)
-	}
-}
-
-func dataPacketToCommunication(d *DataPacket) baseclient.Communication {
-	return baseclient.Communication{
-		IntegerData: d.integerData,
-		TextData:    d.textData,
-		BooleanData: d.booleanData,
 	}
 }
 
@@ -64,18 +44,14 @@ func setIIGOClients(clientMap *map[shared.ClientID]baseclient.Client) {
 	iigoClients = *clientMap
 }
 
-func communicateWithIslands(recipient int, sender int, data map[int]DataPacket) {
+func communicateWithIslands(recipient int, sender int, data map[int]baseclient.Communication) {
 
-	communication := map[int]baseclient.Communication{}
-	for k, v := range data {
-		communication[k] = dataPacketToCommunication(&v)
-	}
 	recipientID := shared.TeamIDs[recipient]
 	senderID := shared.TeamIDs[sender]
 	clients := iigoClients
 
 	if recipientClient, ok := clients[recipientID]; ok {
-		recipientClient.ReceiveCommunication(senderID, communication)
+		recipientClient.ReceiveCommunication(senderID, data)
 	}
 
 }

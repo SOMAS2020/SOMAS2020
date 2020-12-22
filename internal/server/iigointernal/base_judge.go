@@ -1,6 +1,7 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -234,38 +235,38 @@ func (j *BaseJudge) appointNextPresident() int {
 	return rand.Intn(5)
 }
 
-func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
+func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]baseclient.Communication {
+	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[BallotID] = DataPacket{
-		integerData: BID,
+	returnMap[BallotID] = baseclient.Communication{
+		IntegerData: BID,
 	}
-	returnMap[SpeakerBallotCheck] = DataPacket{
-		booleanData: result,
+	returnMap[SpeakerBallotCheck] = baseclient.Communication{
+		BooleanData: result,
 	}
-	returnMap[SpeakerID] = DataPacket{
-		integerData: SID,
+	returnMap[SpeakerID] = baseclient.Communication{
+		IntegerData: SID,
 	}
-	returnMap[RoleConducted] = DataPacket{
-		booleanData: conductedRole,
+	returnMap[RoleConducted] = baseclient.Communication{
+		BooleanData: conductedRole,
 	}
 	return returnMap
 }
 
-func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
+func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]baseclient.Communication {
+	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[ResAllocID] = DataPacket{
-		integerData: RID,
+	returnMap[ResAllocID] = baseclient.Communication{
+		IntegerData: RID,
 	}
-	returnMap[PresidentAllocationCheck] = DataPacket{
-		booleanData: result,
+	returnMap[PresidentAllocationCheck] = baseclient.Communication{
+		BooleanData: result,
 	}
-	returnMap[PresidentID] = DataPacket{
-		integerData: PID,
+	returnMap[PresidentID] = baseclient.Communication{
+		IntegerData: PID,
 	}
-	returnMap[RoleConducted] = DataPacket{
-		booleanData: conductedRole,
+	returnMap[RoleConducted] = baseclient.Communication{
+		BooleanData: conductedRole,
 	}
 	return returnMap
 }

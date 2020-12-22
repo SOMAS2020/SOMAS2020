@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -23,7 +23,7 @@ type Client interface {
 	GameStateUpdate(gameState gamestate.ClientGameState)
 
 	Logf(format string, a ...interface{})
-  
+
 	CommonPoolResourceRequest() int
 	ResourceReport() int
 	RuleProposal() string
@@ -34,7 +34,7 @@ type Client interface {
 	GetCommunications() *map[shared.ClientID][]map[int]Communication
 	GetTaxContribution() int
 	RequestAllocation() int
-  
+
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
