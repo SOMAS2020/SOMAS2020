@@ -26,6 +26,9 @@ type Client interface {
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
+
+	//Foraging
+	DecideForage() (shared.ForageDecision, error)
 }
 
 var ourPredictionInfo shared.PredictionInfo

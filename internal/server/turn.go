@@ -102,7 +102,7 @@ func (s *SOMASServer) endOfTurn() error {
 		return errors.Errorf("Failed to run orgs end of turn: %v", err)
 	}
 
-	err = s.runDummyHunt()
+	err = s.runForage()
 	if err != nil {
 		return errors.Errorf("Failed to run hunt at end of turn: %v", err)
 	}
