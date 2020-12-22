@@ -1,25 +1,25 @@
 package voting
 
-type RoleVote struct {
+type Election struct {
 
 }
 
 // ProposeMotion sets the role to be voted on
-func (v *RoleVote) ProposeMotion() {
+func (e *Election) ProposeMotion() {
 
 }
 
 // OpenBallot sets the islands eligible to vote.
-func (v *RoleVote) OpenBallot(clientIDs []shared.ClientID){
+func (e *Election) OpenBallot(clientIDs []shared.ClientID){
 	s.GetVoteForRule(ruleToVote)
 }
 
 // Vote gets votes from eligible islands.
-func (v *RoleVote) Vote() {
+func (e *Election) Vote() {
 
 }
 
 // CloseBallot counts the votes received and returns the result.
-func (v *RoleVote) CloseBallot() {
+func (e *Election) CloseBallot() {
 
 }

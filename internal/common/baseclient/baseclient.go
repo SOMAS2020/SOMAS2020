@@ -39,8 +39,8 @@ type Client interface {
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 
-	GetVotesForRule(ruleID int, numOfIslands int) map[int][]int
-	GetVotesForElect(numOfIslands int) map[int][]int
+	GetVoteForRule(ruleName string) bool
+	GetVoteForElection(numOfIslands int) error
 }
 
 var ourPredictionInfo shared.PredictionInfo
@@ -102,7 +102,7 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 	return true
 }
 
-func (c *BaseClient) GetVoteForRole(numOfIslands int) error {
+func (c *BaseClient) GetVoteForElection(numOfIslands int) error {
 }
 
 type CommunicationContentType = int
