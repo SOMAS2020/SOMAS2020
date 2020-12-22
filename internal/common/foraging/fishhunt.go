@@ -2,8 +2,6 @@ package foraging
 
 import (
 	"math"
-	"math/rand"
-	"time"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -50,12 +48,16 @@ func fishReturn(params FishHuntParams) float64 {
 		Mu:    params.Mu,    // mean of the normal dist
 		Sigma: params.Sigma, // Var of the normal dist
 	}
-	var limit int = 100
-	Value := make([]float64, limit)
-	for i := range Value {
-		Value[i] = D.Rand()
-	}
-	rand.Seed(time.Now().UnixNano())
+
+	// // Comment in for random value every run
+	// var limit int = 100
+	// Value := make([]float64, limit)
+	// for i := range Value {
+	// 	Value[i] = D.Rand()
+	// }
+	// rand.Seed(time.Now().UnixNano())
+	// return Value[rand.Intn(limit)]
+
 	return D.Rand()
 }
 
