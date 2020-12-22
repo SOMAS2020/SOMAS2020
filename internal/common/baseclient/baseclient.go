@@ -117,12 +117,17 @@ func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
 	// Done ;)
 	// Get all alive islands
 	aliveClients := rules.VariableMap["islands_alive"]
-	// Convert to ClientID type and shuffle
-	var aliveClientIDs []shared.ClientID
-	for _, v := range aliveClients.Values {
-		aliveClientIDs = append(aliveClientIDs, shared.ClientID(int(v)))
+	// Convert to ClientID type and place into unordered map
+	aliveClientIDs := map[int]shared.ClientID{}
+	for i, v := range aliveClients.Values {
+		aliveClientIDs[i] = shared.ClientID(int(v))
 	}
-	return aliveClientIDs
+	// Recombine map, in shuffled order
+	var returnList []shared.ClientID
+	for _, v := range aliveClientIDs {
+		returnList = append(returnList, v)
+	}
+	return returnList
 }
 
 type CommunicationContentType = int
