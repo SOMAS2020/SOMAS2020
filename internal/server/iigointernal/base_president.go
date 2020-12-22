@@ -77,7 +77,7 @@ func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
 }
 
 // Set taxation amount for all of the living islands
-// island_resources: map of all the living islands and their remaing resources
+// island_resources: map of all the living islands and their remaining resources
 func (p *basePresident) SetTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
 	p.budget -= 10
 	taxAmountMap := make(map[int]int)
