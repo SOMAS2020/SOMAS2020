@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"math/rand"
 	"time"
 
@@ -111,7 +112,7 @@ func (s *baseSpeaker) announceVotingResult() error {
 		s.budget -= 10
 
 		//Perform announcement
-		broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
+		broadcastToAllIslands(shared.TeamIDs[s.id], generateVotingResultMessage(rule, result))
 		return s.updateRules(s.ruleToVote, s.votingResult)
 	}
 

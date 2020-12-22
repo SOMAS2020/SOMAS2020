@@ -33,10 +33,10 @@ func searchForStringInArray(val string, array []string) (int, error) {
 	return 0, errors.Errorf("Not found")
 }
 
-func broadcastToAllIslands(sender int, data map[int]baseclient.Communication) {
+func broadcastToAllIslands(sender shared.ClientID, data map[int]baseclient.Communication) {
 	islandsAlive := rules.VariableMap["islands_alive"]
 	for _, v := range islandsAlive.Values {
-		communicateWithIslands(int(v), sender, data)
+		communicateWithIslands(shared.TeamIDs[int(v)], sender, data)
 	}
 }
 
@@ -44,10 +44,8 @@ func setIIGOClients(clientMap *map[shared.ClientID]baseclient.Client) {
 	iigoClients = *clientMap
 }
 
-func communicateWithIslands(recipient int, sender int, data map[int]baseclient.Communication) {
+func communicateWithIslands(recipientID shared.ClientID, senderID shared.ClientID, data map[int]baseclient.Communication) {
 
-	recipientID := shared.TeamIDs[recipient]
-	senderID := shared.TeamIDs[sender]
 	clients := iigoClients
 
 	if recipientClient, ok := clients[recipientID]; ok {
@@ -70,15 +68,15 @@ func WithdrawFromCommonPool(value int, gameState *gamestate.GameState) error {
 }
 
 const (
-	BallotID                 = iota
-	PresidentAllocationCheck = iota
-	SpeakerID                = iota
-	RoleConducted            = iota
-	ResAllocID               = iota
-	SpeakerBallotCheck       = iota
-	PresidentID              = iota
-	RuleName                 = iota
-	RuleVoteResult           = iota
-	TaxAmount                = iota
-	AllocationAmount         = iota
+	BallotID = iota
+	PresidentAllocationCheck
+	SpeakerID
+	RoleConducted
+	ResAllocID
+	SpeakerBallotCheck
+	PresidentID
+	RuleName
+	RuleVoteResult
+	TaxAmount
+	AllocationAmount
 )

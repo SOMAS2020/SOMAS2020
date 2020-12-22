@@ -121,7 +121,7 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: taxAmountMap[int(v)]}
 		data := make(map[int]baseclient.Communication)
 		data[TaxAmount] = d
-		communicateWithIslands(int(v), p.id, data)
+		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.id], data)
 	}
 }
 
@@ -155,7 +155,7 @@ func (p *basePresident) replyAllocationRequest(commonPool int) {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: allocationMap[int(v)]}
 		data := make(map[int]baseclient.Communication)
 		data[AllocationAmount] = d
-		communicateWithIslands(int(v), p.id, data)
+		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.id], data)
 	}
 }
 

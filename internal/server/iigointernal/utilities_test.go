@@ -138,7 +138,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 			for sender, dataList := range tc.sendersPayload {
 				senderID := shared.TeamIDs[sender]
 				for _, data := range dataList {
-					communicateWithIslands(tc.receiver, sender, data)
+					communicateWithIslands(receiverID, senderID, data)
 
 					expectedResult[senderID] = append(expectedResult[senderID], data)
 				}

@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -185,7 +186,7 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
-		broadcastToAllIslands(j.id, message)
+		broadcastToAllIslands(shared.TeamIDs[j.id], message)
 	}
 }
 
@@ -216,7 +217,7 @@ func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
-		broadcastToAllIslands(j.id, message)
+		broadcastToAllIslands(shared.TeamIDs[j.id], message)
 	}
 }
 
