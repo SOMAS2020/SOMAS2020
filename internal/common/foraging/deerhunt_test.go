@@ -52,7 +52,7 @@ func TestDeerReturn(t *testing.T) {
 		d := deerReturn(params)
 		avReturn = (avReturn*(float64(i)-1) + d) / float64(i)
 	}
-	expectedReturn := params.P * (1 + 1/params.lam) // theoretical mean based on def of expectation
+	expectedReturn := params.p * (1 + 1/params.lam) // theoretical mean based on def of expectation
 	if math.Abs(1-expectedReturn/avReturn) > 0.05 {
 		t.Errorf("Empirical mean return deviated from theoretical by > 5 percent: got %.3f, want %.3f", avReturn, expectedReturn)
 	}
