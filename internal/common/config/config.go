@@ -50,11 +50,10 @@ type ForagingConfig struct {
 
 // DisasterConfig captures disaster-specific config
 type DisasterConfig struct {
-	XBounds         [2]float64 // [min, max] x bounds of archipelago
-	YBounds         [2]float64 // [min, max] y bounds of arch.
-	GlobalProb      float64    // Bernoulli 'p' param. Chance of a disaster occurring
-	SpatialPDFType  string     // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
-	MagnitudeLambda float64    // Exponential rate param for disaster magnitude
+	XMin, XMax, YMin, YMax float64 // [min, max] x,y bounds of archipelago (bounds for possible disaster)
+	GlobalProb             float64 // Bernoulli 'p' param. Chance of a disaster occurring
+	SpatialPDFType         string  // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
+	MagnitudeLambda        float64 // Exponential rate param for disaster magnitude
 }
 
 // GameConfig returns the configuration of the game.
@@ -70,8 +69,10 @@ func GameConfig() Config {
 		DeerGrowthCoefficient: 0.4,
 	}
 	disasterConf := DisasterConfig{
-		XBounds:         [2]float64{0, 10},
-		YBounds:         [2]float64{0, 10},
+		XMin:            0.0,
+		XMax:            10.0, // chosen quite arbitrarily for now
+		YMin:            0.0,
+		YMax:            10.0,
 		GlobalProb:      0.1,
 		SpatialPDFType:  "uniform",
 		MagnitudeLambda: 1.0,

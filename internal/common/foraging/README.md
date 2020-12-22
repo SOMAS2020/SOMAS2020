@@ -4,7 +4,7 @@
 
 #### Utility for a single deer
 The return for a single deer is modelled as a random variable that is implemented as `deer_return()`. It is effectively the combination of two other RVs:
-- `D`: Bernoulli RV that represents the probaility of catching a deer at all (binary). Usually `p` - i.e. P(`D`=1) = `p` - will be fairly close to 1 (fairly high chance of catching a deer if you invest the resources)
+- `D`: Bernoulli RV that represents the probability of catching a deer at all (binary). Usually `p` - i.e. P(`D`=1) = `p` - will be fairly close to 1 (fairly high chance of catching a deer if you invest the resources)
 - `W`: A continuous RV that adds some variance to the return. This could be interpreted as the weight of the deer that is caught. W is exponentially distributed such that the prevalence of deer of certain size is inversely prop. to their size.
 
 D and H are combined in the following expression: $H = D(1+W)$ (another RV which is the output of `deer_return()`). Notice how `W` is irrelevant if `D`=0 (weight of a deer does not matter if we don't catch it). Also, the mean return can be shown to be $E[U] = E[D(1+W)] = p(1+E[W]) = p(1+\frac{1}{\lambda})$ where $p$ is the Bernoulli parameter of `D` and $\lambda$ is the rate parameter of `W`

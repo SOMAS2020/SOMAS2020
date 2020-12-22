@@ -7,16 +7,16 @@ import (
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
-// Island captures the location of a single island
-type Island struct {
+// IslandLocationInfo captures the location of a single island
+type IslandLocationInfo struct {
 	id   shared.ClientID
-	x, y float64
+	x, y shared.Coordinate
 }
 
 // ArchipelagoGeography captures the collection of island geographies including bounding region of whole archipelago
 type ArchipelagoGeography struct {
-	islands          map[shared.ClientID]Island
-	xBounds, yBounds [2]float64
+	islands                map[shared.ClientID]IslandLocationInfo
+	xMin, xMax, yMin, yMax shared.Coordinate
 }
 
 // disasterParameters encapsulates a disaster's information - when and how it occurs. Disaster occurring is a Bernoulli random var with `p`=GlobalProb
@@ -41,12 +41,9 @@ type Environment struct {
 
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
 func (e *Environment) SampleForDisaster() DisasterReport {
-	xBounds := e.geography.xBounds
-	yBounds := e.geography.yBounds
-
 	// spatial distr info
-	pdfX := distuv.Uniform{Min: xBounds[0], Max: xBounds[1]}
-	pdfY := distuv.Uniform{Min: yBounds[0], Max: yBounds[1]}
+	pdfX := distuv.Uniform{Min: e.geography.xMin, Max: e.geography.xMax}
+	pdfY := distuv.Uniform{Min: e.geography.yMin, Max: e.geography.yMax}
 
 	pdfMag := distuv.Exponential{Rate: e.disasterParams.magnitudeLambda} // Rate = lambda
 	pdfGlobal := distuv.Bernoulli{P: e.disasterParams.globalProb}        // Bernoulli RV where `P` = P(X=1)
@@ -54,15 +51,15 @@ func (e *Environment) SampleForDisaster() DisasterReport {
 	dR := DisasterReport{0, -1, -1} // default: no disaster. Zero magnitude with arb co-ords
 
 	if pdfGlobal.Rand() == 1.0 { // D Day
-		dR = DisasterReport{pdfMag.Rand(), pdfX.Rand(), pdfY.Rand()}
+		dR = DisasterReport{Magnitude: pdfMag.Rand(), X: pdfX.Rand(), Y: pdfY.Rand()}
 	}
 	e.lastDisasterReport = dR // record last report in env state
 	return dR
 }
 
 // DisasterEffects returns the effects of the most recent DisasterReport held in the environment state
-func (e Environment) DisasterEffects() map[shared.ClientID]float64 {
-	out := map[shared.ClientID]float64{}
+func (e Environment) DisasterEffects() map[shared.ClientID]shared.Magnitude {
+	out := map[shared.ClientID]shared.Magnitude{}
 	epiX, epiY := e.lastDisasterReport.X, e.lastDisasterReport.Y // epicentre of the disaster (peak mag)
 	for _, island := range e.geography.islands {
 		out[island.id] = e.lastDisasterReport.Magnitude / (math.Sqrt(math.Pow(island.x-epiX, 2) + math.Pow(island.y-epiY, 2))) // effect on island i is inverse prop. to square of distance to epicentre
