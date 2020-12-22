@@ -38,6 +38,9 @@ type Client interface {
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
+
+	GetVotesForRule(ruleID int, numOfIslands int) map[int][]int
+	GetVotesForElect(numOfIslands int) map[int][]int
 }
 
 var ourPredictionInfo shared.PredictionInfo
@@ -94,6 +97,16 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientGameState = gameState
 }
 
+
+func (c *BaseClient) GetVotesForRule(ruleID int, numOfIslands int) map[int][]int {
+	var votesLayoutRule map[int][]int
+	return votesLayoutRule
+}
+
+func (c *BaseClient) GetVotesForElect(numOfIslands int) map[int][]int {
+	var votesLayoutElect map[int][]int
+	return votesLayoutElect
+
 type CommunicationContentType = int
 
 const (
@@ -118,4 +131,5 @@ func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[int]C
 // GetCommunications is used for testing communications
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[int]Communication {
 	return &c.communications
+
 }
