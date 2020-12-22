@@ -52,7 +52,8 @@ func genResult(aux mat.VecDense, c *mat.VecDense) ([]bool, error) {
 		case 3:
 			res = c.AtVec(i) != 0
 		default:
-			return nil, errors.Errorf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret)
+			return nil, errors.Errorf("At auxiliary vector entry: '%v' aux value outside of 0-3: "+
+				"'%v' was found", i, interpret)
 		}
 		resultVect = append(resultVect, res)
 	}
@@ -81,7 +82,8 @@ func genRealResult(aux mat.VecDense, c *mat.VecDense) ([]bool, float64, error) {
 		case 4:
 			outputVal = c.AtVec(i)
 		default:
-			return nil, 0.0, errors.Errorf("At auxillary vector entry: '%v' aux value outside of 0-3: '%v' was found", i, interpret)
+			return nil, 0.0, errors.Errorf("At auxiliary vector entry: '%v' aux value outside of 0-3: "+
+				"'%v' was found", i, interpret)
 		}
 		resultVect = append(resultVect, res)
 	}
@@ -130,9 +132,8 @@ func BasicBooleanRuleEvaluator(ruleName string) (bool, error) {
 		}
 
 		return checkForFalse(resultVect), nil
-	} else {
-		return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 	}
+	return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 }
 
 // BasicRealValuedRuleEvaluator implements real valued rule evaluation in the same form as the boolean one
@@ -163,7 +164,6 @@ func BasicRealValuedRuleEvaluator(ruleName string) (bool, float64, error) {
 		}
 
 		return checkForFalse(resultVect), outputVal, nil
-	} else {
-		return false, 0, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 	}
+	return false, 0, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 }

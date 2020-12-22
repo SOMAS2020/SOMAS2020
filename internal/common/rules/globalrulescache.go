@@ -40,9 +40,8 @@ func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, p
 		}
 		playRules[rulename] = allRules[rulename]
 		return nil
-	} else {
-		return errors.Errorf("Rule '%v' is not available in rules cache", rulename)
 	}
+	return errors.Errorf("Rule '%v' is not available in rules cache", rulename)
 }
 
 // PullRuleOutOfPlay provides disengagement logic for global rules in play cache
@@ -56,10 +55,8 @@ func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, 
 		if _, ok := playRules[rulename]; ok {
 			delete(playRules, rulename)
 			return nil
-		} else {
-			return errors.Errorf("Rule '%v' is not in play", rulename)
 		}
-	} else {
-		return errors.Errorf("Rule '%v' is not available in rules cache", rulename)
+		return errors.Errorf("Rule '%v' is not in play", rulename)
 	}
+	return errors.Errorf("Rule '%v' is not available in rules cache", rulename)
 }

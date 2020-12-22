@@ -1,8 +1,9 @@
 package rules
 
 import (
-	"gonum.org/v1/gonum/mat"
 	"testing"
+
+	"gonum.org/v1/gonum/mat"
 )
 
 // TestBasicRuleEvaluatorPositive Checks whether rule we expect to evaluate as true actually evaluates as such
