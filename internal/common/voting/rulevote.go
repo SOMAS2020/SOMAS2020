@@ -14,7 +14,7 @@ type RuleVote struct {
 type RuleVoteResult struct {
 	votesInFavour uint
 	votesAgainst  uint
-	result        bool
+	Result        bool
 }
 
 // ProposeMotion is called by Speaker to set the rule to be voted on.
@@ -46,6 +46,6 @@ func (v *RuleVote) CloseBallot() RuleVoteResult {
 			outcome.votesAgainst += 1
 		}
 	}
-	outcome.result = outcome.votesInFavour >= outcome.votesAgainst
+	outcome.Result = outcome.votesInFavour >= outcome.votesAgainst
 	return outcome
 }

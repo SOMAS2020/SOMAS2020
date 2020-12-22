@@ -9,6 +9,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"github.com/pkg/errors"
 )
 
@@ -56,19 +57,37 @@ func (s *baseSpeaker) setRuleToVote(r string) {
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (s *baseSpeaker) setVotingResult() {
-	if s.clientSpeaker != nil {
-		result, err := s.clientSpeaker.RunVote(s.RuleToVote)
-		if err != nil {
-			s.VotingResult, _ = s.RunVote(s.RuleToVote)
-		} else {
-			s.VotingResult = result
-		}
-	} else {
-		s.VotingResult, _ = s.RunVote(s.RuleToVote)
+func (s *baseSpeaker) setVotingResult(iigoClients map[shared.ClientID]baseclient.Client) {
+	//if s.clientSpeaker != nil {
+	//	result, err := s.clientSpeaker.RunVote(s.RuleToVote)
+	//	if err != nil {
+	//		s.VotingResult, _ = s.RunVote(s.RuleToVote)
+	//	} else {
+	//		s.VotingResult = result
+	//	}
+	//} else {
+	//	s.VotingResult, _ = s.RunVote(s.RuleToVote)
+	//}
+
+	//Speaker gets no choice, voting just happens implementation
+	//this is not MVP, but it works
+	//TODO: Separate and clearly define speaker held information and vote held information (see ruleToVote)
+	//TODO: Remove tests
+	ruleVote := voting.RuleVote{}
+	ruleVote.ProposeMotion(s.RuleToVote)
+
+	//TODO: for loop should not be done here
+	var clientIDs []shared.ClientID
+	for id := range getIslandAlive() {
+		clientIDs = append(clientIDs, shared.ClientID(id))
 	}
+	ruleVote.OpenBallot(clientIDs)
+	ruleVote.Vote(iigoClients)
+	s.VotingResult = ruleVote.CloseBallot().Result
+
 }
 
+//Deprecated
 //Creates the voting object, collect ballots & count the votes
 //Functional so it corresponds to the interface, to the client implementation
 //If agent decides not to use voting functions, it is assumed they have not performed them
@@ -122,7 +141,6 @@ func (s *baseSpeaker) announceVotingResult() error {
 	return nil
 }
 
-
 //Example of the client implementation of DecideAnnouncement
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
@@ -171,6 +189,11 @@ func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
 
 }
 
-func (s *baseSpeaker) appointNextJudge() int {
-	return rand.Intn(5)
+func (s *baseSpeaker) appointNextJudge(clientIDs []shared.ClientID) int {
+	s.budget -= 10
+	var election voting.Election
+	election.ProposeElection(baseclient.Judge, voting.Plurality)
+	election.OpenBallot(clientIDs)
+	election.Vote(iigoClients)
+	return election.CloseBallot()
 }

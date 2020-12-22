@@ -110,62 +110,62 @@ func generateRulesTestStores() (map[string]rules.RuleMatrix, map[string]rules.Ru
 
 }
 
-type speakerState struct {
-	ruleToVote   string
-	VotingResult bool
-}
+//type speakerState struct {
+//	ruleToVote   string
+//	VotingResult bool
+//}
 
-func TestVoting(t *testing.T) {
-	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
-	s := baseSpeaker{clientSpeaker: nil}
-	cases := []struct {
-		name           string
-		ruleID         string
-		expectedStates []speakerState
-		want           error
-	}{
-		{
-			name:           "Rule given",
-			ruleID:         "TestingRule1",
-			expectedStates: []speakerState{{"TestingRule1", false}, {"TestingRule1", true}},
-			want:           nil,
-		},
-		{
-			name:           "Another rule given",
-			ruleID:         "TestingRule2",
-			expectedStates: []speakerState{{"TestingRule2", false}, {"TestingRule2", true}},
-			want:           nil,
-		},
-		{
-			name:           "No rule given",
-			ruleID:         "",
-			expectedStates: []speakerState{{"", false}, {"", false}},
-			want:           nil,
-		},
-	}
-	var stateTransfer [][]speakerState
-	var expectedStateTransfer [][]speakerState
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			s.setRuleToVote(tc.ruleID)
-			state1 := speakerState{s.RuleToVote, s.VotingResult}
-			s.setVotingResult()
-			state2 := speakerState{s.RuleToVote, s.VotingResult}
-			got := s.announceVotingResultTest()
-
-			stateTransfer = append(stateTransfer, []speakerState{state1, state2})
-			tc.expectedStates[1].VotingResult = state2.VotingResult //Result is random
-			expectedStateTransfer = append(expectedStateTransfer, tc.expectedStates)
-
-			testutils.CompareTestErrors(tc.want, got, t)
-		})
-	}
-
-	eq := reflect.DeepEqual(stateTransfer, expectedStateTransfer)
-	if !eq {
-		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedStateTransfer, stateTransfer)
-	}
-}
+//func TestVoting(t *testing.T) {
+//	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
+//	s := baseSpeaker{clientSpeaker: nil}
+//	cases := []struct {
+//		name           string
+//		ruleID         string
+//		expectedStates []speakerState
+//		want           error
+//	}{
+//		{
+//			name:           "Rule given",
+//			ruleID:         "TestingRule1",
+//			expectedStates: []speakerState{{"TestingRule1", false}, {"TestingRule1", true}},
+//			want:           nil,
+//		},
+//		{
+//			name:           "Another rule given",
+//			ruleID:         "TestingRule2",
+//			expectedStates: []speakerState{{"TestingRule2", false}, {"TestingRule2", true}},
+//			want:           nil,
+//		},
+//		{
+//			name:           "No rule given",
+//			ruleID:         "",
+//			expectedStates: []speakerState{{"", false}, {"", false}},
+//			want:           nil,
+//		},
+//	}
+//	var stateTransfer [][]speakerState
+//	var expectedStateTransfer [][]speakerState
+//	for _, tc := range cases {
+//		t.Run(tc.name, func(t *testing.T) {
+//			s.setRuleToVote(tc.ruleID)
+//			state1 := speakerState{s.RuleToVote, s.VotingResult}
+//			s.setVotingResult()
+//			state2 := speakerState{s.RuleToVote, s.VotingResult}
+//			got := s.announceVotingResultTest()
+//
+//			stateTransfer = append(stateTransfer, []speakerState{state1, state2})
+//			tc.expectedStates[1].VotingResult = state2.VotingResult //Result is random
+//			expectedStateTransfer = append(expectedStateTransfer, tc.expectedStates)
+//
+//			testutils.CompareTestErrors(tc.want, got, t)
+//		})
+//	}
+//
+//	eq := reflect.DeepEqual(stateTransfer, expectedStateTransfer)
+//	if !eq {
+//		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedStateTransfer, stateTransfer)
+//	}
+//}
 
 func (s *baseSpeaker) announceVotingResultTest() error {
 
