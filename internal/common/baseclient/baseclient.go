@@ -28,7 +28,7 @@ type Client interface {
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 
 	//IITO: COMPULSORY
-	RequestGift() (int, error)
+	RequestGift() int
 	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
 	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
 	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error

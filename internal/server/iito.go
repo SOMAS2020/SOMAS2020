@@ -44,7 +44,6 @@ func (s *SOMASServer) runGiftSession() error {
 	for key, value := range giftHistoryDict {
 		s.logf("Gifts from %s: %v\n", key, value)
 	}
-	defer s.logf("finish runGiftSession")
 	return nil
 }
 
@@ -52,10 +51,7 @@ func (s *SOMASServer) getGiftRequests() (shared.GiftDict, error) {
 	giftRequestDict := shared.GiftDict{}
 	var err error
 	for id, client := range s.clientMap {
-		giftRequestDict[id], err = client.RequestGift()
-		if err != nil {
-			return giftRequestDict, err
-		}
+		giftRequestDict[id] = client.RequestGift()
 	}
 	return giftRequestDict, nil
 }
