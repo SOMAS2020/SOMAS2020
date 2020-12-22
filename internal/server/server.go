@@ -34,21 +34,22 @@ type SOMASServer struct {
 // SOMASServerFactory returns an instance of the main server we use.
 func SOMASServerFactory() Server {
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
+
+	judge, speaker, president := iigointernal.GetFeaturedRoles()
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
 	}
-	judge, speaker, president := iigointernal.GetFeaturedRoles()
 
 	return &SOMASServer{
 		clientMap: clientMap,
 		gameState: gamestate.GameState{
+			IIGOInfo:    gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
 			Season:         1,
 			Turn:           1,
 			ClientInfos:    clientInfos,
 			Environment:    disasters.InitEnvironment(clientIDs),
 			DeerPopulation: foraging.CreateDeerPopulationModel(),
-			IIGOInfo:    gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
 		},
 	}
 }

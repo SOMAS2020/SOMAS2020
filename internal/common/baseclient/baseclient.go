@@ -40,6 +40,17 @@ type Client interface {
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 
+	//Foraging
+	DecideForage() (shared.ForageDecision, error)
+	//IITO: COMPULSORY
+	RequestGift() uint
+	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
+	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
+	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
+
+	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
+	SendGift(receivingClient shared.ClientID, amount int) error
+	ReceiveGift(sendingClient shared.ClientID, amount int) error
 	GetVoteForRule(ruleName string) bool
 	GetVoteForElection(roleToElect Role) []shared.ClientID
 }
