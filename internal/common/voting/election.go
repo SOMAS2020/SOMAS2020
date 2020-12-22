@@ -1,6 +1,11 @@
 package voting
 
 type Election struct {
+	islandsToVote 	[]shared.ClientID
+	votes 			[]bool
+}
+
+type ElectionResult struct {
 
 }
 
@@ -11,12 +16,12 @@ func (e *Election) ProposeMotion() {
 
 // OpenBallot sets the islands eligible to vote.
 func (e *Election) OpenBallot(clientIDs []shared.ClientID){
-	s.GetVoteForElection(ruleToVote)
+	islandsToVote := clientIDs
 }
 
 // Vote gets votes from eligible islands.
 func (e *Election) Vote() {
-
+	s.GetVoteForElection(ruleToVote)
 }
 
 // CloseBallot counts the votes received and returns the result.
