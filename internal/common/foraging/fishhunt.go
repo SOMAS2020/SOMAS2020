@@ -10,8 +10,8 @@ import (
 
 // FishHunt The teams that are involved and the resources they put in.
 type FishHunt struct {
-	Participants map[shared.ClientID]float64
-	Params       fishHuntParams
+	ParticipantContributions map[shared.ClientID]float64
+	Params                   fishHuntParams
 }
 
 // fishHuntParams : Defines the parameters for the normal distibution for the fishing returns
@@ -20,12 +20,10 @@ type fishHuntParams struct {
 	Sigma float64
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-// TotalInput () sum of the total inputs
+// TotalInput provides a sum of the total inputs
 func (f FishHunt) TotalInput() float64 {
-	i := 0.0                           // Sum of the inputs INIT
-	for _, x := range f.Participants { // Check for every particpant ("_" ignore the index)
+	i := 0.0                                       // Sum of the inputs INIT
+	for _, x := range f.ParticipantContributions { // Check for every particpant ("_" ignore the index)
 		i += x // Sum the values within each index
 	}
 	return i //return
@@ -48,24 +46,14 @@ func fishReturn(params fishHuntParams) float64 {
 		Mu:    params.Mu,    // mean of the normal dist
 		Sigma: params.Sigma, // Var of the normal dist
 	}
-
-	// // Comment in for random value every run
-	// var limit int = 100
-	// Value := make([]float64, limit)
-	// for i := range Value {
-	// 	Value[i] = D.Rand()
-	// }
-	// rand.Seed(time.Now().UnixNano())
-	// return Value[rand.Intn(limit)]
-
 	return F.Rand()
 }
 
-// HuntFish computes the fishing
+// HuntFish computes the return from a fishing expedition
 func (f FishHunt) HuntFish() float64 {
-	fConf := config.GameConfig().ForagingConfig
+	fConf := config.GameConfig().ForagingConfig.FishingConfig
 	input := f.TotalInput()
-	decay := fConf.FishIncrementalInputDecay
+	decay := fConf.IncrementalInputDecay
 	maxFish := fConf.MaxFishPerHunt
 	nFishFromInput := fishUtilityTier(input, maxFish, decay) // get max number of fish allowed for given resource input
 	utility := 0.0

@@ -32,11 +32,11 @@ func (d DeerHunt) TotalInput() float64 {
 
 // Hunt returns the utility from a deer hunt
 func (d DeerHunt) Hunt() float64 {
-	fConf := config.GameConfig().ForagingConfig
+	dhConf := config.GameConfig().ForagingConfig.DeerHuntConfig
 
 	input := d.TotalInput()
-	decay := fConf.IncrementalInputDecay
-	maxDeer := fConf.MaxDeerPerHunt
+	decay := dhConf.IncrementalInputDecay
+	maxDeer := dhConf.MaxDeerPerHunt
 	nDeerFromInput := deerUtilityTier(input, maxDeer, decay) // get max number of deer allowed for given resource input
 	utility := 0.0
 	for i := uint(1); i < nDeerFromInput; i++ {
