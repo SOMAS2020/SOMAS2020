@@ -2,10 +2,17 @@
 package gamestate
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+type IIGOBaseRoles struct {
+	BasePresident roles.President
+	BaseSpeaker   roles.Speaker
+	BaseJudge     roles.Judge
+}
 
 // GameState represents the game's state.
 type GameState struct {
@@ -15,11 +22,17 @@ type GameState struct {
 	// Turn represents the current (1-index) Turn of the game.
 	Turn uint
 
+	// CommonPool represents the amount of resources in the common pool.
+	CommonPool int
+
 	// ClientInfos map from the shared.ClientID to ClientInfo.
 	// EXTRA note: Golang maps are made to be random!
 	ClientInfos    map[shared.ClientID]ClientInfo
 	Environment    disasters.Environment
 	DeerPopulation foraging.DeerPopulationModel
+
+	// IIGOInfo contains states of the base versions of all roles
+	IIGOInfo IIGOBaseRoles
 
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
