@@ -32,7 +32,8 @@ type Client interface {
 	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
 	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
 	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
-	//Actions? Need to talk to LH and our team about this one:
+
+	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SendGift(receivingClient shared.ClientID, amount int) error
 	ReceiveGift(sendingClient shared.ClientID, amount int) error
 }

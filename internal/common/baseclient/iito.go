@@ -41,8 +41,6 @@ func (c *BaseClient) UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.Gif
 	return nil
 }
 
-//Actions? Need to talk to LH and our team about this one:
-
 // SendGift is executed at the end of each turn and allows clients to
 // send the gifts promised in the IITO
 // COMPULSORY, you need to implement this method
