@@ -3,6 +3,7 @@ package baseclient
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -40,7 +41,7 @@ type Client interface {
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 
 	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(roleToElect Role) []shared.ClientID 
+	GetVoteForElection(roleToElect Role) []shared.ClientID
 }
 
 var ourPredictionInfo shared.PredictionInfo
@@ -100,9 +101,9 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 type Role = int
 
 const (
-	President	Role = iota
+	President Role = iota
 	Speaker
-	Judge		
+	Judge
 )
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
@@ -113,8 +114,20 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
 func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
-	// TODO implement opinion based voting decision.
-	return nil
+	// Done ;)
+	// Get all alive islands
+	aliveClients := rules.VariableMap["islands_alive"]
+	// Convert to ClientID type and place into unordered map
+	aliveClientIDs := map[int]shared.ClientID{}
+	for i, v := range aliveClients.Values {
+		aliveClientIDs[i] = shared.ClientID(int(v))
+	}
+	// Recombine map, in shuffled order
+	var returnList []shared.ClientID
+	for _, v := range aliveClientIDs {
+		returnList = append(returnList, v)
+	}
+	return returnList
 }
 
 type CommunicationContentType = int
