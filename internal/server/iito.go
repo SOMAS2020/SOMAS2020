@@ -24,10 +24,7 @@ func (s *SOMASServer) runGiftSession() error {
 	s.logf("start runGiftSession")
 	defer s.logf("finish runGiftSession")
 
-	giftRequestDict, err := s.getGiftRequests()
-	if err != nil {
-		return err
-	}
+	giftRequestDict := s.getGiftRequests()
 	giftOffersDict, err := s.getGiftOffers(giftRequestDict)
 	if err != nil {
 		return err
@@ -47,13 +44,12 @@ func (s *SOMASServer) runGiftSession() error {
 	return nil
 }
 
-func (s *SOMASServer) getGiftRequests() (shared.GiftDict, error) {
+func (s *SOMASServer) getGiftRequests() shared.GiftDict {
 	giftRequestDict := shared.GiftDict{}
-	var err error
 	for id, client := range s.clientMap {
 		giftRequestDict[id] = client.RequestGift()
 	}
-	return giftRequestDict, nil
+	return giftRequestDict
 }
 func (s *SOMASServer) getGiftOffers(giftRequestDict shared.GiftDict) (map[shared.ClientID]shared.GiftDict, error) {
 	giftOfferDict := map[shared.ClientID]shared.GiftDict{}
