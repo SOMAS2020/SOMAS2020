@@ -7,6 +7,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
@@ -33,12 +34,19 @@ type SOMASServer struct {
 func SOMASServerFactory() Server {
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
 
+	clientIDs := make([]shared.ClientID, 0, len(clientMap))
+	for k := range clientMap {
+		clientIDs = append(clientIDs, k)
+	}
+
 	return &SOMASServer{
 		clientMap: clientMap,
 		gameState: gamestate.GameState{
-			Season:      1,
-			Turn:        1,
-			ClientInfos: clientInfos,
+			Season:         1,
+			Turn:           1,
+			ClientInfos:    clientInfos,
+			Environment:    disasters.InitEnvironment(clientIDs),
+			DeerPopulation: foraging.CreateDeerPopulationModel(),
 		},
 	}
 }
@@ -73,17 +81,4 @@ func (s *SOMASServer) getEcho(str string) error {
 // logf is the server's default logger.
 func (s *SOMASServer) logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
-}
-
-func initEnvironment() *disasters.Environment {
-	islandNames := []string{}
-	_, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
-	for id := range clientMap {
-		islandNames = append(islandNames, fmt.Sprintf("Island %v", id))
-	}
-	xBounds := [2]float64{0, 10}
-	yBounds := [2]float64{0, 10}
-	dp := disasters.DisasterParameters{GlobalProb: 0.1, SpatialPDF: "uniform", MagnitudeLambda: 1.0}
-	env, _ := disasters.InitEnvironment(islandNames, xBounds, yBounds, dp)
-	return env
 }

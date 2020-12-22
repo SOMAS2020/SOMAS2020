@@ -57,17 +57,17 @@ func (s *SOMASServer) startOfTurnUpdate() {
 	defer s.logf("finish startOfTurnUpdate")
 
 	// send update of entire gameState to alive clients
-	N := len(s.gameState.ClientInfos)
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	N := len(nonDeadClients)
 	var wg sync.WaitGroup
 	wg.Add(N)
-	for id, ci := range s.gameState.ClientInfos {
+
+	for _, id := range nonDeadClients {
 		go func(id shared.ClientID, ci gamestate.ClientInfo) {
 			defer wg.Done()
-			if ci.LifeStatus != shared.Dead {
-				c := s.clientMap[id]
-				c.StartOfTurnUpdate(s.gameState.GetClientGameStateCopy(id))
-			}
-		}(id, ci)
+			c := s.clientMap[id]
+			c.StartOfTurnUpdate(s.gameState.GetClientGameStateCopy(id))
+		}(id, s.gameState.ClientInfos[id])
 	}
 	wg.Wait()
 }
@@ -78,17 +78,16 @@ func (s *SOMASServer) gameStateUpdate() {
 	s.logf("start gameStateUpdate")
 	defer s.logf("finish gameStateUpdate")
 
-	N := len(s.gameState.ClientInfos)
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	N := len(nonDeadClients)
 	var wg sync.WaitGroup
 	wg.Add(N)
-	for id, ci := range s.gameState.ClientInfos {
+	for _, id := range nonDeadClients {
 		go func(id shared.ClientID, ci gamestate.ClientInfo) {
 			defer wg.Done()
-			if ci.LifeStatus != shared.Dead {
-				c := s.clientMap[id]
-				c.GameStateUpdate(s.gameState.GetClientGameStateCopy(id))
-			}
-		}(id, ci)
+			c := s.clientMap[id]
+			c.GameStateUpdate(s.gameState.GetClientGameStateCopy(id))
+		}(id, s.gameState.ClientInfos[id])
 	}
 	wg.Wait()
 }
@@ -103,12 +102,19 @@ func (s *SOMASServer) endOfTurn() error {
 		return errors.Errorf("Failed to run orgs end of turn: %v", err)
 	}
 
+	err = s.runDummyHunt()
+	if err != nil {
+		return errors.Errorf("Failed to run hunt at end of turn: %v", err)
+	}
+
 	// probe for disaster
-	disasterHappened, err := s.probeDisaster()
+	updatedEnv, err := s.probeDisaster()
 	if err != nil {
 		return errors.Errorf("Failed to probe disaster: %v", err)
 	}
+	s.gameState.Environment = updatedEnv
 	// increment turn & season if needed
+	disasterHappened := updatedEnv.LastDisasterReport.Magnitude > 0
 	s.incrementTurnAndSeason(disasterHappened)
 
 	// deduct cost of living
@@ -158,30 +164,29 @@ func (s *SOMASServer) deductCostOfLiving(costOfLiving int) {
 	s.logf("start deductCostOfLiving")
 	defer s.logf("finish deductCostOfLiving")
 
-	N := len(s.gameState.ClientInfos)
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	N := len(nonDeadClients)
 	resChan := make(chan clientInfoUpdateResult, N)
 	wg := &sync.WaitGroup{}
 	wg.Add(N)
 
-	for id, ci := range s.gameState.ClientInfos {
+	for _, id := range nonDeadClients {
 		go func(id shared.ClientID, ci gamestate.ClientInfo) {
 			defer wg.Done()
-			if ci.LifeStatus != shared.Dead {
-				ci.Resources -= costOfLiving
-			}
+			ci.Resources -= costOfLiving
 			resChan <- clientInfoUpdateResult{
-				Id:  id,
+				ID:  id,
 				Ci:  ci,
 				Err: nil,
 			}
-		}(id, ci)
+		}(id, s.gameState.ClientInfos[id])
 	}
 
 	wg.Wait()
 	close(resChan)
 
 	for res := range resChan {
-		id, ci := res.Id, res.Ci
+		id, ci := res.ID, res.Ci
 		// fine to ignore error, always nil
 		s.gameState.ClientInfos[id] = ci
 	}
@@ -194,35 +199,30 @@ func (s *SOMASServer) updateIslandLivingStatus() error {
 	s.logf("start updateIslandLivingStatus")
 	defer s.logf("finish updateIslandLivingStatus")
 
-	N := len(s.gameState.ClientInfos)
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	N := len(nonDeadClients)
 	resChan := make(chan clientInfoUpdateResult, N)
 	wg := &sync.WaitGroup{}
 	wg.Add(N)
 
-	for id, ci := range s.gameState.ClientInfos {
+	for _, id := range nonDeadClients {
 		go func(id shared.ClientID, ci gamestate.ClientInfo) {
 			defer wg.Done()
-			var ciNew gamestate.ClientInfo
-			var err error
-			if ci.LifeStatus != shared.Dead {
-				ciNew, err = updateIslandLivingStatusForClient(ci,
-					config.GameConfig().MinimumResourceThreshold, config.GameConfig().MaxCriticalConsecutiveTurns)
-			} else {
-				ciNew = ci
-			}
+			ciNew, err := updateIslandLivingStatusForClient(ci,
+				config.GameConfig().MinimumResourceThreshold, config.GameConfig().MaxCriticalConsecutiveTurns)
 			resChan <- clientInfoUpdateResult{
-				Id:  id,
+				ID:  id,
 				Ci:  ciNew,
 				Err: err,
 			}
-		}(id, ci)
+		}(id, s.gameState.ClientInfos[id])
 	}
 
 	wg.Wait()
 	close(resChan)
 
 	for res := range resChan {
-		id, ci, err := res.Id, res.Ci, res.Err
+		id, ci, err := res.ID, res.Ci, res.Err
 		if err != nil {
 			return errors.Errorf("Failed to update island living status for '%v': %v", id, err)
 		}

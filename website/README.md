@@ -1,5 +1,7 @@
 # SOMAS2020 Visualisation Website
 
+https://somas2020.github.io/SOMAS2020
+
 ## Getting started 
 
 ### Requirements
@@ -46,4 +48,9 @@ This should be run automatically by CI. -->
 - The library used for UI/UX is [React Bootstrap](https://react-bootstrap.github.io/).
 - The graphing library used is [d3.js](https://d3js.org/). 
     - You do not strictly need to use d3: You can use any language to produce visualisations, then include them
-    in the website.
+    on the website. Please talk to core infra--you should make available clear instructions on how produce your visualisations so that they can be automated.
+
+## Deployment
+Deployment is done automatically via GitHub Actions whenever a push occurs in the `main` branch (which includes a PR merged into `main`).
+
+You can enable GitHub pages in your own fork to have your own fork's website. Just go to "Settings" on your fork, set the GitHub Pages Source to the `gh-pages` branch and save it. The next merge into your `main` branch should deploy a new version of the page.

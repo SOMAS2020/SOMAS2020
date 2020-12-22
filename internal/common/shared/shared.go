@@ -26,6 +26,13 @@ const (
 	Team6
 )
 
+// SortClientByID implements sort.Interface for []ClientID
+type SortClientByID []ClientID
+
+func (a SortClientByID) Len() int           { return len(a) }
+func (a SortClientByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a SortClientByID) Less(i, j int) bool { return a[i] < a[j] }
+
 // TeamIDs contain sequential IDs of all teams
 var TeamIDs = [...]ClientID{Team1, Team2, Team3, Team4, Team5, Team6}
 

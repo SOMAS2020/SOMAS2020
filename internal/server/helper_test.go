@@ -2,6 +2,7 @@ package server
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -181,5 +182,30 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 			}
 			testutils.CompareTestErrors(tc.wantErr, err, t)
 		})
+	}
+}
+
+func TestGetNonDeadClientIDs(t *testing.T) {
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Critical,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Dead,
+		},
+	}
+	want := []shared.ClientID{
+		shared.Team1, shared.Team2,
+	}
+	got := getNonDeadClientIDs(clientInfos)
+
+	sort.Sort(shared.SortClientByID(want))
+	sort.Sort(shared.SortClientByID(got))
+
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("want '%v' got '%v'", want, got)
 	}
 }
