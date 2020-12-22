@@ -40,7 +40,7 @@ type Client interface {
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 
 	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(numOfIslands int) error
+	GetVoteForElection(roleToElect Role) []shared.ClientID 
 }
 
 var ourPredictionInfo shared.PredictionInfo
@@ -97,6 +97,14 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientGameState = gameState
 }
 
+type Role = int
+
+const (
+	President	Role = iota
+	Speaker
+	Judge		
+)
+
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 	// TODO implement decision on voting that considers the rule
@@ -104,7 +112,8 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 }
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
-func (c *BaseClient) GetVoteForElection(numOfIslands int) error {
+func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
+	// TODO implement opinion based voting decision.
 	return nil
 }
 
