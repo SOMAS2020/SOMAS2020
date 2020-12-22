@@ -21,14 +21,11 @@ type Client interface {
 	// GameStateUpdate updates game state mid-turn.
 	GameStateUpdate(gameState gamestate.ClientGameState)
 
+	GetVotesForRule(ruleID int, numOfIslands int) map[int][]int
+	GetVotesForElect(numOfIslands int) map[int][]int
+
 	Logf(format string, a ...interface{})
-
-	//IIFO: OPTIONAL
-	MakePrediction() (shared.PredictionInfo, error)
-	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 }
-
-var ourPredictionInfo shared.PredictionInfo
 
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
@@ -79,4 +76,14 @@ func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.ClientGameState) {
 func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.Logf("Received game state update: %#v", gameState)
 	c.clientGameState = gameState
+}
+
+func (c *BaseClient) GetVotesForRule(ruleID int, numOfIslands int) map[int][]int {
+	var votesLayoutRule map[int][]int
+	return votesLayoutRule
+}
+
+func (c *BaseClient) GetVotesForElect(numOfIslands int) map[int][]int {
+	var votesLayoutElect map[int][]int
+	return votesLayoutElect
 }
