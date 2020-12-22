@@ -11,7 +11,7 @@ func (e *Election) ProposeMotion() {
 
 // OpenBallot sets the islands eligible to vote.
 func (e *Election) OpenBallot(clientIDs []shared.ClientID){
-	s.GetVoteForRule(ruleToVote)
+	s.GetVoteForElection(ruleToVote)
 }
 
 // Vote gets votes from eligible islands.

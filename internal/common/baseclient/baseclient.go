@@ -103,6 +103,7 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 }
 
 func (c *BaseClient) GetVoteForElection(numOfIslands int) error {
+	return nil
 }
 
 type CommunicationContentType = int
