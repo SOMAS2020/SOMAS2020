@@ -63,7 +63,8 @@ func (e Environment) DisasterEffects() map[shared.ClientID]shared.Magnitude {
 	out := map[shared.ClientID]shared.Magnitude{}
 	epiX, epiY := e.LastDisasterReport.X, e.LastDisasterReport.Y // epicentre of the disaster (peak mag)
 	for _, island := range e.Geography.islands {
-		out[island.id] = e.LastDisasterReport.Magnitude / math.Hypot(island.x-epiX, island.y-epiY) // effect on island i is inverse prop. to square of distance to epicentre
+		effect := e.LastDisasterReport.Magnitude / math.Hypot(island.x-epiX, island.y-epiY) // effect on island i is inverse prop. to square of distance to epicentre
+		out[island.id] = math.Min(effect, e.LastDisasterReport.Magnitude)                   // to prevent divide by zero -> inf
 	}
 	return out
 }

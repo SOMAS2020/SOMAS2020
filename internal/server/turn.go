@@ -117,6 +117,8 @@ func (s *SOMASServer) endOfTurn() error {
 	disasterHappened := updatedEnv.LastDisasterReport.Magnitude > 0
 	s.incrementTurnAndSeason(disasterHappened)
 
+	s.updateDeerPopulation([]int{2})
+
 	// deduct cost of living
 	s.deductCostOfLiving(config.GameConfig().CostOfLiving)
 
