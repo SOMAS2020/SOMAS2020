@@ -195,5 +195,5 @@ func (s *baseSpeaker) appointNextJudge(clientIDs []shared.ClientID) int {
 	election.ProposeElection(baseclient.Judge, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
-	return election.CloseBallot()
+	return int(election.CloseBallot())
 }

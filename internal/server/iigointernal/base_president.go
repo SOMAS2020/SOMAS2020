@@ -1,6 +1,7 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -49,7 +50,7 @@ func (p *basePresident) PickRuleToVote(rulesProposals []string) (string, error) 
 	p.budget -= 10
 	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
-		return "Agrim", nil
+		return "", nil
 	}
 	return rulesProposals[rand.Intn(len(rulesProposals))], nil
 }
@@ -76,7 +77,7 @@ func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
 }
 
 // Set taxation amount for all of the living islands
-// island_resources: map of all the living islands and their remaing resources
+// island_resources: map of all the living islands and their remaining resources
 func (p *basePresident) SetTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
 	p.budget -= 10
 	taxAmountMap := make(map[int]int)
@@ -159,9 +160,13 @@ func (p *basePresident) replyAllocationRequest(commonPool int) {
 	}
 }
 
-func (p *basePresident) appointNextSpeaker() int {
+func (p *basePresident) appointNextSpeaker(clientIDs []shared.ClientID) int {
 	p.budget -= 10
-	return rand.Intn(5)
+	var election voting.Election
+	election.ProposeElection(baseclient.Speaker, voting.Plurality)
+	election.OpenBallot(clientIDs)
+	election.Vote(iigoClients)
+	return int(election.CloseBallot())
 }
 
 func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) error {

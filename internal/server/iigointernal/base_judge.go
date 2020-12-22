@@ -2,12 +2,11 @@ package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"math/rand"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"github.com/pkg/errors"
 )
 
@@ -231,9 +230,13 @@ func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool,
 	return j.ResAllocID, result, j.presidentID, conductedRole, nil
 }
 
-func (j *BaseJudge) appointNextPresident() int {
+func (j *BaseJudge) appointNextPresident(clientIDs []shared.ClientID) int {
 	j.budget -= 10
-	return rand.Intn(5)
+	var election voting.Election
+	election.ProposeElection(baseclient.President, voting.Plurality)
+	election.OpenBallot(clientIDs)
+	election.Vote(iigoClients)
+	return int(election.CloseBallot())
 }
 
 func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]baseclient.Communication {
