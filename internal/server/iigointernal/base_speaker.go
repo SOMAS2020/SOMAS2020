@@ -1,6 +1,8 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"math/rand"
 	"time"
 
@@ -70,12 +72,12 @@ func (s *baseSpeaker) setVotingResult() {
 //Creates the voting object, collect ballots & count the votes
 //Functional so it corresponds to the interface, to the client implementation
 //If agent decides not to use voting functions, it is assumed they have not performed them
-func (s *baseSpeaker) runVote(ruleID string) (bool,error){
+func (s *baseSpeaker) runVote(ruleID string) (bool, error) {
 	s.budget -= 10
 	if ruleID == "" {
 		// No rules were proposed by the islands
 		return false, nil
-	}else {
+	} else {
 		////TODO: updateTurnHistory of rule-given-to-vote vs ruleToVote
 		//TODO: pass in islandID for log
 		//ballotsFor, ballotsAgainst, result = voting.VoteRule(ruleID, getIslandAlive())
@@ -88,7 +90,7 @@ func (s *baseSpeaker) runVote(ruleID string) (bool,error){
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
-func (s *baseSpeaker) announceVotingResult() error{
+func (s *baseSpeaker) announceVotingResult() error {
 
 	var rule string
 	var result bool
@@ -105,7 +107,7 @@ func (s *baseSpeaker) announceVotingResult() error{
 		rule, result, _ = s.decideAnnouncement(s.ruleToVote, s.votingResult)
 	}
 
-	if rule != ""{
+	if rule != "" {
 		//Deduct action cost
 		s.budget -= 10
 
@@ -114,7 +116,7 @@ func (s *baseSpeaker) announceVotingResult() error{
 		s.votingResult = false
 
 		//Perform announcement
-		broadcastToAllIslands(s.id, generateVotingResultMessage(rule, result))
+		broadcastToAllIslands(shared.TeamIDs[s.id], generateVotingResultMessage(rule, result))
 		return s.updateRules(rule, result)
 	}
 	return nil
@@ -123,18 +125,20 @@ func (s *baseSpeaker) announceVotingResult() error{
 //Example of the client implementation of DecideAnnouncement
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
-func (s *baseSpeaker) decideAnnouncement(ruleId string, result bool) (string, bool, error){
+func (s *baseSpeaker) decideAnnouncement(ruleId string, result bool) (string, bool, error) {
 	return ruleId, result, nil
 }
 
-func generateVotingResultMessage(ruleID string, result bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
+func generateVotingResultMessage(ruleID string, result bool) map[int]baseclient.Communication {
+	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[RuleName] = DataPacket{
-		textData: ruleID,
+	returnMap[RuleName] = baseclient.Communication{
+		T:        baseclient.CommunicationString,
+		TextData: ruleID,
 	}
-	returnMap[RuleVoteResult] = DataPacket{
-		booleanData: result,
+	returnMap[RuleVoteResult] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: result,
 	}
 
 	return returnMap

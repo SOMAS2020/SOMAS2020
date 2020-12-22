@@ -1,12 +1,13 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 //base President Object
@@ -117,10 +118,10 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 	p.budget -= 10
 	taxAmountMap := p.getTaxMap(islandsResources)
 	for _, v := range getIslandAlive() {
-		d := DataPacket{integerData: taxAmountMap[int(v)]}
-		data := make(map[int]DataPacket)
+		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: taxAmountMap[int(v)]}
+		data := make(map[int]baseclient.Communication)
 		data[TaxAmount] = d
-		communicateWithIslands(int(v), p.id, data)
+		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.id], data)
 	}
 }
 
@@ -151,10 +152,10 @@ func (p *basePresident) replyAllocationRequest(commonPool int) {
 	p.budget -= 10
 	allocationMap := p.getAllocationRequests(commonPool)
 	for _, v := range getIslandAlive() {
-		d := DataPacket{integerData: allocationMap[int(v)]}
-		data := make(map[int]DataPacket)
+		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: allocationMap[int(v)]}
+		data := make(map[int]baseclient.Communication)
 		data[AllocationAmount] = d
-		communicateWithIslands(int(v), p.id, data)
+		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.id], data)
 	}
 }
 

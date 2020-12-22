@@ -1,6 +1,8 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -184,7 +186,7 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
-		broadcastToAllIslands(j.id, message)
+		broadcastToAllIslands(shared.TeamIDs[j.id], message)
 	}
 }
 
@@ -215,7 +217,7 @@ func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
-		broadcastToAllIslands(j.id, message)
+		broadcastToAllIslands(shared.TeamIDs[j.id], message)
 	}
 }
 
@@ -234,38 +236,46 @@ func (j *BaseJudge) appointNextPresident() int {
 	return rand.Intn(5)
 }
 
-func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
+func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]baseclient.Communication {
+	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[BallotID] = DataPacket{
-		integerData: BID,
+	returnMap[BallotID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
+		IntegerData: BID,
 	}
-	returnMap[SpeakerBallotCheck] = DataPacket{
-		booleanData: result,
+	returnMap[SpeakerBallotCheck] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: result,
 	}
-	returnMap[SpeakerID] = DataPacket{
-		integerData: SID,
+	returnMap[SpeakerID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
+		IntegerData: SID,
 	}
-	returnMap[RoleConducted] = DataPacket{
-		booleanData: conductedRole,
+	returnMap[RoleConducted] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: conductedRole,
 	}
 	return returnMap
 }
 
-func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
+func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]baseclient.Communication {
+	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[ResAllocID] = DataPacket{
-		integerData: RID,
+	returnMap[ResAllocID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
+		IntegerData: RID,
 	}
-	returnMap[PresidentAllocationCheck] = DataPacket{
-		booleanData: result,
+	returnMap[PresidentAllocationCheck] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: result,
 	}
-	returnMap[PresidentID] = DataPacket{
-		integerData: PID,
+	returnMap[PresidentID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
+		IntegerData: PID,
 	}
-	returnMap[RoleConducted] = DataPacket{
-		booleanData: conductedRole,
+	returnMap[RoleConducted] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: conductedRole,
 	}
 	return returnMap
 }
