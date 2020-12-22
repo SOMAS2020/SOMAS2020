@@ -1,7 +1,7 @@
 package shared
 
 // GiftDict is a dictonary of gift
-type GiftDict = map[ClientID]int
+type GiftDict = map[ClientID]uint
 
 // AcceptReason is a just a logical wrapper on the int, a normal int declaration could easily have been used.
 type AcceptReason int
@@ -23,7 +23,7 @@ type GiftInfoDict map[ClientID]GiftInfo
 type GiftInfo struct {
 	ReceivingTeam  ClientID
 	OfferingTeam   ClientID
-	OfferAmount    int
-	AcceptedAmount int
+	OfferAmount    uint
+	AcceptedAmount uint
 	Reason         AcceptReason
 }

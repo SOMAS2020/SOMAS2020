@@ -5,7 +5,7 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 // RequestGift allows clients to signalize that they want a gift
 // This information is fed to OfferGifts of all other clients.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) RequestGift() int {
+func (c *BaseClient) RequestGift() uint {
 	if c.clientGameState.ClientInfo.LifeStatus == shared.Critical {
 		return 100
 	}
