@@ -133,9 +133,11 @@ func generateVotingResultMessage(ruleID string, result bool) map[int]baseclient.
 	returnMap := map[int]baseclient.Communication{}
 
 	returnMap[RuleName] = baseclient.Communication{
+		T:        baseclient.CommunicationString,
 		TextData: ruleID,
 	}
 	returnMap[RuleVoteResult] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
 		BooleanData: result,
 	}
 

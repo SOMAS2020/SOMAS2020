@@ -94,8 +94,17 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientGameState = gameState
 }
 
+type CommunicationContentType = int
+
+const (
+	CommunicationInt CommunicationContentType = iota
+	CommunicationString
+	CommunicationBool
+)
+
 // Communication is a general datastructure used for communications
 type Communication struct {
+	T           CommunicationContentType
 	IntegerData int
 	TextData    string
 	BooleanData bool

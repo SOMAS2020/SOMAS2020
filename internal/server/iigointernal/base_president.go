@@ -118,7 +118,7 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 	p.budget -= 10
 	taxAmountMap := p.getTaxMap(islandsResources)
 	for _, v := range getIslandAlive() {
-		d := baseclient.Communication{IntegerData: taxAmountMap[int(v)]}
+		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: taxAmountMap[int(v)]}
 		data := make(map[int]baseclient.Communication)
 		data[TaxAmount] = d
 		communicateWithIslands(int(v), p.id, data)
@@ -152,7 +152,7 @@ func (p *basePresident) replyAllocationRequest(commonPool int) {
 	p.budget -= 10
 	allocationMap := p.getAllocationRequests(commonPool)
 	for _, v := range getIslandAlive() {
-		d := baseclient.Communication{IntegerData: allocationMap[int(v)]}
+		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: allocationMap[int(v)]}
 		data := make(map[int]baseclient.Communication)
 		data[AllocationAmount] = d
 		communicateWithIslands(int(v), p.id, data)

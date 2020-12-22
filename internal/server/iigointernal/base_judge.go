@@ -239,15 +239,19 @@ func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedR
 	returnMap := map[int]baseclient.Communication{}
 
 	returnMap[BallotID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
 		IntegerData: BID,
 	}
 	returnMap[SpeakerBallotCheck] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
 		BooleanData: result,
 	}
 	returnMap[SpeakerID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
 		IntegerData: SID,
 	}
 	returnMap[RoleConducted] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
 		BooleanData: conductedRole,
 	}
 	return returnMap
@@ -257,15 +261,19 @@ func generatePresidentPerformanceMessage(RID int, result bool, PID int, conducte
 	returnMap := map[int]baseclient.Communication{}
 
 	returnMap[ResAllocID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
 		IntegerData: RID,
 	}
 	returnMap[PresidentAllocationCheck] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
 		BooleanData: result,
 	}
 	returnMap[PresidentID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
 		IntegerData: PID,
 	}
 	returnMap[RoleConducted] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
 		BooleanData: conductedRole,
 	}
 	return returnMap
