@@ -168,7 +168,7 @@ func (s *SOMASServer) deductCostOfLiving(costOfLiving int) {
 			defer wg.Done()
 			ci.Resources -= costOfLiving
 			resChan <- clientInfoUpdateResult{
-				Id:  id,
+				ID:  id,
 				Ci:  ci,
 				Err: nil,
 			}
@@ -179,7 +179,7 @@ func (s *SOMASServer) deductCostOfLiving(costOfLiving int) {
 	close(resChan)
 
 	for res := range resChan {
-		id, ci := res.Id, res.Ci
+		id, ci := res.ID, res.Ci
 		// fine to ignore error, always nil
 		s.gameState.ClientInfos[id] = ci
 	}
@@ -204,7 +204,7 @@ func (s *SOMASServer) updateIslandLivingStatus() error {
 			ciNew, err := updateIslandLivingStatusForClient(ci,
 				config.GameConfig().MinimumResourceThreshold, config.GameConfig().MaxCriticalConsecutiveTurns)
 			resChan <- clientInfoUpdateResult{
-				Id:  id,
+				ID:  id,
 				Ci:  ciNew,
 				Err: err,
 			}
@@ -215,7 +215,7 @@ func (s *SOMASServer) updateIslandLivingStatus() error {
 	close(resChan)
 
 	for res := range resChan {
-		id, ci, err := res.Id, res.Ci, res.Err
+		id, ci, err := res.ID, res.Ci, res.Err
 		if err != nil {
 			return errors.Errorf("Failed to update island living status for '%v': %v", id, err)
 		}
