@@ -15,3 +15,7 @@ func init() {
 type client struct {
 	baseclient.Client
 }
+
+func test() {
+	c.Logf("I am here")
+}
