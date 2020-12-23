@@ -28,8 +28,7 @@ func (j *BaseJudge) init() {
 	j.ResAllocID = 0
 }
 
-// Withdraw president salary from the common pool
-// Call common withdraw function with president as parameter
+// withdrawPresidentSalary withdraws the president's salary from the common pool.
 func (j *BaseJudge) withdrawPresidentSalary(gameState *gamestate.GameState) error {
 	var presidentSalary = int(rules.VariableMap["presidentSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(presidentSalary, gameState)
@@ -39,6 +38,7 @@ func (j *BaseJudge) withdrawPresidentSalary(gameState *gamestate.GameState) erro
 	return withdrawError
 }
 
+// sendPresidentSalary sends the president's salary to the president.
 func (j *BaseJudge) sendPresidentSalary() {
 	if j.clientJudge != nil {
 		amount, err := j.clientJudge.PayPresident()
@@ -51,18 +51,20 @@ func (j *BaseJudge) sendPresidentSalary() {
 	featurePresident.budget = amount
 }
 
-// Pay the president
+// PayPresident pays the president salary.
 func (j *BaseJudge) PayPresident() (int, error) {
 	hold := j.presidentSalary
 	j.presidentSalary = 0
 	return hold, nil
 }
 
+// setSpeakerAndPresidentIDs set the speaker and president IDs.
 func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId int, presidentId int) {
 	j.speakerID = speakerId
 	j.presidentID = presidentId
 }
 
+// inspectHistoryInternal is the base implementation of InspectHistory.
 func (j *BaseJudge) inspectHistoryInternal() {
 	outputMap := map[int]roles.EvaluationReturn{}
 	for _, v := range TurnHistory {
@@ -96,6 +98,8 @@ func (j *BaseJudge) inspectHistoryInternal() {
 	j.EvaluationResults = outputMap
 }
 
+// InspectHistory checks all actions that happened in the last turn and audits them.
+// This can be overridden by clients.
 func (j *BaseJudge) InspectHistory() (map[int]roles.EvaluationReturn, error) {
 	j.budget -= 10
 	if j.clientJudge != nil {
@@ -111,6 +115,7 @@ func (j *BaseJudge) InspectHistory() (map[int]roles.EvaluationReturn, error) {
 	return j.EvaluationResults, nil
 }
 
+// inspectBallot checks each ballot action adheres to the rules
 func (j *BaseJudge) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with RuleToVote in previous ballot
@@ -125,6 +130,7 @@ func (j *BaseJudge) inspectBallot() (bool, error) {
 	}
 }
 
+// inspectAllocation checks each resource allocation action adheres to the rules
 func (j *BaseJudge) inspectAllocation() (bool, error) {
 	// 1. Evaluate difference between commonPoolNew and commonPoolOld
 	//    to check resource allocation changes are in line with ResourceRequests
@@ -141,6 +147,7 @@ func (j *BaseJudge) inspectAllocation() (bool, error) {
 	}
 }
 
+// searchForRule seaches for a given rule in the RuleMatrix
 func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int, error) {
 	for i, v := range listOfRuleMatrices {
 		if v.RuleName == ruleName {
@@ -150,6 +157,7 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 	return 0, errors.Errorf("The rule name '%v' was not found", ruleName)
 }
 
+// declareSpeakerPerformanceInternal is the base implementation of DeclareSpeakerPerformance
 func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
 	j.BallotID++
 	result, err := j.inspectBallot()
@@ -159,6 +167,7 @@ func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, e
 	return j.BallotID, result, j.speakerID, conductedRole, nil
 }
 
+// DeclareSpeakerPerformance checks how well the speaker did their job
 func (j *BaseJudge) DeclareSpeakerPerformance() (int, bool, int, bool, error) {
 
 	j.budget -= 10
@@ -179,6 +188,7 @@ func (j *BaseJudge) DeclareSpeakerPerformance() (int, bool, int, bool, error) {
 	return BID, result, SID, checkRole, err
 }
 
+// declareSpeakerPerformanceWrapped wraps the result of DeclareSpeakerPerformance for orchestration
 func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
 	BID, result, SID, checkRole, err := j.DeclareSpeakerPerformance()
@@ -189,8 +199,8 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 	}
 }
 
+// DeclarePresidentPerformance checks how well the president did their job
 func (j *BaseJudge) DeclarePresidentPerformance() (int, bool, int, bool, error) {
-
 	j.budget -= 10
 	var RID int
 	var result bool
@@ -210,6 +220,7 @@ func (j *BaseJudge) DeclarePresidentPerformance() (int, bool, int, bool, error) 
 	return RID, result, PID, checkRole, err
 }
 
+// declarePresidentPerformanceWrapped wraps the result of DeclarePresidentPerformance for orchestration
 func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
 	RID, result, PID, checkRole, err := j.DeclarePresidentPerformance()
@@ -220,6 +231,7 @@ func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 	}
 }
 
+// declarePresidentPerformanceInternal is the base implementation for DeclarePresidentPerformance
 func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool, error) {
 
 	j.ResAllocID++
@@ -230,6 +242,7 @@ func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool,
 	return j.ResAllocID, result, j.presidentID, conductedRole, nil
 }
 
+// appointNextPresident returns the island ID of the island appointed to be the president in the next turn
 func (j *BaseJudge) appointNextPresident(clientIDs []shared.ClientID) int {
 	j.budget -= 10
 	var election voting.Election
@@ -239,6 +252,8 @@ func (j *BaseJudge) appointNextPresident(clientIDs []shared.ClientID) int {
 	return int(election.CloseBallot())
 }
 
+// generateSpeakerPerformanceMessage generates the appropriate communication required regarding
+// speaker performance to be sent to clients
 func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]baseclient.Communication {
 	returnMap := map[int]baseclient.Communication{}
 
@@ -261,6 +276,8 @@ func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedR
 	return returnMap
 }
 
+// generatePresidentPerformanceMessage generated the appropriate communication required regarding
+// president performance to be sent to clients
 func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]baseclient.Communication {
 	returnMap := map[int]baseclient.Communication{}
 
