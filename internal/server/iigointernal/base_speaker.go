@@ -22,10 +22,16 @@ type baseSpeaker struct {
 	clientSpeaker roles.Speaker
 }
 
+func (s *baseSpeaker) returnJudgeSalary() int {
+	x := s.judgeSalary
+	s.judgeSalary = 0
+	return x
+}
+
 func (s *baseSpeaker) withdrawJudgeSalary(gameState *gamestate.GameState) error {
 	var judgeSalary = int(rules.VariableMap["judgeSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(judgeSalary, gameState)
-	if withdrawError != nil {
+	if withdrawError == nil {
 		featureSpeaker.judgeSalary = judgeSalary
 	}
 	return withdrawError

@@ -25,6 +25,12 @@ type basePresident struct {
 	//taxAmountMap       map[int]int
 }
 
+func (p *basePresident) returnSpeakerSalary() int {
+	x := p.speakerSalary
+	p.speakerSalary = 0
+	return x
+}
+
 // Set allowed resource allocation based on each islands requests
 func (p *basePresident) EvaluateAllocationRequests(resourceRequest map[int]int, availCommonPool int) (map[int]int, error) {
 	p.budget -= 10
@@ -183,7 +189,7 @@ func (p *basePresident) appointNextSpeaker(clientIDs []shared.ClientID) int {
 func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
 	var speakerSalary = int(rules.VariableMap["speakerSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
-	if withdrawError != nil {
+	if withdrawError == nil {
 		featurePresident.speakerSalary = speakerSalary
 	}
 	return withdrawError

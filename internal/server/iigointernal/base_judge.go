@@ -28,11 +28,17 @@ func (j *BaseJudge) init() {
 	j.ResAllocID = 0
 }
 
+func (j *BaseJudge) returnPresidentSalary() int {
+	x := j.presidentSalary
+	j.presidentSalary = 0
+	return x
+}
+
 // withdrawPresidentSalary withdraws the president's salary from the common pool.
 func (j *BaseJudge) withdrawPresidentSalary(gameState *gamestate.GameState) error {
 	var presidentSalary = int(rules.VariableMap["presidentSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(presidentSalary, gameState)
-	if withdrawError != nil {
+	if withdrawError == nil {
 		featureJudge.presidentSalary = presidentSalary
 	}
 	return withdrawError

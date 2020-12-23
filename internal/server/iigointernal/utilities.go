@@ -67,6 +67,10 @@ func WithdrawFromCommonPool(value int, gameState *gamestate.GameState) error {
 	}
 }
 
+func depositIntoCommonPool(value int, state *gamestate.GameState) {
+	state.CommonPool += value
+}
+
 const (
 	BallotID = iota
 	PresidentAllocationCheck

@@ -94,12 +94,15 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// Handle the lack of resources
 	if errWithdrawPresident != nil {
+		returnWithdrawnSalariesToCommonPool(g)
 		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
 	}
 	if errWithdrawJudge != nil {
+		returnWithdrawnSalariesToCommonPool(g)
 		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
 	}
 	if errWithdrawSpeaker != nil {
+		returnWithdrawnSalariesToCommonPool(g)
 		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
 	}
 
@@ -151,4 +154,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	presidentPointer = iigoClients[shared.ClientID(PresidentIDGlobal)].GetClientPresidentPointer()
 
 	return nil
+}
+
+func returnWithdrawnSalariesToCommonPool(state *gamestate.GameState) {
+	returnVal := featurePresident.returnSpeakerSalary() + featureSpeaker.returnJudgeSalary() + featureJudge.returnPresidentSalary()
+	depositIntoCommonPool(returnVal, state)
 }
