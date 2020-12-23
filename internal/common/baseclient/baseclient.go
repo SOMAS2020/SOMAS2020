@@ -3,6 +3,7 @@ package baseclient
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -50,6 +51,8 @@ type Client interface {
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SendGift(receivingClient shared.ClientID, amount int) error
 	ReceiveGift(sendingClient shared.ClientID, amount int) error
+	GetVoteForRule(ruleName string) bool
+	GetVoteForElection(roleToElect Role) []shared.ClientID
 }
 
 var ourPredictionInfo shared.PredictionInfo
@@ -106,6 +109,38 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientGameState = gameState
 }
 
+type Role = int
+
+const (
+	President Role = iota
+	Speaker
+	Judge
+)
+
+// GetVoteForRule returns the client's vote in favour of or against a rule.
+func (c *BaseClient) GetVoteForRule(ruleName string) bool {
+	// TODO implement decision on voting that considers the rule
+	return true
+}
+
+// GetVoteForElection returns the client's Borda vote for the role to be elected.
+func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
+	// Done ;)
+	// Get all alive islands
+	aliveClients := rules.VariableMap["islands_alive"]
+	// Convert to ClientID type and place into unordered map
+	aliveClientIDs := map[int]shared.ClientID{}
+	for i, v := range aliveClients.Values {
+		aliveClientIDs[i] = shared.ClientID(int(v))
+	}
+	// Recombine map, in shuffled order
+	var returnList []shared.ClientID
+	for _, v := range aliveClientIDs {
+		returnList = append(returnList, v)
+	}
+	return returnList
+}
+
 type CommunicationContentType = int
 
 const (
@@ -130,4 +165,5 @@ func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[int]C
 // GetCommunications is used for testing communications
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[int]Communication {
 	return &c.communications
+
 }
