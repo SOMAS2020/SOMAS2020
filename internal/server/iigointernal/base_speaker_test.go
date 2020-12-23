@@ -96,73 +96,106 @@ func TestRuleVotedOut(t *testing.T) {
 	}
 }
 
-func generateRulesTestStores() (map[string](rules.RuleMatrix), map[string](rules.RuleMatrix)) {
-	return map[string](rules.RuleMatrix){
+func generateRulesTestStores() (map[string]rules.RuleMatrix, map[string]rules.RuleMatrix) {
+	return map[string]rules.RuleMatrix{
 			"Kinda Test Rule":   ruleMatrixExample,
 			"Kinda Test Rule 2": ruleMatrixExample,
 			"Kinda Test Rule 3": ruleMatrixExample,
-			"TestingRule1": ruleMatrixExample,
-			"TestingRule2": ruleMatrixExample,
+			"TestingRule1":      ruleMatrixExample,
+			"TestingRule2":      ruleMatrixExample,
 		},
-		map[string](rules.RuleMatrix){
+		map[string]rules.RuleMatrix{
 			"Kinda Test Rule 2": ruleMatrixExample,
 		}
 
 }
 
-type speakerState struct{
-	ruleToVote    string
-	VotingResult  bool
-}
+//type speakerState struct {
+//	ruleToVote   string
+//	VotingResult bool
+//}
 
-func TestVoting (t *testing.T) {
-	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
-	s := baseSpeaker{clientSpeaker: nil}
-	cases := []struct {
-		name   string
-		ruleID string
-		expectedStates []speakerState
-		want   error
-	}{
-		{
-			name:   "Rule given",
-			ruleID: "TestingRule1",
-			expectedStates: []speakerState{speakerState{"TestingRule1", false}, {"TestingRule1", true}},
-			want:   nil,
-		},
-		{
-			name: "Another rule given",
-			ruleID: "TestingRule2",
-			expectedStates: []speakerState{speakerState{"TestingRule2", false}, {"TestingRule2", true}},
-			want: nil,
-		},
-		{
-			name: "No rule given",
-			ruleID: "",
-			expectedStates: []speakerState{speakerState{"", false}, {"", false}},
-			want: nil,
-		},
+//func TestVoting(t *testing.T) {
+//	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
+//	s := baseSpeaker{clientSpeaker: nil}
+//	cases := []struct {
+//		name           string
+//		ruleID         string
+//		expectedStates []speakerState
+//		want           error
+//	}{
+//		{
+//			name:           "Rule given",
+//			ruleID:         "TestingRule1",
+//			expectedStates: []speakerState{{"TestingRule1", false}, {"TestingRule1", true}},
+//			want:           nil,
+//		},
+//		{
+//			name:           "Another rule given",
+//			ruleID:         "TestingRule2",
+//			expectedStates: []speakerState{{"TestingRule2", false}, {"TestingRule2", true}},
+//			want:           nil,
+//		},
+//		{
+//			name:           "No rule given",
+//			ruleID:         "",
+//			expectedStates: []speakerState{{"", false}, {"", false}},
+//			want:           nil,
+//		},
+//	}
+//	var stateTransfer [][]speakerState
+//	var expectedStateTransfer [][]speakerState
+//	for _, tc := range cases {
+//		t.Run(tc.name, func(t *testing.T) {
+//			s.setRuleToVote(tc.ruleID)
+//			state1 := speakerState{s.RuleToVote, s.VotingResult}
+//			s.setVotingResult()
+//			state2 := speakerState{s.RuleToVote, s.VotingResult}
+//			got := s.announceVotingResultTest()
+//
+//			stateTransfer = append(stateTransfer, []speakerState{state1, state2})
+//			tc.expectedStates[1].VotingResult = state2.VotingResult //Result is random
+//			expectedStateTransfer = append(expectedStateTransfer, tc.expectedStates)
+//
+//			testutils.CompareTestErrors(tc.want, got, t)
+//		})
+//	}
+//
+//	eq := reflect.DeepEqual(stateTransfer, expectedStateTransfer)
+//	if !eq {
+//		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedStateTransfer, stateTransfer)
+//	}
+//}
+
+func (s *baseSpeaker) announceVotingResultTest() error {
+
+	var rule string
+	var result bool
+	var err error
+
+	if s.clientSpeaker != nil {
+		//Power to change what is declared completely, return "", _ for no announcement to occur
+		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.RuleToVote, s.VotingResult)
+		//TODO: log of given vs. returned rule and result
+		if err != nil {
+			rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
+		}
+	} else {
+		rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
 	}
-	var stateTransfer [][]speakerState
-	var expectedStateTransfer [][]speakerState
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			s.setRuleToVote(tc.ruleID)
-			state1 := speakerState{s.ruleToVote, s.votingResult}
-			s.setVotingResult()
-			state2 := speakerState{s.ruleToVote, s.votingResult}
-			got := s.announceVotingResult()
 
-			stateTransfer = append(stateTransfer, []speakerState{state1,state2})
-			tc.expectedStates[1].VotingResult = state2.VotingResult //Result is random
-			expectedStateTransfer = append(expectedStateTransfer, tc.expectedStates)
+	//Reset
+	s.RuleToVote = ""
+	s.VotingResult = false
 
-			testutils.CompareTestErrors(tc.want, got, t)
-		})
+	if rule != "" {
+		//Deduct action cost
+		s.budget -= 10
+
+		//Perform announcement
+		//broadcastToAllIslands(s.Id, generateVotingResultMessage(rule, result))
+		return s.updateRules(rule, result)
 	}
 
-	eq := reflect.DeepEqual(stateTransfer, expectedStateTransfer)
-	if !eq {
-		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedStateTransfer, stateTransfer)
-	}
+	return nil
 }

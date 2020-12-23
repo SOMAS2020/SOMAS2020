@@ -1,24 +1,25 @@
 package iigointernal
 
 import (
-	"math/rand"
-
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"github.com/pkg/errors"
 )
 
 // base Judge object
 type BaseJudge struct {
-	id                int
+	Id                int
 	budget            int
 	presidentSalary   int
 	BallotID          int
 	ResAllocID        int
 	speakerID         int
 	presidentID       int
-	evaluationResults map[int]roles.EvaluationReturn
+	EvaluationResults map[int]roles.EvaluationReturn
 	clientJudge       roles.Judge
 }
 
@@ -46,12 +47,12 @@ func (j *BaseJudge) sendPresidentSalary() {
 			return
 		}
 	}
-	amount, _ := j.payPresident()
+	amount, _ := j.PayPresident()
 	featurePresident.budget = amount
 }
 
 // Pay the president
-func (j *BaseJudge) payPresident() (int, error) {
+func (j *BaseJudge) PayPresident() (int, error) {
 	hold := j.presidentSalary
 	j.presidentSalary = 0
 	return hold, nil
@@ -92,30 +93,30 @@ func (j *BaseJudge) inspectHistoryInternal() {
 			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
 		}
 	}
-	j.evaluationResults = outputMap
+	j.EvaluationResults = outputMap
 }
 
-func (j *BaseJudge) inspectHistory() (map[int]roles.EvaluationReturn, error) {
+func (j *BaseJudge) InspectHistory() (map[int]roles.EvaluationReturn, error) {
 	j.budget -= 10
 	if j.clientJudge != nil {
 		outputMap, err := j.clientJudge.InspectHistory()
 		if err != nil {
 			j.inspectHistoryInternal()
 		} else {
-			j.evaluationResults = outputMap
+			j.EvaluationResults = outputMap
 		}
 	} else {
 		j.inspectHistoryInternal()
 	}
-	return j.evaluationResults, nil
+	return j.EvaluationResults, nil
 }
 
 func (j *BaseJudge) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
-	//    rule changes are in line with ruleToVote in previous ballot
+	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
 	j.budget -= 10
-	rulesAffectedBySpeaker := j.evaluationResults[j.speakerID]
+	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err == nil {
 		return rulesAffectedBySpeaker.Evaluations[indexOfBallotRule], nil
@@ -126,12 +127,12 @@ func (j *BaseJudge) inspectBallot() (bool, error) {
 
 func (j *BaseJudge) inspectAllocation() (bool, error) {
 	// 1. Evaluate difference between commonPoolNew and commonPoolOld
-	//    to check resource allocation changes are in line with resourceRequests
+	//    to check resource allocation changes are in line with ResourceRequests
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
 	j.budget -= 10
-	rulesAffectedByPresident := j.evaluationResults[j.presidentID]
+	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
 	if err == nil {
 		return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
@@ -158,7 +159,7 @@ func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, e
 	return j.BallotID, result, j.speakerID, conductedRole, nil
 }
 
-func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
+func (j *BaseJudge) DeclareSpeakerPerformance() (int, bool, int, bool, error) {
 
 	j.budget -= 10
 	var BID int
@@ -180,15 +181,15 @@ func (j *BaseJudge) declareSpeakerPerformance() (int, bool, int, bool, error) {
 
 func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
-	BID, result, SID, checkRole, err := j.declareSpeakerPerformance()
+	BID, result, SID, checkRole, err := j.DeclareSpeakerPerformance()
 
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
-		broadcastToAllIslands(j.id, message)
+		broadcastToAllIslands(shared.TeamIDs[j.Id], message)
 	}
 }
 
-func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) {
+func (j *BaseJudge) DeclarePresidentPerformance() (int, bool, int, bool, error) {
 
 	j.budget -= 10
 	var RID int
@@ -211,11 +212,11 @@ func (j *BaseJudge) declarePresidentPerformance() (int, bool, int, bool, error) 
 
 func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
-	RID, result, PID, checkRole, err := j.declarePresidentPerformance()
+	RID, result, PID, checkRole, err := j.DeclarePresidentPerformance()
 
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
-		broadcastToAllIslands(j.id, message)
+		broadcastToAllIslands(shared.TeamIDs[j.Id], message)
 	}
 }
 
@@ -229,43 +230,55 @@ func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool,
 	return j.ResAllocID, result, j.presidentID, conductedRole, nil
 }
 
-func (j *BaseJudge) appointNextPresident() int {
+func (j *BaseJudge) appointNextPresident(clientIDs []shared.ClientID) int {
 	j.budget -= 10
-	return rand.Intn(5)
+	var election voting.Election
+	election.ProposeElection(baseclient.President, voting.Plurality)
+	election.OpenBallot(clientIDs)
+	election.Vote(iigoClients)
+	return int(election.CloseBallot())
 }
 
-func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
+func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]baseclient.Communication {
+	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[BallotID] = DataPacket{
-		integerData: BID,
+	returnMap[BallotID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
+		IntegerData: BID,
 	}
-	returnMap[SpeakerBallotCheck] = DataPacket{
-		booleanData: result,
+	returnMap[SpeakerBallotCheck] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: result,
 	}
-	returnMap[SpeakerID] = DataPacket{
-		integerData: SID,
+	returnMap[SpeakerID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
+		IntegerData: SID,
 	}
-	returnMap[RoleConducted] = DataPacket{
-		booleanData: conductedRole,
+	returnMap[RoleConducted] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: conductedRole,
 	}
 	return returnMap
 }
 
-func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]DataPacket {
-	returnMap := map[int]DataPacket{}
+func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]baseclient.Communication {
+	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[ResAllocID] = DataPacket{
-		integerData: RID,
+	returnMap[ResAllocID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
+		IntegerData: RID,
 	}
-	returnMap[PresidentAllocationCheck] = DataPacket{
-		booleanData: result,
+	returnMap[PresidentAllocationCheck] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: result,
 	}
-	returnMap[PresidentID] = DataPacket{
-		integerData: PID,
+	returnMap[PresidentID] = baseclient.Communication{
+		T:           baseclient.CommunicationInt,
+		IntegerData: PID,
 	}
-	returnMap[RoleConducted] = DataPacket{
-		booleanData: conductedRole,
+	returnMap[RoleConducted] = baseclient.Communication{
+		T:           baseclient.CommunicationBool,
+		BooleanData: conductedRole,
 	}
 	return returnMap
 }

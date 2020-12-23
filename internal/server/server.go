@@ -2,10 +2,13 @@ package server
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
@@ -32,12 +35,21 @@ type SOMASServer struct {
 func SOMASServerFactory() Server {
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
 
+	judge, speaker, president := iigointernal.GetFeaturedRoles()
+	clientIDs := make([]shared.ClientID, 0, len(clientMap))
+	for k := range clientMap {
+		clientIDs = append(clientIDs, k)
+	}
+
 	return &SOMASServer{
 		clientMap: clientMap,
 		gameState: gamestate.GameState{
-			Season:      1,
-			Turn:        1,
-			ClientInfos: clientInfos,
+			IIGOInfo:    gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
+			Season:         1,
+			Turn:           1,
+			ClientInfos:    clientInfos,
+			Environment:    disasters.InitEnvironment(clientIDs),
+			DeerPopulation: foraging.CreateDeerPopulationModel(),
 		},
 	}
 }

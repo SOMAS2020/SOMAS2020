@@ -102,12 +102,19 @@ func (s *SOMASServer) endOfTurn() error {
 		return errors.Errorf("Failed to run orgs end of turn: %v", err)
 	}
 
+	err = s.runForage()
+	if err != nil {
+		return errors.Errorf("Failed to run hunt at end of turn: %v", err)
+	}
+
 	// probe for disaster
-	disasterHappened, err := s.probeDisaster()
+	updatedEnv, err := s.probeDisaster()
 	if err != nil {
 		return errors.Errorf("Failed to probe disaster: %v", err)
 	}
+	s.gameState.Environment = updatedEnv
 	// increment turn & season if needed
+	disasterHappened := updatedEnv.LastDisasterReport.Magnitude > 0
 	s.incrementTurnAndSeason(disasterHappened)
 
 	// deduct cost of living
