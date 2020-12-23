@@ -23,7 +23,7 @@ type GameState struct {
 	Turn uint
 
 	// CommonPool represents the amount of resources in the common pool.
-	CommonPool int
+	CommonPool shared.Resources
 
 	// ClientInfos map from the shared.ClientID to ClientInfo.
 	ClientInfos    map[shared.ClientID]ClientInfo
@@ -66,8 +66,7 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 // ClientInfo contains the client struct as well as the client's attributes
 type ClientInfo struct {
 	// Resources contains the amount of resources owned by the client.
-	// Made an integer so an island can "owe" resources.
-	Resources int
+	Resources shared.Resources // nice
 
 	LifeStatus shared.ClientLifeStatus
 	// CriticalConsecutiveTurnsCounter is the number of consecutive turns the client is in critical state.

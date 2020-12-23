@@ -13,17 +13,17 @@ type Config struct {
 	MaxTurns uint
 
 	// InitialResources is the default number of resources at the start of the game
-	InitialResources int
+	InitialResources shared.Resources
 
 	// CostOfLiving is subtracted from an islands pool before
 	// the next term. This is the simulation-level equivalent to using resources to stay
 	// alive (e.g. food consumed). These resources are permanently consumed and do
 	// NOT go into the common pool. Note: this is NOT the same as the tax
-	CostOfLiving int
+	CostOfLiving shared.Resources
 
 	// MinimumResourceThreshold is the minimum resources required for an island to not be
 	// in Critical state.
-	MinimumResourceThreshold int
+	MinimumResourceThreshold shared.Resources
 
 	// MaxCriticalConsecutiveTurns is the maximum consecutive turns an island can be in the critical state.
 	MaxCriticalConsecutiveTurns uint

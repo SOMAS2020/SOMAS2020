@@ -14,16 +14,16 @@ import (
 )
 
 type baseSpeaker struct {
-	Id            int
-	budget        int
-	judgeSalary   int
+	Id            shared.ClientID
+	budget        shared.Resources
+	judgeSalary   shared.Resources
 	RuleToVote    string
 	VotingResult  bool
 	clientSpeaker roles.Speaker
 }
 
 func (s *baseSpeaker) withdrawJudgeSalary(gameState *gamestate.GameState) error {
-	var judgeSalary = int(rules.VariableMap["judgeSalary"].Values[0])
+	var judgeSalary = shared.Resources(rules.VariableMap["judgeSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(judgeSalary, gameState)
 	if withdrawError != nil {
 		featureSpeaker.judgeSalary = judgeSalary
@@ -44,7 +44,7 @@ func (s *baseSpeaker) sendJudgeSalary() {
 }
 
 // Pay the judge
-func (s *baseSpeaker) PayJudge() (int, error) {
+func (s *baseSpeaker) PayJudge() (shared.Resources, error) {
 	hold := s.judgeSalary
 	s.judgeSalary = 0
 	return hold, nil
@@ -189,11 +189,11 @@ func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
 
 }
 
-func (s *baseSpeaker) appointNextJudge(clientIDs []shared.ClientID) int {
+func (s *baseSpeaker) appointNextJudge(clientIDs []shared.ClientID) shared.ClientID {
 	s.budget -= 10
 	var election voting.Election
 	election.ProposeElection(baseclient.Judge, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
-	return int(election.CloseBallot())
+	return election.CloseBallot()
 }

@@ -53,7 +53,7 @@ func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo,
 // the game's configuration.
 func updateIslandLivingStatusForClient(
 	ci gamestate.ClientInfo,
-	minimumResourceThreshold int,
+	minimumResourceThreshold shared.Resources,
 	maxCriticalConsecutiveTurns uint,
 ) (gamestate.ClientInfo, error) {
 	switch ci.LifeStatus {

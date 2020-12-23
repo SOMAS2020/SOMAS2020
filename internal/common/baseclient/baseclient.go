@@ -25,16 +25,16 @@ type Client interface {
 
 	Logf(format string, a ...interface{})
 
-	CommonPoolResourceRequest() int
-	ResourceReport() int
+	CommonPoolResourceRequest() shared.Resources
+	ResourceReport() shared.Resources
 	RuleProposal() string
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
 	ReceiveCommunication(sender shared.ClientID, data map[int]Communication)
 	GetCommunications() *map[shared.ClientID][]map[int]Communication
-	GetTaxContribution() int
-	RequestAllocation() int
+	GetTaxContribution() shared.Resources
+	RequestAllocation() shared.Resources
 
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
@@ -42,6 +42,8 @@ type Client interface {
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
+	ForageUpdate(forageReturn int)
+
 	//IITO: COMPULSORY
 	RequestGift() uint
 	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)

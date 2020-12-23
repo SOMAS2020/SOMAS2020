@@ -46,19 +46,19 @@ func GetFeaturedRoles() (roles.Judge, roles.Speaker, roles.President) {
 }
 
 // SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
-var SpeakerIDGlobal = 0
+var SpeakerIDGlobal shared.ClientID
 
 // JudgeIDGlobal is the single source of truth for judge ID (MVP)
-var JudgeIDGlobal = 0
+var JudgeIDGlobal shared.ClientID
 
 // PresidentIDGlobal is the single source of truth for president ID (MVP)
-var PresidentIDGlobal = 0
+var PresidentIDGlobal shared.ClientID
 
 // TaxAmountMapExport is a local tax amount cache for checking of rules
-var TaxAmountMapExport map[int]int
+var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
 // AllocationAmountMapExport is a local allocation map for checking of rules
-var AllocationAmountMapExport map[int]int
+var AllocationAmountMapExport map[shared.ClientID]shared.Resources
 
 // Pointers allow clients to customise implementations of mutable functions
 var judgePointer roles.Judge = nil
@@ -112,11 +112,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	_, judgeInspectingHistoryError := featureJudge.InspectHistory()
 
 	// 2 President actions
-	resourceReports := map[int]int{}
+	resourceReports := map[shared.ClientID]shared.Resources{}
 	var aliveClientIds []shared.ClientID
 	for _, v := range rules.VariableMap["islands_alive"].Values {
 		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
-		resourceReports[int(v)] = iigoClients[shared.ClientID(int(v))].ResourceReport()
+		resourceReports[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].ResourceReport()
 	}
 	featurePresident.broadcastTaxation(resourceReports)
 	featurePresident.requestAllocationRequest()

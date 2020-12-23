@@ -13,32 +13,32 @@ import (
 
 //base President Object
 type basePresident struct {
-	Id               int
+	Id               shared.ClientID
 	clientPresident  roles.President
-	budget           int
-	speakerSalary    int
+	budget           shared.Resources
+	speakerSalary    shared.Resources
 	RulesProposals   []string
-	ResourceRequests map[int]int
-	//resourceAllocation map[int]int
+	ResourceRequests map[shared.ClientID]shared.Resources
+	//resourceAllocation map[shared.ClientID]shared.Resources
 	//RuleToVote         string
-	//taxAmountMap       map[int]int
+	//taxAmountMap       map[shared.ClientID]shared.Resources
 }
 
 // Set allowed resource allocation based on each islands requests
-func (p *basePresident) EvaluateAllocationRequests(resourceRequest map[int]int, availCommonPool int) (map[int]int, error) {
+func (p *basePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, error) {
 	p.budget -= 10
-	var requestSum int
-	resourceAllocation := make(map[int]int)
+	var requestSum shared.Resources
+	resourceAllocation := make(map[shared.ClientID]shared.Resources)
 
 	for _, request := range resourceRequest {
 		requestSum += request
 	}
 
-	if requestSum < 3*availCommonPool/4 {
+	if requestSum < 0.75*availCommonPool {
 		resourceAllocation = resourceRequest
 	} else {
 		for id, request := range resourceRequest {
-			resourceAllocation[id] = int(request * availCommonPool * 3 / (4 * requestSum))
+			resourceAllocation[id] = shared.Resources(request * availCommonPool * 3 / (4 * requestSum))
 		}
 	}
 	return resourceAllocation, nil
@@ -72,17 +72,17 @@ func (p *basePresident) setRuleProposals(rulesProposals []string) {
 
 // Set approved resources request for all the remaining islands
 // Called by orchestration
-func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
+func (p *basePresident) setAllocationRequest(resourceRequests map[shared.ClientID]shared.Resources) {
 	p.ResourceRequests = resourceRequests
 }
 
 // Set taxation amount for all of the living islands
 // island_resources: map of all the living islands and their remaining resources
-func (p *basePresident) SetTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
+func (p *basePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, error) {
 	p.budget -= 10
-	taxAmountMap := make(map[int]int)
+	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 	for id, resourceLeft := range islandsResources {
-		taxAmountMap[id] = rand.Intn(resourceLeft)
+		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * rand.Float64())
 	}
 	TaxAmountMapExport = taxAmountMap
 	return taxAmountMap, nil
@@ -103,7 +103,7 @@ func (p *basePresident) getRuleForSpeaker() string {
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
+func (p *basePresident) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) map[shared.ClientID]shared.Resources {
 	p.budget -= 10
 	if p.clientPresident != nil {
 		result, error := p.clientPresident.SetTaxationAmount(islandsResources)
@@ -115,11 +115,11 @@ func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 	return result
 }
 
-func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
+func (p *basePresident) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
 	p.budget -= 10
 	taxAmountMap := p.getTaxMap(islandsResources)
 	for _, v := range getIslandAlive() {
-		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: taxAmountMap[int(v)]}
+		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(v))])}
 		data := make(map[int]baseclient.Communication)
 		data[TaxAmount] = d
 		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.Id], data)
@@ -128,7 +128,7 @@ func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
+func (p *basePresident) getAllocationRequests(commonPool shared.Resources) map[shared.ClientID]shared.Resources {
 	if p.clientPresident != nil {
 		result, error := p.clientPresident.EvaluateAllocationRequests(p.ResourceRequests, commonPool)
 		if error == nil {
@@ -140,37 +140,37 @@ func (p *basePresident) getAllocationRequests(commonPool int) map[int]int {
 }
 
 func (p *basePresident) requestAllocationRequest() {
-	allocRequests := make(map[int]int)
+	allocRequests := make(map[shared.ClientID]shared.Resources)
 	for _, v := range getIslandAlive() {
-		allocRequests[int(v)] = iigoClients[shared.ClientID(int(v))].CommonPoolResourceRequest()
+		allocRequests[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].CommonPoolResourceRequest()
 	}
 	AllocationAmountMapExport = allocRequests
 	p.setAllocationRequest(allocRequests)
 
 }
 
-func (p *basePresident) replyAllocationRequest(commonPool int) {
+func (p *basePresident) replyAllocationRequest(commonPool shared.Resources) {
 	p.budget -= 10
 	allocationMap := p.getAllocationRequests(commonPool)
 	for _, v := range getIslandAlive() {
-		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: allocationMap[int(v)]}
+		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
 		data := make(map[int]baseclient.Communication)
 		data[AllocationAmount] = d
 		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.Id], data)
 	}
 }
 
-func (p *basePresident) appointNextSpeaker(clientIDs []shared.ClientID) int {
+func (p *basePresident) appointNextSpeaker(clientIDs []shared.ClientID) shared.ClientID {
 	p.budget -= 10
 	var election voting.Election
 	election.ProposeElection(baseclient.Speaker, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
-	return int(election.CloseBallot())
+	return election.CloseBallot()
 }
 
 func (p *basePresident) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
-	var speakerSalary = int(rules.VariableMap["speakerSalary"].Values[0])
+	var speakerSalary = shared.Resources(rules.VariableMap["speakerSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
 	if withdrawError != nil {
 		featurePresident.speakerSalary = speakerSalary
@@ -191,7 +191,7 @@ func (p *basePresident) sendSpeakerSalary() {
 }
 
 // Pay the speaker
-func (p *basePresident) PaySpeaker() (int, error) {
+func (p *basePresident) PaySpeaker() (shared.Resources, error) {
 	hold := p.speakerSalary
 	p.speakerSalary = 0
 	return hold, nil
@@ -205,7 +205,7 @@ func (p *basePresident) Reset(val string) error {
 	p.Id = 0
 	p.clientPresident = nil
 	p.budget = 0
-	p.ResourceRequests = map[int]int{}
+	p.ResourceRequests = map[shared.ClientID]shared.Resources{}
 	p.RulesProposals = []string{}
 	p.speakerSalary = 0
 	return nil
