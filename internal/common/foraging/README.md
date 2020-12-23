@@ -38,9 +38,8 @@ The minimum amount of resources needed to hunt $n$ deer can be calculated as the
 $$ 
 \sum_{n=0}^{n} \Delta^{n} = \Delta^{0} + \Delta^{1} + \Delta^{2} + \Delta^{3} + \Delta^{4} + ....
 $$
-Where $n$, the number of deer's you can hunt, is determined by the amount of resources inputted into the system 
+Where $n$, the number of deers you can hunt, is determined by the amount of resources input to the system 
 
 #### ToDo
 
-- fishing
 - link deer population (governed by a predefined differential equation and historical consumption) with Bernoulli param `p` in deer return RV.

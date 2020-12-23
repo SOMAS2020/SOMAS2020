@@ -14,8 +14,8 @@ func TestDeerUtilityTier(t *testing.T) {
 	maxDeer := 4
 
 	var tests = []struct {
-		inputR float64 // cumulative resource input from hunt participants
-		want   int     // output tier
+		inputR shared.ForageContribution // cumulative resource input from hunt participants
+		want   int                       // output tier
 	}{
 		{0.0, 0},
 		{0.99, 0},
@@ -37,7 +37,7 @@ func TestDeerUtilityTier(t *testing.T) {
 }
 
 func TestTotalInput(t *testing.T) {
-	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
+	huntParticipants := map[shared.ClientID]shared.ForageContribution{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
 	hunt, _ := CreateDeerHunt(huntParticipants)
 	ans := hunt.TotalInput()
 	if ans != 1.9 {

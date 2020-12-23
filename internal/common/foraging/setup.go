@@ -6,14 +6,14 @@ import (
 )
 
 // CreateDeerHunt receives hunt participants and their contributions and returns a DeerHunt
-func CreateDeerHunt(teamResourceInputs map[shared.ClientID]float64) (DeerHunt, error) {
+func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.ForageContribution) (DeerHunt, error) {
 	dhConf := config.GameConfig().ForagingConfig.DeerHuntConfig
 	params := deerHuntParams{p: dhConf.BernoulliProb, lam: dhConf.ExponentialRate}
 	return DeerHunt{ParticipantContributions: teamResourceInputs, params: params}, nil // returning error too for future use
 }
 
 // CreateFishingExpedition sees the participants and their contributions and returns the value of FishHunt
-func CreateFishingExpedition(teamResourceInputs map[shared.ClientID]float64) (FishingExpedition, error) {
+func CreateFishingExpedition(teamResourceInputs map[shared.ClientID]shared.ForageContribution) (FishingExpedition, error) {
 	fConf := config.GameConfig().ForagingConfig.FishingConfig
 	params := fishingParams{Mu: fConf.Mean, Sigma: fConf.Variance}
 	return FishingExpedition{ParticipantContributions: teamResourceInputs, Params: params}, nil // returning error too for future use

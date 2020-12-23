@@ -15,8 +15,8 @@ func TestFishUtilityTier(t *testing.T) {
 	maxFish := 6
 
 	var tests = []struct {
-		inputF float64 // cumulative resource input from hunt participants
-		wantF  int     // output tier
+		inputF shared.ForageContribution // cumulative resource input from hunt participants
+		wantF  int                       // output tier
 	}{
 		// Tiers and coressponding thresholds and cumlative cost
 		// Tiers		 			0		1		2		3			4		5			6
@@ -44,7 +44,7 @@ func TestFishUtilityTier(t *testing.T) {
 
 // Checks if total fish input is correct
 func TestTotalFishInput(t *testing.T) {
-	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
+	huntParticipants := map[shared.ClientID]shared.ForageContribution{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
 	huntF, _ := CreateFishingExpedition(huntParticipants)
 	ans := huntF.TotalInput()
 	if ans != 1.9 {

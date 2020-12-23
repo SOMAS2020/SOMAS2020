@@ -4,6 +4,10 @@ package shared
 // represents how many resources the agents will allocate to foraging
 type ForageContribution = float64
 
+// ForageReturn is a nonnegative, real-valued number that represents
+// the return (utility) from a foraging session
+type ForageReturn = float64
+
 // ForageType selects which resource the agents want to forage in
 type ForageType = int
 

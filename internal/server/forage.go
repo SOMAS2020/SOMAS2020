@@ -15,12 +15,12 @@ func (s *SOMASServer) runForage() error {
 	if err != nil {
 		return errors.Errorf("Something went wrong getting the foraging decision:%v", err)
 	}
-	deerHunters := make(map[shared.ClientID]float64)
-	fishers := make(map[shared.ClientID]float64)
+	deerHunters := make(map[shared.ClientID]shared.ForageContribution)
+	fishers := make(map[shared.ClientID]shared.ForageContribution)
 
 	for id, decision := range foragingParticipants {
 
-		target := map[shared.ForageType]*map[shared.ClientID]float64{
+		target := map[shared.ForageType]*map[shared.ClientID]shared.ForageContribution{
 			shared.DeerForageType: &deerHunters,
 			shared.FishForageType: &fishers,
 		}
@@ -52,7 +52,7 @@ func (s *SOMASServer) getForagingDecisions() (shared.ForagingDecisionsDict, erro
 	}
 	return participants, nil
 }
-func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) error {
+func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]shared.ForageContribution) error {
 	s.logf("start runDeerHunt")
 	defer s.logf("finish runDeerHunt")
 	hunt, err := foraging.CreateDeerHunt(participants)
@@ -63,12 +63,12 @@ func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) erro
 	s.logf("Hunt generated a return of %.3f from input of %.3f", huntReport.TotalUtility, huntReport.InputResources)
 
 	s.logf("Updating deer population after %v deer hunted", huntReport.NumberDeerCaught)
-	s.updateDeerPopulation([]int{int(huntReport.NumberDeerCaught)}) // update deer population based on hunt
+	s.updateDeerPopulation(huntReport.NumberDeerCaught) // update deer population based on hunt
 
 	return nil
 }
 
-func (s *SOMASServer) runFishingExpedition(participants map[shared.ClientID]float64) error {
+func (s *SOMASServer) runFishingExpedition(participants map[shared.ClientID]shared.ForageContribution) error {
 	s.logf("start runFishHunt")
 	defer s.logf("finish runFishHunt")
 
@@ -82,18 +82,16 @@ func (s *SOMASServer) runFishingExpedition(participants map[shared.ClientID]floa
 }
 
 func (s *SOMASServer) runDummyHunt() error {
-	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
+	huntParticipants := map[shared.ClientID]shared.ForageContribution{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
 	return s.runDeerHunt(huntParticipants)
 }
 
 func (s *SOMASServer) runDummyFishingExpedition() error {
-	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
+	huntParticipants := map[shared.ClientID]shared.ForageContribution{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
 	return s.runFishingExpedition(huntParticipants)
 }
 
-// updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt. Note that len(consumption) implies the number of
-// days/turns that are to be simulated. If the intention is just to update after one turn, len(consumption) should be 1 and should
-// containt the number of deer removed (hunted) from the env in the last turn
-func (s *SOMASServer) updateDeerPopulation(consumption []int) {
-	s.gameState.DeerPopulation.Simulate(consumption) // updates pop. according to DE definition
+// updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt
+func (s *SOMASServer) updateDeerPopulation(consumption uint) {
+	s.gameState.DeerPopulation.Simulate([]int{int(consumption)}) // updates pop. according to DE definition
 }

@@ -17,21 +17,21 @@ type deerHuntParams struct {
 
 // DeerHunt captures the hunt participants (teams) and their resource contributions, as well as hunt params
 type DeerHunt struct {
-	ParticipantContributions map[shared.ClientID]float64
+	ParticipantContributions map[shared.ClientID]shared.ForageContribution
 	params                   deerHuntParams
 }
 
 // DeerHuntReport holds information about the result of a deer hunt
 type DeerHuntReport struct {
-	InputResources   float64
+	InputResources   shared.ForageContribution
 	NumberHunters    uint
 	NumberDeerCaught uint
-	TotalUtility     float64
+	TotalUtility     shared.ForageReturn
 	DeerWeights      []float64
 }
 
 // TotalInput simply sums the total group resource input of hunt participants
-func (d DeerHunt) TotalInput() float64 {
+func (d DeerHunt) TotalInput() shared.ForageContribution {
 	i := 0.0
 	for _, x := range d.ParticipantContributions {
 		i += x
@@ -60,7 +60,7 @@ func (d DeerHunt) Hunt() DeerHuntReport {
 }
 
 // deerUtilityTier gets the discrete utility tier (i.e. max number of deer) for given scalar input
-func deerUtilityTier(input float64, maxDeerPerHunt uint, decay float64) uint {
+func deerUtilityTier(input shared.ForageContribution, maxDeerPerHunt uint, decay float64) uint {
 	sum := 0.0
 	for i := uint(0); i < maxDeerPerHunt; i++ {
 		sum += math.Pow(decay, float64(i))
@@ -77,7 +77,7 @@ func deerUtilityTier(input float64, maxDeerPerHunt uint, decay float64) uint {
 // - W: A continuous RV that adds some variance to the return. This could be interpreted as the weight of the deer that is caught. W is
 // exponentially distributed such that the prevalence of deer of certain size is inversely prop. to the size.
 // returns H, where H = D*(1+W) is an other random variable
-func deerReturn(params deerHuntParams) float64 {
+func deerReturn(params deerHuntParams) shared.ForageReturn {
 	W := distuv.Exponential{Rate: params.lam} // Rate = lambda
 	D := distuv.Bernoulli{P: params.p}        // Bernoulli RV where `P` = P(X=1)
 	return D.Rand() * (1 + W.Rand())

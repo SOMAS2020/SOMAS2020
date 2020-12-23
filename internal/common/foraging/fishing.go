@@ -10,7 +10,7 @@ import (
 
 // FishingExpedition The teams that are involved and the resources they put in.
 type FishingExpedition struct {
-	ParticipantContributions map[shared.ClientID]float64
+	ParticipantContributions map[shared.ClientID]shared.ForageContribution
 	Params                   fishingParams
 }
 
@@ -21,7 +21,7 @@ type fishingParams struct {
 }
 
 // TotalInput provides a sum of the total inputs
-func (f FishingExpedition) TotalInput() float64 {
+func (f FishingExpedition) TotalInput() shared.ForageContribution {
 	i := 0.0                                       // Sum of the inputs INIT
 	for _, x := range f.ParticipantContributions { // Check for every particpant ("_" ignore the index)
 		i += x // Sum the values within each index
@@ -29,7 +29,7 @@ func (f FishingExpedition) TotalInput() float64 {
 	return i //return
 }
 
-func fishUtilityTier(input float64, maxFishPerHunt uint, decay float64) uint {
+func fishUtilityTier(input shared.ForageContribution, maxFishPerHunt uint, decay float64) uint {
 	sum := 0.0                                  // Sum = cumulative sum of the tier values
 	for i := uint(0); i < maxFishPerHunt; i++ { // Checks the value of the input in comparision to the minimum needed for each tier
 		sum += math.Pow(decay, float64(i+1)) // incrementING sum of tier values
@@ -41,7 +41,7 @@ func fishUtilityTier(input float64, maxFishPerHunt uint, decay float64) uint {
 }
 
 // fishingReturn is the normal distibtuion
-func fishingReturn(params fishingParams) float64 {
+func fishingReturn(params fishingParams) shared.ForageReturn {
 	F := distuv.Normal{
 		Mu:    params.Mu,    // mean of the normal dist
 		Sigma: params.Sigma, // Var of the normal dist
@@ -50,7 +50,7 @@ func fishingReturn(params fishingParams) float64 {
 }
 
 // Fish computes the return from a fishing expedition
-func (f FishingExpedition) Fish() float64 {
+func (f FishingExpedition) Fish() shared.ForageReturn {
 	fConf := config.GameConfig().ForagingConfig.FishingConfig
 	input := f.TotalInput()
 	decay := fConf.IncrementalInputDecay
