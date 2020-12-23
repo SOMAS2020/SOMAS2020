@@ -8,6 +8,9 @@ func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 	defer s.logf("finish probeDisaster")
 
 	e := s.gameState.Environment.SampleForDisaster()
-	s.logf(e.DisplayReport())
+	disasterReport, leftover_damage := s.gameState.Environment.DisplayReport()
+	s.logf(disasterReport)
+	s.islandDeplete(leftover_damage)				//island will be further depleted by disaster only when disaster happens and cp does not have enough resource
+
 	return e, nil
 }

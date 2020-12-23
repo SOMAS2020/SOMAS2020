@@ -38,6 +38,7 @@ type Environment struct {
 	Geography          ArchipelagoGeography
 	DisasterParams     disasterParameters
 	LastDisasterReport DisasterReport
+	CommonPool		   Commonpool
 }
 
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
@@ -58,13 +59,23 @@ func (e Environment) SampleForDisaster() Environment {
 	return e                  // return same env back but with updated disaster report
 }
 
-// DisasterEffects returns the effects of the most recent DisasterReport held in the environment state
-func (e Environment) DisasterEffects() map[shared.ClientID]shared.Magnitude {
-	out := map[shared.ClientID]shared.Magnitude{}
+// DisasterEffects returns the individual effects and proportional effect (compared to total damage on 6 island) 
+// 		of the most recent DisasterReport held in the environment state
+func (e Environment) DisasterEffects() (map[shared.ClientID]shared.Magnitude, map[shared.ClientID]shared.Magnitude) {
+	individualEffect := map[shared.ClientID]shared.Magnitude{}
+	proportionalEffect := map[shared.ClientID]shared.Magnitude{}
+	totalEffect := 0.0 
+
 	epiX, epiY := e.LastDisasterReport.X, e.LastDisasterReport.Y // epicentre of the disaster (peak mag)
 	for _, island := range e.Geography.Islands {
 		effect := e.LastDisasterReport.Magnitude / math.Hypot(island.X-epiX, island.Y-epiY) // effect on island i is inverse prop. to square of distance to epicentre
-		out[island.ID] = math.Min(effect, e.LastDisasterReport.Magnitude)                   // to prevent divide by zero -> inf
+		individualEffect[island.ID] = math.Min(effect, e.LastDisasterReport.Magnitude)                   // to prevent divide by zero -> inf
+		totalEffect = totalEffect + individualEffect[island.ID]
 	}
-	return out
+
+	for _, island := range e.Geography.Islands {
+		proportionalEffect[island.ID] =  individualEffect[island.ID] / totalEffect
+	}
+
+	return individualEffect, proportionalEffect
 }
