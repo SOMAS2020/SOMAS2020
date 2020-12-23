@@ -42,6 +42,7 @@ type Client interface {
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
+	ForageUpdate(forageReturn int)
 
 	//IITO: COMPULSORY
 	RequestGift() uint
