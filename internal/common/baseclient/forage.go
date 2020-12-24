@@ -15,4 +15,4 @@ func (c *BaseClient) DecideForage() (shared.ForageDecision, error) {
 	}, nil
 }
 
-func (c *BaseClient) ForageUpdate(shared.Resources) {}
+func (c *BaseClient) ForageUpdate(shared.ForageDecision, shared.Resources) {}

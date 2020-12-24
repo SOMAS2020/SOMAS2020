@@ -12,16 +12,19 @@ import (
 type mockClientForage struct {
 	baseclient.Client
 
-	forageDecision        shared.ForageDecision
-	got_forageUpdateValue shared.Resources
+	forageDecision shared.ForageDecision
+
+	forageUpdateCalled bool
+	gotForageDecision  shared.ForageDecision
 }
 
 func (c mockClientForage) DecideForage() (shared.ForageDecision, error) {
 	return c.forageDecision, nil
 }
 
-func (c *mockClientForage) ForageUpdate(resources shared.Resources) {
-	c.got_forageUpdateValue = resources
+func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, resources shared.Resources) {
+	c.forageUpdateCalled = true
+	c.gotForageDecision = forageDecision
 }
 
 func TestForagingCallsForageUpdate(t *testing.T) {
@@ -33,13 +36,14 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(fmt.Sprintf("%v", tc), func(t *testing.T) {
-			client := mockClientForage{
-				forageDecision: shared.ForageDecision{
-					Type:         tc,
-					Contribution: 10,
-				},
+			forageDecision := shared.ForageDecision{
+				Type:         tc,
+				Contribution: 10,
+			}
 
-				got_forageUpdateValue: -1,
+			client := mockClientForage{
+				forageDecision:     forageDecision,
+				forageUpdateCalled: false,
 			}
 
 			s := SOMASServer{
@@ -47,7 +51,7 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
 						shared.Team1: {
 							LifeStatus: shared.Alive,
-							Resources: 100,
+							Resources:  100,
 						},
 					},
 				},
@@ -58,8 +62,11 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 
 			s.runForage()
 
-			if client.got_forageUpdateValue < 0 {
-				t.Errorf("ForageUpdate was not called (%v)", client.got_forageUpdateValue)
+			if !client.forageUpdateCalled {
+				t.Errorf("ForageUpdate was not called")
+			}
+			if client.gotForageDecision != forageDecision {
+				t.Errorf("ForageUpdate got the wrong forageDecision")
 			}
 
 		})

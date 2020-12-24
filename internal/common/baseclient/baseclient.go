@@ -42,7 +42,10 @@ type Client interface {
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
-	ForageUpdate(shared.Resources)
+
+	// ForageUpdate is called with the total resources returned to the agent
+	// from the hunt (NOT the profit)
+	ForageUpdate(shared.ForageDecision, shared.Resources)
 
 	//IITO: COMPULSORY
 	RequestGift() uint
