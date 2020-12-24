@@ -10,7 +10,7 @@ import (
 // the forageContribution can not be larger than the total resources available
 func (c *BaseClient) DecideForage() (shared.ForageDecision, error) {
 	return shared.ForageDecision{
-		Type: shared.DeerForageType,
+		Type:         shared.DeerForageType,
 		Contribution: shared.Resources(rand.Float64() * 5),
 	}, nil
 }
