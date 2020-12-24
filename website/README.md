@@ -29,9 +29,13 @@ sudo npm i -g yarn
 
 To run the website, you must follow the steps in `running code` in the primary README.\
 The `output` folder in the root of the repository should be present if you do this successfully.
-You can now run `copyOutput.js` from the `scripts` folder by running `yarn copyoutput` to copy the output for the react app to parse.
+You can now run `copyOutput.js` from the `scripts` folder by running `yarn copyoutput` to copy the output for the react app to parse. This is also available from the `yarn prestart` command below.
 
 ## Scripts
+
+### `yarn prestart`
+
+This runs `copyOutput.js` for you ahead of starting the development server. Other necessary actions can be bundled here in the future.
 
 ### `yarn start`
 
