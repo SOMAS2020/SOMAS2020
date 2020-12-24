@@ -7,7 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 )
 
 type mockClientIIFO struct {
@@ -88,13 +87,11 @@ func TestGetForageSharingWorks(t *testing.T) {
 		clientMap: clientMap,
 	}
 
-	got, err := server.getForageSharing()
+	got := server.getForageSharing()
 
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("want '%#v' got '%#v'", want, got)
 	}
-
-	testutils.CompareTestErrors(nil, err, t)
 }
 
 func TestDistributeForageSharing(t *testing.T) {
