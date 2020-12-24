@@ -3,8 +3,9 @@ package baseclient
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"log"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -39,15 +40,17 @@ type Client interface {
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
-
-	//Foraging
-	DecideForage() (shared.ForageDecision, error)
+	MakeForageInfo() shared.ForageShareInfo
+	ReceiveForageInfo([]shared.ForageShareInfo)
 
 	//IITO: COMPULSORY
 	RequestGift() uint
 	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
 	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
 	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
+
+	//Foraging
+	DecideForage() (shared.ForageDecision, error)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SendGift(receivingClient shared.ClientID, amount int) error
