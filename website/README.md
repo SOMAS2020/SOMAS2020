@@ -28,7 +28,8 @@ sudo npm i -g yarn
 ### Make sure you have the output from the Go program
 
 To run the website, you must follow the steps in `running code` in the primary README.\
-The `output` folder in the root of the repository must be present.
+The `output` folder in the root of the repository should be present if you do this successfully.
+You can now run `copyOutput.js` from the `scripts` folder by running `yarn copyoutput` to copy the output for the react app to parse.
 
 ## Scripts
 
