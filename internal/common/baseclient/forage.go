@@ -11,5 +11,3 @@ import (
 func (c *BaseClient) DecideForage() (shared.ForageDecision, error) {
 	return shared.ForageDecision{Type: shared.DeerForageType, Contribution: shared.Resources(rand.Float64() * 100)}, nil
 }
-
-func (c *BaseClient) ForageUpdate(forageReturn int) {}
