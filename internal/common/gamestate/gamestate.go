@@ -23,6 +23,9 @@ type GameState struct {
 	Environment    disasters.Environment
 	DeerPopulation foraging.DeerPopulationModel
 
+	// IIGO History
+	IIGOHistory *[]Accountability
+
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
 }
@@ -33,6 +36,7 @@ func (g GameState) Copy() GameState {
 	ret.ClientInfos = copyClientInfos(g.ClientInfos)
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
+	ret.IIGOHistory = g.IIGOHistory
 	return ret
 }
 
