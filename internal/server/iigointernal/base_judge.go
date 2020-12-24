@@ -28,6 +28,7 @@ func (j *BaseJudge) init() {
 	j.ResAllocID = 0
 }
 
+// returnPresidentSalary returns the salary to the common pool.
 func (j *BaseJudge) returnPresidentSalary() int {
 	x := j.presidentSalary
 	j.presidentSalary = 0

@@ -1,10 +1,11 @@
 package iigointernal
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"math/rand"
 	"time"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -22,6 +23,7 @@ type baseSpeaker struct {
 	clientSpeaker roles.Speaker
 }
 
+// returnJudgeSalary returns the salary to the common pool.
 func (s *baseSpeaker) returnJudgeSalary() int {
 	x := s.judgeSalary
 	s.judgeSalary = 0

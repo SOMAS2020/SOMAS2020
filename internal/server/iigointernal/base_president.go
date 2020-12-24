@@ -24,6 +24,7 @@ type basePresident struct {
 	//taxAmountMap       map[int]int
 }
 
+// returnSpeakerSalary returns the salary to the common pool.
 func (p *basePresident) returnSpeakerSalary() int {
 	x := p.speakerSalary
 	p.speakerSalary = 0
