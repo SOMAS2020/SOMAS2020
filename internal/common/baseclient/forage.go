@@ -14,3 +14,5 @@ func (c *BaseClient) DecideForage() (shared.ForageDecision, error) {
 		Contribution: shared.Resources(rand.Float64() * 5),
 	}, nil
 }
+
+func (c *BaseClient) ForageUpdate(shared.Resources) {}

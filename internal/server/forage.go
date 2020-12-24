@@ -61,7 +61,9 @@ func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]shared.Resour
 	for _, contribution := range participants { totalContributions += contribution }
 
 	for participantID, contribution := range participants {
-		s.giveResources(participantID, (contribution/totalContributions) * totalReturn, "Deer hunt return")
+		participantReturn := (contribution/totalContributions) * totalReturn
+		s.giveResources(participantID, participantReturn, "Deer hunt return")
+		s.clientMap[participantID].ForageUpdate(participantReturn)
 	}
 
 	s.logf("Hunt generated a return of %.3f from input of %.3f", totalReturn, hunt.TotalInput())
