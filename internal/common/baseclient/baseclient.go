@@ -17,7 +17,9 @@ type Client interface {
 	Echo(s string) string
 	GetID() shared.ClientID
 
-	// Initialise is called once on game start
+	// Initialise is called once on game start. You can keep the value of
+	// ServerReadHandle which can then be used to access the ClientGameState at
+	// any point
 	Initialise(ServerReadHandle)
 
 	Logf(format string, a ...interface{})
