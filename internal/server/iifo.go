@@ -8,11 +8,16 @@ import (
 // runIIFO : IIFO allows sharing of disaster predictions between islands
 func (s *SOMASServer) runIIFO() error {
 	s.logf("start runIIFO")
+	defer s.logf("finish runIIFO")
+
+	// This is for Disaster prediction
 	err := s.runPredictionSession()
 	if err != nil {
 		return errors.Errorf("Error running prediction session: %v", err)
 	}
-	defer s.logf("finish runIIFO")
+
+	s.runForageSharing()
+
 	// TODO:- IIFO team
 	return nil
 }
@@ -36,6 +41,19 @@ func (s *SOMASServer) runPredictionSession() error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (s *SOMASServer) runForageSharing() error {
+	s.logf("Run Forage Predictions")
+	defer s.logf("Finish Running Forage Predictions")
+
+	otherIslandInfo, err := s.getForageSharing()
+	if err != nil {
+		return errors.Errorf("Error running prediction session: %v", err)
+	}
+	s.distributeForageSharing(otherIslandInfo)
 
 	return nil
 }
@@ -83,4 +101,47 @@ func (s *SOMASServer) distributePredictions(islandPredictionDict shared.Predicti
 	}
 
 	return nil
+}
+
+// getForageSharing will ping each nonDeadClient and will save what their ForagingDecision,
+// their ResourceObtained from that decision, and which ClientID they want share this info
+// with.
+func (s *SOMASServer) getForageSharing() (shared.MakeForagingDict, error) {
+	s.logf("Getting Forage Information")
+	islandShareForageDict := shared.MakeForagingDict{}
+	var err error
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		islandShareForageDict[id] = c.MakeForageInfo()
+		if err != nil {
+			return islandShareForageDict, errors.Errorf("Failed to get prediction from %v: %v", id, err)
+		}
+	}
+	return islandShareForageDict, nil
+}
+
+// distributeForageSharing sends the collected ForageDecisions and ResourceObtained to specified ClientID
+func (s *SOMASServer) distributeForageSharing(otherIslandInfo shared.MakeForagingDict) {
+	s.logf("Distributing Forage Information")
+	islandForagingDict := shared.ReceiveForagingDict{}
+	for islandId, foragingInfo := range otherIslandInfo {
+		for _, shareId := range foragingInfo.ShareTo {
+			if islandId == shareId {
+				continue
+			}
+			islandForagingDict[shareId] = append(
+				islandForagingDict[shareId],
+				shared.ShareForageInfomation{
+					DecisionMade:     foragingInfo.DecisionMade,
+					ResourceObtained: foragingInfo.ResourceObtained,
+					SharedFrom:       islandId})
+		}
+	}
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+
+		c.ReceiveForageInfo(islandForagingDict[id])
+	}
 }
