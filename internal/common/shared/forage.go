@@ -1,7 +1,9 @@
 package shared
 
+import "fmt"
+
 // ForageType selects which resource the agents want to forage in
-type ForageType = int
+type ForageType int
 
 const (
 	// DeerForageType is hunting resource, it is described at length in foraging package
@@ -18,3 +20,14 @@ type ForageDecision struct {
 
 // ForagingDecisionsDict is a map of clients' foraging decisions
 type ForagingDecisionsDict = map[ClientID]ForageDecision
+
+func (ft ForageType) String() string {
+	switch ft {
+	case DeerForageType:
+		return "DeerForageType"
+	case FishForageType:
+		return "FishForageType"
+	default:
+		return fmt.Sprintf("InvalidForageType(%d)", ft)
+	}
+}
