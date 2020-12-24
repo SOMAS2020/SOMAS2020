@@ -266,3 +266,44 @@ func TestTakeResources(t *testing.T) {
 		})
 	}
 }
+
+func TestGiveResources(t *testing.T) {
+	cases := []struct {
+		name      string
+		resources shared.Resources
+		giveAmt   shared.Resources
+		want      shared.Resources
+	}{
+		{
+			name:      "normal",
+			resources: 42,
+			giveAmt:   3,
+			want:      45,
+		},
+		{
+			name:      "Give 0",
+			resources: 42,
+			giveAmt:   0,
+			want:      42,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := SOMASServer{
+				gameState: gamestate.GameState{
+					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+						shared.Team1: {Resources: tc.resources},
+					},
+				},
+			}
+
+			s.giveResources(shared.Team1, tc.giveAmt, tc.name)
+			got := s.gameState.ClientInfos[shared.Team1].Resources
+
+			if tc.want != got {
+				t.Errorf("want '%v' got '%v'", tc.want, got)
+			}
+		})
+	}
+}
