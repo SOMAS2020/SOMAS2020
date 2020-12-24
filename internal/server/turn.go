@@ -173,7 +173,11 @@ func (s *SOMASServer) deductCostOfLiving(costOfLiving shared.Resources) {
 	for _, id := range nonDeadClients {
 		go func(id shared.ClientID, ci gamestate.ClientInfo) {
 			defer wg.Done()
-			ci.Resources -= costOfLiving
+			if ci.Resources < costOfLiving {
+				ci.Resources = 0
+			} else {
+				ci.Resources -= costOfLiving
+			}
 			resChan <- clientInfoUpdateResult{
 				ID:  id,
 				Ci:  ci,

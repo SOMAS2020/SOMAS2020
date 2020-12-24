@@ -82,7 +82,7 @@ func GameConfig() Config {
 
 	return Config{
 		MaxSeasons:                  100,
-		MaxTurns:                    2,
+		MaxTurns:                    100,
 		InitialResources:            100,
 		CostOfLiving:                10,
 		MinimumResourceThreshold:    5,
