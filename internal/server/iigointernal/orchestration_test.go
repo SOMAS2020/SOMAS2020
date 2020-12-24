@@ -10,11 +10,6 @@ import (
 func TestPutSalaryBack(t *testing.T) {
 	fakeGameState := gamestate.GameState{
 		CommonPool: 149,
-		IIGOInfo: gamestate.IIGOBaseRoles{
-			BasePresident: &featurePresident,
-			BaseSpeaker:   &featureSpeaker,
-			BaseJudge:     &featureJudge,
-		},
 	}
 	err := RunIIGO(&fakeGameState, &map[shared.ClientID]baseclient.Client{})
 	if err == nil {

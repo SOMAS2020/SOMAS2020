@@ -13,8 +13,8 @@ type EvaluationReturn struct {
 	Evaluations []bool
 }
 type Judge interface {
-	PayPresident() (shared.Resources, error)
+	PayPresident() shared.Resources
 	InspectHistory() (map[shared.ClientID]EvaluationReturn, error)
-	DeclareSpeakerPerformance() (BID int, result bool, SID shared.ClientID, checkRole bool, err error)
-	DeclarePresidentPerformance() (RID int, result bool, PID shared.ClientID, checkRole bool, err error)
+	DeclareSpeakerPerformance() (result bool, didRole bool)
+	DeclarePresidentPerformance() (result bool, didRole bool)
 }

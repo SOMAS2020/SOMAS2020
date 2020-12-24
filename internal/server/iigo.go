@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
@@ -26,7 +27,7 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 		newGameState := s.gameState.GetClientGameStateCopy(clientID)
 		newGameState.ClientInfo.Resources -= tax
 		v.GameStateUpdate(newGameState)
-		_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+		_ = gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: "island_tax_contribution",
 				Values:       []float64{float64(tax)},
@@ -52,7 +53,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 		v.GameStateUpdate(newGameState)
 		if allocation <= s.gameState.CommonPool {
 			s.gameState.CommonPool -= allocation
-			_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+			_ = gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 				{
 					VariableName: "island_allocation",
 					Values:       []float64{float64(allocation)},

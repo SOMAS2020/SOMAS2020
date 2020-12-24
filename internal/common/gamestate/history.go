@@ -1,4 +1,4 @@
-package iigointernal
+package gamestate
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -6,16 +6,16 @@ import (
 )
 
 type Accountability struct {
-	clientID shared.ClientID
-	pairs    []rules.VariableValuePair
+	ClientID shared.ClientID
+	Pairs    []rules.VariableValuePair
 }
 
 var TurnHistory []Accountability
 
 func UpdateTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) error {
 	TurnHistory = append(TurnHistory, Accountability{
-		clientID: clientID,
-		pairs:    pairs,
+		ClientID: clientID,
+		Pairs:    pairs,
 	})
 	return nil
 }

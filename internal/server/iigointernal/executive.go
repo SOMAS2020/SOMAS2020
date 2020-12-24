@@ -106,14 +106,14 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error 
 	var speakerSalary = shared.Resources(rules.VariableMap["speakerSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
 	if withdrawError != nil {
-		featurePresident.speakerSalary = speakerSalary
+		e.speakerSalary = speakerSalary
 	}
 	return withdrawError
 }
 
 func (e *executive) sendSpeakerSalary() {
 	amount, _ := e.clientPresident.PaySpeaker()
-	featureSpeaker.budget = amount
+	e.budget = amount
 }
 
 func (e *executive) reset(val string) error {
@@ -124,4 +124,18 @@ func (e *executive) reset(val string) error {
 	e.RulesProposals = []string{}
 	e.speakerSalary = 0
 	return nil
+}
+
+func (e *executive) requestRuleProposal() {
+	e.budget -= 10
+	var rules []string
+	for _, v := range getIslandAlive() {
+		rules = append(rules, iigoClients[shared.ClientID(int(v))].RuleProposal())
+	}
+
+	e.setRuleProposals(rules)
+}
+
+func getIslandAlive() []float64 {
+	return rules.VariableMap["islands_alive"].Values
 }

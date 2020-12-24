@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -35,7 +34,6 @@ type SOMASServer struct {
 func SOMASServerFactory() Server {
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
 
-	judge, speaker, president := iigointernal.GetFeaturedRoles()
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
@@ -44,7 +42,6 @@ func SOMASServerFactory() Server {
 	return &SOMASServer{
 		clientMap: clientMap,
 		gameState: gamestate.GameState{
-			IIGOInfo:    gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
 			Season:         1,
 			Turn:           1,
 			ClientInfos:    clientInfos,
