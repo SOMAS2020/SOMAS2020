@@ -111,10 +111,9 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientGameState = gameState
 }
 
-// Role should be enumerated in some way.
-type Role = int // FIXME
+// Role enumerates the different roles.
+type Role = int
 
-// Enumeration for the different roles.
 const (
 	President Role = iota
 	Speaker
@@ -145,10 +144,9 @@ func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
 	return returnList
 }
 
-// CommunicationContentType should be enumerated properly.
-type CommunicationContentType = int // FIXME
+// CommunicationContentType enumerates the different content types.
+type CommunicationContentType = int
 
-// Enumeration type on the different content types.
 const (
 	CommunicationInt CommunicationContentType = iota
 	CommunicationString
