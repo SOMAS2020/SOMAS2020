@@ -62,32 +62,28 @@ func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.Gif
 	totalOffers := map[shared.ClientID]shared.GiftOfferDict{}
 	// Loop over each team
 	for id, client := range s.clientMap {
-		var offer map[shared.ClientID]shared.GiftOffer
-		var err error
 		// Gather all the requests made to this team
 		requestsToThisTeam := shared.GiftRequestDict{}
 		for fromTeam, indivRequests := range totalRequests {
 			requestsToThisTeam[fromTeam] = indivRequests[id]
 		}
-		offer, err = client.GetGiftOffers(requestsToThisTeam)
+		offer, err := client.GetGiftOffers(requestsToThisTeam)
 		if err != nil {
 			totalOffers[id] = offer
 		}
 	}
 	return totalOffers, nil
 }
+
 func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.GiftOfferDict) (map[shared.ClientID]shared.GiftResponseDict, error) {
 	totalResponses := map[shared.ClientID]shared.GiftResponseDict{}
 
 	for id, client := range s.clientMap {
-		var response map[shared.ClientID]shared.GiftResponse
-		var err error
-
 		offersToThisTeam := shared.GiftOfferDict{}
 		for fromTeam, indivOffers := range totalOffers {
 			offersToThisTeam[fromTeam] = indivOffers[id]
 		}
-		response, err = client.GetGiftResponses(offersToThisTeam)
+		response, err := client.GetGiftResponses(offersToThisTeam)
 		if err != nil {
 			totalResponses[id] = response
 		}
@@ -95,8 +91,8 @@ func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.Gi
 	return totalResponses, nil
 }
 
+// distributeGiftHistory collates all responses to a single client and calls that client to receive its responses.
 func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]shared.GiftResponseDict) error {
-	// Process acceptedGifts
 	for id, client := range s.clientMap {
 		responsesToThisTeam := shared.GiftResponseDict{}
 		for fromTeam, indivResponses := range totalResponses {

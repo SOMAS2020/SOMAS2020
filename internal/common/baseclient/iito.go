@@ -2,14 +2,11 @@ package baseclient
 
 import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
-// FIXME: Wait for implementation of getClientsAlive()
-const aliveClients = 6
-
 // GetGiftRequests allows clients to signalize that they want a gift
 // This information is fed to OfferGifts of all other clients.
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) GetGiftRequests() shared.GiftRequestDict {
-	requests := make(shared.GiftRequestDict, aliveClients)
+	requests := shared.GiftRequestDict{}
 	for key := range requests {
 		if c.clientGameState.ClientInfo.LifeStatus == shared.Critical {
 			requests[key] = shared.GiftRequest{RequestingTeam: c.GetID(), OfferingTeam: key, RequestAmount: 100.0}
@@ -24,7 +21,7 @@ func (c *BaseClient) GetGiftRequests() shared.GiftRequestDict {
 // It can offer multiple partial gifts.
 // COMPULSORY, you need to implement this method. This placeholder implementation offers no gifts.
 func (c *BaseClient) GetGiftOffers(receivedRequests shared.GiftRequestDict) (shared.GiftOfferDict, error) {
-	offers := make(shared.GiftOfferDict, aliveClients)
+	offers := shared.GiftOfferDict{}
 	for key := range offers {
 		offers[key] = shared.GiftOffer{ReceivingTeam: c.GetID(), OfferingTeam: key, OfferAmount: 0.0}
 	}
