@@ -21,7 +21,7 @@ var ruleMatrixExample rules.RuleMatrix
 
 func TestRuleVotedIn(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
-	s := baseSpeaker{}
+	s := legislature{}
 	cases := []struct {
 		name string
 		rule string
@@ -61,7 +61,7 @@ func TestRuleVotedIn(t *testing.T) {
 
 func TestRuleVotedOut(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
-	s := baseSpeaker{}
+	s := legislature{}
 	cases := []struct {
 		name string
 		rule string
@@ -166,36 +166,36 @@ func generateRulesTestStores() (map[string]rules.RuleMatrix, map[string]rules.Ru
 //		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedStateTransfer, stateTransfer)
 //	}
 //}
-
-func (s *baseSpeaker) announceVotingResultTest() error {
-
-	var rule string
-	var result bool
-	var err error
-
-	if s.clientSpeaker != nil {
-		//Power to change what is declared completely, return "", _ for no announcement to occur
-		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.RuleToVote, s.VotingResult)
-		//TODO: log of given vs. returned rule and result
-		if err != nil {
-			rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
-		}
-	} else {
-		rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
-	}
-
-	//Reset
-	s.RuleToVote = ""
-	s.VotingResult = false
-
-	if rule != "" {
-		//Deduct action cost
-		s.budget -= 10
-
-		//Perform announcement
-		//broadcastToAllIslands(s.Id, generateVotingResultMessage(rule, result))
-		return s.updateRules(rule, result)
-	}
-
-	return nil
-}
+//
+//func (s *baseSpeaker) announceVotingResultTest() error {
+//
+//	var rule string
+//	var result bool
+//	var err error
+//
+//	if s.clientSpeaker != nil {
+//		//Power to change what is declared completely, return "", _ for no announcement to occur
+//		rule, result, err = s.clientSpeaker.DecideAnnouncement(s.RuleToVote, s.VotingResult)
+//		//TODO: log of given vs. returned rule and result
+//		if err != nil {
+//			rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
+//		}
+//	} else {
+//		rule, result, _ = s.DecideAnnouncement(s.RuleToVote, s.VotingResult)
+//	}
+//
+//	//Reset
+//	s.RuleToVote = ""
+//	s.VotingResult = false
+//
+//	if rule != "" {
+//		//Deduct action cost
+//		s.budget -= 10
+//
+//		//Perform announcement
+//		//broadcastToAllIslands(s.Id, generateVotingResultMessage(rule, result))
+//		return s.updateRules(rule, result)
+//	}
+//
+//	return nil
+//}
