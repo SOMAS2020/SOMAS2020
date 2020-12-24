@@ -11,39 +11,39 @@ import (
 
 type mockClientIIFO struct {
 	baseclient.Client
-	foragingValues  shared.ShareForageInfomation
-	otherIslandInfo []shared.ShareForageInfomation
+	foragingValues  shared.ForageShareInfo
+	otherIslandInfo []shared.ForageShareInfo
 }
 
-func (c *mockClientIIFO) MakeForageInfo() shared.ShareForageInfomation {
+func (c *mockClientIIFO) MakeForageInfo() shared.ForageShareInfo {
 	return c.foragingValues
 }
 
-func (c *mockClientIIFO) ReceiveForageInfo(otherIslandInfo []shared.ShareForageInfomation) {
+func (c *mockClientIIFO) ReceiveForageInfo(otherIslandInfo []shared.ForageShareInfo) {
 	c.otherIslandInfo = otherIslandInfo
 }
 
-func (c *mockClientIIFO) getOtherIslandInfo() []shared.ShareForageInfomation {
+func (c *mockClientIIFO) getOtherIslandInfo() []shared.ForageShareInfo {
 	return c.otherIslandInfo
 }
 
-func makeForagingInfo(contribution shared.Resources, resources shared.Resources, shareTo []shared.ClientID) shared.ShareForageInfomation {
+func makeForagingInfo(contribution shared.Resources, resources shared.Resources, shareTo []shared.ClientID) shared.ForageShareInfo {
 	if len(shareTo) > 0 {
-		return shared.ShareForageInfomation{
+		return shared.ForageShareInfo{
 			DecisionMade:     shared.ForageDecision{Type: shared.DeerForageType, Contribution: contribution},
 			ResourceObtained: resources,
 			ShareTo:          shareTo,
 		}
 	}
 	// People can be selfish and choose not to share their foraging information
-	return shared.ShareForageInfomation{
+	return shared.ForageShareInfo{
 		DecisionMade:     shared.ForageDecision{Type: shared.DeerForageType, Contribution: contribution},
 		ResourceObtained: resources,
 	}
 }
 
-func receiveForagingInfo(contribution shared.Resources, resources shared.Resources, sharedFrom shared.ClientID) shared.ShareForageInfomation {
-	return shared.ShareForageInfomation{
+func receiveForagingInfo(contribution shared.Resources, resources shared.Resources, sharedFrom shared.ClientID) shared.ForageShareInfo {
+	return shared.ForageShareInfo{
 		DecisionMade:     shared.ForageDecision{Type: shared.DeerForageType, Contribution: contribution},
 		ResourceObtained: resources,
 		SharedFrom:       sharedFrom,
@@ -75,7 +75,7 @@ func TestGetForageSharingWorks(t *testing.T) {
 		},
 	}
 
-	want := shared.MakeForagingDict{
+	want := shared.ForagingOfferDict{
 		shared.Team1: makeForagingInfo(52.7, 64, []shared.ClientID{shared.Team2, shared.Team3}),
 		shared.Team2: makeForagingInfo(22.2, 22.3, []shared.ClientID{}),
 	}
@@ -119,14 +119,14 @@ func TestDistributeForageSharing(t *testing.T) {
 		shared.Team3: mockClient[shared.Team3],
 	}
 
-	input := shared.MakeForagingDict{
+	input := shared.ForagingOfferDict{
 		shared.Team1: makeForagingInfo(52.7, 64, []shared.ClientID{shared.Team2, shared.Team3}),
 		shared.Team2: makeForagingInfo(22.2, 22.3, []shared.ClientID{}),
 	}
 
-	want := shared.ReceiveForagingDict{
-		shared.Team1: []shared.ShareForageInfomation(nil),
-		shared.Team2: []shared.ShareForageInfomation{receiveForagingInfo(52.7, 64, shared.Team1)},
+	want := shared.ForagingReceiptDict{
+		shared.Team1: []shared.ForageShareInfo(nil),
+		shared.Team2: []shared.ForageShareInfo{receiveForagingInfo(52.7, 64, shared.Team1)},
 	}
 
 	server := &SOMASServer{

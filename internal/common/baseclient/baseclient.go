@@ -40,8 +40,8 @@ type Client interface {
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
-	MakeForageInfo() shared.ShareForageInfomation
-	ReceiveForageInfo([]shared.ShareForageInfomation)
+	MakeForageInfo() shared.ForageShareInfo
+	ReceiveForageInfo([]shared.ForageShareInfo)
 
 	//IITO: COMPULSORY
 	RequestGift() uint
