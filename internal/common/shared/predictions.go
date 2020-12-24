@@ -2,7 +2,6 @@ package shared
 
 // Prediction is a struct containing the necessary parameters for an island to
 // make a prediction about a disaster
-
 type Prediction struct {
 	CoordinateX Coordinate
 	CoordinateY Coordinate

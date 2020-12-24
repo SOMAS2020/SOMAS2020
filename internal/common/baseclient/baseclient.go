@@ -3,8 +3,9 @@ package baseclient
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"log"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -44,7 +45,7 @@ type Client interface {
 	DecideForage() (shared.ForageDecision, error)
 
 	//IITO: COMPULSORY
-	RequestGift() uint
+	RequestGift() shared.Resources
 	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
 	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
 	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
@@ -110,8 +111,10 @@ func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
 	c.clientGameState = gameState
 }
 
-type Role = int
+// Role should be enumerated in some way.
+type Role = int // FIXME
 
+// Enumeration for the different roles.
 const (
 	President Role = iota
 	Speaker
@@ -142,8 +145,10 @@ func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
 	return returnList
 }
 
-type CommunicationContentType = int
+// CommunicationContentType should be enumerated properly.
+type CommunicationContentType = int // FIXME
 
+// Enumeration type on the different content types.
 const (
 	CommunicationInt CommunicationContentType = iota
 	CommunicationString
