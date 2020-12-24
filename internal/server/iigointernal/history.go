@@ -1,15 +1,18 @@
 package iigointernal
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 type Accountability struct {
-	clientID int
+	clientID shared.ClientID
 	pairs    []rules.VariableValuePair
 }
 
 var TurnHistory []Accountability
 
-func UpdateTurnHistory(clientID int, pairs []rules.VariableValuePair) error {
+func UpdateTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) error {
 	TurnHistory = append(TurnHistory, Accountability{
 		clientID: clientID,
 		pairs:    pairs,

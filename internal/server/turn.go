@@ -160,7 +160,7 @@ func (s *SOMASServer) incrementTurnAndSeason(disasterHappened bool) {
 }
 
 // deductCostOfLiving deducts CoL for all living islands, including critical ones
-func (s *SOMASServer) deductCostOfLiving(costOfLiving int) {
+func (s *SOMASServer) deductCostOfLiving(costOfLiving shared.Resources) {
 	s.logf("start deductCostOfLiving")
 	defer s.logf("finish deductCostOfLiving")
 

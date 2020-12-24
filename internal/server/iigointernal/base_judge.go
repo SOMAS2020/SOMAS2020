@@ -12,14 +12,14 @@ import (
 
 // base Judge object
 type BaseJudge struct {
-	Id                int
-	budget            int
-	presidentSalary   int
+	ID                shared.ClientID
+	budget            shared.Resources
+	presidentSalary   shared.Resources
 	BallotID          int
 	ResAllocID        int
-	speakerID         int
-	presidentID       int
-	EvaluationResults map[int]roles.EvaluationReturn
+	speakerID         shared.ClientID
+	presidentID       shared.ClientID
+	EvaluationResults map[shared.ClientID]roles.EvaluationReturn
 	clientJudge       roles.Judge
 }
 
@@ -29,7 +29,7 @@ func (j *BaseJudge) init() {
 }
 
 // returnPresidentSalary returns the salary to the common pool.
-func (j *BaseJudge) returnPresidentSalary() int {
+func (j *BaseJudge) returnPresidentSalary() shared.Resources {
 	x := j.presidentSalary
 	j.presidentSalary = 0
 	return x
@@ -37,7 +37,7 @@ func (j *BaseJudge) returnPresidentSalary() int {
 
 // withdrawPresidentSalary withdraws the president's salary from the common pool.
 func (j *BaseJudge) withdrawPresidentSalary(gameState *gamestate.GameState) error {
-	var presidentSalary = int(rules.VariableMap["presidentSalary"].Values[0])
+	var presidentSalary = shared.Resources(rules.VariableMap["presidentSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(presidentSalary, gameState)
 	if withdrawError == nil {
 		featureJudge.presidentSalary = presidentSalary
@@ -59,21 +59,21 @@ func (j *BaseJudge) sendPresidentSalary() {
 }
 
 // PayPresident pays the president salary.
-func (j *BaseJudge) PayPresident() (int, error) {
+func (j *BaseJudge) PayPresident() (shared.Resources, error) {
 	hold := j.presidentSalary
 	j.presidentSalary = 0
 	return hold, nil
 }
 
 // setSpeakerAndPresidentIDs set the speaker and president IDs.
-func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId int, presidentId int) {
+func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId shared.ClientID, presidentId shared.ClientID) {
 	j.speakerID = speakerId
 	j.presidentID = presidentId
 }
 
 // inspectHistoryInternal is the base implementation of InspectHistory.
 func (j *BaseJudge) inspectHistoryInternal() {
-	outputMap := map[int]roles.EvaluationReturn{}
+	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
 	for _, v := range TurnHistory {
 		variablePairs := v.pairs
 		clientID := v.clientID
@@ -107,8 +107,8 @@ func (j *BaseJudge) inspectHistoryInternal() {
 
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
-func (j *BaseJudge) InspectHistory() (map[int]roles.EvaluationReturn, error) {
-	j.budget -= 10 // will be removed post-MVP
+func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn, error) {
+	j.budget -= 10
 	if j.clientJudge != nil {
 		outputMap, err := j.clientJudge.InspectHistory()
 		if err != nil {
@@ -165,9 +165,9 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 }
 
 // declareSpeakerPerformanceInternal is the base implementation of DeclareSpeakerPerformance
-func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, error) {
+func (j *BaseJudge) declareSpeakerPerformanceInternal() (BID int, result bool, SID shared.ClientID, checkRole bool, err error) {
 	j.BallotID++
-	result, err := j.inspectBallot()
+	result, err = j.inspectBallot()
 
 	conductedRole := err == nil
 
@@ -175,15 +175,8 @@ func (j *BaseJudge) declareSpeakerPerformanceInternal() (int, bool, int, bool, e
 }
 
 // DeclareSpeakerPerformance checks how well the speaker did their job
-func (j *BaseJudge) DeclareSpeakerPerformance() (int, bool, int, bool, error) {
-
-	j.budget -= 10 // will be removed post-MVP
-	var BID int
-	var result bool
-	var SID int
-	var checkRole bool
-	var err error
-
+func (j *BaseJudge) DeclareSpeakerPerformance() (BID int, result bool, SID shared.ClientID, checkRole bool, err error) {
+	j.budget -= 10
 	if j.clientJudge != nil {
 		BID, result, SID, checkRole, err = j.clientJudge.DeclareSpeakerPerformance()
 		if err == nil {
@@ -202,18 +195,13 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
-		broadcastToAllIslands(shared.TeamIDs[j.Id], message)
+		broadcastToAllIslands(shared.TeamIDs[j.ID], message)
 	}
 }
 
 // DeclarePresidentPerformance checks how well the president did their job
-func (j *BaseJudge) DeclarePresidentPerformance() (int, bool, int, bool, error) {
-	j.budget -= 10 // will be removed post-MVP
-	var RID int
-	var result bool
-	var PID int
-	var checkRole bool
-	var err error
+func (j *BaseJudge) DeclarePresidentPerformance() (RID int, result bool, PID shared.ClientID, checkRole bool, err error) {
+	j.budget -= 10
 
 	if j.clientJudge != nil {
 		RID, result, PID, checkRole, err = j.clientJudge.DeclarePresidentPerformance()
@@ -234,12 +222,12 @@ func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
-		broadcastToAllIslands(shared.TeamIDs[j.Id], message)
+		broadcastToAllIslands(shared.TeamIDs[j.ID], message)
 	}
 }
 
 // declarePresidentPerformanceInternal is the base implementation for DeclarePresidentPerformance
-func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool, error) {
+func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, shared.ClientID, bool, error) {
 
 	j.ResAllocID++
 	result, err := j.inspectAllocation()
@@ -250,18 +238,18 @@ func (j *BaseJudge) declarePresidentPerformanceInternal() (int, bool, int, bool,
 }
 
 // appointNextPresident returns the island ID of the island appointed to be the president in the next turn
-func (j *BaseJudge) appointNextPresident(clientIDs []shared.ClientID) int {
-	j.budget -= 10 // will be removed post-MVP
+func (j *BaseJudge) appointNextPresident(clientIDs []shared.ClientID) shared.ClientID {
+	j.budget -= 10
 	var election voting.Election
 	election.ProposeElection(baseclient.President, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
-	return int(election.CloseBallot())
+	return election.CloseBallot()
 }
 
 // generateSpeakerPerformanceMessage generates the appropriate communication required regarding
 // speaker performance to be sent to clients
-func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedRole bool) map[int]baseclient.Communication {
+func generateSpeakerPerformanceMessage(BID int, result bool, SID shared.ClientID, conductedRole bool) map[int]baseclient.Communication {
 	returnMap := map[int]baseclient.Communication{}
 
 	returnMap[BallotID] = baseclient.Communication{
@@ -274,7 +262,7 @@ func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedR
 	}
 	returnMap[SpeakerID] = baseclient.Communication{
 		T:           baseclient.CommunicationInt,
-		IntegerData: SID,
+		IntegerData: int(SID),
 	}
 	returnMap[RoleConducted] = baseclient.Communication{
 		T:           baseclient.CommunicationBool,
@@ -285,7 +273,7 @@ func generateSpeakerPerformanceMessage(BID int, result bool, SID int, conductedR
 
 // generatePresidentPerformanceMessage generated the appropriate communication required regarding
 // president performance to be sent to clients
-func generatePresidentPerformanceMessage(RID int, result bool, PID int, conductedRole bool) map[int]baseclient.Communication {
+func generatePresidentPerformanceMessage(RID int, result bool, PID shared.ClientID, conductedRole bool) map[int]baseclient.Communication {
 	returnMap := map[int]baseclient.Communication{}
 
 	returnMap[ResAllocID] = baseclient.Communication{
@@ -298,7 +286,7 @@ func generatePresidentPerformanceMessage(RID int, result bool, PID int, conducte
 	}
 	returnMap[PresidentID] = baseclient.Communication{
 		T:           baseclient.CommunicationInt,
-		IntegerData: PID,
+		IntegerData: int(PID),
 	}
 	returnMap[RoleConducted] = baseclient.Communication{
 		T:           baseclient.CommunicationBool,

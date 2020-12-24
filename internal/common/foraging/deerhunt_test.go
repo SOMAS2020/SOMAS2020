@@ -14,8 +14,8 @@ func TestDeerUtilityTier(t *testing.T) {
 	maxDeer := 4
 
 	var tests = []struct {
-		inputR float64 // cumulative resource input from hunt participants
-		want   int     // output tier
+		inputR shared.Resources // cumulative resource input from hunt participants
+		want   int              // output tier
 	}{
 		{0.0, 0},
 		{0.99, 0},
@@ -37,7 +37,7 @@ func TestDeerUtilityTier(t *testing.T) {
 }
 
 func TestTotalInput(t *testing.T) {
-	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
+	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
 	hunt, _ := CreateDeerHunt(huntParticipants)
 	ans := hunt.TotalInput()
 	if ans != 1.9 {
@@ -50,7 +50,7 @@ func TestDeerReturn(t *testing.T) {
 	avReturn := 0.0
 	for i := 1; i <= 1000; i++ { // calculate empirical mean return over 1000 trials
 		d := deerReturn(params)
-		avReturn = (avReturn*(float64(i)-1) + d) / float64(i)
+		avReturn = (avReturn*(float64(i)-1) + float64(d)) / float64(i)
 	}
 	expectedReturn := params.p * (1 + 1/params.lam) // theoretical mean based on def of expectation
 	if math.Abs(1-expectedReturn/avReturn) > 0.05 {
