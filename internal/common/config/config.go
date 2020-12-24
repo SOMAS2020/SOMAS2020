@@ -107,7 +107,7 @@ func GameConfig() Config {
 		XMax:            10.0, // chosen quite arbitrarily for now
 		YMin:            0.0,
 		YMax:            10.0,
-		GlobalProb:      1,
+		GlobalProb:      0.1,
 		SpatialPDFType:  shared.Uniform,
 		MagnitudeLambda: 1.0,
 	}
