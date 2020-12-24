@@ -87,8 +87,9 @@ func TestAllocationRequests(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			executive := &executive{
-				ID:     shared.Team1,
-				budget: 50,
+				ID:              shared.Team1,
+				budget:          50,
+				clientPresident: &baseclient.BasePresident{},
 			}
 
 			val, err := executive.clientPresident.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
@@ -153,7 +154,9 @@ func TestPickRuleToVote(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			executive := &executive{}
+			executive := &executive{
+				clientPresident: &baseclient.BasePresident{},
+			}
 
 			val, err := executive.clientPresident.PickRuleToVote(tc.input)
 			if err == nil && tc.want == nil {
@@ -376,7 +379,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team5: 25,
 					shared.Team6: 30,
 				},
-				clientPresident: nil,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			input: 100,
 			expected: map[shared.ClientID]shared.Resources{
@@ -400,7 +403,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team5: 25,
 					shared.Team6: 30,
 				},
-				clientPresident: nil,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			input: 150,
 			expected: map[shared.ClientID]shared.Resources{

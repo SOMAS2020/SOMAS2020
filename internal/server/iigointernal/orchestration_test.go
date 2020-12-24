@@ -20,17 +20,3 @@ func TestPutSalaryBack(t *testing.T) {
 		}
 	}
 }
-
-func TestSalaryDeducted(t *testing.T) {
-	fakeGameState := gamestate.GameState{
-		CommonPool: 150,
-	}
-	err := RunIIGO(&fakeGameState, &map[shared.ClientID]baseclient.Client{})
-	if err != nil {
-		t.Errorf("IIGO didn't throw error when salaries couldn't be paid")
-	} else {
-		if fakeGameState.CommonPool != 0 {
-			t.Errorf("Common pool contained '%v' expected '%v'", fakeGameState.CommonPool, 0)
-		}
-	}
-}
