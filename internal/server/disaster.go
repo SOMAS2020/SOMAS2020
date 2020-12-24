@@ -6,7 +6,7 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 	s.logf("start probeDisaster")
 	defer s.logf("finish probeDisaster")
-
+	
 	e := s.gameState.Environment.SampleForDisaster()
 	disasterReport, leftover_damage := s.gameState.Environment.DisplayReport()
 	s.logf(disasterReport)

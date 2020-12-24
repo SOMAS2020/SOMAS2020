@@ -17,7 +17,7 @@ type Commonpool struct {
 //	+ If threshold T is met, which mean islands have prepared well before the disaster hit, the damage that disaster have on cp and islands will be half 
 //	+ If not, cp and islands will feel the full effect of disaster
 //	+ For now, each 1 effect of disaster is equivalent to 1000 resource 
-func (e *Environment) DisasterMitigate(individualEffect map[shared.ClientID]float64, proportionalEffect map[shared.ClientID]float64) map[shared.ClientID]float64 {				//input is the porportional effect of each island
+func (e Environment) DisasterMitigate(individualEffect map[shared.ClientID]float64, proportionalEffect map[shared.ClientID]float64) map[shared.ClientID]float64 {				//input is the porportional effect of each island
 	// compute total effect of disaster on 6 islands 
 	totalEffect := 0.0				
 	updatedIndividualEffect := map[shared.ClientID]float64{}
@@ -42,7 +42,6 @@ func (e *Environment) DisasterMitigate(individualEffect map[shared.ClientID]floa
 			updatedIndividualEffect[islandID] = 0 						// 0 means fully mitigated
 		}
 	} else {															// Case when damage is too high, cp cannot fully mitigate 
-
 		leftover_effect := newMagnitude-tempResource  					// damage that has to be mitigated by islands
 		tempResource = 0                              					// nothing remains in the cp
 		for islandID, effect := range proportionalEffect {

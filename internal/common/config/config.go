@@ -103,17 +103,17 @@ func GameConfig() Config {
 		FishingConfig:  fishingConf,
 	}
 	disasterConf := DisasterConfig{
-		XMin:            				0.0,
-		XMax:            				10.0, // chosen quite arbitrarily for now
-		YMin:            				0.0,
-		YMax:            				10.0,
-		GlobalProb:      				1,
+		XMin:            0.0,
+		XMax:            10.0, // chosen quite arbitrarily for now
+		YMin:            0.0,
+		YMax:            10.0,
+		GlobalProb:      1,
 		SpatialPDFType:  shared.Uniform,
-		MagnitudeLambda: 				1.0,
+		MagnitudeLambda: 1.0,
 	}
 	commonPoolConf := CommonPoolConfig{
-		Resource:				900,		//arbitrarily chosen for initial value
-		Threshold:				1000,		//arbitrarily chosen for initial value
+		Resource:		900,		//arbitrarily chosen for initial value
+		Threshold:		1000,		//arbitrarily chosen for initial value
 	}
 
 	return Config{

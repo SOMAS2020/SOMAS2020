@@ -32,7 +32,7 @@ func (report DisasterReport) Display() string {
 
 // DisplayReport is a string format method to viz a disaster report and its effect
 // DisplayReport also visualize how the disaster has been mitigated by the common pool
-func (env *Environment) DisplayReport() (string, map[shared.ClientID]float64) {
+func (env Environment) DisplayReport() (string, map[shared.ClientID]float64) {
 	disasterReport := env.LastDisasterReport.Display()
 	if env.LastDisasterReport.Magnitude == 0 {
 		return disasterReport, nil // just return default no disaster message. Not necessary to report affected islands.
@@ -61,7 +61,8 @@ func (env *Environment) DisplayReport() (string, map[shared.ClientID]float64) {
 	sb.WriteString("\n------------------------ Updated Disaster Effects ------------------------\n")
 	for islandID, effect := range individualEffect {
 		island := env.Geography.Islands[islandID]
-		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f, \tUpdated damage: %.2f, \t Common pool mitigated: %.2f \n", islandID, island.X, island.Y, effect, updatedProportionalEffect[islandID], damageDifference[islandID] ))
+		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f, ", islandID, island.X, island.Y, effect, ))
+		sb.WriteString(fmt.Sprintf("\tUpdated damage: %.2f, \t Common pool mitigated: %.2f \n", updatedProportionalEffect[islandID], damageDifference[islandID]))	
 	}
 	return sb.String(), updatedProportionalEffect
 }
