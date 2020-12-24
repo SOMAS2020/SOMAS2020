@@ -178,6 +178,10 @@ func TestDeductCostOfLiving(t *testing.T) {
 			Resources:  45,
 			LifeStatus: shared.Dead,
 		},
+		shared.Team4: {
+			Resources:  20,
+			LifeStatus: shared.Alive,
+		},
 	}
 	wantClientInfos := map[shared.ClientID]gamestate.ClientInfo{
 		shared.Team1: {
@@ -191,6 +195,10 @@ func TestDeductCostOfLiving(t *testing.T) {
 		shared.Team3: {
 			Resources:  45,
 			LifeStatus: shared.Dead,
+		},
+		shared.Team4: {
+			Resources:  0,
+			LifeStatus: shared.Alive,
 		},
 	}
 
