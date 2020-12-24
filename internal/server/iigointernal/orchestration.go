@@ -10,6 +10,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const serviceCharge = shared.Resources(10)
+
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
 var judicialBranch = judiciary{

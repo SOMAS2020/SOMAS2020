@@ -40,7 +40,7 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
 func (e *executive) getRuleForSpeaker() string {
-	e.budget -= 10
+	e.budget -= serviceCharge
 	result, _ := e.clientPresident.PickRuleToVote(e.RulesProposals)
 	return result
 }
@@ -48,13 +48,14 @@ func (e *executive) getRuleForSpeaker() string {
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
 func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) map[shared.ClientID]shared.Resources {
-	e.budget -= 10
+	e.budget -= serviceCharge
 	result, _ := e.clientPresident.SetTaxationAmount(islandsResources)
 	return result
 }
 
+// broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
-	e.budget -= 10
+	e.budget -= serviceCharge
 	taxAmountMap := e.getTaxMap(islandsResources)
 	for _, v := range getIslandAlive() {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(v))])}
@@ -67,7 +68,7 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
 func (e *executive) getAllocationRequests(commonPool shared.Resources) map[shared.ClientID]shared.Resources {
-	e.budget -= 10
+	e.budget -= serviceCharge
 	result, _ := e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
 	return result
 }
@@ -82,8 +83,10 @@ func (e *executive) requestAllocationRequest() {
 
 }
 
+// replyAllocationRequest broadcasts the allocation of resources decided by the president
+// to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
-	e.budget -= 10
+	e.budget -= serviceCharge
 	allocationMap := e.getAllocationRequests(commonPool)
 	for _, v := range getIslandAlive() {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
@@ -93,8 +96,9 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	}
 }
 
+// appointNextSpeaker returns the island id of the island appointed to be speaker in the next turn.
 func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.ClientID {
-	e.budget -= 10
+	e.budget -= serviceCharge
 	var election voting.Election
 	election.ProposeElection(baseclient.Speaker, voting.Plurality)
 	election.OpenBallot(clientIDs)
@@ -102,6 +106,7 @@ func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.Clien
 	return election.CloseBallot()
 }
 
+// withdrawSpeakerSalary withdraws the salary for speaker from the common pool.
 func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
 	var speakerSalary = shared.Resources(rules.VariableMap["speakerSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
@@ -111,6 +116,7 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error 
 	return withdrawError
 }
 
+// sendSpeakerSalary send speaker's salary to the speaker.
 func (e *executive) sendSpeakerSalary() {
 	amount, _ := e.clientPresident.PaySpeaker(e.speakerSalary)
 	e.budget = amount
@@ -126,8 +132,9 @@ func (e *executive) reset(val string) error {
 	return nil
 }
 
+//requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() {
-	e.budget -= 10
+	e.budget -= serviceCharge
 	var rules []string
 	for _, v := range getIslandAlive() {
 		rules = append(rules, iigoClients[shared.ClientID(int(v))].RuleProposal())

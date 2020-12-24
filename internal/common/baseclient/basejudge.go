@@ -11,7 +11,9 @@ import (
 type BaseJudge struct {
 }
 
+// PayPresident pays the President a salary.
 func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) shared.Resources {
+	// TODO Implement opinion based salary payment.
 	return presidentSalary
 }
 
@@ -49,15 +51,17 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 	return outputMap, nil
 }
 
+// DeclareSpeakerPerformance checks how well the speaker did their job.
 func (j *BaseJudge) DeclareSpeakerPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
 	return inspectBallot, conductedRole
 }
 
+// DeclarePresidentPerformance checks how well the president did their job.
 func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
 	return inspectBallot, conductedRole
 }
 
-// PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables
+// PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
 func PickUpRulesByVariable(variableName string, ruleStore map[string]rules.RuleMatrix) ([]string, error) {
 	var Rules []string
 	if _, ok := rules.VariableMap[variableName]; ok {

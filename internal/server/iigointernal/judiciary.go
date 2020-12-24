@@ -71,7 +71,7 @@ func (j *judiciary) setSpeakerAndPresidentIDs(speakerId shared.ClientID, preside
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory() (map[shared.ClientID]roles.EvaluationReturn, error) {
-	j.budget -= 10
+	j.budget -= serviceCharge
 	return j.clientJudge.InspectHistory()
 }
 
@@ -80,7 +80,7 @@ func (j *judiciary) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
-	j.budget -= 10 // will be removed post-MVP
+	j.budget -= serviceCharge // will be removed post-MVP
 	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err == nil {
@@ -97,7 +97,7 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
-	j.budget -= 10 // will be removed post-MVP
+	j.budget -= serviceCharge // will be removed post-MVP
 	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
 	if err == nil {
@@ -139,7 +139,7 @@ func (j *judiciary) declarePresidentPerformanceWrapped() {
 
 // appointNextPresident returns the island ID of the island appointed to be the president in the next turn
 func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.ClientID {
-	j.budget -= 10
+	j.budget -= serviceCharge
 	var election voting.Election
 	election.ProposeElection(baseclient.President, voting.Plurality)
 	election.OpenBallot(clientIDs)
