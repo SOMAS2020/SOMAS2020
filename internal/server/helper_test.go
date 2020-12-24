@@ -209,3 +209,60 @@ func TestGetNonDeadClientIDs(t *testing.T) {
 		t.Errorf("want '%v' got '%v'", want, got)
 	}
 }
+
+func TestTakeResources(t *testing.T) {
+	cases := []struct {
+		name      string
+		resources shared.Resources
+		takeAmt   shared.Resources
+		want      shared.Resources
+		wantErr   error
+	}{
+		{
+			name:      "normal",
+			resources: 42,
+			takeAmt:   3,
+			want:      39,
+		},
+		{
+			name:      "take 0",
+			resources: 42,
+			takeAmt:   0,
+			want:      42,
+		},
+		{
+			name:      "Go to 0",
+			resources: 42,
+			takeAmt:   42,
+			want:      0,
+		},
+		{
+			name:      "Go below 0",
+			resources: 10,
+			takeAmt:   15,
+			want:      10,
+			wantErr:   errors.Errorf("Client %v did not have enough resources. Requested %v, only had %v", shared.Team1, 15, 10),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := SOMASServer{
+				gameState: gamestate.GameState{
+					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+						shared.Team1: {Resources: tc.resources},
+					},
+				},
+			}
+
+			err := s.takeResources(shared.Team1, tc.takeAmt, tc.name)
+			got := s.gameState.ClientInfos[shared.Team1].Resources
+
+			testutils.CompareTestErrors(tc.wantErr, err, t)
+
+			if tc.want != got {
+				t.Errorf("want '%v' got '%v'", tc.want, got)
+			}
+		})
+	}
+}
