@@ -20,27 +20,26 @@ func TestAllocationRequests(t *testing.T) {
 		reply map[shared.ClientID]shared.Resources
 		want  error
 	}{
-		// FIXME: @mpardalos could not get this running
-		// {
-		// 	name: "Limited resources",
-		// 	input: allocInput{resourceRequests: map[shared.ClientID]shared.Resources{
-		// 		shared.Team1: 5,
-		// 		shared.Team2: 10,
-		// 		shared.Team3: 15,
-		// 		shared.Team4: 20,
-		// 		shared.Team5: 25,
-		// 		shared.Team6: 30,
-		// 	}, commonPoolResource: 100},
-		// 	reply: map[shared.ClientID]shared.Resources{
-		// 		shared.Team1: 3,
-		// 		shared.Team2: 7,
-		// 		shared.Team3: 10,
-		// 		shared.Team4: 14,
-		// 		shared.Team5: 17,
-		// 		shared.Team6: 21,
-		// 	},
-		// 	want: nil,
-		// },
+		{
+			name: "Limited resources",
+			input: allocInput{resourceRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			}, commonPoolResource: 100},
+			reply: map[shared.ClientID]shared.Resources{
+				shared.Team1: calcExpectedVal(5, 105, 100),
+				shared.Team2: calcExpectedVal(10, 105, 100),
+				shared.Team3: calcExpectedVal(15, 105, 100),
+				shared.Team4: calcExpectedVal(20, 105, 100),
+				shared.Team5: calcExpectedVal(25, 105, 100),
+				shared.Team6: calcExpectedVal(30, 105, 100),
+			},
+			want: nil,
+		},
 		{
 			name: "Enough resources",
 			input: allocInput{resourceRequests: map[shared.ClientID]shared.Resources{
@@ -103,6 +102,10 @@ func TestAllocationRequests(t *testing.T) {
 			}
 		})
 	}
+}
+
+func calcExpectedVal(resourcesRequested shared.Resources, totalResourcesRequested shared.Resources, availableInPool shared.Resources) shared.Resources {
+	return 0.75 * (resourcesRequested * availableInPool) / totalResourcesRequested
 }
 
 func checkIfInList(s string, lst []string) bool {
@@ -368,68 +371,136 @@ func TestGetRuleForSpeaker(t *testing.T) {
 }
 
 // FIXME: @mpardalos could not get this running
-// func TestGetAllocationRequests(t *testing.T) {
-// 	cases := []struct {
-// 		name       string
-// 		bPresident basePresident // base
-// 		input      shared.Resources
-// 		expected   map[shared.ClientID]shared.Resources
-// 	}{
-// 		{
-// 			name: "Limited Resources",
-// 			bPresident: basePresident{
-// 				Id:               3,
-// 				ResourceRequests: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
-// 				clientPresident:  nil,
-// 			},
-// 			input:    100,
-// 			expected: map[shared.ClientID]shared.Resources{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
-// 		},
-// 		{
-// 			name: "Excess Resources",
-// 			bPresident: basePresident{
-// 				Id:               3,
-// 				ResourceRequests: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
-// 				clientPresident:  nil,
-// 			},
-// 			input:    150,
-// 			expected: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
-// 		},
-// 		{
-// 			name: "Client override limited resourceRequests",
-// 			bPresident: basePresident{
-// 				Id:               5,
-// 				ResourceRequests: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
-// 				clientPresident: &basePresident{
-// 					Id:               3,
-// 					ResourceRequests: map[shared.ClientID]shared.Resources{1: 15, 2: 20, 25: 3, 100: 4, 35: 5, 6: 30},
-// 				},
-// 			},
-// 			input:    100,
-// 			expected: map[shared.ClientID]shared.Resources{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
-// 		},
-// 		{
-// 			name: "Client override excess resourceRequests",
-// 			bPresident: basePresident{
-// 				Id:               5,
-// 				ResourceRequests: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
-// 				clientPresident: &basePresident{
-// 					Id:               3,
-// 					ResourceRequests: map[shared.ClientID]shared.Resources{1: 15, 2: 20, 25: 3, 100: 4, 35: 5, 6: 30},
-// 				},
-// 			},
-// 			input:    150,
-// 			expected: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
-// 		},
-// 	}
+func TestGetAllocationRequests(t *testing.T) {
+	cases := []struct {
+		name       string
+		bPresident basePresident // base
+		input      shared.Resources
+		expected   map[shared.ClientID]shared.Resources
+	}{
+		{
+			name: "Limited Resources",
+			bPresident: basePresident{
+				ID: 3,
+				ResourceRequests: map[shared.ClientID]shared.Resources{
+					shared.Team1: 5,
+					shared.Team2: 10,
+					shared.Team3: 15,
+					shared.Team4: 20,
+					shared.Team5: 25,
+					shared.Team6: 30,
+				},
+				clientPresident: nil,
+			},
+			input: 100,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: calcExpectedVal(5, 105, 100),
+				shared.Team2: calcExpectedVal(10, 105, 100),
+				shared.Team3: calcExpectedVal(15, 105, 100),
+				shared.Team4: calcExpectedVal(20, 105, 100),
+				shared.Team5: calcExpectedVal(25, 105, 100),
+				shared.Team6: calcExpectedVal(30, 105, 100),
+			},
+		},
+		{
+			name: "Excess Resources",
+			bPresident: basePresident{
+				ID: 3,
+				ResourceRequests: map[shared.ClientID]shared.Resources{
+					shared.Team1: 5,
+					shared.Team2: 10,
+					shared.Team3: 15,
+					shared.Team4: 20,
+					shared.Team5: 25,
+					shared.Team6: 30,
+				},
+				clientPresident: nil,
+			},
+			input: 150,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30},
+		},
+		{
+			name: "Client override limited resourceRequests",
+			bPresident: basePresident{
+				ID: 5,
+				ResourceRequests: map[shared.ClientID]shared.Resources{
+					shared.Team1: 5,
+					shared.Team2: 10,
+					shared.Team3: 15,
+					shared.Team4: 20,
+					shared.Team5: 25,
+					shared.Team6: 30,
+				},
+				clientPresident: &basePresident{
+					ID: 3,
+					ResourceRequests: map[shared.ClientID]shared.Resources{
+						shared.Team1: 15,
+						shared.Team2: 20,
+						shared.Team3: 25,
+						shared.Team4: 100,
+						shared.Team5: 35,
+						shared.Team6: 30,
+					},
+				},
+			},
+			input: 100,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: calcExpectedVal(5, 105, 100),
+				shared.Team2: calcExpectedVal(10, 105, 100),
+				shared.Team3: calcExpectedVal(15, 105, 100),
+				shared.Team4: calcExpectedVal(20, 105, 100),
+				shared.Team5: calcExpectedVal(25, 105, 100),
+				shared.Team6: calcExpectedVal(30, 105, 100),
+			},
+		},
+		{
+			name: "Client override excess resourceRequests",
+			bPresident: basePresident{
+				ID: 5,
+				ResourceRequests: map[shared.ClientID]shared.Resources{
+					shared.Team1: 5,
+					shared.Team2: 10,
+					shared.Team3: 15,
+					shared.Team4: 20,
+					shared.Team5: 25,
+					shared.Team6: 30},
+				clientPresident: &basePresident{
+					ID: 3,
+					ResourceRequests: map[shared.ClientID]shared.Resources{
+						shared.Team1: 15,
+						shared.Team2: 20,
+						shared.Team3: 25,
+						shared.Team4: 100,
+						shared.Team5: 35,
+						shared.Team6: 30,
+					},
+				},
+			},
+			input: 150,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+		},
+	}
 
-// 	for _, tc := range cases {
-// 		t.Run(tc.name, func(t *testing.T) {
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
 
-// 			val := tc.bPresident.getAllocationRequests(tc.input)
-// 			if !reflect.DeepEqual(val, tc.expected) {
-// 				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, val, tc.expected)
-// 			}
-// 		})
-// 	}
-// }
+			val := tc.bPresident.getAllocationRequests(tc.input)
+			if !reflect.DeepEqual(val, tc.expected) {
+				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, val, tc.expected)
+			}
+		})
+	}
+}
