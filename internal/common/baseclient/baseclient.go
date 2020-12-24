@@ -17,6 +17,9 @@ type Client interface {
 	Echo(s string) string
 	GetID() shared.ClientID
 
+	// Initialise is called once on game start
+	Initialise(ServerReadHandle)
+
 	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
 	// at start of turn. Do whatever you like here :).
 	StartOfTurnUpdate(gameState gamestate.ClientGameState)
@@ -63,6 +66,11 @@ type Client interface {
 	GetVoteForElection(roleToElect Role) []shared.ClientID
 }
 
+// ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate
+type ServerReadHandle interface {
+	GetGameState() gamestate.ClientGameState
+}
+
 var ourPredictionInfo shared.PredictionInfo
 
 // NewClient produces a new client with the BaseClient already implemented.
@@ -92,6 +100,8 @@ func (c *BaseClient) Echo(s string) string {
 func (c *BaseClient) GetID() shared.ClientID {
 	return c.id
 }
+
+func (c BaseClient) Initialise(ServerReadHandle) {}
 
 // Logf is the client's logger that prepends logs with your ID. This makes
 // it easier to read logs. DO NOT use other loggers that will mess logs up!

@@ -2,8 +2,9 @@ package server
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"log"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -41,10 +42,10 @@ func SOMASServerFactory() Server {
 		clientIDs = append(clientIDs, k)
 	}
 
-	return &SOMASServer{
+	server := &SOMASServer{
 		clientMap: clientMap,
 		gameState: gamestate.GameState{
-			IIGOInfo:    gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
+			IIGOInfo:       gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
 			Season:         1,
 			Turn:           1,
 			ClientInfos:    clientInfos,
@@ -52,6 +53,16 @@ func SOMASServerFactory() Server {
 			DeerPopulation: foraging.CreateDeerPopulationModel(),
 		},
 	}
+
+	for _, client := range clientMap {
+		client.Initialise(ServerForClient{
+			clientID: client.GetID(),
+			server: server,
+		})
+	}
+
+	return server
+
 }
 
 // EntryPoint function that returns a list of historic gamestate.GameState until the
@@ -84,4 +95,15 @@ func (s *SOMASServer) getEcho(str string) error {
 // logf is the server's default logger.
 func (s *SOMASServer) logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
+}
+
+// ServerForClient is a reference to the server for particular client. It is
+// meant as an instance of baseclient.ServerReadHandle
+type ServerForClient struct {
+	clientID shared.ClientID
+	server *SOMASServer
+}
+
+func (s *ServerForClient) GetGameState() gamestate.ClientGameState {
+	return s.server.gameState.GetClientGameStateCopy(s.clientID)
 }
