@@ -154,7 +154,7 @@ func (j *BaseJudge) inspectAllocation() (bool, error) {
 	}
 }
 
-// searchForRule seaches for a given rule in the RuleMatrix
+// searchForRule searches for a given rule in the RuleMatrix
 func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int, error) {
 	for i, v := range listOfRuleMatrices {
 		if v.RuleName == ruleName {
