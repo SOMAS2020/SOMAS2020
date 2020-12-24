@@ -14,8 +14,9 @@ type legislature struct {
 	SpeakerID     shared.ClientID
 	budget        shared.Resources
 	judgeSalary   shared.Resources
-	RuleToVote    string
-	VotingResult  bool
+	ruleToVote    string
+	ballotBox     voting.BallotBox
+	votingResult  bool
 	clientSpeaker roles.Speaker
 }
 
@@ -42,55 +43,66 @@ func (l *legislature) sendJudgeSalary() {
 
 // Receive a rule to call a vote on
 func (l *legislature) setRuleToVote(r string) {
-	l.RuleToVote = r
+	l.ruleToVote, _ = l.clientSpeaker.DecideAgenda(l.ruleToVote)
+	//TODO:Handle errors properly
 }
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (l *legislature) setVotingResult(iigoClients map[shared.ClientID]baseclient.Client) {
+func (l *legislature) setVotingResult(clientIDs []shared.ClientID) {
 
-	//TODO: Separate and clearly define speaker held information and vote held information (see ruleToVote)
-	//TODO: Remove tests
-	ruleVote := voting.RuleVote{}
-	ruleVote.ProposeMotion(l.RuleToVote)
-
-	//TODO: for loop should not be done here
-	var clientIDs []shared.ClientID
-	for id := range getIslandAlive() {
-		clientIDs = append(clientIDs, shared.ClientID(id))
+	ruleID, participatingIslands, err := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
+	if err != nil {
+		return
 	}
-	ruleVote.OpenBallot(clientIDs)
-	ruleVote.Vote(iigoClients)
-	l.VotingResult = ruleVote.CloseBallot().Result
+	l.ballotBox = l.RunVote(ruleID, participatingIslands)
+	l.votingResult = l.ballotBox.CountVotesMajority()
 
+}
+
+//RunVote creates the voting object, returns votes by category (for, against) in BallotBox.
+//Passing in empty ruleID or empty clientIDs results in no vote occurring
+func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting.BallotBox {
+
+	if ruleID == "" || len(clientIDs) == 0 {
+		return voting.BallotBox{}
+	}
+	l.budget -= 10
+	ruleVote := voting.RuleVote{}
+
+	//TODO: check if rule is valid, otherwise return empty ballot, raise error?
+	ruleVote.SetRule(ruleID)
+
+	//TODO: intersection of islands alive and islands chosen to vote in case of client error
+	//TODO: check if remaining slice is >0, otherwise return empty ballot, raise error?
+	ruleVote.SetVotingIslands(clientIDs)
+
+	ruleVote.GatherBallots(iigoClients)
+	//TODO: log of vote occurring with ruleID, clientIDs
+	//TODO: log of clientIDs vs islandsAllowedToVote
+	//TODO: log of ruleID vs s.RuleToVote
+	return ruleVote.GetBallotBox()
 }
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
 func (l *legislature) announceVotingResult() error {
 
-	rule, result, err := l.clientSpeaker.DecideAnnouncement(l.RuleToVote, l.VotingResult)
+	rule, result, err := l.clientSpeaker.DecideAnnouncement(l.ruleToVote, l.votingResult)
 
 	if err == nil {
 		//Deduct action cost
 		l.budget -= 10
 
 		//Reset
-		l.RuleToVote = ""
-		l.VotingResult = false
+		l.ruleToVote = ""
+		l.votingResult = false
 
 		//Perform announcement
 		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(rule, result))
 		return l.updateRules(rule, result)
 	}
 	return nil
-}
-
-//Example of the client implementation of DecideAnnouncement
-//A well behaved speaker announces what had been voted on and the corresponding result
-//Return "", _ for no announcement to occur
-func (l *legislature) DecideAnnouncement(ruleId string, result bool) (string, bool, error) {
-	return ruleId, result, nil
 }
 
 func generateVotingResultMessage(ruleID string, result bool) map[int]baseclient.Communication {
@@ -106,6 +118,13 @@ func generateVotingResultMessage(ruleID string, result bool) map[int]baseclient.
 	}
 
 	return returnMap
+}
+
+//reset resets internal variables for safety
+func (l *legislature) reset() {
+	l.ruleToVote = ""
+	l.ballotBox = voting.BallotBox{}
+	l.votingResult = false
 }
 
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {

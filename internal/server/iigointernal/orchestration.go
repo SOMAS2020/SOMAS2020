@@ -6,6 +6,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"github.com/pkg/errors"
 )
 
@@ -25,10 +26,12 @@ var judicialBranch = judiciary{
 // featureSpeaker is an instantiation of the Speaker interface
 // with both the baseSpeaker features and a reference to client speakers
 var legislativeBranch = legislature{
-	SpeakerID:   0,
-	budget:      0,
-	judgeSalary: 0,
-	RuleToVote:  "",
+	SpeakerID:    0,
+	budget:       0,
+	judgeSalary:  0,
+	ruleToVote:   "",
+	ballotBox:    voting.BallotBox{},
+	votingResult: false,
 }
 
 // featurePresident is an instantiation of the President interface
@@ -121,7 +124,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 3 Speaker actions
 	legislativeBranch.setRuleToVote(ruleToVote)
-	legislativeBranch.setVotingResult(iigoClients)
+	legislativeBranch.setVotingResult(aliveClientIds)
 	_ = legislativeBranch.announceVotingResult()
 
 	// 4 Declare performance (Judge) (in future all the iigointernal)
