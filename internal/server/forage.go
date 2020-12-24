@@ -16,12 +16,12 @@ func (s *SOMASServer) runForage() error {
 		return errors.Errorf("Something went wrong getting the foraging decision:%v", err)
 	}
 
-	deerHunters := make(map[shared.ClientID]shared.ForageDecision)
+	deerHunters := make(map[shared.ClientID]shared.Resources)
 	for id, decision := range foragingParticipants {
 		if decision.Type == shared.DeerForageType {
 			err := s.takeResources(id, decision.Contribution, "deer hunt participation")
 			if err == nil {
-				deerHunters[id] = decision
+				deerHunters[id] = decision.Contribution
 			} else {
 				s.logf("%v did not have enough resources to participate in foraging", id)
 			}
@@ -48,19 +48,15 @@ func (s *SOMASServer) getForagingDecisions() (shared.ForagingDecisionsDict, erro
 	return participants, nil
 }
 
-func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]shared.ForageDecision) error {
+func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resources) error {
 	s.logf("start runDeerHunt")
 	defer s.logf("finish runDeerHunt")
 
-	contributions := map[shared.ClientID]shared.Resources{}
-	for participantID, decision := range participants {
-		contributions[participantID] = decision.Contribution
-	}
 	hunt, err := foraging.CreateDeerHunt(contributions)
-
 	if err != nil {
 		return errors.Errorf("Error running deer hunt: %v", err)
 	}
+
 	totalReturn := hunt.Hunt()
 
 	totalContributions := shared.Resources(0)
@@ -68,10 +64,13 @@ func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]shared.Forage
 		totalContributions += contribution
 	}
 
-	for participantID, decision := range participants {
-		participantReturn := (decision.Contribution / totalContributions) * totalReturn
+	for participantID, contribution := range contributions {
+		participantReturn := (contribution / totalContributions) * totalReturn
 		s.giveResources(participantID, participantReturn, "Deer hunt return")
-		s.clientMap[participantID].ForageUpdate(decision, participantReturn)
+		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
+			Type: shared.DeerForageType,
+			Contribution: contribution,
+		}, participantReturn)
 	}
 
 	s.logf("Hunt generated a return of %.3f from input of %.3f", totalReturn, hunt.TotalInput())
