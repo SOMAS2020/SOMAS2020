@@ -20,20 +20,20 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 	s.logf("start runIIGOEndOfTurn")
 	defer s.logf("finish runIIGOEndOfTurn")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
-	for i, v := range clientMap {
+	for clientID, v := range clientMap {
 		tax := v.GetTaxContribution()
 		s.gameState.CommonPool += tax
-		newGameState := s.gameState.GetClientGameStateCopy(i)
+		newGameState := s.gameState.GetClientGameStateCopy(clientID)
 		newGameState.ClientInfo.Resources -= tax
 		v.GameStateUpdate(newGameState)
-		_ = iigointernal.UpdateTurnHistory(int(i), []rules.VariableValuePair{
+		_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: "island_tax_contribution",
 				Values:       []float64{float64(tax)},
 			},
 			{
 				VariableName: "expected_tax_contribution",
-				Values:       []float64{float64(iigointernal.TaxAmountMapExport[int(i)])},
+				Values:       []float64{float64(iigointernal.TaxAmountMapExport[clientID])},
 			},
 		})
 	}
@@ -44,22 +44,22 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	s.logf("start runIIGOAllocations")
 	defer s.logf("finish runIIGOAllocations")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
-	for i, v := range clientMap {
+	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
 		s.gameState.CommonPool -= allocation
-		newGameState := s.gameState.GetClientGameStateCopy(i)
+		newGameState := s.gameState.GetClientGameStateCopy(clientID)
 		newGameState.ClientInfo.Resources += allocation
 		v.GameStateUpdate(newGameState)
 		if allocation <= s.gameState.CommonPool {
 			s.gameState.CommonPool -= allocation
-			_ = iigointernal.UpdateTurnHistory(int(i), []rules.VariableValuePair{
+			_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 				{
 					VariableName: "island_allocation",
 					Values:       []float64{float64(allocation)},
 				},
 				{
 					VariableName: "expected_allocation",
-					Values:       []float64{float64(iigointernal.AllocationAmountMapExport[int(i)])},
+					Values:       []float64{float64(iigointernal.AllocationAmountMapExport[clientID])},
 				},
 			})
 		}

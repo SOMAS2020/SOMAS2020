@@ -6,7 +6,7 @@ import (
 )
 
 // CreateDeerHunt receives hunt participants and their contributions and returns a DeerHunt
-func CreateDeerHunt(teamResourceInputs map[shared.ClientID]float64) (DeerHunt, error) {
+func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.Resources) (DeerHunt, error) {
 	fConf := config.GameConfig().ForagingConfig
 	params := deerHuntParams{p: fConf.BernoulliProb, lam: fConf.ExponentialRate}
 	return DeerHunt{ParticipantContributions: teamResourceInputs, params: params}, nil // returning error too for future use

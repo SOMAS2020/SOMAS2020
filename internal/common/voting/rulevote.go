@@ -40,9 +40,9 @@ func (v *RuleVote) CloseBallot() RuleVoteResult {
 
 	var outcome RuleVoteResult
 	for _, vote := range v.votes {
-		if vote == true {
+		if vote {
 			outcome.votesInFavour += 1
-		} else if vote == false {
+		} else {
 			outcome.votesAgainst += 1
 		}
 	}

@@ -15,7 +15,7 @@ func (s *SOMASServer) runForage() error {
 	if err != nil {
 		return errors.Errorf("Something went wrong getting the foraging decision:%v", err)
 	}
-	deerHunters := make(map[shared.ClientID]float64)
+	deerHunters := make(map[shared.ClientID]shared.Resources)
 	for id, decision := range foragingParticipants {
 		if decision.Type == shared.DeerForageType {
 			deerHunters[id] = decision.Contribution
@@ -41,7 +41,7 @@ func (s *SOMASServer) getForagingDecisions() (shared.ForagingDecisionsDict, erro
 	}
 	return participants, nil
 }
-func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) error {
+func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]shared.Resources) error {
 	s.logf("start runDeerHunt")
 	defer s.logf("finish runDeerHunt")
 	hunt, err := foraging.CreateDeerHunt(participants)

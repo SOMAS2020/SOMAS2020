@@ -54,11 +54,11 @@ func communicateWithIslands(recipientID shared.ClientID, senderID shared.ClientI
 
 }
 
-func CheckEnoughInCommonPool(value int, gameState *gamestate.GameState) bool {
+func CheckEnoughInCommonPool(value shared.Resources, gameState *gamestate.GameState) bool {
 	return gameState.CommonPool >= value
 }
 
-func WithdrawFromCommonPool(value int, gameState *gamestate.GameState) error {
+func WithdrawFromCommonPool(value shared.Resources, gameState *gamestate.GameState) error {
 	if CheckEnoughInCommonPool(value, gameState) {
 		gameState.CommonPool -= value
 		return nil

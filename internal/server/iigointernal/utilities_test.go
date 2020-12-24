@@ -14,7 +14,7 @@ import (
 func TestWithdrawFromCommonPoolThrowsError(t *testing.T) {
 	fakeGameState := gamestate.GameState{CommonPool: 100}
 	// Withdraw more than we have in it
-	valueToWithdraw := 120
+	valueToWithdraw := shared.Resources(120)
 	err := WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
 	if err == nil {
 		t.Errorf("We can withdraw more from the common pool than it actually has.")
@@ -25,8 +25,8 @@ func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 	cases := []struct {
 		name              string
 		fakeGameState     gamestate.GameState
-		valueToWithdraw   int
-		expectedRemainder int
+		valueToWithdraw   shared.Resources
+		expectedRemainder shared.Resources
 		expectedError     error
 	}{
 		{
@@ -56,7 +56,7 @@ func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := WithdrawFromCommonPool(tc.valueToWithdraw, &tc.fakeGameState)
 			got := tc.fakeGameState.CommonPool
-			testutils.CompareTestIntegers(tc.expectedRemainder, got, t)
+			testutils.CompareTestIntegers(int(tc.expectedRemainder), int(got), t)
 			testutils.CompareTestErrors(err, tc.expectedError, t)
 		})
 	}
