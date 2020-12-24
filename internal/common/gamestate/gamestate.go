@@ -48,10 +48,16 @@ func (g GameState) Copy() GameState {
 
 // GetClientGameStateCopy returns the ClientGameState for the client having the id.
 func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
+	clientLifeStatuses := map[shared.ClientID]shared.ClientLifeStatus{}
+	for id, clientInfo := range g.ClientInfos {
+		clientLifeStatuses[id] = clientInfo.LifeStatus
+	}
+
 	return ClientGameState{
 		Season:     g.Season,
 		Turn:       g.Turn,
 		ClientInfo: g.ClientInfos[id].Copy(),
+		ClientLifeStatuses: clientLifeStatuses,
 	}
 }
 
