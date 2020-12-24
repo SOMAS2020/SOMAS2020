@@ -45,14 +45,14 @@ type Client interface {
 	DecideForage() (shared.ForageDecision, error)
 
 	//IITO: COMPULSORY
-	RequestGift() shared.Resources
-	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
-	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
-	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
+	GetGiftRequests() shared.GiftRequestDict
+	GetGiftOffers(receivedRequests shared.GiftRequestDict) (shared.GiftOfferDict, error)
+	GetGiftResponses(receivedOffers shared.GiftOfferDict) (shared.GiftResponseDict, error)
+	UpdateGiftInfo(receivedResponses shared.GiftResponseDict) error
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
-	SendGift(receivingClient shared.ClientID, amount int) error
-	ReceiveGift(sendingClient shared.ClientID, amount int) error
+	SendGift(offer shared.GiftOffer) error
+	ReceiveGift(offer shared.GiftOffer) error
 	GetVoteForRule(ruleName string) bool
 	GetVoteForElection(roleToElect Role) []shared.ClientID
 }

@@ -33,7 +33,7 @@ func (s *SOMASServer) runGiftSession() error {
 	if err != nil {
 		return err
 	}
-	giftHistoryDict, err := s.getGiftAcceptance(giftOffersDict)
+	giftHistoryDict, err := s.getGiftResponses(giftOffersDict)
 	if err != nil {
 		return err
 	}
@@ -48,56 +48,61 @@ func (s *SOMASServer) runGiftSession() error {
 	return nil
 }
 
-func (s *SOMASServer) getGiftRequests() shared.GiftDict {
-	giftRequestDict := shared.GiftDict{}
+// GetGiftRequests collects all gift requests from the clients in a map
+func (s *SOMASServer) getGiftRequests() map[shared.ClientID]shared.GiftRequestDict {
+	giftRequestDict := map[shared.ClientID]shared.GiftRequestDict{}
 	for id, client := range s.clientMap {
-		giftRequestDict[id] = client.RequestGift()
+		giftRequestDict[id] = client.GetGiftRequests()
 	}
 	return giftRequestDict
 }
-func (s *SOMASServer) getGiftOffers(giftRequestDict shared.GiftDict) (map[shared.ClientID]shared.GiftDict, error) {
-	giftOfferDict := map[shared.ClientID]shared.GiftDict{}
-	var err error
+
+// GetGiftOffers collects all responses from clients to their requests in a map
+func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.GiftRequestDict) (map[shared.ClientID]shared.GiftOfferDict, error) {
+	totalOffers := map[shared.ClientID]shared.GiftOfferDict{}
+	// Loop over each team
 	for id, client := range s.clientMap {
-		giftOfferDict[id], err = client.OfferGifts(giftRequestDict)
+		var offer map[shared.ClientID]shared.GiftOffer
+		var err error
+		// Gather all the requests made to this team
+		requestsToThisTeam := shared.GiftRequestDict{}
+		for fromTeam, indivRequests := range totalRequests {
+			requestsToThisTeam[fromTeam] = indivRequests[id]
+		}
+		offer, err = client.GetGiftOffers(requestsToThisTeam)
 		if err != nil {
-			return giftOfferDict, err
+			totalOffers[id] = offer
 		}
 	}
-	return giftOfferDict, nil
+	return totalOffers, nil
 }
-func (s *SOMASServer) getGiftAcceptance(giftOffersDict map[shared.ClientID]shared.GiftDict) (map[shared.ClientID]shared.GiftInfoDict, error) {
-	acceptedGifts := map[shared.ClientID]shared.GiftInfoDict{}
-	var err error
-
-	receivedByClientDict := make(map[shared.ClientID]shared.GiftDict)
-
-	//puts all the gifts received by a certain client accesible by the id of that client
-	for idsend := range giftOffersDict {
-		for idto := range giftOffersDict {
-			if idsend == idto {
-				continue
-			}
-			if receivedByClientDict[idsend] == nil {
-				receivedByClientDict[idsend] = make(shared.GiftDict)
-			}
-			receivedByClientDict[idsend][idto] = giftOffersDict[idto][idsend]
-		}
-	}
+func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.GiftOfferDict) (map[shared.ClientID]shared.GiftResponseDict, error) {
+	totalResponses := map[shared.ClientID]shared.GiftResponseDict{}
 
 	for id, client := range s.clientMap {
-		acceptedGifts[id], err = client.AcceptGifts(receivedByClientDict[id])
+		var response map[shared.ClientID]shared.GiftResponse
+		var err error
+
+		offersToThisTeam := shared.GiftOfferDict{}
+		for fromTeam, indivOffers := range totalOffers {
+			offersToThisTeam[fromTeam] = indivOffers[id]
+		}
+		response, err = client.GetGiftResponses(offersToThisTeam)
 		if err != nil {
-			return acceptedGifts, err
+			totalResponses[id] = response
 		}
 	}
-	return acceptedGifts, nil
+	return totalResponses, nil
 }
 
-func (s *SOMASServer) distributeGiftHistory(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error {
-	//Process acceptedGifts
-	for _, client := range s.clientMap {
-		err := client.UpdateGiftInfo(acceptedGifts)
+func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]shared.GiftResponseDict) error {
+	// Process acceptedGifts
+	for id, client := range s.clientMap {
+		responsesToThisTeam := shared.GiftResponseDict{}
+		for fromTeam, indivResponses := range totalResponses {
+			responsesToThisTeam[fromTeam] = indivResponses[id]
+		}
+		err := client.UpdateGiftInfo(responsesToThisTeam)
 		if err != nil {
 			return err
 		}
