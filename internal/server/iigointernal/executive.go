@@ -53,6 +53,7 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 	return result
 }
 
+// broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
 	e.budget -= 10
 	taxAmountMap := e.getTaxMap(islandsResources)
@@ -82,6 +83,8 @@ func (e *executive) requestAllocationRequest() {
 
 }
 
+// replyAllocationRequest broadcasts the allocation of resources decided by the president
+// to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	e.budget -= 10
 	allocationMap := e.getAllocationRequests(commonPool)
@@ -93,6 +96,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	}
 }
 
+// appointNextSpeaker returns the island id of the island appointed to be speaker in the next turn.
 func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.ClientID {
 	e.budget -= 10
 	var election voting.Election
@@ -102,6 +106,7 @@ func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.Clien
 	return election.CloseBallot()
 }
 
+// withdrawSpeakerSalary withdraws the salary for speaker from the common pool.
 func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
 	var speakerSalary = shared.Resources(rules.VariableMap["speakerSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
@@ -111,6 +116,7 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error 
 	return withdrawError
 }
 
+// sendSpeakerSalary send speaker's salary to the speaker.
 func (e *executive) sendSpeakerSalary() {
 	amount, _ := e.clientPresident.PaySpeaker(e.speakerSalary)
 	e.budget = amount
@@ -126,6 +132,7 @@ func (e *executive) reset(val string) error {
 	return nil
 }
 
+//requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() {
 	e.budget -= 10
 	var rules []string

@@ -27,6 +27,7 @@ func (l *legislature) returnJudgeSalary() shared.Resources {
 	return x
 }
 
+// withdrawJudgeSalary withdraws the salary for the Judge from the common pool.
 func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) error {
 	var judgeSalary = shared.Resources(rules.VariableMap["judgeSalary"].Values[0])
 	var withdrawError = WithdrawFromCommonPool(judgeSalary, gameState)
@@ -36,6 +37,7 @@ func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) error 
 	return withdrawError
 }
 
+// sendJudgeSalary sets the budget of the Judge.
 func (l *legislature) sendJudgeSalary() {
 	amount, _ := l.clientSpeaker.PayJudge()
 	judicialBranch.budget = amount
@@ -127,6 +129,7 @@ func (l *legislature) reset() {
 	l.votingResult = false
 }
 
+// updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 	l.budget -= 10
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
