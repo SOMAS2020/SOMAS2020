@@ -20,13 +20,6 @@ type Client interface {
 	// Initialise is called once on game start
 	Initialise(ServerReadHandle)
 
-	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
-	// at start of turn. Do whatever you like here :).
-	StartOfTurnUpdate(gameState gamestate.ClientGameState)
-
-	// GameStateUpdate updates game state mid-turn.
-	GameStateUpdate(gameState gamestate.ClientGameState)
-
 	Logf(format string, a ...interface{})
 
 	CommonPoolResourceRequest() shared.Resources

@@ -104,6 +104,6 @@ type ServerForClient struct {
 	server *SOMASServer
 }
 
-func (s *ServerForClient) GetGameState() gamestate.ClientGameState {
+func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 	return s.server.gameState.GetClientGameStateCopy(s.clientID)
 }

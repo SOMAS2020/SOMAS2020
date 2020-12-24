@@ -16,8 +16,6 @@ func (s *SOMASServer) runTurn() error {
 
 	s.logf("TURN: %v, Season: %v", s.gameState.Turn, s.gameState.Season)
 
-	s.startOfTurnUpdate()
-
 	// run all orgs
 	err := s.runOrgs()
 	if err != nil {
@@ -51,46 +49,6 @@ func (s *SOMASServer) runOrgs() error {
 	return nil
 }
 
-// startOfTurnUpdate sends the gameState at the start of the turn to all non-Dead clients.
-func (s *SOMASServer) startOfTurnUpdate() {
-	s.logf("start startOfTurnUpdate")
-	defer s.logf("finish startOfTurnUpdate")
-
-	// send update of entire gameState to alive clients
-	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
-	N := len(nonDeadClients)
-	var wg sync.WaitGroup
-	wg.Add(N)
-
-	for _, id := range nonDeadClients {
-		go func(id shared.ClientID, ci gamestate.ClientInfo) {
-			defer wg.Done()
-			c := s.clientMap[id]
-			c.StartOfTurnUpdate(s.gameState.GetClientGameStateCopy(id))
-		}(id, s.gameState.ClientInfos[id])
-	}
-	wg.Wait()
-}
-
-// gameStateUpdate sends the gameState mid-turn to all non-Dead clients.
-// For use by orgs to update game state after dispatching actions.
-func (s *SOMASServer) gameStateUpdate() {
-	s.logf("start gameStateUpdate")
-	defer s.logf("finish gameStateUpdate")
-
-	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
-	N := len(nonDeadClients)
-	var wg sync.WaitGroup
-	wg.Add(N)
-	for _, id := range nonDeadClients {
-		go func(id shared.ClientID, ci gamestate.ClientInfo) {
-			defer wg.Done()
-			c := s.clientMap[id]
-			c.GameStateUpdate(s.gameState.GetClientGameStateCopy(id))
-		}(id, s.gameState.ClientInfos[id])
-	}
-	wg.Wait()
-}
 
 // endOfTurn performs end of turn updates
 func (s *SOMASServer) endOfTurn() error {
