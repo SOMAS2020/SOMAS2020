@@ -37,7 +37,7 @@ func anyClientsAlive(clientInfos map[shared.ClientID]gamestate.ClientInfo) bool 
 }
 
 // getNonDeadClients returns a map of all clients with a non-dead status
-func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo, 
+func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo,
 	clientMap map[shared.ClientID]baseclient.Client) map[shared.ClientID]baseclient.Client {
 
 	nonDeadClientMap := map[shared.ClientID]baseclient.Client{}
@@ -53,7 +53,7 @@ func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo,
 // the game's configuration.
 func updateIslandLivingStatusForClient(
 	ci gamestate.ClientInfo,
-	minimumResourceThreshold int,
+	minimumResourceThreshold shared.Resources,
 	maxCriticalConsecutiveTurns uint,
 ) (gamestate.ClientInfo, error) {
 	switch ci.LifeStatus {
