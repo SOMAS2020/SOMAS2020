@@ -22,7 +22,7 @@ func (c *BaseClient) ResourceReport() shared.Resources {
 // rule to be voted on.
 func (c *BaseClient) RuleProposal() string {
 	allRules := rules.AvailableRules
-	for k, _ := range allRules {
+	for k := range allRules {
 		return k
 	}
 	return ""

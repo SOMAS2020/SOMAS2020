@@ -13,7 +13,7 @@ import (
 
 //base President Object
 type basePresident struct {
-	Id               shared.ClientID
+	ID               shared.ClientID
 	clientPresident  roles.President
 	budget           shared.Resources
 	speakerSalary    shared.Resources
@@ -122,7 +122,7 @@ func (p *basePresident) broadcastTaxation(islandsResources map[shared.ClientID]s
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(v))])}
 		data := make(map[int]baseclient.Communication)
 		data[TaxAmount] = d
-		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.Id], data)
+		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.ID], data)
 	}
 }
 
@@ -156,7 +156,7 @@ func (p *basePresident) replyAllocationRequest(commonPool shared.Resources) {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
 		data := make(map[int]baseclient.Communication)
 		data[AllocationAmount] = d
-		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.Id], data)
+		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[p.ID], data)
 	}
 }
 
@@ -202,7 +202,7 @@ func getIslandAlive() []float64 {
 }
 
 func (p *basePresident) Reset(val string) error {
-	p.Id = 0
+	p.ID = 0
 	p.clientPresident = nil
 	p.budget = 0
 	p.ResourceRequests = map[shared.ClientID]shared.Resources{}

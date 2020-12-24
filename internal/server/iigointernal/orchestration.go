@@ -12,7 +12,7 @@ import (
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
 var featureJudge = BaseJudge{
-	Id:                0,
+	ID:                0,
 	budget:            0,
 	presidentSalary:   0,
 	BallotID:          0,
@@ -34,7 +34,7 @@ var featureSpeaker = baseSpeaker{
 // featurePresident is an instantiation of the President interface
 // with both the basePresident features and a reference to client presidents
 var featurePresident = basePresident{
-	Id:               0,
+	ID:               0,
 	budget:           0,
 	speakerSalary:    0,
 	ResourceRequests: nil,
@@ -78,9 +78,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	iigoRoleStates = g.IIGOInfo
 
 	// Initialise IDs
-	featureJudge.Id = JudgeIDGlobal
+	featureJudge.ID = JudgeIDGlobal
 	featureSpeaker.Id = SpeakerIDGlobal
-	featurePresident.Id = PresidentIDGlobal
+	featurePresident.ID = PresidentIDGlobal
 
 	// Initialise iigointernal with their clientVersions
 	featureJudge.clientJudge = judgePointer

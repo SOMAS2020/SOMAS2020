@@ -87,7 +87,7 @@ func TestAllocationRequests(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			president := &basePresident{
-				Id:     shared.Team1,
+				ID:     shared.Team1,
 				budget: 50,
 			}
 
@@ -196,7 +196,7 @@ func TestSetRuleProposals(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			president := &basePresident{
-				Id:             shared.Team1,
+				ID:             shared.Team1,
 				RulesProposals: []string{},
 			}
 
@@ -221,7 +221,7 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Empty tax map base",
 			input: map[shared.ClientID]shared.Resources{},
 			bPresident: basePresident{
-				Id:              3,
+				ID:              3,
 				clientPresident: nil,
 			},
 			expectedLength: 0,
@@ -230,7 +230,7 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Short tax map base",
 			input: map[shared.ClientID]shared.Resources{1: 5},
 			bPresident: basePresident{
-				Id:              3,
+				ID:              3,
 				clientPresident: nil,
 			},
 			expectedLength: 1,
@@ -239,7 +239,7 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Long tax map base",
 			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 			bPresident: basePresident{
-				Id:              4,
+				ID:              4,
 				clientPresident: nil,
 			},
 			expectedLength: 6,
@@ -248,9 +248,9 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Client empty tax map base",
 			input: map[shared.ClientID]shared.Resources{},
 			bPresident: basePresident{
-				Id: 5,
+				ID: 5,
 				clientPresident: &basePresident{
-					Id:               3,
+					ID:               3,
 					ResourceRequests: nil,
 				},
 			},
@@ -260,9 +260,9 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Client short tax map base",
 			input: map[shared.ClientID]shared.Resources{1: 5},
 			bPresident: basePresident{
-				Id: 5,
+				ID: 5,
 				clientPresident: &basePresident{
-					Id:               3,
+					ID:               3,
 					ResourceRequests: nil,
 				},
 			},
@@ -272,9 +272,9 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Client long tax map base",
 			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 			bPresident: basePresident{
-				Id: 5,
+				ID: 5,
 				clientPresident: &basePresident{
-					Id:               3,
+					ID:               3,
 					ResourceRequests: nil,
 				},
 			},
@@ -302,7 +302,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Empty tax map base",
 			bPresident: basePresident{
-				Id:              3,
+				ID:              3,
 				RulesProposals:  []string{},
 				clientPresident: nil,
 			},
@@ -311,7 +311,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Short tax map base",
 			bPresident: basePresident{
-				Id:              3,
+				ID:              3,
 				RulesProposals:  []string{"test"},
 				clientPresident: nil,
 			},
@@ -320,7 +320,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Long tax map base",
 			bPresident: basePresident{
-				Id:              3,
+				ID:              3,
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: nil,
 			},
@@ -329,10 +329,10 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Client empty tax map base",
 			bPresident: basePresident{
-				Id:             5,
+				ID:             5,
 				RulesProposals: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &basePresident{
-					Id:             3,
+					ID:             3,
 					RulesProposals: []string{},
 				},
 			},
@@ -341,10 +341,10 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Client tax map base override",
 			bPresident: basePresident{
-				Id:             5,
+				ID:             5,
 				RulesProposals: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &basePresident{
-					Id:             3,
+					ID:             3,
 					RulesProposals: []string{"test1", "test2", "test3"},
 				},
 			},

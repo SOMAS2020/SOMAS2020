@@ -12,7 +12,7 @@ import (
 
 // base Judge object
 type BaseJudge struct {
-	Id                shared.ClientID
+	ID                shared.ClientID
 	budget            shared.Resources
 	presidentSalary   shared.Resources
 	BallotID          int
@@ -56,11 +56,6 @@ func (j *BaseJudge) PayPresident() (shared.Resources, error) {
 	hold := j.presidentSalary
 	j.presidentSalary = 0
 	return hold, nil
-}
-
-func (j *BaseJudge) setSpeakerAndPresidentIDs(speakerId shared.ClientID, presidentId shared.ClientID) {
-	j.speakerID = speakerId
-	j.presidentID = presidentId
 }
 
 func (j *BaseJudge) inspectHistoryInternal() {
@@ -179,7 +174,7 @@ func (j *BaseJudge) declareSpeakerPerformanceWrapped() {
 
 	if err == nil {
 		message := generateSpeakerPerformanceMessage(BID, result, SID, checkRole)
-		broadcastToAllIslands(shared.TeamIDs[j.Id], message)
+		broadcastToAllIslands(shared.TeamIDs[j.ID], message)
 	}
 }
 
@@ -204,7 +199,7 @@ func (j *BaseJudge) declarePresidentPerformanceWrapped() {
 
 	if err == nil {
 		message := generatePresidentPerformanceMessage(RID, result, PID, checkRole)
-		broadcastToAllIslands(shared.TeamIDs[j.Id], message)
+		broadcastToAllIslands(shared.TeamIDs[j.ID], message)
 	}
 }
 

@@ -60,5 +60,5 @@ func (c ClientID) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
 
-// Represents amounts of resources
+// Resources represents amounts of resources
 type Resources float64
