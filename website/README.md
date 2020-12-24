@@ -7,9 +7,9 @@ https://somas2020.github.io/SOMAS2020
 ### Requirements
 
 - [Node.js 14.x.x](https://nodejs.org/en/)
-    - `node -v` should produce `v14.x.x`
+  - `node -v` should produce `v14.x.x`
 - [Yarn 1.22.x](https://yarnpkg.com/getting-started/install)
-    - `yarn --version` should produce `1.22.x`
+  - `yarn --version` should produce `1.22.x`
 
 ### Make sure you have yarn installed on your local machine
 
@@ -62,7 +62,7 @@ This should be run automatically by CI. -->
 - This website uses [React](https://reactjs.org/) and [TypeScript](https://www.typescriptlang.org/).
 - The library used for UI/UX is [React Bootstrap](https://react-bootstrap.github.io/).
 - The graphing library used is [d3.js](https://d3js.org/).
-    - You do not strictly need to use d3: You can use any language to produce visualisations, then include them on the website. Please talk to core infra--you should make available clear instructions on how produce your visualisations so that they can be automated.
+  - You do not strictly need to use d3: You can use any language to produce visualisations, then include them on the website. Please talk to core infra--you should make available clear instructions on how produce your visualisations so that they can be automated.
 
 ## Deployment
 
