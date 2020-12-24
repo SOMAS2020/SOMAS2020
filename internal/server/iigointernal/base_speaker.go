@@ -100,7 +100,7 @@ func (s *baseSpeaker) setVotingResult(iigoClients map[shared.ClientID]baseclient
 //Functional so it corresponds to the interface, to the client implementation
 //If agent decides not to use voting functions, it is assumed they have not performed them
 func (s *baseSpeaker) RunVote(ruleID string) (bool, error) {
-	s.budget -= 10
+	s.budget -= 10 // will be removed post-MVP
 	if ruleID == "" {
 		// No rules were proposed by the islands
 		return false, nil
@@ -136,7 +136,7 @@ func (s *baseSpeaker) announceVotingResult() error {
 
 	if rule != "" {
 		//Deduct action cost
-		s.budget -= 10
+		s.budget -= 10 // will be removed post-MVP
 
 		//Reset
 		s.RuleToVote = ""
@@ -172,7 +172,7 @@ func generateVotingResultMessage(ruleID string, result bool) map[int]baseclient.
 }
 
 func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
-	s.budget -= 10
+	s.budget -= 10 // will be removed post-MVP
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
 	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
 	if ruleVotedIn {
@@ -198,7 +198,7 @@ func (s *baseSpeaker) updateRules(ruleName string, ruleVotedIn bool) error {
 }
 
 func (s *baseSpeaker) appointNextJudge(clientIDs []shared.ClientID) int {
-	s.budget -= 10
+	s.budget -= 10 // will be removed post-MVP
 	var election voting.Election
 	election.ProposeElection(baseclient.Judge, voting.Plurality)
 	election.OpenBallot(clientIDs)

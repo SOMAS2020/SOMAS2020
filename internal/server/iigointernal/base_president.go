@@ -91,7 +91,7 @@ func (p *basePresident) setAllocationRequest(resourceRequests map[int]int) {
 // islands can afford. It returns a map indexed with the island IDs, containing the amount of
 // resources required as tax in the form of an integer.
 func (p *basePresident) SetTaxationAmount(islandsResources map[int]int) (map[int]int, error) {
-	p.budget -= 10
+	p.budget -= 10 // will be removed post-MVP
 	taxAmountMap := make(map[int]int)
 	for id, resourceLeft := range islandsResources {
 		taxAmountMap[id] = rand.Intn(resourceLeft)
@@ -115,7 +115,7 @@ func (p *basePresident) getRuleForSpeaker() string {
 
 // getTaxMap returns the taxation map calculated by setTaxationAmount as a map of integers.
 func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
-	p.budget -= 10
+	p.budget -= 10 // will be removed post-MVP
 	if p.clientPresident != nil {
 		result, error := p.clientPresident.SetTaxationAmount(islandsResources)
 		if error == nil {
@@ -128,7 +128,7 @@ func (p *basePresident) getTaxMap(islandsResources map[int]int) map[int]int {
 
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game
 func (p *basePresident) broadcastTaxation(islandsResources map[int]int) {
-	p.budget -= 10
+	p.budget -= 10 // will be removed post-MVP
 	taxAmountMap := p.getTaxMap(islandsResources)
 	for _, v := range getIslandAlive() {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: taxAmountMap[int(v)]}
@@ -166,7 +166,7 @@ func (p *basePresident) requestAllocationRequest() {
 // replyAllocationRequest broadcasts the allocation of resources decided by the president
 // to all islands alive
 func (p *basePresident) replyAllocationRequest(commonPool int) {
-	p.budget -= 10
+	p.budget -= 10 // will be removed post-MVP
 	allocationMap := p.getAllocationRequests(commonPool)
 	for _, v := range getIslandAlive() {
 		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: allocationMap[int(v)]}
@@ -178,7 +178,7 @@ func (p *basePresident) replyAllocationRequest(commonPool int) {
 
 // appointNextSpeaker returns the island id of the island appointed to be speaker in the next turn
 func (p *basePresident) appointNextSpeaker(clientIDs []shared.ClientID) int {
-	p.budget -= 10
+	p.budget -= 10 // will be removed post-MVP
 	var election voting.Election
 	election.ProposeElection(baseclient.Speaker, voting.Plurality)
 	election.OpenBallot(clientIDs)
