@@ -45,17 +45,12 @@ func (s *SOMASServer) runPredictionSession() error {
 	return nil
 }
 
-func (s *SOMASServer) runForageSharing() error {
+func (s *SOMASServer) runForageSharing() {
 	s.logf("Run Forage Predictions")
 	defer s.logf("Finish Running Forage Predictions")
 
-	otherIslandInfo, err := s.getForageSharing()
-	if err != nil {
-		return errors.Errorf("Error running prediction session: %v", err)
-	}
+	otherIslandInfo := s.getForageSharing()
 	s.distributeForageSharing(otherIslandInfo)
-
-	return nil
 }
 
 func (s *SOMASServer) getPredictions() (shared.PredictionInfoDict, error) {
@@ -106,19 +101,15 @@ func (s *SOMASServer) distributePredictions(islandPredictionDict shared.Predicti
 // getForageSharing will ping each nonDeadClient and will save what their ForagingDecision,
 // their ResourceObtained from that decision, and which ClientID they want share this info
 // with.
-func (s *SOMASServer) getForageSharing() (shared.MakeForagingDict, error) {
+func (s *SOMASServer) getForageSharing() shared.MakeForagingDict {
 	s.logf("Getting Forage Information")
 	islandShareForageDict := shared.MakeForagingDict{}
-	var err error
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
 		islandShareForageDict[id] = c.MakeForageInfo()
-		if err != nil {
-			return islandShareForageDict, errors.Errorf("Failed to get prediction from %v: %v", id, err)
-		}
 	}
-	return islandShareForageDict, nil
+	return islandShareForageDict
 }
 
 // distributeForageSharing sends the collected ForageDecisions and ResourceObtained to specified ClientID
