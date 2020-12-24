@@ -6,8 +6,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-type BasePresident struct {
-}
+type BasePresident struct{}
 
 // Set allowed resource allocation based on each islands requests
 func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, error) {

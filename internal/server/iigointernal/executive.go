@@ -112,7 +112,7 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error 
 }
 
 func (e *executive) sendSpeakerSalary() {
-	amount, _ := e.clientPresident.PaySpeaker()
+	amount, _ := e.clientPresident.PaySpeaker(e.speakerSalary)
 	e.budget = amount
 }
 
