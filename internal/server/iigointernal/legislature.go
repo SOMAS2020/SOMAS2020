@@ -69,7 +69,7 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 	if ruleID == "" || len(clientIDs) == 0 {
 		return voting.BallotBox{}
 	}
-	l.budget -= 10
+	l.budget -= serviceCharge
 	ruleVote := voting.RuleVote{}
 
 	//TODO: check if rule is valid, otherwise return empty ballot, raise error?
@@ -94,7 +94,7 @@ func (l *legislature) announceVotingResult() error {
 
 	if err == nil {
 		//Deduct action cost
-		l.budget -= 10
+		l.budget -= serviceCharge
 
 		//Reset
 		l.ruleToVote = ""
@@ -131,7 +131,7 @@ func (l *legislature) reset() {
 
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
-	l.budget -= 10
+	l.budget -= serviceCharge
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
 	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
 	if ruleVotedIn {
@@ -157,7 +157,7 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 }
 
 func (l *legislature) appointNextJudge(clientIDs []shared.ClientID) shared.ClientID {
-	l.budget -= 10
+	l.budget -= serviceCharge
 	var election voting.Election
 	election.ProposeElection(baseclient.Judge, voting.Plurality)
 	election.OpenBallot(clientIDs)
