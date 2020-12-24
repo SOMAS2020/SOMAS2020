@@ -370,7 +370,6 @@ func TestGetRuleForSpeaker(t *testing.T) {
 	}
 }
 
-// FIXME: @mpardalos could not get this running
 func TestGetAllocationRequests(t *testing.T) {
 	cases := []struct {
 		name       string
