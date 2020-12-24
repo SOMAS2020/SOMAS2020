@@ -60,6 +60,7 @@ func (p *basePresident) PickRuleToVote(rulesProposals []string) (string, error) 
 		// No rules were proposed by the islands
 		return "", nil
 	}
+	// TODO: Implement rule choice based on the implications of the proposed rules.
 	return rulesProposals[rand.Intn(len(rulesProposals))], nil
 }
 
