@@ -1,6 +1,7 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"testing"
 
 	"reflect" // Used to compare two maps
@@ -225,7 +226,7 @@ func TestGetTaxMap(t *testing.T) {
 			input: map[shared.ClientID]shared.Resources{},
 			bPresident: executive{
 				ID:              3,
-				clientPresident: nil,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 0,
 		},
@@ -234,7 +235,7 @@ func TestGetTaxMap(t *testing.T) {
 			input: map[shared.ClientID]shared.Resources{1: 5},
 			bPresident: executive{
 				ID:              3,
-				clientPresident: nil,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 1,
 		},
@@ -243,7 +244,7 @@ func TestGetTaxMap(t *testing.T) {
 			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 			bPresident: executive{
 				ID:              4,
-				clientPresident: nil,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 6,
 		},
@@ -251,11 +252,8 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Client empty tax map base",
 			input: map[shared.ClientID]shared.Resources{},
 			bPresident: executive{
-				ID: 5,
-				clientPresident: &executive{
-					ID:               3,
-					ResourceRequests: nil,
-				},
+				ID:              5,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 0,
 		},
@@ -263,11 +261,8 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Client short tax map base",
 			input: map[shared.ClientID]shared.Resources{1: 5},
 			bPresident: executive{
-				ID: 5,
-				clientPresident: &executive{
-					ID:               3,
-					ResourceRequests: nil,
-				},
+				ID:              5,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 1,
 		},
@@ -275,11 +270,8 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Client long tax map base",
 			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 			bPresident: executive{
-				ID: 5,
-				clientPresident: &executive{
-					ID:               3,
-					ResourceRequests: nil,
-				},
+				ID:              5,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 6,
 		},
@@ -307,7 +299,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			bPresident: executive{
 				ID:              3,
 				RulesProposals:  []string{},
-				clientPresident: nil,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expected: []string{""},
 		},
@@ -316,7 +308,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			bPresident: executive{
 				ID:              3,
 				RulesProposals:  []string{"test"},
-				clientPresident: nil,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expected: []string{"test"},
 		},
@@ -325,31 +317,25 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			bPresident: executive{
 				ID:              3,
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
-				clientPresident: nil,
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
 		{
 			name: "Client empty tax map base",
 			bPresident: executive{
-				ID:             5,
-				RulesProposals: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
-				clientPresident: &BasePresident{
-					ID:             3,
-					RulesProposals: []string{},
-				},
+				ID:              5,
+				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
 		{
 			name: "Client tax map base override",
 			bPresident: executive{
-				ID:             5,
-				RulesProposals: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
-				clientPresident: &executive{
-					ID:             3,
-					RulesProposals: []string{"test1", "test2", "test3"},
-				},
+				ID:              5,
+				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				clientPresident: &baseclient.BasePresident{},
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
@@ -437,17 +423,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team5: 25,
 					shared.Team6: 30,
 				},
-				clientPresident: &executive{
-					ID: 3,
-					ResourceRequests: map[shared.ClientID]shared.Resources{
-						shared.Team1: 15,
-						shared.Team2: 20,
-						shared.Team3: 25,
-						shared.Team4: 100,
-						shared.Team5: 35,
-						shared.Team6: 30,
-					},
-				},
+				clientPresident: &baseclient.BasePresident{},
 			},
 			input: 100,
 			expected: map[shared.ClientID]shared.Resources{
@@ -470,17 +446,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team4: 20,
 					shared.Team5: 25,
 					shared.Team6: 30},
-				clientPresident: &executive{
-					ID: 3,
-					ResourceRequests: map[shared.ClientID]shared.Resources{
-						shared.Team1: 15,
-						shared.Team2: 20,
-						shared.Team3: 25,
-						shared.Team4: 100,
-						shared.Team5: 35,
-						shared.Team6: 30,
-					},
-				},
+				clientPresident: &baseclient.BasePresident{},
 			},
 			input: 150,
 			expected: map[shared.ClientID]shared.Resources{
