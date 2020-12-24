@@ -39,7 +39,7 @@ func (d DeerHunt) Hunt() shared.Resources {
 	maxDeer := fConf.MaxDeerPerHunt
 	nDeerFromInput := deerUtilityTier(input, maxDeer, decay) // get max number of deer allowed for given resource input
 	utility := shared.Resources(0.0)
-	for i := uint(0); i < nDeerFromInput; i++ {
+	for i := uint(1); i < nDeerFromInput; i++ {
 		utility += deerReturn(d.params)
 	}
 	return utility
