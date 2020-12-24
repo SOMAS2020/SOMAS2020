@@ -116,17 +116,17 @@ func (s *SOMASServer) getForageSharing() shared.MakeForagingDict {
 func (s *SOMASServer) distributeForageSharing(otherIslandInfo shared.MakeForagingDict) {
 	s.logf("Distributing Forage Information")
 	islandForagingDict := shared.ReceiveForagingDict{}
-	for islandId, foragingInfo := range otherIslandInfo {
-		for _, shareId := range foragingInfo.ShareTo {
-			if islandId == shareId {
+	for islandID, foragingInfo := range otherIslandInfo {
+		for _, shareID := range foragingInfo.ShareTo {
+			if islandID == shareID {
 				continue
 			}
-			islandForagingDict[shareId] = append(
-				islandForagingDict[shareId],
+			islandForagingDict[shareID] = append(
+				islandForagingDict[shareID],
 				shared.ShareForageInfomation{
 					DecisionMade:     foragingInfo.DecisionMade,
 					ResourceObtained: foragingInfo.ResourceObtained,
-					SharedFrom:       islandId})
+					SharedFrom:       islandID})
 		}
 	}
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
