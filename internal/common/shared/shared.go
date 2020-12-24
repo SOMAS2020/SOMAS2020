@@ -9,6 +9,7 @@ import (
 )
 
 // ClientID is an enum for client IDs
+
 type ClientID int
 
 const (

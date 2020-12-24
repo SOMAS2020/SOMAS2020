@@ -9,34 +9,76 @@ import (
 )
 
 type allocInput struct {
-	resourceRequests   map[int]int
-	commonPoolResource int
+	resourceRequests   map[shared.ClientID]shared.Resources
+	commonPoolResource shared.Resources
 }
 
 func TestAllocationRequests(t *testing.T) {
 	cases := []struct {
 		name  string
 		input allocInput
-		reply map[int]int
+		reply map[shared.ClientID]shared.Resources
 		want  error
 	}{
 		{
-			name:  "Limitied resources",
-			input: allocInput{resourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30}, commonPoolResource: 100},
-			reply: map[int]int{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
-			want:  nil,
+			name: "Limited resources",
+			input: allocInput{resourceRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			}, commonPoolResource: 100},
+			reply: map[shared.ClientID]shared.Resources{
+				shared.Team1: 3,
+				shared.Team2: 7,
+				shared.Team3: 10,
+				shared.Team4: 14,
+				shared.Team5: 17,
+				shared.Team6: 21,
+			},
+			want: nil,
 		},
 		{
-			name:  "Enough resources",
-			input: allocInput{resourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30}, commonPoolResource: 150},
-			reply: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
-			want:  nil,
+			name: "Enough resources",
+			input: allocInput{resourceRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			}, commonPoolResource: 150},
+			reply: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+			want: nil,
 		},
 		{
-			name:  "No resources",
-			input: allocInput{resourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30}, commonPoolResource: 0},
-			reply: map[int]int{1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0},
-			want:  nil,
+			name: "No resources",
+			input: allocInput{resourceRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			}, commonPoolResource: 0},
+			reply: map[shared.ClientID]shared.Resources{
+				shared.Team1: 0,
+				shared.Team2: 0,
+				shared.Team3: 0,
+				shared.Team4: 0,
+				shared.Team5: 0,
+				shared.Team6: 0,
+			},
+			want: nil,
 		},
 	}
 
@@ -44,7 +86,7 @@ func TestAllocationRequests(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			president := &basePresident{
-				Id:     int(shared.Team1),
+				Id:     shared.Team1,
 				budget: 50,
 			}
 
@@ -153,7 +195,7 @@ func TestSetRuleProposals(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			president := &basePresident{
-				Id:             int(shared.Team1),
+				Id:             shared.Team1,
 				RulesProposals: []string{},
 			}
 
@@ -170,13 +212,13 @@ func TestSetRuleProposals(t *testing.T) {
 func TestGetTaxMap(t *testing.T) {
 	cases := []struct {
 		name           string
-		input          map[int]int
+		input          map[shared.ClientID]shared.Resources
 		bPresident     basePresident // base
 		expectedLength int
 	}{
 		{
 			name:  "Empty tax map base",
-			input: map[int]int{},
+			input: map[shared.ClientID]shared.Resources{},
 			bPresident: basePresident{
 				Id:              3,
 				clientPresident: nil,
@@ -185,7 +227,7 @@ func TestGetTaxMap(t *testing.T) {
 		},
 		{
 			name:  "Short tax map base",
-			input: map[int]int{1: 5},
+			input: map[shared.ClientID]shared.Resources{1: 5},
 			bPresident: basePresident{
 				Id:              3,
 				clientPresident: nil,
@@ -194,7 +236,7 @@ func TestGetTaxMap(t *testing.T) {
 		},
 		{
 			name:  "Long tax map base",
-			input: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 			bPresident: basePresident{
 				Id:              4,
 				clientPresident: nil,
@@ -203,7 +245,7 @@ func TestGetTaxMap(t *testing.T) {
 		},
 		{
 			name:  "Client empty tax map base",
-			input: map[int]int{},
+			input: map[shared.ClientID]shared.Resources{},
 			bPresident: basePresident{
 				Id: 5,
 				clientPresident: &basePresident{
@@ -215,7 +257,7 @@ func TestGetTaxMap(t *testing.T) {
 		},
 		{
 			name:  "Client short tax map base",
-			input: map[int]int{1: 5},
+			input: map[shared.ClientID]shared.Resources{1: 5},
 			bPresident: basePresident{
 				Id: 5,
 				clientPresident: &basePresident{
@@ -227,7 +269,7 @@ func TestGetTaxMap(t *testing.T) {
 		},
 		{
 			name:  "Client long tax map base",
-			input: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 			bPresident: basePresident{
 				Id: 5,
 				clientPresident: &basePresident{
@@ -328,54 +370,54 @@ func TestGetAllocationRequests(t *testing.T) {
 	cases := []struct {
 		name       string
 		bPresident basePresident // base
-		input      int
-		expected   map[int]int
+		input      shared.Resources
+		expected   map[shared.ClientID]shared.Resources
 	}{
 		{
 			name: "Limited Resources",
 			bPresident: basePresident{
 				Id:               3,
-				ResourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+				ResourceRequests: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 				clientPresident:  nil,
 			},
 			input:    100,
-			expected: map[int]int{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
+			expected: map[shared.ClientID]shared.Resources{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
 		},
 		{
 			name: "Excess Resources",
 			bPresident: basePresident{
 				Id:               3,
-				ResourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+				ResourceRequests: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 				clientPresident:  nil,
 			},
 			input:    150,
-			expected: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			expected: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 		},
 		{
 			name: "Client override limited resourceRequests",
 			bPresident: basePresident{
 				Id:               5,
-				ResourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+				ResourceRequests: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 				clientPresident: &basePresident{
 					Id:               3,
-					ResourceRequests: map[int]int{1: 15, 2: 20, 25: 3, 100: 4, 35: 5, 6: 30},
+					ResourceRequests: map[shared.ClientID]shared.Resources{1: 15, 2: 20, 25: 3, 100: 4, 35: 5, 6: 30},
 				},
 			},
 			input:    100,
-			expected: map[int]int{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
+			expected: map[shared.ClientID]shared.Resources{1: 3, 2: 7, 3: 10, 4: 14, 5: 17, 6: 21},
 		},
 		{
 			name: "Client override excess resourceRequests",
 			bPresident: basePresident{
 				Id:               5,
-				ResourceRequests: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+				ResourceRequests: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 				clientPresident: &basePresident{
 					Id:               3,
-					ResourceRequests: map[int]int{1: 15, 2: 20, 25: 3, 100: 4, 35: 5, 6: 30},
+					ResourceRequests: map[shared.ClientID]shared.Resources{1: 15, 2: 20, 25: 3, 100: 4, 35: 5, 6: 30},
 				},
 			},
 			input:    150,
-			expected: map[int]int{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			expected: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
 		},
 	}
 
