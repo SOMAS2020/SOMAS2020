@@ -45,10 +45,10 @@ type Client interface {
 	DecideForage() (shared.ForageDecision, error)
 
 	//IITO: COMPULSORY
-	GetGiftRequests() shared.GiftRequestDict
-	GetGiftOffers(receivedRequests shared.GiftRequestDict) (shared.GiftOfferDict, error)
-	GetGiftResponses(receivedOffers shared.GiftOfferDict) (shared.GiftResponseDict, error)
-	UpdateGiftInfo(receivedResponses shared.GiftResponseDict) error
+	GetGiftRequests() []shared.GiftRequest
+	GetGiftOffers(receivedRequests []shared.GiftRequest) ([]shared.GiftOffer, error)
+	GetGiftResponses(receivedOffers []shared.GiftOffer) ([]shared.GiftResponse, error)
+	UpdateGiftInfo(receivedResponses []shared.GiftResponse) error
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SendGift(offer shared.GiftOffer) error
