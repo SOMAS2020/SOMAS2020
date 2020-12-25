@@ -57,7 +57,7 @@ func (s *SOMASServer) getGiftRequests() map[shared.ClientID]shared.GiftRequestDi
 	return giftRequestDict
 }
 
-// GetGiftOffers collects all responses from clients to their requests in a map
+// getGiftOffers collects all responses from clients to their requests in a map
 func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.GiftRequestDict) (map[shared.ClientID]shared.GiftOfferDict, error) {
 	totalOffers := map[shared.ClientID]shared.GiftOfferDict{}
 	// Loop over each team
