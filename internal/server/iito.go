@@ -52,6 +52,7 @@ func (s *SOMASServer) runGiftSession() error {
 func (s *SOMASServer) getGiftRequests() map[shared.ClientID][]shared.GiftRequest {
 	giftRequestDict := map[shared.ClientID][]shared.GiftRequest{}
 	for id, client := range s.clientMap {
+		// TODO: Sort the requests by GiftRequest.RequestFrom first before storing them
 		giftRequestDict[id] = client.GetGiftRequests()
 	}
 	return giftRequestDict
@@ -60,18 +61,21 @@ func (s *SOMASServer) getGiftRequests() map[shared.ClientID][]shared.GiftRequest
 // getGiftOffers collects all responses from clients to their requests in a map
 func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID][]shared.GiftRequest) (map[shared.ClientID][]shared.GiftOffer, error) {
 	totalOffers := map[shared.ClientID][]shared.GiftOffer{}
-	// Loop over each team
 	for id, client := range s.clientMap {
 		// Gather all the requests made to this team
 		requestsToThisTeam := []shared.GiftRequest{}
 		for fromTeam, indivRequests := range totalRequests {
+			// FIXME: Implement a sort so that this simple indexing method still works for lists.
 			requestsToThisTeam[fromTeam] = indivRequests[id]
 		}
+
 		offer, err := client.GetGiftOffers(requestsToThisTeam)
 		if err == nil {
 			// totalResponses in this case may have a bogus or meaningless value
 			return totalOffers, err
 		}
+
+		// TODO: Sort the offers by GiftOffer.ReceivingTeam first before storing them
 		totalOffers[id] = offer
 	}
 	return totalOffers, nil
@@ -83,6 +87,7 @@ func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID][]shared.
 	for id, client := range s.clientMap {
 		offersToThisTeam := []shared.GiftOffer{}
 		for fromTeam, indivOffers := range totalOffers {
+			// FIXME: Implement a sort so that this simple indexing method still works for lists.
 			offersToThisTeam[fromTeam] = indivOffers[id]
 		}
 		response, err := client.GetGiftResponses(offersToThisTeam)
@@ -90,6 +95,7 @@ func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID][]shared.
 			// totalResponses in this case may have a bogus or meaningless value
 			return totalResponses, err
 		}
+		// TODO: Sort the responses by GiftResponse.ResponseTo first before storing them
 		totalResponses[id] = response
 	}
 	return totalResponses, nil
@@ -100,6 +106,7 @@ func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID][
 	for id, client := range s.clientMap {
 		responsesToThisTeam := []shared.GiftResponse{}
 		for fromTeam, indivResponses := range totalResponses {
+			// FIXME: Implement a sort so that this simple indexing method still works for lists.
 			responsesToThisTeam[fromTeam] = indivResponses[id]
 		}
 		err := client.UpdateGiftInfo(responsesToThisTeam)
