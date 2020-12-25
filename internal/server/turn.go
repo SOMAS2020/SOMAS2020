@@ -131,33 +131,13 @@ func (s *SOMASServer) deductCostOfLiving(costOfLiving shared.Resources) {
 	defer s.logf("finish deductCostOfLiving")
 
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
-	N := len(nonDeadClients)
-	resChan := make(chan clientInfoUpdateResult, N)
-	wg := &sync.WaitGroup{}
-	wg.Add(N)
-
 	for _, id := range nonDeadClients {
-		go func(id shared.ClientID, ci gamestate.ClientInfo) {
-			defer wg.Done()
-			if ci.Resources < costOfLiving {
-				ci.Resources = 0
-			} else {
-				ci.Resources -= costOfLiving
-			}
-			resChan <- clientInfoUpdateResult{
-				ID:  id,
-				Ci:  ci,
-				Err: nil,
-			}
-		}(id, s.gameState.ClientInfos[id])
-	}
-
-	wg.Wait()
-	close(resChan)
-
-	for res := range resChan {
-		id, ci := res.ID, res.Ci
-		// fine to ignore error, always nil
+		ci := s.gameState.ClientInfos[id]
+		if ci.Resources < costOfLiving {
+			ci.Resources = 0
+		} else {
+			ci.Resources -= costOfLiving
+		}
 		s.gameState.ClientInfos[id] = ci
 	}
 }
@@ -170,29 +150,9 @@ func (s *SOMASServer) updateIslandLivingStatus() error {
 	defer s.logf("finish updateIslandLivingStatus")
 
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
-	N := len(nonDeadClients)
-	resChan := make(chan clientInfoUpdateResult, N)
-	wg := &sync.WaitGroup{}
-	wg.Add(N)
-
 	for _, id := range nonDeadClients {
-		go func(id shared.ClientID, ci gamestate.ClientInfo) {
-			defer wg.Done()
-			ciNew, err := updateIslandLivingStatusForClient(ci,
-				config.GameConfig().MinimumResourceThreshold, config.GameConfig().MaxCriticalConsecutiveTurns)
-			resChan <- clientInfoUpdateResult{
-				ID:  id,
-				Ci:  ciNew,
-				Err: err,
-			}
-		}(id, s.gameState.ClientInfos[id])
-	}
-
-	wg.Wait()
-	close(resChan)
-
-	for res := range resChan {
-		id, ci, err := res.ID, res.Ci, res.Err
+		ci, err := updateIslandLivingStatusForClient(s.gameState.ClientInfos[id],
+			config.GameConfig().MinimumResourceThreshold, config.GameConfig().MaxCriticalConsecutiveTurns)
 		if err != nil {
 			return errors.Errorf("Failed to update island living status for '%v': %v", id, err)
 		}
