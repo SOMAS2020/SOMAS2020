@@ -7,6 +7,7 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) GetGiftRequests() []shared.GiftRequest {
 	// FIXME: Make this the appropriate length, the loop below doesn't run otherwise.
+	// Can't test server until this is fixed.
 	requests := []shared.GiftRequest{}
 	for fromTeam := range requests {
 		if c.clientGameState.ClientInfo.LifeStatus == shared.Critical {
@@ -23,6 +24,7 @@ func (c *BaseClient) GetGiftRequests() []shared.GiftRequest {
 // COMPULSORY, you need to implement this method. This placeholder implementation offers no gifts.
 func (c *BaseClient) GetGiftOffers(receivedRequests []shared.GiftRequest) ([]shared.GiftOffer, error) {
 	// FIXME: Make this the appropriate length, the loop below doesn't run otherwise.
+	// Can't test server until this is fixed.
 	offers := []shared.GiftOffer{}
 	for toTeam := range offers {
 		offers[toTeam] = shared.GiftOffer{ReceivingTeam: shared.ClientID(toTeam), OfferAmount: 0.0}
@@ -35,6 +37,7 @@ func (c *BaseClient) GetGiftOffers(receivedRequests []shared.GiftRequest) ([]sha
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) GetGiftResponses(receivedOffers []shared.GiftOffer) ([]shared.GiftResponse, error) {
 	// FIXME: Make this the appropriate length, the loop below doesn't run otherwise.
+	// Can't test server until this is fixed.
 	responses := []shared.GiftResponse{}
 	for client, offer := range receivedOffers {
 		responses[client] = shared.GiftResponse{
