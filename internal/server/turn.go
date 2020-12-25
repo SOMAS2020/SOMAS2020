@@ -16,6 +16,8 @@ func (s *SOMASServer) runTurn() error {
 
 	s.logf("TURN: %v, Season: %v", s.gameState.Turn, s.gameState.Season)
 
+	s.startOfTurn()
+
 	// run all orgs
 	err := s.runOrgs()
 	if err != nil {
@@ -27,6 +29,12 @@ func (s *SOMASServer) runTurn() error {
 	}
 
 	return nil
+}
+
+func (s *SOMASServer) startOfTurn() {
+	for _, clientID := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		s.clientMap[clientID].StartOfTurn()
+	}
 }
 
 // runOrgs runs all the orgs

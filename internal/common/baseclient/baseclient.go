@@ -22,6 +22,9 @@ type Client interface {
 	// any point
 	Initialise(ServerReadHandle)
 
+	// StartOfTurn is called at the beginning of each turn
+	StartOfTurn()
+
 	Logf(format string, a ...interface{})
 
 	CommonPoolResourceRequest() shared.Resources
@@ -97,6 +100,8 @@ func (c *BaseClient) GetID() shared.ClientID {
 }
 
 func (c BaseClient) Initialise(ServerReadHandle) {}
+
+func (c BaseClient) StartOfTurn() {}
 
 // Logf is the client's logger that prepends logs with your ID. This makes
 // it easier to read logs. DO NOT use other loggers that will mess logs up!
