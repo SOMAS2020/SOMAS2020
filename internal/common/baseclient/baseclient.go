@@ -44,10 +44,6 @@ type Client interface {
 	MakeForageInfo() shared.ForageShareInfo
 	ReceiveForageInfo([]shared.ForageShareInfo)
 
-	// ForageUpdate is called with the total resources returned to the agent
-	// from the hunt (NOT the profit)
-	ForageUpdate(shared.ForageDecision, shared.Resources)
-
 	//IITO: COMPULSORY
 	RequestGift() uint
 	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
@@ -56,6 +52,9 @@ type Client interface {
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
+	// ForageUpdate is called with the total resources returned to the agent
+	// from the hunt (NOT the profit)
+	ForageUpdate(shared.ForageDecision, shared.Resources)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SendGift(receivingClient shared.ClientID, amount int) error
