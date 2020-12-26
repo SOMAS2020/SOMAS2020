@@ -56,11 +56,11 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 	e.budget -= serviceCharge
 	taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
 	if taxesCollected {
-		for _, v := range getIslandAlive() {
-			d := shared.Communication{T: shared.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(v))])}
+		for _, island := range getIslandAlive() {
+			d := shared.Communication{T: shared.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.Communication)
 			data[shared.TaxAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
+			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
 		}
 	}
 }
@@ -74,8 +74,8 @@ func (e *executive) getAllocationRequests(commonPool shared.Resources) (map[shar
 
 func (e *executive) requestAllocationRequest() {
 	allocRequests := make(map[shared.ClientID]shared.Resources)
-	for _, v := range getIslandAlive() {
-		allocRequests[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].CommonPoolResourceRequest()
+	for _, island := range getIslandAlive() {
+		allocRequests[shared.ClientID(int(island))] = iigoClients[shared.ClientID(int(island))].CommonPoolResourceRequest()
 	}
 	AllocationAmountMapExport = allocRequests
 	e.setAllocationRequest(allocRequests)
@@ -88,11 +88,11 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	e.budget -= serviceCharge
 	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
 	if requestsEvaluated {
-		for _, v := range getIslandAlive() {
-			d := shared.Communication{T: shared.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
+		for _, island := range getIslandAlive() {
+			d := shared.Communication{T: shared.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.Communication)
 			data[shared.AllocationAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
+			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
 		}
 	}
 }
@@ -139,8 +139,8 @@ func (e *executive) reset(val string) error {
 func (e *executive) requestRuleProposal() {
 	e.budget -= serviceCharge
 	var rules []string
-	for _, v := range getIslandAlive() {
-		rules = append(rules, iigoClients[shared.ClientID(int(v))].RuleProposal())
+	for _, island := range getIslandAlive() {
+		rules = append(rules, iigoClients[shared.ClientID(int(island))].RuleProposal())
 	}
 
 	e.setRuleProposals(rules)
