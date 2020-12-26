@@ -100,11 +100,10 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	j.budget -= serviceCharge // will be removed post-MVP
 	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
-	if err == nil {
-		return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
-	} else {
+	if err != nil {
 		return true, errors.Errorf("President didn't conduct any allocations")
-	}
+	} 
+	return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
 }
 
 // searchForRule searches for a given rule in the RuleMatrix
