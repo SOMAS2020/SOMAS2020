@@ -35,6 +35,14 @@ type SOMASServer struct {
 // SOMASServerFactory returns an instance of the main server we use.
 func SOMASServerFactory() Server {
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
+	return createSOMASServer(clientInfos, clientMap)
+}
+
+// createSOMASServer creates the main server given initial data about the
+// clients. Extracted from SOMASServerFactory for testing purposes.
+func createSOMASServer(
+	clientInfos map[shared.ClientID]gamestate.ClientInfo,
+	clientMap map[shared.ClientID]baseclient.Client) Server {
 
 	judge, speaker, president := iigointernal.GetFeaturedRoles()
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
@@ -57,7 +65,7 @@ func SOMASServerFactory() Server {
 	for _, client := range clientMap {
 		client.Initialise(ServerForClient{
 			clientID: client.GetID(),
-			server: server,
+			server:   server,
 		})
 	}
 
@@ -100,7 +108,7 @@ func (s *SOMASServer) logf(format string, a ...interface{}) {
 // meant as an instance of baseclient.ServerReadHandle
 type ServerForClient struct {
 	clientID shared.ClientID
-	server *SOMASServer
+	server   *SOMASServer
 }
 
 func (s ServerForClient) GetGameState() gamestate.ClientGameState {
