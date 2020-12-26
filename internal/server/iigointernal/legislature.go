@@ -45,7 +45,7 @@ func (l *legislature) sendJudgeSalary() {
 
 // Receive a rule to call a vote on
 func (l *legislature) setRuleToVote(r string) {
-	l.ruleToVote, _ = l.clientSpeaker.DecideAgenda(l.ruleToVote)
+	l.ruleToVote, _ = l.clientSpeaker.DecideAgenda(r)
 	//TODO:Handle errors properly
 }
 
