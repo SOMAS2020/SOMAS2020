@@ -7,5 +7,5 @@ type President interface {
 	PaySpeaker(salary shared.Resources) (shared.Resources, error)
 	SetTaxationAmount(map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, error)
 	EvaluateAllocationRequests(map[shared.ClientID]shared.Resources, shared.Resources) (map[shared.ClientID]shared.Resources, error)
-	PickRuleToVote([]string) (string, error)
+	PickRuleToVote([]string) (string, bool)
 }

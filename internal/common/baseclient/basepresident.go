@@ -29,12 +29,12 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 
 // Chose a rule proposal from all the proposals
 // need to pass in since this is now functional for the sake of client side
-func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, error) {
+func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
-		return "", nil
+		return "", false
 	}
-	return rulesProposals[rand.Intn(len(rulesProposals))], nil
+	return rulesProposals[rand.Intn(len(rulesProposals))], true
 }
 
 // Set taxation amount for all of the living islands

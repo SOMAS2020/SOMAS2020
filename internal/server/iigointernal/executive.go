@@ -39,10 +39,9 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
-func (e *executive) getRuleForSpeaker() string {
+func (e *executive) getRuleForSpeaker() (string, bool) {
 	e.budget -= serviceCharge
-	result, _ := e.clientPresident.PickRuleToVote(e.RulesProposals)
-	return result
+	return e.clientPresident.PickRuleToVote(e.RulesProposals)
 }
 
 // Send Tax map all the remaining islands

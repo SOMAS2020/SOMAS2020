@@ -122,12 +122,14 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.requestAllocationRequest()
 	executiveBranch.replyAllocationRequest(g.CommonPool)
 	executiveBranch.requestRuleProposal()
-	ruleToVote := executiveBranch.getRuleForSpeaker()
+	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
-	legislativeBranch.setRuleToVote(ruleToVote)
-	legislativeBranch.setVotingResult(aliveClientIds)
-	_ = legislativeBranch.announceVotingResult()
+	if ruleSelected {
+		legislativeBranch.setRuleToVote(ruleToVote)
+		legislativeBranch.setVotingResult(aliveClientIds)
+		_ = legislativeBranch.announceVotingResult()
+	}
 
 	// 4 Declare performance (Judge) (in future all the iigointernal)
 	if judgeInspectingHistoryError != nil {

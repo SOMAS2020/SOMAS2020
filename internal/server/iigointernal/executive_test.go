@@ -123,31 +123,31 @@ func TestPickRuleToVote(t *testing.T) {
 		name  string
 		input []string
 		reply string
-		want  error
+		want  bool
 	}{
 		{
 			name:  "Basic rule",
 			input: []string{"rule"},
 			reply: "rule",
-			want:  nil,
+			want:  true,
 		},
 		{
 			name:  "Empty string",
 			input: []string{""},
 			reply: "",
-			want:  nil,
+			want:  true,
 		},
 		{
 			name:  "Longer list",
 			input: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 			reply: "",
-			want:  nil,
+			want:  true,
 		},
 		{
 			name:  "Empty list",
 			input: []string{},
 			reply: "",
-			want:  nil,
+			want:  false,
 		},
 	}
 
@@ -159,7 +159,7 @@ func TestPickRuleToVote(t *testing.T) {
 			}
 
 			val, err := executive.clientPresident.PickRuleToVote(tc.input)
-			if err == nil && tc.want == nil {
+			if err && tc.want {
 				if len(tc.input) == 0 {
 					if val != "" {
 						t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, val)
@@ -347,7 +347,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			val := tc.bPresident.getRuleForSpeaker()
+			val, _ := tc.bPresident.getRuleForSpeaker()
 			if len(tc.expected) == 0 {
 				if val != "" {
 					t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, val)
