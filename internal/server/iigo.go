@@ -26,9 +26,11 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 		err := s.takeResources(clientID, tax, "tax")
 		if err == nil {
 			s.gameState.CommonPool += tax
+			s.clientMap[clientID].TaxTaken(tax)
 		} else {
 			s.logf("Error getting tax from %v: %v", clientID, err)
 		}
+
 		_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: "island_tax_contribution",

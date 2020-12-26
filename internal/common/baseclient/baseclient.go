@@ -38,6 +38,9 @@ type Client interface {
 	GetTaxContribution() shared.Resources
 	RequestAllocation() shared.Resources
 
+	// TaxTaken is called on the client after tax has been taken from it
+	TaxTaken(shared.Resources)
+
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
