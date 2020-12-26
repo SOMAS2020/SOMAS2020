@@ -282,7 +282,7 @@ func TestGetTaxMap(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			val := tc.bPresident.getTaxMap(tc.input)
+			val, _ := tc.bPresident.getTaxMap(tc.input)
 			if len(val) != tc.expectedLength {
 				t.Errorf("%v - Failed. RulesProposals set to '%v', expected '%v'", tc.name, val, tc.input)
 			}

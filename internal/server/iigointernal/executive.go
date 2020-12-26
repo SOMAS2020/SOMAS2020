@@ -46,21 +46,22 @@ func (e *executive) getRuleForSpeaker() (string, bool) {
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) map[shared.ClientID]shared.Resources {
+func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	e.budget -= serviceCharge
-	result, _ := e.clientPresident.SetTaxationAmount(islandsResources)
-	return result
+	return e.clientPresident.SetTaxationAmount(islandsResources)
 }
 
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
 	e.budget -= serviceCharge
-	taxAmountMap := e.getTaxMap(islandsResources)
-	for _, v := range getIslandAlive() {
-		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(v))])}
-		data := make(map[int]baseclient.Communication)
-		data[TaxAmount] = d
-		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
+	taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
+	if taxesCollected {
+		for _, v := range getIslandAlive() {
+			d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(v))])}
+			data := make(map[int]baseclient.Communication)
+			data[TaxAmount] = d
+			communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
+		}
 	}
 }
 

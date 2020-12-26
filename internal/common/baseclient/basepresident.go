@@ -39,12 +39,12 @@ func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 
 // Set taxation amount for all of the living islands
 // island_resources: map of all the living islands and their remaining resources
-func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, error) {
+func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 	for id, resourceLeft := range islandsResources {
 		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * rand.Float64())
 	}
-	return taxAmountMap, nil
+	return taxAmountMap, true
 }
 
 // Pay the speaker
