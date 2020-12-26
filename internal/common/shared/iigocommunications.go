@@ -1,5 +1,7 @@
 package shared
 
+import "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+
 type CommunicationContentType = int
 
 const (
@@ -31,3 +33,8 @@ const (
 	TaxAmount
 	AllocationAmount
 )
+
+type Accountability struct {
+	ClientID ClientID
+	Pairs    []rules.VariableValuePair
+}
