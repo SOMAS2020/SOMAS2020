@@ -45,9 +45,9 @@ func (v *RuleVote) GetBallotBox() BallotBox {
 	//The following is in accordance with anonymous voting
 	var outcome BallotBox
 	for _, vote := range v.ballots {
-		if vote == true {
+		if vote {
 			outcome.VotesInFavour += 1
-		} else if vote == false {
+		} else if !vote {
 			outcome.VotesAgainst += 1
 		}
 	}
