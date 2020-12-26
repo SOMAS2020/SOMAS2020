@@ -38,7 +38,7 @@ func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) error 
 }
 
 // sendJudgeSalary sets the budget of the Judge.
-func (l *legislature) sendJudgeSalary() {
+func (l *legislature) sendJudgeSalary(judicialBranch *judiciary) {
 	amount, _ := l.clientSpeaker.PayJudge()
 	judicialBranch.budget = amount
 }

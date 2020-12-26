@@ -118,7 +118,7 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error 
 }
 
 // sendSpeakerSalary send speaker's salary to the speaker.
-func (e *executive) sendSpeakerSalary() {
+func (e *executive) sendSpeakerSalary(legislativeBranch *legislature) {
 	amount, salaryPaid := e.clientPresident.PaySpeaker(e.speakerSalary)
 	if salaryPaid {
 		legislativeBranch.budget = amount

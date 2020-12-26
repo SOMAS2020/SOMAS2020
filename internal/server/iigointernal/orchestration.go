@@ -71,7 +71,6 @@ var iigoClients map[shared.ClientID]baseclient.Client
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) error {
 
-	// TODO: Get Client pointers from gamestate https://imgur.com/a/HjVZIkh
 	iigoClients = *clientMap
 
 	// Initialise IDs
@@ -91,22 +90,22 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// Handle the lack of resources
 	if errWithdrawPresident != nil {
-		returnWithdrawnSalariesToCommonPool(g)
+		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
 		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
 	}
 	if errWithdrawJudge != nil {
-		returnWithdrawnSalariesToCommonPool(g)
+		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
 		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
 	}
 	if errWithdrawSpeaker != nil {
-		returnWithdrawnSalariesToCommonPool(g)
+		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
 		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
 	}
 
 	// Pay salaries into budgets
-	judicialBranch.sendPresidentSalary()
-	legislativeBranch.sendJudgeSalary()
-	executiveBranch.sendSpeakerSalary()
+	judicialBranch.sendPresidentSalary(&executiveBranch)
+	legislativeBranch.sendJudgeSalary(&judicialBranch)
+	executiveBranch.sendSpeakerSalary(&legislativeBranch)
 
 	// 1 Judge actions - inspect history
 	_, historyInspected := judicialBranch.inspectHistory()
@@ -155,7 +154,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	return nil
 }
 
-func returnWithdrawnSalariesToCommonPool(state *gamestate.GameState) {
+func returnWithdrawnSalariesToCommonPool(state *gamestate.GameState, executiveBranch *executive, legislativeBranch *legislature, judicialBranch *judiciary) {
 	returnVal := executiveBranch.returnSpeakerSalary() + legislativeBranch.returnJudgeSalary() + judicialBranch.returnPresidentSalary()
 	depositIntoCommonPool(returnVal, state)
 }

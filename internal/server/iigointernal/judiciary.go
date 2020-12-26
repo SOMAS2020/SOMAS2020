@@ -45,7 +45,7 @@ func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) erro
 }
 
 // sendPresidentSalary sends the president's salary to the president.
-func (j *judiciary) sendPresidentSalary() {
+func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
 	if j.clientJudge != nil {
 		amount := j.clientJudge.PayPresident()
 		executiveBranch.budget = amount
