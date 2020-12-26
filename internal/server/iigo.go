@@ -24,8 +24,10 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 	for clientID, v := range clientMap {
 		tax := v.GetTaxContribution()
 		s.gameState.CommonPool += tax
+		clientInfo := s.gameState.ClientInfos[clientID]
+		clientInfo.Resources -= tax
+		s.gameState.ClientInfos[clientID] = clientInfo
 		newGameState := s.gameState.GetClientGameStateCopy(clientID)
-		newGameState.ClientInfo.Resources -= tax
 		v.GameStateUpdate(newGameState)
 		gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
@@ -39,7 +41,6 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 		})
 
 	}
-	s.gameStateUpdate()
 	return nil
 }
 
@@ -52,7 +53,9 @@ func (s *SOMASServer) runIIGOAllocations() error {
 		if allocation <= s.gameState.CommonPool {
 			s.gameState.CommonPool -= allocation
 			newGameState := s.gameState.GetClientGameStateCopy(clientID)
-			newGameState.ClientInfo.Resources += allocation
+			clientInfo := s.gameState.ClientInfos[clientID]
+			clientInfo.Resources += allocation
+			s.gameState.ClientInfos[clientID] = clientInfo
 			v.GameStateUpdate(newGameState)
 			gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 				{
@@ -66,7 +69,6 @@ func (s *SOMASServer) runIIGOAllocations() error {
 			})
 		}
 	}
-	s.gameStateUpdate()
 	return nil
 }
 
