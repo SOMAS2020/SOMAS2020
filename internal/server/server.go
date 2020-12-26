@@ -111,6 +111,8 @@ type ServerForClient struct {
 	server   *SOMASServer
 }
 
+// GetGameState gets the ClientGameState for the client matching s.clientID in
+// s.server
 func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 	return s.server.gameState.GetClientGameStateCopy(s.clientID)
 }
