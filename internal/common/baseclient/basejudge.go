@@ -35,11 +35,10 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 			}
 		}
 		if _, ok := outputMap[clientID]; !ok {
-			tempTemp := roles.EvaluationReturn{
+			outputMap[clientID] = roles.EvaluationReturn{
 				Rules:       []rules.RuleMatrix{},
 				Evaluations: []bool{},
 			}
-			outputMap[clientID] = tempTemp
 		}
 		tempReturn := outputMap[clientID]
 		for _, v3 := range rulesAffected {
