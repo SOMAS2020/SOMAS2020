@@ -70,7 +70,7 @@ func (j *judiciary) setSpeakerAndPresidentIDs(speakerId shared.ClientID, preside
 
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
-func (j *judiciary) inspectHistory() (map[shared.ClientID]roles.EvaluationReturn, error) {
+func (j *judiciary) inspectHistory() (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	j.budget -= serviceCharge
 	return j.clientJudge.InspectHistory()
 }

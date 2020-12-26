@@ -18,7 +18,7 @@ func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) shared.Resour
 }
 
 // inspectHistoryInternal is the base implementation of InspectHistory.
-func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn, error) {
+func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
 	for _, v := range gamestate.TurnHistory {
 		variablePairs := v.Pairs
@@ -31,7 +31,7 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 			}
 			err = rules.UpdateVariable(v2.VariableName, v2)
 			if err != nil {
-				return map[shared.ClientID]roles.EvaluationReturn{}, err
+				return map[shared.ClientID]roles.EvaluationReturn{}, false
 			}
 		}
 		if _, ok := outputMap[clientID]; !ok {
@@ -48,7 +48,7 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
 		}
 	}
-	return outputMap, nil
+	return outputMap, true
 }
 
 // DeclareSpeakerPerformance checks how well the speaker did their job.

@@ -109,7 +109,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.sendSpeakerSalary()
 
 	// 1 Judge actions - inspect history
-	_, judgeInspectingHistoryError := judicialBranch.inspectHistory()
+	_, historyInspected := judicialBranch.inspectHistory()
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
@@ -132,7 +132,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// 4 Declare performance (Judge) (in future all the iigointernal)
-	if judgeInspectingHistoryError != nil {
+	if historyInspected {
 		judicialBranch.declarePresidentPerformanceWrapped()
 
 		judicialBranch.declareSpeakerPerformanceWrapped()
