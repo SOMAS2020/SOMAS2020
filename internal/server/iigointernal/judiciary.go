@@ -35,13 +35,11 @@ func (j *judiciary) returnPresidentSalary() shared.Resources {
 }
 
 // withdrawPresidentSalary withdraws the president's salary from the common pool.
-func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) error {
+func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool {
 	var presidentSalary = shared.Resources(rules.VariableMap[rules.PresidentSalary].Values[0])
-	var withdrawError = WithdrawFromCommonPool(presidentSalary, gameState)
-	if withdrawError == nil {
-		j.presidentSalary = presidentSalary
-	}
-	return withdrawError
+	var withdrawAmount, withdrawSuccesful = WithdrawFromCommonPool(presidentSalary, gameState)
+	j.presidentSalary = withdrawAmount
+	return withdrawSuccesful
 }
 
 // sendPresidentSalary sends the president's salary to the president.

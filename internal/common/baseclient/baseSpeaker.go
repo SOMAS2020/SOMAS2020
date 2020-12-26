@@ -20,14 +20,14 @@ func (s *BaseSpeaker) DecideAgenda(ruleID string) (string, bool) {
 //DecideVote is the interface implementation and example of a well behaved Speaker
 //who calls a vote on the proposed rule and asks all available islands to vote.
 //Return an empty string or empty []shared.ClientID for no vote to occur
-func (s *BaseSpeaker) DecideVote(ruleID string, aliveClients []shared.ClientID) (string, []shared.ClientID, error) {
+func (s *BaseSpeaker) DecideVote(ruleID string, aliveClients []shared.ClientID) (string, []shared.ClientID, bool) {
 	//TODO: disregard islands with sanctions
-	return ruleID, aliveClients, nil
+	return ruleID, aliveClients, true
 }
 
 //DecideAnnouncement is the interface implementation and example of a well behaved Speaker
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
-func (s *BaseSpeaker) DecideAnnouncement(ruleId string, result bool) (string, bool, error) {
-	return ruleId, result, nil
+func (s *BaseSpeaker) DecideAnnouncement(ruleId string, result bool) (string, bool, bool) {
+	return ruleId, result, true
 }

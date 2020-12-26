@@ -28,13 +28,12 @@ func (l *legislature) returnJudgeSalary() shared.Resources {
 }
 
 // withdrawJudgeSalary withdraws the salary for the Judge from the common pool.
-func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) error {
+func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) bool {
 	var judgeSalary = shared.Resources(rules.VariableMap[rules.JudgeSalary].Values[0])
-	var withdrawError = WithdrawFromCommonPool(judgeSalary, gameState)
-	if withdrawError == nil {
-		l.judgeSalary = judgeSalary
-	}
-	return withdrawError
+	withdrawAmount, withdrawSuccesful := WithdrawFromCommonPool(judgeSalary, gameState)
+	l.judgeSalary = withdrawAmount
+
+	return withdrawSuccesful
 }
 
 // sendJudgeSalary sets the budget of the Judge.
@@ -57,8 +56,8 @@ func (l *legislature) setRuleToVote(r string) {
 //Called by orchestration
 func (l *legislature) setVotingResult(clientIDs []shared.ClientID) {
 
-	ruleID, participatingIslands, err := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
-	if err != nil {
+	ruleID, participatingIslands, voteDecided := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
+	if !voteDecided {
 		return
 	}
 	l.ballotBox = l.RunVote(ruleID, participatingIslands)
@@ -92,11 +91,11 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
-func (l *legislature) announceVotingResult() error {
+func (l *legislature) announceVotingResult() {
 
-	rule, result, err := l.clientSpeaker.DecideAnnouncement(l.ruleToVote, l.votingResult)
+	rule, result, announcementDecided := l.clientSpeaker.DecideAnnouncement(l.ruleToVote, l.votingResult)
 
-	if err == nil {
+	if announcementDecided {
 		//Deduct action cost
 		l.budget -= serviceCharge
 
@@ -106,9 +105,7 @@ func (l *legislature) announceVotingResult() error {
 
 		//Perform announcement
 		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(rule, result))
-		return l.updateRules(rule, result)
 	}
-	return nil
 }
 
 func generateVotingResultMessage(ruleID string, result bool) map[shared.CommunicationFieldName]shared.Communication {
