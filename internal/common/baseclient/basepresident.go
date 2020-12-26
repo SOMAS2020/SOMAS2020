@@ -9,7 +9,7 @@ import (
 type BasePresident struct{}
 
 // Set allowed resource allocation based on each islands requests
-func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, error) {
+func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	var requestSum shared.Resources
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
 
@@ -24,7 +24,7 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 			resourceAllocation[id] = shared.Resources(request * availCommonPool * 3 / (4 * requestSum))
 		}
 	}
-	return resourceAllocation, nil
+	return resourceAllocation, true
 }
 
 // Chose a rule proposal from all the proposals

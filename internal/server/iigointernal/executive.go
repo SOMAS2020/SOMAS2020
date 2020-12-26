@@ -67,10 +67,9 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (e *executive) getAllocationRequests(commonPool shared.Resources) map[shared.ClientID]shared.Resources {
+func (e *executive) getAllocationRequests(commonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	e.budget -= serviceCharge
-	result, _ := e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
-	return result
+	return e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
 }
 
 func (e *executive) requestAllocationRequest() {
@@ -87,12 +86,14 @@ func (e *executive) requestAllocationRequest() {
 // to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	e.budget -= serviceCharge
-	allocationMap := e.getAllocationRequests(commonPool)
-	for _, v := range getIslandAlive() {
-		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
-		data := make(map[int]baseclient.Communication)
-		data[shared.AllocationAmount] = d
-		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
+	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
+	if requestsEvaluated {
+		for _, v := range getIslandAlive() {
+			d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
+			data := make(map[int]baseclient.Communication)
+			data[shared.AllocationAmount] = d
+			communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
+		}
 	}
 }
 
