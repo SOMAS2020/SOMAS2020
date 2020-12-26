@@ -49,6 +49,7 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
 			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
 		}
+		outputMap[clientID] = tempReturn
 	}
 	return outputMap, true
 }
