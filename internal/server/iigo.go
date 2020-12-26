@@ -49,12 +49,11 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
-		s.gameState.CommonPool -= allocation
-		newGameState := s.gameState.GetClientGameStateCopy(clientID)
-		newGameState.ClientInfo.Resources += allocation
-		v.GameStateUpdate(newGameState)
 		if allocation <= s.gameState.CommonPool {
 			s.gameState.CommonPool -= allocation
+			newGameState := s.gameState.GetClientGameStateCopy(clientID)
+			newGameState.ClientInfo.Resources += allocation
+			v.GameStateUpdate(newGameState)
 			gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 				{
 					VariableName: rules.IslandAllocation,
