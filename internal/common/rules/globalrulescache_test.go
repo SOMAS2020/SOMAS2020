@@ -86,11 +86,11 @@ func registerTestRule(rulesStore map[string]RuleMatrix) {
 
 	//A very contrived rule//
 	name := "Kinda Test Rule"
-	reqVar := []string{
-		"number_of_islands_contributing_to_common_pool",
-		"number_of_failed_forages",
-		"number_of_broken_agreements",
-		"max_severity_of_sanctions",
+	reqVar := []VariableFieldName{
+		NumberOfIslandsContributingToCommonPool,
+		NumberOfFailedForages,
+		NumberOfBrokenAgreements,
+		MaxSeverityOfSanctions,
 	}
 
 	v := []float64{1, 0, 0, 0, -4, 0, -1, -1, 0, 2, 0, 0, 0, 1, -2, 0, 0, 1, 0, -1}

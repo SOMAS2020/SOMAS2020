@@ -32,8 +32,8 @@ type Client interface {
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
-	ReceiveCommunication(sender shared.ClientID, data map[int]Communication)
-	GetCommunications() *map[shared.ClientID][]map[int]Communication
+	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.Communication)
+	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.Communication
 	GetTaxContribution() shared.Resources
 	RequestAllocation() shared.Resources
 
@@ -68,7 +68,7 @@ var ourPredictionInfo shared.PredictionInfo
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
 func NewClient(id shared.ClientID) Client {
-	return &BaseClient{id: id, communications: map[shared.ClientID][]map[int]Communication{}}
+	return &BaseClient{id: id, communications: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.Communication{}}
 }
 
 // BaseClient provides a basic implementation for all functions of the client interface and should always the interface fully.
@@ -77,7 +77,7 @@ func NewClient(id shared.ClientID) Client {
 type BaseClient struct {
 	id              shared.ClientID
 	clientGameState gamestate.ClientGameState
-	communications  map[shared.ClientID][]map[int]Communication
+	communications  map[shared.ClientID][]map[shared.CommunicationFieldName]shared.Communication
 }
 
 // Echo prints a message to show that the client exists
@@ -135,7 +135,7 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
 	// Done ;)
 	// Get all alive islands
-	aliveClients := rules.VariableMap["islands_alive"]
+	aliveClients := rules.VariableMap[rules.IslandsAlive]
 	// Convert to ClientID type and place into unordered map
 	aliveClientIDs := map[int]shared.ClientID{}
 	for i, v := range aliveClients.Values {
@@ -149,29 +149,13 @@ func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
 	return returnList
 }
 
-type CommunicationContentType = int
-
-const (
-	CommunicationInt CommunicationContentType = iota
-	CommunicationString
-	CommunicationBool
-)
-
-// Communication is a general datastructure used for communications
-type Communication struct {
-	T           CommunicationContentType
-	IntegerData int
-	TextData    string
-	BooleanData bool
-}
-
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
-func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[int]Communication) {
+func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.Communication) {
 	c.communications[sender] = append(c.communications[sender], data)
 }
 
 // GetCommunications is used for testing communications
-func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[int]Communication {
+func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.Communication {
 	return &c.communications
 
 }

@@ -16,11 +16,11 @@ func registerDemoRule() {
 
 	//A very contrived rule//
 	name := "Kinda Complicated Rule"
-	reqVar := []string{
-		"number_of_islands_contributing_to_common_pool",
-		"number_of_failed_forages",
-		"number_of_broken_agreements",
-		"max_severity_of_sanctions",
+	reqVar := []VariableFieldName{
+		NumberOfIslandsContributingToCommonPool,
+		NumberOfFailedForages,
+		NumberOfBrokenAgreements,
+		MaxSeverityOfSanctions,
 	}
 
 	v := []float64{1, 0, 0, 0, -4, 0, -1, -1, 0, 2, 0, 0, 0, 1, -2, 0, 0, 1, 0, -1}
@@ -38,42 +38,42 @@ func registerDemoRule() {
 func registerRulesByMass() {
 	ruleSpecs := []struct {
 		name   string
-		reqVar []string
+		reqVar []VariableFieldName
 		v      []float64
 		aux    []float64
 	}{
 		{
 			name: "inspect_ballot_rule",
-			reqVar: []string{
-				"no_islands_alive",
-				"no_ballots_cast",
+			reqVar: []VariableFieldName{
+				NumberOfIslandsAlive,
+				NumberOfBallotsCast,
 			},
 			v:   []float64{1, -1, 0},
 			aux: []float64{0},
 		},
 		{
 			name: "inspect_allocation_rule",
-			reqVar: []string{
-				"no_islands_alive",
-				"no_allocations_sent",
+			reqVar: []VariableFieldName{
+				NumberOfIslandsAlive,
+				NumberOfAllocationsSent,
 			},
 			v:   []float64{1, -1, 0},
 			aux: []float64{0},
 		},
 		{
 			name: "check_taxation_rule",
-			reqVar: []string{
-				"island_tax_contribution",
-				"expected_tax_contribution",
+			reqVar: []VariableFieldName{
+				IslandTaxContribution,
+				ExpectedTaxContribution,
 			},
 			v:   []float64{1, -1, 0},
 			aux: []float64{2},
 		},
 		{
 			name: "check_allocation_rule",
-			reqVar: []string{
-				"island_allocation",
-				"expected_allocation",
+			reqVar: []VariableFieldName{
+				IslandAllocation,
+				ExpectedAllocation,
 			},
 			v:   []float64{1, -1, 0},
 			aux: []float64{0},
