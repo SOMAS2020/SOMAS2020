@@ -46,13 +46,13 @@ var executiveBranch = executive{
 }
 
 // SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
-var SpeakerIDGlobal shared.ClientID
+var SpeakerIDGlobal shared.ClientID = 1
 
 // JudgeIDGlobal is the single source of truth for judge ID (MVP)
-var JudgeIDGlobal shared.ClientID
+var JudgeIDGlobal shared.ClientID = 2
 
 // PresidentIDGlobal is the single source of truth for president ID (MVP)
-var PresidentIDGlobal shared.ClientID
+var PresidentIDGlobal shared.ClientID = 3
 
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
@@ -77,6 +77,13 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	judicialBranch.JudgeID = JudgeIDGlobal
 	legislativeBranch.SpeakerID = SpeakerIDGlobal
 	executiveBranch.ID = PresidentIDGlobal
+
+	// Set judgePointer
+	judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
+	// Set speakerPointer
+	speakerPointer = iigoClients[SpeakerIDGlobal].GetClientSpeakerPointer()
+	// Set presidentPointer
+	presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
 	judicialBranch.clientJudge = judgePointer
@@ -143,13 +150,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	SpeakerIDGlobal = executiveBranch.appointNextSpeaker(aliveClientIds)
 	// Get new President ID
 	PresidentIDGlobal = judicialBranch.appointNextPresident(aliveClientIds)
-
-	// Set judgePointer
-	judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
-	// Set speakerPointer
-	speakerPointer = iigoClients[SpeakerIDGlobal].GetClientSpeakerPointer()
-	// Set presidentPointer
-	presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
 
 	return nil
 }
