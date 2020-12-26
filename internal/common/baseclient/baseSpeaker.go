@@ -7,8 +7,8 @@ import (
 type BaseSpeaker struct {
 }
 
-func (s *BaseSpeaker) PayJudge(salary shared.Resources) (shared.Resources, error) {
-	return salary, nil
+func (s *BaseSpeaker) PayJudge(salary shared.Resources) (shared.Resources, bool) {
+	return salary, true
 }
 
 //DecideAgenda the interface implementation and example of a well behaved Speaker

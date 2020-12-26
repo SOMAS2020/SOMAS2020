@@ -12,9 +12,9 @@ type BaseJudge struct {
 }
 
 // PayPresident pays the President a salary.
-func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) shared.Resources {
+func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
-	return presidentSalary
+	return presidentSalary, true
 }
 
 // inspectHistoryInternal is the base implementation of InspectHistory.
