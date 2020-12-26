@@ -53,11 +53,13 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 
 // DeclareSpeakerPerformance checks how well the speaker did their job.
 func (j *BaseJudge) DeclareSpeakerPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
+	// TODO: Implement opinion based Speaker performance declaration.
 	return inspectBallot, conductedRole
 }
 
 // DeclarePresidentPerformance checks how well the president did their job.
 func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
+	// TODO: Implement opinion based President performance declaration.
 	return inspectBallot, conductedRole
 }
 
