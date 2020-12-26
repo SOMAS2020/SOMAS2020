@@ -28,7 +28,6 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 }
 
 // PickRuleToVote chooses a rule proposal from all the proposals
-// need to pass in since this is now functional for the sake of client side
 func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
