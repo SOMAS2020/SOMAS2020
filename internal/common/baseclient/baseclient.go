@@ -83,9 +83,10 @@ func NewClient(id shared.ClientID) Client {
 // All clients should be based off of this BaseClient to ensure that all clients implement the interface,
 // even when new features are added.
 type BaseClient struct {
-	id              shared.ClientID
-	clientGameState gamestate.ClientGameState
-	communications  map[shared.ClientID][]map[int]Communication
+	id               shared.ClientID
+	clientGameState  gamestate.ClientGameState
+	communications   map[shared.ClientID][]map[int]Communication
+	serverReadHandle ServerReadHandle
 }
 
 // Echo prints a message to show that the client exists
@@ -104,7 +105,9 @@ func (c *BaseClient) GetID() shared.ClientID {
 // Initialise initialises the base client.
 // OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
 // You will need it to access the game state through its GetGameStateMethod.
-func (c *BaseClient) Initialise(ServerReadHandle) {}
+func (c *BaseClient) Initialise(serverReadHandle ServerReadHandle) {
+	c.serverReadHandle = serverReadHandle
+}
 
 // StartOfTurn handles the start of a new turn.
 // OPTIONAL: Use this method for any tasks you want to happen on the beginning
