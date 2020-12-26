@@ -112,14 +112,14 @@ func (l *legislature) announceVotingResult() {
 	}
 }
 
-func generateVotingResultMessage(ruleID string, result bool) map[shared.CommunicationFieldName]shared.Communication {
-	returnMap := map[shared.CommunicationFieldName]shared.Communication{}
+func generateVotingResultMessage(ruleID string, result bool) map[shared.CommunicationFieldName]shared.CommunicationContent {
+	returnMap := map[shared.CommunicationFieldName]shared.CommunicationContent{}
 
-	returnMap[shared.RuleName] = shared.Communication{
+	returnMap[shared.RuleName] = shared.CommunicationContent{
 		T:        shared.CommunicationString,
 		TextData: ruleID,
 	}
-	returnMap[shared.RuleVoteResult] = shared.Communication{
+	returnMap[shared.RuleVoteResult] = shared.CommunicationContent{
 		T:           shared.CommunicationBool,
 		BooleanData: result,
 	}

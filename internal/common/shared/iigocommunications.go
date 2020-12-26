@@ -10,8 +10,8 @@ const (
 	CommunicationBool
 )
 
-// Communication is a general datastructure used for communications
-type Communication struct {
+// CommunicationContent is a general datastructure used for communications
+type CommunicationContent struct {
 	T           CommunicationContentType
 	IntegerData int
 	TextData    string
