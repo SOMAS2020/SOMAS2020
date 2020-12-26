@@ -117,10 +117,14 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) bool {
 
 // sendSpeakerSalary send speaker's salary to the speaker.
 func (e *executive) sendSpeakerSalary(legislativeBranch *legislature) {
-	amount, salaryPaid := e.clientPresident.PaySpeaker(e.speakerSalary)
-	if salaryPaid {
-		legislativeBranch.budget = amount
+	if e.clientPresident != nil {
+		amount, salaryPaid := e.clientPresident.PaySpeaker(e.speakerSalary)
+		if salaryPaid {
+			legislativeBranch.budget = amount
+		}
+		return
 	}
+	legislativeBranch.budget = e.speakerSalary
 }
 
 func (e *executive) reset(val string) {

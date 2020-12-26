@@ -38,10 +38,14 @@ func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) bool {
 
 // sendJudgeSalary sets the budget of the Judge.
 func (l *legislature) sendJudgeSalary(judicialBranch *judiciary) {
-	amount, judgePaid := l.clientSpeaker.PayJudge()
-	if judgePaid {
-		judicialBranch.budget = amount
+	if l.clientSpeaker != nil {
+		amount, judgePaid := l.clientSpeaker.PayJudge()
+		if judgePaid {
+			judicialBranch.budget = amount
+		}
+		return
 	}
+	judicialBranch.budget = l.judgeSalary
 }
 
 // Receive a rule to call a vote on
