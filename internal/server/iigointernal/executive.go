@@ -67,10 +67,9 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (e *executive) getAllocationRequests(commonPool shared.Resources) map[shared.ClientID]shared.Resources {
+func (e *executive) getAllocationRequests(commonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	e.budget -= serviceCharge
-	result, _ := e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
-	return result
+	return e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
 }
 
 func (e *executive) requestAllocationRequest() {
@@ -87,12 +86,14 @@ func (e *executive) requestAllocationRequest() {
 // to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	e.budget -= serviceCharge
-	allocationMap := e.getAllocationRequests(commonPool)
-	for _, v := range getIslandAlive() {
-		d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
-		data := make(map[int]baseclient.Communication)
-		data[shared.AllocationAmount] = d
-		communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
+	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
+	if requestsEvaluated {
+		for _, v := range getIslandAlive() {
+			d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
+			data := make(map[int]baseclient.Communication)
+			data[shared.AllocationAmount] = d
+			communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
+		}
 	}
 }
 
@@ -118,8 +119,15 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error 
 
 // sendSpeakerSalary send speaker's salary to the speaker.
 func (e *executive) sendSpeakerSalary() {
+<<<<<<< HEAD
 	amount, _ := e.clientPresident.PaySpeaker(e.speakerSalary)
 	legislativeBranch.budget = amount
+=======
+	amount, speakerSalaryPaid := e.clientPresident.PaySpeaker(e.speakerSalary)
+	if speakerSalaryPaid {
+		e.budget = amount
+	}
+>>>>>>> df0e148c5a3e5ad2d8bc19d569c2896bceef8ab6
 }
 
 func (e *executive) reset(val string) error {

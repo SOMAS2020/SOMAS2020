@@ -19,7 +19,7 @@ func TestAllocationRequests(t *testing.T) {
 		name  string
 		input allocInput
 		reply map[shared.ClientID]shared.Resources
-		want  error
+		want  bool
 	}{
 		{
 			name: "Limited resources",
@@ -39,7 +39,7 @@ func TestAllocationRequests(t *testing.T) {
 				shared.Team5: calcExpectedVal(25, 105, 100),
 				shared.Team6: calcExpectedVal(30, 105, 100),
 			},
-			want: nil,
+			want: true,
 		},
 		{
 			name: "Enough resources",
@@ -59,7 +59,7 @@ func TestAllocationRequests(t *testing.T) {
 				shared.Team5: 25,
 				shared.Team6: 30,
 			},
-			want: nil,
+			want: true,
 		},
 		{
 			name: "No resources",
@@ -79,7 +79,7 @@ func TestAllocationRequests(t *testing.T) {
 				shared.Team5: 0,
 				shared.Team6: 0,
 			},
-			want: nil,
+			want: true,
 		},
 	}
 
@@ -92,14 +92,14 @@ func TestAllocationRequests(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 			}
 
-			val, err := executive.clientPresident.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
-			if err == nil && tc.want == nil {
+			val, evaluationOccurred := executive.clientPresident.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
+			if evaluationOccurred && tc.want {
 				if !reflect.DeepEqual(tc.reply, val) {
 					t.Errorf("%v - Failed. Expected %v, got %v", tc.name, tc.reply, val)
 				}
 			} else {
-				if err != tc.want {
-					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, err, tc.want)
+				if evaluationOccurred != tc.want {
+					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, evaluationOccurred, tc.want)
 				}
 			}
 		})
@@ -466,7 +466,7 @@ func TestGetAllocationRequests(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			val := tc.bPresident.getAllocationRequests(tc.input)
+			val, _ := tc.bPresident.getAllocationRequests(tc.input)
 			if !reflect.DeepEqual(val, tc.expected) {
 				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, val, tc.expected)
 			}
