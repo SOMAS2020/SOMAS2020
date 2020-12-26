@@ -27,7 +27,7 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 		newGameState := s.gameState.GetClientGameStateCopy(clientID)
 		newGameState.ClientInfo.Resources -= tax
 		v.GameStateUpdate(newGameState)
-		_ = gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+		gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,
 				Values:       []float64{float64(tax)},
@@ -53,7 +53,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 		v.GameStateUpdate(newGameState)
 		if allocation <= s.gameState.CommonPool {
 			s.gameState.CommonPool -= allocation
-			_ = gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+			gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 				{
 					VariableName: rules.IslandAllocation,
 					Values:       []float64{float64(allocation)},

@@ -7,12 +7,11 @@ import (
 
 var TurnHistory []shared.Accountability
 
-func UpdateTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) error {
+func UpdateTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) {
 	TurnHistory = append(TurnHistory, shared.Accountability{
 		ClientID: clientID,
 		Pairs:    pairs,
 	})
-	return nil
 }
 
 func clearHistory() {
