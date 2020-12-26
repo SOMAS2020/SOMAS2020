@@ -42,7 +42,10 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 		}
 		tempReturn := outputMap[clientID]
 		for _, v3 := range rulesAffected {
-			evaluation, _ := rules.BasicBooleanRuleEvaluator(v3)
+			evaluation, err := rules.BasicBooleanRuleEvaluator(v3)
+			if err != nil {
+				return outputMap, false
+			}
 			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[v3])
 			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
 		}
