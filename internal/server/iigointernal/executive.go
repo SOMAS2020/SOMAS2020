@@ -111,7 +111,7 @@ func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.Clien
 func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
 	var speakerSalary = shared.Resources(rules.VariableMap[rules.SpeakerSalary].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
-	if withdrawError != nil {
+	if withdrawError == nil {
 		e.speakerSalary = speakerSalary
 	}
 	return withdrawError
