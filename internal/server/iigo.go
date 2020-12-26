@@ -37,7 +37,9 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 				Values:       []float64{float64(iigointernal.TaxAmountMapExport[clientID])},
 			},
 		})
+
 	}
+	s.gameStateUpdate()
 	return nil
 }
 
@@ -65,6 +67,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 			})
 		}
 	}
+	s.gameStateUpdate()
 	return nil
 }
 
