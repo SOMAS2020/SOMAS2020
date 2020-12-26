@@ -20,16 +20,16 @@ func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resou
 // inspectHistoryInternal is the base implementation of InspectHistory.
 func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
-	for _, v := range gamestate.TurnHistory {
-		variablePairs := v.Pairs
-		clientID := v.ClientID
+	for _, entry := range gamestate.TurnHistory {
+		variablePairs := entry.Pairs
+		clientID := entry.ClientID
 		var rulesAffected []string
-		for _, v2 := range variablePairs {
-			valuesToBeAdded, err := PickUpRulesByVariable(v2.VariableName, rules.RulesInPlay)
+		for _, variable := range variablePairs {
+			valuesToBeAdded, err := PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
 			if err == nil {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
-			err = rules.UpdateVariable(v2.VariableName, v2)
+			err = rules.UpdateVariable(variable.VariableName, variable)
 			if err != nil {
 				return map[shared.ClientID]roles.EvaluationReturn{}, false
 			}
@@ -41,14 +41,15 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 			}
 		}
 		tempReturn := outputMap[clientID]
-		for _, v3 := range rulesAffected {
-			evaluation, err := rules.BasicBooleanRuleEvaluator(v3)
+		for _, rule := range rulesAffected {
+			evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
 			if err != nil {
 				return outputMap, false
 			}
-			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[v3])
+			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
 			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
 		}
+		outputMap[clientID] = tempReturn
 	}
 	return outputMap, true
 }
