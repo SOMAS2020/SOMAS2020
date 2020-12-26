@@ -1,10 +1,7 @@
 package server
 
 import (
-	"sync"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
