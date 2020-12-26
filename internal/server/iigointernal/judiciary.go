@@ -152,19 +152,19 @@ func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.Cli
 func generateSpeakerPerformanceMessage(BID int, result bool, SID shared.ClientID, conductedRole bool) map[int]baseclient.Communication {
 	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[BallotID] = baseclient.Communication{
+	returnMap[shared.BallotID] = baseclient.Communication{
 		T:           baseclient.CommunicationInt,
 		IntegerData: BID,
 	}
-	returnMap[SpeakerBallotCheck] = baseclient.Communication{
+	returnMap[shared.SpeakerBallotCheck] = baseclient.Communication{
 		T:           baseclient.CommunicationBool,
 		BooleanData: result,
 	}
-	returnMap[SpeakerID] = baseclient.Communication{
+	returnMap[shared.SpeakerID] = baseclient.Communication{
 		T:           baseclient.CommunicationInt,
 		IntegerData: int(SID),
 	}
-	returnMap[RoleConducted] = baseclient.Communication{
+	returnMap[shared.RoleConducted] = baseclient.Communication{
 		T:           baseclient.CommunicationBool,
 		BooleanData: conductedRole,
 	}
@@ -176,19 +176,19 @@ func generateSpeakerPerformanceMessage(BID int, result bool, SID shared.ClientID
 func generatePresidentPerformanceMessage(RID int, result bool, PID shared.ClientID, conductedRole bool) map[int]baseclient.Communication {
 	returnMap := map[int]baseclient.Communication{}
 
-	returnMap[ResAllocID] = baseclient.Communication{
+	returnMap[shared.ResAllocID] = baseclient.Communication{
 		T:           baseclient.CommunicationInt,
 		IntegerData: RID,
 	}
-	returnMap[PresidentAllocationCheck] = baseclient.Communication{
+	returnMap[shared.PresidentAllocationCheck] = baseclient.Communication{
 		T:           baseclient.CommunicationBool,
 		BooleanData: result,
 	}
-	returnMap[PresidentID] = baseclient.Communication{
+	returnMap[shared.PresidentID] = baseclient.Communication{
 		T:           baseclient.CommunicationInt,
 		IntegerData: int(PID),
 	}
-	returnMap[RoleConducted] = baseclient.Communication{
+	returnMap[shared.RoleConducted] = baseclient.Communication{
 		T:           baseclient.CommunicationBool,
 		BooleanData: conductedRole,
 	}
