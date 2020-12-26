@@ -45,8 +45,10 @@ func (l *legislature) sendJudgeSalary(judicialBranch *judiciary) {
 
 // Receive a rule to call a vote on
 func (l *legislature) setRuleToVote(r string) {
-	l.ruleToVote, _ = l.clientSpeaker.DecideAgenda(r)
-	//TODO:Handle errors properly
+	ruleToBeVoted, ruleSet := l.clientSpeaker.DecideAgenda(r)
+	if ruleSet {
+		l.ruleToVote = ruleToBeVoted
+	}
 }
 
 //Asks islands to vote on a rule

@@ -13,8 +13,8 @@ func (s *BaseSpeaker) PayJudge(salary shared.Resources) (shared.Resources, error
 
 //DecideAgenda the interface implementation and example of a well behaved Speaker
 //who sets the vote to be voted on to be the rule the President provided
-func (s *BaseSpeaker) DecideAgenda(ruleID string) (string, error) {
-	return ruleID, nil
+func (s *BaseSpeaker) DecideAgenda(ruleID string) (string, bool) {
+	return ruleID, true
 }
 
 //DecideVote is the interface implementation and example of a well behaved Speaker
