@@ -46,13 +46,13 @@ var executiveBranch = executive{
 }
 
 // SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
-var SpeakerIDGlobal shared.ClientID = 1
+var SpeakerIDGlobal shared.ClientID = 0
 
 // JudgeIDGlobal is the single source of truth for judge ID (MVP)
-var JudgeIDGlobal shared.ClientID = 2
+var JudgeIDGlobal shared.ClientID = 1
 
 // PresidentIDGlobal is the single source of truth for president ID (MVP)
-var PresidentIDGlobal shared.ClientID = 3
+var PresidentIDGlobal shared.ClientID = 2
 
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
@@ -91,20 +91,20 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	legislativeBranch.clientSpeaker = speakerPointer
 
 	// Withdraw the salaries
-	errWithdrawPresident := judicialBranch.withdrawPresidentSalary(g)
-	errWithdrawJudge := legislativeBranch.withdrawJudgeSalary(g)
-	errWithdrawSpeaker := executiveBranch.withdrawSpeakerSalary(g)
+	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary(g)
+	judgeWithdrawSuccess := legislativeBranch.withdrawJudgeSalary(g)
+	speakerWithdrawSuccess := executiveBranch.withdrawSpeakerSalary(g)
 
 	// Handle the lack of resources
-	if errWithdrawPresident != nil {
+	if !presidentWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
 		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
 	}
-	if errWithdrawJudge != nil {
+	if !judgeWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
 		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
 	}
-	if errWithdrawSpeaker != nil {
+	if !speakerWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
 		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
 	}
@@ -134,7 +134,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	if ruleSelected {
 		legislativeBranch.setRuleToVote(ruleToVote)
 		legislativeBranch.setVotingResult(aliveClientIds)
-		_ = legislativeBranch.announceVotingResult()
+		legislativeBranch.announceVotingResult()
 	}
 
 	// 4 Declare performance (Judge) (in future all the iigointernal)

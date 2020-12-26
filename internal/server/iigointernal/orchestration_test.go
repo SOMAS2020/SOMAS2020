@@ -11,7 +11,11 @@ func TestPutSalaryBack(t *testing.T) {
 	fakeGameState := gamestate.GameState{
 		CommonPool: 149,
 	}
-	err := RunIIGO(&fakeGameState, &map[shared.ClientID]baseclient.Client{})
+	err := RunIIGO(&fakeGameState, &map[shared.ClientID]baseclient.Client{
+		shared.Team1: &baseclient.BaseClient{},
+		shared.Team2: &baseclient.BaseClient{},
+		shared.Team3: &baseclient.BaseClient{},
+	})
 	if err == nil {
 		t.Errorf("IIGO didn't throw error when salaries couldn't be paid")
 	} else {

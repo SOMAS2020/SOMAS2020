@@ -2,7 +2,6 @@ package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
-	"github.com/pkg/errors"
 	"reflect"
 	"testing"
 
@@ -15,8 +14,8 @@ func TestWithdrawFromCommonPoolThrowsError(t *testing.T) {
 	fakeGameState := gamestate.GameState{CommonPool: 100}
 	// Withdraw more than we have in it
 	valueToWithdraw := shared.Resources(120)
-	err := WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
-	if err == nil {
+	_, withdrawSuccessful := WithdrawFromCommonPool(valueToWithdraw, &fakeGameState)
+	if withdrawSuccessful {
 		t.Errorf("We can withdraw more from the common pool than it actually has.")
 	}
 }
@@ -27,37 +26,39 @@ func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 		fakeGameState     gamestate.GameState
 		valueToWithdraw   shared.Resources
 		expectedRemainder shared.Resources
-		expectedError     error
+		expectedResult    bool
 	}{
 		{
 			name:              "Basic Common Pool deduction test",
 			fakeGameState:     gamestate.GameState{CommonPool: 100},
 			valueToWithdraw:   60,
 			expectedRemainder: 40,
-			expectedError:     nil,
+			expectedResult:    true,
 		},
 		{
 			name:              "Checking error created for withdrawing more than available",
 			fakeGameState:     gamestate.GameState{CommonPool: 10},
 			valueToWithdraw:   50,
 			expectedRemainder: 10,
-			expectedError:     errors.Errorf("Not enough resources in the common pool to withdraw the amount '%v'", 50),
+			expectedResult:    false,
 		},
 		{
 			name:              "Checking that you can extract entire common pool",
 			fakeGameState:     gamestate.GameState{CommonPool: 100},
 			valueToWithdraw:   100,
 			expectedRemainder: 0,
-			expectedError:     nil,
+			expectedResult:    true,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := WithdrawFromCommonPool(tc.valueToWithdraw, &tc.fakeGameState)
+			_, withdrawSuccessful := WithdrawFromCommonPool(tc.valueToWithdraw, &tc.fakeGameState)
 			got := tc.fakeGameState.CommonPool
 			testutils.CompareTestIntegers(int(tc.expectedRemainder), int(got), t)
-			testutils.CompareTestErrors(err, tc.expectedError, t)
+			if tc.expectedResult != withdrawSuccessful {
+				t.Errorf("Expected withdrawalResult to be '%v' got '%v'", tc.expectedResult, withdrawSuccessful)
+			}
 		})
 	}
 }

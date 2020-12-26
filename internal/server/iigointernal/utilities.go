@@ -5,7 +5,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/pkg/errors"
 )
 
 func broadcastToAllIslands(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.Communication) {
@@ -33,12 +32,12 @@ func CheckEnoughInCommonPool(value shared.Resources, gameState *gamestate.GameSt
 	return gameState.CommonPool >= value
 }
 
-func WithdrawFromCommonPool(value shared.Resources, gameState *gamestate.GameState) error {
+func WithdrawFromCommonPool(value shared.Resources, gameState *gamestate.GameState) (withdrawnAmount shared.Resources, withdrawSuccesful bool) {
 	if CheckEnoughInCommonPool(value, gameState) {
 		gameState.CommonPool -= value
-		return nil
+		return value, true
 	} else {
-		return errors.Errorf("Not enough resources in the common pool to withdraw the amount '%v'", value)
+		return shared.Resources(0.0), false
 	}
 }
 

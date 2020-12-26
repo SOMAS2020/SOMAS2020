@@ -7,6 +7,6 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 type Speaker interface {
 	PayJudge() (shared.Resources, bool)
 	DecideAgenda(string) (string, bool)
-	DecideVote(string, []shared.ClientID) (string, []shared.ClientID, error)
-	DecideAnnouncement(string, bool) (string, bool, error)
+	DecideVote(string, []shared.ClientID) (string, []shared.ClientID, bool)
+	DecideAnnouncement(string, bool) (string, bool, bool)
 }
