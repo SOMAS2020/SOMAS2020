@@ -127,9 +127,7 @@ func (j *judiciary) declareSpeakerPerformanceWrapped() {
 
 // declarePresidentPerformanceWrapped wraps the result of DeclarePresidentPerformance for orchestration
 func (j *judiciary) declarePresidentPerformanceWrapped() {
-
 	result, checkRole := j.clientJudge.DeclarePresidentPerformance()
-
 	message := generatePresidentPerformanceMessage(j.ResAllocID, result, j.presidentID, checkRole)
 	broadcastToAllIslands(shared.TeamIDs[j.JudgeID], message)
 
