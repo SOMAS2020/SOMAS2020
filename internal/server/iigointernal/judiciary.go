@@ -118,9 +118,7 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 
 // declareSpeakerPerformanceWrapped wraps the result of DeclareSpeakerPerformance for orchestration
 func (j *judiciary) declareSpeakerPerformanceWrapped() {
-
 	result, checkRole := j.clientJudge.DeclareSpeakerPerformance()
-
 	message := generateSpeakerPerformanceMessage(j.BallotID, result, j.speakerID, checkRole)
 	broadcastToAllIslands(shared.TeamIDs[j.JudgeID], message)
 
@@ -128,9 +126,7 @@ func (j *judiciary) declareSpeakerPerformanceWrapped() {
 
 // declarePresidentPerformanceWrapped wraps the result of DeclarePresidentPerformance for orchestration
 func (j *judiciary) declarePresidentPerformanceWrapped() {
-
 	result, checkRole := j.clientJudge.DeclarePresidentPerformance()
-
 	message := generatePresidentPerformanceMessage(j.ResAllocID, result, j.presidentID, checkRole)
 	broadcastToAllIslands(shared.TeamIDs[j.JudgeID], message)
 
