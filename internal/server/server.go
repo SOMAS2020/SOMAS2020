@@ -62,7 +62,6 @@ func SOMASServerFactory() Server {
 	}
 
 	return server
-
 }
 
 // EntryPoint function that returns a list of historic gamestate.GameState until the
