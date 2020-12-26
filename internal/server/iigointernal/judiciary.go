@@ -85,7 +85,7 @@ func (j *judiciary) inspectBallot() (bool, error) {
 	j.budget -= serviceCharge // will be removed post-MVP
 	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
-	if err == nil {
+	if err {
 		return rulesAffectedBySpeaker.Evaluations[indexOfBallotRule], nil
 	} else {
 		return true, errors.Errorf("Speaker did not conduct any ballots")
@@ -102,20 +102,20 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	j.budget -= serviceCharge // will be removed post-MVP
 	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
-	if err != nil {
+	if err {
 		return true, errors.Errorf("President didn't conduct any allocations")
 	}
 	return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
 }
 
 // searchForRule searches for a given rule in the RuleMatrix
-func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int, error) {
+func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int, bool) {
 	for i, v := range listOfRuleMatrices {
 		if v.RuleName == ruleName {
-			return i, nil
+			return i, true
 		}
 	}
-	return 0, errors.Errorf("The rule name '%v' was not found", ruleName)
+	return 0, false
 }
 
 // declareSpeakerPerformanceWrapped wraps the result of DeclareSpeakerPerformance for orchestration
