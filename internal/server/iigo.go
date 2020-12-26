@@ -24,7 +24,7 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 		tax := v.GetTaxContribution()
 
 		err := s.takeResources(clientID, tax, "tax")
-		if err != nil {
+		if err == nil {
 			s.gameState.CommonPool += tax
 		} else {
 			s.logf("Error getting tax from %v: %v", clientID, err)
