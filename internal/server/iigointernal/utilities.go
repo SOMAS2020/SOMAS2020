@@ -45,17 +45,3 @@ func WithdrawFromCommonPool(value shared.Resources, gameState *gamestate.GameSta
 func depositIntoCommonPool(value shared.Resources, state *gamestate.GameState) {
 	state.CommonPool += value
 }
-
-const (
-	BallotID = iota
-	PresidentAllocationCheck
-	SpeakerID
-	RoleConducted
-	ResAllocID
-	SpeakerBallotCheck
-	PresidentID
-	RuleName
-	RuleVoteResult
-	TaxAmount
-	AllocationAmount
-)
