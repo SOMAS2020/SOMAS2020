@@ -8,7 +8,7 @@ import (
 
 type BasePresident struct{}
 
-// Set allowed resource allocation based on each islands requests
+// EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
 func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	var requestSum shared.Resources
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
@@ -27,7 +27,7 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 	return resourceAllocation, true
 }
 
-// Chose a rule proposal from all the proposals
+// PickRuleToVote chooses a rule proposal from all the proposals
 // need to pass in since this is now functional for the sake of client side
 func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 	if len(rulesProposals) == 0 {
@@ -37,8 +37,8 @@ func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 	return rulesProposals[rand.Intn(len(rulesProposals))], true
 }
 
-// Set taxation amount for all of the living islands
-// island_resources: map of all the living islands and their remaining resources
+// SetTaxationAmount sets taxation amount for all of the living islands
+// islandsResources: map of all the living islands and their remaining resources
 func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 	for id, resourceLeft := range islandsResources {
@@ -47,7 +47,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 	return taxAmountMap, true
 }
 
-// Pay the speaker
+// PaySpeaker pays the speaker a salary.
 func (p *BasePresident) PaySpeaker(salary shared.Resources) (shared.Resources, bool) {
 	// TODO : Implement opinion based salary payment.
 	return salary, true
