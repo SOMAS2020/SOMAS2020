@@ -64,41 +64,41 @@ func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 
 func TestCommunicateWithIslands(t *testing.T) {
 
-	dataA := map[int]baseclient.Communication{
+	dataA := map[shared.CommunicationFieldName]shared.Communication{
 		3:  {IntegerData: 123, TextData: "Hello World - dataA", BooleanData: true},
 		1:  {TextData: "SOMAS", BooleanData: false},
 		22: {BooleanData: false},
 		14: {IntegerData: 420, BooleanData: false},
 	}
 
-	dataB := map[int]baseclient.Communication{
+	dataB := map[shared.CommunicationFieldName]shared.Communication{
 		0: {IntegerData: 11, TextData: "SOMAS", BooleanData: true},
 	}
 
-	dataC := map[int]baseclient.Communication{
+	dataC := map[shared.CommunicationFieldName]shared.Communication{
 		5:  {BooleanData: true},
 		4:  {TextData: "communication test"},
 		16: {IntegerData: 7832},
 		73: {IntegerData: 234511, TextData: "dataC", BooleanData: false},
 	}
 
-	dataEmpty := map[int]baseclient.Communication{}
+	dataEmpty := map[shared.CommunicationFieldName]shared.Communication{}
 
 	cases := []struct {
 		name           string
-		sendersPayload map[int][]map[int]baseclient.Communication
+		sendersPayload map[int][]map[shared.CommunicationFieldName]shared.Communication
 		receiver       int
 	}{
 		{
 			name: "single transmission",
-			sendersPayload: map[int][]map[int]baseclient.Communication{
+			sendersPayload: map[int][]map[shared.CommunicationFieldName]shared.Communication{
 				1: {dataA},
 			},
 			receiver: 4,
 		},
 		{
 			name: "2 senders, 1 transmission each",
-			sendersPayload: map[int][]map[int]baseclient.Communication{
+			sendersPayload: map[int][]map[shared.CommunicationFieldName]shared.Communication{
 				1: {dataA},
 				2: {dataB},
 			},
@@ -106,14 +106,14 @@ func TestCommunicateWithIslands(t *testing.T) {
 		},
 		{
 			name: "1 sender, 2 transmissions",
-			sendersPayload: map[int][]map[int]baseclient.Communication{
+			sendersPayload: map[int][]map[shared.CommunicationFieldName]shared.Communication{
 				4: {dataA, dataC},
 			},
 			receiver: 0,
 		},
 		{
 			name: "multiple transmissions",
-			sendersPayload: map[int][]map[int]baseclient.Communication{
+			sendersPayload: map[int][]map[shared.CommunicationFieldName]shared.Communication{
 				1: {dataA, dataC, dataA, dataC},
 				2: {dataB, dataB, dataC},
 				3: {dataA, dataB, dataC, dataC},
@@ -123,7 +123,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 		},
 		{
 			name: "multiple transmissions v2",
-			sendersPayload: map[int][]map[int]baseclient.Communication{
+			sendersPayload: map[int][]map[shared.CommunicationFieldName]shared.Communication{
 				1: {dataA, dataC, dataA, dataC},
 				2: {dataB, dataB, dataC},
 				3: {dataA, dataB, dataC, dataC},
@@ -134,7 +134,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 		},
 		{
 			name: "1 sender, many transmissions",
-			sendersPayload: map[int][]map[int]baseclient.Communication{
+			sendersPayload: map[int][]map[shared.CommunicationFieldName]shared.Communication{
 				1: {dataA, dataC, dataA, dataC, dataB, dataB, dataC, dataA, dataB, dataC,
 					dataC, dataB, dataC, dataC, dataC, dataA, dataC, dataA, dataC, dataB,
 					dataB, dataC, dataA, dataB, dataC, dataC, dataB, dataC, dataC, dataC},
@@ -143,7 +143,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 		},
 		{
 			name: "Empty transmission",
-			sendersPayload: map[int][]map[int]baseclient.Communication{
+			sendersPayload: map[int][]map[shared.CommunicationFieldName]shared.Communication{
 				1: {dataEmpty},
 			},
 			receiver: 0,
@@ -166,7 +166,7 @@ func TestCommunicateWithIslands(t *testing.T) {
 			setIIGOClients(&fakeClientMap)
 
 			// Perform communications + build expected output
-			expectedResult := map[shared.ClientID][]map[int]baseclient.Communication{}
+			expectedResult := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.Communication{}
 
 			for sender, dataList := range tc.sendersPayload {
 				senderID := shared.TeamIDs[sender]

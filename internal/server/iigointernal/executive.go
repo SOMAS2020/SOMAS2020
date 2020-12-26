@@ -57,8 +57,8 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 	taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
 	if taxesCollected {
 		for _, v := range getIslandAlive() {
-			d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(v))])}
-			data := make(map[int]baseclient.Communication)
+			d := shared.Communication{T: shared.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(v))])}
+			data := make(map[shared.CommunicationFieldName]shared.Communication)
 			data[shared.TaxAmount] = d
 			communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
 		}
@@ -89,8 +89,8 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
 	if requestsEvaluated {
 		for _, v := range getIslandAlive() {
-			d := baseclient.Communication{T: baseclient.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
-			data := make(map[int]baseclient.Communication)
+			d := shared.Communication{T: shared.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(v))])}
+			data := make(map[shared.CommunicationFieldName]shared.Communication)
 			data[shared.AllocationAmount] = d
 			communicateWithIslands(shared.TeamIDs[int(v)], shared.TeamIDs[e.ID], data)
 		}

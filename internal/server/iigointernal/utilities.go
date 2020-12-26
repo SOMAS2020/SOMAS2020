@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func broadcastToAllIslands(sender shared.ClientID, data map[int]baseclient.Communication) {
+func broadcastToAllIslands(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.Communication) {
 	islandsAlive := rules.VariableMap[rules.IslandsAlive]
 	for _, v := range islandsAlive.Values {
 		communicateWithIslands(shared.TeamIDs[int(v)], sender, data)
@@ -19,7 +19,7 @@ func setIIGOClients(clientMap *map[shared.ClientID]baseclient.Client) {
 	iigoClients = *clientMap
 }
 
-func communicateWithIslands(recipientID shared.ClientID, senderID shared.ClientID, data map[int]baseclient.Communication) {
+func communicateWithIslands(recipientID shared.ClientID, senderID shared.ClientID, data map[shared.CommunicationFieldName]shared.Communication) {
 
 	clients := iigoClients
 

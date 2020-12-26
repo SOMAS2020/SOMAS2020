@@ -109,15 +109,15 @@ func (l *legislature) announceVotingResult() error {
 	return nil
 }
 
-func generateVotingResultMessage(ruleID string, result bool) map[int]baseclient.Communication {
-	returnMap := map[int]baseclient.Communication{}
+func generateVotingResultMessage(ruleID string, result bool) map[shared.CommunicationFieldName]shared.Communication {
+	returnMap := map[shared.CommunicationFieldName]shared.Communication{}
 
-	returnMap[shared.RuleName] = baseclient.Communication{
-		T:        baseclient.CommunicationString,
+	returnMap[shared.RuleName] = shared.Communication{
+		T:        shared.CommunicationString,
 		TextData: ruleID,
 	}
-	returnMap[shared.RuleVoteResult] = baseclient.Communication{
-		T:           baseclient.CommunicationBool,
+	returnMap[shared.RuleVoteResult] = shared.Communication{
+		T:           shared.CommunicationBool,
 		BooleanData: result,
 	}
 

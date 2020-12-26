@@ -149,23 +149,23 @@ func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.Cli
 
 // generateSpeakerPerformanceMessage generates the appropriate communication required regarding
 // speaker performance to be sent to clients
-func generateSpeakerPerformanceMessage(BID int, result bool, SID shared.ClientID, conductedRole bool) map[int]baseclient.Communication {
-	returnMap := map[int]baseclient.Communication{}
+func generateSpeakerPerformanceMessage(BID int, result bool, SID shared.ClientID, conductedRole bool) map[shared.CommunicationFieldName]shared.Communication {
+	returnMap := map[shared.CommunicationFieldName]shared.Communication{}
 
-	returnMap[shared.BallotID] = baseclient.Communication{
-		T:           baseclient.CommunicationInt,
+	returnMap[shared.BallotID] = shared.Communication{
+		T:           shared.CommunicationInt,
 		IntegerData: BID,
 	}
-	returnMap[shared.SpeakerBallotCheck] = baseclient.Communication{
-		T:           baseclient.CommunicationBool,
+	returnMap[shared.SpeakerBallotCheck] = shared.Communication{
+		T:           shared.CommunicationBool,
 		BooleanData: result,
 	}
-	returnMap[shared.SpeakerID] = baseclient.Communication{
-		T:           baseclient.CommunicationInt,
+	returnMap[shared.SpeakerID] = shared.Communication{
+		T:           shared.CommunicationInt,
 		IntegerData: int(SID),
 	}
-	returnMap[shared.RoleConducted] = baseclient.Communication{
-		T:           baseclient.CommunicationBool,
+	returnMap[shared.RoleConducted] = shared.Communication{
+		T:           shared.CommunicationBool,
 		BooleanData: conductedRole,
 	}
 	return returnMap
@@ -173,23 +173,23 @@ func generateSpeakerPerformanceMessage(BID int, result bool, SID shared.ClientID
 
 // generatePresidentPerformanceMessage generated the appropriate communication required regarding
 // president performance to be sent to clients
-func generatePresidentPerformanceMessage(RID int, result bool, PID shared.ClientID, conductedRole bool) map[int]baseclient.Communication {
-	returnMap := map[int]baseclient.Communication{}
+func generatePresidentPerformanceMessage(RID int, result bool, PID shared.ClientID, conductedRole bool) map[shared.CommunicationFieldName]shared.Communication {
+	returnMap := map[shared.CommunicationFieldName]shared.Communication{}
 
-	returnMap[shared.ResAllocID] = baseclient.Communication{
-		T:           baseclient.CommunicationInt,
+	returnMap[shared.ResAllocID] = shared.Communication{
+		T:           shared.CommunicationInt,
 		IntegerData: RID,
 	}
-	returnMap[shared.PresidentAllocationCheck] = baseclient.Communication{
-		T:           baseclient.CommunicationBool,
+	returnMap[shared.PresidentAllocationCheck] = shared.Communication{
+		T:           shared.CommunicationBool,
 		BooleanData: result,
 	}
-	returnMap[shared.PresidentID] = baseclient.Communication{
-		T:           baseclient.CommunicationInt,
+	returnMap[shared.PresidentID] = shared.Communication{
+		T:           shared.CommunicationInt,
 		IntegerData: int(PID),
 	}
-	returnMap[shared.RoleConducted] = baseclient.Communication{
-		T:           baseclient.CommunicationBool,
+	returnMap[shared.RoleConducted] = shared.Communication{
+		T:           shared.CommunicationBool,
 		BooleanData: conductedRole,
 	}
 	return returnMap
