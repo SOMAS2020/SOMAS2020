@@ -109,7 +109,7 @@ func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.Clien
 
 // withdrawSpeakerSalary withdraws the salary for speaker from the common pool.
 func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error {
-	var speakerSalary = shared.Resources(rules.VariableMap["speakerSalary"].Values[0])
+	var speakerSalary = shared.Resources(rules.VariableMap[rules.SpeakerSalary].Values[0])
 	var withdrawError = WithdrawFromCommonPool(speakerSalary, gameState)
 	if withdrawError != nil {
 		e.speakerSalary = speakerSalary
@@ -119,8 +119,10 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) error 
 
 // sendSpeakerSalary send speaker's salary to the speaker.
 func (e *executive) sendSpeakerSalary() {
-	amount, _ := e.clientPresident.PaySpeaker(e.speakerSalary)
-	legislativeBranch.budget = amount
+	amount, salaryPaid := e.clientPresident.PaySpeaker(e.speakerSalary)
+	if salaryPaid {
+		legislativeBranch.budget = amount
+	}
 }
 
 func (e *executive) reset(val string) error {
@@ -145,5 +147,5 @@ func (e *executive) requestRuleProposal() {
 }
 
 func getIslandAlive() []float64 {
-	return rules.VariableMap["islands_alive"].Values
+	return rules.VariableMap[rules.IslandsAlive].Values
 }

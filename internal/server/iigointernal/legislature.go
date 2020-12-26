@@ -29,7 +29,7 @@ func (l *legislature) returnJudgeSalary() shared.Resources {
 
 // withdrawJudgeSalary withdraws the salary for the Judge from the common pool.
 func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) error {
-	var judgeSalary = shared.Resources(rules.VariableMap["judgeSalary"].Values[0])
+	var judgeSalary = shared.Resources(rules.VariableMap[rules.JudgeSalary].Values[0])
 	var withdrawError = WithdrawFromCommonPool(judgeSalary, gameState)
 	if withdrawError != nil {
 		l.judgeSalary = judgeSalary

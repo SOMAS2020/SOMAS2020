@@ -62,11 +62,11 @@ func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRol
 }
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
-func PickUpRulesByVariable(variableName string, ruleStore map[string]rules.RuleMatrix) ([]string, error) {
+func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, error) {
 	var Rules []string
 	if _, ok := rules.VariableMap[variableName]; ok {
 		for k, v := range ruleStore {
-			_, err := searchForStringInArray(variableName, v.RequiredVariables)
+			_, err := searchForVariableInArray(variableName, v.RequiredVariables)
 			if err != nil {
 				Rules = append(Rules, k)
 			}
@@ -77,7 +77,7 @@ func PickUpRulesByVariable(variableName string, ruleStore map[string]rules.RuleM
 	}
 }
 
-func searchForStringInArray(val string, array []string) (int, error) {
+func searchForVariableInArray(val rules.VariableFieldName, array []rules.VariableFieldName) (int, error) {
 	for i, v := range array {
 		if v == val {
 			return i, nil

@@ -29,11 +29,11 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 		v.GameStateUpdate(newGameState)
 		_ = gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
-				VariableName: "island_tax_contribution",
+				VariableName: rules.IslandTaxContribution,
 				Values:       []float64{float64(tax)},
 			},
 			{
-				VariableName: "expected_tax_contribution",
+				VariableName: rules.ExpectedTaxContribution,
 				Values:       []float64{float64(iigointernal.TaxAmountMapExport[clientID])},
 			},
 		})
@@ -55,11 +55,11 @@ func (s *SOMASServer) runIIGOAllocations() error {
 			s.gameState.CommonPool -= allocation
 			_ = gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 				{
-					VariableName: "island_allocation",
+					VariableName: rules.IslandAllocation,
 					Values:       []float64{float64(allocation)},
 				},
 				{
-					VariableName: "expected_allocation",
+					VariableName: rules.ExpectedAllocation,
 					Values:       []float64{float64(iigointernal.AllocationAmountMapExport[clientID])},
 				},
 			})
@@ -73,8 +73,8 @@ func updateAliveIslands(aliveIslands []shared.ClientID) {
 	for _, v := range aliveIslands {
 		forVariables = append(forVariables, float64(v))
 	}
-	_ = rules.UpdateVariable("islands_alive", rules.VariableValuePair{
-		VariableName: "islands_alive",
+	_ = rules.UpdateVariable(rules.IslandsAlive, rules.VariableValuePair{
+		VariableName: rules.IslandsAlive,
 		Values:       forVariables,
 	})
 }

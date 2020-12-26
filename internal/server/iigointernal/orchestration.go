@@ -114,7 +114,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
 	var aliveClientIds []shared.ClientID
-	for _, v := range rules.VariableMap["islands_alive"].Values {
+	for _, v := range rules.VariableMap[rules.IslandsAlive].Values {
 		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
 		resourceReports[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].ResourceReport()
 	}

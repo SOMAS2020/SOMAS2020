@@ -9,7 +9,7 @@ import (
 )
 
 func broadcastToAllIslands(sender shared.ClientID, data map[int]baseclient.Communication) {
-	islandsAlive := rules.VariableMap["islands_alive"]
+	islandsAlive := rules.VariableMap[rules.IslandsAlive]
 	for _, v := range islandsAlive.Values {
 		communicateWithIslands(shared.TeamIDs[int(v)], sender, data)
 	}

@@ -131,7 +131,7 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
 	// Done ;)
 	// Get all alive islands
-	aliveClients := rules.VariableMap["islands_alive"]
+	aliveClients := rules.VariableMap[rules.IslandsAlive]
 	// Convert to ClientID type and place into unordered map
 	aliveClientIDs := map[int]shared.ClientID{}
 	for i, v := range aliveClients.Values {
