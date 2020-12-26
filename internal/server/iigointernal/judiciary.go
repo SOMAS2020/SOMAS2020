@@ -51,15 +51,15 @@ func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
 		executiveBranch.budget = amount
 		return
 	}
-	amount, _ := j.PayPresident()
+	amount := j.PayPresident()
 	executiveBranch.budget = amount
 }
 
 // PayPresident pays the president salary.
-func (j *judiciary) PayPresident() (shared.Resources, error) {
+func (j *judiciary) PayPresident() shared.Resources {
 	hold := j.presidentSalary
 	j.presidentSalary = 0
-	return hold, nil
+	return hold
 }
 
 // setSpeakerAndPresidentIDs set the speaker and president IDs.
@@ -102,7 +102,7 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
 	if err != nil {
 		return true, errors.Errorf("President didn't conduct any allocations")
-	} 
+	}
 	return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
 }
 
