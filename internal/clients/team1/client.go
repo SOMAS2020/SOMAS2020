@@ -16,7 +16,7 @@ const id = shared.Team1
 // back
 type ForageOutcome struct {
 	contribution shared.Resources
-	reward       shared.Resources
+	revenue      shared.Resources
 }
 type ForageHistory map[shared.ForageType][]ForageOutcome
 
@@ -58,6 +58,8 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if c.forageHistorySize() < 5 {
 		// Up to 10% of our current resources
 		forageContribution := shared.Resources(0.1*rand.Float64()) * c.clientInfo().Resources
+		c.Logf("[Forage][Decision]:Random")
+		// TODO Add fish foraging when it's done
 		return shared.ForageDecision{shared.DeerForageType, forageContribution}, nil
 	}
 
@@ -73,7 +75,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		ROIsum := 0.0
 		for _, outcome := range outcomes {
 			if outcome.contribution != 0 {
-				ROIsum += float64(outcome.reward / outcome.contribution)
+				ROIsum += float64(outcome.revenue/outcome.contribution) - 1
 			}
 		}
 
@@ -97,7 +99,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	bestValueROI := shared.Resources(0)
 	for _, outcome := range pastOutcomes {
 		if outcome.contribution != 0 {
-			ROI := outcome.reward / outcome.contribution
+			ROI := (outcome.revenue / outcome.contribution) - 1
 			if ROI > bestValueROI {
 				bestValue = outcome.contribution
 				bestValueROI = ROI
@@ -113,16 +115,25 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		float64(0.01*c.clientInfo().Resources),
 	))
 
-	return shared.ForageDecision{bestForageType, bestValue}, nil
+	forageDecision := shared.ForageDecision{bestForageType, bestValue}
+	c.Logf(
+		"[Forage][Decision]: Decision %v | Expected ROI %v",
+		forageDecision, bestROI)
+
+	return forageDecision, nil
 }
 
-func (c *client) ForageUpdate(forageDecision shared.ForageDecision, reward shared.Resources) {
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shared.Resources) {
 	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{
 		contribution: forageDecision.Contribution,
-		reward:       reward,
+		revenue:      revenue,
 	})
 
-	c.Logf("Profit: %v", reward-forageDecision.Contribution)
-	c.Logf("New resources: %v", c.serverReadHandle.GetGameState().ClientInfo.Resources)
-	c.Logf("History: %v", c.forageHistory)
+	c.Logf(
+		"[Forage][Update]: ForageType %v | Profit %v | Contribution %v | Actual ROI %v",
+		forageDecision.Type,
+		revenue-forageDecision.Contribution,
+		forageDecision.Contribution,
+		(revenue / forageDecision.Contribution) - 1,
+	)
 }
