@@ -41,6 +41,15 @@ type client struct {
 	forageHistory    ForageHistory
 }
 
+func NewClient(clientID shared.ClientID) baseclient.Client {
+	return &client{
+		Client:            baseclient.NewClient(clientID),
+		forageHistory:     ForageHistory{},
+		randomForageTurns: 5,
+		desperationThreshold: 20,
+	}
+}
+
 func (c *client) Initialise(handle baseclient.ServerReadHandle) {
 	c.serverReadHandle = handle
 }
