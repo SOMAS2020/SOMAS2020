@@ -78,6 +78,82 @@ func TestPullRuleOutOfPlay(t *testing.T) {
 	}
 }
 
+func TestModifyRule(t *testing.T) {
+	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
+	registerTestRule(AvailableRulesTesting)
+	RulesInPlayTesting["Kinda Test Rule 2"] = AvailableRulesTesting["Kinda Test Rule 2"]
+	BasicVect := []float64{1, 0, 0, 0, -4, 0, -1, -1, 0, 2, 0, 0, 0, 1, -2, 0, 0, 1, 0, -1}
+	BasicAux := []float64{2, 3, 3, 2}
+	cases := []struct {
+		name           string
+		rule           string
+		modifiedMatrix mat.Dense
+		modifiedAux    mat.VecDense
+		expResult      bool
+		expMessage     RuleError
+	}{
+		{
+			name:           "Normal Rule Modification",
+			rule:           "Kinda Test Rule 2",
+			modifiedMatrix: *mat.NewDense(4, 5, BasicVect),
+			modifiedAux:    *mat.NewVecDense(4, BasicAux),
+			expResult:      true,
+			expMessage:     None,
+		},
+		{
+			name:           "Advanced Rule Modification",
+			rule:           "Kinda Test Rule 2",
+			modifiedMatrix: *mat.NewDense(5, 5, append(BasicVect, []float64{1, 1, 1, 1, 0}...)),
+			modifiedAux:    *mat.NewVecDense(5, append(BasicAux, 1)),
+			expResult:      true,
+			expMessage:     None,
+		},
+		{
+			name:           "Testing Rule not found error",
+			rule:           "Fake Rule name",
+			modifiedMatrix: *mat.NewDense(4, 5, BasicVect),
+			modifiedAux:    *mat.NewVecDense(4, BasicAux),
+			expResult:      false,
+			expMessage:     RuleNotInAvailableRulesCache,
+		},
+		{
+			name:           "Testing Matrix dimension mismatch",
+			rule:           "Kinda Test Rule 2",
+			modifiedMatrix: *mat.NewDense(5, 4, BasicVect),
+			modifiedAux:    *mat.NewVecDense(4, BasicAux),
+			expResult:      false,
+			expMessage:     ModifiedRuleMatrixDimensionMismatch,
+		},
+		{
+			name:           "Testing Auxiliary vector dimension mismatch",
+			rule:           "Kinda Test Rule 2",
+			modifiedMatrix: *mat.NewDense(4, 5, BasicVect),
+			modifiedAux:    *mat.NewVecDense(5, append(BasicAux, 1)),
+			expResult:      false,
+			expMessage:     AuxVectorDimensionDontMatchRuleMatrix,
+		},
+		{
+			name:           "Testing Immutable Rules stay immutable",
+			rule:           "Kinda Test Rule",
+			modifiedMatrix: *mat.NewDense(4, 5, BasicVect),
+			modifiedAux:    *mat.NewVecDense(4, BasicAux),
+			expResult:      false,
+			expMessage:     RuleRequestedForModificationWasImmutable,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, message := modifyRuleInternal(tc.rule, tc.modifiedMatrix, tc.modifiedAux, AvailableRulesTesting, RulesInPlayTesting)
+			if result != tc.expResult {
+				t.Errorf("Rule modification result expected '%v' got '%v'", tc.expResult, result)
+			}
+			if message != tc.expMessage {
+				t.Errorf("Rule modification message expected '%v' got '%v'", tc.expMessage, message)
+			}
+		})
+	}
+}
+
 func generateRulesTestStores() (map[string]RuleMatrix, map[string]RuleMatrix) {
 	return map[string]RuleMatrix{}, map[string]RuleMatrix{}
 }
@@ -106,7 +182,7 @@ func registerTestRule(rulesStore map[string]RuleMatrix) {
 	}
 	name = "Kinda Test Rule 2"
 
-	_, e1 = registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, false)
+	_, e1 = registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, true)
 	if e1 != nil {
 		panic("Couldn't register Rule during test")
 	}
