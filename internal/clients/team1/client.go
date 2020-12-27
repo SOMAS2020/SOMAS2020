@@ -104,7 +104,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 			}
 		}
 	}
-	bestValue = shared.Resources(math.Max(
+	bestValue = shared.Resources(math.Min(
 		float64(bestValue),
 		float64(0.2*c.clientInfo().Resources)),
 	)
