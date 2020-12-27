@@ -66,7 +66,7 @@ var (
 	foragingMaxDeerPopulation = flag.Uint(
 		"maxDeerPopulation",
 		12,
-		"Max possible deer population. Reserved for post-MVP functionality.",
+		"Max possible deer population.",
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",

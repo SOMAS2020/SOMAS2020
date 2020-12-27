@@ -45,7 +45,7 @@ type ForagingConfig struct {
 	ExponentialRate       float64 // `lambda` param in W variable (see README). Controls distribution of deer sizes.
 
 	// Deer Population
-	MaxDeerPopulation     uint    // Max possible deer population. Reserved for post-MVP functionality
+	MaxDeerPopulation     uint    // Max possible deer population.
 	DeerGrowthCoefficient float64 // Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster
 
 	// TODO: add other pertinent params here (for fishing etc)
