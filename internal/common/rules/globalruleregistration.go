@@ -28,9 +28,9 @@ func registerDemoRule() {
 	aux := []float64{1, 1, 2, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, err := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector, false)
-	if err != nil {
-		panic(err)
+	_, success, errorMessage := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector, false)
+	if !success {
+		panic(errorMessage)
 	}
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 }
@@ -93,9 +93,9 @@ func registerRulesByMass() {
 		nrows := len(rs.v) / rowLength
 		CoreMatrix := mat.NewDense(nrows, rowLength, rs.v)
 		AuxiliaryVector := mat.NewVecDense(nrows, rs.aux)
-		_, err := RegisterNewRule(rs.name, rs.reqVar, *CoreMatrix, *AuxiliaryVector, rs.mutable)
-		if err != nil {
-			panic(fmt.Sprintf("%v", err.Error()))
+		_, success, errorMessage := RegisterNewRule(rs.name, rs.reqVar, *CoreMatrix, *AuxiliaryVector, rs.mutable)
+		if !success {
+			panic(errorMessage)
 		}
 	}
 }

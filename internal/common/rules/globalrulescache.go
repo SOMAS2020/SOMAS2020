@@ -19,23 +19,24 @@ const (
 	ModifiedRuleMatrixDimensionMismatch
 	AuxVectorDimensionDontMatchRuleMatrix
 	RuleRequestedForModificationWasImmutable
+	TriedToReRegisterRule
 	None
 )
 
 // RegisterNewRule Creates and registers new rule based on inputs
-func RegisterNewRule(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, mutable bool) (*RuleMatrix, error) {
+func RegisterNewRule(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, mutable bool) (constructedMatrix *RuleMatrix, registerSuccessful bool, message RuleError) {
 	return registerNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules, mutable)
 }
 
 // registerNewRuleInternal provides primal register logic for any rule cache
-func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool) (*RuleMatrix, error) {
+func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool) (constructedMatrix *RuleMatrix, registerSuccessful bool, message RuleError) {
 	if _, ok := ruleStore[ruleName]; ok {
-		return nil, errors.Errorf("Rule '%v' already registered", ruleName)
+		return nil, false, TriedToReRegisterRule
 	}
 
 	rm := RuleMatrix{RuleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxiliaryVector: auxiliaryVector, Mutable: mutable}
 	ruleStore[ruleName] = rm
-	return &rm, nil
+	return &rm, true, None
 }
 
 // PullRuleIntoPlay provides engagement logic for global rules in play cache
