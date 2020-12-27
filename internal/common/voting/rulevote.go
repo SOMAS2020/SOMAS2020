@@ -6,46 +6,56 @@ import (
 )
 
 type RuleVote struct {
+	//Checked by RuleVote
 	ruleToVote    string
 	islandsToVote []shared.ClientID
-	votes         []bool
+	//Held by RuleVote
+	ballots []bool
 }
 
-type RuleVoteResult struct {
-	votesInFavour uint
-	votesAgainst  uint
-	Result        bool
+type BallotBox struct {
+	VotesInFavour uint
+	VotesAgainst  uint
 }
 
-// ProposeMotion is called by Speaker to set the rule to be voted on.
-func (v *RuleVote) ProposeMotion(rule string) {
+// SetRule is called by baseSpeaker to set the rule to be voted on.
+func (v *RuleVote) SetRule(rule string) {
 	v.ruleToVote = rule
 }
 
-// OpenBallot is called by Speaker to set the islands eligible to vote.
-func (v *RuleVote) OpenBallot(clientIDs []shared.ClientID) {
+// SetVotingIslands is called by baseSpeaker to set the islands eligible to vote.
+func (v *RuleVote) SetVotingIslands(clientIDs []shared.ClientID) {
+	//TODO: intersection of islands alive and islands chosen to vote
 	v.islandsToVote = clientIDs
 }
 
-// Vote is called by Speaker to get votes from clients.
-func (v *RuleVote) Vote(clientMap map[shared.ClientID]baseclient.Client) {
-	for _, island := range v.islandsToVote {
-		// TODO how the hell do we get clientMap in here
-		v.votes = append(v.votes, clientMap[island].GetVoteForRule(v.ruleToVote))
+// GatherBallots is called by baseSpeaker to get votes from clients.
+func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client) {
+	//Gather N ballots from islands
+	if v.ruleToVote != "" && len(v.islandsToVote) > 0 {
+		for _, island := range v.islandsToVote {
+			v.ballots = append(v.ballots, clientMap[island].GetVoteForRule(v.ruleToVote))
+		}
 	}
 }
 
-// CloseBallot is called by Speaker to count votes received.
-func (v *RuleVote) CloseBallot() RuleVoteResult {
-
-	var outcome RuleVoteResult
-	for _, vote := range v.votes {
+//GetBallotBox is called by baseSpeaker and
+//returns the BallotBox with n votesInFavour and N-n votesAgainst
+func (v *RuleVote) GetBallotBox() BallotBox {
+	//The following is in accordance with anonymous voting
+	var outcome BallotBox
+	for _, vote := range v.ballots {
 		if vote {
-			outcome.votesInFavour += 1
-		} else {
-			outcome.votesAgainst += 1
+			outcome.VotesInFavour += 1
+		} else if !vote {
+			outcome.VotesAgainst += 1
 		}
 	}
-	outcome.Result = outcome.votesInFavour >= outcome.votesAgainst
 	return outcome
+}
+
+//CountVotesMajority is called by baseSpeaker and
+//returns the majority result of the BallotBox
+func (b *BallotBox) CountVotesMajority() bool {
+	return b.VotesInFavour >= b.VotesAgainst
 }

@@ -37,7 +37,7 @@ func anyClientsAlive(clientInfos map[shared.ClientID]gamestate.ClientInfo) bool 
 }
 
 // getNonDeadClients returns a map of all clients with a non-dead status
-func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo, 
+func getNonDeadClients(clientInfos map[shared.ClientID]gamestate.ClientInfo,
 	clientMap map[shared.ClientID]baseclient.Client) map[shared.ClientID]baseclient.Client {
 
 	nonDeadClientMap := map[shared.ClientID]baseclient.Client{}
@@ -100,4 +100,30 @@ func getNonDeadClientIDs(clientInfos map[shared.ClientID]gamestate.ClientInfo) [
 	}
 
 	return nonDeadClients
+}
+
+// giveResources takes resources to client, logging it and mentioning reason
+func (s *SOMASServer) takeResources(clientID shared.ClientID, resources shared.Resources, reason string) error {
+	s.logf("Took %v from %v (reason: %s)", resources, clientID, reason)
+
+	participantInfo := s.gameState.ClientInfos[clientID]
+	if participantInfo.Resources < resources {
+		return errors.Errorf(
+			"Client %v did not have enough resources. Requested %v, only had %v",
+			clientID, resources, participantInfo.Resources,
+		)
+	}
+	participantInfo.Resources -= resources
+	s.gameState.ClientInfos[clientID] = participantInfo
+	return nil
+}
+
+// giveResources gives resources to client, logging it and mentioning reason
+func (s *SOMASServer) giveResources(clientID shared.ClientID, resources shared.Resources, reason string) {
+	s.logf("Gave %v to %v (reason: %s)", resources, clientID, reason)
+
+	participantInfo := s.gameState.ClientInfos[clientID]
+	participantInfo.Resources += resources
+	s.gameState.ClientInfos[clientID] = participantInfo
+
 }

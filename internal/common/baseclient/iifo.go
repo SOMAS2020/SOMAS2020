@@ -154,3 +154,25 @@ func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInf
 	c.Logf("Final Prediction: [%v]\n", finalPrediction)
 	return nil
 }
+
+// MakeForageInfo allows clients to share their most recent foraging DecisionMade, ResourceObtained from it to
+// other clients.
+// OPTIONAL. If this is not implemented then all values are nil.
+func (c *BaseClient) MakeForageInfo() shared.ForageShareInfo {
+	contribution := shared.ForageDecision{Type: shared.DeerForageType, Contribution: 0}
+	return shared.ForageShareInfo{DecisionMade: contribution, ResourceObtained: 0, ShareTo: []shared.ClientID{}}
+}
+
+// ReceiveForageInfo lets clients know what other clients has obtained from their most recent foraging attempt.
+// Most recent foraging attempt includes information about: foraging DecisionMade and ResourceObtained as well
+// as where this information came from.
+// OPTIONAL.
+func (c *BaseClient) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
+	// Return on Investment
+	roi := map[shared.ClientID]shared.Resources{}
+	for _, val := range neighbourForaging {
+		if val.DecisionMade.Type == shared.DeerForageType {
+			roi[val.SharedFrom] = val.ResourceObtained / shared.Resources(val.DecisionMade.Contribution) * 100
+		}
+	}
+}

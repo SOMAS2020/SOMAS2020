@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -34,24 +33,40 @@ type SOMASServer struct {
 // SOMASServerFactory returns an instance of the main server we use.
 func SOMASServerFactory() Server {
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
+	return createSOMASServer(clientInfos, clientMap)
+}
 
-	judge, speaker, president := iigointernal.GetFeaturedRoles()
+// createSOMASServer creates the main server given initial data about the
+// clients. Extracted from SOMASServerFactory for testing purposes.
+func createSOMASServer(
+	clientInfos map[shared.ClientID]gamestate.ClientInfo,
+	clientMap map[shared.ClientID]baseclient.Client) Server {
+
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
 	}
 
-	return &SOMASServer{
+	server := &SOMASServer{
 		clientMap: clientMap,
 		gameState: gamestate.GameState{
-			IIGOInfo:    gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
 			Season:         1,
 			Turn:           1,
 			ClientInfos:    clientInfos,
 			Environment:    disasters.InitEnvironment(clientIDs),
 			DeerPopulation: foraging.CreateDeerPopulationModel(),
+			IIGOHistory:    &gamestate.TurnHistory,
 		},
 	}
+
+	for _, client := range clientMap {
+		client.Initialise(ServerForClient{
+			clientID: client.GetID(),
+			server:   server,
+		})
+	}
+
+	return server
 }
 
 // EntryPoint function that returns a list of historic gamestate.GameState until the
@@ -84,4 +99,17 @@ func (s *SOMASServer) getEcho(str string) error {
 // logf is the server's default logger.
 func (s *SOMASServer) logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
+}
+
+// ServerForClient is a reference to the server for particular client. It is
+// meant as an instance of baseclient.ServerReadHandle
+type ServerForClient struct {
+	clientID shared.ClientID
+	server   *SOMASServer
+}
+
+// GetGameState gets the ClientGameState for the client matching s.clientID in
+// s.server
+func (s ServerForClient) GetGameState() gamestate.ClientGameState {
+	return s.server.gameState.GetClientGameStateCopy(s.clientID)
 }
