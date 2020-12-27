@@ -66,9 +66,9 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	scoreInit := candidatesNumber + 1
 
 	//Transfer e.votes to a preference map with type "int"
-	for i := 0; i < islandsNumber-1; i++ {
-		for j := 0; j < candidatesNumber-1; j++ {
-			for k := 0; k < candidatesNumber-1; k++ {
+	for i := 0; i < islandsNumber; i++ {
+		for j := 0; j < candidatesNumber; j++ {
+			for k := 0; k < candidatesNumber; k++ {
 				if votesSliceSquare[i][j] == e.islandsToVote[k] {
 					votesLayoutElect[i][k] = scoreInit
 					scoreInit = scoreInit - 1
@@ -86,15 +86,15 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	for k, v := range votesLayoutElect {
 		j := 0
 
-		for t := 0; t < candidatesNumber-1; t++ {
+		for t := 0; t < candidatesNumber; t++ {
 			order[t] = v[t]
 		}
 
-		for i := 0; i < candidatesNumber-1; i++ {
+		for i := 0; i < candidatesNumber; i++ {
 
 			maxlim := 100
 
-			for j = 0; j < candidatesNumber-1; j++ {
+			for j = 0; j < candidatesNumber; j++ {
 				if maxlim > order[j] {
 					maxlim = order[j]
 					index[i] = j
@@ -107,7 +107,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 
 		itrans := 0
 		s := 1
-		for i := 0; i < candidatesNumber-1; i++ {
+		for i := 0; i < candidatesNumber; i++ {
 			itrans = index[i]
 			score[itrans] = s
 			s++
@@ -120,7 +120,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	//Calculate the final score for all candidates and ditermine the winner.
 	var FinalScore []int
 	for _, v := range preferenceMap {
-		for i := 0; i < candidatesNumber-1; i++ {
+		for i := 0; i < candidatesNumber; i++ {
 			FinalScore[i] = FinalScore[i] + v[i]
 		}
 	}
@@ -128,7 +128,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	maxscore := 0
 	var winnerIndex int
 	winnerIndex = 0
-	for i := 0; i < candidatesNumber-1; i++ {
+	for i := 0; i < candidatesNumber; i++ {
 		if maxscore < FinalScore[i] {
 			maxscore = FinalScore[i]
 			winnerIndex = i
