@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
@@ -53,15 +52,7 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	s.logf("start runDeerHunt")
 	defer s.logf("finish runDeerHunt")
 
-	fConf := config.ForagingConfig{
-		MaxDeerPerHunt:        4,
-		IncrementalInputDecay: 0.8,
-		BernoulliProb:         0.95,
-		ExponentialRate:       1,
-
-		MaxDeerPopulation:     12,
-		DeerGrowthCoefficient: 0.4,
-	}
+	fConf := s.gameConfig.ForagingConfig
 
 	hunt, err := foraging.CreateDeerHunt(
 		contributions,
