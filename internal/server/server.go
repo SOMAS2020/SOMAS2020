@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
