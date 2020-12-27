@@ -5,7 +5,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/pkg/errors"
 )
 
 type BaseJudge struct {
@@ -25,12 +24,12 @@ func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, err := PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
-			if err == nil {
+			valuesToBeAdded, foundRules := PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
+			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
-			err = rules.UpdateVariable(variable.VariableName, variable)
-			if err != nil {
+			updatedVariable := rules.UpdateVariable(variable.VariableName, variable)
+			if !updatedVariable {
 				return map[shared.ClientID]roles.EvaluationReturn{}, false
 			}
 		}
@@ -67,26 +66,27 @@ func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRol
 }
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
-func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, error) {
+func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
 	var Rules []string
 	if _, ok := rules.VariableMap[variableName]; ok {
 		for k, v := range ruleStore {
-			_, err := searchForVariableInArray(variableName, v.RequiredVariables)
-			if err != nil {
+			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
+			if !found {
 				Rules = append(Rules, k)
 			}
 		}
-		return Rules, nil
+		return Rules, true
 	} else {
-		return []string{}, errors.Errorf("Variable name '%v' was not found in the variable cache", variableName)
+		// fmt.Sprintf("Variable name '%v' was not found in the variable cache", variableName)
+		return []string{}, false
 	}
 }
 
-func searchForVariableInArray(val rules.VariableFieldName, array []rules.VariableFieldName) (int, error) {
+func searchForVariableInArray(val rules.VariableFieldName, array []rules.VariableFieldName) (int, bool) {
 	for i, v := range array {
 		if v == val {
-			return i, nil
+			return i, true
 		}
 	}
-	return 0, errors.Errorf("Not found")
+	return -1, false
 }

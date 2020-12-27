@@ -24,17 +24,17 @@ func registerNewVariableInternal(pair VariableValuePair, variableStore map[Varia
 }
 
 // UpdateVariable Updates variable in global cache with new value
-func UpdateVariable(variableName VariableFieldName, newValue VariableValuePair) error {
+func UpdateVariable(variableName VariableFieldName, newValue VariableValuePair) bool {
 	return updateVariableInternal(variableName, newValue, VariableMap)
 }
 
 // updateVariableInternal provides primal update logic for any variable cache
-func updateVariableInternal(variableName VariableFieldName, newValue VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
+func updateVariableInternal(variableName VariableFieldName, newValue VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) bool {
 	if _, ok := variableStore[variableName]; ok {
 		variableStore[variableName] = newValue
-		return nil
+		return true
 	}
-	return errors.Errorf("attempted to modify a variable has not been defined")
+	return false
 }
 
 type VariableFieldName int
