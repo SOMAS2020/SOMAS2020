@@ -60,8 +60,11 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 				},
 			}
 
-			s.runForage()
+			err := s.runForage()
 
+			if err != nil {
+				t.Errorf("runForage error: %v", err)
+			}
 			if !client.forageUpdateCalled {
 				t.Errorf("ForageUpdate was not called")
 			}

@@ -43,6 +43,10 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return nil
 }
 
+func (c BaseClient) TaxTaken(shared.Resources) {
+	// Just an update. Ignore
+}
+
 func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// TODO: Implement common pool contribution greater than or equal to tax.
 	return 0

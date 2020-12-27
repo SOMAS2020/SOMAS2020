@@ -15,7 +15,7 @@ func TestDeerUtilityTier(t *testing.T) {
 
 	var tests = []struct {
 		inputR shared.Resources // cumulative resource input from hunt participants
-		want   int     // output tier
+		want   int              // output tier
 	}{
 		{0.0, 0},
 		{0.99, 0},

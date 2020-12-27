@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
@@ -22,20 +23,24 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		tax := v.GetTaxContribution()
-		s.gameState.CommonPool += tax
-		newGameState := s.gameState.GetClientGameStateCopy(clientID)
-		newGameState.ClientInfo.Resources -= tax
-		v.GameStateUpdate(newGameState)
-		_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+		err := s.takeResources(clientID, tax, "tax")
+		if err == nil {
+			s.gameState.CommonPool += tax
+			s.clientMap[clientID].TaxTaken(tax)
+		} else {
+			s.logf("Error getting tax from %v: %v", clientID, err)
+		}
+    gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
-				VariableName: "island_tax_contribution",
+				VariableName: rules.IslandTaxContribution,
 				Values:       []float64{float64(tax)},
 			},
 			{
-				VariableName: "expected_tax_contribution",
+				VariableName: rules.ExpectedTaxContribution,
 				Values:       []float64{float64(iigointernal.TaxAmountMapExport[clientID])},
 			},
 		})
+
 	}
 	return nil
 }
@@ -46,19 +51,17 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
-		s.gameState.CommonPool -= allocation
-		newGameState := s.gameState.GetClientGameStateCopy(clientID)
-		newGameState.ClientInfo.Resources += allocation
-		v.GameStateUpdate(newGameState)
+		
 		if allocation <= s.gameState.CommonPool {
+      s.giveResources(clientID, allocation, "allocation")
 			s.gameState.CommonPool -= allocation
-			_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+			gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 				{
-					VariableName: "island_allocation",
+					VariableName: rules.IslandAllocation,
 					Values:       []float64{float64(allocation)},
 				},
 				{
-					VariableName: "expected_allocation",
+					VariableName: rules.ExpectedAllocation,
 					Values:       []float64{float64(iigointernal.AllocationAmountMapExport[clientID])},
 				},
 			})
@@ -72,8 +75,8 @@ func updateAliveIslands(aliveIslands []shared.ClientID) {
 	for _, v := range aliveIslands {
 		forVariables = append(forVariables, float64(v))
 	}
-	_ = rules.UpdateVariable("islands_alive", rules.VariableValuePair{
-		VariableName: "islands_alive",
+	_ = rules.UpdateVariable(rules.IslandsAlive, rules.VariableValuePair{
+		VariableName: rules.IslandsAlive,
 		Values:       forVariables,
 	})
 }
