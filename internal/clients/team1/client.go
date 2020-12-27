@@ -14,7 +14,7 @@ func init() {
 		id,
 		&client{
 			Client:  baseclient.NewClient(id),
-			profits: map[shared.ForageDecision][]int{},
+			profits: map[shared.ForageDecision][]shared.Resources{},
 		},
 	)
 }
@@ -23,31 +23,21 @@ type client struct {
 	baseclient.Client
 	gameState gamestate.ClientGameState
 
-	lastForagingDecision shared.ForageDecision
-	profits              map[shared.ForageDecision][]int
+	serverReadHandle baseclient.ServerReadHandle
+	profits          map[shared.ForageDecision][]shared.Resources
 }
 
-func (c *client) GameStateUpdate(gameState gamestate.ClientGameState, updateData gamestate.UpdateData) {
-	profit :=
-		( gameState.ClientInfo.Resources - c.gameState.ClientInfo.Resources ) // Cost of living
-
-	c.Logf("New resources: %d", gameState.ClientInfo.Resources)
-	c.Logf("Profit: %d", profit)
-
-	c.profits[c.lastForagingDecision] = append(c.profits[c.lastForagingDecision], profit)
-	c.gameState = gameState
+func (c *client) Initialise(handle baseclient.ServerReadHandle) {
+	c.serverReadHandle = handle
 }
-
-func (c *client) StartOfTurnUpdate(gameState gamestate.ClientGameState) {
-	c.GameStateUpdate(gameState)
-}
-
-
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	contribution := 50.0
-	c.Logf("Foraging deer with %f", contribution)
+	return shared.ForageDecision{Type: shared.DeerForageType, Contribution: 5}, nil
+}
 
-	c.lastForagingDecision = shared.ForageDecision{Type: shared.DeerForageType, Contribution: contribution}
-	return c.lastForagingDecision, nil
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, reward shared.Resources) {
+	c.profits[forageDecision] = append(c.profits[forageDecision], reward)
+
+	c.Logf("New resources: %v", c.serverReadHandle.GetGameState().ClientInfo.Resources)
+	c.Logf("Profit: %v", reward - forageDecision.Contribution)
 }
