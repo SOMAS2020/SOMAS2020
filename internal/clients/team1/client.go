@@ -34,6 +34,9 @@ type client struct {
 	baseclient.Client
 	gameState gamestate.ClientGameState
 
+	randomForageTurns    uint
+	desperationThreshold shared.Resources
+
 	serverReadHandle baseclient.ServerReadHandle
 	forageHistory    ForageHistory
 }
@@ -42,10 +45,10 @@ func (c *client) Initialise(handle baseclient.ServerReadHandle) {
 	c.serverReadHandle = handle
 }
 
-func (c *client) forageHistorySize() int {
-	length := 0
+func (c *client) forageHistorySize() uint {
+	length := uint(0)
 	for _, lst := range c.forageHistory {
-		length += len(lst)
+		length += uint(len(lst))
 	}
 	return length
 }
@@ -54,15 +57,15 @@ func (c *client) clientInfo() gamestate.ClientInfo {
 	return c.serverReadHandle.GetGameState().ClientInfo
 }
 
-func (c *client) DecideForage() (shared.ForageDecision, error) {
-	if c.forageHistorySize() < 5 {
-		// Up to 10% of our current resources
-		forageContribution := shared.Resources(0.1*rand.Float64()) * c.clientInfo().Resources
-		c.Logf("[Forage][Decision]:Random")
-		// TODO Add fish foraging when it's done
-		return shared.ForageDecision{shared.DeerForageType, forageContribution}, nil
-	}
+func (c *client) RandomForage() shared.ForageDecision {
+	// Up to 10% of our current resources
+	forageContribution := shared.Resources(0.1*rand.Float64()) * c.clientInfo().Resources
+	c.Logf("[Forage][Decision]:Random")
+	// TODO Add fish foraging when it's done
+	return shared.ForageDecision{shared.DeerForageType, forageContribution}
+}
 
+func (c *client) NormalForage() shared.ForageDecision {
 	// Find the forageType with the best average returns
 	bestForageType := shared.ForageType(-1)
 	bestROI := 0.0
@@ -89,7 +92,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 
 	// Not foraging is best
 	if bestForageType == shared.ForageType(-1) {
-		return shared.ForageDecision{shared.FishForageType, 0}, nil
+		return shared.ForageDecision{shared.FishForageType, 0}
 	}
 
 	// Find the value of resources that gave us the best return and add some
@@ -120,7 +123,26 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		"[Forage][Decision]: Decision %v | Expected ROI %v",
 		forageDecision, bestROI)
 
-	return forageDecision, nil
+	return forageDecision
+}
+
+func (c *client) DesperateForage() shared.ForageDecision {
+	forageDecision := shared.ForageDecision{
+		Type:         shared.DeerForageType,
+		Contribution: c.clientInfo().Resources,
+	}
+	c.Logf("[Forage][Decision]: Desperate | Decision %v", forageDecision)
+	return forageDecision
+}
+
+func (c *client) DecideForage() (shared.ForageDecision, error) {
+	if c.forageHistorySize() < c.randomForageTurns {
+		return c.RandomForage(), nil
+	} else if c.clientInfo().Resources <= c.desperationThreshold {
+		return c.DesperateForage(), nil
+	} else {
+		return c.NormalForage(), nil
+	}
 }
 
 func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shared.Resources) {
@@ -134,6 +156,6 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 		forageDecision.Type,
 		revenue-forageDecision.Contribution,
 		forageDecision.Contribution,
-		(revenue / forageDecision.Contribution) - 1,
+		(revenue/forageDecision.Contribution)-1,
 	)
 }
