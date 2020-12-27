@@ -75,7 +75,7 @@ var ourPredictionInfo shared.PredictionInfo
 
 // NewClient produces a new client with the BaseClient already implemented.
 // BASE: Do not overwrite in team client.
-func NewClient(id shared.ClientID) Client {
+func NewClient(id shared.ClientID) *BaseClient {
 	return &BaseClient{id: id, communications: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}}
 }
 
@@ -83,10 +83,10 @@ func NewClient(id shared.ClientID) Client {
 // All clients should be based off of this BaseClient to ensure that all clients implement the interface,
 // even when new features are added.
 type BaseClient struct {
-	id              shared.ClientID
-	clientGameState gamestate.ClientGameState
-	communications  map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
-	serverReadHandle ServerReadHandle
+	id               shared.ClientID
+	clientGameState  gamestate.ClientGameState
+	communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
+	ServerReadHandle ServerReadHandle
 }
 
 // Echo prints a message to show that the client exists
@@ -106,7 +106,7 @@ func (c *BaseClient) GetID() shared.ClientID {
 // OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
 // You will need it to access the game state through its GetGameStateMethod.
 func (c *BaseClient) Initialise(serverReadHandle ServerReadHandle) {
-	c.serverReadHandle = serverReadHandle
+	c.ServerReadHandle = serverReadHandle
 }
 
 // StartOfTurn handles the start of a new turn.
