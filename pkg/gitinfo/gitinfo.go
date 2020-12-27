@@ -12,7 +12,6 @@ import (
 // GitInfo contains information about the latest config of the repo.
 type GitInfo struct {
 	Hash      string
-	ShortHash string
 	GithubURL string
 }
 
@@ -26,7 +25,6 @@ func GetGitInfo(wd string) (GitInfo, error) {
 	}
 	hash := strings.TrimSpace(string(hashBuf))
 	gitInfo.Hash = hash
-	gitInfo.ShortHash = hash[:7]
 
 	remoteURLBuf, err := sysutils.RunCommandInDir("git", []string{"config", "--get", "remote.origin.url"}, wd)
 	if err != nil {
