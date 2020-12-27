@@ -46,9 +46,9 @@ func registerNewRealValuedRule(t *testing.T) {
 	aux := []float64{1, 1, 3, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, success, errorMessage := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector, false)
-	if !success {
-		t.Errorf("Problem with registering new real valued rule in test, error message : '%v'", errorMessage)
+	_, ruleError := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector, false)
+	if ruleError != nil {
+		t.Errorf("Problem with registering new real valued rule in test, error message : '%v'", ruleError.Error())
 	}
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 }

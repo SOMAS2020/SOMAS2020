@@ -6,47 +6,50 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
-	"github.com/pkg/errors"
 )
 
-// TestRegisterNewRule Tests whether the global rule cache is able to register new rules
-// func TestRegisterNewRule(t *testing.T) {
-// 	AvailableRulesTesting, _ := generateRulesTestStores()
-// 	registerTestRule(AvailableRulesTesting)
-// 	if _, ok := AvailableRulesTesting["Kinda Test Rule"]; !ok {
-// 		t.Errorf("Global rule register unable to register new rules")
-// 	}
-// }
 var ruleMatrixExample rules.RuleMatrix
 
 func TestRuleVotedIn(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	s := legislature{}
 	cases := []struct {
-		name string
-		rule string
-		want error
+		name          string
+		rule          string
+		expectedError bool
+		want          rules.RuleErrorType
 	}{
 		{
-			name: "normal working",
-			rule: "Kinda Test Rule",
-			want: nil,
+			name:          "normal working",
+			rule:          "Kinda Test Rule",
+			expectedError: false,
 		},
 		{
-			name: "unidentified rule name",
-			rule: "Unknown Rule",
-			want: errors.Errorf("Rule '%v' is not available in rules cache", "Unknown Rule"),
+			name:          "unidentified rule name",
+			rule:          "Unknown Rule",
+			expectedError: true,
+			want:          rules.RuleNotInAvailableRulesCache,
 		},
 		{
-			name: "Rule already in play",
-			rule: "Kinda Test Rule 2",
-			want: nil,
+			name:          "Rule already in play",
+			rule:          "Kinda Test Rule 2",
+			expectedError: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := s.updateRules(tc.rule, true)
-			testutils.CompareTestErrors(tc.want, got, t)
+			if tc.expectedError {
+				if ruleErr, ok := got.(*rules.RuleError); ok {
+					if ruleErr.Type() != tc.want {
+						t.Errorf("Expected error type '%v' got error type '%v'", tc.want, ruleErr.Type())
+					}
+				} else {
+					t.Errorf("Unrecognised Error format recieved, with message: '%v'", ruleErr.Error())
+				}
+			} else {
+				testutils.CompareTestErrors(nil, got, t)
+			}
 		})
 	}
 	expectedRulesInPlay := map[string]rules.RuleMatrix{
@@ -63,30 +66,42 @@ func TestRuleVotedOut(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	s := legislature{}
 	cases := []struct {
-		name string
-		rule string
-		want error
+		name          string
+		rule          string
+		expectedError bool
+		want          rules.RuleErrorType
 	}{
 		{
-			name: "normal working",
-			rule: "Kinda Test Rule",
-			want: nil,
+			name:          "normal working",
+			rule:          "Kinda Test Rule",
+			expectedError: false,
 		},
 		{
-			name: "unidentified rule name",
-			rule: "Unknown Rule",
-			want: errors.Errorf("Rule '%v' is not available in rules cache", "Unknown Rule"),
+			name:          "unidentified rule name",
+			rule:          "Unknown Rule",
+			expectedError: true,
+			want:          rules.RuleNotInAvailableRulesCache,
 		},
 		{
-			name: "Rule already in play",
-			rule: "Kinda Test Rule 2",
-			want: nil,
+			name:          "Rule already in play",
+			rule:          "Kinda Test Rule 2",
+			expectedError: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := s.updateRules(tc.rule, false)
-			testutils.CompareTestErrors(tc.want, got, t)
+			if tc.expectedError {
+				if ruleErr, ok := got.(*rules.RuleError); ok {
+					if ruleErr.Type() != tc.want {
+						t.Errorf("Expected error type '%v' got error type '%v'", tc.want, ruleErr.Type())
+					}
+				} else {
+					t.Errorf("Unrecognised Error format recieved, with message: '%v'", ruleErr.Error())
+				}
+			} else {
+				testutils.CompareTestErrors(nil, got, t)
+			}
 		})
 	}
 	expectedRulesInPlay := map[string]rules.RuleMatrix{}
