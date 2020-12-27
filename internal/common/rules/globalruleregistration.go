@@ -28,7 +28,7 @@ func registerDemoRule() {
 	aux := []float64{1, 1, 2, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, err := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	_, err := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector, false)
 	if err != nil {
 		panic(err)
 	}
@@ -37,10 +37,11 @@ func registerDemoRule() {
 
 func registerRulesByMass() {
 	ruleSpecs := []struct {
-		name   string
-		reqVar []VariableFieldName
-		v      []float64
-		aux    []float64
+		name    string
+		reqVar  []VariableFieldName
+		v       []float64
+		aux     []float64
+		mutable bool
 	}{
 		{
 			name: "inspect_ballot_rule",
@@ -48,8 +49,9 @@ func registerRulesByMass() {
 				NumberOfIslandsAlive,
 				NumberOfBallotsCast,
 			},
-			v:   []float64{1, -1, 0},
-			aux: []float64{0},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
 		},
 		{
 			name: "inspect_allocation_rule",
@@ -57,8 +59,9 @@ func registerRulesByMass() {
 				NumberOfIslandsAlive,
 				NumberOfAllocationsSent,
 			},
-			v:   []float64{1, -1, 0},
-			aux: []float64{0},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
 		},
 		{
 			name: "check_taxation_rule",
@@ -66,8 +69,9 @@ func registerRulesByMass() {
 				IslandTaxContribution,
 				ExpectedTaxContribution,
 			},
-			v:   []float64{1, -1, 0},
-			aux: []float64{2},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{2},
+			mutable: false,
 		},
 		{
 			name: "check_allocation_rule",
@@ -75,8 +79,9 @@ func registerRulesByMass() {
 				IslandAllocation,
 				ExpectedAllocation,
 			},
-			v:   []float64{1, -1, 0},
-			aux: []float64{0},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
 		},
 	}
 
@@ -88,7 +93,7 @@ func registerRulesByMass() {
 		nrows := len(rs.v) / rowLength
 		CoreMatrix := mat.NewDense(nrows, rowLength, rs.v)
 		AuxiliaryVector := mat.NewVecDense(nrows, rs.aux)
-		_, err := RegisterNewRule(rs.name, rs.reqVar, *CoreMatrix, *AuxiliaryVector)
+		_, err := RegisterNewRule(rs.name, rs.reqVar, *CoreMatrix, *AuxiliaryVector, rs.mutable)
 		if err != nil {
 			panic(fmt.Sprintf("%v", err.Error()))
 		}
