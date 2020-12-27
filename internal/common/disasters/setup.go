@@ -6,11 +6,9 @@ import (
 )
 
 // InitEnvironment initialises environment according to definitions
-func InitEnvironment(islandIDs []shared.ClientID) Environment {
-	envConf := config.GameConfig().DisasterConfig
-
-	ag := ArchipelagoGeography{Islands: map[shared.ClientID]IslandLocationInfo{}, XMin: envConf.XMin, XMax: envConf.XMax, YMin: envConf.YMin, YMax: envConf.YMin}
-	dp := disasterParameters{globalProb: envConf.GlobalProb, spatialPDF: envConf.SpatialPDFType, magnitudeLambda: envConf.MagnitudeLambda}
+func InitEnvironment(islandIDs []shared.ClientID, disasterConfig config.DisasterConfig) Environment {
+	ag := ArchipelagoGeography{Islands: map[shared.ClientID]IslandLocationInfo{}, XMin: disasterConfig.XMin, XMax: disasterConfig.XMax, YMin: disasterConfig.YMin, YMax: disasterConfig.YMin}
+	dp := disasterParameters{globalProb: disasterConfig.GlobalProb, spatialPDF: disasterConfig.SpatialPDFType, magnitudeLambda: disasterConfig.MagnitudeLambda}
 
 	for i, id := range islandIDs {
 		island := IslandLocationInfo{id, float64(i), float64(0)} // begin with equidistant points on x axis
