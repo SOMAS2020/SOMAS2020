@@ -22,10 +22,15 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		tax := v.GetTaxContribution()
-		s.gameState.CommonPool += tax
-		newGameState := s.gameState.GetClientGameStateCopy(clientID)
-		newGameState.ClientInfo.Resources -= tax
-		v.GameStateUpdate(newGameState)
+
+		err := s.takeResources(clientID, tax, "tax")
+		if err == nil {
+			s.gameState.CommonPool += tax
+			s.clientMap[clientID].TaxTaken(tax)
+		} else {
+			s.logf("Error getting tax from %v: %v", clientID, err)
+		}
+
 		_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: "island_tax_contribution",
@@ -47,9 +52,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
 		s.gameState.CommonPool -= allocation
-		newGameState := s.gameState.GetClientGameStateCopy(clientID)
-		newGameState.ClientInfo.Resources += allocation
-		v.GameStateUpdate(newGameState)
+		s.giveResources(clientID, allocation, "allocation")
 		if allocation <= s.gameState.CommonPool {
 			s.gameState.CommonPool -= allocation
 			_ = iigointernal.UpdateTurnHistory(clientID, []rules.VariableValuePair{

@@ -17,12 +17,13 @@ type Client interface {
 	Echo(s string) string
 	GetID() shared.ClientID
 
-	// StartOfTurnUpdate is where SOMASServer.updateIsland sends the game state over
-	// at start of turn. Do whatever you like here :).
-	StartOfTurnUpdate(gameState gamestate.ClientGameState)
+	// Initialise is called once on game start. You can keep the value of
+	// ServerReadHandle which can then be used to access the ClientGameState at
+	// any point
+	Initialise(ServerReadHandle)
 
-	// GameStateUpdate updates game state mid-turn.
-	GameStateUpdate(gameState gamestate.ClientGameState)
+	// StartOfTurn is called at the beginning of each turn
+	StartOfTurn()
 
 	Logf(format string, a ...interface{})
 
@@ -37,15 +38,14 @@ type Client interface {
 	GetTaxContribution() shared.Resources
 	RequestAllocation() shared.Resources
 
+	// TaxTaken is called on the client after tax has been taken from it
+	TaxTaken(shared.Resources)
+
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
 	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
 	MakeForageInfo() shared.ForageShareInfo
 	ReceiveForageInfo([]shared.ForageShareInfo)
-
-	// ForageUpdate is called with the total resources returned to the agent
-	// from the hunt (NOT the profit)
-	ForageUpdate(shared.ForageDecision, shared.Resources)
 
 	//IITO: COMPULSORY
 	RequestGift() uint
@@ -55,12 +55,20 @@ type Client interface {
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
+	// ForageUpdate is called with the total resources returned to the agent
+	// from the hunt (NOT the profit)
+	ForageUpdate(shared.ForageDecision, shared.Resources)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SendGift(receivingClient shared.ClientID, amount int) error
 	ReceiveGift(sendingClient shared.ClientID, amount int) error
 	GetVoteForRule(ruleName string) bool
 	GetVoteForElection(roleToElect Role) []shared.ClientID
+}
+
+// ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate
+type ServerReadHandle interface {
+	GetGameState() gamestate.ClientGameState
 }
 
 var ourPredictionInfo shared.PredictionInfo
@@ -75,9 +83,10 @@ func NewClient(id shared.ClientID) Client {
 // All clients should be based off of this BaseClient to ensure that all clients implement the interface,
 // even when new features are added.
 type BaseClient struct {
-	id              shared.ClientID
-	clientGameState gamestate.ClientGameState
-	communications  map[shared.ClientID][]map[int]Communication
+	id               shared.ClientID
+	clientGameState  gamestate.ClientGameState
+	communications   map[shared.ClientID][]map[int]Communication
+	serverReadHandle ServerReadHandle
 }
 
 // Echo prints a message to show that the client exists
@@ -92,6 +101,18 @@ func (c *BaseClient) Echo(s string) string {
 func (c *BaseClient) GetID() shared.ClientID {
 	return c.id
 }
+
+// Initialise initialises the base client.
+// OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
+// You will need it to access the game state through its GetGameStateMethod.
+func (c *BaseClient) Initialise(serverReadHandle ServerReadHandle) {
+	c.serverReadHandle = serverReadHandle
+}
+
+// StartOfTurn handles the start of a new turn.
+// OPTIONAL: Use this method for any tasks you want to happen on the beginning
+// of every turn (e.g. logging)
+func (c *BaseClient) StartOfTurn() {}
 
 // Logf is the client's logger that prepends logs with your ID. This makes
 // it easier to read logs. DO NOT use other loggers that will mess logs up!
