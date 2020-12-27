@@ -115,7 +115,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.sendSpeakerSalary(&legislativeBranch)
 
 	// 1 Judge actions - inspect history
-	_, historyInspected := judicialBranch.inspectHistory()
+	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}

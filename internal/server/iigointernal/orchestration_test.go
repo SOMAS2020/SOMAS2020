@@ -1,10 +1,11 @@
 package iigointernal
 
 import (
+	"testing"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"testing"
 )
 
 func TestPutSalaryBack(t *testing.T) {
