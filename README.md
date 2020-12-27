@@ -45,9 +45,6 @@ Common utilities, or system-wide code such as game specification etc.
 - [`server`](internal/server)
 Self-explanatory.
 
-- [`logger`](internal/logger)
-Logger for the application.
-
 ### [`pkg`](pkg)
 More generic packages dealing with general use-cases, such as system-related or file-operation utilities.
 

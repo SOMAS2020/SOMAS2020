@@ -12,10 +12,10 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
-	"github.com/SOMAS2020/SOMAS2020/internal/logger"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/SOMAS2020/SOMAS2020/pkg/fileutils"
 	"github.com/SOMAS2020/SOMAS2020/pkg/gitinfo"
+	"github.com/SOMAS2020/SOMAS2020/pkg/logger"
 )
 
 // output represents what is output into the output.json file
