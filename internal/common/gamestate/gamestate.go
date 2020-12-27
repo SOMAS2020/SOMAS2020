@@ -24,7 +24,7 @@ type GameState struct {
 	DeerPopulation foraging.DeerPopulationModel
 
 	// IIGO History
-	IIGOHistory *[]shared.Accountability
+	IIGOHistory []shared.Accountability
 
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
@@ -36,7 +36,7 @@ func (g GameState) Copy() GameState {
 	ret.ClientInfos = copyClientInfos(g.ClientInfos)
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
-	ret.IIGOHistory = g.IIGOHistory
+	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
 	return ret
 }
 
@@ -48,9 +48,9 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 	}
 
 	return ClientGameState{
-		Season:     g.Season,
-		Turn:       g.Turn,
-		ClientInfo: g.ClientInfos[id].Copy(),
+		Season:             g.Season,
+		Turn:               g.Turn,
+		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
 	}
 }
@@ -60,6 +60,12 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 	for k, v := range m {
 		ret[k] = v.Copy()
 	}
+	return ret
+}
+
+func copyIIGOHistory(iigoHistory []shared.Accountability) []shared.Accountability {
+	ret := make([]shared.Accountability, len(iigoHistory))
+	copy(ret, iigoHistory)
 	return ret
 }
 

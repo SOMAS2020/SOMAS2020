@@ -16,16 +16,14 @@ import (
 type Client interface {
 	Echo(s string) string
 	GetID() shared.ClientID
-
-	// Initialise is called once on game start. You can keep the value of
-	// ServerReadHandle which can then be used to access the ClientGameState at
-	// any point
 	Initialise(ServerReadHandle)
-
-	// StartOfTurn is called at the beginning of each turn
 	StartOfTurn()
-
 	Logf(format string, a ...interface{})
+
+	GetVoteForRule(ruleName string) bool
+	GetVoteForElection(roleToElect Role) []shared.ClientID
+	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
+	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
 	CommonPoolResourceRequest() shared.Resources
 	ResourceReport() shared.Resources
@@ -33,13 +31,13 @@ type Client interface {
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
-	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
-	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
+	TaxTaken(shared.Resources)
 	GetTaxContribution() shared.Resources
 	RequestAllocation() shared.Resources
 
-	// TaxTaken is called on the client after tax has been taken from it
-	TaxTaken(shared.Resources)
+	//Foraging
+	DecideForage() (shared.ForageDecision, error)
+	ForageUpdate(shared.ForageDecision, shared.Resources)
 
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)
@@ -53,17 +51,9 @@ type Client interface {
 	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
 	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
 
-	//Foraging
-	DecideForage() (shared.ForageDecision, error)
-	// ForageUpdate is called with the total resources returned to the agent
-	// from the hunt (NOT the profit)
-	ForageUpdate(shared.ForageDecision, shared.Resources)
-
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SendGift(receivingClient shared.ClientID, amount int) error
 	ReceiveGift(sendingClient shared.ClientID, amount int) error
-	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(roleToElect Role) []shared.ClientID
 }
 
 // ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate
@@ -119,23 +109,6 @@ func (c *BaseClient) StartOfTurn() {}
 // BASE: Do not overwrite in team client.
 func (c *BaseClient) Logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
-}
-
-// StartOfTurnUpdate is updates the gamestate of the client at the start of each turn.
-// The gameState is served by the server.
-// OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.ClientGameState) {
-	c.Logf("Received start of turn game state update: %#v", gameState)
-	c.clientGameState = gameState
-	// TODO
-}
-
-// GameStateUpdate updates game state mid-turn.
-// The gameState is served by the server.
-// OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
-	c.Logf("Received game state update: %#v", gameState)
-	c.clientGameState = gameState
 }
 
 type Role = int
