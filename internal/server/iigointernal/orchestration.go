@@ -7,7 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
-	"github.com/pkg/errors"
 )
 
 const serviceCharge = shared.Resources(10)
@@ -69,7 +68,7 @@ var presidentPointer roles.President = nil
 var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
-func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) error {
+func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
 
 	iigoClients = *clientMap
 
@@ -98,15 +97,15 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// Handle the lack of resources
 	if !presidentWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
+		return false, "Could not run IIGO since President has no resoruces to spend"
 	}
 	if !judgeWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
+		return false, "Could not run IIGO since Judge has no resoruces to spend"
 	}
 	if !speakerWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
+		return false, "Could not run IIGO since Speaker has no resoruces to spend"
 	}
 
 	// Pay salaries into budgets
@@ -151,7 +150,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// Get new President ID
 	PresidentIDGlobal = judicialBranch.appointNextPresident(aliveClientIds)
 
-	return nil
+	return true, "IIGO Run Successful"
 }
 
 func returnWithdrawnSalariesToCommonPool(state *gamestate.GameState, executiveBranch *executive, legislativeBranch *legislature, judicialBranch *judiciary) {
