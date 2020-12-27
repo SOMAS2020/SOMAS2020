@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
@@ -44,7 +42,6 @@ func createSOMASServer(
 	clientInfos map[shared.ClientID]gamestate.ClientInfo,
 	clientMap map[shared.ClientID]baseclient.Client) Server {
 
-	judge, speaker, president := iigointernal.GetFeaturedRoles()
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
@@ -53,12 +50,12 @@ func createSOMASServer(
 	server := &SOMASServer{
 		clientMap: clientMap,
 		gameState: gamestate.GameState{
-			IIGOInfo:       gamestate.IIGOBaseRoles{BasePresident: president, BaseSpeaker: speaker, BaseJudge: judge},
 			Season:         1,
 			Turn:           1,
 			ClientInfos:    clientInfos,
 			Environment:    disasters.InitEnvironment(clientIDs),
 			DeerPopulation: foraging.CreateDeerPopulationModel(),
+			IIGOHistory:    &gamestate.TurnHistory,
 		},
 	}
 

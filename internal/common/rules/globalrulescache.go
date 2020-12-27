@@ -12,12 +12,12 @@ var AvailableRules = map[string]RuleMatrix{}
 var RulesInPlay = map[string]RuleMatrix{}
 
 // RegisterNewRule Creates and registers new rule based on inputs
-func RegisterNewRule(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense) (*RuleMatrix, error) {
+func RegisterNewRule(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense) (*RuleMatrix, error) {
 	return registerNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules)
 }
 
 // registerNewRuleInternal provides primal register logic for any rule cache
-func registerNewRuleInternal(ruleName string, requiredVariables []string, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix) (*RuleMatrix, error) {
+func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix) (*RuleMatrix, error) {
 	if _, ok := ruleStore[ruleName]; ok {
 		return nil, errors.Errorf("Rule '%v' already registered", ruleName)
 	}
