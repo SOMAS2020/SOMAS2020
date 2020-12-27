@@ -9,7 +9,7 @@ func (c *BaseClient) GetGiftRequests() []shared.GiftRequest {
 	requests := []shared.GiftRequest{}
 
 	// FIXME: Is this the right way to get the client statuses?
-	for team, status := range c.clientGameState.ClientLifeStatuses {
+	for team, status := range c.serverReadHandle.GetGameState().ClientLifeStatuses {
 		if status == shared.Critical {
 			requests[team] = shared.GiftRequest{RequestFrom: shared.ClientID(team), RequestAmount: 100.0}
 		} else {

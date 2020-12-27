@@ -84,7 +84,6 @@ func NewClient(id shared.ClientID) Client {
 // even when new features are added.
 type BaseClient struct {
 	id               shared.ClientID
-	clientGameState  gamestate.ClientGameState
 	communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 	serverReadHandle ServerReadHandle
 }
@@ -126,16 +125,7 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 // OPTIONAL. Base should be able to handle it but feel free to implement your own.
 func (c *BaseClient) StartOfTurnUpdate(gameState gamestate.ClientGameState) {
 	c.Logf("Received start of turn game state update: %#v", gameState)
-	c.clientGameState = gameState
 	// TODO
-}
-
-// GameStateUpdate updates game state mid-turn.
-// The gameState is served by the server.
-// OPTIONAL. Base should be able to handle it but feel free to implement your own.
-func (c *BaseClient) GameStateUpdate(gameState gamestate.ClientGameState) {
-	c.Logf("Received game state update: %#v", gameState)
-	c.clientGameState = gameState
 }
 
 // Role enumerates the different roles.
