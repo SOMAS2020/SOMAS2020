@@ -6,14 +6,14 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 // This information is fed to OfferGifts of all other clients.
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) GetGiftRequests() []shared.GiftRequest {
-	// FIXME: Make this the appropriate length, the loop below doesn't run otherwise.
-	// Can't test server until this is fixed.
 	requests := []shared.GiftRequest{}
-	for fromTeam := range requests {
-		if c.clientGameState.ClientInfo.LifeStatus == shared.Critical {
-			requests[fromTeam] = shared.GiftRequest{RequestFrom: shared.ClientID(fromTeam), RequestAmount: 100.0}
+
+	// FIXME: Is this the right way to get the client statuses?
+	for team, status := range c.clientGameState.ClientLifeStatuses {
+		if status == shared.Critical {
+			requests[team] = shared.GiftRequest{RequestFrom: shared.ClientID(team), RequestAmount: 100.0}
 		} else {
-			requests[fromTeam] = shared.GiftRequest{RequestFrom: shared.ClientID(fromTeam), RequestAmount: 0.0}
+			requests[team] = shared.GiftRequest{RequestFrom: shared.ClientID(team), RequestAmount: 0.0}
 		}
 	}
 	return requests
@@ -23,11 +23,16 @@ func (c *BaseClient) GetGiftRequests() []shared.GiftRequest {
 // It can offer multiple partial gifts.
 // COMPULSORY, you need to implement this method. This placeholder implementation offers no gifts.
 func (c *BaseClient) GetGiftOffers(receivedRequests []shared.GiftRequest) ([]shared.GiftOffer, error) {
-	// FIXME: Make this the appropriate length, the loop below doesn't run otherwise.
-	// Can't test server until this is fixed.
 	offers := []shared.GiftOffer{}
-	for toTeam := range offers {
-		offers[toTeam] = shared.GiftOffer{ReceivingTeam: shared.ClientID(toTeam), OfferAmount: 0.0}
+
+	// FIXME: Or is this the right way?
+	clientStatuses := c.serverReadHandle.GetGameState().ClientLifeStatuses
+	for toTeam, status := range clientStatuses {
+		if status == shared.Critical {
+			offers[toTeam] = shared.GiftOffer{ReceivingTeam: shared.ClientID(toTeam), OfferAmount: 100.0}
+		} else {
+			offers[toTeam] = shared.GiftOffer{ReceivingTeam: shared.ClientID(toTeam), OfferAmount: 0.0}
+		}
 	}
 	return offers, nil
 }

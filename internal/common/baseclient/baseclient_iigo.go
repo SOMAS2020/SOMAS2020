@@ -43,6 +43,7 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return nil
 }
 
+// TaxTaken FIXME: Add documentation. What does this function do?
 func (c BaseClient) TaxTaken(shared.Resources) {
 	// Just an update. Ignore
 }
