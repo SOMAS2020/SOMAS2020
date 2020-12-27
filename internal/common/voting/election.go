@@ -136,7 +136,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	}
 	var winner shared.ClientID
 	type client shared.ClientID
-	winner = shared.TeamIDs[winnerIndex]
+	winner = e.islandsToVote[winnerIndex]
 
 	return winner
 }
