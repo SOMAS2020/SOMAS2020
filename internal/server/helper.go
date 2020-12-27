@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
@@ -16,13 +15,14 @@ type clientInfoUpdateResult struct {
 
 func getClientInfosAndMapFromRegisteredClients(
 	registeredClients map[shared.ClientID]baseclient.Client,
+	initialResources shared.Resources,
 ) (map[shared.ClientID]gamestate.ClientInfo, map[shared.ClientID]baseclient.Client) {
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{}
 	clientMap := map[shared.ClientID]baseclient.Client{}
 
 	for id, c := range registeredClients {
 		clientInfos[id] = gamestate.ClientInfo{
-			Resources:  config.GameConfig().InitialResources,
+			Resources:  initialResources,
 			LifeStatus: shared.Alive,
 		}
 		clientMap[id] = c
