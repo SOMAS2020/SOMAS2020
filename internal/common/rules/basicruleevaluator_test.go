@@ -46,7 +46,7 @@ func registerNewRealValuedRule(t *testing.T) {
 	aux := []float64{1, 1, 3, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, err := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
+	_, err := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector, false)
 	if err != nil {
 		t.Errorf("Probblem with registering new real valued rule in test, error message : '%v'", err)
 	}
