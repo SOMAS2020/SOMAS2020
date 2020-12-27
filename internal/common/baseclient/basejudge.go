@@ -1,7 +1,6 @@
 package baseclient
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -17,9 +16,9 @@ func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resou
 }
 
 // inspectHistoryInternal is the base implementation of InspectHistory.
-func (j *BaseJudge) InspectHistory() (map[shared.ClientID]roles.EvaluationReturn, bool) {
+func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
-	for _, entry := range gamestate.TurnHistory {
+	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
 		var rulesAffected []string

@@ -141,18 +141,18 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
 	if ruleVotedIn {
 		// _ = rules.PullRuleIntoPlay(ruleName)
-		err := rules.PullRuleIntoPlay(ruleName)
-		if err != nil {
-			if err.Error() == notInRulesCache.Error() {
-				return err
+		success, errorMessage := rules.PullRuleIntoPlay(ruleName)
+		if !success {
+			if errorMessage == rules.RuleNotInAvailableRulesCache {
+				return notInRulesCache
 			}
 		}
 	} else {
 		// _ = rules.PullRuleOutOfPlay(ruleName)
-		err := rules.PullRuleOutOfPlay(ruleName)
-		if err != nil {
-			if err.Error() == notInRulesCache.Error() {
-				return err
+		success, errorMessage := rules.PullRuleOutOfPlay(ruleName)
+		if !success {
+			if errorMessage == rules.RuleNotInAvailableRulesCache {
+				return notInRulesCache
 			}
 		}
 
