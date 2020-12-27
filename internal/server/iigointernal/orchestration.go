@@ -97,15 +97,15 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// Handle the lack of resources
 	if !presidentWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return false, "Could not run IIGO since President has no resoruces to spend"
+		return false, "Could not run IIGO since President has no resources to spend"
 	}
 	if !judgeWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return false, "Could not run IIGO since Judge has no resoruces to spend"
+		return false, "Could not run IIGO since Judge has no resources to spend"
 	}
 	if !speakerWithdrawSuccess {
 		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return false, "Could not run IIGO since Speaker has no resoruces to spend"
+		return false, "Could not run IIGO since Speaker has no resources to spend"
 	}
 
 	// Pay salaries into budgets
