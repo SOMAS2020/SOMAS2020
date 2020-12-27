@@ -3,8 +3,6 @@ package rules
 import (
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
-	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -64,25 +62,33 @@ func TestPullRuleOutOfPlay(t *testing.T) {
 	registerTestRule(AvailableRulesTesting)
 	_, _ = pullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
-		name string
-		rule string
-		want error
+		name    string
+		rule    string
+		success bool
+		message RuleError
 	}{
 		{
-			name: "normal working",
-			rule: "Kinda Test Rule",
-			want: nil,
+			name:    "normal working",
+			rule:    "Kinda Test Rule",
+			success: true,
+			message: None,
 		},
 		{
-			name: "Rule already in play",
-			rule: "Kinda Test Rule 2",
-			want: errors.Errorf("Rule '%v' is not in play", "Kinda Test Rule 2"),
+			name:    "Rule already in play",
+			rule:    "Kinda Test Rule 2",
+			success: false,
+			message: RuleIsNotInPlay,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := pullRuleOutOfPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
-			testutils.CompareTestErrors(tc.want, got, t)
+			success, errorMessage := pullRuleOutOfPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
+			if success != tc.success {
+				t.Errorf("Pulling Rule out of play status wanted '%v' got '%v'", tc.success, success)
+			}
+			if errorMessage != tc.message {
+				t.Errorf("Pulling Rule out of play error wanted: '%v' got '%v'", tc.message, errorMessage)
+			}
 		})
 	}
 }

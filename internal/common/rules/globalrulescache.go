@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -21,6 +20,7 @@ const (
 	RuleRequestedForModificationWasImmutable
 	TriedToReRegisterRule
 	RuleIsAlreadyInPlay
+	RuleIsNotInPlay
 	None
 )
 
@@ -58,20 +58,20 @@ func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, p
 }
 
 // PullRuleOutOfPlay provides disengagement logic for global rules in play cache
-func PullRuleOutOfPlay(rulename string) error {
+func PullRuleOutOfPlay(rulename string) (success bool, errorMessage RuleError) {
 	return pullRuleOutOfPlayInternal(rulename, AvailableRules, RulesInPlay)
 }
 
 // pullRuleOutOfPlayInternal provides primal rule disengagement logic for any pair of caches
-func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
+func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) (success bool, errorMessage RuleError) {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
 			delete(playRules, rulename)
-			return nil
+			return true, None
 		}
-		return errors.Errorf("Rule '%v' is not in play", rulename)
+		return false, RuleIsNotInPlay
 	}
-	return errors.Errorf("Rule '%v' is not available in rules cache", rulename)
+	return false, RuleNotInAvailableRulesCache
 }
 
 func ModifyRule(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense) (successfulModification bool, status RuleError) {

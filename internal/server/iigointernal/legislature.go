@@ -149,10 +149,10 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 		}
 	} else {
 		// _ = rules.PullRuleOutOfPlay(ruleName)
-		err := rules.PullRuleOutOfPlay(ruleName)
-		if err != nil {
-			if err.Error() == notInRulesCache.Error() {
-				return err
+		success, errorMessage := rules.PullRuleOutOfPlay(ruleName)
+		if !success {
+			if errorMessage == rules.RuleNotInAvailableRulesCache {
+				return notInRulesCache
 			}
 		}
 
