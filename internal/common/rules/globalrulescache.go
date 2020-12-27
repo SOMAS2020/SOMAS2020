@@ -20,6 +20,7 @@ const (
 	AuxVectorDimensionDontMatchRuleMatrix
 	RuleRequestedForModificationWasImmutable
 	TriedToReRegisterRule
+	RuleIsAlreadyInPlay
 	None
 )
 
@@ -40,20 +41,20 @@ func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldN
 }
 
 // PullRuleIntoPlay provides engagement logic for global rules in play cache
-func PullRuleIntoPlay(rulename string) error {
+func PullRuleIntoPlay(rulename string) (success bool, errorMessage RuleError) {
 	return pullRuleIntoPlayInternal(rulename, AvailableRules, RulesInPlay)
 }
 
 // pullRuleIntoPlayInternal provides primal rule engagement logic for any pair of caches
-func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
+func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) (success bool, errorMessage RuleError) {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
-			return errors.Errorf("Rule '%v' is already in play", rulename)
+			return false, RuleIsAlreadyInPlay
 		}
 		playRules[rulename] = allRules[rulename]
-		return nil
+		return true, None
 	}
-	return errors.Errorf("Rule '%v' is not available in rules cache", rulename)
+	return false, RuleNotInAvailableRulesCache
 }
 
 // PullRuleOutOfPlay provides disengagement logic for global rules in play cache

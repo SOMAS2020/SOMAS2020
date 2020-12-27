@@ -20,32 +20,41 @@ func TestRegisterNewRule(t *testing.T) {
 func TestPullRuleIntoPlay(t *testing.T) {
 	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
-	_ = pullRuleIntoPlayInternal("Kinda Test Rule 2", AvailableRulesTesting, RulesInPlayTesting)
+	_, _ = pullRuleIntoPlayInternal("Kinda Test Rule 2", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
-		name string
-		rule string
-		want error
+		name    string
+		rule    string
+		success bool
+		message RuleError
 	}{
 		{
-			name: "normal working",
-			rule: "Kinda Test Rule",
-			want: nil,
+			name:    "normal working",
+			rule:    "Kinda Test Rule",
+			success: true,
+			message: None,
 		},
 		{
-			name: "unidentified rule name",
-			rule: "Unknown Rule",
-			want: errors.Errorf("Rule '%v' is not available in rules cache", "Unknown Rule"),
+			name:    "unidentified rule name",
+			rule:    "Unknown Rule",
+			success: false,
+			message: RuleNotInAvailableRulesCache,
 		},
 		{
-			name: "Rule already in play",
-			rule: "Kinda Test Rule 2",
-			want: errors.Errorf("Rule '%v' is already in play", "Kinda Test Rule 2"),
+			name:    "Rule already in play",
+			rule:    "Kinda Test Rule 2",
+			success: false,
+			message: RuleIsAlreadyInPlay,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := pullRuleIntoPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
-			testutils.CompareTestErrors(tc.want, got, t)
+			success, errorMessage := pullRuleIntoPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
+			if success != tc.success {
+				t.Errorf("Pulling rule into play test error, expected '%v' got '%v'", success, errorMessage)
+			}
+			if errorMessage != tc.message {
+				t.Errorf("Pulling rule into play test error, expected message '%v' got '%v'", tc.message, errorMessage)
+			}
 		})
 	}
 }
@@ -53,7 +62,7 @@ func TestPullRuleIntoPlay(t *testing.T) {
 func TestPullRuleOutOfPlay(t *testing.T) {
 	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
-	_ = pullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
+	_, _ = pullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
 		name string
 		rule string
