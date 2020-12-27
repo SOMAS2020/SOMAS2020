@@ -23,13 +23,14 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		tax := v.GetTaxContribution()
-		s.gameState.CommonPool += tax
-		clientInfo := s.gameState.ClientInfos[clientID]
-		clientInfo.Resources -= tax
-		s.gameState.ClientInfos[clientID] = clientInfo
-		newGameState := s.gameState.GetClientGameStateCopy(clientID)
-		v.GameStateUpdate(newGameState)
-		gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+		err := s.takeResources(clientID, tax, "tax")
+		if err == nil {
+			s.gameState.CommonPool += tax
+			s.clientMap[clientID].TaxTaken(tax)
+		} else {
+			s.logf("Error getting tax from %v: %v", clientID, err)
+		}
+    gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,
 				Values:       []float64{float64(tax)},
@@ -50,13 +51,10 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
+		
 		if allocation <= s.gameState.CommonPool {
+      s.giveResources(clientID, allocation, "allocation")
 			s.gameState.CommonPool -= allocation
-			newGameState := s.gameState.GetClientGameStateCopy(clientID)
-			clientInfo := s.gameState.ClientInfos[clientID]
-			clientInfo.Resources += allocation
-			s.gameState.ClientInfos[clientID] = clientInfo
-			v.GameStateUpdate(newGameState)
 			gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
 				{
 					VariableName: rules.IslandAllocation,
