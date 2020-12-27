@@ -55,8 +55,134 @@ func (e *Election) CloseBallot() shared.ClientID {
 }
 
 func (e *Election) bordaCountResult() shared.ClientID {
-	// TODO implement Borda count winner selection method.
-	return e.pluralityResult()
+	// Implement Borda count winner selection method
+	//(may need to modify if methods design is changed)
+	var candidatesNumber int = 0
+	var islandsNumber int
+	var votesLayoutElect map[int][]int
+	votesSliceSquare := e.votes
+	candidatesNumber = len(e.islandsToVote)
+	islandsNumber = len(votesSliceSquare)
+	scoreInit := candidatesNumber + 1
+	i := 0
+	for {
+		j := 0
+		for {
+			k := 0
+			for {
+				if votesSliceSquare[i][j] == e.islandsToVote[k] {
+					votesLayoutElect[i][k] = scoreInit
+					scoreInit = scoreInit - 1
+					break
+				}
+				k++
+				if k > candidatesNumber-1 {
+					break
+				}
+			}
+			j++
+			if j > candidatesNumber-1 {
+				break
+			}
+		}
+		i++
+		if i > islandsNumber-1 {
+			break
+		}
+	}
+
+	//Calculate the preference map.
+	var order []int
+	var index []int
+	var score []int
+	preferenceMap := make(map[int][]int)
+	for k, v := range votesLayoutElect {
+		t := 0
+		i := 0
+		j := 0
+
+		for {
+			order[t] = v[t]
+			t++
+			if t > candidatesNumber-1 {
+				break
+			}
+		}
+
+		for {
+
+			maxlim := 100
+			j = 0
+
+			for {
+				if maxlim > order[j] {
+					maxlim = order[j]
+					index[i] = j
+				}
+
+				j++
+				if j > candidatesNumber-1 {
+					break
+				}
+			}
+
+			j = index[i]
+			order[j] = 101
+
+			i++
+			if i > candidatesNumber-1 {
+				break
+			}
+		}
+
+		i = 0
+		itrans := 0
+		s := 1
+		for {
+			itrans = index[i]
+			score[itrans] = s
+			s++
+			i++
+			if i > candidatesNumber-1 {
+				break
+			}
+		}
+
+		preferenceMap[k] = score
+
+	}
+
+	//Calculate the final score for all candidates and ditermine the winner.
+	var FinalScore []int
+	for _, v := range preferenceMap {
+		i := 0
+		for {
+			FinalScore[i] = FinalScore[i] + v[i]
+			i++
+			if i > candidatesNumber-1 {
+				break
+			}
+		}
+	}
+	i = 0
+	maxscore := 0
+	var winnerIndex int
+	winnerIndex = 0
+	for {
+		if maxscore < FinalScore[i] {
+			maxscore = FinalScore[i]
+			winnerIndex = i
+		}
+		i++
+		if i > candidatesNumber-1 {
+			break
+		}
+	}
+	var winner shared.ClientID
+	type client shared.ClientID
+	winner = shared.TeamIDs[winnerIndex]
+
+	return winner
 }
 
 func (e *Election) pluralityResult() shared.ClientID {
