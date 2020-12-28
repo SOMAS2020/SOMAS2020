@@ -1,8 +1,9 @@
 package iigointernal
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"testing"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 
 	"reflect" // Used to compare two maps
 
@@ -83,6 +84,7 @@ func TestAllocationRequests(t *testing.T) {
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentAllocation
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
@@ -92,14 +94,19 @@ func TestAllocationRequests(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 			}
 
-			val, evaluationOccurred := executive.clientPresident.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
-			if evaluationOccurred && tc.want {
-				if !reflect.DeepEqual(tc.reply, val) {
-					t.Errorf("%v - Failed. Expected %v, got %v", tc.name, tc.reply, val)
+			got := executive.clientPresident.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
+
+			if got.T != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.T)
+			}
+
+			if got.ActionTaken && tc.want {
+				if !reflect.DeepEqual(tc.reply, got.ResourceMap) {
+					t.Errorf("%v - Failed. Expected %v, got %v", tc.name, tc.reply, got.ResourceMap)
 				}
 			} else {
-				if evaluationOccurred != tc.want {
-					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, evaluationOccurred, tc.want)
+				if got.ActionTaken != tc.want {
+					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, got.ActionTaken, tc.want)
 				}
 			}
 		})
@@ -151,6 +158,7 @@ func TestPickRuleToVote(t *testing.T) {
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentRuleProposal
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
@@ -158,18 +166,23 @@ func TestPickRuleToVote(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 			}
 
-			val, err := executive.clientPresident.PickRuleToVote(tc.input)
-			if err && tc.want {
+			got := executive.clientPresident.PickRuleToVote(tc.input)
+
+			if got.T != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected return type  %v, got %v", tc.name, wantPresidentReturnType, got.T)
+			}
+
+			if got.ActionTaken && tc.want {
 				if len(tc.input) == 0 {
-					if val != "" {
-						t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, val)
+					if got.ProposedRule != "" {
+						t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRule)
 					}
-				} else if !checkIfInList(val, tc.input) {
-					t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, val, tc.input)
+				} else if !checkIfInList(got.ProposedRule, tc.input) {
+					t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRule, tc.input)
 				}
 			} else {
-				if err != tc.want {
-					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, err, tc.want)
+				if got.ActionTaken != tc.want {
+					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, got.ActionTaken, tc.want)
 				}
 			}
 		})
@@ -280,11 +293,17 @@ func TestGetTaxMap(t *testing.T) {
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentTaxation
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			val, _ := tc.bPresident.getTaxMap(tc.input)
-			if len(val) != tc.expectedLength {
-				t.Errorf("%v - Failed. RulesProposals set to '%v', expected '%v'", tc.name, val, tc.input)
+			got := tc.bPresident.getTaxMap(tc.input)
+
+			if got.T != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.T)
+			}
+
+			if len(got.ResourceMap) != tc.expectedLength {
+				t.Errorf("%v - Failed. RulesProposals set to '%v', expected '%v'", tc.name, got.ResourceMap, tc.input)
 			}
 
 		})
@@ -344,16 +363,22 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentRuleProposal
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			val, _ := tc.bPresident.getRuleForSpeaker()
+			got := tc.bPresident.getRuleForSpeaker()
+
+			if got.T != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.T)
+			}
+
 			if len(tc.expected) == 0 {
-				if val != "" {
-					t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, val)
+				if got.ProposedRule != "" {
+					t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRule)
 				}
-			} else if !checkIfInList(val, tc.expected) {
-				t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, val, tc.expected)
+			} else if !checkIfInList(got.ProposedRule, tc.expected) {
+				t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRule, tc.expected)
 			}
 		})
 	}
@@ -462,12 +487,18 @@ func TestGetAllocationRequests(t *testing.T) {
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentAllocation
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			val, _ := tc.bPresident.getAllocationRequests(tc.input)
-			if !reflect.DeepEqual(val, tc.expected) {
-				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, val, tc.expected)
+			got := tc.bPresident.getAllocationRequests(tc.input)
+
+			if got.T != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.T)
+			}
+
+			if !reflect.DeepEqual(got.ResourceMap, tc.expected) {
+				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, got.ResourceMap, tc.expected)
 			}
 		})
 	}
