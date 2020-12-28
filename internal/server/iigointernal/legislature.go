@@ -1,6 +1,8 @@
 package iigointernal
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -17,6 +19,14 @@ type legislature struct {
 	ballotBox     voting.BallotBox
 	votingResult  bool
 	clientSpeaker roles.Speaker
+}
+
+// loadClientSpeaker checks client pointer is good and if not panics
+func (l *legislature) loadClientSpeaker(clientSpeakerPointer roles.Speaker) {
+	if clientSpeakerPointer == nil {
+		panic(fmt.Sprintf("Client '%v' has loaded a nil speaker pointer", l.SpeakerID))
+	}
+	l.clientSpeaker = clientSpeakerPointer
 }
 
 // returnJudgeSalary returns the salary to the common pool.
@@ -38,7 +48,7 @@ func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) bool {
 // sendJudgeSalary sets the budget of the Judge.
 func (l *legislature) sendJudgeSalary(judicialBranch *judiciary) {
 	if l.clientSpeaker != nil {
-		amount, judgePaid := l.clientSpeaker.PayJudge()
+		amount, judgePaid := l.clientSpeaker.PayJudge(l.judgeSalary)
 		if judgePaid {
 			judicialBranch.budget = amount
 		}

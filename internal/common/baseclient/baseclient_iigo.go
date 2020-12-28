@@ -15,7 +15,7 @@ func (c *BaseClient) CommonPoolResourceRequest() shared.Resources {
 
 // ResourceReport is an island's self-report of its own resources.
 func (c *BaseClient) ResourceReport() shared.Resources {
-	return c.ClientGameState.ClientInfo.Resources
+	return c.ServerReadHandle.GetGameState().ClientInfo.Resources
 }
 
 // RuleProposal is called by the President in IIGO to propose a
@@ -30,17 +30,17 @@ func (c *BaseClient) RuleProposal() string {
 
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role
 func (c *BaseClient) GetClientPresidentPointer() roles.President {
-	return nil
+	return &BasePresident{}
 }
 
 // GetClientJudgePointer is called by IIGO to get the client's implementation of the Judge Role
 func (c *BaseClient) GetClientJudgePointer() roles.Judge {
-	return nil
+	return &BaseJudge{}
 }
 
 // GetClientSpeakerPointer is called by IIGO to get the client's implementation of the Speaker Role
 func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
-	return nil
+	return &BaseSpeaker{}
 }
 
 func (c *BaseClient) TaxTaken(shared.Resources) {
