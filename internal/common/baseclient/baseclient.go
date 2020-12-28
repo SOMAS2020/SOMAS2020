@@ -79,7 +79,6 @@ type BaseClient struct {
 	predictionInfo shared.PredictionInfo
 
 	// exported variables are accessible by the client implementations
-	ClientGameState  gamestate.ClientGameState
 	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 	ServerReadHandle ServerReadHandle
 }
