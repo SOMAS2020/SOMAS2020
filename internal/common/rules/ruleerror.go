@@ -9,6 +9,8 @@ import (
 // RuleErrorType is a non-critical issue which can be caused by an island trying to modify, register or pick rules which isn't mechanically feasible
 type RuleErrorType int
 
+// RuleError enum allows for programmatic handling of Rule related errors
+// .String() function available for printing in logs
 const (
 	RuleNotInAvailableRulesCache RuleErrorType = iota
 	ModifiedRuleMatrixDimensionMismatch
@@ -52,7 +54,6 @@ func (r RuleErrorType) MarshalJSON() ([]byte, error) {
 }
 
 // RuleError provides a packaged version of the RuleErrorType for clients to deal with
-
 type RuleError struct {
 	errorType RuleErrorType
 	err       error

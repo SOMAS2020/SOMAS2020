@@ -61,6 +61,7 @@ func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, 
 	return &RuleError{err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), errorType: RuleNotInAvailableRulesCache}
 }
 
+// ModifyRule allows for rules that are flagged as mutable to be modified
 func ModifyRule(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense) error {
 	return modifyRuleInternal(rulename, newMatrix, newAuxiliary, AvailableRules, RulesInPlay)
 }
@@ -93,7 +94,6 @@ func modifyRuleInternal(rulename string, newMatrix mat.Dense, newAuxiliary mat.V
 			inPlayCache[rulename] = rulesCache[rulename]
 		}
 		return nil
-	} else {
-		return &RuleError{err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), errorType: RuleNotInAvailableRulesCache}
 	}
+	return &RuleError{err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), errorType: RuleNotInAvailableRulesCache}
 }

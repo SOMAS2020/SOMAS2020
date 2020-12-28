@@ -95,7 +95,7 @@ func TestPullRuleOutOfPlay(t *testing.T) {
 						t.Errorf("Expected error type '%v' got error type '%v'", tc.errorType.String(), ruleErr.errorType.String())
 					}
 				} else {
-					t.Errorf("Unrecognised Error format recieved, with message: '%v'", ruleErr.Error())
+					t.Errorf("Unrecognised Error format received, with message: '%v'", ruleErr.Error())
 				}
 			} else {
 				testutils.CompareTestErrors(nil, err, t)
@@ -175,7 +175,7 @@ func TestModifyRule(t *testing.T) {
 						t.Errorf("Expected error type '%v' got error type '%v'", tc.errType.String(), ruleErr.errorType.String())
 					}
 				} else {
-					t.Errorf("Unrecognised Error format recieved, with message: '%v'", ruleErr.Error())
+					t.Errorf("Unrecognised Error format received, with message: '%v'", ruleErr.Error())
 				}
 			} else {
 				testutils.CompareTestErrors(nil, err, t)
