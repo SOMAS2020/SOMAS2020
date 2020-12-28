@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
 
