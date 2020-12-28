@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import './App.css';
 import { HashRouter } from "react-router-dom";
 import AppLayout from './containers/AppLayout/AppLayout';
-import { go } from './wasm';
+import { go, runGame } from './wasmAPI';
 
 function App() {
 
@@ -10,15 +10,22 @@ function App() {
     load()
   }, [])
   const load = async () => {
+    console.log(`load`)
     try {
+      console.log(`1`)
       const { instance, module } = await WebAssembly.instantiateStreaming(
-        fetch(`${process.env.PUBLIC_URL}/main.wasm`), 
+        fetch(`${process.env.PUBLIC_URL}/SOMAS2020.wasm`), 
         go.importObject
       )
-      await go.run(instance)
+      console.log(`2`)
+      // await go.run(instance)
+      
+      console.log(`3`)
+      console.log(`Going to run`)
   
-      // @ts-ignore
-      window.sayHelloJS("hello")
+      const res = await runGame()
+      console.log(`Finished to run`)
+      console.log(res)
     }
     catch (err) {
       console.error(err) 

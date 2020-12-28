@@ -18,6 +18,7 @@ func main() {
 	js.Global().Set(
 		"RunGame", js.FuncOf(RunGame),
 	)
+	select {}
 }
 
 func RunGame(this js.Value, args []js.Value) interface{} {
