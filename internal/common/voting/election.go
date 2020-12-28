@@ -116,7 +116,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 			}
 
 			j = index[i]
-			order[j] = 101
+			order[j] = maxlim + 1
 		}
 
 		itrans := 0
