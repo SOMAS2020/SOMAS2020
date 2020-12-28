@@ -67,8 +67,9 @@ func (l *legislature) setVotingResult(clientIDs []shared.ClientID) bool {
 		return false
 	}
 
+	var canRunVote error
 	l.ballotBox, canRunVote = l.RunVote(ruleID, participatingIslands)
-	if !canRunVote {
+	if canRunVote != nil {
 		return false
 	}
 
@@ -79,13 +80,13 @@ func (l *legislature) setVotingResult(clientIDs []shared.ClientID) bool {
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.
 //Passing in empty ruleID or empty clientIDs results in no vote occurring
-func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) (voting.BallotBox, bool) {
+func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) (voting.BallotBox, error) {
 
 	if ruleID == "" || len(clientIDs) == 0 {
-		return voting.BallotBox{}
+		return voting.BallotBox{}, nil
 	}
-	if !incurServiceCharge("runVote") {
-		return nil, false
+	if !l.incurServiceCharge("runVote") {
+		return voting.BallotBox{}, errors.Errorf("Insufficient Budget in common Pool: runVote")
 	}
 	ruleVote := voting.RuleVote{}
 
@@ -100,18 +101,20 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) (votin
 	//TODO: log of vote occurring with ruleID, clientIDs
 	//TODO: log of clientIDs vs islandsAllowedToVote
 	//TODO: log of ruleID vs s.RuleToVote
-	return ruleVote.GetBallotBox()
+	return ruleVote.GetBallotBox(), nil
 }
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
-func (l *legislature) announceVotingResult() {
+func (l *legislature) announceVotingResult() error {
 
 	rule, result, announcementDecided := l.clientSpeaker.DecideAnnouncement(l.ruleToVote, l.votingResult)
 
 	if announcementDecided {
 		//Deduct action cost
-		l.budget -= serviceCharge
+		if !l.incurServiceCharge("announceVotingResult") {
+			return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
+		}
 
 		//Reset
 		l.ruleToVote = ""
@@ -120,6 +123,7 @@ func (l *legislature) announceVotingResult() {
 		//Perform announcement
 		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(rule, result))
 	}
+	return nil
 }
 
 func generateVotingResultMessage(ruleID string, result bool) map[shared.CommunicationFieldName]shared.CommunicationContent {
@@ -146,8 +150,8 @@ func (l *legislature) reset() {
 
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
-	if !incurServiceCharge("runVote") {
-		return nil, false
+	if !l.incurServiceCharge("updateRules") {
+		return errors.Errorf("Insufficient Budget in common Pool: updateRules")
 	}
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
 	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
@@ -173,19 +177,19 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 
 }
 
-func (l *legislature) appointNextJudge(clientIDs []shared.ClientID) shared.ClientID {
-	if !incurServiceCharge("appointNextJudge") {
-		return nil, false
+func (l *legislature) appointNextJudge(clientIDs []shared.ClientID) (shared.ClientID, error) {
+	if !l.incurServiceCharge("appointNextJudge") {
+		return l.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
 	}
 	var election voting.Election
 	election.ProposeElection(baseclient.Judge, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
-	return election.CloseBallot()
+	return election.CloseBallot(), nil
 }
 
 func (l *legislature) incurServiceCharge(actionID string) bool {
-	cost := config.GameConfig().IIGOConfig.JudiciaryActionCost[actionID]
+	cost := config.GameConfig().IIGOConfig.LegislativeActionCost[actionID]
 	_, ok := WithdrawFromCommonPool(cost, l.gameState)
 	if ok {
 		l.budget -= cost

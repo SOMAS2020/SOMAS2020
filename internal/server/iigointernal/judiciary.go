@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -9,9 +10,9 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"github.com/pkg/errors"
 )
-s
+
 type judiciary struct {
-	gameState          *gamestate.GameState
+	gameState         *gamestate.GameState
 	JudgeID           shared.ClientID
 	budget            shared.Resources
 	presidentSalary   shared.Resources
@@ -28,6 +29,7 @@ func (j *judiciary) init() {
 	j.ResAllocID = 0
 }
 
+// TODO:- do we need this?
 // returnPresidentSalary returns the salary to the common pool.
 func (j *judiciary) returnPresidentSalary() shared.Resources {
 	x := j.presidentSalary
@@ -64,15 +66,15 @@ func (j *judiciary) PayPresident() shared.Resources {
 }
 
 // setSpeakerAndPresidentIDs set the speaker and president IDs.
-func (j *judiciary) setSpeakerAndPresidentIDs(speakerId shared.ClientID, presidentId shared.ClientID) {
-	j.speakerID = speakerId
-	j.presidentID = presidentId
+func (j *judiciary) setSpeakerAndPresidentIDs(speakerID shared.ClientID, presidentID shared.ClientID) {
+	j.speakerID = speakerID
+	j.presidentID = presidentID
 }
 
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory() (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	if !incurServiceCharge("inspectHistory") { 
+	if !j.incurServiceCharge("inspectHistory") {
 		return nil, false
 	}
 
@@ -84,17 +86,16 @@ func (j *judiciary) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
-	if !incurServiceCharge("inspectBallot") { 
-		return nil, false
+	if !j.incurServiceCharge("inspectBallot") {
+		return false, errors.Errorf("Insufficient Budget in common Pool: inspectBallot")
 	}
 
 	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err {
 		return rulesAffectedBySpeaker.Evaluations[indexOfBallotRule], nil
-	} else {
-		return true, errors.Errorf("Speaker did not conduct any ballots")
 	}
+	return true, errors.Errorf("Speaker did not conduct any ballots")
 }
 
 // inspectAllocation checks each resource allocation action adheres to the rules
@@ -104,8 +105,8 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
-	if !incurServiceCharge("inspectAllocation") { 
-		return nil, false
+	if !j.incurServiceCharge("inspectAllocation") {
+		return false, errors.Errorf("Insufficient Budget in common Pool: inspectAllocation")
 	}
 
 	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
@@ -144,12 +145,15 @@ func (j *judiciary) declarePresidentPerformanceWrapped() {
 
 // appointNextPresident returns the island ID of the island appointed to be the president in the next turn
 // appointing new roles should be free
-func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.ClientID {
+func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) (shared.ClientID, error) {
+	if !j.incurServiceCharge("appointNextPresident") {
+		return j.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
+	}
 	var election voting.Election
 	election.ProposeElection(baseclient.President, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
-	return election.CloseBallot()
+	return election.CloseBallot(), nil
 }
 
 // generateSpeakerPerformanceMessage generates the appropriate communication required regarding

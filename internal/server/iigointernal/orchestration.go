@@ -164,11 +164,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// Get new Judge ID
-	JudgeIDGlobal = legislativeBranch.appointNextJudge(aliveClientIds)
+	JudgeIDGlobal, _ = legislativeBranch.appointNextJudge(aliveClientIds)
 	// Get new Speaker ID
-	SpeakerIDGlobal = executiveBranch.appointNextSpeaker(aliveClientIds)
+	SpeakerIDGlobal, _ = executiveBranch.appointNextSpeaker(aliveClientIds)
 	// Get new President ID
-	PresidentIDGlobal = judicialBranch.appointNextPresident(aliveClientIds)
+	PresidentIDGlobal, _ = judicialBranch.appointNextPresident(aliveClientIds)
 
 	return nil
 }
