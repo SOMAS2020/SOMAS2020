@@ -22,12 +22,12 @@ func (c *mockClientIITO) GetGiftRequests() shared.GiftRequestDict {
 	return c.requests
 }
 
-func (c *mockClientIITO) GetGiftOffers(requests shared.GiftRequestDict) (shared.GiftOfferDict, error) {
-	return c.offers, nil
+func (c *mockClientIITO) GetGiftOffers(requests shared.GiftRequestDict) shared.GiftOfferDict {
+	return c.offers
 }
 
-func (c *mockClientIITO) GetGiftResponses(offers shared.GiftOfferDict) (shared.GiftResponseDict, error) {
-	return c.responses, nil
+func (c *mockClientIITO) GetGiftResponses(offers shared.GiftOfferDict) shared.GiftResponseDict {
+	return c.responses
 }
 
 // Test that the server correctly forms the pipeline for IITO to run
@@ -92,10 +92,10 @@ func TestServerGetGiftOffers(t *testing.T) {
 	clientMap := map[shared.ClientID]baseclient.Client{
 		// Team 1 makes 1 valid request: 500 to team 2.
 		shared.Team1: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 50, shared.Team2: 500, shared.Team3: 50}},
-		// Team 2 attempts to offer more than it has to team 1.
-		shared.Team2: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 600}},
-		// Team 3 is dead boi
-		shared.Team3: &mockClientIITO{},
+		// TODO: Team 2 attempts to offer more than it has to team 1.
+		shared.Team2: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 500}},
+		// Team 3 is dead, should not show up.
+		shared.Team3: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 600}},
 	}
 
 	want := map[shared.ClientID]shared.GiftOfferDict{
@@ -112,7 +112,7 @@ func TestServerGetGiftOffers(t *testing.T) {
 	}
 	offers, _ := s.getGiftOffers(map[shared.ClientID]shared.GiftRequestDict{})
 	if !reflect.DeepEqual(want, offers) {
-		t.Errorf("want '%v' got '%v'", want, s.getGiftRequests())
+		t.Errorf("want '%v' got '%v'", want, offers)
 	}
 
 }
@@ -138,7 +138,7 @@ func TestServerGetGiftResponses(t *testing.T) {
 	}
 
 	clientMap := map[shared.ClientID]baseclient.Client{
-		// Team 1 makes 1 valid request: 50 to team 2.
+		// Team 1 accepts team 2's offer
 		shared.Team1: &mockClientIITO{
 			responses: shared.GiftResponseDict{
 				shared.Team2: {AcceptedAmount: 500, Reason: shared.Accept},
@@ -148,7 +148,7 @@ func TestServerGetGiftResponses(t *testing.T) {
 		// Team 2 tries to accept more than it was offered.
 		shared.Team2: &mockClientIITO{
 			responses: shared.GiftResponseDict{
-				shared.Team1: {AcceptedAmount: 600, Reason: shared.Accept},
+				shared.Team1: {AcceptedAmount: 700, Reason: shared.Accept},
 			},
 		},
 	}

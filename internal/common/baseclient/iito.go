@@ -21,8 +21,9 @@ func (c *BaseClient) GetGiftRequests() shared.GiftRequestDict {
 
 // GetGiftOffers allows clients to make offers in response to gift requests by other clients.
 // It can offer multiple partial gifts.
-// COMPULSORY, you need to implement this method. This placeholder implementation offers no gifts.
-func (c *BaseClient) GetGiftOffers(receivedRequests shared.GiftRequestDict) (shared.GiftOfferDict, error) {
+// COMPULSORY, you need to implement this method. This placeholder implementation offers no gifts,
+// unless another team is critical.
+func (c *BaseClient) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 
 	// You can fetch the clients which are alive like this:
@@ -33,13 +34,13 @@ func (c *BaseClient) GetGiftOffers(receivedRequests shared.GiftRequestDict) (sha
 			offers[team] = shared.GiftOffer(0.0)
 		}
 	}
-	return offers, nil
+	return offers
 }
 
 // GetGiftResponses allows clients to accept gifts offered by other clients.
 // It also needs to provide a reasoning should it not accept the full amount.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) GetGiftResponses(receivedOffers shared.GiftOfferDict) (shared.GiftResponseDict, error) {
+func (c *BaseClient) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict {
 	responses := shared.GiftResponseDict{}
 	for client, offer := range receivedOffers {
 		responses[client] = shared.GiftResponse{
@@ -47,7 +48,7 @@ func (c *BaseClient) GetGiftResponses(receivedOffers shared.GiftOfferDict) (shar
 			Reason:         shared.Accept,
 		}
 	}
-	return responses, nil
+	return responses
 }
 
 // UpdateGiftInfo gives information about the outcome from AcceptGifts.

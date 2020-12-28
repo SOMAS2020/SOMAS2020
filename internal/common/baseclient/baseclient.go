@@ -49,8 +49,8 @@ type Client interface {
 
 	//IITO: COMPULSORY
 	GetGiftRequests() shared.GiftRequestDict
-	GetGiftOffers(receivedRequests shared.GiftRequestDict) (shared.GiftOfferDict, error)
-	GetGiftResponses(receivedOffers shared.GiftOfferDict) (shared.GiftResponseDict, error)
+	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
+	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict) error
 
 	//Foraging
