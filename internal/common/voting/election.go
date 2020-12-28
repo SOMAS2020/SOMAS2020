@@ -77,7 +77,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 			for k := 0; k < candidatesNumber; k++ {
 				if votesSliceSquare[i][j] == e.islandsToVote[k] {
 					votesLayoutElect[i+1][k] = scoreInit
-					scoreInit = scoreInit - 1
+					scoreInit -= 1
 				}
 			}
 		}
