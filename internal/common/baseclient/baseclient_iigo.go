@@ -30,17 +30,17 @@ func (c *BaseClient) RuleProposal() string {
 
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role
 func (c *BaseClient) GetClientPresidentPointer() roles.President {
-	return nil
+	return &BasePresident{}
 }
 
 // GetClientJudgePointer is called by IIGO to get the client's implementation of the Judge Role
 func (c *BaseClient) GetClientJudgePointer() roles.Judge {
-	return nil
+	return &BaseJudge{}
 }
 
 // GetClientSpeakerPointer is called by IIGO to get the client's implementation of the Speaker Role
 func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
-	return nil
+	return &BaseSpeaker{}
 }
 
 func (c *BaseClient) TaxTaken(shared.Resources) {
