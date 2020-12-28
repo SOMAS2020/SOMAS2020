@@ -26,7 +26,7 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 	}
 
 	return shared.PresidentReturnContent{
-		T:           shared.PresidentAllocation,
+		ContentType: shared.PresidentAllocation,
 		ResourceMap: resourceAllocation,
 		ActionTaken: true,
 	}
@@ -34,7 +34,7 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 
 // PickRuleToVote chooses a rule proposal from all the proposals
 func (p *BasePresident) PickRuleToVote(rulesProposals []string) shared.PresidentReturnContent {
-	// Default: No rules were proposed by the islands
+	// DefaulContentType: No rules were proposed by the islands
 	proposedRule := ""
 	actionTaken := false
 
@@ -45,7 +45,7 @@ func (p *BasePresident) PickRuleToVote(rulesProposals []string) shared.President
 	}
 
 	return shared.PresidentReturnContent{
-		T:            shared.PresidentRuleProposal,
+		ContentType:  shared.PresidentRuleProposal,
 		ProposedRule: proposedRule,
 		ActionTaken:  actionTaken,
 	}
@@ -59,7 +59,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * rand.Float64())
 	}
 	return shared.PresidentReturnContent{
-		T:           shared.PresidentTaxation,
+		ContentType: shared.PresidentTaxation,
 		ResourceMap: taxAmountMap,
 		ActionTaken: true,
 	}
@@ -69,7 +69,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 func (p *BasePresident) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
 	// TODO : Implement opinion based salary payment.
 	return shared.PresidentReturnContent{
-		T:             shared.PresidentSpeakerSalary,
+		ContentType:   shared.PresidentSpeakerSalary,
 		SpeakerSalary: salary,
 		ActionTaken:   true,
 	}

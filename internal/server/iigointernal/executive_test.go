@@ -96,8 +96,8 @@ func TestAllocationRequests(t *testing.T) {
 
 			got := executive.clientPresident.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
 
-			if got.T != wantPresidentReturnType {
-				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.T)
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
 			}
 
 			if got.ActionTaken && tc.want {
@@ -168,8 +168,8 @@ func TestPickRuleToVote(t *testing.T) {
 
 			got := executive.clientPresident.PickRuleToVote(tc.input)
 
-			if got.T != wantPresidentReturnType {
-				t.Errorf("%v - Failed. Expected return type  %v, got %v", tc.name, wantPresidentReturnType, got.T)
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected return type  %v, got %v", tc.name, wantPresidentReturnType, got.ContentType)
 			}
 
 			if got.ActionTaken && tc.want {
@@ -298,8 +298,8 @@ func TestGetTaxMap(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := tc.bPresident.getTaxMap(tc.input)
 
-			if got.T != wantPresidentReturnType {
-				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.T)
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
 			}
 
 			if len(got.ResourceMap) != tc.expectedLength {
@@ -369,8 +369,8 @@ func TestGetRuleForSpeaker(t *testing.T) {
 
 			got := tc.bPresident.getRuleForSpeaker()
 
-			if got.T != wantPresidentReturnType {
-				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.T)
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
 			}
 
 			if len(tc.expected) == 0 {
@@ -493,8 +493,8 @@ func TestGetAllocationRequests(t *testing.T) {
 
 			got := tc.bPresident.getAllocationRequests(tc.input)
 
-			if got.T != wantPresidentReturnType {
-				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.T)
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
 			}
 
 			if !reflect.DeepEqual(got.ResourceMap, tc.expected) {
