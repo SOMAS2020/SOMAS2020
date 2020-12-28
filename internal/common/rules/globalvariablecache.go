@@ -1,6 +1,11 @@
 package rules
 
-import "github.com/pkg/errors"
+import (
+	"fmt"
+
+	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
+	"github.com/pkg/errors"
+)
 
 type VariableValuePair struct {
 	VariableName VariableFieldName
@@ -57,3 +62,43 @@ const (
 	IslandAllocation
 	TestVariable
 )
+
+func (v VariableFieldName) String() string {
+	strs := [...]string{
+		"NumberOfIslandsContributingToCommonPool",
+		"NumberOfFailedForages",
+		"NumberOfBrokenAgreements",
+		"MaxSeverityOfSanctions",
+		"NumberOfIslandsAlive",
+		"NumberOfBallotsCast",
+		"NumberOfAllocationsSent",
+		"IslandsAlive",
+		"SpeakerSalary",
+		"JudgeSalary",
+		"PresidentSalary",
+		"ExpectedTaxContribution",
+		"ExpectedAllocation",
+		"IslandTaxContribution",
+		"IslandAllocation",
+		"TestVariable",
+	}
+	if v >= 0 && int(v) < len(strs) {
+		return strs[v]
+	}
+	return fmt.Sprintf("UNKNOWN VariableFieldName '%v'", int(v))
+}
+
+// GoString implements GoStringer
+func (v VariableFieldName) GoString() string {
+	return v.String()
+}
+
+// MarshalText implements TextMarshaler
+func (v VariableFieldName) MarshalText() ([]byte, error) {
+	return miscutils.MarshalTextForString(v.String())
+}
+
+// MarshalJSON implements RawMessage
+func (v VariableFieldName) MarshalJSON() ([]byte, error) {
+	return miscutils.MarshalJSONForString(v.String())
+}
