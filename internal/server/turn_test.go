@@ -63,32 +63,37 @@ func TestDeductCostOfLiving(t *testing.T) {
 }
 
 func TestUpdateIslandLivingStatus(t *testing.T) {
+	const minimumResourceThreshold = 42
+
 	// this does not test for updateIslandLivingStatusForClient
 	// those are covered in TestUpdateIslandLivingStatusForClient
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
 		shared.Team1: {
 			LifeStatus: shared.Alive,
-			Resources:  config.GameConfig().MinimumResourceThreshold - 1,
+			Resources:  minimumResourceThreshold - 1,
 		},
 		shared.Team2: {
 			LifeStatus: shared.Critical,
-			Resources:  config.GameConfig().MinimumResourceThreshold,
+			Resources:  minimumResourceThreshold,
 		},
 	}
 	wantClientInfos := map[shared.ClientID]gamestate.ClientInfo{
 		shared.Team1: {
 			LifeStatus: shared.Critical,
-			Resources:  config.GameConfig().MinimumResourceThreshold - 1,
+			Resources:  minimumResourceThreshold - 1,
 		},
 		shared.Team2: {
 			LifeStatus: shared.Alive,
-			Resources:  config.GameConfig().MinimumResourceThreshold,
+			Resources:  minimumResourceThreshold,
 		},
 	}
 
 	s := SOMASServer{
 		gameState: gamestate.GameState{
 			ClientInfos: clientInfos,
+		},
+		gameConfig: config.Config{
+			MinimumResourceThreshold: minimumResourceThreshold,
 		},
 	}
 

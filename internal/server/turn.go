@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
@@ -54,7 +53,6 @@ func (s *SOMASServer) runOrgs() error {
 	return nil
 }
 
-
 // endOfTurn performs end of turn updates
 func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
@@ -81,7 +79,7 @@ func (s *SOMASServer) endOfTurn() error {
 	s.incrementTurnAndSeason(disasterHappened)
 
 	// deduct cost of living
-	s.deductCostOfLiving(config.GameConfig().CostOfLiving)
+	s.deductCostOfLiving(s.gameConfig.CostOfLiving)
 
 	err = s.updateIslandLivingStatus()
 	if err != nil {
@@ -149,7 +147,7 @@ func (s *SOMASServer) updateIslandLivingStatus() error {
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		ci, err := updateIslandLivingStatusForClient(s.gameState.ClientInfos[id],
-			config.GameConfig().MinimumResourceThreshold, config.GameConfig().MaxCriticalConsecutiveTurns)
+			s.gameConfig.MinimumResourceThreshold, s.gameConfig.MaxCriticalConsecutiveTurns)
 		if err != nil {
 			return errors.Errorf("Failed to update island living status for '%v': %v", id, err)
 		}
