@@ -55,7 +55,7 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
 	e.budget -= serviceCharge
 	taxMapReturn := e.getTaxMap(islandsResources)
-	if taxMapReturn.ActionTaken {
+	if taxMapReturn.ActionTaken && taxMapReturn.T == shared.PresidentTaxation {
 		for _, island := range getIslandAlive() {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxMapReturn.ResourceMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
@@ -87,7 +87,7 @@ func (e *executive) requestAllocationRequest() {
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	e.budget -= serviceCharge
 	allocationMapReturn := e.getAllocationRequests(commonPool)
-	if allocationMapReturn.ActionTaken {
+	if allocationMapReturn.ActionTaken && allocationMapReturn.T == shared.PresidentAllocation {
 		for _, island := range getIslandAlive() {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMapReturn.ResourceMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
@@ -119,7 +119,7 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) bool {
 func (e *executive) sendSpeakerSalary(legislativeBranch *legislature) {
 	if e.clientPresident != nil {
 		amountReturn := e.clientPresident.PaySpeaker(e.speakerSalary)
-		if amountReturn.ActionTaken {
+		if amountReturn.ActionTaken && amountReturn.T == shared.PresidentSpeakerSalary {
 			legislativeBranch.budget = amountReturn.SpeakerSalary
 		}
 		return

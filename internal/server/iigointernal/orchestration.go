@@ -133,7 +133,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	ruleToVoteReturn := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
-	if ruleToVoteReturn.ActionTaken {
+	if ruleToVoteReturn.ActionTaken && ruleToVoteReturn.T == shared.PresidentRuleProposal {
 		legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRule)
 		legislativeBranch.setVotingResult(aliveClientIds)
 		legislativeBranch.announceVotingResult()
