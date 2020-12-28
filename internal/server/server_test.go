@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 	"github.com/pkg/errors"
@@ -69,4 +70,30 @@ type initTestClient struct {
 
 func (c *initTestClient) Initialise(baseclient.ServerReadHandle) {
 	c.initialiseCalled = true
+}
+
+func TestSOMASServerFactoryInitialisesClients(t *testing.T) {
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{}
+
+	// We need to initialise a map of *initTestClient (not baseclient.Client)
+	// because we need access to initialiseCalled. We can then convert this to a
+	// map of baseClient.Client, just to pass to createSOMASServer.
+	clientPtrsMap := map[shared.ClientID]*initTestClient{
+		shared.Team1: {Client: baseclient.NewClient(shared.Team1)},
+		shared.Team2: {Client: baseclient.NewClient(shared.Team2)},
+		shared.Team3: {Client: baseclient.NewClient(shared.Team3)},
+	}
+
+	clientMap := map[shared.ClientID]baseclient.Client{}
+	for k, v := range clientPtrsMap {
+		clientMap[k] = v
+	}
+
+	createSOMASServer(clientInfos, clientMap)
+
+	for clientID, client := range clientPtrsMap {
+		if !client.initialiseCalled {
+			t.Errorf("Initialise not called for %v", clientID)
+		}
+	}
 }
