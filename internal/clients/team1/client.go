@@ -36,7 +36,7 @@ type client struct {
 	randomForageTurns    uint
 	desperationThreshold shared.Resources
 
-	forageHistory    ForageHistory
+	forageHistory ForageHistory
 }
 
 func NewClient(clientID shared.ClientID) baseclient.Client {
@@ -65,7 +65,10 @@ func (c *client) RandomForage() shared.ForageDecision {
 	forageContribution := shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources
 	c.Logf("[Forage][Decision]:Random")
 	// TODO Add fish foraging when it's done
-	return shared.ForageDecision{shared.DeerForageType, forageContribution}
+	return shared.ForageDecision{
+		Type: shared.DeerForageType,
+		Contribution: forageContribution,
+	}
 }
 
 func (c *client) NormalForage() shared.ForageDecision {
@@ -95,7 +98,10 @@ func (c *client) NormalForage() shared.ForageDecision {
 
 	// Not foraging is best
 	if bestForageType == shared.ForageType(-1) {
-		return shared.ForageDecision{shared.FishForageType, 0}
+		return shared.ForageDecision{
+			Type: shared.FishForageType,
+			Contribution: 0,
+		}
 	}
 
 	// Find the value of resources that gave us the best return and add some
@@ -121,7 +127,10 @@ func (c *client) NormalForage() shared.ForageDecision {
 		float64(0.01*c.gameState().ClientInfo.Resources),
 	))
 
-	forageDecision := shared.ForageDecision{bestForageType, bestValue}
+	forageDecision := shared.ForageDecision{
+		Type:         bestForageType,
+		Contribution: bestValue,
+	}
 	c.Logf(
 		"[Forage][Decision]: Decision %v | Expected ROI %v",
 		forageDecision, bestROI)
