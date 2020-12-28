@@ -1,11 +1,8 @@
 package voting
 
 import (
-	"fmt"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
 
 type Election struct {
@@ -15,41 +12,13 @@ type Election struct {
 	votes         [][]shared.ClientID
 }
 
-// ElectionVotingMethod provides enumerated type for selection of voting system to be used
-type ElectionVotingMethod int
+type ElectionVotingMethod = int
 
 const (
 	BordaCount = iota
 	Plurality
 	Majority
 )
-
-func (e ElectionVotingMethod) String() string {
-	strs := [...]string{
-		"BordaCount",
-		"Plurality",
-		"Majority",
-	}
-	if e >= 0 && int(e) < len(strs) {
-		return strs[e]
-	}
-	return fmt.Sprintf("UNKNOWN ElectionVotingMethod '%v'", int(e))
-}
-
-// GoString implements GoStringer
-func (e ElectionVotingMethod) GoString() string {
-	return e.String()
-}
-
-// MarshalText implements TextMarshaler
-func (e ElectionVotingMethod) MarshalText() ([]byte, error) {
-	return miscutils.MarshalTextForString(e.String())
-}
-
-// MarshalJSON implements RawMessage
-func (e ElectionVotingMethod) MarshalJSON() ([]byte, error) {
-	return miscutils.MarshalJSONForString(e.String())
-}
 
 // ProposeMotion sets the role to be voted on
 func (e *Election) ProposeElection(role baseclient.Role, method ElectionVotingMethod) {
@@ -115,18 +84,9 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	}
 
 	//Sort the preference map in order.
-	var order []int
-	for i := 0; i < candidatesNumber; i++ {
-		order = append(order, 0)
-	}
-	var index []int
-	for i := 0; i < candidatesNumber; i++ {
-		index = append(index, 0)
-	}
-	var score []int
-	for i := 0; i < candidatesNumber; i++ {
-		score = append(score, 0)
-	}
+	order := make([]int, candidatesNumber)
+	index := make([]int, candidatesNumber)
+	score := make([]int, candidatesNumber)
 	preferenceMap := make(map[int][]int)
 	for k, v := range votesLayoutElect {
 		j := 0
@@ -138,16 +98,16 @@ func (e *Election) bordaCountResult() shared.ClientID {
 		for i := 0; i < candidatesNumber; i++ {
 
 			sum := 0
-			for i := 0; i < candidatesNumber; i++ {
-				sum = sum + v[i]
+			for t := 0; t < candidatesNumber; t++ {
+				sum = sum + v[t]
 			}
 
 			searcher := sum
 
-			for j = 0; j < candidatesNumber; j++ {
-				if searcher > order[j] {
-					searcher = order[j]
-					index[i] = j
+			for k := 0; k < candidatesNumber; k++ {
+				if searcher > order[k] {
+					searcher = order[k]
+					index[i] = k
 				}
 			}
 
@@ -156,11 +116,9 @@ func (e *Election) bordaCountResult() shared.ClientID {
 		}
 
 		itrans := 0
-		s := 1
 		for i := 0; i < candidatesNumber; i++ {
 			itrans = index[i]
-			score[itrans] = s
-			s++
+			score[itrans] = i + 1
 		}
 
 		for i := 0; i < candidatesNumber; i++ {
@@ -170,10 +128,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	}
 
 	//Calculate the final score for all candidates and ditermine the winner.
-	var finalScore []int
-	for i := 0; i < candidatesNumber; i++ {
-		finalScore = append(finalScore, 0)
-	}
+	finalScore := make([]int, candidatesNumber)
 	for _, v := range preferenceMap {
 		for i := 0; i < candidatesNumber; i++ {
 			finalScore[i] = finalScore[i] + v[i]
