@@ -14,14 +14,15 @@ const serviceCharge = shared.Resources(10)
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
 var judicialBranch = judiciary{
-	JudgeID:           0,
-	budget:            0,
-	presidentSalary:   0,
-	BallotID:          0,
-	ResAllocID:        0,
-	speakerID:         0,
-	presidentID:       0,
-	evaluationResults: nil,
+	JudgeID:            0,
+	budget:             0,
+	presidentSalary:    0,
+	BallotID:           0,
+	ResAllocID:         0,
+	speakerID:          0,
+	presidentID:        0,
+	evaluationResults:  nil,
+	localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
 }
 
 // featureSpeaker is an instantiation of the Speaker interface
@@ -58,6 +59,9 @@ var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
 // AllocationAmountMapExport is a local allocation map for checking of rules
 var AllocationAmountMapExport map[shared.ClientID]shared.Resources
+
+// SanctionAmountMapExport
+var SanctionAmountMapExport map[shared.ClientID]shared.Resources
 
 // Pointers allow clients to customise implementations of mutable functions
 var judgePointer roles.Judge = nil

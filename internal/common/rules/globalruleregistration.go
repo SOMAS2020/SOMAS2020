@@ -88,9 +88,10 @@ func registerRulesByMass() {
 			reqVar: []VariableFieldName{
 				IslandReportedResources,
 				ConstSanctionAmount,
+				TurnsLeftOnSanction,
 			},
-			v:       []float64{0, 0, 0},
-			aux:     []float64{4},
+			v:       []float64{0, 0, 1, 0, 0, 0, 0, 0},
+			aux:     []float64{1, 4},
 			mutable: true,
 		},
 		{
@@ -98,9 +99,10 @@ func registerRulesByMass() {
 			reqVar: []VariableFieldName{
 				IslandReportedResources,
 				ConstSanctionAmount,
+				TurnsLeftOnSanction,
 			},
-			v:       []float64{0.1, 1, 0},
-			aux:     []float64{4},
+			v:       []float64{0, 0, 1, 0, 0.1, 1, 0, 0},
+			aux:     []float64{1, 4},
 			mutable: true,
 		},
 		{
@@ -108,9 +110,10 @@ func registerRulesByMass() {
 			reqVar: []VariableFieldName{
 				IslandReportedResources,
 				ConstSanctionAmount,
+				TurnsLeftOnSanction,
 			},
-			v:       []float64{0.3, 1, 0},
-			aux:     []float64{4},
+			v:       []float64{0, 0, 1, 0, 0.3, 1, 0, 0},
+			aux:     []float64{1, 4},
 			mutable: true,
 		},
 		{
@@ -118,9 +121,31 @@ func registerRulesByMass() {
 			reqVar: []VariableFieldName{
 				IslandReportedResources,
 				ConstSanctionAmount,
+				TurnsLeftOnSanction,
 			},
-			v:       []float64{0.5, 1, 0},
-			aux:     []float64{4},
+			v:       []float64{0, 0, 1, 0, 0.5, 1, 0, 0},
+			aux:     []float64{1, 4},
+			mutable: true,
+		},
+		{
+			name: "iigo_economic_sanction_5",
+			reqVar: []VariableFieldName{
+				IslandReportedResources,
+				ConstSanctionAmount,
+				TurnsLeftOnSanction,
+			},
+			v:       []float64{0, 0, 1, 0, 0.8, 1, 0, 0},
+			aux:     []float64{1, 4},
+			mutable: true,
+		},
+		{
+			name: "check_sanction_rule",
+			reqVar: []VariableFieldName{
+				SanctionPaid,
+				SanctionExpected,
+			},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
 			mutable: true,
 		},
 	}

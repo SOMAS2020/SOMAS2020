@@ -34,6 +34,7 @@ type Client interface {
 	TaxTaken(shared.Resources)
 	GetTaxContribution() shared.Resources
 	RequestAllocation() shared.Resources
+	GetSanctionPayment() shared.Resources
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)

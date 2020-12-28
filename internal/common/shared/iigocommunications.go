@@ -1,6 +1,8 @@
 package shared
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+)
 
 type CommunicationContentType = int
 
@@ -32,6 +34,9 @@ const (
 	RuleVoteResult
 	TaxAmount
 	AllocationAmount
+	PardonClientID
+	PardonTier
+	SanctionAmount
 )
 
 type Accountability struct {

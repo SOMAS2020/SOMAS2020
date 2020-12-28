@@ -17,8 +17,8 @@ func (j *BaseJudge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScor
 
 // GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
 // For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
-func (j *BaseJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]int {
-	return map[roles.IIGOSanctionTier]int{}
+func (j *BaseJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{}
 }
 
 // PayPresident pays the President a salary.
@@ -74,6 +74,10 @@ func (j *BaseJudge) DeclareSpeakerPerformance(inspectBallot bool, conductedRole 
 func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
 	// TODO: Implement opinion based President performance declaration.
 	return inspectBallot, conductedRole
+}
+
+func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]roles.Sanction {
+	return map[int][]roles.Sanction{}
 }
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.

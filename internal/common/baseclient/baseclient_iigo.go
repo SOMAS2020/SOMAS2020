@@ -43,6 +43,10 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return nil
 }
 
+func (c *BaseClient) GetSanctionPayment() shared.Resources {
+	return 0
+}
+
 func (c *BaseClient) TaxTaken(shared.Resources) {
 	// Just an update. Ignore
 }

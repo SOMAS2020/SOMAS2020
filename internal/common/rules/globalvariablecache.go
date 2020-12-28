@@ -57,5 +57,8 @@ const (
 	IslandAllocation
 	IslandReportedResources
 	ConstSanctionAmount
+	TurnsLeftOnSanction
+	SanctionPaid
+	SanctionExpected
 	TestVariable
 )

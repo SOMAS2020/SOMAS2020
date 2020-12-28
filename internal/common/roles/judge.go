@@ -13,6 +13,12 @@ type EvaluationReturn struct {
 	Evaluations []bool
 }
 
+type Sanction struct {
+	ClientID     shared.ClientID
+	SanctionTier IIGOSanctionTier
+	TurnsLeft    int
+}
+
 // IIGOSanctionScore provides typed integer score for each island
 type IIGOSanctionScore int
 
@@ -25,6 +31,8 @@ const (
 	SanctionTier2
 	SanctionTier3
 	SanctionTier4
+	SanctionTier5
+	None
 )
 
 type Judge interface {
@@ -33,5 +41,6 @@ type Judge interface {
 	DeclareSpeakerPerformance() (result bool, didRole bool)
 	DeclarePresidentPerformance() (result bool, didRole bool)
 	GetRuleViolationSeverity() map[string]IIGOSanctionScore
-	GetSanctionThresholds() map[IIGOSanctionTier]int
+	GetSanctionThresholds() map[IIGOSanctionTier]IIGOSanctionScore
+	GetPardonedIslands(currentSanctions map[int][]Sanction) map[int][]Sanction
 }
