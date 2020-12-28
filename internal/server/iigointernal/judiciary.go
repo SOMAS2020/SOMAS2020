@@ -9,8 +9,9 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"github.com/pkg/errors"
 )
-
+s
 type judiciary struct {
+	gameState          *gamestate.GameState
 	JudgeID           shared.ClientID
 	budget            shared.Resources
 	presidentSalary   shared.Resources
@@ -35,9 +36,9 @@ func (j *judiciary) returnPresidentSalary() shared.Resources {
 }
 
 // withdrawPresidentSalary withdraws the president's salary from the common pool.
-func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool {
+func (j *judiciary) withdrawPresidentSalary() bool {
 	var presidentSalary = shared.Resources(rules.VariableMap[rules.PresidentSalary].Values[0])
-	var withdrawAmount, withdrawSuccesful = WithdrawFromCommonPool(presidentSalary, gameState)
+	var withdrawAmount, withdrawSuccesful = WithdrawFromCommonPool(presidentSalary, j.gameState)
 	j.presidentSalary = withdrawAmount
 	return withdrawSuccesful
 }
@@ -71,7 +72,10 @@ func (j *judiciary) setSpeakerAndPresidentIDs(speakerId shared.ClientID, preside
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory() (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	j.budget -= serviceCharge
+	if !incurServiceCharge("inspectHistory") { 
+		return nil, false
+	}
+
 	return j.clientJudge.InspectHistory()
 }
 
@@ -80,7 +84,10 @@ func (j *judiciary) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
-	j.budget -= serviceCharge // will be removed post-MVP
+	if !incurServiceCharge("inspectBallot") { 
+		return nil, false
+	}
+
 	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err {
@@ -97,7 +104,10 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
-	j.budget -= serviceCharge // will be removed post-MVP
+	if !incurServiceCharge("inspectAllocation") { 
+		return nil, false
+	}
+
 	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
 	if err {
@@ -133,8 +143,8 @@ func (j *judiciary) declarePresidentPerformanceWrapped() {
 }
 
 // appointNextPresident returns the island ID of the island appointed to be the president in the next turn
+// appointing new roles should be free
 func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.ClientID {
-	j.budget -= serviceCharge
 	var election voting.Election
 	election.ProposeElection(baseclient.President, voting.Plurality)
 	election.OpenBallot(clientIDs)
@@ -188,4 +198,13 @@ func generatePresidentPerformanceMessage(RID int, result bool, PID shared.Client
 		BooleanData: conductedRole,
 	}
 	return returnMap
+}
+
+func (j *judiciary) incurServiceCharge(actionID string) bool {
+	cost := config.GameConfig().IIGOConfig.JudiciaryActionCost[actionID]
+	_, ok := WithdrawFromCommonPool(cost, j.gameState)
+	if ok {
+		j.budget -= cost
+	}
+	return ok
 }

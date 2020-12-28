@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -11,6 +12,7 @@ import (
 )
 
 type legislature struct {
+	gameState     *gamestate.GameState
 	SpeakerID     shared.ClientID
 	budget        shared.Resources
 	judgeSalary   shared.Resources
@@ -28,9 +30,9 @@ func (l *legislature) returnJudgeSalary() shared.Resources {
 }
 
 // withdrawJudgeSalary withdraws the salary for the Judge from the common pool.
-func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) bool {
+func (l *legislature) withdrawJudgeSalary() bool {
 	var judgeSalary = shared.Resources(rules.VariableMap[rules.JudgeSalary].Values[0])
-	withdrawAmount, withdrawSuccesful := WithdrawFromCommonPool(judgeSalary, gameState)
+	withdrawAmount, withdrawSuccesful := WithdrawFromCommonPool(judgeSalary, l.gameState)
 	l.judgeSalary = withdrawAmount
 
 	return withdrawSuccesful
@@ -58,25 +60,33 @@ func (l *legislature) setRuleToVote(r string) {
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (l *legislature) setVotingResult(clientIDs []shared.ClientID) {
+func (l *legislature) setVotingResult(clientIDs []shared.ClientID) bool {
 
 	ruleID, participatingIslands, voteDecided := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
 	if !voteDecided {
-		return
+		return false
 	}
-	l.ballotBox = l.RunVote(ruleID, participatingIslands)
+
+	l.ballotBox, canRunVote = l.RunVote(ruleID, participatingIslands)
+	if !canRunVote {
+		return false
+	}
+
 	l.votingResult = l.ballotBox.CountVotesMajority()
 
+	return true
 }
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.
 //Passing in empty ruleID or empty clientIDs results in no vote occurring
-func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting.BallotBox {
+func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) (voting.BallotBox, bool) {
 
 	if ruleID == "" || len(clientIDs) == 0 {
 		return voting.BallotBox{}
 	}
-	l.budget -= serviceCharge
+	if !incurServiceCharge("runVote") {
+		return nil, false
+	}
 	ruleVote := voting.RuleVote{}
 
 	//TODO: check if rule is valid, otherwise return empty ballot, raise error?
@@ -136,7 +146,9 @@ func (l *legislature) reset() {
 
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
-	l.budget -= serviceCharge
+	if !incurServiceCharge("runVote") {
+		return nil, false
+	}
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
 	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
 	if ruleVotedIn {
@@ -162,10 +174,21 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 }
 
 func (l *legislature) appointNextJudge(clientIDs []shared.ClientID) shared.ClientID {
-	l.budget -= serviceCharge
+	if !incurServiceCharge("appointNextJudge") {
+		return nil, false
+	}
 	var election voting.Election
 	election.ProposeElection(baseclient.Judge, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
 	return election.CloseBallot()
+}
+
+func (l *legislature) incurServiceCharge(actionID string) bool {
+	cost := config.GameConfig().IIGOConfig.JudiciaryActionCost[actionID]
+	_, ok := WithdrawFromCommonPool(cost, l.gameState)
+	if ok {
+		l.budget -= cost
+	}
+	return ok
 }

@@ -2,14 +2,17 @@ package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
+	"github.com/pkg/errors"
 )
 
 type executive struct {
+	gameState        *gamestate.GameState
 	ID               shared.ClientID
 	clientPresident  roles.President
 	budget           shared.Resources
@@ -39,28 +42,35 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
-func (e *executive) getRuleForSpeaker() (string, bool) {
-	e.budget -= serviceCharge
+func (e *executive) getRuleForSpeaker() (string, error) {
+	if !incurServiceCharge("getRuleForSpeaker") { 
+		return nil, "Insufficient Budget"
+	}
+
 	return e.clientPresident.PickRuleToVote(e.RulesProposals)
 }
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
 func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
-	e.budget -= serviceCharge
+	if !incurServiceCharge("getTaxMap") {
+		return nil, false
+	}
+
 	return e.clientPresident.SetTaxationAmount(islandsResources)
 }
 
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
-	e.budget -= serviceCharge
-	taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
-	if taxesCollected {
-		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(island))])}
-			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-			data[shared.TaxAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
+	if incurServiceCharge("broadcastTaxation") {
+		taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
+		if taxesCollected {
+			for _, island := range getIslandAlive() {
+				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(island))])}
+				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+				data[shared.TaxAmount] = d
+				communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
+			}
 		}
 	}
 }
@@ -68,7 +78,9 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
 func (e *executive) getAllocationRequests(commonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
-	e.budget -= serviceCharge
+	if !incurServiceCharge("getAllocationRequests") {
+		return nil, false
+	}
 	return e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
 }
 
@@ -85,7 +97,8 @@ func (e *executive) requestAllocationRequest() {
 // replyAllocationRequest broadcasts the allocation of resources decided by the president
 // to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
-	e.budget -= serviceCharge
+	// If request costs, why does the reply cost? (Need to update return types)
+
 	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
 	if requestsEvaluated {
 		for _, island := range getIslandAlive() {
@@ -98,8 +111,9 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 }
 
 // appointNextSpeaker returns the island id of the island appointed to be speaker in the next turn.
+// appointing new role should be free now
 func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.ClientID {
-	e.budget -= serviceCharge
+	// No cost incurred
 	var election voting.Election
 	election.ProposeElection(baseclient.Speaker, voting.Plurality)
 	election.OpenBallot(clientIDs)
@@ -108,9 +122,9 @@ func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.Clien
 }
 
 // withdrawSpeakerSalary withdraws the salary for speaker from the common pool.
-func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) bool {
+func (e *executive) withdrawSpeakerSalary() bool {
 	var speakerSalary = shared.Resources(rules.VariableMap[rules.SpeakerSalary].Values[0])
-	var withdrawnAmount, withdrawSuccesful = WithdrawFromCommonPool(speakerSalary, gameState)
+	var withdrawnAmount, withdrawSuccesful = WithdrawFromCommonPool(speakerSalary, e.gameState)
 	e.speakerSalary = withdrawnAmount
 	return withdrawSuccesful
 }
@@ -138,7 +152,8 @@ func (e *executive) reset(val string) {
 
 //requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() {
-	e.budget -= serviceCharge
+	if !incurServiceCharge("requestRuleProposal") return
+
 	var rules []string
 	for _, island := range getIslandAlive() {
 		rules = append(rules, iigoClients[shared.ClientID(int(island))].RuleProposal())
@@ -147,6 +162,19 @@ func (e *executive) requestRuleProposal() {
 	e.setRuleProposals(rules)
 }
 
+// Helper functions:
 func getIslandAlive() []float64 {
 	return rules.VariableMap[rules.IslandsAlive].Values
+}
+
+// TODO:- should we call gamestate here?
+// incur charges in both budget and commonpool for performing an actions
+// actionID is typically the function name of the action
+func (e *executive) incurServiceCharge(actionID string) bool {
+	cost := config.GameConfig().IIGOConfig.ExecutiveActionCost[actionID]
+	_, ok := WithdrawFromCommonPool(cost, e.gameState)
+	if ok {
+		e.budget -= cost
+	}
+	return ok
 }

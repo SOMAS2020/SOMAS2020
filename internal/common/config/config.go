@@ -1,5 +1,6 @@
-// Package config contains configurations of the game.
+// Package config contains types for the configuration of the game.
 // DO NOT depend on other packages outside this folder!
+// Add default values etc. in <root>/params.go
 package config
 
 import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -33,6 +34,9 @@ type Config struct {
 
 	// Wrapped disaster config
 	DisasterConfig DisasterConfig
+
+	// Wrapped IIGO config
+	IIGOConfig IIGOConfig
 }
 
 // ForagingConfig captures foraging-specific config
@@ -58,6 +62,13 @@ type DisasterConfig struct {
 	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
 }
 
+// IIGOConfig (document cost of each action)
+type IIGOConfig struct {
+	ExecutiveActionCost   map[string]shared.Resources
+	JudiciaryActionCost   map[string]shared.Resources
+	LegislativeActionCost map[string]shared.Resources
+}
+
 // GameConfig returns the configuration of the game.
 // (Made a function so it cannot be altered mid-game).
 func GameConfig() Config {
@@ -80,6 +91,24 @@ func GameConfig() Config {
 		MagnitudeLambda: 1.0,
 	}
 
+	iigoConf := IIGOConfig{
+		ExecutiveActionCost: map[string]shared.Resources{
+			"getRuleForSpeaker":     10,
+			"getTaxMap":             10,
+			"broadcastTaxation":     10,
+			"getAllocationRequests": 10,
+		},
+		JudiciaryActionCost: map[string]shared.Resources{
+			"inspectHistory":    10,
+			"inspectBallot":     10,
+			"inspectAllocation": 10,
+		},
+		LegislativeActionCost: map[string]shared.Resources{
+			"runVote":          10,
+			"appointNextJudge": 10,
+		},
+	}
+
 	return Config{
 		MaxSeasons:                  100,
 		MaxTurns:                    100,
@@ -89,5 +118,6 @@ func GameConfig() Config {
 		MaxCriticalConsecutiveTurns: 3,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
+		IIGOConfig:                  iigoConf,
 	}
 }

@@ -10,11 +10,23 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO:- Change this into a variable cost map in config (each action should cost differently)
 const serviceCharge = shared.Resources(10)
+
+/*
+Things to do:
+// judge
+2. map to keep track of all action cost in config
+3. subtract action cost from common pools
+
+//
+4.
+*/
 
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
 var judicialBranch = judiciary{
+	gameState:         nil,
 	JudgeID:           0,
 	budget:            0,
 	presidentSalary:   0,
@@ -28,6 +40,7 @@ var judicialBranch = judiciary{
 // featureSpeaker is an instantiation of the Speaker interface
 // with both the baseSpeaker features and a reference to client speakers
 var legislativeBranch = legislature{
+	gameState:    nil,
 	SpeakerID:    0,
 	budget:       0,
 	judgeSalary:  0,
@@ -39,6 +52,7 @@ var legislativeBranch = legislature{
 // featurePresident is an instantiation of the President interface
 // with both the basePresident features and a reference to client presidents
 var executiveBranch = executive{
+	gameState:        nil,
 	ID:               0,
 	budget:           0,
 	speakerSalary:    0,
@@ -73,10 +87,15 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	iigoClients = *clientMap
 
+	// Pass in gamestate -
+	judicialBranch.gameState = g
+	legislativeBranch.gameState = g
+	executiveBranch.gameState = g
+
 	// Initialise IDs
 	judicialBranch.JudgeID = JudgeIDGlobal
 	legislativeBranch.SpeakerID = SpeakerIDGlobal
-	executiveBranch.ID = PresidentIDGlobal
+	executiveBranch.ID = PresidentIDGlobal // TODO:- change ID to president id
 
 	// Set judgePointer
 	judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
@@ -91,9 +110,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	legislativeBranch.clientSpeaker = speakerPointer
 
 	// Withdraw the salaries
-	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary(g)
-	judgeWithdrawSuccess := legislativeBranch.withdrawJudgeSalary(g)
-	speakerWithdrawSuccess := executiveBranch.withdrawSpeakerSalary(g)
+	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary()
+	judgeWithdrawSuccess := legislativeBranch.withdrawJudgeSalary()
+	speakerWithdrawSuccess := executiveBranch.withdrawSpeakerSalary()
 
 	// Handle the lack of resources
 	if !presidentWithdrawSuccess {
@@ -127,7 +146,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.broadcastTaxation(resourceReports)
 	executiveBranch.requestAllocationRequest()
 	executiveBranch.replyAllocationRequest(g.CommonPool)
-	executiveBranch.requestRuleProposal()
+	executiveBranch.requestRuleProposal() // TODO:- need to check for boolean to see if the next action can carry out
 	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
