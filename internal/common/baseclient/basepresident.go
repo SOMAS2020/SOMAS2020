@@ -17,7 +17,7 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 		requestSum += request
 	}
 
-	if requestSum < 0.75*availCommonPool {
+	if requestSum < 0.75*availCommonPool || requestSum == 0 {
 		resourceAllocation = resourceRequest
 	} else {
 		for id, request := range resourceRequest {
