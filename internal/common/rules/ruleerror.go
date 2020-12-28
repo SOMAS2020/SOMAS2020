@@ -53,7 +53,7 @@ func (r RuleErrorType) MarshalJSON() ([]byte, error) {
 // RuleError provides a packaged version of the RuleErrorType for clients to deal with
 
 type RuleError struct {
-	ErrorType RuleErrorType
+	errorType RuleErrorType
 	err       error
 }
 
@@ -62,5 +62,5 @@ func (e *RuleError) Error() string {
 }
 
 func (e *RuleError) Type() RuleErrorType {
-	return e.ErrorType
+	return e.errorType
 }
