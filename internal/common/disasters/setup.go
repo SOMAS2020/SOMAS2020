@@ -6,9 +6,7 @@ import (
 )
 
 // InitEnvironment initialises environment according to definitions
-func InitEnvironment(islandIDs []shared.ClientID) Environment {
-	envConf := config.GameConfig().DisasterConfig
-
+func InitEnvironment(islandIDs []shared.ClientID, envConf config.DisasterConfig) Environment {
 	ag := ArchipelagoGeography{
 		Islands: map[shared.ClientID]IslandLocationInfo{},
 		XMin:    envConf.XMin,

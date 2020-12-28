@@ -1,7 +1,6 @@
 package iigointernal
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 	"reflect"
 	"testing"
 
@@ -55,7 +54,9 @@ func TestWithdrawFromCommonPoolDeductsValue(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			_, withdrawSuccessful := WithdrawFromCommonPool(tc.valueToWithdraw, &tc.fakeGameState)
 			got := tc.fakeGameState.CommonPool
-			testutils.CompareTestIntegers(int(tc.expectedRemainder), int(got), t)
+			if tc.expectedRemainder != got {
+				t.Errorf("remainder: want '%v' got '%v'", tc.expectedRemainder, got)
+			}
 			if tc.expectedResult != withdrawSuccessful {
 				t.Errorf("Expected withdrawalResult to be '%v' got '%v'", tc.expectedResult, withdrawSuccessful)
 			}

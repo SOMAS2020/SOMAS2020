@@ -3,6 +3,7 @@ package rules
 import (
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -18,40 +19,45 @@ func TestRegisterNewRule(t *testing.T) {
 func TestPullRuleIntoPlay(t *testing.T) {
 	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
-	_, _ = pullRuleIntoPlayInternal("Kinda Test Rule 2", AvailableRulesTesting, RulesInPlayTesting)
+	_ = pullRuleIntoPlayInternal("Kinda Test Rule 2", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
-		name    string
-		rule    string
-		success bool
-		message RuleError
+		name          string
+		rule          string
+		errorExpected bool
+		errorType     RuleErrorType
 	}{
 		{
-			name:    "normal working",
-			rule:    "Kinda Test Rule",
-			success: true,
-			message: None,
+			name:          "normal working",
+			rule:          "Kinda Test Rule",
+			errorExpected: false,
 		},
 		{
-			name:    "unidentified rule name",
-			rule:    "Unknown Rule",
-			success: false,
-			message: RuleNotInAvailableRulesCache,
+			name:          "unidentified rule name",
+			rule:          "Unknown Rule",
+			errorExpected: true,
+			errorType:     RuleNotInAvailableRulesCache,
 		},
 		{
-			name:    "Rule already in play",
-			rule:    "Kinda Test Rule 2",
-			success: false,
-			message: RuleIsAlreadyInPlay,
+			name:          "Rule already in play",
+			rule:          "Kinda Test Rule 2",
+			errorExpected: true,
+			errorType:     RuleIsAlreadyInPlay,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			success, errorMessage := pullRuleIntoPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
-			if success != tc.success {
-				t.Errorf("Pulling rule into play test error, expected '%v' got '%v'", success, errorMessage)
-			}
-			if errorMessage != tc.message {
-				t.Errorf("Pulling rule into play test error, expected message '%v' got '%v'", tc.message, errorMessage)
+			err := pullRuleIntoPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
+
+			if tc.errorExpected {
+				if ruleErr, ok := err.(*RuleError); ok {
+					if ruleErr.errorType != tc.errorType {
+						t.Errorf("Expected error type '%v' got error type '%v'", tc.errorType.String(), ruleErr.errorType.String())
+					}
+				} else {
+					t.Errorf("Unrecognised Error format recieved, with message: '%v'", ruleErr.Error())
+				}
+			} else {
+				testutils.CompareTestErrors(nil, err, t)
 			}
 		})
 	}
@@ -60,34 +66,39 @@ func TestPullRuleIntoPlay(t *testing.T) {
 func TestPullRuleOutOfPlay(t *testing.T) {
 	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
-	_, _ = pullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
+	_ = pullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
-		name    string
-		rule    string
-		success bool
-		message RuleError
+		name          string
+		rule          string
+		errorExpected bool
+		errorType     RuleErrorType
 	}{
 		{
-			name:    "normal working",
-			rule:    "Kinda Test Rule",
-			success: true,
-			message: None,
+			name:          "normal working",
+			rule:          "Kinda Test Rule",
+			errorExpected: false,
 		},
 		{
-			name:    "Rule already in play",
-			rule:    "Kinda Test Rule 2",
-			success: false,
-			message: RuleIsNotInPlay,
+			name:          "Rule already in play",
+			rule:          "Kinda Test Rule 2",
+			errorExpected: true,
+			errorType:     RuleIsNotInPlay,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			success, errorMessage := pullRuleOutOfPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
-			if success != tc.success {
-				t.Errorf("Pulling Rule out of play status wanted '%v' got '%v'", tc.success, success)
-			}
-			if errorMessage != tc.message {
-				t.Errorf("Pulling Rule out of play error wanted: '%v' got '%v'", tc.message, errorMessage)
+			err := pullRuleOutOfPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
+
+			if tc.errorExpected {
+				if ruleErr, ok := err.(*RuleError); ok {
+					if ruleErr.errorType != tc.errorType {
+						t.Errorf("Expected error type '%v' got error type '%v'", tc.errorType.String(), ruleErr.errorType.String())
+					}
+				} else {
+					t.Errorf("Unrecognised Error format received, with message: '%v'", ruleErr.Error())
+				}
+			} else {
+				testutils.CompareTestErrors(nil, err, t)
 			}
 		})
 	}
@@ -104,66 +115,70 @@ func TestModifyRule(t *testing.T) {
 		rule           string
 		modifiedMatrix mat.Dense
 		modifiedAux    mat.VecDense
-		expResult      bool
-		expMessage     RuleError
+		errorExpected  bool
+		errType        RuleErrorType
 	}{
 		{
 			name:           "Normal Rule Modification",
 			rule:           "Kinda Test Rule 2",
 			modifiedMatrix: *mat.NewDense(4, 5, BasicVect),
 			modifiedAux:    *mat.NewVecDense(4, BasicAux),
-			expResult:      true,
-			expMessage:     None,
+			errorExpected:  false,
 		},
 		{
 			name:           "Advanced Rule Modification",
 			rule:           "Kinda Test Rule 2",
 			modifiedMatrix: *mat.NewDense(5, 5, append(BasicVect, []float64{1, 1, 1, 1, 0}...)),
 			modifiedAux:    *mat.NewVecDense(5, append(BasicAux, 1)),
-			expResult:      true,
-			expMessage:     None,
+			errorExpected:  false,
 		},
 		{
 			name:           "Testing Rule not found error",
 			rule:           "Fake Rule name",
 			modifiedMatrix: *mat.NewDense(4, 5, BasicVect),
 			modifiedAux:    *mat.NewVecDense(4, BasicAux),
-			expResult:      false,
-			expMessage:     RuleNotInAvailableRulesCache,
+			errorExpected:  true,
+			errType:        RuleNotInAvailableRulesCache,
 		},
 		{
 			name:           "Testing Matrix dimension mismatch",
 			rule:           "Kinda Test Rule 2",
 			modifiedMatrix: *mat.NewDense(5, 4, BasicVect),
 			modifiedAux:    *mat.NewVecDense(4, BasicAux),
-			expResult:      false,
-			expMessage:     ModifiedRuleMatrixDimensionMismatch,
+			errorExpected:  true,
+			errType:        ModifiedRuleMatrixDimensionMismatch,
 		},
 		{
 			name:           "Testing Auxiliary vector dimension mismatch",
 			rule:           "Kinda Test Rule 2",
 			modifiedMatrix: *mat.NewDense(4, 5, BasicVect),
 			modifiedAux:    *mat.NewVecDense(5, append(BasicAux, 1)),
-			expResult:      false,
-			expMessage:     AuxVectorDimensionDontMatchRuleMatrix,
+			errorExpected:  true,
+			errType:        AuxVectorDimensionDontMatchRuleMatrix,
 		},
 		{
 			name:           "Testing Immutable Rules stay immutable",
 			rule:           "Kinda Test Rule",
 			modifiedMatrix: *mat.NewDense(4, 5, BasicVect),
 			modifiedAux:    *mat.NewVecDense(4, BasicAux),
-			expResult:      false,
-			expMessage:     RuleRequestedForModificationWasImmutable,
+			errorExpected:  true,
+			errType:        RuleRequestedForModificationWasImmutable,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, message := modifyRuleInternal(tc.rule, tc.modifiedMatrix, tc.modifiedAux, AvailableRulesTesting, RulesInPlayTesting)
-			if result != tc.expResult {
-				t.Errorf("Rule modification result expected '%v' got '%v'", tc.expResult, result)
-			}
-			if message != tc.expMessage {
-				t.Errorf("Rule modification message expected '%v' got '%v'", tc.expMessage, message)
+			err := modifyRuleInternal(tc.rule, tc.modifiedMatrix, tc.modifiedAux, AvailableRulesTesting, RulesInPlayTesting)
+
+			if tc.errorExpected {
+				if ruleErr, ok := err.(*RuleError); ok {
+					if ruleErr.errorType != tc.errType {
+						t.Errorf("Expected error type '%v' got error type '%v'", tc.errType.String(), ruleErr.errorType.String())
+					}
+				} else {
+					t.Errorf("Unrecognised Error format received, with message: '%v'", ruleErr.Error())
+				}
+			} else {
+				testutils.CompareTestErrors(nil, err, t)
 			}
 		})
 	}
@@ -189,16 +204,16 @@ func registerTestRule(rulesStore map[string]RuleMatrix) {
 	aux := []float64{2, 3, 3, 2}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, success, _ := registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, false)
+	_, err := registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, false)
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 	//A very contrived rule//
-	if !success {
+	if err != nil {
 		panic("Couldn't register Rule during test")
 	}
 	name = "Kinda Test Rule 2"
 
-	_, success, _ = registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, true)
-	if !success {
+	_, err = registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, true)
+	if err != nil {
 		panic("Couldn't register Rule during test")
 	}
 }
