@@ -30,21 +30,31 @@ func init() {
 	)
 }
 
+type clientConfig struct {
+	randomForageTurns    uint
+	desperationThreshold shared.Resources
+	evadeTaxes           bool
+}
+
 type client struct {
 	*baseclient.BaseClient
 
-	randomForageTurns    uint
-	desperationThreshold shared.Resources
-
 	forageHistory ForageHistory
+	taxAmount     shared.Resources
+
+	config clientConfig
 }
 
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
-		BaseClient:        baseclient.NewClient(clientID),
-		forageHistory:     ForageHistory{},
-		randomForageTurns: 5,
-		desperationThreshold: 20,
+		BaseClient:    baseclient.NewClient(clientID),
+		forageHistory: ForageHistory{},
+		taxAmount:     0,
+		config: clientConfig{
+			randomForageTurns:    5,
+			desperationThreshold: 20,
+			evadeTaxes:           false,
+		},
 	}
 }
 
@@ -60,13 +70,42 @@ func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
 }
 
+/********************/
+/***  Messages      */
+/********************/
+
+func (c *client) ReceiveCommunication(
+	sender shared.ClientID,
+	data map[shared.CommunicationFieldName]shared.CommunicationContent,
+) {
+	for field, content := range data {
+		switch field {
+		case shared.TaxAmount:
+			// if !__isPresident__(sender) {
+			// }
+			c.taxAmount = shared.Resources(content.IntegerData)
+		}
+	}
+}
+
+func (c *client) GetTaxContribution() shared.Resources {
+	if !c.config.evadeTaxes {
+		return 0
+	}
+	return c.taxAmount
+}
+
+/********************/
+/***    Foraging    */
+/********************/
+
 func (c *client) RandomForage() shared.ForageDecision {
 	// Up to 10% of our current resources
 	forageContribution := shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources
 	c.Logf("[Forage][Decision]:Random")
 	// TODO Add fish foraging when it's done
 	return shared.ForageDecision{
-		Type: shared.DeerForageType,
+		Type:         shared.DeerForageType,
 		Contribution: forageContribution,
 	}
 }
@@ -99,7 +138,7 @@ func (c *client) NormalForage() shared.ForageDecision {
 	// Not foraging is best
 	if bestForageType == shared.ForageType(-1) {
 		return shared.ForageDecision{
-			Type: shared.FishForageType,
+			Type:         shared.FishForageType,
 			Contribution: 0,
 		}
 	}
@@ -148,9 +187,9 @@ func (c *client) DesperateForage() shared.ForageDecision {
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	if c.forageHistorySize() < c.randomForageTurns {
+	if c.forageHistorySize() < c.config.randomForageTurns {
 		return c.RandomForage(), nil
-	} else if c.gameState().ClientInfo.Resources <= c.desperationThreshold {
+	} else if c.gameState().ClientInfo.Resources <= c.config.desperationThreshold {
 		return c.DesperateForage(), nil
 	} else {
 		return c.NormalForage(), nil
