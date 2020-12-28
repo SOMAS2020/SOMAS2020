@@ -106,17 +106,22 @@ func (e *Election) bordaCountResult() shared.ClientID {
 
 		for i := 0; i < candidatesNumber; i++ {
 
-			maxlim := 100
+			sum := 0
+			for i := 0; i < candidatesNumber; i++ {
+				sum = sum + v[i]
+			}
+
+			searcher := sum
 
 			for j = 0; j < candidatesNumber; j++ {
-				if maxlim > order[j] {
-					maxlim = order[j]
+				if searcher > order[j] {
+					searcher = order[j]
 					index[i] = j
 				}
 			}
 
 			j = index[i]
-			order[j] = maxlim + 1
+			order[j] = sum
 		}
 
 		itrans := 0
