@@ -31,17 +31,38 @@ func (report DisasterReport) Display() string {
 }
 
 // DisplayReport is a string format method to viz a disaster report and its effect
-func (env Environment) DisplayReport() string {
+// DisplayReport also visualize how the disaster has been mitigated by the common pool
+func (env Environment) DisplayReport() (string, map[shared.ClientID]float64) {
 	disasterReport := env.LastDisasterReport.Display()
 	if env.LastDisasterReport.Magnitude == 0 {
-		return disasterReport // just return default no disaster message. Not necessary to report affected islands.
+		return disasterReport, nil // just return default no disaster message. Not necessary to report affected islands.
 	}
 	var sb strings.Builder
-	sb.WriteString(disasterReport + "\n")
-	sb.WriteString("------------------------ Disaster Effects ------------------------\n")
-	for islandID, effect := range env.DisasterEffects() {
+	sb.WriteString(disasterReport)
+	sb.WriteString("\n------------------------ Disaster Effects ------------------------\n")
+
+	proportionalEffect := map[shared.ClientID]float64{}
+	individualEffect := map[shared.ClientID]float64{}
+	individualEffect, proportionalEffect = env.DisasterEffects()
+
+	for islandID, effect := range individualEffect {
+	
 		island := env.Geography.Islands[islandID]
-		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f \n", islandID, island.X, island.Y, effect))
+		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f \tActual damage: %.2f \n", islandID, island.X, island.Y, effect, individualEffect[islandID]*1000))
 	}
-	return sb.String()
+
+	updatedProportionalEffect := map[shared.ClientID]float64{}
+	updatedProportionalEffect = env.DisasterMitigate(individualEffect, proportionalEffect)
+	damageDifference := map[shared.ClientID]float64{}
+	for islandID, _ := range updatedProportionalEffect {
+		damageDifference[islandID] = individualEffect[islandID] * 1000 - updatedProportionalEffect[islandID]
+	}
+
+	sb.WriteString("\n------------------------ Updated Disaster Effects ------------------------\n")
+	for islandID, effect := range individualEffect {
+		island := env.Geography.Islands[islandID]
+		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f, ", islandID, island.X, island.Y, effect, ))
+		sb.WriteString(fmt.Sprintf("\tUpdated damage: %.2f, \t Common pool mitigated: %.2f \n", updatedProportionalEffect[islandID], damageDifference[islandID]))	
+	}
+	return sb.String(), updatedProportionalEffect
 }

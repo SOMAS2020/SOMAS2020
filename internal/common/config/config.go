@@ -33,6 +33,9 @@ type Config struct {
 
 	// Wrapped disaster config
 	DisasterConfig DisasterConfig
+
+	// Wrapped commonpool config
+	CommonPoolConfig CommonPoolConfig
 }
 
 // DeerHuntConfig is a subset of foraging config
@@ -63,6 +66,10 @@ type DisasterConfig struct {
 	GlobalProb             float64               // Bernoulli 'p' param. Chance of a disaster occurring
 	SpatialPDFType         shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
 	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
+}
+
+type CommonPoolConfig struct {
+	Resource, Threshold		uint 			
 }
 
 // ForagingConfig captures foraging-specific config
@@ -104,6 +111,10 @@ func GameConfig() Config {
 		SpatialPDFType:  shared.Uniform,
 		MagnitudeLambda: 1.0,
 	}
+	commonPoolConf := CommonPoolConfig{
+		Resource:		900,		//arbitrarily chosen for initial value
+		Threshold:		1000,		//arbitrarily chosen for initial value
+	}
 
 	return Config{
 		MaxSeasons:                  100,
@@ -114,5 +125,6 @@ func GameConfig() Config {
 		MaxCriticalConsecutiveTurns: 3,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
+		CommonPoolConfig:			 commonPoolConf,
 	}
 }
