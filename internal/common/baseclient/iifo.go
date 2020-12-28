@@ -66,7 +66,7 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 		PredictionMade: prediction,
 		TeamsOfferedTo: trustedIslands,
 	}
-	ourPredictionInfo = predictionInfo
+	c.predictionInfo = predictionInfo
 	return predictionInfo, nil
 }
 
@@ -123,13 +123,13 @@ func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInf
 	// If we assume that we trust each island equally (including ourselves), then take the final prediction
 	// of disaster as being the weighted mean of predictions according to confidence
 	numberOfPredictions := float64(len(receivedPredictions) + 1)
-	selfConfidence := ourPredictionInfo.PredictionMade.Confidence
+	selfConfidence := c.predictionInfo.PredictionMade.Confidence
 
 	// Initialise running totals using our own island's predictions
-	totalCoordinateX := selfConfidence * ourPredictionInfo.PredictionMade.CoordinateX
-	totalCoordinateY := selfConfidence * ourPredictionInfo.PredictionMade.CoordinateY
-	totalMagnitude := selfConfidence * ourPredictionInfo.PredictionMade.Magnitude
-	totalTimeLeft := int(math.Round(selfConfidence)) * ourPredictionInfo.PredictionMade.TimeLeft
+	totalCoordinateX := selfConfidence * c.predictionInfo.PredictionMade.CoordinateX
+	totalCoordinateY := selfConfidence * c.predictionInfo.PredictionMade.CoordinateY
+	totalMagnitude := selfConfidence * c.predictionInfo.PredictionMade.Magnitude
+	totalTimeLeft := int(math.Round(selfConfidence)) * c.predictionInfo.PredictionMade.TimeLeft
 	totalConfidence := selfConfidence
 
 	// Add other island's predictions using their confidence values
