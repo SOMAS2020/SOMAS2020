@@ -21,7 +21,7 @@ var judicialBranch = judiciary{
 	ResAllocID:        0,
 	speakerID:         0,
 	presidentID:       0,
-	EvaluationResults: nil,
+	evaluationResults: nil,
 }
 
 // featureSpeaker is an instantiation of the Speaker interface

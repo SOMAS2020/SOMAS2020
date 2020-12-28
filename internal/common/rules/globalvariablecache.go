@@ -55,5 +55,7 @@ const (
 	ExpectedAllocation
 	IslandTaxContribution
 	IslandAllocation
+	IslandReportedResources
+	ConstSanctionAmount
 	TestVariable
 )

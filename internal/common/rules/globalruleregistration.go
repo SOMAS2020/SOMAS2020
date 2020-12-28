@@ -83,6 +83,46 @@ func registerRulesByMass() {
 			aux:     []float64{0},
 			mutable: false,
 		},
+		{
+			name: "iigo_economic_sanction_1",
+			reqVar: []VariableFieldName{
+				IslandReportedResources,
+				ConstSanctionAmount,
+			},
+			v:       []float64{0, 0, 0},
+			aux:     []float64{4},
+			mutable: true,
+		},
+		{
+			name: "iigo_economic_sanction_2",
+			reqVar: []VariableFieldName{
+				IslandReportedResources,
+				ConstSanctionAmount,
+			},
+			v:       []float64{0.1, 1, 0},
+			aux:     []float64{4},
+			mutable: true,
+		},
+		{
+			name: "iigo_economic_sanction_3",
+			reqVar: []VariableFieldName{
+				IslandReportedResources,
+				ConstSanctionAmount,
+			},
+			v:       []float64{0.3, 1, 0},
+			aux:     []float64{4},
+			mutable: true,
+		},
+		{
+			name: "iigo_economic_sanction_4",
+			reqVar: []VariableFieldName{
+				IslandReportedResources,
+				ConstSanctionAmount,
+			},
+			v:       []float64{0.5, 1, 0},
+			aux:     []float64{4},
+			mutable: true,
+		},
 	}
 
 	for _, rs := range ruleSpecs {

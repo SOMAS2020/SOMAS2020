@@ -11,20 +11,29 @@ import (
 )
 
 type judiciary struct {
-	JudgeID           shared.ClientID
-	budget            shared.Resources
-	presidentSalary   shared.Resources
-	BallotID          int
-	ResAllocID        int
-	speakerID         shared.ClientID
-	presidentID       shared.ClientID
-	EvaluationResults map[shared.ClientID]roles.EvaluationReturn
-	clientJudge       roles.Judge
+	JudgeID               shared.ClientID
+	budget                shared.Resources
+	presidentSalary       shared.Resources
+	BallotID              int
+	ResAllocID            int
+	speakerID             shared.ClientID
+	presidentID           shared.ClientID
+	evaluationResults     map[shared.ClientID]roles.EvaluationReturn
+	clientJudge           roles.Judge
+	sanctionRecord        map[shared.ClientID]roles.IIGOSanctionScore
+	sanctionThresholds    map[roles.IIGOSanctionTier]int
+	ruleViolationSeverity map[string]roles.IIGOSanctionScore
 }
 
 func (j *judiciary) init() {
 	j.BallotID = 0
 	j.ResAllocID = 0
+}
+
+// Loads ruleViolationSeverity and sanction thresholds
+func (j *judiciary) loadSanctionConfig() {
+	j.sanctionThresholds = softMergeSanctionThresholds(j.clientJudge.GetSanctionThresholds())
+	j.ruleViolationSeverity = j.clientJudge.GetRuleViolationSeverity()
 }
 
 // returnPresidentSalary returns the salary to the common pool.
@@ -81,7 +90,7 @@ func (j *judiciary) inspectBallot() (bool, error) {
 	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
 	j.budget -= serviceCharge // will be removed post-MVP
-	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
+	rulesAffectedBySpeaker := j.evaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err {
 		return rulesAffectedBySpeaker.Evaluations[indexOfBallotRule], nil
@@ -98,7 +107,7 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
 	j.budget -= serviceCharge // will be removed post-MVP
-	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
+	rulesAffectedByPresident := j.evaluationResults[j.presidentID]
 	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
 	if err {
 		return true, errors.Errorf("President didn't conduct any allocations")
@@ -141,6 +150,38 @@ func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.Cli
 	election.Vote(iigoClients)
 	return election.CloseBallot()
 }
+
+// updateSanctionScore uses results of InspectHistory to assign sanction scores to clients
+// This function relies upon (in part) the client provided RuleViolationSeverity
+func (j *judiciary) updateSanctionScore() {
+	islandTransgressions := map[shared.ClientID][]string{}
+	for k, v := range j.evaluationResults {
+		islandTransgressions[k] = unpackSingleIslandTransgressions(v)
+	}
+	j.scoreIslandTransgressions(islandTransgressions)
+}
+
+// scoreIslandTransgressions uses the client provided ruleViolationSeverity map to score island transgressions
+func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID][]string) {
+	for islandId, rulesBroken := range transgressions {
+		totalIslandTurnScore := roles.IIGOSanctionScore(0)
+		for _, ruleBroken := range rulesBroken {
+			if score, ok := j.ruleViolationSeverity[ruleBroken]; ok {
+				totalIslandTurnScore += score
+			} else {
+				totalIslandTurnScore += roles.IIGOSanctionScore(1)
+			}
+		}
+		j.sanctionRecord[islandId] += totalIslandTurnScore
+	}
+}
+
+// applySanctions uses RulesInPlay and it's versions of the sanction rules to work out how much to sanction an island
+func (j *judiciary) applySanctions() {
+
+}
+
+// Helper functions for Judiciary branch
 
 // generateSpeakerPerformanceMessage generates the appropriate communication required regarding
 // speaker performance to be sent to clients
@@ -188,4 +229,33 @@ func generatePresidentPerformanceMessage(RID int, result bool, PID shared.Client
 		BooleanData: conductedRole,
 	}
 	return returnMap
+}
+
+func getDefaultSanctionThresholds() map[roles.IIGOSanctionTier]int {
+	return map[roles.IIGOSanctionTier]int{
+		roles.SanctionTier1: 0,
+		roles.SanctionTier2: 1,
+		roles.SanctionTier3: 10,
+		roles.SanctionTier4: 20,
+	}
+}
+
+func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]int) map[roles.IIGOSanctionTier]int {
+	defaultMap := getDefaultSanctionThresholds()
+	for k, _ := range defaultMap {
+		if clientVal, ok := clientSanctionMap[k]; ok {
+			defaultMap[k] = clientVal
+		}
+	}
+	return defaultMap
+}
+
+func unpackSingleIslandTransgressions(evaluationReturn roles.EvaluationReturn) []string {
+	var transgressions []string
+	for i, v := range evaluationReturn.Rules {
+		if !evaluationReturn.Evaluations[i] {
+			transgressions = append(transgressions, v.RuleName)
+		}
+	}
+	return transgressions
 }
