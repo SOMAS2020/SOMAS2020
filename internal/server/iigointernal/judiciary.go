@@ -109,8 +109,8 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	//    matrix
 	j.budget -= serviceCharge // will be removed post-MVP
 	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
-	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
-	if err {
+	indexOfAllocRule, ok := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
+	if !ok {
 		return true, errors.Errorf("President didn't conduct any allocations")
 	}
 	return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
@@ -123,7 +123,7 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 			return i, true
 		}
 	}
-	return 0, false
+	return -1, false
 }
 
 // declareSpeakerPerformanceWrapped wraps the result of DeclareSpeakerPerformance for orchestration
