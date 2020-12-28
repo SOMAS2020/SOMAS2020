@@ -1,6 +1,7 @@
 package iigointernal
 
 import (
+	"fmt"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -16,6 +17,14 @@ type executive struct {
 	speakerSalary    shared.Resources
 	RulesProposals   []string
 	ResourceRequests map[shared.ClientID]shared.Resources
+}
+
+// loadClientJudge checks client pointer is good and if not panics
+func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
+	if clientPresidentPointer == nil {
+		panic(fmt.Sprintf("Client '%v' has loaded a nil president pointer", e.ID))
+	}
+	e.clientPresident = clientPresidentPointer
 }
 
 // returnSpeakerSalary returns the salary to the common pool.

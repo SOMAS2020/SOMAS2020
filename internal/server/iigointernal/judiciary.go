@@ -1,6 +1,7 @@
 package iigointernal
 
 import (
+	"fmt"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -20,6 +21,14 @@ type judiciary struct {
 	presidentID       shared.ClientID
 	EvaluationResults map[shared.ClientID]roles.EvaluationReturn
 	clientJudge       roles.Judge
+}
+
+// loadClientJudge checks client pointer is good and if not panics
+func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
+	if clientJudgePointer == nil {
+		panic(fmt.Sprintf("Client '%v' has loaded a nil judge pointer", j.JudgeID))
+	}
+	j.clientJudge = clientJudgePointer
 }
 
 func (j *judiciary) init() {
