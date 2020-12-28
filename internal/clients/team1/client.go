@@ -36,6 +36,7 @@ type clientConfig struct {
 	evadeTaxes           bool
 }
 
+// client is Lucy.
 type client struct {
 	*baseclient.BaseClient
 
