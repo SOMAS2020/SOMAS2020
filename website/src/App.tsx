@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import { HashRouter } from "react-router-dom";
 import AppLayout from './containers/AppLayout/AppLayout';
+import { go } from './wasm';
 
 function App() {
 
@@ -12,11 +13,9 @@ function App() {
     try {
       const { instance, module } = await WebAssembly.instantiateStreaming(
         fetch(`${process.env.PUBLIC_URL}/main.wasm`), 
-        // @ts-ignore
-        window.go.importObject
+        go.importObject
       )
-      // @ts-ignore
-      await window.go.run(instance)
+      await go.run(instance)
   
       // @ts-ignore
       window.sayHelloJS("hello")

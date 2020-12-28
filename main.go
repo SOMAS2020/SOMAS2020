@@ -1,3 +1,5 @@
+// +build !js
+
 // Package main is the main entrypoint of the program.
 package main
 
@@ -10,20 +12,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/SOMAS2020/SOMAS2020/pkg/fileutils"
 	"github.com/SOMAS2020/SOMAS2020/pkg/gitinfo"
 	"github.com/SOMAS2020/SOMAS2020/pkg/logger"
 )
-
-// output represents what is output into the output.json file
-type output struct {
-	GameStates []gamestate.GameState
-	Config     config.Config
-	GitInfo    gitinfo.GitInfo
-}
 
 const outputJSONFileName = "output.json"
 const outputLogFileName = "log.txt"
@@ -83,7 +76,7 @@ func outputJSON(o output) {
 	log.Printf("Writing JSON output to '%v'\n", outputJSONFilePath)
 	jsonBuf, err := json.MarshalIndent(o, "", "\t")
 	if err != nil {
-		log.Printf("Failed to Marshal gameStates: %v", err)
+		log.Printf("Failed to Marshal output: %v", err)
 		os.Exit(1)
 	}
 	err = ioutil.WriteFile(outputJSONFilePath, jsonBuf, 0777)
