@@ -32,6 +32,14 @@ func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []ru
 func (s *SOMASServer) runIIGOEndOfTurn() error {
 	s.logf("start runIIGOEndOfTurn")
 	defer s.logf("finish runIIGOEndOfTurn")
+
+	s.runIIGOAllocations()
+	s.runIIGOTax()
+
+	return nil
+}
+
+func (s *SOMASServer) runIIGOTax() {
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		tax := v.GetTaxContribution()
@@ -54,10 +62,9 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 		})
 
 	}
-	return nil
 }
 
-func (s *SOMASServer) runIIGOAllocations() error {
+func (s *SOMASServer) runIIGOAllocations() {
 	s.logf("start runIIGOAllocations")
 	defer s.logf("finish runIIGOAllocations")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
@@ -81,7 +88,6 @@ func (s *SOMASServer) runIIGOAllocations() error {
 
 		}
 	}
-	return nil
 }
 
 func updateAliveIslands(aliveIslands []shared.ClientID) {
