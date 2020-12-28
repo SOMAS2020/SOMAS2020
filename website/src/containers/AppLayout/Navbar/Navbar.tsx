@@ -36,7 +36,7 @@ const AppNavbar = () => {
             </Link>
 
             <a rel="noopener noreferrer" target="_blank" href={outputJSONData.GitInfo.GithubURL} className="lightbluelink">
-                {outputJSONData.GitInfo.ShortHash}
+                {outputJSONData.GitInfo.Hash.substr(0, 7)}
             </a>
 
 

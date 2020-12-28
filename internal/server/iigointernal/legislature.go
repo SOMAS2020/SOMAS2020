@@ -7,7 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
-	"github.com/pkg/errors"
 )
 
 type legislature struct {
@@ -137,22 +136,20 @@ func (l *legislature) reset() {
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 	l.budget -= serviceCharge
-	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
-	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
 	if ruleVotedIn {
 		// _ = rules.PullRuleIntoPlay(ruleName)
 		err := rules.PullRuleIntoPlay(ruleName)
-		if err != nil {
-			if err.Error() == notInRulesCache.Error() {
-				return err
+		if ruleErr, ok := err.(*rules.RuleError); ok {
+			if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
+				return ruleErr
 			}
 		}
 	} else {
 		// _ = rules.PullRuleOutOfPlay(ruleName)
 		err := rules.PullRuleOutOfPlay(ruleName)
-		if err != nil {
-			if err.Error() == notInRulesCache.Error() {
-				return err
+		if ruleErr, ok := err.(*rules.RuleError); ok {
+			if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
+				return ruleErr
 			}
 		}
 

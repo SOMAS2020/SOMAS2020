@@ -16,15 +16,6 @@ const (
 	FishForageType
 )
 
-// ForageDecision is used to represent a foraging decision made by agents
-type ForageDecision struct {
-	Type         ForageType
-	Contribution Resources
-}
-
-// ForagingDecisionsDict is a map of clients' foraging decisions
-type ForagingDecisionsDict = map[ClientID]ForageDecision
-
 func (ft ForageType) String() string {
 	strings := [...]string{"DeerForageType", "FishForageType"}
 	if ft >= 0 && int(ft) < len(strings) {
@@ -47,6 +38,15 @@ func (ft ForageType) MarshalText() ([]byte, error) {
 func (ft ForageType) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(ft.String())
 }
+
+// ForageDecision is used to represent a foraging decision made by agents
+type ForageDecision struct {
+	Type         ForageType
+	Contribution Resources
+}
+
+// ForagingDecisionsDict is a map of clients' foraging decisions
+type ForagingDecisionsDict = map[ClientID]ForageDecision
 
 // ForageShareInfo is used to represent the forage informations shared by agents
 type ForageShareInfo struct {

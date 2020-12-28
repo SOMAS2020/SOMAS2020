@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
@@ -10,11 +9,24 @@ import (
 // runIIGO : IIGO decides rule changes, elections, sanctions
 func (s *SOMASServer) runIIGO() error {
 	s.logf("start runIIGO")
+	defer s.logf("finish runIIGO")
+
 	nonDead := getNonDeadClientIDs(s.gameState.ClientInfos)
 	updateAliveIslands(nonDead)
-	_ = iigointernal.RunIIGO(&s.gameState, &s.clientMap)
-	defer s.logf("finish runIIGO")
+	iigoSuccessful, iigoStatus := iigointernal.RunIIGO(&s.gameState, &s.clientMap)
+	if !iigoSuccessful {
+		s.logf(iigoStatus)
+	}
 	return nil
+}
+
+func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) {
+	s.gameState.IIGOHistory = append(s.gameState.IIGOHistory,
+		shared.Accountability{
+			ClientID: clientID,
+			Pairs:    pairs,
+		},
+	)
 }
 
 func (s *SOMASServer) runIIGOEndOfTurn() error {
@@ -30,7 +42,7 @@ func (s *SOMASServer) runIIGOEndOfTurn() error {
 		} else {
 			s.logf("Error getting tax from %v: %v", clientID, err)
 		}
-    gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,
 				Values:       []float64{float64(tax)},
@@ -51,11 +63,12 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
-		
+
 		if allocation <= s.gameState.CommonPool {
-      s.giveResources(clientID, allocation, "allocation")
+			s.giveResources(clientID, allocation, "allocation")
 			s.gameState.CommonPool -= allocation
-			gamestate.UpdateTurnHistory(clientID, []rules.VariableValuePair{
+
+			s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 				{
 					VariableName: rules.IslandAllocation,
 					Values:       []float64{float64(allocation)},
@@ -65,6 +78,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 					Values:       []float64{float64(iigointernal.AllocationAmountMapExport[clientID])},
 				},
 			})
+
 		}
 	}
 	return nil
