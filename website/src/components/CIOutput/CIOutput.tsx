@@ -1,16 +1,16 @@
 import React from 'react'
 import { CodeBlock } from 'react-code-blocks'
 
-import styles from './RawOutput.module.css'
+import styles from './CIOutput.module.css'
 
 import outputJSON from '../../output/output.json'
 import outputLog from '../../output/log.txt.json'
 
 const processedOutputLog = outputLog.join(`\n`)
 
-const RawOutput = () => {
+const CIOutput = () => {
     return <div className={styles.root}>
-        <h1>Raw Output</h1>
+        <h1>CI Output</h1>
 
         <div style={{ textAlign: `left`, padding: `0 3vw` }}>
             <div style={{ marginBottom: 100 }}>
@@ -25,4 +25,4 @@ const RawOutput = () => {
     </div>
 }
 
-export default RawOutput
+export default CIOutput

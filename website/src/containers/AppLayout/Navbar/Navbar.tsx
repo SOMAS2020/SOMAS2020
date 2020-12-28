@@ -3,6 +3,7 @@ import { Navbar, Nav } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap'
 import { Link } from 'react-router-dom';
 import logo from '../../../assets/logo/logo192.png';
+import { cioutput } from '../../../consts/paths';
 import outputJSONData from '../../../output/output.json'
 
 import styles from './Navbar.module.css'
@@ -43,7 +44,7 @@ const AppNavbar = () => {
             <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={closeNav} />
             <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
                 <Nav className="mr-auto" />
-                {getNavLink("Raw Output", "/rawoutput")}
+                {getNavLink("CI Run", cioutput)}
             </Navbar.Collapse>
         </Navbar>
     </>
