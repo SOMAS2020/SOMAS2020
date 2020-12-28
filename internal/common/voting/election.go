@@ -63,16 +63,21 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	votesSliceSquare := e.votes
 	candidatesNumber = len(e.islandsToVote)
 	islandsNumber = len(votesSliceSquare)
-	scoreInit := candidatesNumber + 1
 
-	//Transfer e.votes to a preference map with type "int"
+	//Initialize votesLayoutMap
+	for i := 1; i < islandsNumber+1; i++ {
+		for j := 0; j < candidatesNumber; j++ {
+			votesLayoutElect[i] = append(votesLayoutElect[i], 0)
+		}
+	}
+	//Transfer e.votes to votesLayoutMap with type "int"
 	for i := 0; i < islandsNumber; i++ {
+		scoreInit := candidatesNumber + 1
 		for j := 0; j < candidatesNumber; j++ {
 			for k := 0; k < candidatesNumber; k++ {
 				if votesSliceSquare[i][j] == e.islandsToVote[k] {
-					votesLayoutElect[i][k] = scoreInit
+					votesLayoutElect[i+1][k] = scoreInit
 					scoreInit = scoreInit - 1
-					break
 				}
 			}
 		}
@@ -80,8 +85,17 @@ func (e *Election) bordaCountResult() shared.ClientID {
 
 	//Sort the preference map in order.
 	var order []int
+	for i := 0; i < candidatesNumber; i++ {
+		order = append(order, 0)
+	}
 	var index []int
+	for i := 0; i < candidatesNumber; i++ {
+		index = append(index, 0)
+	}
 	var score []int
+	for i := 0; i < candidatesNumber; i++ {
+		score = append(score, 0)
+	}
 	preferenceMap := make(map[int][]int)
 	for k, v := range votesLayoutElect {
 		j := 0
@@ -113,15 +127,20 @@ func (e *Election) bordaCountResult() shared.ClientID {
 			s++
 		}
 
-		preferenceMap[k] = score
+		for i := 0; i < candidatesNumber; i++ {
+			preferenceMap[k] = append(preferenceMap[k], score[i])
+		}
 
 	}
 
 	//Calculate the final score for all candidates and ditermine the winner.
-	var FinalScore []int
+	var finalScore []int
+	for i := 0; i < candidatesNumber; i++ {
+		finalScore = append(finalScore, 0)
+	}
 	for _, v := range preferenceMap {
 		for i := 0; i < candidatesNumber; i++ {
-			FinalScore[i] = FinalScore[i] + v[i]
+			finalScore[i] = finalScore[i] + v[i]
 		}
 	}
 
@@ -129,8 +148,8 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	var winnerIndex int
 	winnerIndex = 0
 	for i := 0; i < candidatesNumber; i++ {
-		if maxscore < FinalScore[i] {
-			maxscore = FinalScore[i]
+		if maxscore < finalScore[i] {
+			maxscore = finalScore[i]
 			winnerIndex = i
 		}
 	}
