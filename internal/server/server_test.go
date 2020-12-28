@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
@@ -89,7 +90,7 @@ func TestSOMASServerFactoryInitialisesClients(t *testing.T) {
 		clientMap[k] = v
 	}
 
-	createSOMASServer(clientInfos, clientMap)
+	createSOMASServer(clientInfos, clientMap, config.Config{})
 
 	for clientID, client := range clientPtrsMap {
 		if !client.initialiseCalled {

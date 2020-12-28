@@ -5,6 +5,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -37,8 +38,17 @@ func TestDeerUtilityTier(t *testing.T) {
 }
 
 func TestTotalInput(t *testing.T) {
+	fConf := config.ForagingConfig{
+		MaxDeerPerHunt:        4,
+		IncrementalInputDecay: 0.8,
+		BernoulliProb:         0.95,
+		ExponentialRate:       1,
+
+		MaxDeerPopulation:     12,
+		DeerGrowthCoefficient: 0.4,
+	}
 	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
-	hunt, _ := CreateDeerHunt(huntParticipants)
+	hunt, _ := CreateDeerHunt(huntParticipants, fConf)
 	ans := hunt.TotalInput()
 	if ans != 1.9 {
 		t.Errorf("TotalInput() = %.2f; want 1.9", ans)
