@@ -1,5 +1,7 @@
 'use strict';
 
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
+
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
@@ -659,6 +661,8 @@ module.exports = function (webpackEnv) {
           };
         },
       }),
+      new AddAssetHtmlPlugin({ filepath: require.resolve('../wasmjs/init_go.js') }),
+      new AddAssetHtmlPlugin({ filepath: require.resolve('../wasmjs/wasm_exec.js') }),
       // Moment.js is an extremely popular library that bundles large locale files
       // by default due to how webpack interprets its code. This is a practical
       // solution that requires the user to opt into importing specific locales.
