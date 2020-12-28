@@ -70,7 +70,10 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	}
 
 	for participantID, contribution := range contributions {
-		participantReturn := (contribution / totalContributions) * totalReturn
+		participantReturn := shared.Resources(0)
+		if totalContributions != 0 {
+			participantReturn = (contribution / totalContributions) * totalReturn
+		}
 		s.giveResources(participantID, participantReturn, "Deer hunt return")
 		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
 			Type:         shared.DeerForageType,
