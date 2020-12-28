@@ -48,64 +48,74 @@ func (s *SOMASServer) runGiftSession() error {
 	return nil
 }
 
-// GetGiftRequests collects a sorted list of gift requests from an individual client, for all clients, in a map
-func (s *SOMASServer) getGiftRequests() map[shared.ClientID][]shared.GiftRequest {
-	giftRequestDict := map[shared.ClientID][]shared.GiftRequest{}
-	for id, client := range s.clientMap {
-		giftRequestDict[id] = shared.SortGiftRequestByTeam(client.GetGiftRequests())
+func (s *SOMASServer) sanitiseTeamGiftRequests(requests []shared.GiftRequest) []shared.GiftRequest {
+	return requests
+}
+
+// GetGiftRequests collects a map of gift requests from an individual client, for all clients, in a map
+func (s *SOMASServer) getGiftRequests() map[shared.ClientID]shared.GiftRequestDict {
+	giftRequestDict := map[shared.ClientID]shared.GiftRequestDict{}
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		giftRequestDict[id] = s.clientMap[id].GetGiftRequests()
 	}
 	return giftRequestDict
 }
 
+func (s *SOMASServer) sanitiseTeamGiftOffers(offers []shared.GiftOffer) []shared.GiftOffer {
+	return offers
+}
+
 // getGiftOffers collects all responses from clients to their requests in a map
-func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID][]shared.GiftRequest) (map[shared.ClientID][]shared.GiftOffer, error) {
-	totalOffers := map[shared.ClientID][]shared.GiftOffer{}
-	for id, client := range s.clientMap {
+func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.GiftRequestDict) (map[shared.ClientID]shared.GiftOfferDict, error) {
+	totalOffers := map[shared.ClientID]shared.GiftOfferDict{}
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
 		// Gather all the requests made to this team
-		requestsToThisTeam := []shared.GiftRequest{}
+		requestsToThisTeam := shared.GiftRequestDict{}
 		for fromTeam, indivRequests := range totalRequests {
-			// TODO: Will fail if the list does not have all 6 entries. Fix in a sanitisation function.
 			requestsToThisTeam[fromTeam] = indivRequests[id]
 		}
 
-		offer, err := client.GetGiftOffers(requestsToThisTeam)
-		if err == nil {
+		offer, err := s.clientMap[id].GetGiftOffers(requestsToThisTeam)
+		if err != nil {
 			// totalResponses in this case may have a bogus or meaningless value
 			return totalOffers, err
 		}
-		totalOffers[id] = shared.SortGiftOfferByTeam(offer)
+		totalOffers[id] = offer
 	}
 	return totalOffers, nil
 }
 
-func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID][]shared.GiftOffer) (map[shared.ClientID][]shared.GiftResponse, error) {
-	totalResponses := map[shared.ClientID][]shared.GiftResponse{}
+func (s *SOMASServer) sanitiseTeamGiftResponses(responses []shared.GiftResponse) []shared.GiftResponse {
+	return responses
+}
 
-	for id, client := range s.clientMap {
-		offersToThisTeam := []shared.GiftOffer{}
+func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.GiftOfferDict) (map[shared.ClientID]shared.GiftResponseDict, error) {
+	totalResponses := map[shared.ClientID]shared.GiftResponseDict{}
+
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		offersToThisTeam := shared.GiftOfferDict{}
 		for fromTeam, indivOffers := range totalOffers {
-			// TODO: Will fail if the list does not have all 6 entries. Fix in a sanitisation function.
 			offersToThisTeam[fromTeam] = indivOffers[id]
 		}
-		response, err := client.GetGiftResponses(offersToThisTeam)
+		response, err := s.clientMap[id].GetGiftResponses(offersToThisTeam)
 		if err != nil {
 			// totalResponses in this case may have a bogus or meaningless value
 			return totalResponses, err
 		}
-		totalResponses[id] = shared.SortGiftResponseByTeam(response)
+		totalResponses[id] = response
 	}
 	return totalResponses, nil
 }
 
 // distributeGiftHistory collates all responses to a single client and calls that client to receive its responses.
-func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID][]shared.GiftResponse) error {
-	for id, client := range s.clientMap {
-		responsesToThisTeam := []shared.GiftResponse{}
+func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]shared.GiftResponseDict) error {
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		responsesToThisTeam := shared.GiftResponseDict{}
 		for fromTeam, indivResponses := range totalResponses {
 			// TODO: Will fail if the list does not have all 6 entries. Fix in a sanitisation function.
 			responsesToThisTeam[fromTeam] = indivResponses[id]
 		}
-		err := client.UpdateGiftInfo(responsesToThisTeam)
+		err := s.clientMap[id].UpdateGiftInfo(responsesToThisTeam)
 		if err != nil {
 			return err
 		}

@@ -5,15 +5,15 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 // GetGiftRequests allows clients to signalize that they want a gift
 // This information is fed to OfferGifts of all other clients.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) GetGiftRequests() []shared.GiftRequest {
-	requests := []shared.GiftRequest{}
+func (c *BaseClient) GetGiftRequests() shared.GiftRequestDict {
+	requests := shared.GiftRequestDict{}
 
-	// FIXME: Is this the right way to get the client statuses?
+	// You can fetch the clients which are alive like this:
 	for team, status := range c.serverReadHandle.GetGameState().ClientLifeStatuses {
 		if status == shared.Critical {
-			requests[team] = shared.GiftRequest{RequestFrom: shared.ClientID(team), RequestAmount: 100.0}
+			requests[team] = shared.GiftRequest(100.0)
 		} else {
-			requests[team] = shared.GiftRequest{RequestFrom: shared.ClientID(team), RequestAmount: 0.0}
+			requests[team] = shared.GiftRequest(0.0)
 		}
 	}
 	return requests
@@ -22,16 +22,15 @@ func (c *BaseClient) GetGiftRequests() []shared.GiftRequest {
 // GetGiftOffers allows clients to make offers in response to gift requests by other clients.
 // It can offer multiple partial gifts.
 // COMPULSORY, you need to implement this method. This placeholder implementation offers no gifts.
-func (c *BaseClient) GetGiftOffers(receivedRequests []shared.GiftRequest) ([]shared.GiftOffer, error) {
-	offers := []shared.GiftOffer{}
+func (c *BaseClient) GetGiftOffers(receivedRequests shared.GiftRequestDict) (shared.GiftOfferDict, error) {
+	offers := shared.GiftOfferDict{}
 
-	// FIXME: Or is this the right way?
-	clientStatuses := c.serverReadHandle.GetGameState().ClientLifeStatuses
-	for toTeam, status := range clientStatuses {
+	// You can fetch the clients which are alive like this:
+	for team, status := range c.serverReadHandle.GetGameState().ClientLifeStatuses {
 		if status == shared.Critical {
-			offers[toTeam] = shared.GiftOffer{ReceivingTeam: shared.ClientID(toTeam), OfferAmount: 100.0}
+			offers[team] = shared.GiftOffer(100.0)
 		} else {
-			offers[toTeam] = shared.GiftOffer{ReceivingTeam: shared.ClientID(toTeam), OfferAmount: 0.0}
+			offers[team] = shared.GiftOffer(0.0)
 		}
 	}
 	return offers, nil
@@ -40,13 +39,11 @@ func (c *BaseClient) GetGiftOffers(receivedRequests []shared.GiftRequest) ([]sha
 // GetGiftResponses allows clients to accept gifts offered by other clients.
 // It also needs to provide a reasoning should it not accept the full amount.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) GetGiftResponses(receivedOffers []shared.GiftOffer) ([]shared.GiftResponse, error) {
-	// FIXME: Make this the appropriate length, the loop below doesn't run otherwise.
-	// Can't test server until this is fixed.
-	responses := []shared.GiftResponse{}
+func (c *BaseClient) GetGiftResponses(receivedOffers shared.GiftOfferDict) (shared.GiftResponseDict, error) {
+	responses := shared.GiftResponseDict{}
 	for client, offer := range receivedOffers {
 		responses[client] = shared.GiftResponse{
-			AcceptedAmount: offer.OfferAmount,
+			AcceptedAmount: shared.Resources(offer),
 			Reason:         shared.Accept,
 		}
 	}
@@ -56,7 +53,7 @@ func (c *BaseClient) GetGiftResponses(receivedOffers []shared.GiftOffer) ([]shar
 // UpdateGiftInfo gives information about the outcome from AcceptGifts.
 // This allows for opinion formation.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) UpdateGiftInfo(receivedResponses []shared.GiftResponse) error {
+func (c *BaseClient) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) error {
 	// PreviousGifts[count] = acceptedGifts
 	// count++
 	return nil
@@ -65,13 +62,13 @@ func (c *BaseClient) UpdateGiftInfo(receivedResponses []shared.GiftResponse) err
 // SendGift is executed at the end of each turn and allows clients to
 // send the gifts promised in the IITO
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) SendGift(offer shared.GiftOffer) error {
+func (c *BaseClient) SendGift(offer shared.GiftOffer, to shared.ClientID) error {
 	return nil
 }
 
 // ReceiveGift is executed at the end of each turn and allows clients to
 // receive the gifts promised in the IITO
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) ReceiveGift(offer shared.GiftOffer) error {
+func (c *BaseClient) ReceiveGift(offer shared.GiftOffer, from shared.ClientID) error {
 	return nil
 }
