@@ -125,10 +125,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
 		resourceReports[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].ResourceReport()
 	}
-	executiveBranch.broadcastTaxation(resourceReports)
-	executiveBranch.requestAllocationRequest()
-	executiveBranch.replyAllocationRequest(g.CommonPool)
-	executiveBranch.requestRuleProposal()
+	executiveBranch.broadcastTaxation(resourceReports, aliveClientIds)
+	executiveBranch.requestAllocationRequest(aliveClientIds)
+	executiveBranch.replyAllocationRequest(g.CommonPool, aliveClientIds)
+	executiveBranch.requestRuleProposal(aliveClientIds)
 	ruleToVoteReturn := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions

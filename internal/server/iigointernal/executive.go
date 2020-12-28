@@ -62,15 +62,15 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 }
 
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
-func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
+func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources, aliveIslands []shared.ClientID) {
 	e.budget -= serviceCharge
 	taxMapReturn := e.getTaxMap(islandsResources)
 	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {
-		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxMapReturn.ResourceMap[shared.ClientID(int(island))])}
+		for _, islandID := range aliveIslands {
+			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxMapReturn.ResourceMap[islandID])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
 			data[shared.TaxAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
+			communicateWithIslands(islandID, shared.TeamIDs[e.ID], data)
 		}
 	}
 }
@@ -82,10 +82,10 @@ func (e *executive) getAllocationRequests(commonPool shared.Resources) shared.Pr
 	return e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
 }
 
-func (e *executive) requestAllocationRequest() {
+func (e *executive) requestAllocationRequest(aliveIslands []shared.ClientID) {
 	allocRequests := make(map[shared.ClientID]shared.Resources)
-	for _, island := range getIslandAlive() {
-		allocRequests[shared.ClientID(int(island))] = iigoClients[shared.ClientID(int(island))].CommonPoolResourceRequest()
+	for _, islandID := range aliveIslands {
+		allocRequests[islandID] = iigoClients[islandID].CommonPoolResourceRequest()
 	}
 	AllocationAmountMapExport = allocRequests
 	e.setAllocationRequest(allocRequests)
@@ -94,15 +94,15 @@ func (e *executive) requestAllocationRequest() {
 
 // replyAllocationRequest broadcasts the allocation of resources decided by the president
 // to all islands alive
-func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
+func (e *executive) replyAllocationRequest(commonPool shared.Resources, aliveIslands []shared.ClientID) {
 	e.budget -= serviceCharge
 	allocationMapReturn := e.getAllocationRequests(commonPool)
 	if allocationMapReturn.ActionTaken && allocationMapReturn.ContentType == shared.PresidentAllocation {
-		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMapReturn.ResourceMap[shared.ClientID(int(island))])}
+		for _, islandID := range aliveIslands {
+			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMapReturn.ResourceMap[islandID])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
 			data[shared.AllocationAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
+			communicateWithIslands(islandID, shared.TeamIDs[e.ID], data)
 		}
 	}
 }
@@ -147,11 +147,11 @@ func (e *executive) reset(val string) {
 }
 
 //requestRuleProposal asks each island alive for its rule proposal.
-func (e *executive) requestRuleProposal() {
+func (e *executive) requestRuleProposal(aliveIslands []shared.ClientID) {
 	e.budget -= serviceCharge
 	var rules []string
-	for _, island := range getIslandAlive() {
-		rules = append(rules, iigoClients[shared.ClientID(int(island))].RuleProposal())
+	for _, islandID := range aliveIslands {
+		rules = append(rules, iigoClients[islandID].RuleProposal())
 	}
 
 	e.setRuleProposals(rules)
