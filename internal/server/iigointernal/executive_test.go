@@ -1,8 +1,9 @@
 package iigointernal
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"testing"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 
 	"reflect" // Used to compare two maps
 
@@ -88,7 +89,6 @@ func TestAllocationRequests(t *testing.T) {
 
 			executive := &executive{
 				ID:              shared.Team1,
-				budget:          50,
 				clientPresident: &baseclient.BasePresident{},
 			}
 

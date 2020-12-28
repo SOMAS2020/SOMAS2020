@@ -26,6 +26,9 @@ type GameState struct {
 	// IIGO History
 	IIGOHistory *[]shared.Accountability
 
+	// IIGO roles budget (initialised in orchestration.go)
+	IIGORolesBudget map[string]shared.Resources
+
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
 }
@@ -37,6 +40,7 @@ func (g GameState) Copy() GameState {
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
 	ret.IIGOHistory = g.IIGOHistory
+	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	return ret
 }
 
@@ -48,9 +52,9 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 	}
 
 	return ClientGameState{
-		Season:     g.Season,
-		Turn:       g.Turn,
-		ClientInfo: g.ClientInfos[id].Copy(),
+		Season:             g.Season,
+		Turn:               g.Turn,
+		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
 	}
 }
@@ -59,6 +63,14 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 	ret := make(map[shared.ClientID]ClientInfo, len(m))
 	for k, v := range m {
 		ret[k] = v.Copy()
+	}
+	return ret
+}
+
+func copyRolesBudget(m map[string]shared.Resources) map[string]shared.Resources {
+	ret := make(map[string]shared.Resources, len(m))
+	for k, v := range m {
+		ret[k] = v
 	}
 	return ret
 }

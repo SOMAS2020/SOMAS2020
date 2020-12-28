@@ -14,7 +14,6 @@ import (
 type judiciary struct {
 	gameState         *gamestate.GameState
 	JudgeID           shared.ClientID
-	budget            shared.Resources
 	presidentSalary   shared.Resources
 	BallotID          int
 	ResAllocID        int
@@ -45,17 +44,21 @@ func (j *judiciary) withdrawPresidentSalary() bool {
 	return withdrawSuccesful
 }
 
-// sendPresidentSalary sends the president's salary to the president.
-func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
+// sendPresidentSalary conduct the transaction based on amount from client implementation
+func (j *judiciary) sendPresidentSalary() error {
 	if j.clientJudge != nil {
-		amount, payPresident := j.clientJudge.PayPresident()
-		if payPresident {
-			executiveBranch.budget = amount
+		amount, presidentPaid := j.clientJudge.PayPresident()
+		if presidentPaid {
+			// Subtract from common resources pool
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, j.gameState)
+
+			if withdrawSuccess {
+				// Pay into the client private resources pool
+				depositIntoClientPrivatePool(amountWithdraw, PresidentIDGlobal, j.gameState)
+			}
 		}
-		return
 	}
-	amount := j.PayPresident()
-	executiveBranch.budget = amount
+	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
 
 // PayPresident pays the president salary.
@@ -208,7 +211,7 @@ func (j *judiciary) incurServiceCharge(actionID string) bool {
 	cost := config.GameConfig().IIGOConfig.JudiciaryActionCost[actionID]
 	_, ok := WithdrawFromCommonPool(cost, j.gameState)
 	if ok {
-		j.budget -= cost
+		j.gameState.IIGORolesBudget["budget"] -= cost
 	}
 	return ok
 }

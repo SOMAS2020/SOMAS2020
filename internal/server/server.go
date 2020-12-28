@@ -56,6 +56,11 @@ func createSOMASServer(
 			Environment:    disasters.InitEnvironment(clientIDs),
 			DeerPopulation: foraging.CreateDeerPopulationModel(),
 			IIGOHistory:    &gamestate.TurnHistory,
+			IIGORolesBudget: map[string]shared.Resources{
+				"president": 100,
+				"judge":     100,
+				"speaker":   100,
+			},
 		},
 	}
 

@@ -14,7 +14,6 @@ import (
 type legislature struct {
 	gameState     *gamestate.GameState
 	SpeakerID     shared.ClientID
-	budget        shared.Resources
 	judgeSalary   shared.Resources
 	ruleToVote    string
 	ballotBox     voting.BallotBox
@@ -38,16 +37,21 @@ func (l *legislature) withdrawJudgeSalary() bool {
 	return withdrawSuccesful
 }
 
-// sendJudgeSalary sets the budget of the Judge.
-func (l *legislature) sendJudgeSalary(judicialBranch *judiciary) {
+// sendJudgeSalary conduct the transaction based on amount from client implementation
+func (l *legislature) sendJudgeSalary() error {
 	if l.clientSpeaker != nil {
 		amount, judgePaid := l.clientSpeaker.PayJudge()
 		if judgePaid {
-			judicialBranch.budget = amount
+			// Subtract from common resources pool
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, l.gameState)
+
+			if withdrawSuccess {
+				// Pay into the client private resources pool
+				depositIntoClientPrivatePool(amountWithdraw, JudgeIDGlobal, l.gameState)
+			}
 		}
-		return
 	}
-	judicialBranch.budget = l.judgeSalary
+	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
 
 // Receive a rule to call a vote on
@@ -192,7 +196,7 @@ func (l *legislature) incurServiceCharge(actionID string) bool {
 	cost := config.GameConfig().IIGOConfig.LegislativeActionCost[actionID]
 	_, ok := WithdrawFromCommonPool(cost, l.gameState)
 	if ok {
-		l.budget -= cost
+		l.gameState.IIGORolesBudget["speaker"] -= cost
 	}
 	return ok
 }

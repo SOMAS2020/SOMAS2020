@@ -47,7 +47,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 }
 
 // PaySpeaker pays the speaker a salary.
-func (p *BasePresident) PaySpeaker(salary shared.Resources) (shared.Resources, bool) {
+func (p *BasePresident) PaySpeaker() (shared.Resources, bool) {
 	// TODO : Implement opinion based salary payment.
-	return salary, true
+	return 0, true
 }

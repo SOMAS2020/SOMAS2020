@@ -15,9 +15,10 @@ const serviceCharge = shared.Resources(10)
 
 /*
 Things to do:
-// judge
-2. map to keep track of all action cost in config
-3. subtract action cost from common pools
+
+// Budget
+1. where do we init the budget?
+2. How do we update the budget?
 
 //
 4.
@@ -28,7 +29,6 @@ Things to do:
 var judicialBranch = judiciary{
 	gameState:         nil,
 	JudgeID:           0,
-	budget:            0,
 	presidentSalary:   0,
 	BallotID:          0,
 	ResAllocID:        0,
@@ -42,7 +42,6 @@ var judicialBranch = judiciary{
 var legislativeBranch = legislature{
 	gameState:    nil,
 	SpeakerID:    0,
-	budget:       0,
 	judgeSalary:  0,
 	ruleToVote:   "",
 	ballotBox:    voting.BallotBox{},
@@ -54,7 +53,6 @@ var legislativeBranch = legislature{
 var executiveBranch = executive{
 	gameState:        nil,
 	ID:               0,
-	budget:           0,
 	speakerSalary:    0,
 	ResourceRequests: nil,
 }
@@ -86,6 +84,12 @@ var iigoClients map[shared.ClientID]baseclient.Client
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) error {
 
 	iigoClients = *clientMap
+
+	// Increments the budget by a constant 100
+	// TODO:- the constant should be retrieved from the rules
+	g.IIGORolesBudget["president"] += 100
+	g.IIGORolesBudget["judge"] += 100
+	g.IIGORolesBudget["speaker"] += 100
 
 	// Pass in gamestate -
 	judicialBranch.gameState = g
@@ -129,9 +133,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// Pay salaries into budgets
-	judicialBranch.sendPresidentSalary(&executiveBranch)
-	legislativeBranch.sendJudgeSalary(&judicialBranch)
-	executiveBranch.sendSpeakerSalary(&legislativeBranch)
+	judicialBranch.sendPresidentSalary()
+	legislativeBranch.sendJudgeSalary()
+	executiveBranch.sendSpeakerSalary()
 
 	// 1 Judge actions - inspect history
 	_, historyInspected := judicialBranch.inspectHistory()

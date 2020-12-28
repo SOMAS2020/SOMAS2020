@@ -15,7 +15,6 @@ type executive struct {
 	gameState        *gamestate.GameState
 	ID               shared.ClientID
 	clientPresident  roles.President
-	budget           shared.Resources
 	speakerSalary    shared.Resources
 	RulesProposals   []string
 	ResourceRequests map[shared.ClientID]shared.Resources
@@ -144,22 +143,26 @@ func (e *executive) withdrawSpeakerSalary() bool {
 	return withdrawSuccesful
 }
 
-// sendSpeakerSalary send speaker's salary to the speaker.
-func (e *executive) sendSpeakerSalary(legislativeBranch *legislature) {
+// sendSpeakerSalary conduct the transaction based on amount from client implementation
+func (e *executive) sendSpeakerSalary() error {
 	if e.clientPresident != nil {
-		amount, salaryPaid := e.clientPresident.PaySpeaker(e.speakerSalary)
-		if salaryPaid {
-			legislativeBranch.budget = amount
+		amount, speakerPaid := e.clientPresident.PaySpeaker()
+		if speakerPaid {
+			// Subtract from common resources pool
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, e.gameState)
+
+			if withdrawSuccess {
+				// Pay into the client private resources pool
+				depositIntoClientPrivatePool(amountWithdraw, SpeakerIDGlobal, e.gameState)
+			}
 		}
-		return
 	}
-	legislativeBranch.budget = e.speakerSalary
+	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
 
 func (e *executive) reset(val string) {
 	e.ID = 0
 	e.clientPresident = nil
-	e.budget = 0
 	e.ResourceRequests = map[shared.ClientID]shared.Resources{}
 	e.RulesProposals = []string{}
 	e.speakerSalary = 0
@@ -181,7 +184,7 @@ func (e *executive) incurServiceCharge(actionID string) bool {
 	cost := config.GameConfig().IIGOConfig.ExecutiveActionCost[actionID]
 	_, ok := WithdrawFromCommonPool(cost, e.gameState)
 	if ok {
-		e.budget -= cost
+		e.gameState.IIGORolesBudget["president"] -= cost
 	}
 	return ok
 }
