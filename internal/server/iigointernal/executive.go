@@ -39,14 +39,14 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
-func (e *executive) getRuleForSpeaker() (string, bool) {
+func (e *executive) getRuleForSpeaker() shared.PresidentReturnContent {
 	e.budget -= serviceCharge
 	return e.clientPresident.PickRuleToVote(e.RulesProposals)
 }
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
+func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) shared.PresidentReturnContent {
 	e.budget -= serviceCharge
 	return e.clientPresident.SetTaxationAmount(islandsResources)
 }
@@ -54,10 +54,10 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
 	e.budget -= serviceCharge
-	taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
-	if taxesCollected {
+	taxMapReturn := e.getTaxMap(islandsResources)
+	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {
 		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(island))])}
+			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxMapReturn.ResourceMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
 			data[shared.TaxAmount] = d
 			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
@@ -67,7 +67,7 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (e *executive) getAllocationRequests(commonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
+func (e *executive) getAllocationRequests(commonPool shared.Resources) shared.PresidentReturnContent {
 	e.budget -= serviceCharge
 	return e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
 }
@@ -86,10 +86,10 @@ func (e *executive) requestAllocationRequest() {
 // to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	e.budget -= serviceCharge
-	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
-	if requestsEvaluated {
+	allocationMapReturn := e.getAllocationRequests(commonPool)
+	if allocationMapReturn.ActionTaken && allocationMapReturn.ContentType == shared.PresidentAllocation {
 		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(island))])}
+			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMapReturn.ResourceMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
 			data[shared.AllocationAmount] = d
 			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
@@ -118,9 +118,9 @@ func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) bool {
 // sendSpeakerSalary send speaker's salary to the speaker.
 func (e *executive) sendSpeakerSalary(legislativeBranch *legislature) {
 	if e.clientPresident != nil {
-		amount, salaryPaid := e.clientPresident.PaySpeaker(e.speakerSalary)
-		if salaryPaid {
-			legislativeBranch.budget = amount
+		amountReturn := e.clientPresident.PaySpeaker(e.speakerSalary)
+		if amountReturn.ActionTaken && amountReturn.ContentType == shared.PresidentSpeakerSalary {
+			legislativeBranch.budget = amountReturn.SpeakerSalary
 		}
 		return
 	}

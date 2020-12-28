@@ -118,6 +118,8 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
+
+	// TODO get alive clients differently
 	var aliveClientIds []shared.ClientID
 	for _, v := range rules.VariableMap[rules.IslandsAlive].Values {
 		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
@@ -127,11 +129,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.requestAllocationRequest()
 	executiveBranch.replyAllocationRequest(g.CommonPool)
 	executiveBranch.requestRuleProposal()
-	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
+	ruleToVoteReturn := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
-	if ruleSelected {
-		legislativeBranch.setRuleToVote(ruleToVote)
+	if ruleToVoteReturn.ActionTaken && ruleToVoteReturn.ContentType == shared.PresidentRuleProposal {
+		legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRule)
 		legislativeBranch.setVotingResult(aliveClientIds)
 		legislativeBranch.announceVotingResult()
 	}
