@@ -15,6 +15,7 @@ type Election struct {
 	votes         [][]shared.ClientID
 }
 
+// ElectionVotingMethod provides enumerated type for selection of voting system to be used
 type ElectionVotingMethod int
 
 const (

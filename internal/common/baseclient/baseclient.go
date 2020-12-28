@@ -116,6 +116,7 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
 }
 
+// Role provides enumerated type for IIGO roles (President, Speaker and Judge)
 type Role int
 
 const (

@@ -7,6 +7,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
 
+// CommunicationContentType provides type union for generic IIGO Inter-Island Communications
 type CommunicationContentType int
 
 const (
