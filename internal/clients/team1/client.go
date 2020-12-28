@@ -31,9 +31,18 @@ func init() {
 }
 
 type clientConfig struct {
-	randomForageTurns    uint
+	// At the start of the game forage randomly for this many turns. If true,
+	// pay some initial tax to help get the first IIGO running
+	randomForageTurns uint
+
+	// If resources go below this limit, go into "desperation" mode
 	desperationThreshold shared.Resources
-	evadeTaxes           bool
+
+	// If true, ignore requests for taxes
+	evadeTaxes bool
+
+	// If true, pay some initial tax to help get the first IIGO running
+	kickstartTax bool
 }
 
 // client is Lucy.
@@ -55,6 +64,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			randomForageTurns:    5,
 			desperationThreshold: 20,
 			evadeTaxes:           false,
+			kickstartTax: 	      true,
 		},
 	}
 }
@@ -90,8 +100,12 @@ func (c *client) ReceiveCommunication(
 }
 
 func (c *client) GetTaxContribution() shared.Resources {
-	if !c.config.evadeTaxes {
+	if c.config.evadeTaxes {
 		return 0
+	}
+	if c.config.kickstartTax && c.gameState().Turn == 1 {
+		// Put in some initial resources to get IIGO to run
+		return 0.05 * c.gameState().ClientInfo.Resources
 	}
 	return c.taxAmount
 }
