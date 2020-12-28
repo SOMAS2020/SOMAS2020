@@ -6,7 +6,7 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 // This information is fed to OfferGifts of all other clients.
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) RequestGift() uint {
-	if c.clientGameState.ClientInfo.LifeStatus == shared.Critical {
+	if c.ClientGameState.ClientInfo.LifeStatus == shared.Critical {
 		return 100
 	}
 	return 0

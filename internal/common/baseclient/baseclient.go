@@ -64,18 +64,23 @@ type ServerReadHandle interface {
 var ourPredictionInfo shared.PredictionInfo
 
 // NewClient produces a new client with the BaseClient already implemented.
-func NewClient(id shared.ClientID) Client {
-	return &BaseClient{id: id, communications: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}}
+func NewClient(id shared.ClientID) *BaseClient {
+	return &BaseClient{
+		id:             id,
+		Communications: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{},
+	}
 }
 
 // BaseClient provides a basic implementation for all functions of the client interface and should always the interface fully.
 // All clients should be based off of this BaseClient to ensure that all clients implement the interface,
 // even when new features are added.
 type BaseClient struct {
-	id               shared.ClientID
-	clientGameState  gamestate.ClientGameState
-	communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
-	serverReadHandle ServerReadHandle
+	id shared.ClientID
+
+	// exported variables are accessible by the client implementations
+	ClientGameState  gamestate.ClientGameState
+	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
+	ServerReadHandle ServerReadHandle
 }
 
 // Echo prints a message to show that the client exists
@@ -95,7 +100,7 @@ func (c *BaseClient) GetID() shared.ClientID {
 // OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
 // You will need it to access the game state through its GetGameStateMethod.
 func (c *BaseClient) Initialise(serverReadHandle ServerReadHandle) {
-	c.serverReadHandle = serverReadHandle
+	c.ServerReadHandle = serverReadHandle
 }
 
 // StartOfTurn handles the start of a new turn.
@@ -144,11 +149,10 @@ func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
 func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
-	c.communications[sender] = append(c.communications[sender], data)
+	c.Communications[sender] = append(c.Communications[sender], data)
 }
 
 // GetCommunications is used for testing communications
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
-	return &c.communications
-
+	return &c.Communications
 }
