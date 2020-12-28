@@ -45,7 +45,7 @@ func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool
 // sendPresidentSalary sends the president's salary to the president.
 func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
 	if j.clientJudge != nil {
-		amount, payPresident := j.clientJudge.PayPresident()
+		amount, payPresident := j.clientJudge.PayPresident(j.presidentSalary)
 		if payPresident {
 			executiveBranch.budget = amount
 		}
@@ -118,7 +118,12 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 
 // declareSpeakerPerformanceWrapped wraps the result of DeclareSpeakerPerformance for orchestration
 func (j *judiciary) declareSpeakerPerformanceWrapped() {
-	result, checkRole := j.clientJudge.DeclareSpeakerPerformance()
+	res, err := j.inspectBallot()
+	didRole := true
+	if err != nil {
+		didRole = false
+	}
+	result, checkRole := j.clientJudge.DeclareSpeakerPerformance(res, didRole)
 	message := generateSpeakerPerformanceMessage(j.BallotID, result, j.speakerID, checkRole)
 	broadcastToAllIslands(shared.TeamIDs[j.JudgeID], message)
 
@@ -126,7 +131,12 @@ func (j *judiciary) declareSpeakerPerformanceWrapped() {
 
 // declarePresidentPerformanceWrapped wraps the result of DeclarePresidentPerformance for orchestration
 func (j *judiciary) declarePresidentPerformanceWrapped() {
-	result, checkRole := j.clientJudge.DeclarePresidentPerformance()
+	res, err := j.inspectAllocation()
+	didRole := true
+	if err != nil {
+		didRole = false
+	}
+	result, checkRole := j.clientJudge.DeclarePresidentPerformance(res, didRole)
 	message := generatePresidentPerformanceMessage(j.ResAllocID, result, j.presidentID, checkRole)
 	broadcastToAllIslands(shared.TeamIDs[j.JudgeID], message)
 
