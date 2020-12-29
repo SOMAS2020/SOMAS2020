@@ -38,6 +38,8 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 7. Use the superior `errors.Errorf` to create your errors so that we have a stack trace.
 
+8. If you define a new `iota`, please implement the `String()`, `GoString()`, `MarshalText()`, and `MarshalJSON()` functions. See [`#150`](https://github.com/SOMAS2020/SOMAS2020/pull/150).
+
 ## Repo
 
 1. Each team will work off a fork of the main repo. Your team is responsible for all development happening in the fork, and are responsible to keep your own fork up-to-date, as well as to pull in changes to the main repo periodically. (Remember to give your teammates _write access_ to the fork!)

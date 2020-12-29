@@ -52,12 +52,17 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	s.logf("start runDeerHunt")
 	defer s.logf("finish runDeerHunt")
 
-	hunt, err := foraging.CreateDeerHunt(contributions)
+	fConf := s.gameConfig.ForagingConfig
+
+	hunt, err := foraging.CreateDeerHunt(
+		contributions,
+		fConf,
+	)
 	if err != nil {
 		return errors.Errorf("Error running deer hunt: %v", err)
 	}
 
-	totalReturn := hunt.Hunt()
+	totalReturn := hunt.Hunt(fConf)
 
 	totalContributions := shared.Resources(0)
 	for _, contribution := range contributions {
@@ -65,10 +70,13 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	}
 
 	for participantID, contribution := range contributions {
-		participantReturn := (contribution / totalContributions) * totalReturn
+		participantReturn := shared.Resources(0)
+		if totalContributions != 0 {
+			participantReturn = (contribution / totalContributions) * totalReturn
+		}
 		s.giveResources(participantID, participantReturn, "Deer hunt return")
 		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
-			Type: shared.DeerForageType,
+			Type:         shared.DeerForageType,
 			Contribution: contribution,
 		}, participantReturn)
 	}

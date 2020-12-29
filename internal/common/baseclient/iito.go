@@ -9,7 +9,7 @@ func (c *BaseClient) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
 
 	// You can fetch the clients which are alive like this:
-	for team, status := range c.serverReadHandle.GetGameState().ClientLifeStatuses {
+	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 		if status == shared.Critical {
 			requests[team] = shared.GiftRequest(100.0)
 		} else {
@@ -27,7 +27,7 @@ func (c *BaseClient) GetGiftOffers(receivedRequests shared.GiftRequestDict) shar
 	offers := shared.GiftOfferDict{}
 
 	// You can fetch the clients which are alive like this:
-	for team, status := range c.serverReadHandle.GetGameState().ClientLifeStatuses {
+	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 		if status == shared.Critical {
 			offers[team] = shared.GiftOffer(100.0)
 		} else {
@@ -64,7 +64,7 @@ func (c *BaseClient) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) e
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) SentGift(sent shared.Resources, to shared.ClientID) error {
 	// You can check your updated resources like this:
-	// myResources := c.serverReadHandle.GetGameState().ClientInfo.Resources
+	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	return nil
 }
 
@@ -73,6 +73,6 @@ func (c *BaseClient) SentGift(sent shared.Resources, to shared.ClientID) error {
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientID) error {
 	// You can check your updated resources like this:
-	// myResources := c.serverReadHandle.GetGameState().ClientInfo.Resources
+	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	return nil
 }
