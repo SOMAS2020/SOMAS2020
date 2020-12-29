@@ -81,12 +81,11 @@ const prepareFlags = async (flags: Flag[]): Promise<string[]> => {
     return flags
         .map(f => {
             if (f.Value !== f.DefValue) {
-                return [f.Name, f.Value]
+                return `${f.Name}=${f.Value}`
             }
             return undefined
         })
         .filter(notEmpty)
-        .flat()
 }
 
 export const getFlagsFormats = async (): Promise<GetFlagsFormatsReturnType> => {
