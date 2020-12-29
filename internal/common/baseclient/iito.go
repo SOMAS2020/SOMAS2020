@@ -8,7 +8,7 @@ import (
 // This information is fed to OfferGifts of all other clients.
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) RequestGift() uint {
-	if c.ClientGameState.ClientInfo.LifeStatus == shared.Critical {
+	if c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus == shared.Critical {
 		return 100
 	}
 	return 0

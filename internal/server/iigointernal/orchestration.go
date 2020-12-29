@@ -85,9 +85,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
-	judicialBranch.clientJudge = judgePointer
-	executiveBranch.clientPresident = presidentPointer
-	legislativeBranch.clientSpeaker = speakerPointer
+	judicialBranch.loadClientJudge(judgePointer)
+	executiveBranch.loadClientPresident(presidentPointer)
+	legislativeBranch.loadClientSpeaker(speakerPointer)
 
 	// Withdraw the salaries
 	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary(g)

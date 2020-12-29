@@ -60,8 +60,6 @@ type ServerReadHandle interface {
 	GetGameState() gamestate.ClientGameState
 }
 
-var ourPredictionInfo shared.PredictionInfo
-
 // NewClient produces a new client with the BaseClient already implemented.
 func NewClient(id shared.ClientID) *BaseClient {
 	return &BaseClient{
@@ -76,8 +74,9 @@ func NewClient(id shared.ClientID) *BaseClient {
 type BaseClient struct {
 	id shared.ClientID
 
+	predictionInfo shared.PredictionInfo
+
 	// exported variables are accessible by the client implementations
-	ClientGameState  gamestate.ClientGameState
 	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 	ServerReadHandle ServerReadHandle
 }
