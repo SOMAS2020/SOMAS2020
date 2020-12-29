@@ -485,7 +485,7 @@ func TestGetAllocationRequests(t *testing.T) {
 	}
 }
 
-func TestPresidentIncureServiceCharge(t *testing.T) {
+func TestPresidentIncurServiceCharge(t *testing.T) {
 	cases := []struct {
 		name                    string
 		bPresident              executive // base
