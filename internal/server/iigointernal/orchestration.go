@@ -156,12 +156,21 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
+	var appointJudgeError, appointSpeakerError, appointPresidentError error
 	// Get new Judge ID
-	g.JudgeID, _ = legislativeBranch.appointNextJudge(aliveClientIds)
+	g.JudgeID, appointJudgeError = legislativeBranch.appointNextJudge(aliveClientIds)
+	if appointJudgeError != nil {
+		return false, "Judge was not apointed by the Speaker. Insufficient budget"
+	}
 	// Get new Speaker ID
-	g.SpeakerID, _ = executiveBranch.appointNextSpeaker(aliveClientIds)
+	g.SpeakerID, appointSpeakerError = executiveBranch.appointNextSpeaker(aliveClientIds)
+	if appointSpeakerError != nil {
+		return false, "Speaker was not apointed by the President. Insufficient budget"
+	}
 	// Get new President ID
-	g.PresidentID, _ = judicialBranch.appointNextPresident(aliveClientIds)
-
+	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(aliveClientIds)
+	if appointPresidentError != nil {
+		return false, "President was not apointed by the Judge. Insufficient budget"
+	}
 	return true, "IIGO Run Successful"
 }
