@@ -76,8 +76,8 @@ func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRol
 	return inspectBallot, conductedRole
 }
 
-func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]roles.Sanction {
-	return map[int][]roles.Sanction{}
+func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int]map[int]roles.Sanction {
+	return map[int]map[int]roles.Sanction{}
 }
 
 func (j *BaseJudge) HistoricalRetributionEnabled() bool {
@@ -90,7 +90,7 @@ func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[s
 	if _, ok := rules.VariableMap[variableName]; ok {
 		for k, v := range ruleStore {
 			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
-			if !found {
+			if found {
 				Rules = append(Rules, k)
 			}
 		}

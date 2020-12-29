@@ -42,6 +42,6 @@ type Judge interface {
 	DeclarePresidentPerformance() (result bool, didRole bool)
 	GetRuleViolationSeverity() map[string]IIGOSanctionScore
 	GetSanctionThresholds() map[IIGOSanctionTier]IIGOSanctionScore
-	GetPardonedIslands(currentSanctions map[int][]Sanction) map[int][]Sanction
+	GetPardonedIslands(currentSanctions map[int][]Sanction) map[int]map[int]Sanction
 	HistoricalRetributionEnabled() bool
 }

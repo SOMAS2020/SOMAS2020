@@ -107,10 +107,11 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 				}
 			}
 		}
+		j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
 	}
 	tempResults, success = j.clientJudge.InspectHistory(iigoHistory)
 	finalResults = mergeEvalResults(tempResults, finalResults)
-	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults)
+	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
 	j.cycleHistoryCache(entryForHistoryCache)
 	j.evaluationResults = finalResults
 	return j.evaluationResults, success
@@ -294,6 +295,10 @@ func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
 	j.localHistoryCache = newMap
 }
 
+func (j *judiciary) clearHistoryCache() {
+	j.localHistoryCache = map[int][]shared.Accountability{}
+}
+
 // Helper functions for Judiciary branch
 
 // generateSpeakerPerformanceMessage generates the appropriate communication required regarding
@@ -408,12 +413,24 @@ func defaultInitLocalSanctionCache(depth int) map[int][]roles.Sanction {
 	return returnMap
 }
 
-func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]roles.Sanction) (pardonsValid bool, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent, finalCache map[int][]roles.Sanction) {
+func defaultInitLocalHistoryCache(depth int) map[int][]shared.Accountability {
+	returnMap := map[int][]shared.Accountability{}
+	for i := 0; i < depth; i++ {
+		returnMap[i] = []shared.Accountability{}
+	}
+	return returnMap
+}
+
+func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int]map[int]roles.Sanction) (pardonsValid bool, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent, finalCache map[int][]roles.Sanction) {
 	comms := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
+	newSanctionCache := map[int][]roles.Sanction{}
+	for k, v := range sanctionCache {
+		newSanctionCache[k] = v
+	}
 	for i, v := range pardons {
 		for iSan, vSan := range v {
 			if sanctionCache[i][iSan] != vSan {
-				return false, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}, map[int][]roles.Sanction{}
+				return false, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}, sanctionCache
 			} else {
 				comms[vSan.ClientID] = append(comms[vSan.ClientID], map[shared.CommunicationFieldName]shared.CommunicationContent{
 					shared.PardonClientID: {
@@ -422,28 +439,37 @@ func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]role
 					},
 					shared.PardonTier: {
 						T:           shared.CommunicationInt,
-						IntegerData: int(vSan.SanctionTier) + 1,
+						IntegerData: int(vSan.SanctionTier),
 					},
 				})
-				sanctionCache[i] = removeSanctions(sanctionCache[i], iSan)
+				newSanctionCache[i] = removeSanctions(newSanctionCache[i], iSan-getDifferenceInLength(sanctionCache[i], newSanctionCache[i]))
 			}
 		}
 	}
-	return true, comms, sanctionCache
+	return true, comms, newSanctionCache
 }
 
-func removeSanctions(s []roles.Sanction, i int) []roles.Sanction {
-	s[len(s)-1], s[i] = s[i], s[len(s)-1]
-	return s[:len(s)-1]
+func removeSanctions(slice []roles.Sanction, s int) []roles.Sanction {
+	var output []roles.Sanction
+	for i, v := range slice {
+		if i != s {
+			output = append(output, v)
+		}
+	}
+	return output
+}
+
+func getDifferenceInLength(slice1 []roles.Sanction, slice2 []roles.Sanction) int {
+	return len(slice1) - len(slice2)
 }
 
 // pickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
-func pickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
+func pickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix, variableMap map[rules.VariableFieldName]rules.VariableValuePair) ([]string, bool) {
 	var Rules []string
-	if _, ok := rules.VariableMap[variableName]; ok {
+	if _, ok := variableMap[variableName]; ok {
 		for k, v := range ruleStore {
 			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
-			if !found {
+			if found {
 				Rules = append(Rules, k)
 			}
 		}
@@ -492,17 +518,18 @@ func getBaseEvalResults() map[shared.ClientID]roles.EvaluationReturn {
 	}
 }
 
-func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[shared.ClientID]roles.EvaluationReturn) []shared.Accountability {
-	var reducedAccountability []shared.Accountability
+func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[shared.ClientID]roles.EvaluationReturn, rulesCache map[string]rules.RuleMatrix, variableCache map[rules.VariableFieldName]rules.VariableValuePair) []shared.Accountability {
+	reducedAccountability := []shared.Accountability{}
 	for _, v := range iigoHistory {
 		pairsAffected := v.Pairs
 		var allRulesAffected []string
 		for _, pair := range pairsAffected {
-			additionalRules, success := pickUpRulesByVariable(pair.VariableName, rules.RulesInPlay)
+			additionalRules, success := pickUpRulesByVariable(pair.VariableName, rulesCache, variableCache)
 			if success {
 				allRulesAffected = append(allRulesAffected, additionalRules...)
 			}
 		}
+		allRulesAffected = streamlineRulesAffected(allRulesAffected)
 		for _, ruleAff := range allRulesAffected {
 			found := searchEvalReturnForRuleName(ruleAff, evalResults[v.ClientID])
 			if !found {
@@ -511,6 +538,18 @@ func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[share
 		}
 	}
 	return reducedAccountability
+}
+
+func streamlineRulesAffected(input []string) []string {
+	streamlineMap := map[string]bool{}
+	for _, v := range input {
+		streamlineMap[v] = true
+	}
+	var returnArray []string
+	for key, _ := range streamlineMap {
+		returnArray = append(returnArray, key)
+	}
+	return returnArray
 }
 
 func searchEvalReturnForRuleName(name string, evaluationReturn roles.EvaluationReturn) bool {
@@ -523,18 +562,22 @@ func searchEvalReturnForRuleName(name string, evaluationReturn roles.EvaluationR
 	return false
 }
 
+// mergeEvalResults takes two evaluation results and merges them to provide a unified set
 func mergeEvalResults(set1 map[shared.ClientID]roles.EvaluationReturn, set2 map[shared.ClientID]roles.EvaluationReturn) map[shared.ClientID]roles.EvaluationReturn {
 	for key, val := range set1 {
-		set2Val := set2[key]
-		defRules := set2Val.Rules
-		defEvals := set2Val.Evaluations
-		finalRules := append(defRules, val.Rules...)
-		finalEvals := append(defEvals, val.Evaluations...)
-		resolved := roles.EvaluationReturn{
-			Rules:       finalRules,
-			Evaluations: finalEvals,
+		if set2Val, ok := set2[key]; ok {
+			defRules := set2Val.Rules
+			defEvals := set2Val.Evaluations
+			finalRules := append(defRules, val.Rules...)
+			finalEvals := append(defEvals, val.Evaluations...)
+			resolved := roles.EvaluationReturn{
+				Rules:       finalRules,
+				Evaluations: finalEvals,
+			}
+			set2[key] = resolved
+		} else {
+			set2[key] = set1[key]
 		}
-		set2[key] = resolved
 	}
 	return set2
 }
