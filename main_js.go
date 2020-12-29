@@ -51,7 +51,6 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 
 	var o output
 	var outputJSON string
-	var err error
 	gameStates, err := s.EntryPoint()
 	if err != nil {
 		return js.ValueOf(map[string]interface{}{
@@ -73,7 +72,13 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 	})
 }
 
-func getConfigFromArgs(args []string) (config.Config, error) {
+func getConfigFromArgs(jsArgs []js.Value) (config.Config, error) {
+	args := make([]string, len(jsArgs))
+
+	for i, jsArg := range jsArgs {
+		args[i] = jsArg.String()
+	}
+
 	flag.Parse()
 
 	for _, arg := range args {
@@ -89,7 +94,7 @@ func getConfigFromArgs(args []string) (config.Config, error) {
 		}
 	}
 
-	return parseConfig()
+	return parseConfig(), nil
 }
 
 func GetFlagsFormats(this js.Value, args []js.Value) interface{} {
