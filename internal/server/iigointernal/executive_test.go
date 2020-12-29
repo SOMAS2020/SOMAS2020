@@ -1,12 +1,11 @@
 package iigointernal
 
 import (
+	"reflect" // Used to compare two maps
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-
-	"reflect" // Used to compare two maps
-
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -292,6 +291,14 @@ func TestGetTaxMap(t *testing.T) {
 }
 
 func TestGetRuleForSpeaker(t *testing.T) {
+	fakeGameState := gamestate.GameState{
+		CommonPool: 400,
+		IIGORolesBudget: map[string]shared.Resources{
+			"president": 10,
+			"speaker":   10,
+			"judge":     10,
+		},
+	}
 	cases := []struct {
 		name       string
 		bPresident executive // base
@@ -303,6 +310,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				ID:              3,
 				RulesProposals:  []string{},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
 			},
 			expected: []string{""},
 		},
@@ -312,6 +320,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				ID:              3,
 				RulesProposals:  []string{"test"},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
 			},
 			expected: []string{"test"},
 		},
@@ -321,6 +330,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				ID:              3,
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
@@ -330,6 +340,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				ID:              5,
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
@@ -339,6 +350,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				ID:              5,
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
