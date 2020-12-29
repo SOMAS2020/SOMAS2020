@@ -93,8 +93,13 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	}
 
 	huntReport := hunt.Hunt(dhConf)
+	huntReport.Turn = s.gameState.Turn // update report's Turn with actual turn value
+	// update foraging history
+	s.gameState.ForagingHistory[shared.DeerForageType] = append(s.gameState.ForagingHistory[shared.DeerForageType], huntReport)
+
 	totalContributions := hunt.TotalInput()
 
+	// distribute return amongst participants
 	for participantID, contribution := range contributions {
 		participantReturn := shared.Resources(0.0)
 		if totalContributions != 0.0 {
@@ -127,6 +132,11 @@ func (s *SOMASServer) runFishingExpedition(participants map[shared.ClientID]shar
 		return errors.Errorf("Error running fish hunt: %v", err)
 	}
 	fishingReport := huntF.Fish(fConf)
+
+	fishingReport.Turn = s.gameState.Turn // update report's Turn with actual turn value
+	// update foraging history
+	s.gameState.ForagingHistory[shared.FishForageType] = append(s.gameState.ForagingHistory[shared.FishForageType], fishingReport)
+
 	s.logf("Fishing expedition report: %v", fishingReport.Display())
 
 	return nil

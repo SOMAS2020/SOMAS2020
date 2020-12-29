@@ -14,6 +14,7 @@ type ForagingReport struct {
 	NumberCaught       uint             // number of deer/fish/... caught
 	TotalUtility       shared.Resources // total return of foraging session before distribution
 	CatchSizes         []float64        // sizes/weights of individual deer/fish/... caught
+	Turn               uint             // turn in which this report was generated. Should be populated by caller
 }
 
 func getTotalInput(contribs map[shared.ClientID]shared.Resources) shared.Resources {
@@ -56,4 +57,10 @@ func (f ForagingReport) Display() string {
 		return ""
 	}
 	return string(out)
+}
+
+// Copy returns a deep copy of the ClientInfo.
+func (f ForagingReport) Copy() ForagingReport {
+	ret := f
+	return ret
 }
