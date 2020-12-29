@@ -24,7 +24,7 @@ type GameState struct {
 	DeerPopulation foraging.DeerPopulationModel
 
 	// IIGO History
-	IIGOHistory *[]shared.Accountability
+	IIGOHistory []shared.Accountability
 
 	// IIGO roles budget (initialised in orchestration.go)
 	IIGORolesBudget map[string]shared.Resources
@@ -39,7 +39,7 @@ func (g GameState) Copy() GameState {
 	ret.ClientInfos = copyClientInfos(g.ClientInfos)
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
-	ret.IIGOHistory = g.IIGOHistory
+	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	return ret
 }
@@ -72,6 +72,12 @@ func copyRolesBudget(m map[string]shared.Resources) map[string]shared.Resources 
 	for k, v := range m {
 		ret[k] = v
 	}
+	return ret
+}
+
+func copyIIGOHistory(iigoHistory []shared.Accountability) []shared.Accountability {
+	ret := make([]shared.Accountability, len(iigoHistory))
+	copy(ret, iigoHistory)
 	return ret
 }
 

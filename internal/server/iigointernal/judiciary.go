@@ -1,6 +1,8 @@
 package iigointernal
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -21,6 +23,14 @@ type judiciary struct {
 	presidentID       shared.ClientID
 	EvaluationResults map[shared.ClientID]roles.EvaluationReturn
 	clientJudge       roles.Judge
+}
+
+// loadClientJudge checks client pointer is good and if not panics
+func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
+	if clientJudgePointer == nil {
+		panic(fmt.Sprintf("Client '%v' has loaded a nil judge pointer", j.JudgeID))
+	}
+	j.clientJudge = clientJudgePointer
 }
 
 func (j *judiciary) init() {
@@ -76,12 +86,12 @@ func (j *judiciary) setSpeakerAndPresidentIDs(speakerID shared.ClientID, preside
 
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
-func (j *judiciary) inspectHistory() (map[shared.ClientID]roles.EvaluationReturn, bool) {
+func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	if !j.incurServiceCharge("inspectHistory") {
 		return nil, false
 	}
 
-	return j.clientJudge.InspectHistory()
+	return j.clientJudge.InspectHistory(iigoHistory)
 }
 
 // inspectBallot checks each ballot action adheres to the rules
@@ -113,8 +123,8 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	}
 
 	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
-	indexOfAllocRule, err := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
-	if err {
+	indexOfAllocRule, ok := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
+	if !ok {
 		return true, errors.Errorf("President didn't conduct any allocations")
 	}
 	return rulesAffectedByPresident.Evaluations[indexOfAllocRule], nil
@@ -127,12 +137,17 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 			return i, true
 		}
 	}
-	return 0, false
+	return -1, false
 }
 
 // declareSpeakerPerformanceWrapped wraps the result of DeclareSpeakerPerformance for orchestration
 func (j *judiciary) declareSpeakerPerformanceWrapped() {
-	result, checkRole := j.clientJudge.DeclareSpeakerPerformance()
+	res, err := j.inspectBallot()
+	didRole := true
+	if err != nil {
+		didRole = false
+	}
+	result, checkRole := j.clientJudge.DeclareSpeakerPerformance(res, didRole)
 	message := generateSpeakerPerformanceMessage(j.BallotID, result, j.speakerID, checkRole)
 	broadcastToAllIslands(shared.TeamIDs[j.JudgeID], message)
 
@@ -140,7 +155,12 @@ func (j *judiciary) declareSpeakerPerformanceWrapped() {
 
 // declarePresidentPerformanceWrapped wraps the result of DeclarePresidentPerformance for orchestration
 func (j *judiciary) declarePresidentPerformanceWrapped() {
-	result, checkRole := j.clientJudge.DeclarePresidentPerformance()
+	res, err := j.inspectAllocation()
+	didRole := true
+	if err != nil {
+		didRole = false
+	}
+	result, checkRole := j.clientJudge.DeclarePresidentPerformance(res, didRole)
 	message := generatePresidentPerformanceMessage(j.ResAllocID, result, j.presidentID, checkRole)
 	broadcastToAllIslands(shared.TeamIDs[j.JudgeID], message)
 

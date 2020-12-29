@@ -1,6 +1,8 @@
 package iigointernal
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -21,10 +23,18 @@ type legislature struct {
 	clientSpeaker roles.Speaker
 }
 
+// loadClientSpeaker checks client pointer is good and if not panics
+func (l *legislature) loadClientSpeaker(clientSpeakerPointer roles.Speaker) {
+	if clientSpeakerPointer == nil {
+		panic(fmt.Sprintf("Client '%v' has loaded a nil speaker pointer", l.SpeakerID))
+	}
+	l.clientSpeaker = clientSpeakerPointer
+}
+
 // sendJudgeSalary conduct the transaction based on amount from client implementation
 func (l *legislature) sendJudgeSalary() error {
 	if l.clientSpeaker != nil {
-		amount, judgePaid := l.clientSpeaker.PayJudge()
+		amount, judgePaid := l.clientSpeaker.PayJudge(l.judgeSalary)
 		if judgePaid {
 			// Subtract from common resources pool
 			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, l.gameState)
@@ -146,21 +156,21 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 		return errors.Errorf("Insufficient Budget in common Pool: updateRules")
 	}
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
-	notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
+	//notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
 	if ruleVotedIn {
 		// _ = rules.PullRuleIntoPlay(ruleName)
 		err := rules.PullRuleIntoPlay(ruleName)
-		if err != nil {
-			if err.Error() == notInRulesCache.Error() {
-				return err
+		if ruleErr, ok := err.(*rules.RuleError); ok {
+			if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
+				return ruleErr
 			}
 		}
 	} else {
 		// _ = rules.PullRuleOutOfPlay(ruleName)
 		err := rules.PullRuleOutOfPlay(ruleName)
-		if err != nil {
-			if err.Error() == notInRulesCache.Error() {
-				return err
+		if ruleErr, ok := err.(*rules.RuleError); ok {
+			if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
+				return ruleErr
 			}
 		}
 

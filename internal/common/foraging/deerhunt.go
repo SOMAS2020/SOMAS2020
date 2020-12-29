@@ -31,9 +31,7 @@ func (d DeerHunt) TotalInput() shared.Resources {
 }
 
 // Hunt returns the utility from a deer hunt
-func (d DeerHunt) Hunt() shared.Resources {
-	fConf := config.GameConfig().ForagingConfig
-
+func (d DeerHunt) Hunt(fConf config.ForagingConfig) shared.Resources {
 	input := d.TotalInput()
 	decay := fConf.IncrementalInputDecay
 	maxDeer := fConf.MaxDeerPerHunt

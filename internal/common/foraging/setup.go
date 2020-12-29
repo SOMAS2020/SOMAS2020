@@ -6,13 +6,12 @@ import (
 )
 
 // CreateDeerHunt receives hunt participants and their contributions and returns a DeerHunt
-func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.Resources) (DeerHunt, error) {
-	fConf := config.GameConfig().ForagingConfig
+func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.Resources, fConf config.ForagingConfig) (DeerHunt, error) {
 	params := deerHuntParams{p: fConf.BernoulliProb, lam: fConf.ExponentialRate}
 	return DeerHunt{ParticipantContributions: teamResourceInputs, params: params}, nil // returning error too for future use
 }
 
 // CreateDeerPopulationModel returns the target population model. The formulation of this model should be changed here before runtime
-func CreateDeerPopulationModel() DeerPopulationModel {
-	return createBasicDeerPopulationModel()
+func CreateDeerPopulationModel(fConf config.ForagingConfig) DeerPopulationModel {
+	return createBasicDeerPopulationModel(fConf)
 }

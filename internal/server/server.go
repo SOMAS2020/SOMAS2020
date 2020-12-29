@@ -24,42 +24,49 @@ type Server interface {
 type SOMASServer struct {
 	gameState gamestate.GameState
 
+	gameConfig config.Config
+
 	// ClientMap maps from the ClientID to the Client object.
 	// We don't store this in gameState--gameState is shared to clients and should
 	// not contain pointers to other clients!
 	clientMap map[shared.ClientID]baseclient.Client
 }
 
-// SOMASServerFactory returns an instance of the main server we use.
-func SOMASServerFactory() Server {
-	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(baseclient.RegisteredClients)
-	return createSOMASServer(clientInfos, clientMap)
+// NewSOMASServer returns an instance of the main server we use.
+func NewSOMASServer(gameConfig config.Config) Server {
+	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(
+		baseclient.RegisteredClients,
+		gameConfig.InitialResources,
+	)
+	return createSOMASServer(clientInfos, clientMap, gameConfig)
 }
 
 // createSOMASServer creates the main server given initial data about the
 // clients. Extracted from SOMASServerFactory for testing purposes.
 func createSOMASServer(
 	clientInfos map[shared.ClientID]gamestate.ClientInfo,
-	clientMap map[shared.ClientID]baseclient.Client) Server {
-
+	clientMap map[shared.ClientID]baseclient.Client,
+	gameConfig config.Config,
+) Server {
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
 	}
 
 	server := &SOMASServer{
-		clientMap: clientMap,
+		clientMap:  clientMap,
+		gameConfig: gameConfig,
 		gameState: gamestate.GameState{
 			Season:         1,
 			Turn:           1,
 			ClientInfos:    clientInfos,
-			Environment:    disasters.InitEnvironment(clientIDs),
-			DeerPopulation: foraging.CreateDeerPopulationModel(),
-			IIGOHistory:    &gamestate.TurnHistory,
+			Environment:    disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
+			DeerPopulation: foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig),
+			IIGOHistory:    []shared.Accountability{},
 			IIGORolesBudget: map[string]shared.Resources{
-				"president": 100,
-				"judge":     100,
-				"speaker":   100,
+				"president": 0,
+				"judge":     0,
+				"speaker":   0,
 			},
 		},
 	}
@@ -79,7 +86,7 @@ func createSOMASServer(
 func (s *SOMASServer) EntryPoint() ([]gamestate.GameState, error) {
 	states := []gamestate.GameState{s.gameState.Copy()}
 
-	for !s.gameOver(config.GameConfig().MaxTurns, config.GameConfig().MaxSeasons) {
+	for !s.gameOver(s.gameConfig.MaxTurns, s.gameConfig.MaxSeasons) {
 		if err := s.runTurn(); err != nil {
 			return states, err
 		}

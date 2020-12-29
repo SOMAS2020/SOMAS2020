@@ -7,7 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
-	"github.com/pkg/errors"
 )
 
 // featureJudge is an instantiation of the Judge interface
@@ -67,7 +66,7 @@ var presidentPointer roles.President = nil
 var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
-func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) error {
+func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
 
 	iigoClients = *clientMap
 
@@ -96,9 +95,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
-	judicialBranch.clientJudge = judgePointer
-	executiveBranch.clientPresident = presidentPointer
-	legislativeBranch.clientSpeaker = speakerPointer
+	judicialBranch.loadClientJudge(judgePointer)
+	executiveBranch.loadClientPresident(presidentPointer)
+	legislativeBranch.loadClientSpeaker(speakerPointer)
 
 	// Pay salaries into budgets
 
@@ -107,11 +106,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	errorExecutive := executiveBranch.sendSpeakerSalary()
 	// Throw error
 	if errorJudicial != nil || errorLegislative != nil || errorExecutive != nil {
-		return errors.Errorf("Cannot pay IIGO salary")
+		return false, "Cannot pay IIGO salary"
 	}
 
 	// 1 Judge actions - inspect history
-	_, historyInspected := judicialBranch.inspectHistory()
+	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
@@ -133,7 +132,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		insufficientBudget = executiveBranch.requestRuleProposal()
 	}
 	if insufficientBudget != nil {
-		return errors.Errorf("Common pool resources insufficient for executiveBranch actions")
+		return false, "Common pool resources insufficient for executiveBranch actions"
 	}
 	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
 
@@ -149,7 +148,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 			insufficientBudget = legislativeBranch.announceVotingResult()
 		}
 		if insufficientBudget != nil {
-			return errors.Errorf("Common pool resources insufficient for legislativeBranch actions")
+			return false, "Common pool resources insufficient for legislativeBranch actions"
 		}
 	}
 
@@ -168,5 +167,5 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// Get new President ID
 	PresidentIDGlobal, _ = judicialBranch.appointNextPresident(aliveClientIds)
 
-	return nil
+	return true, "IIGO Run Successful"
 }

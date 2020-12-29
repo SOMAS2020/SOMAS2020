@@ -13,13 +13,13 @@ type Config struct {
 	// MaxTurns is the maximum numbers of 1-indexed turns to run the game.
 	MaxTurns uint
 
-	// InitialResources is the default number of resources at the start of the game
+	// InitialResources is the default number of resources at the start of the game.
 	InitialResources shared.Resources
 
 	// CostOfLiving is subtracted from an islands pool before
-	// the next term. This is the simulation-level equivalent to using resources to stay
+	// the next turn. This is the simulation-level equivalent to using resources to stay
 	// alive (e.g. food consumed). These resources are permanently consumed and do
-	// NOT go into the common pool. Note: this is NOT the same as the tax
+	// NOT go into the common pool. Note: this is NOT the same as the tax.
 	CostOfLiving shared.Resources
 
 	// MinimumResourceThreshold is the minimum resources required for an island to not be
@@ -42,13 +42,13 @@ type Config struct {
 // ForagingConfig captures foraging-specific config
 type ForagingConfig struct {
 	// Deer Hunting
-	MaxDeerPerHunt        uint    // Maximimum possible number of deer on a single hunt (regardless of number of participants)
+	MaxDeerPerHunt        uint    // Max possible number of deer on a single hunt (regardless of number of participants)
 	IncrementalInputDecay float64 // Determines decay of incremental input cost of hunting more deer
 	BernoulliProb         float64 // `p` param in D variable (see README). Controls prob of catching a deer or not
 	ExponentialRate       float64 // `lambda` param in W variable (see README). Controls distribution of deer sizes.
 
 	// Deer Population
-	MaxDeerPopulation     uint    // Maximimum possible deer population. Reserved for post-MVP functionality
+	MaxDeerPopulation     uint    // Max possible deer population.
 	DeerGrowthCoefficient float64 // Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster
 
 	// TODO: add other pertinent params here (for fishing etc)
@@ -62,6 +62,7 @@ type DisasterConfig struct {
 	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
 }
 
+/*
 // IIGOConfig (document cost of each action)
 type IIGOConfig struct {
 	ExecutiveActionCost   map[string]shared.Resources
@@ -127,3 +128,4 @@ func GameConfig() Config {
 		IIGOConfig:                  iigoConf,
 	}
 }
+*/
