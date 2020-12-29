@@ -72,5 +72,10 @@ func (f ForagingReport) Display() string {
 // Copy returns a deep copy of the ClientInfo.
 func (f ForagingReport) Copy() ForagingReport {
 	ret := f
+	catchSizes := make([]float64, len(f.CatchSizes))
+	for i, cs := range f.CatchSizes {
+		catchSizes[i] = cs
+	}
+	ret.CatchSizes = catchSizes
 	return ret
 }
