@@ -67,10 +67,10 @@ var (
 		1,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
-	foragingDeerDistributionStrategy = flag.Float64(
+	foragingDeerDistributionStrategy = flag.Int(
 		"foragingDeerDistributionStrategy",
-		1,
-		"basis on which returns from deer hunt are split",
+		int(shared.InputProportionalSplit),
+		shared.HelpResourceDistributionStrategy(),
 	)
 	foragingMaxDeerPopulation = flag.Uint(
 		"maxDeerPopulation",
@@ -106,6 +106,11 @@ var (
 		"foragingFishingResourceMultiplier",
 		1,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingFishingDistributionStrategy = flag.Int(
+		"foragingFishingDistributionStrategy",
+		int(shared.EqualSplit),
+		shared.HelpResourceDistributionStrategy(),
 	)
 	// config.DisasterConfig
 	disasterXMin = flag.Float64(
@@ -155,6 +160,7 @@ func parseConfig() config.Config {
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
 		ResourceMultiplier:    *foragingDeerResourceMultiplier,
+		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy),
 
 		MaxDeerPopulation:     *foragingMaxDeerPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
@@ -166,6 +172,7 @@ func parseConfig() config.Config {
 		Mean:                  *foragingFishingMean,
 		Variance:              *foragingFishingVariance,
 		ResourceMultiplier:    *foragingFishingResourceMultiplier,
+		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy),
 	}
 	foragingConf := config.ForagingConfig{
 		DeerHuntConfig: deerConf,

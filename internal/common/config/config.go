@@ -86,7 +86,7 @@ func GameConfig() Config {
 		IncrementalInputDecay: 0.8,
 		BernoulliProb:         0.95,
 		ExponentialRate:       1,
-		DistributionStrategy:  shared.InputProportional,
+		DistributionStrategy:  shared.InputProportionalSplit,
 
 		MaxDeerPopulation:     12,
 		DeerGrowthCoefficient: 0.4,
@@ -97,7 +97,7 @@ func GameConfig() Config {
 		IncrementalInputDecay: 0.8,
 		Mean:                  0.9,
 		Variance:              0.2,
-		DistributionStrategy:  shared.InputProportional,
+		DistributionStrategy:  shared.InputProportionalSplit,
 	}
 	foragingConf := ForagingConfig{
 		DeerHuntConfig: deerConf,
