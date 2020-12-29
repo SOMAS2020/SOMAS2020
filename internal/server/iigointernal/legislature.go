@@ -170,7 +170,7 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 }
 
 // appointNextJudge returns the island ID of the island appointed to be Judge in the next turn
-func (l *legislature) appointNextJudge() shared.ClientID {
+func (l *legislature) appointNextJudge(currentJudge shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextJudge shared.ClientID
 	electionsettings := l.clientSpeaker.CallJudgeElection(l.judgeTurnsInPower)
@@ -184,7 +184,7 @@ func (l *legislature) appointNextJudge() shared.ClientID {
 		nextJudge = l.clientSpeaker.DecideNextJudge(nextJudge)
 	} else {
 		l.judgeTurnsInPower += 1
-		nextJudge = JudgeIDGlobal
+		nextJudge = currentJudge
 	}
 	return nextJudge
 }

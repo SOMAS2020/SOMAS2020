@@ -12,27 +12,20 @@ import (
 )
 
 type judiciary struct {
-	PresidentID           shared.ClientID
+	JudgeID               shared.ClientID
 	budget                shared.Resources
 	presidentSalary       shared.Resources
-	BallotID              int
-	ResAllocID            int
 	EvaluationResults     map[shared.ClientID]roles.EvaluationReturn
-	clientPresident       roles.President
+	clientJudge           roles.Judge
 	presidentTurnsInPower int
 }
 
-// loadClientPresident checks client pointer is good and if not panics
-func (j *judiciary) loadClientPresident(clientPresidentPointer roles.President) {
-	if clientPresidentPointer == nil {
-		panic(fmt.Sprintf("Client '%v' has loaded a nil President pointer", j.PresidentID))
+// loadClientJudge checks client pointer is good and if not panics
+func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
+	if clientJudgePointer == nil {
+		panic(fmt.Sprintf("Client '%v' has loaded a nil judge pointer", j.JudgeID))
 	}
-	j.clientPresident = clientPresidentPointer
-}
-
-func (j *judiciary) init() {
-	j.BallotID = 0
-	j.ResAllocID = 0
+	j.clientJudge = clientJudgePointer
 }
 
 // returnPresidentSalary returns the salary to the common pooj.
@@ -52,8 +45,8 @@ func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool
 
 // sendPresidentSalary sends the president's salary to the president.
 func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
-	if j.clientPresident != nil {
-		amount, payPresident := j.clientPresident.PayPresident(j.presidentSalary)
+	if j.clientJudge != nil {
+		amount, payPresident := j.clientJudge.PayPresident(j.presidentSalary)
 		if payPresident {
 			executiveBranch.budget = amount
 		}
@@ -74,7 +67,7 @@ func (j *judiciary) PayPresident() shared.Resources {
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	j.budget -= serviceCharge
-	return j.clientPresident.InspectHistory(iigoHistory)
+	return j.clientJudge.InspectHistory(iigoHistory)
 }
 
 // searchForRule searches for a given rule in the RuleMatrix
@@ -88,7 +81,7 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 }
 
 // appointNextPresident returns the island ID of the island appointed to be President in the next turn
-func (j *judiciary) appointNextPresident() shared.ClientID {
+func (j *judiciary) appointNextPresident(currentPresident shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextPresident shared.ClientID
 	electionsettings := j.clientJudge.CallPresidentElection(j.presidentTurnsInPower)
@@ -102,7 +95,7 @@ func (j *judiciary) appointNextPresident() shared.ClientID {
 		nextPresident = j.clientJudge.DecideNextPresident(nextPresident)
 	} else {
 		j.presidentTurnsInPower += 1
-		nextPresident = PresidentIDGlobal
+		nextPresident = currentPresident
 	}
 	return nextPresident
 }
