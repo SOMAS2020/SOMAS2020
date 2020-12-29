@@ -16,6 +16,11 @@ func TestPutSalaryBack(t *testing.T) {
 			"speaker":   0,
 			"judge":     0,
 		},
+		ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+			shared.Team1: gamestate.ClientInfo{Resources: 0},
+			shared.Team2: gamestate.ClientInfo{Resources: 0},
+			shared.Team3: gamestate.ClientInfo{Resources: 0},
+		},
 	}
 	goodRun, _ := RunIIGO(&fakeGameState, &map[shared.ClientID]baseclient.Client{
 		shared.Team1: &baseclient.BaseClient{},
@@ -36,3 +41,7 @@ func TestPutSalaryBack(t *testing.T) {
 //1. test salary paid are moved into island private resources pools
 //2. test that the first round will works well
 //3. add experimentatl
+
+// Incure service charge in each file
+// DepositIntoClient private pool - Utilies
+// WithdrawFromCommonPool - Utilies?

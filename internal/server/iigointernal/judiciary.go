@@ -48,6 +48,7 @@ func (j *judiciary) sendPresidentSalary() error {
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, PresidentIDGlobal, j.gameState)
+				return nil
 			}
 		}
 	}
@@ -206,7 +207,7 @@ func generatePresidentPerformanceMessage(RID int, result bool, PID shared.Client
 func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, j.gameState)
 	if ok {
-		j.gameState.IIGORolesBudget["budget"] -= cost
+		j.gameState.IIGORolesBudget["judge"] -= cost
 	}
 	return ok
 }
