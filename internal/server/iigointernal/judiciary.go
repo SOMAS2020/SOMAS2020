@@ -270,7 +270,7 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 			},
 		})
 	}
-
+	j.localSanctionCache = decrementSanctionTime(j.localSanctionCache)
 }
 
 // cycleSanctionCache rolls the sanction cahce one turn forward (effectively dropping any sanctions longer than the depth)
@@ -303,6 +303,15 @@ func (j *judiciary) clearHistoryCache() {
 }
 
 // Helper functions for Judiciary branch
+
+func decrementSanctionTime(sanctions map[int][]roles.Sanction) (updatedSanctions map[int][]roles.Sanction) {
+	for _, v := range sanctions {
+		for _, sanction := range v {
+			sanction.TurnsLeft -= 1
+		}
+	}
+	return sanctions
+}
 
 // generateSpeakerPerformanceMessage generates the appropriate communication required regarding
 // speaker performance to be sent to clients

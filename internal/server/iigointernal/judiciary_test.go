@@ -10,8 +10,10 @@ import (
 	"testing"
 )
 
-// Unit tests //
+/// Unit tests ///
 
+// TestMergeEvalResults checks whether the mergeEvalResults function can perform a soft merge of two maps of
+// the type map[shared.ClientID]roles.EvaluationReturn
 func TestMergeEvalResults(t *testing.T) {
 	availableRules := generateDummyRuleMatrices()
 	cases := []struct {
@@ -137,6 +139,8 @@ func TestMergeEvalResults(t *testing.T) {
 	}
 }
 
+// TestSearchEvalReturnForRuleName checks whether the searchEvalReturnForRuleName is able to pick up which rules
+// have been evaluated in a set of EvaluationReturns
 func TestSearchEvalReturnForRuleName(t *testing.T) {
 	availableRules := generateDummyRuleMatrices()
 	cases := []struct {
@@ -195,6 +199,8 @@ func TestSearchEvalReturnForRuleName(t *testing.T) {
 	}
 }
 
+// TestCullCheckedRules checks whether cullCheckedRules is able to remove elements of the history of a turn that
+// have already been checked by a client Judge
 func TestCullCheckedRules(t *testing.T) {
 	availableRules := generateDummyRuleMatrices()
 	cases := []struct {
@@ -355,6 +361,8 @@ func TestCullCheckedRules(t *testing.T) {
 	}
 }
 
+// TestPickUpRulesByVariable checks whether the pickUpRulesByVariable is able to correctly identify what rules
+// a particular variable has affected
 func TestPickUpRulesByVariable(t *testing.T) {
 	ruleMap := generateRuleStore()
 	cases := []struct {
@@ -384,6 +392,8 @@ func TestPickUpRulesByVariable(t *testing.T) {
 	}
 }
 
+// TestCheckPardons checks whether checkPardons is able to correctly identify pardons issued on sanctions that
+// don't exist, and then subtracts these pardoned sanctions from the sanctionCache
 func TestCheckPardons(t *testing.T) {
 	cases := []struct {
 		name          string
@@ -611,6 +621,8 @@ func TestCheckPardons(t *testing.T) {
 	}
 }
 
+// TestUnpackSingleIslandTransgression checks whether unpackSingleIslandTransgressions is able to check an
+// EvaluationReturn data-structure and collect all rules that have found to be broken
 func TestUnpackSingleIslandTransgression(t *testing.T) {
 	availableRules := generateDummyRuleMatrices()
 	cases := []struct {
@@ -663,6 +675,8 @@ func TestUnpackSingleIslandTransgression(t *testing.T) {
 	}
 }
 
+// TestSoftMergeSanctionThreshold checks whether the softMergeSanctionThresholds is able to correctly merge
+// the clients threshols with the default ones
 func TestSoftMergeSanctionThreshold(t *testing.T) {
 	cases := []struct {
 		name              string
@@ -718,6 +732,8 @@ func TestSoftMergeSanctionThreshold(t *testing.T) {
 		})
 	}
 }
+
+// Utility functions for testing //
 
 func generateRuleStore() map[string]rules.RuleMatrix {
 	returnMap := map[string]rules.RuleMatrix{}
