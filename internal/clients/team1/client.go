@@ -57,6 +57,12 @@ type client struct {
 
 	config clientConfig
 }
+// TODO Add anxious state
+// When anxious you're close to becoming critical. You will ask for allocations
+// from the common pool
+// When desperate you are close to dying and will start stealing from the common
+// pool/spend all your remaining resources on foraging.
+// (Maybe put the stealing behind a flag)
 
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
