@@ -19,3 +19,5 @@ SOMAS2020
 output
 
 .vscode
+
+*.wasm

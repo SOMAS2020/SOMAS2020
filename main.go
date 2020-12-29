@@ -1,8 +1,11 @@
+// +build !js
+
 // Package main is the main entrypoint of the program.
 package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,20 +13,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/SOMAS2020/SOMAS2020/pkg/fileutils"
 	"github.com/SOMAS2020/SOMAS2020/pkg/gitinfo"
 	"github.com/SOMAS2020/SOMAS2020/pkg/logger"
 )
-
-// output represents what is output into the output.json file
-type output struct {
-	GameStates []gamestate.GameState
-	Config     config.Config
-	GitInfo    gitinfo.GitInfo
-}
 
 const outputJSONFileName = "output.json"
 const outputLogFileName = "log.txt"
@@ -58,6 +52,7 @@ func initLogger() {
 }
 
 func main() {
+	flag.Parse()
 	gameConfig := parseConfig()
 	s := server.NewSOMASServer(gameConfig)
 	if gameStates, err := s.EntryPoint(); err != nil {
