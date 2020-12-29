@@ -51,3 +51,16 @@ func (p *BasePresident) PaySpeaker(salary shared.Resources) (shared.Resources, b
 	// TODO : Implement opinion based salary payment.
 	return salary, true
 }
+
+func (p *BasePresident) CallSpeakerElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Plurality,
+		IslandsToVote: allIslands,
+		HoldElection:  true,
+	}
+	return electionsettings
+}
+
+func (p *BasePresident) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
+	return winner
+}

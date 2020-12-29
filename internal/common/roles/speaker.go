@@ -9,6 +9,6 @@ type Speaker interface {
 	DecideAgenda(string) (string, bool)
 	DecideVote(string, []shared.ClientID) (string, []shared.ClientID, bool)
 	DecideAnnouncement(string, bool) (string, bool, bool)
-	CallJudgeElection(int) shared.ElectionSettings
+	CallJudgeElection(int, []shared.ClientID) shared.ElectionSettings
 	DecideNextJudge(shared.ClientID) shared.ClientID
 }

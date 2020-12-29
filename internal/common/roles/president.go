@@ -8,6 +8,6 @@ type President interface {
 	SetTaxationAmount(map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool)
 	EvaluateAllocationRequests(map[shared.ClientID]shared.Resources, shared.Resources) (map[shared.ClientID]shared.Resources, bool)
 	PickRuleToVote([]string) (string, bool)
-	CallSpeakerElection(int) shared.ElectionSettings
+	CallSpeakerElection(int, []shared.ClientID) shared.ElectionSettings
 	DecideNextSpeaker(shared.ClientID) shared.ClientID
 }

@@ -77,3 +77,16 @@ func searchForVariableInArray(val rules.VariableFieldName, array []rules.Variabl
 	}
 	return -1, false
 }
+
+func (j *BaseJudge) CallPresidentElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Plurality,
+		IslandsToVote: allIslands,
+		HoldElection:  true,
+	}
+	return electionsettings
+}
+
+func (j *BaseJudge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
+	return winner
+}

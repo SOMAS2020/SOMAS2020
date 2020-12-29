@@ -31,3 +31,16 @@ func (s *BaseSpeaker) DecideVote(ruleID string, aliveClients []shared.ClientID) 
 func (s *BaseSpeaker) DecideAnnouncement(ruleId string, result bool) (string, bool, bool) {
 	return ruleId, result, true
 }
+
+func (s *BaseSpeaker) CallJudgeElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Plurality,
+		IslandsToVote: allIslands,
+		HoldElection:  true,
+	}
+	return electionsettings
+}
+
+func (s *BaseSpeaker) DecideNextJudge(winner shared.ClientID) shared.ClientID {
+	return winner
+}

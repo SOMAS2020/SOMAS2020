@@ -110,10 +110,10 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 
 // appointNextPresident returns the island id of the island appointed to be President in the next turn.
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
-func (e *executive) appointNextSpeaker(currentSpeaker shared.ClientID) shared.ClientID {
+func (e *executive) appointNextSpeaker(currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextSpeaker shared.ClientID
-	electionsettings := e.clientPresident.CallSpeakerElection(e.speakerTurnsInPower)
+	electionsettings := e.clientPresident.CallSpeakerElection(e.speakerTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		// TODO: deduct the cost of holding an election
 		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)

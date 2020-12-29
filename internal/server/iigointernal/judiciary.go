@@ -81,10 +81,10 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 }
 
 // appointNextPresident returns the island ID of the island appointed to be President in the next turn
-func (j *judiciary) appointNextPresident(currentPresident shared.ClientID) shared.ClientID {
+func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextPresident shared.ClientID
-	electionsettings := j.clientJudge.CallPresidentElection(j.presidentTurnsInPower)
+	electionsettings := j.clientJudge.CallPresidentElection(j.presidentTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		// TODO: deduct the cost of holding an election
 		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
