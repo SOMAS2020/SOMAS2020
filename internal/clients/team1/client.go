@@ -110,6 +110,14 @@ func (c client) emotionalState() EmotionalState {
 func (c *client) StartOfTurn() {
 	c.Logf("Emotional state: %v", c.emotionalState())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
+
+	for clientID, status := range c.gameState().ClientLifeStatuses {
+		if status != shared.Dead && clientID != c.GetID() {
+			return
+		}
+	}
+	c.Logf("I'm all alone :c")
+
 }
 
 /********************/
