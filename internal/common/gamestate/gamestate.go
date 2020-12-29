@@ -28,6 +28,12 @@ type GameState struct {
 
 	// IIGO roles budget (initialised in orchestration.go)
 	IIGORolesBudget map[string]shared.Resources
+	// IITO Transactions
+	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
+	// Orchestration
+	SpeakerID   shared.ClientID
+	JudgeID     shared.ClientID
+	PresidentID shared.ClientID
 
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)

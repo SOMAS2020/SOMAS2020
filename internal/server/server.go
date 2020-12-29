@@ -68,6 +68,9 @@ func createSOMASServer(
 				"judge":     0,
 				"speaker":   0,
 			},
+			SpeakerID:   shared.Team1,
+			JudgeID:     shared.Team2,
+			PresidentID: shared.Team3,
 		},
 	}
 
