@@ -28,6 +28,8 @@ func (s *SOMASServer) runTurn() error {
 }
 
 func (s *SOMASServer) startOfTurn() {
+	s.logf("start startOfTurn")
+	defer s.logf("finish startOfTurn")
 	for _, clientID := range getNonDeadClientIDs(s.gameState.ClientInfos) {
 		s.clientMap[clientID].StartOfTurn()
 	}
