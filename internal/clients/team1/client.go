@@ -60,7 +60,7 @@ type clientConfig struct {
 	evadeTaxes bool
 
 	// If true, pay some initial tax to help get the first IIGO running
-	kickstartTax bool
+	kickstartTaxPercent shared.Resources
 
 	// desperateStealAmount is the amount the agent will steal from the commonPool
 	desperateStealAmount shared.Resources
@@ -93,10 +93,10 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		taxAmount:     0,
 		allocation:    0,
 		config: clientConfig{
-			randomForageTurns: 5,
-			anxietyThreshold:  20,
-			evadeTaxes:        false,
-			kickstartTax:      true,
+			randomForageTurns:   5,
+			anxietyThreshold:    20,
+			evadeTaxes:          false,
+			kickstartTaxPercent: 0.1,
 		},
 	}
 }
@@ -181,9 +181,9 @@ func (c *client) GetTaxContribution() shared.Resources {
 	if c.config.evadeTaxes {
 		return 0
 	}
-	if c.config.kickstartTax && c.gameState().Turn == 1 {
+	if c.gameState().Turn == 1 {
 		// Put in some initial resources to get IIGO to run
-		return 0.05 * c.gameState().ClientInfo.Resources
+		return c.config.kickstartTaxPercent * c.gameState().ClientInfo.Resources
 	}
 	return c.taxAmount
 }
