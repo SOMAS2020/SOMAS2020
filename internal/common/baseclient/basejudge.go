@@ -52,18 +52,6 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 	return outputMap, true
 }
 
-// DeclareSpeakerPerformance checks how well the speaker did their job.
-func (j *BaseJudge) DeclareSpeakerPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
-	// TODO: Implement opinion based Speaker performance declaration.
-	return inspectBallot, conductedRole
-}
-
-// DeclarePresidentPerformance checks how well the president did their job.
-func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
-	// TODO: Implement opinion based President performance declaration.
-	return inspectBallot, conductedRole
-}
-
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
 func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
 	var Rules []string
