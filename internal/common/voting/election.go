@@ -88,12 +88,10 @@ func (e *Election) CloseBallot() shared.ClientID {
 func (e *Election) bordaCountResult() shared.ClientID {
 	// Implement Borda count winner selection method
 	//(may need to modify if methods design is changed)
-	var candidatesNumber int = 0
-	var islandsNumber int
 	var votesLayoutElect map[int][]int
 	votesSliceSquare := e.votes
-	candidatesNumber = len(e.islandsToVote)
-	islandsNumber = len(votesSliceSquare)
+	candidatesNumber := len(e.islandsToVote)
+	islandsNumber := len(votesSliceSquare)
 
 	//Initialize votesLayoutMap
 	for i := 1; i < islandsNumber+1; i++ {
@@ -108,7 +106,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 			for k := 0; k < candidatesNumber; k++ {
 				if votesSliceSquare[i][j] == e.islandsToVote[k] {
 					votesLayoutElect[i+1][k] = scoreInit
-					scoreInit -= 1
+					scoreInit--
 				}
 			}
 		}
@@ -176,7 +174,6 @@ func (e *Election) bordaCountResult() shared.ClientID {
 		}
 	}
 	var winner shared.ClientID
-	type client shared.ClientID
 	winner = e.islandsToVote[winnerIndex]
 
 	return winner
