@@ -56,12 +56,12 @@ var (
 	foragingBernoulliProb = flag.Float64(
 		"foragingBernoulliProb",
 		0.95,
-		"'p' param in D variable (see foraging README). Controls prob of catching a deer or not.",
+		"`p` param in D variable (see foraging README). Controls prob of catching a deer or not.",
 	)
 	foragingExponentialRate = flag.Float64(
 		"foragingExponentialRate",
 		1,
-		"'lambda' param in W variable (see foraging README). Controls distribution of deer sizes.",
+		"`lambda` param in W variable (see foraging README). Controls distribution of deer sizes.",
 	)
 	foragingMaxDeerPopulation = flag.Uint(
 		"maxDeerPopulation",
