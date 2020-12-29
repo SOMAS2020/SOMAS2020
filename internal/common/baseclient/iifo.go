@@ -151,7 +151,7 @@ func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInf
 		Confidence:  totalConfidence / numberOfPredictions,
 	}
 
-	c.Logf("Final Prediction: [%v]\n", finalPrediction)
+	c.Logf("Final Prediction: [%v]", finalPrediction)
 	return nil
 }
 

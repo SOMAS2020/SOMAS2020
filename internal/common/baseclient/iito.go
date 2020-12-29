@@ -1,6 +1,8 @@
 package baseclient
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 // GetGiftRequests allows clients to signalize that they want a gift
 // This information is fed to OfferGifts of all other clients.

@@ -28,6 +28,10 @@ type GameState struct {
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
+	// Orchestration
+	SpeakerID   shared.ClientID
+	JudgeID     shared.ClientID
+	PresidentID shared.ClientID
 
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
