@@ -51,12 +51,11 @@ func (c *BaseClient) GetGiftResponses(receivedOffers shared.GiftOfferDict) share
 	return responses
 }
 
-// UpdateGiftInfo gives information about the outcome from AcceptGifts.
-// This allows for opinion formation.
+// UpdateGiftInfo will be called by the server with all the responses you received
+// from the gift session. It is up to you to complete the transactions with the methods
+// that you will implement yourself below. This allows for opinion formation.
 // COMPULSORY, you need to implement this method
 func (c *BaseClient) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) error {
-	// PreviousGifts[count] = acceptedGifts
-	// count++
 	return nil
 }
 

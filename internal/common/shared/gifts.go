@@ -17,11 +17,13 @@ type AcceptReason int
 
 const (
 	// Accept ...
-	Accept AcceptReason = 0
+	Accept AcceptReason = iota
 	// DeclineDontNeed ...
 	DeclineDontNeed
 	// DeclineDontLikeYou ...
 	DeclineDontLikeYou
+	// Ignored ...
+	Ignored
 )
 
 // GiftResponse represents an individual client's response to the server when presented with a GiftOffer.

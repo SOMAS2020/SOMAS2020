@@ -14,9 +14,10 @@ import (
 
 type mockClientIITO struct {
 	baseclient.BaseClient
-	requests  shared.GiftRequestDict
-	offers    shared.GiftOfferDict
-	responses shared.GiftResponseDict
+	requests          shared.GiftRequestDict
+	offers            shared.GiftOfferDict
+	responses         shared.GiftResponseDict
+	receivedResponses shared.GiftResponseDict
 }
 
 func (c *mockClientIITO) GetGiftRequests() shared.GiftRequestDict {
@@ -29,6 +30,11 @@ func (c *mockClientIITO) GetGiftOffers(requests shared.GiftRequestDict) shared.G
 
 func (c *mockClientIITO) GetGiftResponses(offers shared.GiftOfferDict) shared.GiftResponseDict {
 	return c.responses
+}
+
+func (c *mockClientIITO) UpdateGiftInfo(responses shared.GiftResponseDict) error {
+	c.receivedResponses = responses
+	return nil
 }
 
 // Test that the server correctly forms the pipeline for IITO to run
@@ -73,111 +79,7 @@ func TestServerGetGiftRequests(t *testing.T) {
 
 }
 
-func TestServerGetGiftOffers(t *testing.T) {
-
-	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
-			Resources:  1000,
-			LifeStatus: shared.Alive,
-		},
-		shared.Team2: {
-			Resources:  500,
-			LifeStatus: shared.Critical,
-		},
-		shared.Team3: {
-			Resources:  50,
-			LifeStatus: shared.Dead,
-		},
-	}
-
-	clientMap := map[shared.ClientID]baseclient.Client{
-		// Team 1 makes 1 valid request: 500 to team 2.
-		shared.Team1: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 50, shared.Team2: 500, shared.Team3: 50}},
-		// TODO: Team 2 attempts to offer more than it has to team 1.
-		shared.Team2: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 500}},
-		// Team 3 is dead, should not show up.
-		shared.Team3: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 600}},
-	}
-
-	want := map[shared.ClientID]shared.GiftOfferDict{
-		shared.Team1: {shared.Team2: 500},
-		shared.Team2: {shared.Team1: 500},
-	}
-
-	// Mock a server
-	s := &SOMASServer{
-		gameState: gamestate.GameState{
-			ClientInfos: clientInfos,
-		},
-		clientMap: clientMap,
-	}
-	offers, _ := s.getGiftOffers(map[shared.ClientID]shared.GiftRequestDict{})
-	if !reflect.DeepEqual(want, offers) {
-		t.Errorf("want '%v' got '%v'", want, offers)
-	}
-
-}
-
-// Test that the server makes a response for every offer, even if the client ignored it.
-func TestServerGetGiftResponses(t *testing.T) {
-
-	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
-			LifeStatus: shared.Alive,
-		},
-		shared.Team2: {
-			LifeStatus: shared.Critical,
-		},
-		shared.Team3: {
-			LifeStatus: shared.Dead,
-		},
-	}
-
-	offers := map[shared.ClientID]shared.GiftOfferDict{
-		shared.Team1: {shared.Team2: 500},
-		shared.Team2: {shared.Team1: 500},
-	}
-
-	clientMap := map[shared.ClientID]baseclient.Client{
-		// Team 1 accepts team 2's offer
-		shared.Team1: &mockClientIITO{
-			responses: shared.GiftResponseDict{
-				shared.Team2: {AcceptedAmount: 500, Reason: shared.Accept},
-			},
-		},
-
-		// Team 2 tries to accept more than it was offered.
-		shared.Team2: &mockClientIITO{
-			responses: shared.GiftResponseDict{
-				shared.Team1: {AcceptedAmount: 700, Reason: shared.Accept},
-			},
-		},
-	}
-
-	want := map[shared.ClientID]shared.GiftResponseDict{
-		shared.Team1: {
-			shared.Team2: {AcceptedAmount: 500, Reason: shared.Accept},
-		},
-		shared.Team2: {
-			shared.Team1: {AcceptedAmount: 500, Reason: shared.Accept},
-		},
-	}
-
-	// Mock a server
-	s := &SOMASServer{
-		gameState: gamestate.GameState{
-			ClientInfos: clientInfos,
-		},
-		clientMap: clientMap,
-	}
-	responses, _ := s.getGiftResponses(offers)
-	if !reflect.DeepEqual(want, responses) {
-		t.Errorf("want '%v' got '%v'", want, responses)
-	}
-
-}
-
-func TestServerSanitisesOffers(t *testing.T) {
+func TestOfferKnapsackPacker(t *testing.T) {
 	offers := shared.GiftOfferDict{
 		shared.Team1: 200,
 		shared.Team2: 500,
@@ -195,10 +97,210 @@ func TestServerSanitisesOffers(t *testing.T) {
 	if !reflect.DeepEqual(wantCombi, optimal) {
 		t.Errorf("want '%v' got '%v'", wantCombi, optimal)
 	}
+}
 
+func TestServerGetGiftOffers(t *testing.T) {
+
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			Resources:  500,
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			Resources:  500,
+			LifeStatus: shared.Alive,
+		},
+		shared.Team3: {
+			Resources:  50,
+			LifeStatus: shared.Alive,
+		},
+		shared.Team4: {
+			Resources:  50,
+			LifeStatus: shared.Dead,
+		},
+	}
+
+	clientMap := map[shared.ClientID]baseclient.Client{
+		// Team 1 makes 1 valid offer: 500 to team 2.
+		shared.Team1: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 50, shared.Team2: 500, shared.Team4: 50}},
+		// TODO: Team 2 attempts to offer more than it has to team 1 and 4.
+		shared.Team2: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 400, shared.Team3: 150}},
+		// Team 3 makes no offers.
+		shared.Team3: &mockClientIITO{},
+		// Team 4 is dead, should not show up.
+		shared.Team4: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 600}},
+	}
+
+	want := map[shared.ClientID]shared.GiftOfferDict{
+		shared.Team1: {shared.Team2: 500},
+		shared.Team2: {shared.Team1: 400},
+	}
+
+	// Mock a server
+	s := &SOMASServer{
+		gameState: gamestate.GameState{
+			ClientInfos: clientInfos,
+		},
+		clientMap: clientMap,
+	}
+	offers := s.getGiftOffers(map[shared.ClientID]shared.GiftRequestDict{})
+	if !reflect.DeepEqual(want, offers) {
+		t.Errorf("want '%v' got '%v'", want, offers)
+	}
 }
 
 // Test that the server caps accepted amount in responses to the amount offered.
-// Test that the server makes a response for every offer, even if the client ignored it.
-func TestServerSanitisesResponses(t *testing.T) {
+// TODO: Test that the server makes a response for every offer, even if the client ignored it.
+func TestServerGetGiftResponses(t *testing.T) {
+
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team4: {
+			LifeStatus: shared.Alive,
+		},
+	}
+
+	offers := map[shared.ClientID]shared.GiftOfferDict{
+		shared.Team1: {shared.Team2: 500},
+		shared.Team2: {shared.Team1: 500},
+		shared.Team3: {shared.Team2: 100},
+		shared.Team4: {shared.Team3: 100},
+	}
+
+	clientMap := map[shared.ClientID]baseclient.Client{
+		// Team 1 accepts team 2's offer, and accepts an offer that was never made by team 3.
+		shared.Team1: &mockClientIITO{
+			responses: shared.GiftResponseDict{
+				shared.Team2: {AcceptedAmount: 500, Reason: shared.Accept},
+				shared.Team3: {AcceptedAmount: 700, Reason: shared.Accept},
+			},
+		},
+
+		// Team 2 tries to accept more than it was offered, and ignores team 3's offer.
+		shared.Team2: &mockClientIITO{
+			responses: shared.GiftResponseDict{
+				shared.Team1: {AcceptedAmount: 700, Reason: shared.Accept},
+			},
+		},
+		// Team 3 has a malformed reply.
+		shared.Team3: &mockClientIITO{
+			responses: shared.GiftResponseDict{
+				shared.Team4: {AcceptedAmount: 300, Reason: shared.DeclineDontLikeYou},
+			},
+		},
+		shared.Team4: &mockClientIITO{},
+	}
+
+	want := map[shared.ClientID]shared.GiftResponseDict{
+		shared.Team1: {
+			shared.Team2: {AcceptedAmount: 500, Reason: shared.Accept},
+		},
+		shared.Team2: {
+			shared.Team1: {AcceptedAmount: 500, Reason: shared.Accept},
+			shared.Team3: {AcceptedAmount: 0, Reason: shared.Ignored},
+		},
+		shared.Team3: {
+			shared.Team4: {AcceptedAmount: 0, Reason: shared.DeclineDontLikeYou},
+		},
+	}
+
+	// Mock a server
+	s := &SOMASServer{
+		gameState: gamestate.GameState{
+			ClientInfos: clientInfos,
+		},
+		clientMap: clientMap,
+	}
+	responses := s.getGiftResponses(offers)
+	if !reflect.DeepEqual(want, responses) {
+		t.Errorf("want '%v' got '%v'", want, responses)
+	}
+
+}
+
+func TestDistributeGiftHistory(t *testing.T) {
+
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Alive,
+		},
+	}
+
+	c1 := mockClientIITO{}
+	c2 := mockClientIITO{}
+	c3 := mockClientIITO{}
+	clientMap := map[shared.ClientID]baseclient.Client{
+		shared.Team1: &c1,
+		shared.Team2: &c2,
+		shared.Team3: &c3,
+	}
+
+	dontNeed := shared.GiftResponse{AcceptedAmount: 0, Reason: shared.DeclineDontNeed}
+	responses := map[shared.ClientID]shared.GiftResponseDict{
+		// Everybody loves team 1 and team 1 loves everybody.
+		shared.Team1: {
+			shared.Team2: {AcceptedAmount: 100, Reason: shared.Accept},
+			shared.Team3: {AcceptedAmount: 100, Reason: shared.Accept},
+		},
+		// Team 2 hates receiving gifts.
+		shared.Team2: {
+			shared.Team1: {AcceptedAmount: 200, Reason: shared.Accept},
+			shared.Team3: {AcceptedAmount: 0, Reason: shared.Ignored},
+		},
+		// Team 3
+		shared.Team3: {
+			shared.Team1: dontNeed,
+			shared.Team2: dontNeed,
+		},
+	}
+
+	want1 := shared.GiftResponseDict{
+		shared.Team2: {AcceptedAmount: 200, Reason: shared.Accept},
+		shared.Team3: dontNeed,
+	}
+
+	want2 := shared.GiftResponseDict{
+		shared.Team1: {AcceptedAmount: 100, Reason: shared.Accept},
+		shared.Team3: dontNeed,
+	}
+
+	want3 := shared.GiftResponseDict{
+		shared.Team1: {AcceptedAmount: 100, Reason: shared.Accept},
+		shared.Team2: {AcceptedAmount: 0, Reason: shared.Ignored},
+	}
+
+	// Mock a server
+	s := &SOMASServer{
+		gameState: gamestate.GameState{
+			ClientInfos: clientInfos,
+		},
+		clientMap: clientMap,
+	}
+	s.distributeGiftHistory(responses)
+
+	if !reflect.DeepEqual(want1, c1.receivedResponses) {
+		t.Errorf("want '%v' got '%v'", want1, c1.receivedResponses)
+	}
+
+	if !reflect.DeepEqual(want2, c2.receivedResponses) {
+		t.Errorf("want '%v' got '%v'", want2, c2.receivedResponses)
+	}
+
+	if !reflect.DeepEqual(want3, c3.receivedResponses) {
+		t.Errorf("want '%v' got '%v'", want3, c3.receivedResponses)
+	}
 }

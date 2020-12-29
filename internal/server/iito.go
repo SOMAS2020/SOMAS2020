@@ -29,42 +29,31 @@ func (s *SOMASServer) runGiftSession() error {
 	defer s.logf("finish runGiftSession")
 
 	giftRequestDict := s.getGiftRequests()
-	giftOffersDict, err := s.getGiftOffers(giftRequestDict)
-	if err != nil {
-		return err
-	}
-	giftHistoryDict, err := s.getGiftResponses(giftOffersDict)
-	if err != nil {
-		return err
-	}
-	err = s.distributeGiftHistory(giftHistoryDict)
-	if err != nil {
-		return err
-	}
+	giftOffersDict := s.getGiftOffers(giftRequestDict)
+	giftHistoryDict := s.getGiftResponses(giftOffersDict)
+	err := s.distributeGiftHistory(giftHistoryDict)
 	// Process actions
 	for key, value := range giftHistoryDict {
 		s.logf("Gifts from %s: %v\n", key, value)
 	}
-	return nil
+	return err
 }
 
-func (s *SOMASServer) sanitiseTeamGiftRequests(requests shared.GiftRequestDict, thisTeam shared.ClientID) (shared.GiftRequestDict, error) {
+func (s *SOMASServer) sanitiseTeamGiftRequests(requests shared.GiftRequestDict, thisTeam shared.ClientID) shared.GiftRequestDict {
 	for team, request := range requests {
-		// Delete the request if it's to yourself or a dead team.
 		if s.gameState.ClientInfos[team].LifeStatus == shared.Dead || team == thisTeam || request == 0 {
 			delete(requests, team)
+			s.logf("Team %v violated request conventions. To team %v, requested %v", thisTeam, team, request)
 		}
 	}
-
-	// TODO: Maybe return some kind of helpful message if any of the above cases break?
-	return requests, nil
+	return requests
 }
 
 // GetGiftRequests collects a map of gift requests from an individual client, for all clients, in a map
 func (s *SOMASServer) getGiftRequests() map[shared.ClientID]shared.GiftRequestDict {
 	totalRequests := map[shared.ClientID]shared.GiftRequestDict{}
 	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
-		totalRequests[id], _ = s.sanitiseTeamGiftRequests(s.clientMap[id].GetGiftRequests(), id)
+		totalRequests[id] = s.sanitiseTeamGiftRequests(s.clientMap[id].GetGiftRequests(), id)
 
 		if len(totalRequests[id]) == 0 {
 			delete(totalRequests, id)
@@ -122,19 +111,20 @@ func offersKnapsackSolver(capacity shared.GiftOffer, offers shared.GiftOfferDict
 	return bestOffer, bestCombination
 }
 
-// TODO: Return an error?
-func (s *SOMASServer) sanitiseTeamGiftOffers(offers shared.GiftOfferDict, thisTeam shared.ClientID) (shared.GiftOfferDict, error) {
+func (s *SOMASServer) sanitiseTeamGiftOffers(offers shared.GiftOfferDict, thisTeam shared.ClientID) shared.GiftOfferDict {
 	totalOffers := shared.GiftOffer(0)
 	for team, offer := range offers {
 		totalOffers += offer
 		if s.gameState.ClientInfos[team].LifeStatus == shared.Dead || team == thisTeam || offer == 0 {
 			delete(offers, team)
+			s.logf("Team %v made an invalid offer", thisTeam)
 		}
 	}
 
 	// Find the optimal combination of offers if the sum of their offers exceeds their capacity.
 	totalResources := shared.GiftOffer(s.gameState.ClientInfos[thisTeam].Resources)
 	if totalOffers > totalResources {
+		s.logf("Total offerings exceed total resources for team %v", thisTeam)
 		// Yay, a knapsack problem!
 		_, bestCombination := offersKnapsackSolver(totalResources, offers)
 		newOffers := shared.GiftOfferDict{}
@@ -144,12 +134,11 @@ func (s *SOMASServer) sanitiseTeamGiftOffers(offers shared.GiftOfferDict, thisTe
 		offers = newOffers
 	}
 
-	// TODO: Maybe return some kind of helpful message if any of the above cases break?
-	return offers, nil
+	return offers
 }
 
 // getGiftOffers collects all responses from clients to their requests in a map
-func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.GiftRequestDict) (map[shared.ClientID]shared.GiftOfferDict, error) {
+func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.GiftRequestDict) map[shared.ClientID]shared.GiftOfferDict {
 	totalOffers := map[shared.ClientID]shared.GiftOfferDict{}
 	for _, thisTeam := range getNonDeadClientIDs(s.gameState.ClientInfos) {
 		// Gather all the requests made to this team
@@ -160,38 +149,43 @@ func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.Gif
 			}
 		}
 
-		offers, err := s.sanitiseTeamGiftOffers(s.clientMap[thisTeam].GetGiftOffers(requestsToThisTeam), thisTeam)
-		if err != nil {
-			// totalResponses in this case may have a bogus or meaningless value
-			return totalOffers, err
-		}
-
+		offers := s.sanitiseTeamGiftOffers(s.clientMap[thisTeam].GetGiftOffers(requestsToThisTeam), thisTeam)
 		if len(offers) > 0 {
 			totalOffers[thisTeam] = offers
 		}
 	}
-	return totalOffers, nil
+	return totalOffers
 }
 
-func (s *SOMASServer) sanitiseTeamGiftResponses(responses shared.GiftResponseDict, offers shared.GiftOfferDict) (shared.GiftResponseDict, error) {
+func (s *SOMASServer) sanitiseTeamGiftResponses(responses shared.GiftResponseDict, offers shared.GiftOfferDict, thisTeam shared.ClientID) shared.GiftResponseDict {
 	for team, response := range responses {
-		// Cap each response so that the an island can't accept more than it was offered.
-		if response.AcceptedAmount > shared.Resources(offers[team]) {
+		// If the reason isn't "Accept", the accepted amount should be 0. Otherwise,
+		// cap each response so that the an island can't accept more than it was offered.
+		if response.Reason != shared.Accept {
+			response.AcceptedAmount = 0
+			s.logf("Team %v had a malformed response. Accepted: %v, Reason: %v, Offered: %v ", thisTeam, response.AcceptedAmount, response.Reason, offers[team])
+		} else if response.AcceptedAmount > shared.Resources(offers[team]) {
 			response.AcceptedAmount = shared.Resources(offers[team])
-			responses[team] = response
+			s.logf("Team %v tried to accept more than it was offered. Accepted: %v, Offered: %v ", thisTeam, response.AcceptedAmount, offers[team])
 		}
+		responses[team] = response
 
 		// Can't respond to an offer that was not given.
 		if _, ok := offers[team]; !ok {
 			delete(responses, team)
+			s.logf("Team %v tried to accept a non-existent offer. Accepted: %v, Offered: %v ", thisTeam, response.AcceptedAmount, team)
 		}
 	}
-	// TODO: Pad the responses so that each offer is responded to, even if ignored.
-	// TODO: Maybe return some kind of helpful message if any of the above cases break?
-	return responses, nil
+	// Pad the responses so that each offer is responded to, even if ignored.
+	for offerFrom := range offers {
+		if _, ok := responses[offerFrom]; !ok {
+			responses[offerFrom] = shared.GiftResponse{AcceptedAmount: 0.0, Reason: shared.Ignored}
+		}
+	}
+	return responses
 }
 
-func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.GiftOfferDict) (map[shared.ClientID]shared.GiftResponseDict, error) {
+func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.GiftOfferDict) map[shared.ClientID]shared.GiftResponseDict {
 	totalResponses := map[shared.ClientID]shared.GiftResponseDict{}
 
 	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
@@ -201,14 +195,12 @@ func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.Gi
 				offersToThisTeam[fromTeam] = offer
 			}
 		}
-		response, err := s.sanitiseTeamGiftResponses(s.clientMap[id].GetGiftResponses(offersToThisTeam), offersToThisTeam)
-		if err != nil {
-			// totalResponses in this case may have a bogus or meaningless value
-			return totalResponses, err
+		response := s.sanitiseTeamGiftResponses(s.clientMap[id].GetGiftResponses(offersToThisTeam), offersToThisTeam, id)
+		if len(response) > 0 {
+			totalResponses[id] = response
 		}
-		totalResponses[id] = response
 	}
-	return totalResponses, nil
+	return totalResponses
 }
 
 // distributeGiftHistory collates all responses to a single client and calls that client to receive its responses.
