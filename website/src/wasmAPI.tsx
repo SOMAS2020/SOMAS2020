@@ -1,4 +1,3 @@
-// Hacks to properly type global objects set by wasm 
 import outputJSONData from './output/output.json'
 import { notEmpty } from './utils'
 
