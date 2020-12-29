@@ -81,6 +81,13 @@ func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
 }
 
+func (c *client) StartOfTurn() {
+	if c.desperate() {
+		c.Logf("Desperate")
+	}
+	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
+}
+
 /********************/
 /***  Desperation   */
 /********************/
