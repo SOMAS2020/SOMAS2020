@@ -4,7 +4,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
@@ -44,15 +43,6 @@ var executiveBranch = executive{
 	ResourceRequests: nil,
 }
 
-// SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
-var SpeakerIDGlobal shared.ClientID = 0
-
-// JudgeIDGlobal is the single source of truth for judge ID (MVP)
-var JudgeIDGlobal shared.ClientID = 1
-
-// PresidentIDGlobal is the single source of truth for president ID (MVP)
-var PresidentIDGlobal shared.ClientID = 2
-
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
@@ -73,16 +63,16 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	iigoClients = *clientMap
 
 	// Initialise IDs
-	judicialBranch.JudgeID = JudgeIDGlobal
-	legislativeBranch.SpeakerID = SpeakerIDGlobal
-	executiveBranch.ID = PresidentIDGlobal
+	judicialBranch.JudgeID = g.JudgeID
+	legislativeBranch.SpeakerID = g.SpeakerID
+	executiveBranch.ID = g.PresidentID
 
 	// Set judgePointer
-	judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
+	judgePointer = iigoClients[g.JudgeID].GetClientJudgePointer()
 	// Set speakerPointer
-	speakerPointer = iigoClients[SpeakerIDGlobal].GetClientSpeakerPointer()
+	speakerPointer = iigoClients[g.SpeakerID].GetClientSpeakerPointer()
 	// Set presidentPointer
-	presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
+	presidentPointer = iigoClients[g.PresidentID].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
 	judicialBranch.loadClientJudge(judgePointer)
@@ -118,17 +108,18 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
-
-	// TODO get alive clients differently
-	var aliveClientIds []shared.ClientID
-	for _, v := range rules.VariableMap[rules.IslandsAlive].Values {
-		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
-		resourceReports[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].ResourceReport()
+	aliveClientIds := []shared.ClientID{}
+	for clientID, clientGameState := range g.ClientInfos {
+		if clientGameState.LifeStatus != shared.Dead {
+			aliveClientIds = append(aliveClientIds, clientID)
+			resourceReports[clientID] = iigoClients[clientID].ResourceReport()
+		}
 	}
-	executiveBranch.broadcastTaxation(resourceReports)
-	executiveBranch.requestAllocationRequest()
-	executiveBranch.replyAllocationRequest(g.CommonPool)
-	executiveBranch.requestRuleProposal()
+
+	executiveBranch.broadcastTaxation(resourceReports, aliveClientIds)
+	executiveBranch.requestAllocationRequest(aliveClientIds)
+	executiveBranch.replyAllocationRequest(g.CommonPool, aliveClientIds)
+	executiveBranch.requestRuleProposal(aliveClientIds)
 	ruleToVoteReturn := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
@@ -146,11 +137,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// Get new Judge ID
-	JudgeIDGlobal = legislativeBranch.appointNextJudge(aliveClientIds)
+	g.JudgeID = legislativeBranch.appointNextJudge(aliveClientIds)
 	// Get new Speaker ID
-	SpeakerIDGlobal = executiveBranch.appointNextSpeaker(aliveClientIds)
+	g.SpeakerID = executiveBranch.appointNextSpeaker(aliveClientIds)
 	// Get new President ID
-	PresidentIDGlobal = judicialBranch.appointNextPresident(aliveClientIds)
+	g.PresidentID = judicialBranch.appointNextPresident(aliveClientIds)
 
 	return true, "IIGO Run Successful"
 }
