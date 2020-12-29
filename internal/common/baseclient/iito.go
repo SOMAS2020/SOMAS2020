@@ -59,16 +59,20 @@ func (c *BaseClient) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) e
 	return nil
 }
 
-// SendGift is executed at the end of each turn and allows clients to
-// send the gifts promised in the IITO
+// SentGift is executed at the end of each turn and notifies clients that
+// their gift was successfully sent, along with the offer details.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) SendGift(offer shared.GiftOffer, to shared.ClientID) error {
+func (c *BaseClient) SentGift(sent shared.Resources, to shared.ClientID) error {
+	// You can check your updated resources like this:
+	// myResources := c.serverReadHandle.GetGameState().ClientInfo.Resources
 	return nil
 }
 
-// ReceiveGift is executed at the end of each turn and allows clients to
-// receive the gifts promised in the IITO
+// ReceivedGift is executed at the end of each turn and notifies clients that
+// their gift was successfully received, along with the offer details.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) ReceiveGift(offer shared.GiftOffer, from shared.ClientID) error {
+func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientID) error {
+	// You can check your updated resources like this:
+	// myResources := c.serverReadHandle.GetGameState().ClientInfo.Resources
 	return nil
 }

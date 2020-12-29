@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -9,10 +11,7 @@ import (
 func (s *SOMASServer) runIITO() error {
 	s.logf("start runIITO")
 	defer s.logf("finish runIITO")
-	err := s.runGiftSession()
-	if err != nil {
-		return err
-	}
+	s.gameState.IITOTransactions = s.runGiftSession()
 	// TODO:- IITO team
 	return nil
 }
@@ -20,23 +19,30 @@ func (s *SOMASServer) runIITO() error {
 func (s *SOMASServer) runIITOEndOfTurn() error {
 	s.logf("start runIITOEndOfTurn")
 	defer s.logf("finish runIITOEndOfTurn")
-	// TODO:- IITO team
+	s.executeTransactions(s.gameState.IITOTransactions)
 	return nil
 }
 
-func (s *SOMASServer) runGiftSession() error {
+func (s *SOMASServer) runGiftSession() map[shared.ClientID]shared.GiftResponseDict {
 	s.logf("start runGiftSession")
 	defer s.logf("finish runGiftSession")
 
-	giftRequestDict := s.getGiftRequests()
-	giftOffersDict := s.getGiftOffers(giftRequestDict)
-	giftHistoryDict := s.getGiftResponses(giftOffersDict)
-	err := s.distributeGiftHistory(giftHistoryDict)
-	// Process actions
-	for key, value := range giftHistoryDict {
-		s.logf("Gifts from %s: %v\n", key, value)
+	requests := s.getGiftRequests()
+	offers := s.getGiftOffers(requests)
+	responses := s.getGiftResponses(offers)
+
+	// Clean all rejected / ignored responses so the remaining are only the transactions
+	transactions := s.distributeGiftHistory(responses)
+	for key := range transactions {
+		for fromTeam, response := range transactions[key] {
+			s.logf("Gifts to %v from %v: %v\n", fromTeam, key, response.AcceptedAmount)
+			if response.Reason != shared.Accept {
+				delete(transactions[key], fromTeam)
+			}
+		}
 	}
-	return err
+
+	return transactions
 }
 
 func (s *SOMASServer) sanitiseTeamGiftRequests(requests shared.GiftRequestDict, thisTeam shared.ClientID) shared.GiftRequestDict {
@@ -204,7 +210,8 @@ func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.Gi
 }
 
 // distributeGiftHistory collates all responses to a single client and calls that client to receive its responses.
-func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]shared.GiftResponseDict) error {
+func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]shared.GiftResponseDict) map[shared.ClientID]shared.GiftResponseDict {
+	responsesToClients := map[shared.ClientID]shared.GiftResponseDict{}
 	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
 		responsesToThisTeam := shared.GiftResponseDict{}
 		for fromTeam, indivResponses := range totalResponses {
@@ -212,10 +219,26 @@ func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]s
 				responsesToThisTeam[fromTeam] = response
 			}
 		}
-		err := s.clientMap[id].UpdateGiftInfo(responsesToThisTeam)
-		if err != nil {
-			return err
+		responsesToClients[id] = responsesToThisTeam
+		s.clientMap[id].UpdateGiftInfo(responsesToThisTeam)
+	}
+	return responsesToClients
+}
+
+// executeTransactions runs all the accepted responses from the gift session.
+// TODO: UNTESTED
+func (s *SOMASServer) executeTransactions(transactions map[shared.ClientID]shared.GiftResponseDict) {
+	for fromTeam, responses := range transactions {
+		for toTeam, indivResponse := range responses {
+			transactionMsg := fmt.Sprintf("Team %v received gift from %v: %v", toTeam, fromTeam, indivResponse.AcceptedAmount)
+			errTake := s.takeResources(fromTeam, indivResponse.AcceptedAmount, "TAKE: "+transactionMsg)
+			if errTake != nil {
+				s.logf("Error deducting amount: %v", errTake)
+			} else {
+				s.giveResources(toTeam, indivResponse.AcceptedAmount, "GIVE: "+transactionMsg)
+				s.clientMap[toTeam].ReceivedGift(indivResponse.AcceptedAmount, fromTeam)
+				s.clientMap[fromTeam].SentGift(indivResponse.AcceptedAmount, toTeam)
+			}
 		}
 	}
-	return nil
 }

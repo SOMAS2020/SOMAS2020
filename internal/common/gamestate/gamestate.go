@@ -26,6 +26,9 @@ type GameState struct {
 	// IIGO History
 	IIGOHistory []shared.Accountability
 
+	// IITO Transactions
+	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
+
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
 }

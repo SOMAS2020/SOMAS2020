@@ -60,8 +60,8 @@ type Client interface {
 	ForageUpdate(shared.ForageDecision, shared.Resources)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
-	SendGift(offer shared.GiftOffer, to shared.ClientID) error
-	ReceiveGift(offer shared.GiftOffer, from shared.ClientID) error
+	SentGift(sent shared.Resources, to shared.ClientID) error
+	ReceivedGift(received shared.Resources, from shared.ClientID) error
 	GetVoteForRule(ruleName string) bool
 	GetVoteForElection(roleToElect Role) []shared.ClientID
 }
