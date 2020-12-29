@@ -6,10 +6,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
 
-// ForageReturn is a nonnegative, real-valued number that represents
-// the return (utility) from a foraging session
-type ForageReturn = float64
-
 // ForageType selects which resource the agents want to forage in
 type ForageType int
 

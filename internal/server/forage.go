@@ -17,24 +17,51 @@ func (s *SOMASServer) runForage() error {
 	}
 
 	deerHunters := make(map[shared.ClientID]shared.Resources)
+	fishers := make(map[shared.ClientID]shared.Resources)
+
+	// used to keep track of groups choosing different foraging types
+	// this allows different foraging types to be added in future without having
+	// to change assignment logic below
+	forageGroups := map[shared.ForageType]forageContributionType{
+		shared.DeerForageType: {
+			partyContributions: &deerHunters,
+			takeResourceReason: "deer hunt participation",
+		},
+		shared.FishForageType: {
+			partyContributions: &fishers,
+			takeResourceReason: "fishing participation",
+		},
+	}
+
 	for id, decision := range foragingParticipants {
-		if decision.Type == shared.DeerForageType {
-			err := s.takeResources(id, decision.Contribution, "deer hunt participation")
-			if err == nil {
-				deerHunters[id] = decision.Contribution
-			} else {
-				s.logf("%v did not have enough resources to participate in foraging", id)
-			}
+		forageGroup := forageGroups[decision.Type]
+		err := s.takeResources(id, decision.Contribution, forageGroup.takeResourceReason)
+		if err == nil {
+			// assign contribution to client ID within appropriate forage group
+			(*forageGroup.partyContributions)[id] = decision.Contribution
+		} else {
+			s.logf("%v did not have enough resources to participate in foraging", id)
 		}
-		// (*target[decision.Type])[id] = decision.Contribution
 	}
 	errD := s.runDeerHunt(deerHunters)
+	errF := s.runFishingExpedition(fishers)
 
 	if errD != nil {
 		return errors.Errorf("Deer hunt returned with an error:%v", errD)
 	}
 
+	if errF != nil {
+		return errors.Errorf("Fishing expedition returned with an error:%v", errD)
+	}
+
 	return nil
+}
+
+// forageContributionType is a helper type to store forage participants and their contributions
+// and the corresponding reason for taking resources from concerned clients
+type forageContributionType struct {
+	partyContributions *map[shared.ClientID]shared.Resources
+	takeResourceReason string
 }
 
 func (s *SOMASServer) getForagingDecisions() (shared.ForagingDecisionsDict, error) {
@@ -66,15 +93,11 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	}
 
 	huntReport := hunt.Hunt(dhConf)
-
-	totalContributions := shared.Resources(0)
-	for _, contribution := range contributions {
-		totalContributions += contribution
-	}
+	totalContributions := hunt.TotalInput()
 
 	for participantID, contribution := range contributions {
-		participantReturn := shared.Resources(0)
-		if totalContributions != 0 {
+		participantReturn := shared.Resources(0.0)
+		if totalContributions != 0.0 {
 			participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
 		}
 		s.giveResources(participantID, participantReturn, "Deer hunt return")
@@ -89,6 +112,7 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	// update deer population // TODO: decide if there is a better place to do this
 	s.logf("Updating deer population after %v deer hunted", huntReport.NumberDeerCaught)
 	s.updateDeerPopulation(huntReport.NumberDeerCaught) // update deer population based on hunt
+
 	return nil
 }
 
