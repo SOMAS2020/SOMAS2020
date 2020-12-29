@@ -27,7 +27,7 @@ type Client interface {
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
 	CommonPoolResourceRequest() shared.Resources
-	ResourceReport() shared.Resources
+	ResourceReport() shared.ResourcesReport
 	RuleProposal() string
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge

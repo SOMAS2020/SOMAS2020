@@ -56,13 +56,13 @@ func (e *executive) getRuleForSpeaker() shared.PresidentReturnContent {
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) shared.PresidentReturnContent {
+func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
 	e.budget -= serviceCharge
 	return e.clientPresident.SetTaxationAmount(islandsResources)
 }
 
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
-func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
+func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.ResourcesReport) {
 	e.budget -= serviceCharge
 	taxMapReturn := e.getTaxMap(islandsResources)
 	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {

@@ -233,13 +233,14 @@ func TestSetRuleProposals(t *testing.T) {
 func TestGetTaxMap(t *testing.T) {
 	cases := []struct {
 		name           string
-		input          map[shared.ClientID]shared.Resources
+		input          map[shared.ClientID]shared.ResourcesReport
 		bPresident     executive // base
 		expectedLength int
+		expected       map[shared.ClientID]shared.Resources
 	}{
 		{
 			name:  "Empty tax map base",
-			input: map[shared.ClientID]shared.Resources{},
+			input: map[shared.ClientID]shared.ResourcesReport{},
 			bPresident: executive{
 				ID:              3,
 				clientPresident: &baseclient.BasePresident{},
@@ -247,8 +248,10 @@ func TestGetTaxMap(t *testing.T) {
 			expectedLength: 0,
 		},
 		{
-			name:  "Short tax map base",
-			input: map[shared.ClientID]shared.Resources{1: 5},
+			name: "Short tax map base",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: true},
+			},
 			bPresident: executive{
 				ID:              3,
 				clientPresident: &baseclient.BasePresident{},
@@ -256,8 +259,15 @@ func TestGetTaxMap(t *testing.T) {
 			expectedLength: 1,
 		},
 		{
-			name:  "Long tax map base",
-			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			name: "Long tax map base",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: true},
+				2: {ReportedAmount: 10, Reported: true},
+				3: {ReportedAmount: 15, Reported: true},
+				4: {ReportedAmount: 20, Reported: true},
+				5: {ReportedAmount: 25, Reported: true},
+				6: {ReportedAmount: 30, Reported: true},
+			},
 			bPresident: executive{
 				ID:              4,
 				clientPresident: &baseclient.BasePresident{},
@@ -266,7 +276,7 @@ func TestGetTaxMap(t *testing.T) {
 		},
 		{
 			name:  "Client empty tax map base",
-			input: map[shared.ClientID]shared.Resources{},
+			input: map[shared.ClientID]shared.ResourcesReport{},
 			bPresident: executive{
 				ID:              5,
 				clientPresident: &baseclient.BasePresident{},
@@ -274,8 +284,10 @@ func TestGetTaxMap(t *testing.T) {
 			expectedLength: 0,
 		},
 		{
-			name:  "Client short tax map base",
-			input: map[shared.ClientID]shared.Resources{1: 5},
+			name: "Client short tax map base",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: true},
+			},
 			bPresident: executive{
 				ID:              5,
 				clientPresident: &baseclient.BasePresident{},
@@ -283,13 +295,43 @@ func TestGetTaxMap(t *testing.T) {
 			expectedLength: 1,
 		},
 		{
-			name:  "Client long tax map base",
-			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			name: "Client long tax map base",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: true},
+				2: {ReportedAmount: 10, Reported: true},
+				3: {ReportedAmount: 15, Reported: true},
+				4: {ReportedAmount: 20, Reported: true},
+				5: {ReportedAmount: 25, Reported: true},
+				6: {ReportedAmount: 30, Reported: true},
+			},
 			bPresident: executive{
 				ID:              5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 6,
+		},
+		{
+			name: "Clients not reporting",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: false},
+				2: {ReportedAmount: 10, Reported: false},
+				3: {ReportedAmount: 15, Reported: false},
+				4: {ReportedAmount: 20, Reported: false},
+				5: {ReportedAmount: 25, Reported: false},
+				6: {ReportedAmount: 30, Reported: false},
+			},
+			bPresident: executive{
+				ID:              5,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			expected: map[shared.ClientID]shared.Resources{
+				1: 15,
+				2: 15,
+				3: 15,
+				4: 15,
+				5: 15,
+				6: 15,
+			},
 		},
 	}
 
@@ -302,8 +344,14 @@ func TestGetTaxMap(t *testing.T) {
 				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
 			}
 
-			if len(got.ResourceMap) != tc.expectedLength {
-				t.Errorf("%v - Failed. RulesProposals set to '%v', expected '%v'", tc.name, got.ResourceMap, tc.input)
+			if tc.expected == nil {
+				if len(got.ResourceMap) != tc.expectedLength {
+					t.Errorf("%v - Failed. TaxMap set to '%v', expected '%v'", tc.name, got.ResourceMap, tc.input)
+				}
+			} else {
+				if !reflect.DeepEqual(got.ResourceMap, tc.expected) {
+					t.Errorf("%v - Failed. TaxMap set to '%v', expected '%v'", tc.name, got.ResourceMap, tc.expected)
+				}
 			}
 
 		})
