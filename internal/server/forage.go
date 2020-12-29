@@ -15,10 +15,16 @@ func (s *SOMASServer) runForage() error {
 	if err != nil {
 		return errors.Errorf("Something went wrong getting the foraging decision:%v", err)
 	}
-	deerHunters := make(map[shared.ClientID]float64)
+
+	deerHunters := make(map[shared.ClientID]shared.Resources)
 	for id, decision := range foragingParticipants {
 		if decision.Type == shared.DeerForageType {
-			deerHunters[id] = decision.Contribution
+			err := s.takeResources(id, decision.Contribution, "deer hunt participation")
+			if err == nil {
+				deerHunters[id] = decision.Contribution
+			} else {
+				s.logf("%v did not have enough resources to participate in foraging", id)
+			}
 		}
 	}
 	err = s.runDeerHunt(deerHunters)
@@ -41,14 +47,40 @@ func (s *SOMASServer) getForagingDecisions() (shared.ForagingDecisionsDict, erro
 	}
 	return participants, nil
 }
-func (s *SOMASServer) runDeerHunt(participants map[shared.ClientID]float64) error {
+
+func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resources) error {
 	s.logf("start runDeerHunt")
 	defer s.logf("finish runDeerHunt")
-	hunt, err := foraging.CreateDeerHunt(participants)
+
+	fConf := s.gameConfig.ForagingConfig
+
+	hunt, err := foraging.CreateDeerHunt(
+		contributions,
+		fConf,
+	)
 	if err != nil {
 		return errors.Errorf("Error running deer hunt: %v", err)
 	}
-	totalReturn := hunt.Hunt()
+
+	totalReturn := hunt.Hunt(fConf)
+
+	totalContributions := shared.Resources(0)
+	for _, contribution := range contributions {
+		totalContributions += contribution
+	}
+
+	for participantID, contribution := range contributions {
+		participantReturn := shared.Resources(0)
+		if totalContributions != 0 {
+			participantReturn = (contribution / totalContributions) * totalReturn
+		}
+		s.giveResources(participantID, participantReturn, "Deer hunt return")
+		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
+			Type:         shared.DeerForageType,
+			Contribution: contribution,
+		}, participantReturn)
+	}
+
 	s.logf("Hunt generated a return of %.3f from input of %.3f", totalReturn, hunt.TotalInput())
 	return nil
 }

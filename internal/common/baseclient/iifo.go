@@ -6,7 +6,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// Disaster defines the disaster location and magnitude.
+// DisasterInfo defines the disaster location and magnitude.
 // These disasters will be stored in PastDisastersDict (maps round number to disaster that occurred)
 // TODO: Agree with environment team on disaster struct representation
 type DisasterInfo struct {
@@ -16,7 +16,7 @@ type DisasterInfo struct {
 	Turn        uint
 }
 
-// PastDisastersDict is a helpful construct for
+// PastDisastersList is a List of previous disasters.
 type PastDisastersList = []DisasterInfo
 
 // MakePrediction is called on each client for them to make a prediction about a disaster
@@ -66,7 +66,7 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 		PredictionMade: prediction,
 		TeamsOfferedTo: trustedIslands,
 	}
-	ourPredictionInfo = predictionInfo
+	c.predictionInfo = predictionInfo
 	return predictionInfo, nil
 }
 
@@ -123,13 +123,13 @@ func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInf
 	// If we assume that we trust each island equally (including ourselves), then take the final prediction
 	// of disaster as being the weighted mean of predictions according to confidence
 	numberOfPredictions := float64(len(receivedPredictions) + 1)
-	selfConfidence := ourPredictionInfo.PredictionMade.Confidence
+	selfConfidence := c.predictionInfo.PredictionMade.Confidence
 
 	// Initialise running totals using our own island's predictions
-	totalCoordinateX := selfConfidence * ourPredictionInfo.PredictionMade.CoordinateX
-	totalCoordinateY := selfConfidence * ourPredictionInfo.PredictionMade.CoordinateY
-	totalMagnitude := selfConfidence * ourPredictionInfo.PredictionMade.Magnitude
-	totalTimeLeft := int(math.Round(selfConfidence)) * ourPredictionInfo.PredictionMade.TimeLeft
+	totalCoordinateX := selfConfidence * c.predictionInfo.PredictionMade.CoordinateX
+	totalCoordinateY := selfConfidence * c.predictionInfo.PredictionMade.CoordinateY
+	totalMagnitude := selfConfidence * c.predictionInfo.PredictionMade.Magnitude
+	totalTimeLeft := int(math.Round(selfConfidence)) * c.predictionInfo.PredictionMade.TimeLeft
 	totalConfidence := selfConfidence
 
 	// Add other island's predictions using their confidence values
@@ -151,6 +151,28 @@ func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInf
 		Confidence:  totalConfidence / numberOfPredictions,
 	}
 
-	c.Logf("Final Prediction: [%v]\n", finalPrediction)
+	c.Logf("Final Prediction: [%v]", finalPrediction)
 	return nil
+}
+
+// MakeForageInfo allows clients to share their most recent foraging DecisionMade, ResourceObtained from it to
+// other clients.
+// OPTIONAL. If this is not implemented then all values are nil.
+func (c *BaseClient) MakeForageInfo() shared.ForageShareInfo {
+	contribution := shared.ForageDecision{Type: shared.DeerForageType, Contribution: 0}
+	return shared.ForageShareInfo{DecisionMade: contribution, ResourceObtained: 0, ShareTo: []shared.ClientID{}}
+}
+
+// ReceiveForageInfo lets clients know what other clients has obtained from their most recent foraging attempt.
+// Most recent foraging attempt includes information about: foraging DecisionMade and ResourceObtained as well
+// as where this information came from.
+// OPTIONAL.
+func (c *BaseClient) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
+	// Return on Investment
+	roi := map[shared.ClientID]shared.Resources{}
+	for _, val := range neighbourForaging {
+		if val.DecisionMade.Type == shared.DeerForageType {
+			roi[val.SharedFrom] = val.ResourceObtained / shared.Resources(val.DecisionMade.Contribution) * 100
+		}
+	}
 }

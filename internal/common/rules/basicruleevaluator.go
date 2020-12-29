@@ -5,7 +5,7 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-func createVarList(variables []string) ([]float64, error) {
+func createVarList(variables []VariableFieldName) ([]float64, error) {
 	var variableVect []float64
 
 	for _, v := range variables {

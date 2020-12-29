@@ -15,6 +15,11 @@ go build # build step
 ./SOMAS2020 # SOMAS2020.exe if you're on Windows. Use `sudo` on Linux and macOS as Approach 1 if required.
 ```
 
+### Parameters & Help
+```bash
+go run . --help
+```
+
 ### Output
 After running, the `output` directory will contain the output of the program.
 - `output.json`: JSON file containing the game's historic states and configuration.
@@ -44,9 +49,6 @@ Common utilities, or system-wide code such as game specification etc.
 
 - [`server`](internal/server)
 Self-explanatory.
-
-- [`logger`](internal/logger)
-Logger for the application.
 
 ### [`pkg`](pkg)
 More generic packages dealing with general use-cases, such as system-related or file-operation utilities.

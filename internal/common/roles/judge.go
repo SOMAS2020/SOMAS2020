@@ -2,6 +2,7 @@ package roles
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 // Judge is an interface that is implemented by baseJudge but can also be
@@ -12,8 +13,8 @@ type EvaluationReturn struct {
 	Evaluations []bool
 }
 type Judge interface {
-	PayPresident() (int, error)
-	InspectHistory() (map[int]EvaluationReturn, error)
-	DeclareSpeakerPerformance() (int, bool, int, bool, error)
-	DeclarePresidentPerformance() (int, bool, int, bool, error)
+	PayPresident(presidentSalary shared.Resources) (shared.Resources, bool)
+	InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]EvaluationReturn, bool)
+	DeclareSpeakerPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool)
+	DeclarePresidentPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool)
 }

@@ -6,7 +6,8 @@ import (
 
 type RuleMatrix struct {
 	RuleName          string
-	RequiredVariables []string
+	RequiredVariables []VariableFieldName
 	ApplicableMatrix  mat.Dense
 	AuxiliaryVector   mat.VecDense
+	Mutable           bool
 }
