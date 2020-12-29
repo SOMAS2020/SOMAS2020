@@ -1,5 +1,6 @@
 // Hacks to properly type global objects set by wasm 
 import outputJSONData from './output/output.json'
+import { notEmpty } from './utils'
 
 // @ts-ignore
 const go: any = window.go
@@ -10,6 +11,8 @@ export type GoFlag = {
     DefValue: string,
     Type: string,
 }
+
+export type Flag = GoFlag & { Value: string }
 
 type RunGameReturnTypeWASM = {
     output: string,
@@ -31,7 +34,7 @@ export type GetFlagsFormatsReturnType = GoFlag[]
 
 let loaded = false
 
-let runGameWASM: (() => RunGameReturnTypeWASM) | undefined;
+let runGameWASM: ((args: string[]) => RunGameReturnTypeWASM) | undefined;
 let getFlagsFormatsWASM: (() => GetFlagsFormatsReturnTypeWASM) | undefined;
 
 const load = async () => {
@@ -45,11 +48,11 @@ const load = async () => {
     runGameWASM = window.RunGame
     // @ts-ignore
     getFlagsFormatsWASM = window.GetFlagsFormats
-    
+
     loaded = true
 }
 
-export const runGame = async (): Promise<RunGameReturnType> => {
+export const runGame = async (flags: Flag[]): Promise<RunGameReturnType> => {
     if (!loaded) {
         await load()
     }
@@ -57,7 +60,9 @@ export const runGame = async (): Promise<RunGameReturnType> => {
         throw new Error("Game not loaded properly")
     }
 
-    const result = runGameWASM()
+    const args = await prepareFlags(flags)
+
+    const result = runGameWASM(args)
     if (result.error.length > 0) {
         throw new Error(result.error)
     }
@@ -71,6 +76,18 @@ export const runGame = async (): Promise<RunGameReturnType> => {
         output: processedOutput,
         logs: result.logs,
     }
+}
+
+const prepareFlags = async (flags: Flag[]): Promise<string[]> => {
+    return flags
+        .map(f => {
+            if (f.Value !== f.DefValue) {
+                return [f.Name, f.Value]
+            }
+            return undefined
+        })
+        .filter(notEmpty)
+        .flat()
 }
 
 export const getFlagsFormats = async (): Promise<GetFlagsFormatsReturnType> => {

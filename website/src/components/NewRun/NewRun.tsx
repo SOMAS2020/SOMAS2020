@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react"
 import { CodeBlock } from 'react-code-blocks'
-import { runGame, getFlagsFormats, RunGameReturnType, GoFlag } from "../../wasmAPI"
+import { runGame, getFlagsFormats, RunGameReturnType, Flag } from "../../wasmAPI"
 import { Alert, Button, Row, Col, OverlayTrigger, Tooltip, Form } from 'react-bootstrap'
 import { useLoadingState, initialLoadingState } from "../../contexts/loadingState"
 
 import styles from '../CIOutput/CIOutput.module.css'
-
-type Flag = GoFlag & { Value: string }
 
 type flagFormProps = {
   flag: Flag,
@@ -79,7 +77,7 @@ const NewRun = () => {
 
     setFlags(new Map(flags.set(flagName, newCurrFlag))) 
   }
-  
+
   const reset = async () => {
     setOutput(undefined)
   }
@@ -91,7 +89,11 @@ const NewRun = () => {
     await new Promise(r => setTimeout(r, 100));
 
     try {
-      const res = await runGame()
+      if (!flags) {
+        throw new Error(`Flags unset!`)
+      }
+      const flagArr = Array.from(flags, ([_, value]) => value)
+      const res = await runGame(flagArr)
       setOutput(res)
     }
     catch (err) {
