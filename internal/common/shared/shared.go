@@ -9,6 +9,7 @@ import (
 )
 
 // ClientID is an enum for client IDs
+
 type ClientID int
 
 const (
@@ -58,3 +59,6 @@ func (c ClientID) MarshalText() ([]byte, error) {
 func (c ClientID) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
+
+// Resources represents amounts of resources
+type Resources float64

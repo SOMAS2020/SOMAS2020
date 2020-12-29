@@ -17,13 +17,13 @@ type deerHuntParams struct {
 
 // DeerHunt captures the hunt participants (teams) and their resource contributions, as well as hunt params
 type DeerHunt struct {
-	ParticipantContributions map[shared.ClientID]float64
+	ParticipantContributions map[shared.ClientID]shared.Resources
 	params                   deerHuntParams
 }
 
 // TotalInput simply sums the total group resource input of hunt participants
-func (d DeerHunt) TotalInput() float64 {
-	i := 0.0
+func (d DeerHunt) TotalInput() shared.Resources {
+	i := shared.Resources(0.0)
 	for _, x := range d.ParticipantContributions {
 		i += x
 	}
@@ -31,14 +31,12 @@ func (d DeerHunt) TotalInput() float64 {
 }
 
 // Hunt returns the utility from a deer hunt
-func (d DeerHunt) Hunt() float64 {
-	fConf := config.GameConfig().ForagingConfig
-
+func (d DeerHunt) Hunt(fConf config.ForagingConfig) shared.Resources {
 	input := d.TotalInput()
 	decay := fConf.IncrementalInputDecay
 	maxDeer := fConf.MaxDeerPerHunt
 	nDeerFromInput := deerUtilityTier(input, maxDeer, decay) // get max number of deer allowed for given resource input
-	utility := 0.0
+	utility := shared.Resources(0.0)
 	for i := uint(1); i < nDeerFromInput; i++ {
 		utility += deerReturn(d.params)
 	}
@@ -46,11 +44,12 @@ func (d DeerHunt) Hunt() float64 {
 }
 
 // deerUtilityTier gets the discrete utility tier (i.e. max number of deer) for given scalar input
-func deerUtilityTier(input float64, maxDeerPerHunt uint, decay float64) uint {
+func deerUtilityTier(input shared.Resources, maxDeerPerHunt uint, decay float64) uint {
+	inputF := float64(input)
 	sum := 0.0
 	for i := uint(0); i < maxDeerPerHunt; i++ {
 		sum += math.Pow(decay, float64(i))
-		if input < sum {
+		if inputF < sum {
 			return i
 		}
 	}
@@ -63,8 +62,8 @@ func deerUtilityTier(input float64, maxDeerPerHunt uint, decay float64) uint {
 // - W: A continuous RV that adds some variance to the return. This could be interpreted as the weight of the deer that is caught. W is
 // exponentially distributed such that the prevalence of deer of certain size is inversely prop. to the size.
 // returns H, where H = D*(1+W) is an other random variable
-func deerReturn(params deerHuntParams) float64 {
+func deerReturn(params deerHuntParams) shared.Resources {
 	W := distuv.Exponential{Rate: params.lam} // Rate = lambda
 	D := distuv.Bernoulli{P: params.p}        // Bernoulli RV where `P` = P(X=1)
-	return D.Rand() * (1 + W.Rand())
+	return shared.Resources(D.Rand() * (1 + W.Rand()))
 }

@@ -2,7 +2,7 @@ package rules
 
 import "fmt"
 
-// init Registers all veriables defined in Static variables list
+// init Registers all variables defined in Static variables list
 func init() {
 	for _, v := range StaticVariables {
 		e := RegisterNewVariable(v)
@@ -15,63 +15,63 @@ func init() {
 // StaticVariables holds all globally defined variables
 var StaticVariables = []VariableValuePair{
 	{
-		VariableName: "number_of_islands_contributing_to_common_pool",
+		VariableName: NumberOfIslandsContributingToCommonPool,
 		Values:       []float64{5},
 	},
 	{
-		VariableName: "number_of_failed_forages",
+		VariableName: NumberOfFailedForages,
 		Values:       []float64{0.5},
 	},
 	{
-		VariableName: "number_of_broken_agreements",
+		VariableName: NumberOfBrokenAgreements,
 		Values:       []float64{1},
 	},
 	{
-		VariableName: "max_severity_of_sanctions",
+		VariableName: MaxSeverityOfSanctions,
 		Values:       []float64{2},
 	},
 	{
-		VariableName: "no_islands_alive",
+		VariableName: NumberOfIslandsAlive,
 		Values:       []float64{6},
 	},
 	{
-		VariableName: "no_ballots_cast",
+		VariableName: NumberOfBallotsCast,
 		Values:       []float64{6},
 	},
 	{
-		VariableName: "no_allocations_sent",
+		VariableName: NumberOfAllocationsSent,
 		Values:       []float64{6},
 	},
 	{
-		VariableName: "islands_alive",
+		VariableName: IslandsAlive,
 		Values:       []float64{0, 1, 2, 3, 4, 5},
 	},
 	{
-		VariableName: "speakerSalary",
+		VariableName: SpeakerSalary,
 		Values:       []float64{50},
 	},
 	{
-		VariableName: "judgeSalary",
+		VariableName: JudgeSalary,
 		Values:       []float64{50},
 	},
 	{
-		VariableName: "presidentSalary",
+		VariableName: PresidentSalary,
 		Values:       []float64{50},
 	},
 	{
-		VariableName: "expected_tax_contribution",
+		VariableName: ExpectedTaxContribution,
 		Values:       []float64{0},
 	},
 	{
-		VariableName: "expected_allocation",
+		VariableName: ExpectedAllocation,
 		Values:       []float64{0},
 	},
 	{
-		VariableName: "island_tax_contribution",
+		VariableName: IslandTaxContribution,
 		Values:       []float64{0},
 	},
 	{
-		VariableName: "island_allocation",
+		VariableName: IslandAllocation,
 		Values:       []float64{0},
 	},
 }
