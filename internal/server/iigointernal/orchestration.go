@@ -19,8 +19,6 @@ var judicialBranch = judiciary{
 	presidentSalary:   0,
 	BallotID:          0,
 	ResAllocID:        0,
-	speakerID:         0,
-	presidentID:       0,
 	EvaluationResults: nil,
 }
 
@@ -105,7 +103,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.sendSpeakerSalary(&legislativeBranch)
 
 	// 1 Judge actions - inspect history
-	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
+	_, _ = judicialBranch.inspectHistory(g.IIGOHistory)
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
@@ -125,13 +123,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		legislativeBranch.setRuleToVote(ruleToVote)
 		legislativeBranch.setVotingResult(aliveClientIds)
 		legislativeBranch.announceVotingResult()
-	}
-
-	// 4 Declare performance (Judge) (in future all the iigointernal)
-	if historyInspected {
-		judicialBranch.declarePresidentPerformanceWrapped()
-
-		judicialBranch.declareSpeakerPerformanceWrapped()
 	}
 
 	// Get new Judge ID
