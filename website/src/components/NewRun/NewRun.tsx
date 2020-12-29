@@ -40,13 +40,14 @@ const FlagForm = (props: flagFormProps) => {
 }
 
 const NewRun = () => {
-  const [_, setLoading] = useLoadingState()
+  const [, setLoading] = useLoadingState()
   const [output, setOutput] = useState<RunGameReturnType | undefined>(undefined)
   const [runError, setRunError] = useState<string | undefined>(undefined)
   const [flags, setFlags] = useState<Map<string, Flag> | undefined>(undefined)
 
   useEffect(() => {
     loadFlags()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadFlags = async () => {
