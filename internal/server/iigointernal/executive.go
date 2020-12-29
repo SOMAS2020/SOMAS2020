@@ -108,7 +108,6 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 	}
 }
 
-// appointNextPresident returns the island id of the island appointed to be President in the next turn.
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
 func (e *executive) appointNextSpeaker(currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
@@ -158,7 +157,7 @@ func (e *executive) reset(val string) {
 	e.speakerSalary = 0
 }
 
-//requestRuleProposal asks each island alive for its rule proposae.
+//requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() {
 	e.budget -= serviceCharge
 	var rules []string
