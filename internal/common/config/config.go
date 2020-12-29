@@ -93,11 +93,12 @@ func GameConfig() Config {
 
 	iigoConf := IIGOConfig{
 		ExecutiveActionCost: map[string]shared.Resources{
-			"getRuleForSpeaker":       10,
-			"broadcastTaxation":       10,
-			"replyAllocationRequests": 10,
-			"requestRuleProposal":     10,
-			"appointNextSpeaker":      10,
+			"getRuleForSpeaker":        10,
+			"broadcastTaxation":        10,
+			"replyAllocationRequests":  10,
+			"requestAllocationRequest": 10,
+			"requestRuleProposal":      10,
+			"appointNextSpeaker":       10,
 		},
 		JudiciaryActionCost: map[string]shared.Resources{
 			"inspectHistory":       10,
@@ -106,7 +107,8 @@ func GameConfig() Config {
 			"appointNextPresident": 10,
 		},
 		LegislativeActionCost: map[string]shared.Resources{
-			"runVote":              10,
+			"setVotingResult":      10,
+			"setRuleToVote":        10,
 			"announceVotingResult": 10,
 			"updateRules":          10,
 			"appointNextJudge":     10,

@@ -21,22 +21,6 @@ type legislature struct {
 	clientSpeaker roles.Speaker
 }
 
-// returnJudgeSalary returns the salary to the common pool.
-func (l *legislature) returnJudgeSalary() shared.Resources {
-	x := l.judgeSalary
-	l.judgeSalary = 0
-	return x
-}
-
-// withdrawJudgeSalary withdraws the salary for the Judge from the common pool.
-func (l *legislature) withdrawJudgeSalary() bool {
-	var judgeSalary = shared.Resources(rules.VariableMap[rules.JudgeSalary].Values[0])
-	withdrawAmount, withdrawSuccesful := WithdrawFromCommonPool(judgeSalary, l.gameState)
-	l.judgeSalary = withdrawAmount
-
-	return withdrawSuccesful
-}
-
 // sendJudgeSalary conduct the transaction based on amount from client implementation
 func (l *legislature) sendJudgeSalary() error {
 	if l.clientSpeaker != nil {
@@ -55,43 +39,47 @@ func (l *legislature) sendJudgeSalary() error {
 }
 
 // Receive a rule to call a vote on
-func (l *legislature) setRuleToVote(r string) {
+func (l *legislature) setRuleToVote(r string) error {
+
+	if !l.incurServiceCharge("setRuleToVote") {
+		return errors.Errorf("Insufficient Budget in common Pool: setRuleToVote")
+	}
+
 	ruleToBeVoted, ruleSet := l.clientSpeaker.DecideAgenda(r)
 	if ruleSet {
 		l.ruleToVote = ruleToBeVoted
 	}
+	return nil
 }
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (l *legislature) setVotingResult(clientIDs []shared.ClientID) bool {
+func (l *legislature) setVotingResult(clientIDs []shared.ClientID) (bool, error) {
+
+	if !l.incurServiceCharge("setVotingResult") {
+		return false, errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
+	}
 
 	ruleID, participatingIslands, voteDecided := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
 	if !voteDecided {
-		return false
+		return false, nil
 	}
 
-	var canRunVote error
-	l.ballotBox, canRunVote = l.RunVote(ruleID, participatingIslands)
-	if canRunVote != nil {
-		return false
-	}
+	l.ballotBox = l.RunVote(ruleID, participatingIslands)
 
 	l.votingResult = l.ballotBox.CountVotesMajority()
 
-	return true
+	return true, nil
 }
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.
 //Passing in empty ruleID or empty clientIDs results in no vote occurring
-func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) (voting.BallotBox, error) {
+func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting.BallotBox {
 
 	if ruleID == "" || len(clientIDs) == 0 {
-		return voting.BallotBox{}, nil
+		return voting.BallotBox{}
 	}
-	if !l.incurServiceCharge("runVote") {
-		return voting.BallotBox{}, errors.Errorf("Insufficient Budget in common Pool: runVote")
-	}
+
 	ruleVote := voting.RuleVote{}
 
 	//TODO: check if rule is valid, otherwise return empty ballot, raise error?
@@ -105,7 +93,7 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) (votin
 	//TODO: log of vote occurring with ruleID, clientIDs
 	//TODO: log of clientIDs vs islandsAllowedToVote
 	//TODO: log of ruleID vs s.RuleToVote
-	return ruleVote.GetBallotBox(), nil
+	return ruleVote.GetBallotBox()
 }
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)

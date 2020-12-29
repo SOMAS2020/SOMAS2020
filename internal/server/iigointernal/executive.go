@@ -20,13 +20,6 @@ type executive struct {
 	ResourceRequests map[shared.ClientID]shared.Resources
 }
 
-// returnSpeakerSalary returns the salary to the common pool.
-func (e *executive) returnSpeakerSalary() shared.Resources {
-	x := e.speakerSalary
-	e.speakerSalary = 0
-	return x
-}
-
 // Get rule proposals to be voted on from remaining islands
 // Called by orchestration
 func (e *executive) setRuleProposals(rulesProposals []string) {
@@ -38,8 +31,6 @@ func (e *executive) setRuleProposals(rulesProposals []string) {
 func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]shared.Resources) {
 	e.ResourceRequests = resourceRequests
 }
-
-// ---------Actions----------------
 
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
@@ -91,15 +82,17 @@ func (e *executive) requestRuleProposal() error {
 	return nil
 }
 
-// ------ Actions end -----------
-func (e *executive) requestAllocationRequest() {
+func (e *executive) requestAllocationRequest() error {
+	if !e.incurServiceCharge("requestAllocationRequest") {
+		return errors.Errorf("Insufficient Budget in common Pool: requestAllocationRequest")
+	}
 	allocRequests := make(map[shared.ClientID]shared.Resources)
 	for _, island := range getIslandAlive() {
 		allocRequests[shared.ClientID(int(island))] = iigoClients[shared.ClientID(int(island))].CommonPoolResourceRequest()
 	}
 	AllocationAmountMapExport = allocRequests
 	e.setAllocationRequest(allocRequests)
-
+	return nil
 }
 
 // replyAllocationRequest broadcasts the allocation of resources decided by the president
@@ -133,14 +126,6 @@ func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) (shared.Clie
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
 	return election.CloseBallot(), nil
-}
-
-// withdrawSpeakerSalary withdraws the salary for speaker from the common pool.
-func (e *executive) withdrawSpeakerSalary() bool {
-	var speakerSalary = shared.Resources(rules.VariableMap[rules.SpeakerSalary].Values[0])
-	var withdrawnAmount, withdrawSuccesful = WithdrawFromCommonPool(speakerSalary, e.gameState)
-	e.speakerSalary = withdrawnAmount
-	return withdrawSuccesful
 }
 
 // sendSpeakerSalary conduct the transaction based on amount from client implementation

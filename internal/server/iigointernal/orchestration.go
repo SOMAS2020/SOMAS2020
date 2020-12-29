@@ -10,20 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO:- Change this into a variable cost map in config (each action should cost differently)
-const serviceCharge = shared.Resources(10)
-
-/*
-Things to do:
-
-// Budget
-1. where do we init the budget?
-2. How do we update the budget?
-
-//
-4.
-*/
-
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
 var judicialBranch = judiciary{
@@ -92,6 +78,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	g.IIGORolesBudget["speaker"] += 100
 
 	// Pass in gamestate -
+	// So that we don't have to pass gamestate as arguement in every function in roles
 	judicialBranch.gameState = g
 	legislativeBranch.gameState = g
 	executiveBranch.gameState = g
@@ -113,29 +100,15 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.clientPresident = presidentPointer
 	legislativeBranch.clientSpeaker = speakerPointer
 
-	// Withdraw the salaries
-	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary()
-	judgeWithdrawSuccess := legislativeBranch.withdrawJudgeSalary()
-	speakerWithdrawSuccess := executiveBranch.withdrawSpeakerSalary()
-
-	// Handle the lack of resources
-	if !presidentWithdrawSuccess {
-		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
-	}
-	if !judgeWithdrawSuccess {
-		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
-	}
-	if !speakerWithdrawSuccess {
-		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
-		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
-	}
-
 	// Pay salaries into budgets
-	judicialBranch.sendPresidentSalary()
-	legislativeBranch.sendJudgeSalary()
-	executiveBranch.sendSpeakerSalary()
+
+	errorJudicial := judicialBranch.sendPresidentSalary()
+	errorLegislative := legislativeBranch.sendJudgeSalary()
+	errorExecutive := executiveBranch.sendSpeakerSalary()
+	// Throw error
+	if errorJudicial != nil || errorLegislative != nil || errorExecutive != nil {
+		return errors.Errorf("Cannot pay IIGO salary")
+	}
 
 	// 1 Judge actions - inspect history
 	_, historyInspected := judicialBranch.inspectHistory()
@@ -147,17 +120,37 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
 		resourceReports[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].ResourceReport()
 	}
-	executiveBranch.broadcastTaxation(resourceReports)
-	executiveBranch.requestAllocationRequest()
-	executiveBranch.replyAllocationRequest(g.CommonPool)
-	executiveBranch.requestRuleProposal() // TODO:- need to check for boolean to see if the next action can carry out
+
+	// Throw error if any of the actions returns error
+	insufficientBudget := executiveBranch.broadcastTaxation(resourceReports)
+	if insufficientBudget == nil {
+		insufficientBudget = executiveBranch.requestAllocationRequest()
+	}
+	if insufficientBudget == nil {
+		insufficientBudget = executiveBranch.replyAllocationRequest(g.CommonPool)
+	}
+	if insufficientBudget == nil {
+		insufficientBudget = executiveBranch.requestRuleProposal()
+	}
+	if insufficientBudget != nil {
+		return errors.Errorf("Common pool resources insufficient for executiveBranch actions")
+	}
 	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
+
+	//TODO:- shouldn't updateRules be called here?
 	if ruleSelected {
-		legislativeBranch.setRuleToVote(ruleToVote)
-		legislativeBranch.setVotingResult(aliveClientIds)
-		legislativeBranch.announceVotingResult()
+		insufficientBudget := legislativeBranch.setRuleToVote(ruleToVote)
+		if insufficientBudget == nil {
+			_, insufficientBudget = legislativeBranch.setVotingResult(aliveClientIds)
+		}
+		if insufficientBudget == nil {
+			insufficientBudget = legislativeBranch.announceVotingResult()
+		}
+		if insufficientBudget != nil {
+			return errors.Errorf("Common pool resources insufficient for legislativeBranch actions")
+		}
 	}
 
 	// 4 Declare performance (Judge) (in future all the iigointernal)
@@ -167,6 +160,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		judicialBranch.declareSpeakerPerformanceWrapped()
 	}
 
+	// TODO:- at the moment, these are action (and cost resources) but should they?
 	// Get new Judge ID
 	JudgeIDGlobal, _ = legislativeBranch.appointNextJudge(aliveClientIds)
 	// Get new Speaker ID
@@ -175,9 +169,4 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	PresidentIDGlobal, _ = judicialBranch.appointNextPresident(aliveClientIds)
 
 	return nil
-}
-
-func returnWithdrawnSalariesToCommonPool(state *gamestate.GameState, executiveBranch *executive, legislativeBranch *legislature, judicialBranch *judiciary) {
-	returnVal := executiveBranch.returnSpeakerSalary() + legislativeBranch.returnJudgeSalary() + judicialBranch.returnPresidentSalary()
-	depositIntoCommonPool(returnVal, state)
 }
