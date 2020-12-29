@@ -83,11 +83,13 @@ func (c *BaseClient) TaxTaken(shared.Resources) {
 	// Just an update. Ignore
 }
 
+// GetTaxContribution FIXME: Add documentation. What does this function do?
 func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// TODO: Implement common pool contribution greater than or equal to tax.
 	return 0
 }
 
+// RequestAllocation FIXME: Add documentation. What does this function do?
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
 	return 0

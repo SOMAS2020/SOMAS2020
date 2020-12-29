@@ -16,7 +16,7 @@ type DisasterInfo struct {
 	Turn        uint
 }
 
-// PastDisastersList is a helpful construct for
+// PastDisastersList is a List of previous disasters.
 type PastDisastersList = []DisasterInfo
 
 // MakePrediction is called on each client for them to make a prediction about a disaster

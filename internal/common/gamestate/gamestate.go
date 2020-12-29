@@ -26,6 +26,8 @@ type GameState struct {
 	// IIGO History
 	IIGOHistory []shared.Accountability
 
+	// IITO Transactions
+	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
 	// Orchestration
 	SpeakerID   shared.ClientID
 	JudgeID     shared.ClientID
