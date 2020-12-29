@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.css": "/SOMAS2020/static/css/main.3585f441.chunk.css",
-    "main.js": "/SOMAS2020/static/js/main.872f5b4e.chunk.js",
-    "main.js.map": "/SOMAS2020/static/js/main.872f5b4e.chunk.js.map",
+    "main.css": "/SOMAS2020/static/css/main.59c0fc15.chunk.css",
+    "main.js": "/SOMAS2020/static/js/main.1e1d862a.chunk.js",
+    "main.js.map": "/SOMAS2020/static/js/main.1e1d862a.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_abap.js": "/SOMAS2020/static/js/react-syntax-highlighter_languages_refractor_abap.1796e375.chunk.js",
     "react-syntax-highlighter_languages_refractor_abap.js.map": "/SOMAS2020/static/js/react-syntax-highlighter_languages_refractor_abap.1796e375.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_actionscript.js": "/SOMAS2020/static/js/react-syntax-highlighter_languages_refractor_actionscript.6698f33e.chunk.js",
@@ -307,24 +307,24 @@
     "react-syntax-highlighter_languages_refractor_yaml.js.map": "/SOMAS2020/static/js/react-syntax-highlighter_languages_refractor_yaml.a376fc07.chunk.js.map",
     "runtime-main.js": "/SOMAS2020/static/js/runtime-main.aa13466b.js",
     "runtime-main.js.map": "/SOMAS2020/static/js/runtime-main.aa13466b.js.map",
-    "static/js/153.1c757cd4.chunk.js": "/SOMAS2020/static/js/153.1c757cd4.chunk.js",
-    "static/js/153.1c757cd4.chunk.js.map": "/SOMAS2020/static/js/153.1c757cd4.chunk.js.map",
+    "static/js/153.22abeb40.chunk.js": "/SOMAS2020/static/js/153.22abeb40.chunk.js",
+    "static/js/153.22abeb40.chunk.js.map": "/SOMAS2020/static/js/153.22abeb40.chunk.js.map",
     "static/js/154.539cb8a0.chunk.js": "/SOMAS2020/static/js/154.539cb8a0.chunk.js",
     "static/js/154.539cb8a0.chunk.js.map": "/SOMAS2020/static/js/154.539cb8a0.chunk.js.map",
     "static/js/155.bcbd17b3.chunk.js": "/SOMAS2020/static/js/155.bcbd17b3.chunk.js",
     "static/js/155.bcbd17b3.chunk.js.map": "/SOMAS2020/static/js/155.bcbd17b3.chunk.js.map",
     "index.html": "/SOMAS2020/index.html",
     "init_go.js": "/SOMAS2020/init_go.js",
-    "static/css/main.3585f441.chunk.css.map": "/SOMAS2020/static/css/main.3585f441.chunk.css.map",
-    "static/js/153.1c757cd4.chunk.js.LICENSE.txt": "/SOMAS2020/static/js/153.1c757cd4.chunk.js.LICENSE.txt",
+    "static/css/main.59c0fc15.chunk.css.map": "/SOMAS2020/static/css/main.59c0fc15.chunk.css.map",
+    "static/js/153.22abeb40.chunk.js.LICENSE.txt": "/SOMAS2020/static/js/153.22abeb40.chunk.js.LICENSE.txt",
     "static/media/Loading.77c9688a.svg": "/SOMAS2020/static/media/Loading.77c9688a.svg",
     "static/media/logo512.d361aa77.png": "/SOMAS2020/static/media/logo512.d361aa77.png",
     "wasm_exec.js": "/SOMAS2020/wasm_exec.js"
   },
   "entrypoints": [
     "static/js/runtime-main.aa13466b.js",
-    "static/js/153.1c757cd4.chunk.js",
-    "static/css/main.3585f441.chunk.css",
-    "static/js/main.872f5b4e.chunk.js"
+    "static/js/153.22abeb40.chunk.js",
+    "static/css/main.59c0fc15.chunk.css",
+    "static/js/main.1e1d862a.chunk.js"
   ]
 }
