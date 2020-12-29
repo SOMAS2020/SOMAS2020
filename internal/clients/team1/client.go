@@ -2,6 +2,7 @@
 package team1
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 
@@ -18,7 +19,24 @@ type ForageOutcome struct {
 	contribution shared.Resources
 	revenue      shared.Resources
 }
+
 type ForageHistory map[shared.ForageType][]ForageOutcome
+
+type EmotionalState int
+
+const (
+	Normal EmotionalState = iota
+	Anxious
+	Desperate
+)
+
+func (st EmotionalState) String() string {
+	strings := [...]string{"Normal", "Anxious", "Desperate"}
+	if st >= 0 && int(st) < len(strings) {
+		return strings[st]
+	}
+	return fmt.Sprintf("UNKNOWN ForageType '%v'", int(st))
+}
 
 func init() {
 	baseclient.RegisterClient(
@@ -36,7 +54,7 @@ type clientConfig struct {
 	randomForageTurns uint
 
 	// If resources go below this limit, go into "desperation" mode
-	desperationThreshold shared.Resources
+	anxietyThreshold shared.Resources
 
 	// If true, ignore requests for taxes
 	evadeTaxes bool
@@ -57,6 +75,7 @@ type client struct {
 
 	config clientConfig
 }
+
 // TODO Add anxious state
 // When anxious you're close to becoming critical. You will ask for allocations
 // from the common pool
@@ -71,40 +90,34 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		taxAmount:     0,
 		allocation:    0,
 		config: clientConfig{
-			randomForageTurns:    5,
-			desperationThreshold: 20,
-			evadeTaxes:           false,
-			kickstartTax:         true,
+			randomForageTurns: 5,
+			anxietyThreshold:  20,
+			evadeTaxes:        false,
+			kickstartTax:      true,
 		},
 	}
 }
 
-func (c *client) forageHistorySize() uint {
-	length := uint(0)
-	for _, lst := range c.forageHistory {
-		length += uint(len(lst))
+func (c client) emotionalState() EmotionalState {
+	ci := c.gameState().ClientInfo
+	switch {
+	case ci.LifeStatus == shared.Critical:
+		return Desperate
+	case ci.Resources < c.config.anxietyThreshold:
+		return Anxious
+	default:
+		return Normal
 	}
-	return length
-}
-
-func (c *client) gameState() gamestate.ClientGameState {
-	return c.BaseClient.ServerReadHandle.GetGameState()
 }
 
 func (c *client) StartOfTurn() {
-	if c.desperate() {
-		c.Logf("Desperate")
-	}
+	c.Logf("Emotional state: %v", c.emotionalState())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
 }
 
 /********************/
 /***  Desperation   */
 /********************/
-
-func (c *client) desperate() bool {
-	return c.gameState().ClientInfo.Resources < c.config.desperationThreshold
-}
 
 func (c *client) desperateForage() shared.ForageDecision {
 	forageDecision := shared.ForageDecision{
@@ -116,12 +129,13 @@ func (c *client) desperateForage() shared.ForageDecision {
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	if !c.desperate() {
+	switch c.emotionalState() {
+	case Desperate:
+		c.Logf("Common pool request: 20")
+		return 20
+	default:
 		return 0
 	}
-
-	c.Logf("Common pool request: 20")
-	return 20
 }
 
 func (c *client) RequestAllocation() shared.Resources {
@@ -247,7 +261,7 @@ func (c *client) normalForage() shared.ForageDecision {
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if c.forageHistorySize() < c.config.randomForageTurns {
 		return c.randomForage(), nil
-	} else if c.desperate() {
+	} else if c.emotionalState() == Desperate {
 		return c.desperateForage(), nil
 	} else {
 		return c.normalForage(), nil
@@ -267,4 +281,20 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 		forageDecision.Contribution,
 		(revenue/forageDecision.Contribution)-1,
 	)
+}
+
+/********************/
+/***    Helpers     */
+/********************/
+
+func (c *client) forageHistorySize() uint {
+	length := uint(0)
+	for _, lst := range c.forageHistory {
+		length += uint(len(lst))
+	}
+	return length
+}
+
+func (c *client) gameState() gamestate.ClientGameState {
+	return c.BaseClient.ServerReadHandle.GetGameState()
 }
