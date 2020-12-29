@@ -14,6 +14,7 @@ const Loading = () => {
       aria-labelledby="contained-modal-title-vcenter"
       centered
       show={loading}
+      onHide={() => {}}
       style={{ textAlign: `center`, margin: `auto` }}
     >
       <Modal.Header>
@@ -24,9 +25,7 @@ const Loading = () => {
       <Modal.Body>
         {/* TODO:- Fix Freezing issue--might need web worker? */}
         {/* <img src={loadingSVG} alt="loading" className="loader" /> */}
-        <p>
-          <div style={{ padding: 10, fontSize: '1.2rem' }}>{loadingText ? loadingText : `Tomato sauce was sold in the 1800's as medicine.`}</div>
-        </p>
+        <p style={{ padding: 10, fontSize: '1.2rem' }}>{loadingText ? loadingText : `Tomato sauce was sold in the 1800's as medicine.`}</p>
       </Modal.Body>
     </Modal>
   )

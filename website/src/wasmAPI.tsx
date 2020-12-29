@@ -2,9 +2,14 @@
 import outputJSONData from './output/output.json'
 
 // @ts-ignore
-export const go: any = window.go
+const go: any = window.go
 
-let loaded = false
+export type GoFlag = {
+    Name: string,
+    Usage: string,
+    DefValue: string,
+    Type: string,
+}
 
 type RunGameReturnTypeWASM = {
     output: string,
@@ -17,23 +22,40 @@ export type RunGameReturnType = {
     logs: string,
 }
 
+type GetFlagsFormatsReturnTypeWASM = {
+    output: string,
+    error: string,
+}
+
+export type GetFlagsFormatsReturnType = GoFlag[]
+
+let loaded = false
+
+let runGameWASM: (() => RunGameReturnTypeWASM) | undefined;
+let getFlagsFormatsWASM: (() => GetFlagsFormatsReturnTypeWASM) | undefined;
+
 const load = async () => {
     const { instance } = await WebAssembly.instantiateStreaming(
         fetch(`${process.env.PUBLIC_URL}/SOMAS2020.wasm`),
         go.importObject
     )
     go.run(instance)
+
+    // @ts-ignore
+    runGameWASM = window.RunGame
+    // @ts-ignore
+    getFlagsFormatsWASM = window.GetFlagsFormats
+    
     loaded = true
 }
 
 export const runGame = async (): Promise<RunGameReturnType> => {
     if (!loaded) {
-        console.log(`loading`)
         await load()
     }
-
-    // @ts-ignore
-    const runGameWASM: () => RunGameReturnTypeWASM = window.RunGame
+    if (!runGameWASM) {
+        throw new Error("Game not loaded properly")
+    }
 
     const result = runGameWASM()
     if (result.error.length > 0) {
@@ -49,4 +71,22 @@ export const runGame = async (): Promise<RunGameReturnType> => {
         output: processedOutput,
         logs: result.logs,
     }
+}
+
+export const getFlagsFormats = async (): Promise<GetFlagsFormatsReturnType> => {
+    if (!loaded) {
+        await load()
+    }
+    if (!getFlagsFormatsWASM) {
+        throw new Error("Game not loaded properly")
+    }
+
+    const result = getFlagsFormatsWASM()
+    if (result.error.length > 0) {
+        throw new Error(result.error)
+    }
+
+    const processedOutput = JSON.parse(result.output) as GetFlagsFormatsReturnType
+
+    return processedOutput
 }

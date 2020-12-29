@@ -26,6 +26,8 @@ type flagInfo struct {
 func main() {
 	js.Global().Set(
 		"RunGame", js.FuncOf(RunGame),
+	)
+	js.Global().Set(
 		"GetFlagsFormats", js.FuncOf(getFlagsFormats),
 	)
 	select {}
