@@ -21,7 +21,7 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 		resourceAllocation = resourceRequest
 	} else {
 		for id, request := range resourceRequest {
-			resourceAllocation[id] = shared.Resources(request * availCommonPool * 3 / (4 * requestSum))
+			resourceAllocation[id] = request * availCommonPool * 3 / (4 * requestSum)
 		}
 	}
 	return resourceAllocation, true

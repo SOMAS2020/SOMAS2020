@@ -361,7 +361,7 @@ func getDefaultSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctio
 
 func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
 	defaultMap := getDefaultSanctionThresholds()
-	for k, _ := range defaultMap {
+	for k := range defaultMap {
 		if clientVal, ok := clientSanctionMap[k]; ok {
 			defaultMap[k] = clientVal
 		}
@@ -548,7 +548,7 @@ func streamlineRulesAffected(input []string) []string {
 		streamlineMap[v] = true
 	}
 	var returnArray []string
-	for key, _ := range streamlineMap {
+	for key := range streamlineMap {
 		returnArray = append(returnArray, key)
 	}
 	return returnArray

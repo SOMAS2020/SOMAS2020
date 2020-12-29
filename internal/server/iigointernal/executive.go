@@ -139,12 +139,12 @@ func (e *executive) reset(val string) {
 //requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() {
 	e.budget -= serviceCharge
-	var rules []string
+	var rulesProposed []string
 	for _, island := range getIslandAlive() {
-		rules = append(rules, iigoClients[shared.ClientID(int(island))].RuleProposal())
+		rulesProposed = append(rulesProposed, iigoClients[shared.ClientID(int(island))].RuleProposal())
 	}
 
-	e.setRuleProposals(rules)
+	e.setRuleProposals(rulesProposed)
 }
 
 func getIslandAlive() []float64 {
