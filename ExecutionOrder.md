@@ -11,7 +11,7 @@ Sequence of function calls from start to end of game.
 | internal/server/server.go | EntryPoint| Creates deep copy of list of gamestates. Then, while game is not over, calls runTurn and keeps track of the states during the game. |
 |internal/server/turn.go|gameOver| Checks at least one client is alive and we haven't reached maximum number of turns or seasons. |
 |internal/server/turn.go |runTurn| Gets a start of turn update, runs the organisations and runs the end of turn procedures. |
-|internal/server/turn.go|startOfTurnUpdate| Sends update of gameState to alive clients. |
+|internal/server/turn.go|startOfTurn| Sends update of gameState to alive clients. |
 |internal/common/baseclient/baseclient.go|Client.StartOfTurnUpdate| Where the client receives the updated gameState from the server. |
 |internal/server/turn.go|runOrgs| Runs IIGO, IIFO, IITO. |
 |internal/server/iigo.go|runIIGO| Runs IIGO with alive clients, then updates the alive islands variables. |
@@ -34,7 +34,7 @@ Sequence of function calls from start to end of game.
 |internal/server/iifo.go|runIIFO|Runs prediction session. |
 |internal/server/iifo.go|runPredictionSession| Get islands' predictions and distribute predictions to all the islands. |
 |internal/server/iifo.go|getPredictions|For alive clients, get their prediction for disaster (and foraging - non-MVP) using MakePrediction which is implemented by each client.|
-|internal/server/iifo.go|distributePreictions|Share predictions with islands of your choice. Islands who receive a prediction(s) do not know who else receieved the same prediciton(s).|
+|internal/server/iifo.go|distributePredictions|Share predictions with islands of your choice. Islands who receive a prediction(s) do not know who else receieved the same prediciton(s).|
 |internal/server/iito.go|runIITO|MVP: gifts session only.|
 |internal/server/iito.go|runGiftSession|Gets all fiftr requests and offers. Gets the result (accept/reject gift(s)) and distributes gifts accordingly. |
 |internal/server/iito.go|getGiftAcceptance|Matches gift requests and offers per client, then allows clients to accept/reject offers. Then, returns result (accept/reject) of offer/request pairs. |
