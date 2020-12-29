@@ -16,6 +16,7 @@ const id = shared.Team1
 // ForageOutcome is how much we put in to a foraging trip and how much we got
 // back
 type ForageOutcome struct {
+	turn         uint
 	contribution shared.Resources
 	revenue      shared.Resources
 }
@@ -299,6 +300,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{
 		contribution: forageDecision.Contribution,
 		revenue:      revenue,
+		turn: 		  c.gameState().Turn,
 	})
 
 	c.Logf(
@@ -308,6 +310,63 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 		forageDecision.Contribution,
 		(revenue/forageDecision.Contribution)-1,
 	)
+}
+
+/********************/
+/***    IIFO        */
+/********************/
+
+func (c *client) MakeForageInfo() shared.ForageShareInfo {
+	var shareTo []shared.ClientID
+
+	for id, status := range c.gameState().ClientLifeStatuses {
+		if status != shared.Dead {
+			shareTo = append(shareTo, id)
+		}
+	}
+
+	lastDecisionTurn := -1
+	var lastDecision shared.ForageDecision
+	var lastRevenue shared.Resources
+
+	for forageType, outcomes := range c.forageHistory {
+		for _, outcome := range outcomes {
+			if int(outcome.turn) > lastDecisionTurn {
+				lastDecisionTurn = int(outcome.turn)
+				lastDecision = shared.ForageDecision{
+					Type: forageType,
+					Contribution: outcome.contribution,
+				}
+				lastRevenue = outcome.revenue
+			}
+		}
+	}
+
+	if lastDecisionTurn < 0 {
+		shareTo = []shared.ClientID{}
+	}
+
+	forageInfo := shared.ForageShareInfo{
+		ShareTo: shareTo,
+		ResourceObtained: lastRevenue,
+		DecisionMade: lastDecision,
+	}
+
+	c.Logf("Sharing forage info: %v", forageInfo)
+	return forageInfo
+}
+
+func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
+	for _, forageInfo := range forageInfos {
+		c.forageHistory[forageInfo.DecisionMade.Type] =
+			append(
+				c.forageHistory[forageInfo.DecisionMade.Type],
+				ForageOutcome{
+					contribution: forageInfo.DecisionMade.Contribution,
+					revenue:      forageInfo.ResourceObtained,
+				},
+			)
+	}
 }
 
 /********************/
