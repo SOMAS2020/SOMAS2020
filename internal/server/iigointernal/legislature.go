@@ -63,21 +63,21 @@ func (l *legislature) setRuleToVote(r string) error {
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (l *legislature) setVotingResult(clientIDs []shared.ClientID) (bool, error) {
+func (l *legislature) setVotingResult(clientIDs []shared.ClientID) error {
 
 	if !l.incurServiceCharge(actionCost.SetVotingResultActionCost) {
-		return false, errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
+		return errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
 	}
 	returnVote := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
 	if !returnVote.ActionTaken {
-		return false, nil
+		return nil
 	}
 
 	l.ballotBox = l.RunVote(returnVote.RuleID, returnVote.ParticipatingIslands)
 
 	l.votingResult = l.ballotBox.CountVotesMajority()
 
-	return true, nil
+	return nil
 }
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.

@@ -138,7 +138,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	if ruleToVoteReturn.ActionTaken && ruleToVoteReturn.ContentType == shared.PresidentRuleProposal {
 		insufficientBudget := legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRule)
 		if insufficientBudget == nil {
-			_, insufficientBudget = legislativeBranch.setVotingResult(aliveClientIds)
+			insufficientBudget = legislativeBranch.setVotingResult(aliveClientIds)
 		}
 		if insufficientBudget == nil {
 			insufficientBudget = legislativeBranch.announceVotingResult()
