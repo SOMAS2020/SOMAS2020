@@ -33,7 +33,7 @@ export type GetFlagsFormatsReturnType = GoFlag[]
 
 let loaded = false
 
-let runGameWASM: ((args: string[]) => RunGameReturnTypeWASM) | undefined;
+let runGameWASM: ((args: string) => RunGameReturnTypeWASM) | undefined;
 let getFlagsFormatsWASM: (() => GetFlagsFormatsReturnTypeWASM) | undefined;
 
 const load = async () => {
@@ -80,7 +80,7 @@ export const runGame = async (flags: Flag[]): Promise<RunGameReturnType> => {
     }
 }
 
-const prepareFlags = async (flags: Flag[]): Promise<string[]> => {
+const prepareFlags = async (flags: Flag[]): Promise<string> => {
     return flags
         .map(f => {
             if (f.Value !== f.DefValue) {
@@ -89,6 +89,7 @@ const prepareFlags = async (flags: Flag[]): Promise<string[]> => {
             return undefined
         })
         .filter(notEmpty)
+        .join(`,`)
 }
 
 export const getFlagsFormats = async (): Promise<GetFlagsFormatsReturnType> => {

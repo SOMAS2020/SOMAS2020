@@ -73,10 +73,11 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 }
 
 func getConfigFromArgs(jsArgs []js.Value) (config.Config, error) {
-	args := make([]string, len(jsArgs))
+	args := strings.Split(jsArgs[0].String(), ",")
 
-	for i, jsArg := range jsArgs {
-		args[i] = jsArg.String()
+	if len(args) == 1 && args[0] == "" {
+		// handle empty input
+		args = []string{}
 	}
 
 	flag.Parse()
