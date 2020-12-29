@@ -12,21 +12,22 @@ import (
 )
 
 type judiciary struct {
-	JudgeID           shared.ClientID
-	budget            shared.Resources
-	presidentSalary   shared.Resources
-	BallotID          int
-	ResAllocID        int
-	EvaluationResults map[shared.ClientID]roles.EvaluationReturn
-	clientJudge       roles.Judge
+	PresidentID           shared.ClientID
+	budget                shared.Resources
+	presidentSalary       shared.Resources
+	BallotID              int
+	ResAllocID            int
+	EvaluationResults     map[shared.ClientID]roles.EvaluationReturn
+	clientPresident       roles.President
+	presidentTurnsInPower int
 }
 
-// loadClientJudge checks client pointer is good and if not panics
-func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
-	if clientJudgePointer == nil {
-		panic(fmt.Sprintf("Client '%v' has loaded a nil judge pointer", j.JudgeID))
+// loadClientPresident checks client pointer is good and if not panics
+func (j *judiciary) loadClientPresident(clientPresidentPointer roles.President) {
+	if clientPresidentPointer == nil {
+		panic(fmt.Sprintf("Client '%v' has loaded a nil President pointer", j.PresidentID))
 	}
-	j.clientJudge = clientJudgePointer
+	j.clientPresident = clientPresidentPointer
 }
 
 func (j *judiciary) init() {
@@ -34,14 +35,14 @@ func (j *judiciary) init() {
 	j.ResAllocID = 0
 }
 
-// returnPresidentSalary returns the salary to the common pool.
+// returnPresidentSalary returns the salary to the common pooj.
 func (j *judiciary) returnPresidentSalary() shared.Resources {
 	x := j.presidentSalary
 	j.presidentSalary = 0
 	return x
 }
 
-// withdrawPresidentSalary withdraws the president's salary from the common pool.
+// withdrawPresidentSalary withdraws the president's salary from the common pooj.
 func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool {
 	var presidentSalary = shared.Resources(rules.VariableMap[rules.PresidentSalary].Values[0])
 	var withdrawAmount, withdrawSuccesful = WithdrawFromCommonPool(presidentSalary, gameState)
@@ -51,8 +52,8 @@ func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool
 
 // sendPresidentSalary sends the president's salary to the president.
 func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
-	if j.clientJudge != nil {
-		amount, payPresident := j.clientJudge.PayPresident(j.presidentSalary)
+	if j.clientPresident != nil {
+		amount, payPresident := j.clientPresident.PayPresident(j.presidentSalary)
 		if payPresident {
 			executiveBranch.budget = amount
 		}
@@ -73,7 +74,7 @@ func (j *judiciary) PayPresident() shared.Resources {
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	j.budget -= serviceCharge
-	return j.clientJudge.InspectHistory(iigoHistory)
+	return j.clientPresident.InspectHistory(iigoHistory)
 }
 
 // searchForRule searches for a given rule in the RuleMatrix
@@ -86,12 +87,22 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 	return -1, false
 }
 
-// appointNextPresident returns the island ID of the island appointed to be the president in the next turn
-func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.ClientID {
-	j.budget -= serviceCharge
+// appointNextPresident returns the island ID of the island appointed to be President in the next turn
+func (j *judiciary) appointNextPresident() shared.ClientID {
 	var election voting.Election
-	election.ProposeElection(baseclient.President, voting.Plurality)
-	election.OpenBallot(clientIDs)
-	election.Vote(iigoClients)
-	return election.CloseBallot()
+	var nextPresident shared.ClientID
+	electionsettings := j.clientJudge.CallPresidentElection(j.presidentTurnsInPower)
+	if electionsettings.HoldElection {
+		// TODO: deduct the cost of holding an election
+		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
+		election.OpenBallot(electionsettings.IslandsToVote)
+		election.Vote(iigoClients)
+		j.presidentTurnsInPower = 0
+		nextPresident = election.CloseBallot()
+		nextPresident = j.clientJudge.DecideNextPresident(nextPresident)
+	} else {
+		j.presidentTurnsInPower += 1
+		nextPresident = PresidentIDGlobal
+	}
+	return nextPresident
 }

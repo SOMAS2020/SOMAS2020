@@ -12,13 +12,14 @@ import (
 )
 
 type legislature struct {
-	SpeakerID     shared.ClientID
-	budget        shared.Resources
-	judgeSalary   shared.Resources
-	ruleToVote    string
-	ballotBox     voting.BallotBox
-	votingResult  bool
-	clientSpeaker roles.Speaker
+	SpeakerID         shared.ClientID
+	budget            shared.Resources
+	judgeSalary       shared.Resources
+	ruleToVote        string
+	ballotBox         voting.BallotBox
+	votingResult      bool
+	clientSpeaker     roles.Speaker
+	judgeTurnsInPower int
 }
 
 // loadClientSpeaker checks client pointer is good and if not panics
@@ -168,11 +169,22 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 
 }
 
-func (l *legislature) appointNextJudge(clientIDs []shared.ClientID) shared.ClientID {
-	l.budget -= serviceCharge
+// appointNextJudge returns the island ID of the island appointed to be Judge in the next turn
+func (l *legislature) appointNextJudge() shared.ClientID {
 	var election voting.Election
-	election.ProposeElection(baseclient.Judge, voting.Plurality)
-	election.OpenBallot(clientIDs)
-	election.Vote(iigoClients)
-	return election.CloseBallot()
+	var nextJudge shared.ClientID
+	electionsettings := l.clientSpeaker.CallJudgeElection(l.judgeTurnsInPower)
+	if electionsettings.HoldElection {
+		// TODO: deduct the cost of holding an election
+		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
+		election.OpenBallot(electionsettings.IslandsToVote)
+		election.Vote(iigoClients)
+		l.judgeTurnsInPower = 0
+		nextJudge = election.CloseBallot()
+		nextJudge = l.clientSpeaker.DecideNextJudge(nextJudge)
+	} else {
+		l.judgeTurnsInPower += 1
+		nextJudge = JudgeIDGlobal
+	}
+	return nextJudge
 }
