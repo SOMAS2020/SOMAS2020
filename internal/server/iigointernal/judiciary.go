@@ -12,6 +12,7 @@ import (
 
 // to be moved to paramters
 const sanctionCacheDepth = 3
+const historyCacheDepth = 3
 
 // to be changed
 const sanctionLength = 2
@@ -30,6 +31,7 @@ type judiciary struct {
 	sanctionThresholds    map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
 	ruleViolationSeverity map[string]roles.IIGOSanctionScore
 	localSanctionCache    map[int][]roles.Sanction
+	localHistoryCache     map[int][]shared.Accountability
 }
 
 func (j *judiciary) init() {
@@ -89,7 +91,28 @@ func (j *judiciary) setSpeakerAndPresidentIDs(speakerId shared.ClientID, preside
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	j.budget -= serviceCharge
 	success := false
-	j.evaluationResults, success = j.clientJudge.InspectHistory(iigoHistory)
+	tempResults := map[shared.ClientID]roles.EvaluationReturn{}
+	finalResults := getBaseEvalResults()
+	if j.clientJudge.HistoricalRetributionEnabled() {
+		for _, v := range j.localHistoryCache {
+			res, rsuccess := j.clientJudge.InspectHistory(v)
+			if !rsuccess {
+				success = false
+			} else {
+				for key, accounts := range res {
+					curr := finalResults[key]
+					curr.Evaluations = append(curr.Evaluations, accounts.Evaluations...)
+					curr.Rules = append(curr.Rules, accounts.Rules...)
+					finalResults[key] = curr
+				}
+			}
+		}
+	}
+	tempResults, success = j.clientJudge.InspectHistory(iigoHistory)
+	finalResults = mergeEvalResults(tempResults, finalResults)
+	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults)
+	j.cycleHistoryCache(entryForHistoryCache)
+	j.evaluationResults = finalResults
 	return j.evaluationResults, success
 }
 
@@ -163,6 +186,8 @@ func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.Cli
 // updateSanctionScore uses results of InspectHistory to assign sanction scores to clients
 // This function relies upon (in part) the client provided RuleViolationSeverity
 func (j *judiciary) updateSanctionScore() {
+	//Clearing sanction map
+	j.sanctionRecord = map[shared.ClientID]roles.IIGOSanctionScore{}
 	islandTransgressions := map[shared.ClientID][]string{}
 	for k, v := range j.evaluationResults {
 		islandTransgressions[k] = unpackSingleIslandTransgressions(v)
@@ -256,6 +281,17 @@ func (j *judiciary) cycleSanctionCache() {
 	}
 	newMap[0] = []roles.Sanction{}
 	j.localSanctionCache = newMap
+}
+
+func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
+	newMap := j.localHistoryCache
+	delete(newMap, historyCacheDepth-1)
+	newMapCache := newMap
+	for i := 0; i < historyCacheDepth-1; i++ {
+		newMap[i+1] = newMapCache[i]
+	}
+	newMap[0] = iigoHistory
+	j.localHistoryCache = newMap
 }
 
 // Helper functions for Judiciary branch
@@ -389,14 +425,116 @@ func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]role
 						IntegerData: int(vSan.SanctionTier) + 1,
 					},
 				})
-				sanctionCache[i] = remove(sanctionCache[i], iSan)
+				sanctionCache[i] = removeSanctions(sanctionCache[i], iSan)
 			}
 		}
 	}
 	return true, comms, sanctionCache
 }
 
-func remove(s []roles.Sanction, i int) []roles.Sanction {
+func removeSanctions(s []roles.Sanction, i int) []roles.Sanction {
 	s[len(s)-1], s[i] = s[i], s[len(s)-1]
 	return s[:len(s)-1]
+}
+
+// pickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
+func pickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
+	var Rules []string
+	if _, ok := rules.VariableMap[variableName]; ok {
+		for k, v := range ruleStore {
+			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
+			if !found {
+				Rules = append(Rules, k)
+			}
+		}
+		return Rules, true
+	} else {
+		// fmt.Sprintf("Variable name '%v' was not found in the variable cache", variableName)
+		return []string{}, false
+	}
+}
+
+func searchForVariableInArray(val rules.VariableFieldName, array []rules.VariableFieldName) (int, bool) {
+	for i, v := range array {
+		if v == val {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
+func getBaseEvalResults() map[shared.ClientID]roles.EvaluationReturn {
+	return map[shared.ClientID]roles.EvaluationReturn{
+		shared.Team1: {
+			Rules:       []rules.RuleMatrix{},
+			Evaluations: []bool{},
+		},
+		shared.Team2: {
+			Rules:       []rules.RuleMatrix{},
+			Evaluations: []bool{},
+		},
+		shared.Team3: {
+			Rules:       []rules.RuleMatrix{},
+			Evaluations: []bool{},
+		},
+		shared.Team4: {
+			Rules:       []rules.RuleMatrix{},
+			Evaluations: []bool{},
+		},
+		shared.Team5: {
+			Rules:       []rules.RuleMatrix{},
+			Evaluations: []bool{},
+		},
+		shared.Team6: {
+			Rules:       []rules.RuleMatrix{},
+			Evaluations: []bool{},
+		},
+	}
+}
+
+func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[shared.ClientID]roles.EvaluationReturn) []shared.Accountability {
+	var reducedAccountability []shared.Accountability
+	for _, v := range iigoHistory {
+		pairsAffected := v.Pairs
+		var allRulesAffected []string
+		for _, pair := range pairsAffected {
+			additionalRules, success := pickUpRulesByVariable(pair.VariableName, rules.RulesInPlay)
+			if success {
+				allRulesAffected = append(allRulesAffected, additionalRules...)
+			}
+		}
+		for _, ruleAff := range allRulesAffected {
+			found := searchEvalReturnForRuleName(ruleAff, evalResults[v.ClientID])
+			if !found {
+				reducedAccountability = append(reducedAccountability, v)
+			}
+		}
+	}
+	return reducedAccountability
+}
+
+func searchEvalReturnForRuleName(name string, evaluationReturn roles.EvaluationReturn) bool {
+	rulesAffected := evaluationReturn.Rules
+	for _, v := range rulesAffected {
+		if v.RuleName == name {
+			return true
+		}
+	}
+	return false
+}
+
+func mergeEvalResults(set1 map[shared.ClientID]roles.EvaluationReturn, set2 map[shared.ClientID]roles.EvaluationReturn) map[shared.ClientID]roles.EvaluationReturn {
+	for key, val := range set1 {
+		set2Val := set2[key]
+		defRules := set2Val.Rules
+		defEvals := set2Val.Evaluations
+		finalRules := append(defRules, val.Rules...)
+		finalEvals := append(defEvals, val.Evaluations...)
+		resolved := roles.EvaluationReturn{
+			Rules:       finalRules,
+			Evaluations: finalEvals,
+		}
+		set2[key] = resolved
+	}
+	return set2
 }

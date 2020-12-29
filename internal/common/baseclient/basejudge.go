@@ -80,6 +80,10 @@ func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction
 	return map[int][]roles.Sanction{}
 }
 
+func (j *BaseJudge) HistoricalRetributionEnabled() bool {
+	return false
+}
+
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
 func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
 	var Rules []string
