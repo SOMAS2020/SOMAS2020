@@ -52,6 +52,9 @@ type client struct {
 	forageHistory ForageHistory
 	taxAmount     shared.Resources
 
+	// allocation is the president's response to your last common pool resource request
+	allocation shared.Resources
+
 	config clientConfig
 }
 
@@ -60,11 +63,12 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		BaseClient:    baseclient.NewClient(clientID),
 		forageHistory: ForageHistory{},
 		taxAmount:     0,
+		allocation:    0,
 		config: clientConfig{
 			randomForageTurns:    5,
 			desperationThreshold: 20,
 			evadeTaxes:           false,
-			kickstartTax: 	      true,
+			kickstartTax:         true,
 		},
 	}
 }
@@ -105,6 +109,20 @@ func (c *client) desperateForage() shared.ForageDecision {
 	return forageDecision
 }
 
+func (c *client) CommonPoolResourceRequest() shared.Resources {
+	if !c.desperate() {
+		return 0
+	}
+
+	c.Logf("Common pool request: 20")
+	return 20
+}
+
+func (c *client) RequestAllocation() shared.Resources {
+	c.Logf("Taking %v from common pool", c.allocation)
+	return c.allocation
+}
+
 /********************/
 /***  Messages      */
 /********************/
@@ -119,6 +137,10 @@ func (c *client) ReceiveCommunication(
 			// if !__isPresident__(sender) {
 			// }
 			c.taxAmount = shared.Resources(content.IntegerData)
+		case shared.AllocationAmount:
+			// if !__isPresident__(sender) {
+			// }
+			c.allocation = shared.Resources(content.IntegerData)
 		}
 	}
 }
