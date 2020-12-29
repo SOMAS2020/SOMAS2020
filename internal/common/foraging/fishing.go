@@ -47,7 +47,7 @@ func (f FishingExpedition) Fish(fConf config.FishingConfig) ForagingReport {
 	input := f.TotalInput()
 	// get max number of deer allowed for given resource input
 	nFishFromInput := utilityTier(input, fConf.MaxFishPerHunt, fConf.IncrementalInputDecay)
-	returns := []shared.Resources{}
+	returns := []shared.Resources{} // store return for each potential fish we could catch
 
 	for i := uint(1); i < nFishFromInput; i++ {
 		returns = append(returns, fishingReturn(f.params))

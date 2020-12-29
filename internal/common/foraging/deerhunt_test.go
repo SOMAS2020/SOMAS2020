@@ -29,7 +29,7 @@ func TestDeerUtilityTier(t *testing.T) {
 	for _, tt := range tests {
 		testname := fmt.Sprintf("%.3f", tt.inputR)
 		t.Run(testname, func(t *testing.T) {
-			ans := deerUtilityTier(tt.inputR, uint(maxDeer), decay)
+			ans := utilityTier(tt.inputR, uint(maxDeer), decay)
 			if ans != uint(tt.want) {
 				t.Errorf("got %d, want %d", ans, tt.want)
 			}

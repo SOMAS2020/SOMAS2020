@@ -34,7 +34,7 @@ func TestFishUtilityTier(t *testing.T) {
 	for _, tt := range tests {
 		testname := fmt.Sprintf("%.3f", tt.inputF)
 		t.Run(testname, func(t *testing.T) {
-			ans := fishUtilityTier(tt.inputF, uint(maxFish), decayFish)
+			ans := utilityTier(tt.inputF, uint(maxFish), decayFish)
 			if ans != uint(tt.wantF) {
 				t.Errorf("got %d, want %d", ans, tt.wantF)
 			}
