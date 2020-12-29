@@ -560,6 +560,30 @@ func TestReplyAllocationRequest(t *testing.T) {
 				shared.Team6: calcExpectedVal(30, 105, 100),
 			},
 		},
+		{
+			name: "Zero requests",
+			bPresident: executive{
+				ID:              3,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 0,
+				shared.Team2: 0,
+				shared.Team3: 0,
+				shared.Team4: 0,
+				shared.Team5: 0,
+				shared.Team6: 0,
+			},
+			commonPool: 100,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: 0,
+				shared.Team2: 0,
+				shared.Team3: 0,
+				shared.Team4: 0,
+				shared.Team5: 0,
+				shared.Team6: 0,
+			},
+		},
 	}
 
 	for _, tc := range cases {
