@@ -117,7 +117,6 @@ var (
 )
 
 func parseConfig() config.Config {
-	flag.Parse()
 	foragingConf := config.ForagingConfig{
 		MaxDeerPerHunt:        *foragingMaxDeerPerHunt,
 		IncrementalInputDecay: *foragingIncrementalInputDecay,
