@@ -12,9 +12,9 @@ type RunGameReturnTypeWASM = {
     error: string,
 }
 
-type RunGameReturnType = {
-    output: typeof outputJSONData | undefined,
-    logs: string | undefined,
+export type RunGameReturnType = {
+    output: typeof outputJSONData,
+    logs: string,
 }
 
 const load = async () => {
@@ -28,6 +28,7 @@ const load = async () => {
 
 export const runGame = async (): Promise<RunGameReturnType> => {
     if (!loaded) {
+        console.log(`loading`)
         await load()
     }
 
