@@ -56,7 +56,7 @@ func (e *executive) getRuleForSpeaker() shared.PresidentReturnContent {
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) shared.PresidentReturnContent {
+func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
 	e.budget -= serviceCharge
 	return e.clientPresident.SetTaxationAmount(islandsResources)
 }

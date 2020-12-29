@@ -70,7 +70,6 @@ var iigoClients map[shared.ClientID]baseclient.Client
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
 
 	iigoClients = *clientMap
-
 	// Initialise IDs
 	judicialBranch.JudgeID = JudgeIDGlobal
 	legislativeBranch.SpeakerID = SpeakerIDGlobal
@@ -144,7 +143,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 		judicialBranch.declareSpeakerPerformanceWrapped()
 	}
-
 	// Get new Judge ID
 	JudgeIDGlobal = legislativeBranch.appointNextJudge(aliveClientIds)
 	// Get new Speaker ID

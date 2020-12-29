@@ -6,7 +6,9 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-type BasePresident struct{}
+type BasePresident struct {
+	FlatTaxRate float64
+}
 
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
 func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
@@ -52,11 +54,16 @@ func (p *BasePresident) PickRuleToVote(rulesProposals []string) shared.President
 }
 
 // SetTaxationAmount sets taxation amount for all of the living islands
-// islandsResources: map of all the living islands and their remaining resources
-func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) shared.PresidentReturnContent {
+// islandsResources: map of all the living islands and their reported resources
+func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
-	for id, resourceLeft := range islandsResources {
-		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * rand.Float64())
+
+	for clientID, clientReport := range islandsResources {
+		if clientReport.Reported {
+			taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * rand.Float64())
+		} else {
+			taxAmountMap[clientID] = 15 //flat tax rate
+		}
 	}
 	return shared.PresidentReturnContent{
 		ContentType: shared.PresidentTaxation,
