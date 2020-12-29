@@ -254,6 +254,9 @@ func (c *client) normalForage() shared.ForageDecision {
 	bestValue := shared.Resources(0)
 	bestValueROI := shared.Resources(0)
 	for _, outcome := range pastOutcomes {
+		if outcome.revenue-outcome.contribution < 10 {
+			continue
+		}
 		if outcome.contribution != 0 {
 			ROI := (outcome.revenue / outcome.contribution) - 1
 			if ROI > bestValueROI {
