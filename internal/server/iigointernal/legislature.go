@@ -9,11 +9,12 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
+	"github.com/pkg/errors"
 )
 
 type legislature struct {
+	gameState     *gamestate.GameState
 	SpeakerID     shared.ClientID
-	budget        shared.Resources
 	judgeSalary   shared.Resources
 	ruleToVote    string
 	ballotBox     voting.BallotBox
@@ -29,53 +30,55 @@ func (l *legislature) loadClientSpeaker(clientSpeakerPointer roles.Speaker) {
 	l.clientSpeaker = clientSpeakerPointer
 }
 
-// returnJudgeSalary returns the salary to the common pool.
-func (l *legislature) returnJudgeSalary() shared.Resources {
-	x := l.judgeSalary
-	l.judgeSalary = 0
-	return x
-}
-
-// withdrawJudgeSalary withdraws the salary for the Judge from the common pool.
-func (l *legislature) withdrawJudgeSalary(gameState *gamestate.GameState) bool {
-	var judgeSalary = shared.Resources(rules.VariableMap[rules.JudgeSalary].Values[0])
-	withdrawAmount, withdrawSuccesful := WithdrawFromCommonPool(judgeSalary, gameState)
-	l.judgeSalary = withdrawAmount
-
-	return withdrawSuccesful
-}
-
-// sendJudgeSalary sets the budget of the Judge.
-func (l *legislature) sendJudgeSalary(judicialBranch *judiciary) {
+// sendJudgeSalary conduct the transaction based on amount from client implementation
+func (l *legislature) sendJudgeSalary() error {
 	if l.clientSpeaker != nil {
 		amount, judgePaid := l.clientSpeaker.PayJudge(l.judgeSalary)
 		if judgePaid {
-			judicialBranch.budget = amount
+			// Subtract from common resources pool
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, l.gameState)
+
+			if withdrawSuccess {
+				// Pay into the client private resources pool
+				depositIntoClientPrivatePool(amountWithdraw, JudgeIDGlobal, l.gameState)
+			}
 		}
-		return
 	}
-	judicialBranch.budget = l.judgeSalary
+	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
 
 // Receive a rule to call a vote on
-func (l *legislature) setRuleToVote(r string) {
+func (l *legislature) setRuleToVote(r string) error {
+
+	if !l.incurServiceCharge(actionCost.SetRuleToVoteActionCost) {
+		return errors.Errorf("Insufficient Budget in common Pool: setRuleToVote")
+	}
+
 	ruleToBeVoted, ruleSet := l.clientSpeaker.DecideAgenda(r)
 	if ruleSet {
 		l.ruleToVote = ruleToBeVoted
 	}
+	return nil
 }
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (l *legislature) setVotingResult(clientIDs []shared.ClientID) {
+func (l *legislature) setVotingResult(clientIDs []shared.ClientID) (bool, error) {
+
+	if !l.incurServiceCharge(actionCost.SetVotingResultActionCost) {
+		return false, errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
+	}
 
 	ruleID, participatingIslands, voteDecided := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
 	if !voteDecided {
-		return
+		return false, nil
 	}
+
 	l.ballotBox = l.RunVote(ruleID, participatingIslands)
+
 	l.votingResult = l.ballotBox.CountVotesMajority()
 
+	return true, nil
 }
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.
@@ -85,7 +88,7 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 	if ruleID == "" || len(clientIDs) == 0 {
 		return voting.BallotBox{}
 	}
-	l.budget -= serviceCharge
+
 	ruleVote := voting.RuleVote{}
 
 	//TODO: check if rule is valid, otherwise return empty ballot, raise error?
@@ -104,13 +107,15 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
-func (l *legislature) announceVotingResult() {
+func (l *legislature) announceVotingResult() error {
 
 	rule, result, announcementDecided := l.clientSpeaker.DecideAnnouncement(l.ruleToVote, l.votingResult)
 
 	if announcementDecided {
 		//Deduct action cost
-		l.budget -= serviceCharge
+		if !l.incurServiceCharge(actionCost.AnnounceVotingResultActionCost) {
+			return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
+		}
 
 		//Reset
 		l.ruleToVote = ""
@@ -119,6 +124,7 @@ func (l *legislature) announceVotingResult() {
 		//Perform announcement
 		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(rule, result))
 	}
+	return nil
 }
 
 func generateVotingResultMessage(ruleID string, result bool) map[shared.CommunicationFieldName]shared.CommunicationContent {
@@ -145,7 +151,11 @@ func (l *legislature) reset() {
 
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
-	l.budget -= serviceCharge
+	if !l.incurServiceCharge(actionCost.UpdateRulesActionCost) {
+		return errors.Errorf("Insufficient Budget in common Pool: updateRules")
+	}
+	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
+	//notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
 	if ruleVotedIn {
 		// _ = rules.PullRuleIntoPlay(ruleName)
 		err := rules.PullRuleIntoPlay(ruleName)
@@ -168,11 +178,21 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 
 }
 
-func (l *legislature) appointNextJudge(clientIDs []shared.ClientID) shared.ClientID {
-	l.budget -= serviceCharge
+func (l *legislature) appointNextJudge(clientIDs []shared.ClientID) (shared.ClientID, error) {
+	if !l.incurServiceCharge(actionCost.AppointNextJudgeActionCost) {
+		return l.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
+	}
 	var election voting.Election
 	election.ProposeElection(baseclient.Judge, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
-	return election.CloseBallot()
+	return election.CloseBallot(), nil
+}
+
+func (l *legislature) incurServiceCharge(cost shared.Resources) bool {
+	_, ok := WithdrawFromCommonPool(cost, l.gameState)
+	if ok {
+		l.gameState.IIGORolesBudget["speaker"] -= cost
+	}
+	return ok
 }

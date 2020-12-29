@@ -11,6 +11,11 @@ import (
 func TestPutSalaryBack(t *testing.T) {
 	fakeGameState := gamestate.GameState{
 		CommonPool: 149,
+		IIGORolesBudget: map[string]shared.Resources{
+			"president": 0,
+			"speaker":   0,
+			"judge":     0,
+		},
 	}
 	goodRun, _ := RunIIGO(&fakeGameState, &map[shared.ClientID]baseclient.Client{
 		shared.Team1: &baseclient.BaseClient{},
@@ -25,3 +30,9 @@ func TestPutSalaryBack(t *testing.T) {
 		}
 	}
 }
+
+// we need more tests:
+// below are the test proposed:
+//1. test salary paid are moved into island private resources pools
+//2. test that the first round will works well
+//3. add experimentatl

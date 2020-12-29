@@ -34,6 +34,9 @@ type Config struct {
 
 	// Wrapped disaster config
 	DisasterConfig DisasterConfig
+
+	// Wrapped IIGO config
+	IIGOConfig IIGOConfig
 }
 
 // ForagingConfig captures foraging-specific config
@@ -57,4 +60,25 @@ type DisasterConfig struct {
 	GlobalProb             float64               // Bernoulli 'p' param. Chance of a disaster occurring
 	SpatialPDFType         shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
 	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
+}
+
+type IIGOConfig struct {
+	// Executive branch
+	GetRuleForSpeakerActionCost        shared.Resources
+	BroadcastTaxationActionCost        shared.Resources
+	ReplyAllocationRequestsActionCost  shared.Resources
+	RequestAllocationRequestActionCost shared.Resources
+	RequestRuleProposalActionCost      shared.Resources
+	AppointNextSpeakerActionCost       shared.Resources
+	// Judiciary branch
+	InspectHistoryActionCost       shared.Resources
+	InspectBallotActionCost        shared.Resources
+	InspectAllocationActionCost    shared.Resources
+	AppointNextPresidentActionCost shared.Resources
+	// Legislative branch
+	SetVotingResultActionCost      shared.Resources
+	SetRuleToVoteActionCost        shared.Resources
+	AnnounceVotingResultActionCost shared.Resources
+	UpdateRulesActionCost          shared.Resources
+	AppointNextJudgeActionCost     shared.Resources
 }

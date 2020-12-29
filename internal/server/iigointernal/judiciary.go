@@ -13,8 +13,8 @@ import (
 )
 
 type judiciary struct {
+	gameState         *gamestate.GameState
 	JudgeID           shared.ClientID
-	budget            shared.Resources
 	presidentSalary   shared.Resources
 	BallotID          int
 	ResAllocID        int
@@ -37,51 +37,36 @@ func (j *judiciary) init() {
 	j.ResAllocID = 0
 }
 
-// returnPresidentSalary returns the salary to the common pool.
-func (j *judiciary) returnPresidentSalary() shared.Resources {
-	x := j.presidentSalary
-	j.presidentSalary = 0
-	return x
-}
-
-// withdrawPresidentSalary withdraws the president's salary from the common pool.
-func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool {
-	var presidentSalary = shared.Resources(rules.VariableMap[rules.PresidentSalary].Values[0])
-	var withdrawAmount, withdrawSuccesful = WithdrawFromCommonPool(presidentSalary, gameState)
-	j.presidentSalary = withdrawAmount
-	return withdrawSuccesful
-}
-
-// sendPresidentSalary sends the president's salary to the president.
-func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
+// sendPresidentSalary conduct the transaction based on amount from client implementation
+func (j *judiciary) sendPresidentSalary() error {
 	if j.clientJudge != nil {
-		amount, payPresident := j.clientJudge.PayPresident(j.presidentSalary)
-		if payPresident {
-			executiveBranch.budget = amount
-		}
-		return
-	}
-	amount := j.PayPresident()
-	executiveBranch.budget = amount
-}
+		amount, presidentPaid := j.clientJudge.PayPresident(j.presidentSalary)
+		if presidentPaid {
+			// Subtract from common resources po
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, j.gameState)
 
-// PayPresident pays the president salary.
-func (j *judiciary) PayPresident() shared.Resources {
-	hold := j.presidentSalary
-	j.presidentSalary = 0
-	return hold
+			if withdrawSuccess {
+				// Pay into the client private resources pool
+				depositIntoClientPrivatePool(amountWithdraw, PresidentIDGlobal, j.gameState)
+			}
+		}
+	}
+	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
 
 // setSpeakerAndPresidentIDs set the speaker and president IDs.
-func (j *judiciary) setSpeakerAndPresidentIDs(speakerId shared.ClientID, presidentId shared.ClientID) {
-	j.speakerID = speakerId
-	j.presidentID = presidentId
+func (j *judiciary) setSpeakerAndPresidentIDs(speakerID shared.ClientID, presidentID shared.ClientID) {
+	j.speakerID = speakerID
+	j.presidentID = presidentID
 }
 
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	j.budget -= serviceCharge
+	if !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
+		return nil, false
+	}
+
 	return j.clientJudge.InspectHistory(iigoHistory)
 }
 
@@ -90,14 +75,16 @@ func (j *judiciary) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
-	j.budget -= serviceCharge // will be removed post-MVP
+	if !j.incurServiceCharge(actionCost.InspectBallotActionCost) {
+		return false, errors.Errorf("Insufficient Budget in common Pool: inspectBallot")
+	}
+
 	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err {
 		return rulesAffectedBySpeaker.Evaluations[indexOfBallotRule], nil
-	} else {
-		return true, errors.Errorf("Speaker did not conduct any ballots")
 	}
+	return true, errors.Errorf("Speaker did not conduct any ballots")
 }
 
 // inspectAllocation checks each resource allocation action adheres to the rules
@@ -107,7 +94,10 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
-	j.budget -= serviceCharge // will be removed post-MVP
+	if !j.incurServiceCharge(actionCost.InspectAllocationActionCost) {
+		return false, errors.Errorf("Insufficient Budget in common Pool: inspectAllocation")
+	}
+
 	rulesAffectedByPresident := j.EvaluationResults[j.presidentID]
 	indexOfAllocRule, ok := searchForRule("inspect_allocation_rule", rulesAffectedByPresident.Rules)
 	if !ok {
@@ -153,13 +143,16 @@ func (j *judiciary) declarePresidentPerformanceWrapped() {
 }
 
 // appointNextPresident returns the island ID of the island appointed to be the president in the next turn
-func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.ClientID {
-	j.budget -= serviceCharge
+// appointing new roles should be free
+func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) (shared.ClientID, error) {
+	if !j.incurServiceCharge(actionCost.AppointNextPresidentActionCost) {
+		return j.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
+	}
 	var election voting.Election
 	election.ProposeElection(baseclient.President, voting.Plurality)
 	election.OpenBallot(clientIDs)
 	election.Vote(iigoClients)
-	return election.CloseBallot()
+	return election.CloseBallot(), nil
 }
 
 // generateSpeakerPerformanceMessage generates the appropriate communication required regarding
@@ -208,4 +201,12 @@ func generatePresidentPerformanceMessage(RID int, result bool, PID shared.Client
 		BooleanData: conductedRole,
 	}
 	return returnMap
+}
+
+func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
+	_, ok := WithdrawFromCommonPool(cost, j.gameState)
+	if ok {
+		j.gameState.IIGORolesBudget["budget"] -= cost
+	}
+	return ok
 }
