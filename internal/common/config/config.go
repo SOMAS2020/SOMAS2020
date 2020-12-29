@@ -39,11 +39,12 @@ type Config struct {
 // DeerHuntConfig is a subset of foraging config
 type DeerHuntConfig struct {
 	// Deer Hunting
-	MaxDeerPerHunt        uint    // Max possible number of deer on a single hunt (regardless of number of participants)
-	IncrementalInputDecay float64 // Determines decay of incremental input cost of hunting more deer
-	BernoulliProb         float64 // `p` param in D variable (see README). Controls prob of catching a deer or not
-	ExponentialRate       float64 // `lambda` param in W variable (see README). Controls distribution of deer sizes.
-	ResourceMultiplier    float64 // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	MaxDeerPerHunt        uint                                // Max possible number of deer on a single hunt (regardless of number of participants)
+	IncrementalInputDecay float64                             // Determines decay of incremental input cost of hunting more deer
+	BernoulliProb         float64                             // `p` param in D variable (see README). Controls prob of catching a deer or not
+	ExponentialRate       float64                             // `lambda` param in W variable (see README). Controls distribution of deer sizes.
+	ResourceMultiplier    float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	DistributionStrategy  shared.ResourceDistributionStrategy // basis on which returns are split amongst hunters
 
 	// Deer Population
 	MaxDeerPopulation     uint    // Max possible deer population.
@@ -53,11 +54,13 @@ type DeerHuntConfig struct {
 // FishingConfig is a subset of foraging config
 type FishingConfig struct {
 	// Fishing
-	MaxFishPerHunt        uint
-	IncrementalInputDecay float64
-	Mean                  float64
-	Variance              float64
-	ResourceMultiplier    float64 // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	MaxFishPerHunt        uint                                // Max possible number of fish on a single fishing expedition
+	IncrementalInputDecay float64                             // Determines decay of incremental input cost of catching additional fish
+	Mean                  float64                             // mean of normally distributed fish size
+	Variance              float64                             // variance of normally distributed fish size
+	ResourceMultiplier    float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	DistributionStrategy  shared.ResourceDistributionStrategy // basis on which returns are split amongst fishermen
+
 }
 
 // DisasterConfig captures disaster-specific config
@@ -83,6 +86,7 @@ func GameConfig() Config {
 		IncrementalInputDecay: 0.8,
 		BernoulliProb:         0.95,
 		ExponentialRate:       1,
+		DistributionStrategy:  shared.InputProportional,
 
 		MaxDeerPopulation:     12,
 		DeerGrowthCoefficient: 0.4,
@@ -93,6 +97,7 @@ func GameConfig() Config {
 		IncrementalInputDecay: 0.8,
 		Mean:                  0.9,
 		Variance:              0.2,
+		DistributionStrategy:  shared.InputProportional,
 	}
 	foragingConf := ForagingConfig{
 		DeerHuntConfig: deerConf,

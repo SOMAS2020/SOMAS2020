@@ -67,6 +67,11 @@ var (
 		1,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
+	foragingDeerDistributionStrategy = flag.Float64(
+		"foragingDeerDistributionStrategy",
+		1,
+		"basis on which returns from deer hunt are split",
+	)
 	foragingMaxDeerPopulation = flag.Uint(
 		"maxDeerPopulation",
 		12,

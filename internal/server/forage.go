@@ -124,19 +124,35 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]shared.Resources, huntReport foraging.ForagingReport) {
 	// distribute return amongst participants
 	totalContributions := huntReport.InputResources
+
+	// auxiliary return info. Just to avoid repetition.
+	type auxReturnInfo struct {
+		distrStrategy        shared.ResourceDistributionStrategy
+		resourceReturnReason string
+	}
+
 	for participantID, contribution := range contributions {
-		participantReturn := shared.Resources(0.0) // default to zero
-		if totalContributions > 0.0 {
-			participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
+		deerReturnStrat := s.gameConfig.ForagingConfig.DeerHuntConfig.DistributionStrategy
+		fishReturnStrat := s.gameConfig.ForagingConfig.FishingConfig.DistributionStrategy
+
+		returnInfoPerType := map[shared.ForageType]auxReturnInfo{
+			shared.DeerForageType: {distrStrategy: deerReturnStrat, resourceReturnReason: "Deer hunt return"},
+			shared.FishForageType: {distrStrategy: fishReturnStrat, resourceReturnReason: "Fishing return"},
 		}
-		resourceReturnReasons := map[shared.ForageType]string{
-			shared.DeerForageType: "Deer hunt return",
-			shared.FishForageType: "Fishing return",
-		}
+		participantReturn := shared.Resources(0.0)      // default to zero return
 		retReason := "Unspecified foraging return type" // default if f. type not found
 		// check if the foraging type has been specified above
-		if r, ok := resourceReturnReasons[huntReport.ForageType]; ok {
-			retReason = r
+		if r, ok := returnInfoPerType[huntReport.ForageType]; ok {
+			retReason = r.resourceReturnReason
+
+			if totalContributions > 0.0 {
+				switch r.distrStrategy {
+				case shared.Equal:
+					participantReturn = huntReport.TotalUtility / shared.Resources(huntReport.NumberParticipants) // this casting is a bit lazy
+				case shared.InputProportional:
+					participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
+				}
+			}
 		}
 
 		s.giveResources(participantID, participantReturn, retReason)
