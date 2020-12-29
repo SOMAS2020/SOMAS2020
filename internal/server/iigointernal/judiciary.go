@@ -86,7 +86,7 @@ func (j *judiciary) setSpeakerAndPresidentIDs(speakerId shared.ClientID, preside
 	j.presidentID = presidentId
 }
 
-// InspectHistory checks all actions that happened in the last turn and audits them.
+// inspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	j.budget -= serviceCharge
@@ -273,6 +273,7 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 
 }
 
+// cycleSanctionCache rolls the sanction cahce one turn forward (effectively dropping any sanctions longer than the depth)
 func (j *judiciary) cycleSanctionCache() {
 	newMap := j.localSanctionCache
 	delete(newMap, sanctionCacheDepth-1)
@@ -284,6 +285,7 @@ func (j *judiciary) cycleSanctionCache() {
 	j.localSanctionCache = newMap
 }
 
+// cycleHistoryCache rolls the history cache (for retributive justice) forward
 func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
 	newMap := j.localHistoryCache
 	delete(newMap, historyCacheDepth-1)
@@ -295,8 +297,9 @@ func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
 	j.localHistoryCache = newMap
 }
 
+// clearHistoryCache wipes the history cache (when retributive justice has happened)
 func (j *judiciary) clearHistoryCache() {
-	j.localHistoryCache = map[int][]shared.Accountability{}
+	j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
 }
 
 // Helper functions for Judiciary branch
@@ -349,6 +352,7 @@ func generatePresidentPerformanceMessage(RID int, result bool, PID shared.Client
 	return returnMap
 }
 
+// getDefaultSanctionThresholds provides default thresholds for sanctions
 func getDefaultSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
 	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
 		roles.SanctionTier1: 1,
@@ -359,6 +363,7 @@ func getDefaultSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctio
 	}
 }
 
+// softMergeSanctionThresholds merges the default sanction thresholds with a (preferred) client version
 func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
 	defaultMap := getDefaultSanctionThresholds()
 	for k := range defaultMap {
@@ -369,6 +374,7 @@ func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]ro
 	return defaultMap
 }
 
+// unpackSingleIslandTransgressions fetches the rule names of any broken rules as per EvaluationReturns
 func unpackSingleIslandTransgressions(evaluationReturn roles.EvaluationReturn) []string {
 	transgressions := []string{}
 	for i, v := range evaluationReturn.Rules {
@@ -379,6 +385,7 @@ func unpackSingleIslandTransgressions(evaluationReturn roles.EvaluationReturn) [
 	return transgressions
 }
 
+// getIslandSanctionTier if statement based evaluator for which sanction tier a particular score is in
 func getIslandSanctionTier(islandScore roles.IIGOSanctionScore, scoreMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) roles.IIGOSanctionTier {
 	if islandScore <= scoreMap[roles.SanctionTier1] {
 		return roles.None
@@ -395,6 +402,7 @@ func getIslandSanctionTier(islandScore roles.IIGOSanctionScore, scoreMap map[rol
 	}
 }
 
+// getTierSanctionMap basic mapping between snaciotn tier and rule that governs it
 func getTierSanctionMap() map[roles.IIGOSanctionTier]string {
 	return map[roles.IIGOSanctionTier]string{
 		roles.SanctionTier1: "iigo_economic_sanction_1",
@@ -405,6 +413,7 @@ func getTierSanctionMap() map[roles.IIGOSanctionTier]string {
 	}
 }
 
+// defaultInitLocalSanctionCache generates a blank sanction cache
 func defaultInitLocalSanctionCache(depth int) map[int][]roles.Sanction {
 	returnMap := map[int][]roles.Sanction{}
 	for i := 0; i < depth; i++ {
@@ -413,6 +422,7 @@ func defaultInitLocalSanctionCache(depth int) map[int][]roles.Sanction {
 	return returnMap
 }
 
+// defaultInitLocalHistoryCache generates a blank history cache
 func defaultInitLocalHistoryCache(depth int) map[int][]shared.Accountability {
 	returnMap := map[int][]shared.Accountability{}
 	for i := 0; i < depth; i++ {
@@ -421,6 +431,7 @@ func defaultInitLocalHistoryCache(depth int) map[int][]shared.Accountability {
 	return returnMap
 }
 
+// checkPardons checks the pardons issued by an island judge making sure they are valid, returns the remaining sanctions
 func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int]map[int]roles.Sanction) (pardonsValid bool, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent, finalCache map[int][]roles.Sanction) {
 	comms := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
 	newSanctionCache := map[int][]roles.Sanction{}
@@ -451,6 +462,7 @@ func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int]map[in
 	return true, comms, newSanctionCache
 }
 
+// removeSanctions is a helper function to remoce a sanction element from a slice
 func removeSanctions(slice []roles.Sanction, s int) []roles.Sanction {
 	var output []roles.Sanction
 	for i, v := range slice {
@@ -461,6 +473,7 @@ func removeSanctions(slice []roles.Sanction, s int) []roles.Sanction {
 	return output
 }
 
+// getDifferenceInLength helper function to get difference in length between two lists
 func getDifferenceInLength(slice1 []roles.Sanction, slice2 []roles.Sanction) int {
 	return len(slice1) - len(slice2)
 }
@@ -520,6 +533,7 @@ func getBaseEvalResults() map[shared.ClientID]roles.EvaluationReturn {
 	}
 }
 
+// cullCheckedRules removes any entries in the history that have been evaluated in evalResults (for historical retribution)
 func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[shared.ClientID]roles.EvaluationReturn, rulesCache map[string]rules.RuleMatrix, variableCache map[rules.VariableFieldName]rules.VariableValuePair) []shared.Accountability {
 	reducedAccountability := []shared.Accountability{}
 	for _, v := range iigoHistory {
@@ -542,6 +556,7 @@ func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[share
 	return reducedAccountability
 }
 
+// streamlineRulesAffected removes duplicate rules
 func streamlineRulesAffected(input []string) []string {
 	streamlineMap := map[string]bool{}
 	for _, v := range input {
