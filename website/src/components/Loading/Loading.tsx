@@ -1,7 +1,7 @@
 import React from 'react'
 import { Modal } from 'react-bootstrap'
 
-// import loadingSVG from './Loading.svg'
+import loadingSVG from './Loading.svg'
 import { useLoadingState } from '../../contexts/loadingState'
 
 const Loading = () => {
@@ -24,7 +24,7 @@ const Loading = () => {
       </Modal.Header>
       <Modal.Body>
         {/* TODO:- Fix Freezing issue--might need web worker? */}
-        {/* <img src={loadingSVG} alt="loading" className="loader" /> */}
+        <img src={loadingSVG} alt="loading" className="loader" />
         <p style={{ padding: 10, fontSize: '1.2rem' }}>{loadingText ? loadingText : `Tomato sauce was sold in the 1800's as medicine.`}</p>
       </Modal.Body>
     </Modal>
