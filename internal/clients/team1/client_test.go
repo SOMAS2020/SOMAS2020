@@ -23,15 +23,34 @@ func MakeTestClient(gamestate gamestate.ClientGameState) client {
 	return *c.(*client)
 }
 
-func TestRequestsResourcesWhenDesperate(t *testing.T) {
+func TestRequestsResourcesWhenAnxious(t *testing.T) {
+	c := MakeTestClient(gamestate.ClientGameState{
+		ClientInfo: gamestate.ClientInfo{
+			Resources: 99,
+		},
+	})
+	c.config.anxietyThreshold = 100
+
+	gotRequest := c.CommonPoolResourceRequest()
+	if gotRequest <= 0 {
+		t.Errorf("Client did not make a resource request while anxious (%v)", gotRequest)
+	}
+}
+
+func TestStealsResourcesWhenDesperate(t *testing.T) {
 	c := MakeTestClient(gamestate.ClientGameState{
 		ClientInfo: gamestate.ClientInfo{
 			LifeStatus: shared.Critical,
 		},
 	})
+	c.config.desperateStealAmount = 50
 
-	gotRequest := c.CommonPoolResourceRequest()
-	if gotRequest <= 0 {
-		t.Errorf("Client did not make a resource request while desperate (%v)", gotRequest)
+	gotTakeAmt := c.RequestAllocation()
+	if gotTakeAmt != c.config.desperateStealAmount {
+		t.Errorf(
+			`Client took the wrong amount while desperate:
+				Expected: %v
+				Got: %v`, c.config.desperateStealAmount, gotTakeAmt)
 	}
+
 }

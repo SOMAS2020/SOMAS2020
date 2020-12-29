@@ -61,6 +61,9 @@ type clientConfig struct {
 
 	// If true, pay some initial tax to help get the first IIGO running
 	kickstartTax bool
+
+	// desperateStealAmount is the amount the agent will steal from the commonPool
+	desperateStealAmount shared.Resources
 }
 
 // client is Lucy.
@@ -130,7 +133,7 @@ func (c *client) desperateForage() shared.ForageDecision {
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	switch c.emotionalState() {
-	case Desperate:
+	case Anxious:
 		c.Logf("Common pool request: 20")
 		return 20
 	default:
@@ -139,8 +142,17 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 }
 
 func (c *client) RequestAllocation() shared.Resources {
-	c.Logf("Taking %v from common pool", c.allocation)
-	return c.allocation
+	var allocation shared.Resources
+
+	if c.emotionalState() == Desperate {
+		allocation = c.config.desperateStealAmount
+	} else if c.allocation != 0 {
+		allocation = c.allocation
+		c.allocation = 0
+	}
+
+	c.Logf("Taking %v from common pool", allocation)
+	return allocation
 }
 
 /********************/
