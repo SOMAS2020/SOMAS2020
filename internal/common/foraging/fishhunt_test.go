@@ -23,7 +23,7 @@ func TestFishUtilityTier(t *testing.T) {
 		// Cumulative cost 			0.0		1.0		1.8		2.44 		2.952		...
 		// Incremental cost			0.0		1.0		0.8		0.64		0.512
 		{0.0, 0},
-		{0.99, 1},
+		{0.99, 0},
 		{1.52, 1},
 		{2.1, 2},
 		{2.45, 3},

@@ -9,7 +9,7 @@ import (
 // CreateDeerHunt receives hunt participants and their contributions and returns a DeerHunt
 func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.Resources, dhConf config.DeerHuntConfig) (DeerHunt, error) {
 	if len(teamResourceInputs) == 0 {
-		return DeerHunt{}, errors.Errorf("No resource contributions specified!")
+		return DeerHunt{}, errors.Errorf("No deer hunt resource contributions specified!")
 	}
 	params := deerHuntParams{p: dhConf.BernoulliProb, lam: dhConf.ExponentialRate}
 	return DeerHunt{ParticipantContributions: teamResourceInputs, params: params}, nil // returning error too for future use
@@ -18,7 +18,7 @@ func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.Resources, dhC
 // CreateFishingExpedition sees the participants and their contributions and returns the value of FishHunt
 func CreateFishingExpedition(teamResourceInputs map[shared.ClientID]shared.Resources) (FishingExpedition, error) {
 	if len(teamResourceInputs) == 0 {
-		return FishingExpedition{}, errors.Errorf("No resource contributions specified - %v")
+		return FishingExpedition{}, errors.Errorf("No fishing resource contributions specified!")
 	}
 	fConf := config.GameConfig().ForagingConfig.FishingConfig
 	params := fishingParams{Mu: fConf.Mean, Sigma: fConf.Variance}
