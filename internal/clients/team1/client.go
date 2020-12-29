@@ -93,10 +93,11 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		taxAmount:     0,
 		allocation:    0,
 		config: clientConfig{
-			randomForageTurns:   5,
-			anxietyThreshold:    20,
-			evadeTaxes:          false,
-			kickstartTaxPercent: 0.1,
+			randomForageTurns:    5,
+			anxietyThreshold:     20,
+			desperateStealAmount: 30,
+			evadeTaxes:           false,
+			kickstartTaxPercent:  0.25,
 		},
 	}
 }
@@ -151,7 +152,9 @@ func (c *client) RequestAllocation() shared.Resources {
 		c.allocation = 0
 	}
 
-	c.Logf("Taking %v from common pool", allocation)
+	if allocation != 0 {
+		c.Logf("Taking %v from common pool", allocation)
+	}
 	return allocation
 }
 
