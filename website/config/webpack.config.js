@@ -31,6 +31,8 @@ const postcssNormalize = require('postcss-normalize');
 
 const appPackageJson = require(paths.appPackageJson);
 
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
+
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
 
@@ -659,6 +661,9 @@ module.exports = function (webpackEnv) {
           };
         },
       }),
+      // add Go WASM files
+      new AddAssetHtmlPlugin({ filepath: require.resolve('../wasmjs/init_go.js') }),
+      new AddAssetHtmlPlugin({ filepath: require.resolve('../wasmjs/wasm_exec.js') }),
       // Moment.js is an extremely popular library that bundles large locale files
       // by default due to how webpack interprets its code. This is a practical
       // solution that requires the user to opt into importing specific locales.
