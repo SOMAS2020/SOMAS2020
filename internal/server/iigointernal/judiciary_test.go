@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+// Unit tests //
+
 func TestMergeEvalResults(t *testing.T) {
 	availableRules := generateDummyRuleMatrices()
 	cases := []struct {
@@ -604,6 +606,114 @@ func TestCheckPardons(t *testing.T) {
 				t.Errorf("Expected Communications to be %v got %v", tc.expComms, comm)
 			} else if !reflect.DeepEqual(finCache, tc.expFinCache) {
 				t.Errorf("Expected Final Cache to be %v got %v", tc.expFinCache, finCache)
+			}
+		})
+	}
+}
+
+func TestUnpackSingleIslandTransgression(t *testing.T) {
+	availableRules := generateDummyRuleMatrices()
+	cases := []struct {
+		name       string
+		evalReturn roles.EvaluationReturn
+		expected   []string
+	}{
+		{
+			name: "Basic unpack test",
+			evalReturn: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+				},
+				Evaluations: []bool{false},
+			},
+			expected: []string{
+				"inspect_ballot_rule",
+			},
+		},
+		{
+			name: "None to unpack",
+			evalReturn: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+				},
+				Evaluations: []bool{true},
+			},
+			expected: []string{},
+		},
+		{
+			name: "Multiple unpack",
+			evalReturn: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+					availableRules[1],
+					availableRules[2],
+				},
+				Evaluations: []bool{false, false, false},
+			},
+			expected: []string{availableRules[0].RuleName, availableRules[1].RuleName, availableRules[2].RuleName},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tra := unpackSingleIslandTransgressions(tc.evalReturn)
+			if !reflect.DeepEqual(tra, tc.expected) {
+				t.Errorf("Expected final transgressions to be %v got %v", tc.expected, tra)
+			}
+		})
+	}
+}
+
+func TestSoftMergeSanctionThreshold(t *testing.T) {
+	cases := []struct {
+		name              string
+		clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+		expectedVal       map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+	}{
+		{
+			name: "Basic soft merge",
+			clientSanctionMap: map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
+				roles.SanctionTier1: roles.IIGOSanctionScore(3),
+			},
+			expectedVal: map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
+				roles.SanctionTier1: 3,
+				roles.SanctionTier2: 5,
+				roles.SanctionTier3: 10,
+				roles.SanctionTier4: 20,
+				roles.SanctionTier5: 30,
+			},
+		},
+		{
+			name:              "No merge",
+			clientSanctionMap: map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{},
+			expectedVal: map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
+				roles.SanctionTier1: 1,
+				roles.SanctionTier2: 5,
+				roles.SanctionTier3: 10,
+				roles.SanctionTier4: 20,
+				roles.SanctionTier5: 30,
+			},
+		},
+		{
+			name: "More complicated merge",
+			clientSanctionMap: map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
+				roles.SanctionTier1: 7,
+				roles.SanctionTier2: 9,
+				roles.SanctionTier5: 400,
+			},
+			expectedVal: map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
+				roles.SanctionTier1: 7,
+				roles.SanctionTier2: 9,
+				roles.SanctionTier3: 10,
+				roles.SanctionTier4: 20,
+				roles.SanctionTier5: 400,
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := softMergeSanctionThresholds(tc.clientSanctionMap)
+			if !reflect.DeepEqual(res, tc.expectedVal) {
+				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, res)
 			}
 		})
 	}

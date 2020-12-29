@@ -370,7 +370,7 @@ func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]ro
 }
 
 func unpackSingleIslandTransgressions(evaluationReturn roles.EvaluationReturn) []string {
-	var transgressions []string
+	transgressions := []string{}
 	for i, v := range evaluationReturn.Rules {
 		if !evaluationReturn.Evaluations[i] {
 			transgressions = append(transgressions, v.RuleName)
