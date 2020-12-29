@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -47,14 +45,14 @@ type Client interface {
 	ReceiveForageInfo([]shared.ForageShareInfo)
 
 	//IITO: COMPULSORY
-	RequestGift() uint
-	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
-	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
-	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
+	GetGiftRequests() shared.GiftRequestDict
+	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
+	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
+	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
-	SendGift(receivingClient shared.ClientID, amount int) error
-	ReceiveGift(sendingClient shared.ClientID, amount int) error
+	SentGift(sent shared.Resources, to shared.ClientID)
+	ReceivedGift(received shared.Resources, from shared.ClientID)
 }
 
 // ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate
@@ -79,7 +77,6 @@ type BaseClient struct {
 	predictionInfo shared.PredictionInfo
 
 	// exported variables are accessible by the client implementations
-	ClientGameState  gamestate.ClientGameState
 	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 	ServerReadHandle ServerReadHandle
 }
@@ -114,38 +111,6 @@ func (c *BaseClient) StartOfTurn() {}
 // BASE: Do not overwrite in team client.
 func (c *BaseClient) Logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
-}
-
-// Role provides enumerated type for IIGO roles (President, Speaker and Judge)
-type Role int
-
-const (
-	President Role = iota
-	Speaker
-	Judge
-)
-
-func (r Role) String() string {
-	strs := [...]string{"President", "Speaker", "Judge"}
-	if r >= 0 && int(r) < len(strs) {
-		return strs[r]
-	}
-	return fmt.Sprintf("UNKNOWN Role '%v'", int(r))
-}
-
-// GoString implements GoStringer
-func (r Role) GoString() string {
-	return r.String()
-}
-
-// MarshalText implements TextMarshaler
-func (r Role) MarshalText() ([]byte, error) {
-	return miscutils.MarshalTextForString(r.String())
-}
-
-// MarshalJSON implements RawMessage
-func (r Role) MarshalJSON() ([]byte, error) {
-	return miscutils.MarshalJSONForString(r.String())
 }
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
