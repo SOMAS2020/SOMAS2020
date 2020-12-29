@@ -9,8 +9,10 @@ import (
 	"io"
 	"log"
 	"reflect"
+	"strings"
 	"syscall/js"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/SOMAS2020/SOMAS2020/pkg/logger"
 	"github.com/pkg/errors"
@@ -28,33 +30,41 @@ func main() {
 		"RunGame", js.FuncOf(RunGame),
 	)
 	js.Global().Set(
-		"GetFlagsFormats", js.FuncOf(getFlagsFormats),
+		"GetFlagsFormats", js.FuncOf(GetFlagsFormats),
 	)
 	select {}
 }
 
 func RunGame(this js.Value, args []js.Value) interface{} {
+	gameConfig, err := getConfigFromArgs(args)
+	if err != nil {
+		return js.ValueOf(map[string]interface{}{
+			"error": convertError(err),
+		})
+	}
+
 	// log into a buffer
 	logBuf := bytes.Buffer{}
 	log.SetOutput(logger.NewLogWriter([]io.Writer{&logBuf}))
 
-	gameConfig := parseConfig()
 	s := server.NewSOMASServer(gameConfig)
 
 	var o output
 	var outputJSON string
 	var err error
 	gameStates, err := s.EntryPoint()
-
-	// === IF NO ERROR ===
-	if err == nil {
-		o = output{
-			GameStates: gameStates,
-			Config:     gameConfig,
-			// no git info
-		}
-		outputJSON, err = getOutputJSON(o)
+	if err != nil {
+		return js.ValueOf(map[string]interface{}{
+			"error": convertError(err),
+		})
 	}
+
+	o = output{
+		GameStates: gameStates,
+		Config:     gameConfig,
+		// no git info
+	}
+	outputJSON, err = getOutputJSON(o)
 
 	return js.ValueOf(map[string]interface{}{
 		"output": outputJSON,
@@ -63,12 +73,36 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 	})
 }
 
-func getFlagsFormats(this js.Value, args []js.Value) interface{} {
+func getConfigFromArgs(args []string) (config.Config, error) {
+	flag.Parse()
+
+	for _, arg := range args {
+		nameValuePair := strings.Split(arg, "=")
+		if len(nameValuePair) != 2 {
+			return config.Config{}, errors.Errorf("Invalid arg: %v", arg)
+		}
+		name := nameValuePair[0]
+		val := nameValuePair[1]
+		err := flag.Set(name, val)
+		if err != nil {
+			return config.Config{}, errors.Errorf("Cannot set flag name '%v' with value '%v': %v", name, val, err)
+		}
+	}
+
+	return parseConfig()
+}
+
+func GetFlagsFormats(this js.Value, args []js.Value) interface{} {
 	flagInfos := []flagInfo{}
 	flagVisitor := flagVisitOuter(&flagInfos)
 	flag.VisitAll(flagVisitor)
 
 	output, err := getFlagsFormatsJSON(flagInfos)
+	if err != nil {
+		return js.ValueOf(map[string]interface{}{
+			"error": convertError(err),
+		})
+	}
 
 	return js.ValueOf(map[string]interface{}{
 		"output": output,

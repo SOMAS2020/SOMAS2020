@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -51,6 +52,7 @@ func initLogger() {
 }
 
 func main() {
+	flag.Parse()
 	gameConfig := parseConfig()
 	s := server.NewSOMASServer(gameConfig)
 	if gameStates, err := s.EntryPoint(); err != nil {
