@@ -62,6 +62,11 @@ var (
 		1,
 		"`lambda` param in W variable (see foraging README). Controls distribution of deer sizes.",
 	)
+	foragingDeerResourceMultiplier = flag.Float64(
+		"foragingDeerResourceMultiplier",
+		1,
+		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
+	)
 	foragingMaxDeerPopulation = flag.Uint(
 		"maxDeerPopulation",
 		12,
@@ -91,6 +96,11 @@ var (
 		"foragingFishingVariance",
 		0.2,
 		"Determines variance of normal distribution of fishing return (see foraging README)",
+	)
+	foragingFishingResourceMultiplier = flag.Float64(
+		"foragingFishingResourceMultiplier",
+		1,
+		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	// config.DisasterConfig
 	disasterXMin = flag.Float64(
@@ -139,6 +149,7 @@ func parseConfig() config.Config {
 		IncrementalInputDecay: *foragingDeerIncrementalInputDecay,
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
+		ResourceMultiplier:    *foragingDeerResourceMultiplier,
 
 		MaxDeerPopulation:     *foragingMaxDeerPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
@@ -149,6 +160,7 @@ func parseConfig() config.Config {
 		IncrementalInputDecay: *foragingFishingIncrementalInputDecay,
 		Mean:                  *foragingFishingMean,
 		Variance:              *foragingFishingVariance,
+		ResourceMultiplier:    *foragingFishingResourceMultiplier,
 	}
 	foragingConf := config.ForagingConfig{
 		DeerHuntConfig: deerConf,

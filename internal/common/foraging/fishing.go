@@ -50,7 +50,8 @@ func (f FishingExpedition) Fish(fConf config.FishingConfig) ForagingReport {
 	returns := []shared.Resources{} // store return for each potential fish we could catch
 
 	for i := uint(1); i < nFishFromInput; i++ {
-		returns = append(returns, fishingReturn(f.params))
+		utility := fishingReturn(f.params) * shared.Resources(fConf.ResourceMultiplier) // scale return by resource multiplier
+		returns = append(returns, utility)
 	}
 	return compileForagingReport(shared.FishForageType, f.ParticipantContributions, returns)
 }

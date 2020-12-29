@@ -43,6 +43,7 @@ type DeerHuntConfig struct {
 	IncrementalInputDecay float64 // Determines decay of incremental input cost of hunting more deer
 	BernoulliProb         float64 // `p` param in D variable (see README). Controls prob of catching a deer or not
 	ExponentialRate       float64 // `lambda` param in W variable (see README). Controls distribution of deer sizes.
+	ResourceMultiplier    float64 // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
 
 	// Deer Population
 	MaxDeerPopulation     uint    // Max possible deer population.
@@ -56,6 +57,7 @@ type FishingConfig struct {
 	IncrementalInputDecay float64
 	Mean                  float64
 	Variance              float64
+	ResourceMultiplier    float64 // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
 }
 
 // DisasterConfig captures disaster-specific config
