@@ -198,10 +198,18 @@ func (c *client) GetTaxContribution() shared.Resources {
 func (c *client) randomForage() shared.ForageDecision {
 	// Up to 10% of our current resources
 	forageContribution := shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources
+
+	var forageType shared.ForageType
+	if rand.Float64() < 0.5 {
+		forageType = shared.DeerForageType
+	} else {
+		forageType = shared.FishForageType
+	}
+
 	c.Logf("[Forage][Decision]:Random")
 	// TODO Add fish foraging when it's done
 	return shared.ForageDecision{
-		Type:         shared.DeerForageType,
+		Type:         forageType,
 		Contribution: forageContribution,
 	}
 }
