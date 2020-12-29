@@ -11,9 +11,7 @@ import (
 
 type mockClientForage struct {
 	baseclient.Client
-
-	forageDecision shared.ForageDecision
-
+	forageDecision     shared.ForageDecision
 	forageUpdateCalled bool
 	gotForageDecision  shared.ForageDecision
 }
@@ -30,8 +28,7 @@ func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, re
 func TestForagingCallsForageUpdate(t *testing.T) {
 	cases := []shared.ForageType{
 		shared.DeerForageType,
-		// TODO: Uncomment when fish foraging implemented
-		// shared.FishForageType,
+		shared.FishForageType,
 	}
 
 	for _, tc := range cases {

@@ -1,6 +1,7 @@
 package foraging
 
 import (
+	"encoding/json"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -46,4 +47,13 @@ func utilityTier(input shared.Resources, maxNumberPerHunt uint, decay float64) u
 		}
 	}
 	return maxNumberPerHunt
+}
+
+// Display returns a JSON string of a foraging report
+func (f ForagingReport) Display() string {
+	out, err := json.Marshal(f)
+	if err != nil {
+		return ""
+	}
+	return string(out)
 }

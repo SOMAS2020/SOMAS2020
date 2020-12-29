@@ -23,6 +23,9 @@ type GameState struct {
 	Environment    disasters.Environment
 	DeerPopulation foraging.DeerPopulationModel
 
+	// Foraging History
+	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
+
 	// IIGO History
 	IIGOHistory []shared.Accountability
 
