@@ -62,7 +62,7 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 }
 
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
-func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources, aliveIslands []shared.ClientID) {
+func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.ResourcesReport, aliveIslands []shared.ClientID) {
 	e.budget -= serviceCharge
 	taxMapReturn := e.getTaxMap(islandsResources)
 	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {

@@ -115,7 +115,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
 
 	// 2 President actions
-	resourceReports := map[shared.ClientID]shared.Resources{}
+	resourceReports := map[shared.ClientID]shared.ResourcesReport{}
 	aliveClientIds := []shared.ClientID{}
 	for clientID, clientGameState := range g.ClientInfos {
 		if clientGameState.LifeStatus != shared.Dead {
