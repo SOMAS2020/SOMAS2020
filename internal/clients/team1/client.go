@@ -125,7 +125,7 @@ func (c *client) StartOfTurn() {
 
 func (c *client) desperateForage() shared.ForageDecision {
 	forageDecision := shared.ForageDecision{
-		Type:         shared.DeerForageType,
+		Type:         shared.FishForageType,
 		Contribution: c.gameState().ClientInfo.Resources,
 	}
 	c.Logf("[Forage][Decision]: Desperate | Decision %v", forageDecision)
