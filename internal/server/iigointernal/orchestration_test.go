@@ -35,13 +35,3 @@ func TestPutSalaryBack(t *testing.T) {
 		}
 	}
 }
-
-// we need more tests:
-// below are the test proposed:
-//1. test salary paid are moved into island private resources pools
-//2. test that the first round will works well
-//3. add experimentatl
-
-// Incure service charge in each file
-// DepositIntoClient private pool - Utilies
-// WithdrawFromCommonPool - Utilies?
