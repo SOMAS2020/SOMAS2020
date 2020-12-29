@@ -3,8 +3,6 @@ package foraging
 // see https://colab.research.google.com/drive/1g1tiX27Ds7FGjj4_WjFB3OLj8Fat_Ur5?usp=sharing for experiments + simulations
 
 import (
-	"math"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
@@ -21,53 +19,22 @@ type DeerHunt struct {
 	params                   deerHuntParams
 }
 
-// DeerHuntReport holds information about the result of a deer hunt
-type DeerHuntReport struct {
-	InputResources   shared.Resources
-	NumberHunters    uint
-	NumberDeerCaught uint
-	TotalUtility     shared.Resources
-	DeerWeights      []float64
-}
-
 // TotalInput simply sums the total group resource input of hunt participants
 func (d DeerHunt) TotalInput() shared.Resources {
-	i := shared.Resources(0.0)
-	for _, x := range d.ParticipantContributions {
-		i += x
-	}
-	return i
+	return getTotalInput(d.ParticipantContributions)
 }
 
 // Hunt returns the utility from a deer hunt
-func (d DeerHunt) Hunt(dhConf config.DeerHuntConfig) DeerHuntReport {
+func (d DeerHunt) Hunt(dhConf config.DeerHuntConfig) ForagingReport {
 	input := d.TotalInput()
-	decay := dhConf.IncrementalInputDecay
-	maxDeer := dhConf.MaxDeerPerHunt
-	nDeerFromInput := deerUtilityTier(input, maxDeer, decay) // get max number of deer allowed for given resource input
-	dR := DeerHuntReport{InputResources: input, NumberHunters: uint(len(d.ParticipantContributions))}
-	for i := uint(1); i < nDeerFromInput; i++ {
-		utility := deerReturn(d.params) // if non-zero, represents weight of deer caught
-		dR.TotalUtility += utility
-		if utility > 0.0 {
-			dR.DeerWeights = append(dR.DeerWeights, float64(utility)) // store deer weights for post-hunt analysis
-		}
-	}
-	dR.NumberDeerCaught = uint(len(dR.DeerWeights)) // store n deer caught so that we can later update deer population
-	return dR
-}
+	// get max number of deer allowed for given resource input
+	nDeerFromInput := utilityTier(input, dhConf.MaxDeerPerHunt, dhConf.IncrementalInputDecay)
+	returns := []shared.Resources{}
 
-// deerUtilityTier gets the discrete utility tier (i.e. max number of deer) for given scalar input
-func deerUtilityTier(input shared.Resources, maxDeerPerHunt uint, decay float64) uint {
-	inputF := float64(input)
-	sum := 0.0
-	for i := uint(0); i < maxDeerPerHunt; i++ {
-		sum += math.Pow(decay, float64(i))
-		if inputF < sum {
-			return i
-		}
+	for i := uint(1); i < nDeerFromInput; i++ {
+		returns = append(returns, deerReturn(d.params))
 	}
-	return maxDeerPerHunt
+	return compileForagingReport(d.ParticipantContributions, returns)
 }
 
 // deerReturn() is effectively the combination of two other RVs:

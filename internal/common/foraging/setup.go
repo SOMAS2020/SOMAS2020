@@ -15,7 +15,7 @@ func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.Resources, dhC
 func CreateFishingExpedition(teamResourceInputs map[shared.ClientID]shared.Resources) (FishingExpedition, error) {
 	fConf := config.GameConfig().ForagingConfig.FishingConfig
 	params := fishingParams{Mu: fConf.Mean, Sigma: fConf.Variance}
-	return FishingExpedition{ParticipantContributions: teamResourceInputs, Params: params}, nil // returning error too for future use
+	return FishingExpedition{ParticipantContributions: teamResourceInputs, params: params}, nil // returning error too for future use
 }
 
 // CreateDeerPopulationModel returns the target population model. The formulation of this model should be changed here before runtime

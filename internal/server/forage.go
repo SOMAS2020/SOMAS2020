@@ -110,8 +110,8 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	s.logf("Hunt generated a return of %.3f from input of %.3f", huntReport.TotalUtility, hunt.TotalInput())
 
 	// update deer population // TODO: decide if there is a better place to do this
-	s.logf("Updating deer population after %v deer hunted", huntReport.NumberDeerCaught)
-	s.updateDeerPopulation(huntReport.NumberDeerCaught) // update deer population based on hunt
+	s.logf("Updating deer population after %v deer hunted", huntReport.NumberCaught)
+	s.updateDeerPopulation(huntReport.NumberCaught) // update deer population based on hunt
 
 	return nil
 }
@@ -120,12 +120,14 @@ func (s *SOMASServer) runFishingExpedition(participants map[shared.ClientID]shar
 	s.logf("start runFishHunt")
 	defer s.logf("finish runFishHunt")
 
+	fConf := s.gameConfig.ForagingConfig.FishingConfig
+
 	huntF, err := foraging.CreateFishingExpedition(participants)
 	if err != nil {
 		return errors.Errorf("Error running fish hunt: %v", err)
 	}
-	totalReturn := huntF.Fish()
-	s.logf("Fish Hunt generated a return of %.3f from input of %.3f", totalReturn, huntF.TotalInput())
+	fishingReport := huntF.Fish(fConf)
+	s.logf("Fish Hunt generated a return of %.3f from input of %.3f", fishingReport.TotalUtility, huntF.TotalInput())
 	return nil
 }
 
