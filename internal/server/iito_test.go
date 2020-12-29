@@ -2,6 +2,7 @@ package server
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -176,9 +177,28 @@ func TestServerGetGiftResponses(t *testing.T) {
 
 }
 
-// A client's offer can't offer more than they have in a single offer.
-func TestServerSanitisesOffers(t *testing.T) {}
+func TestServerSanitisesOffers(t *testing.T) {
+	offers := shared.GiftOfferDict{
+		shared.Team1: 200,
+		shared.Team2: 500,
+		shared.Team3: 500,
+	}
+
+	want := shared.GiftOffer(1000)
+	wantCombi := []shared.ClientID{shared.Team2, shared.Team3}
+
+	got, optimal := offersKnapsackSolver(1000, offers)
+	sort.Sort(shared.SortClientByID(optimal))
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("want '%v' got '%v'", want, got)
+	}
+	if !reflect.DeepEqual(wantCombi, optimal) {
+		t.Errorf("want '%v' got '%v'", wantCombi, optimal)
+	}
+
+}
 
 // Test that the server caps accepted amount in responses to the amount offered.
+// Test that the server makes a response for every offer, even if the client ignored it.
 func TestServerSanitisesResponses(t *testing.T) {
 }

@@ -73,14 +73,77 @@ func (s *SOMASServer) getGiftRequests() map[shared.ClientID]shared.GiftRequestDi
 	return totalRequests
 }
 
+func offersKnapsackSolver(capacity shared.GiftOffer, offers shared.GiftOfferDict) (shared.GiftOffer, []shared.ClientID) {
+	// Base case
+	if len(offers) == 1 {
+		for team, offer := range offers {
+			if offer <= capacity {
+				return offer, []shared.ClientID{team}
+			}
+			return 0, []shared.ClientID{}
+		}
+	}
+
+	bestOffer := shared.GiftOffer(0)
+	bestCombination := []shared.ClientID{}
+
+	for team, offer := range offers {
+		currentOffer := shared.GiftOffer(0)
+		currentCombi := []shared.ClientID{}
+
+		lessThisOffer := shared.GiftOfferDict{}
+		for team, offer := range offers {
+			lessThisOffer[team] = offer
+		}
+		delete(lessThisOffer, team)
+
+		// You might need this if you're debugging <3
+		// fmt.Printf("Looping with: %v \n", lessThisOffer)
+
+		if offer <= capacity {
+			// Pack and find optimal of remaining capacity
+			optimalWithThisOffer, remainingCombination := offersKnapsackSolver(capacity-offer, lessThisOffer)
+			currentOffer += (offer + optimalWithThisOffer)
+			currentCombi = append(remainingCombination, team)
+
+		} else {
+			// Find optimal of remaining capacity
+			optimalWithoutThisOffer, remainingCombination := offersKnapsackSolver(capacity, lessThisOffer)
+			currentOffer += optimalWithoutThisOffer
+			currentCombi = remainingCombination
+		}
+
+		if currentOffer > bestOffer {
+			bestOffer = currentOffer
+			bestCombination = currentCombi
+		}
+	}
+
+	return bestOffer, bestCombination
+}
+
 // TODO: Return an error?
 func (s *SOMASServer) sanitiseTeamGiftOffers(offers shared.GiftOfferDict, thisTeam shared.ClientID) (shared.GiftOfferDict, error) {
+	totalOffers := shared.GiftOffer(0)
 	for team, offer := range offers {
+		totalOffers += offer
 		if s.gameState.ClientInfos[team].LifeStatus == shared.Dead || team == thisTeam || offer == 0 {
 			delete(offers, team)
 		}
 	}
-	// TODO: Cap the last offer(s) so that the sum of offers doesn't exceed total resources
+
+	// Find the optimal combination of offers if the sum of their offers exceeds their capacity.
+	totalResources := shared.GiftOffer(s.gameState.ClientInfos[thisTeam].Resources)
+	if totalOffers > totalResources {
+		// Yay, a knapsack problem!
+		_, bestCombination := offersKnapsackSolver(totalResources, offers)
+		newOffers := shared.GiftOfferDict{}
+		for _, team := range bestCombination {
+			newOffers[team] = offers[team]
+		}
+		offers = newOffers
+	}
+
 	// TODO: Maybe return some kind of helpful message if any of the above cases break?
 	return offers, nil
 }
@@ -92,29 +155,38 @@ func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.Gif
 		// Gather all the requests made to this team
 		requestsToThisTeam := shared.GiftRequestDict{}
 		for fromTeam, indivRequests := range totalRequests {
-			requestsToThisTeam[fromTeam] = indivRequests[thisTeam]
+			if request, ok := indivRequests[thisTeam]; ok {
+				requestsToThisTeam[fromTeam] = request
+			}
 		}
 
-		offer, err := s.sanitiseTeamGiftOffers(s.clientMap[thisTeam].GetGiftOffers(requestsToThisTeam), thisTeam)
+		offers, err := s.sanitiseTeamGiftOffers(s.clientMap[thisTeam].GetGiftOffers(requestsToThisTeam), thisTeam)
 		if err != nil {
 			// totalResponses in this case may have a bogus or meaningless value
 			return totalOffers, err
 		}
-		totalOffers[thisTeam] = offer
+
+		if len(offers) > 0 {
+			totalOffers[thisTeam] = offers
+		}
 	}
 	return totalOffers, nil
 }
 
 func (s *SOMASServer) sanitiseTeamGiftResponses(responses shared.GiftResponseDict, offers shared.GiftOfferDict) (shared.GiftResponseDict, error) {
-	// Cap each response so that the an island can't accept more than it was offered.
 	for team, response := range responses {
+		// Cap each response so that the an island can't accept more than it was offered.
 		if response.AcceptedAmount > shared.Resources(offers[team]) {
 			response.AcceptedAmount = shared.Resources(offers[team])
 			responses[team] = response
 		}
+
+		// Can't respond to an offer that was not given.
+		if _, ok := offers[team]; !ok {
+			delete(responses, team)
+		}
 	}
 	// TODO: Pad the responses so that each offer is responded to, even if ignored.
-
 	// TODO: Maybe return some kind of helpful message if any of the above cases break?
 	return responses, nil
 }
@@ -125,7 +197,9 @@ func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.Gi
 	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
 		offersToThisTeam := shared.GiftOfferDict{}
 		for fromTeam, indivOffers := range totalOffers {
-			offersToThisTeam[fromTeam] = indivOffers[id]
+			if offer, ok := indivOffers[id]; ok {
+				offersToThisTeam[fromTeam] = offer
+			}
 		}
 		response, err := s.sanitiseTeamGiftResponses(s.clientMap[id].GetGiftResponses(offersToThisTeam), offersToThisTeam)
 		if err != nil {
@@ -142,7 +216,9 @@ func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]s
 	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
 		responsesToThisTeam := shared.GiftResponseDict{}
 		for fromTeam, indivResponses := range totalResponses {
-			responsesToThisTeam[fromTeam] = indivResponses[id]
+			if response, ok := indivResponses[id]; ok {
+				responsesToThisTeam[fromTeam] = response
+			}
 		}
 		err := s.clientMap[id].UpdateGiftInfo(responsesToThisTeam)
 		if err != nil {
