@@ -649,6 +649,15 @@ func TestReplyAllocationRequest(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			fakeClientMap := map[shared.ClientID]baseclient.Client{}
+			fakeGameState := gamestate.GameState{
+				CommonPool: tc.commonPool,
+				IIGORolesBudget: map[string]shared.Resources{
+					"president": 10,
+					"speaker":   10,
+					"judge":     10,
+				},
+			}
+
 			aliveID := []shared.ClientID{}
 
 			for clientID := range tc.clientRequests {
@@ -657,6 +666,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			}
 
 			setIIGOClients(&fakeClientMap)
+			tc.bPresident.setGameState(&fakeGameState)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
 			tc.bPresident.replyAllocationRequest(tc.commonPool, aliveID)
 

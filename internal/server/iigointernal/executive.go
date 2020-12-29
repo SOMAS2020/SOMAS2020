@@ -47,6 +47,12 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 	e.ResourceRequests = resourceRequests
 }
 
+// setGameState is used for setting the game state of the executive branch
+// Called for testing.
+func (e *executive) setGameState(g *gamestate.GameState) {
+	e.gameState = g
+}
+
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
 func (e *executive) getRuleForSpeaker() shared.PresidentReturnContent {
