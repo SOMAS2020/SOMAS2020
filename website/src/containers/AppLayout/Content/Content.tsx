@@ -9,12 +9,12 @@ const Content = () => {
     <div>
       <Switch>
         <Route path="/rawoutput" exact component={RawOutput}/>
-        <Route component={Home}/>
         <Route path="/resources" component={Visualisations.Resources}/>
         <Route path="/roles"/>
         <Route path="/IIGO"/>
         <Route path="/IITO"/>
         <Route path="/IIFO"/>
+        <Route path="/" component={Home}/>
       </Switch>
     </div>
   )

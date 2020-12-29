@@ -19,18 +19,16 @@ const AppNavbar = () => {
     <Navbar fixed="top" bg="dark" variant="dark" expand="lg"
       onToggle={() => setNavExpanded(!navExpanded)} expanded={navExpanded}>
 
-      <Link to="/" className={styles.enlargeOnHover}>
-        <Navbar.Brand>
-          <img
-            alt=""
-            src={logo}
-            width="30"
-            height="30"
-            className="d-inline-block align-top"
-          />{' '}
+      <Navbar.Brand href="/" className={styles.enlargeOnHover}>
+        <img
+          alt=""
+          src={logo}
+          width="30"
+          height="30"
+          className="d-inline-block align-top"
+        />{' '}
                     SOMAS 2020
             </Navbar.Brand>
-      </Link>
 
       <a rel="noopener noreferrer" target="_blank" href={outputJSONData.GitInfo.GithubURL} className="lightbluelink">
         {outputJSONData.GitInfo.Hash.substr(0, 7)}
