@@ -14,8 +14,8 @@ export type GoFlag = {
 export type Flag = GoFlag & { Value: string }
 
 type RunGameReturnTypeWASM = {
-    output: string,
-    logs: string,
+    output?: string,
+    logs?: string,
     error: string,
 }
 
@@ -25,7 +25,7 @@ export type RunGameReturnType = {
 }
 
 type GetFlagsFormatsReturnTypeWASM = {
-    output: string,
+    output?: string,
     error: string,
 }
 
@@ -65,6 +65,9 @@ export const runGame = async (flags: Flag[]): Promise<RunGameReturnType> => {
     if (result.error.length > 0) {
         throw new Error(result.error)
     }
+    if (result.output === undefined || result.logs === undefined) {
+        throw new Error(`Can't get output or logs`)
+    }
 
     const processedOutput = JSON.parse(result.output) as typeof outputJSONData
 
@@ -100,7 +103,9 @@ export const getFlagsFormats = async (): Promise<GetFlagsFormatsReturnType> => {
     if (result.error.length > 0) {
         throw new Error(result.error)
     }
-
+    if (result.output === undefined) {
+        throw new Error(`Can't get output`)
+    }
     const processedOutput = JSON.parse(result.output) as GetFlagsFormatsReturnType
 
     return processedOutput
