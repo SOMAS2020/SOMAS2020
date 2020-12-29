@@ -442,7 +442,9 @@ func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int]map[in
 						IntegerData: int(vSan.SanctionTier),
 					},
 				})
-				newSanctionCache[i] = removeSanctions(newSanctionCache[i], iSan-getDifferenceInLength(sanctionCache[i], newSanctionCache[i]))
+				copyOfNewSanctionCache := make([]roles.Sanction, len(newSanctionCache[i]))
+				copy(copyOfNewSanctionCache, newSanctionCache[i])
+				newSanctionCache[i] = removeSanctions(copyOfNewSanctionCache, iSan-getDifferenceInLength(sanctionCache[i], copyOfNewSanctionCache))
 			}
 		}
 	}
