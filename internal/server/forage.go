@@ -37,8 +37,12 @@ func (s *SOMASServer) runForage() error {
 		forageGroup := forageGroups[decision.Type]
 		err := s.takeResources(id, decision.Contribution, forageGroup.takeResourceReason)
 		if err == nil {
+			if decision.Contribution > 0.0 {
+				(*forageGroup.partyContributions)[id] = decision.Contribution
+			} else {
+				s.logf("%v did not contribute resources and will not participate in this foraging round.", id)
+			}
 			// assign contribution to client ID within appropriate forage group
-			(*forageGroup.partyContributions)[id] = decision.Contribution
 		} else {
 			s.logf("%v did not have enough resources to participate in foraging", id)
 		}

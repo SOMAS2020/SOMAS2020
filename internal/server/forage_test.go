@@ -84,13 +84,14 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 				if err != nil {
 					t.Errorf("runForage error: %v", err)
 				}
-				if !client.forageUpdateCalled {
-					t.Errorf("ForageUpdate was not called")
+				if contrib > 0 {
+					if !client.forageUpdateCalled {
+						t.Errorf("ForageUpdate was not called")
+					}
+					if client.gotForageDecision != forageDecision {
+						t.Errorf("ForageUpdate got the wrong forageDecision")
+					}
 				}
-				if client.gotForageDecision != forageDecision {
-					t.Errorf("ForageUpdate got the wrong forageDecision")
-				}
-
 			})
 		}
 
