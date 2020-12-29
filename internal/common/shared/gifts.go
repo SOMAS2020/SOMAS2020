@@ -1,29 +1,36 @@
 package shared
 
-// GiftDict is a dictonary of gift
-type GiftDict = map[ClientID]uint
+// GiftRequest contains the details of a gift request from an island to another
+type GiftRequest Resources
+
+// GiftRequestDict contains the details of an island's gift requests to everyone else.
+type GiftRequestDict map[ClientID]GiftRequest
+
+// GiftOffer contains the details of a gift offer from an island to another
+type GiftOffer Resources
+
+// GiftOfferDict contains the details of an island's gift offers to everyone else.
+type GiftOfferDict map[ClientID]GiftOffer
 
 // AcceptReason is a just a logical wrapper on the int, a normal int declaration could easily have been used.
 type AcceptReason int
 
 const (
 	// Accept ...
-	Accept AcceptReason = 0
+	Accept AcceptReason = iota
 	// DeclineDontNeed ...
 	DeclineDontNeed
 	// DeclineDontLikeYou ...
 	DeclineDontLikeYou
+	// Ignored ...
+	Ignored
 )
 
-// GiftInfoDict key is island index of the island who received your gift
-type GiftInfoDict map[ClientID]GiftInfo
-
-// GiftInfo is a struct containing the information describing a gift
-// exchange between two islands
-type GiftInfo struct {
-	ReceivingTeam  ClientID
-	OfferingTeam   ClientID
-	OfferAmount    uint
-	AcceptedAmount uint
+// GiftResponse represents an individual client's response to the server when presented with a GiftOffer.
+type GiftResponse struct {
+	AcceptedAmount Resources
 	Reason         AcceptReason
 }
+
+// GiftResponseDict represents an island's responses to all the other island's gift offers.
+type GiftResponseDict map[ClientID]GiftResponse

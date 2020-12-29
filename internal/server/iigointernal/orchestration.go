@@ -44,15 +44,6 @@ var executiveBranch = executive{
 	ResourceRequests: nil,
 }
 
-// SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
-var SpeakerIDGlobal shared.ClientID = 0
-
-// JudgeIDGlobal is the single source of truth for judge ID (MVP)
-var JudgeIDGlobal shared.ClientID = 1
-
-// PresidentIDGlobal is the single source of truth for president ID (MVP)
-var PresidentIDGlobal shared.ClientID = 2
-
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
@@ -73,21 +64,21 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	iigoClients = *clientMap
 
 	// Initialise IDs
-	judicialBranch.JudgeID = JudgeIDGlobal
-	legislativeBranch.SpeakerID = SpeakerIDGlobal
-	executiveBranch.ID = PresidentIDGlobal
+	judicialBranch.JudgeID = g.JudgeID
+	legislativeBranch.SpeakerID = g.SpeakerID
+	executiveBranch.ID = g.PresidentID
 
 	// Set judgePointer
-	judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
+	judgePointer = iigoClients[g.JudgeID].GetClientJudgePointer()
 	// Set speakerPointer
-	speakerPointer = iigoClients[SpeakerIDGlobal].GetClientSpeakerPointer()
+	speakerPointer = iigoClients[g.SpeakerID].GetClientSpeakerPointer()
 	// Set presidentPointer
-	presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
+	presidentPointer = iigoClients[g.PresidentID].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
-	judicialBranch.clientJudge = judgePointer
-	executiveBranch.clientPresident = presidentPointer
-	legislativeBranch.clientSpeaker = speakerPointer
+	judicialBranch.loadClientJudge(judgePointer)
+	executiveBranch.loadClientPresident(presidentPointer)
+	legislativeBranch.loadClientSpeaker(speakerPointer)
 
 	// Withdraw the salaries
 	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary(g)
@@ -144,11 +135,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// Get new Judge ID
-	JudgeIDGlobal = legislativeBranch.appointNextJudge(aliveClientIds)
+	g.JudgeID = legislativeBranch.appointNextJudge(aliveClientIds)
 	// Get new Speaker ID
-	SpeakerIDGlobal = executiveBranch.appointNextSpeaker(aliveClientIds)
+	g.SpeakerID = executiveBranch.appointNextSpeaker(aliveClientIds)
 	// Get new President ID
-	PresidentIDGlobal = judicialBranch.appointNextPresident(aliveClientIds)
+	g.PresidentID = judicialBranch.appointNextPresident(aliveClientIds)
 
 	return true, "IIGO Run Successful"
 }
