@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -66,11 +65,13 @@ func (de ODEProblem) StepDeltaY() func(float64) (t2, y2 float64) {
 }
 
 // SolveUntilT solves a DE from T0 (from initialisation) to tFinal
-func (de ODEProblem) SolveUntilT(tFinal int) {
+func (de ODEProblem) SolveUntilT(tFinal int) []float64 {
 	dtPrint := 1 // and to print at whole numbers.
 	t, y := float64(de.T0), de.Y0
+	out := make([]float64, 0)
 	for t1 := de.T0 + dtPrint; t1 <= tFinal; t1 += dtPrint {
 		t, y = solveStep(t, y, de.DtStep, de.YPrime)
-		fmt.Println(t, y)
+		out = append(out, y)
 	}
+	return out
 }

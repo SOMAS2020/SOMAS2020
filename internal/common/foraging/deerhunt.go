@@ -3,8 +3,6 @@ package foraging
 // see https://colab.research.google.com/drive/1g1tiX27Ds7FGjj4_WjFB3OLj8Fat_Ur5?usp=sharing for experiments + simulations
 
 import (
-	"math"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
@@ -23,37 +21,21 @@ type DeerHunt struct {
 
 // TotalInput simply sums the total group resource input of hunt participants
 func (d DeerHunt) TotalInput() shared.Resources {
-	i := shared.Resources(0.0)
-	for _, x := range d.ParticipantContributions {
-		i += x
-	}
-	return i
+	return getTotalInput(d.ParticipantContributions)
 }
 
 // Hunt returns the utility from a deer hunt
-func (d DeerHunt) Hunt(fConf config.ForagingConfig) shared.Resources {
+func (d DeerHunt) Hunt(dhConf config.DeerHuntConfig) ForagingReport {
 	input := d.TotalInput()
-	decay := fConf.IncrementalInputDecay
-	maxDeer := fConf.MaxDeerPerHunt
-	nDeerFromInput := deerUtilityTier(input, maxDeer, decay) // get max number of deer allowed for given resource input
-	utility := shared.Resources(0.0)
-	for i := uint(1); i < nDeerFromInput; i++ {
-		utility += deerReturn(d.params)
-	}
-	return utility
-}
+	// get max number of deer allowed for given resource input
+	nDeerFromInput := utilityTier(input, dhConf.MaxDeerPerHunt, dhConf.IncrementalInputDecay)
+	returns := []shared.Resources{}
 
-// deerUtilityTier gets the discrete utility tier (i.e. max number of deer) for given scalar input
-func deerUtilityTier(input shared.Resources, maxDeerPerHunt uint, decay float64) uint {
-	inputF := float64(input)
-	sum := 0.0
-	for i := uint(0); i < maxDeerPerHunt; i++ {
-		sum += math.Pow(decay, float64(i))
-		if inputF < sum {
-			return i
-		}
+	for i := uint(1); i < nDeerFromInput; i++ {
+		utility := deerReturn(d.params) * shared.Resources(dhConf.ResourceMultiplier) // scale return by resource multiplier
+		returns = append(returns, utility)
 	}
-	return maxDeerPerHunt
+	return compileForagingReport(shared.DeerForageType, d.ParticipantContributions, returns)
 }
 
 // deerReturn() is effectively the combination of two other RVs:

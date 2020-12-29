@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 
@@ -39,6 +40,9 @@ type Client interface {
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
 	ForageUpdate(shared.ForageDecision, shared.Resources)
+
+	//Disasters
+	DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
 
 	//IIFO: OPTIONAL
 	MakePrediction() (shared.PredictionInfo, error)

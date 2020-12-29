@@ -16,6 +16,9 @@ const (
 	FishForageType
 )
 
+// AllForageTypes specifies all available foraging types. Used for foraging history initialisation
+var AllForageTypes = []ForageType{DeerForageType, FishForageType}
+
 func (ft ForageType) String() string {
 	strings := [...]string{"DeerForageType", "FishForageType"}
 	if ft >= 0 && int(ft) < len(strings) {

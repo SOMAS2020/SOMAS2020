@@ -5,15 +5,16 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 type mockClientForage struct {
 	baseclient.Client
-
-	forageDecision shared.ForageDecision
-
+	forageDecision     shared.ForageDecision
 	forageUpdateCalled bool
 	gotForageDecision  shared.ForageDecision
 }
@@ -30,48 +31,69 @@ func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, re
 func TestForagingCallsForageUpdate(t *testing.T) {
 	cases := []shared.ForageType{
 		shared.DeerForageType,
-		// TODO: Uncomment when fish foraging implemented
-		// shared.FishForageType,
+		shared.FishForageType,
 	}
 
-	for _, tc := range cases {
-		t.Run(fmt.Sprintf("%v", tc), func(t *testing.T) {
-			forageDecision := shared.ForageDecision{
-				Type:         tc,
-				Contribution: 10,
-			}
+	deerConfig := config.GameConfig().ForagingConfig.DeerHuntConfig // can add custom config here if desired
+	envConfig := config.GameConfig().DisasterConfig
 
-			client := mockClientForage{
-				forageDecision:     forageDecision,
-				forageUpdateCalled: false,
-			}
+	contribs := []shared.Resources{0.0, 1.0, 8.0} // test zero resource contribution first off
 
-			s := SOMASServer{
-				gameState: gamestate.GameState{
-					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-						shared.Team1: {
-							LifeStatus: shared.Alive,
-							Resources:  100,
-						},
-					},
-				},
-				clientMap: map[shared.ClientID]baseclient.Client{
+	for _, contrib := range contribs {
+		for _, tc := range cases {
+			t.Run(fmt.Sprintf("%v", tc), func(t *testing.T) {
+				forageDecision := shared.ForageDecision{
+					Type:         tc,
+					Contribution: contrib,
+				}
+
+				client := mockClientForage{
+					forageDecision:     forageDecision,
+					forageUpdateCalled: false,
+				}
+
+				clientMap := map[shared.ClientID]baseclient.Client{
 					shared.Team1: &client,
-				},
-			}
+				}
 
-			err := s.runForage()
+				clientIDs := make([]shared.ClientID, 0, len(clientMap))
+				for k := range clientMap {
+					clientIDs = append(clientIDs, k)
+				}
 
-			if err != nil {
-				t.Errorf("runForage error: %v", err)
-			}
-			if !client.forageUpdateCalled {
-				t.Errorf("ForageUpdate was not called")
-			}
-			if client.gotForageDecision != forageDecision {
-				t.Errorf("ForageUpdate got the wrong forageDecision")
-			}
+				s := SOMASServer{
+					gameState: gamestate.GameState{
+						ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+							shared.Team1: {
+								LifeStatus: shared.Alive,
+								Resources:  100,
+							},
+						},
+						ForagingHistory: map[shared.ForageType][]foraging.ForagingReport{
+							shared.DeerForageType: make([]foraging.ForagingReport, 0),
+							shared.FishForageType: make([]foraging.ForagingReport, 0),
+						},
+						DeerPopulation: foraging.CreateDeerPopulationModel(deerConfig),
+						Environment:    disasters.InitEnvironment(clientIDs, envConfig),
+					},
+					clientMap: clientMap,
+				}
 
-		})
+				err := s.runForage()
+
+				if err != nil {
+					t.Errorf("runForage error: %v", err)
+				}
+				if contrib > 0 {
+					if !client.forageUpdateCalled {
+						t.Errorf("ForageUpdate was not called")
+					}
+					if client.gotForageDecision != forageDecision {
+						t.Errorf("ForageUpdate got the wrong forageDecision")
+					}
+				}
+			})
+		}
+
 	}
 }
