@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react"
-import { CodeBlock } from 'react-code-blocks'
 import { runGame, getFlagsFormats, RunGameReturnType, Flag } from "../../wasmAPI"
 import { Alert, Button, Row, Col, OverlayTrigger, Tooltip, Form } from 'react-bootstrap'
 import { useLoadingState, initialLoadingState } from "../../contexts/loadingState"
+import CodeBlocks from '../CodeBlocks/CodeBlocks'
 
 import styles from '../CIOutput/CIOutput.module.css'
 
@@ -47,7 +47,7 @@ const NewRun = () => {
 
   useEffect(() => {
     loadFlags()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadFlags = async () => {
@@ -76,7 +76,7 @@ const NewRun = () => {
     }
     const newCurrFlag = { ...currFlag, Value: val }
 
-    setFlags(new Map(flags.set(flagName, newCurrFlag))) 
+    setFlags(new Map(flags.set(flagName, newCurrFlag)))
   }
 
   const reset = async () => {
@@ -145,16 +145,7 @@ const NewRun = () => {
           <Button variant="danger" size="lg" onClick={reset}>Reset Run</Button>
         </div>
 
-        <div style={{ textAlign: `left`, padding: `0 3vw` }}>
-          <div style={{ marginBottom: 100 }}>
-            <h2><code>output.json</code></h2>
-            <CodeBlock text={JSON.stringify(output.output, null, "\t")} wrapLines showLineNumbers language="json" theme="dracula" />
-          </div>
-          <div style={{ marginBottom: 100 }}>
-            <h2><code>log.txt</code></h2>
-            <CodeBlock text={output.logs} wrapLines showLineNumbers language="text" theme="dracula" />
-          </div>
-        </div>
+        <CodeBlocks output={JSON.stringify(output.output, null, "\t")} logs={output.logs} />
       </div>
     }
   </div>

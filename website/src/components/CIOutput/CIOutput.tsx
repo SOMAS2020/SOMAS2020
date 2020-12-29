@@ -1,10 +1,9 @@
 import React from 'react'
-import { CodeBlock } from 'react-code-blocks'
-
-import styles from './CIOutput.module.css'
-
 import outputJSON from '../../output/output.json'
 import outputLog from '../../output/log.txt.json'
+import CodeBlocks from '../CodeBlocks/CodeBlocks'
+
+import styles from './CIOutput.module.css'
 
 const processedOutputLog = outputLog.join(`\n`)
 
@@ -12,16 +11,7 @@ const CIOutput = () => {
     return <div className={styles.root}>
         <h1>CI Output</h1>
 
-        <div style={{ textAlign: `left`, padding: `0 3vw` }}>
-            <div style={{ marginBottom: 100 }}>
-                <h2><code>output.json</code></h2>
-                <CodeBlock text={JSON.stringify(outputJSON, null, "\t")} wrapLines showLineNumbers language="json" theme="dracula"/>
-            </div>
-            <div style={{ marginBottom: 100 }}>
-                <h2><code>log.txt</code></h2>
-                <CodeBlock text={processedOutputLog} wrapLines showLineNumbers language="text" theme="dracula"/>
-            </div>
-        </div>
+        <CodeBlocks output={JSON.stringify(outputJSON, null, "\t")} logs={processedOutputLog} />
     </div>
 }
 
