@@ -15,8 +15,8 @@ func TestFishUtilityTier(t *testing.T) {
 	maxFish := 6
 
 	var tests = []struct {
-		inputF shared.ForageContribution // cumulative resource input from hunt participants
-		wantF  int                       // output tier
+		inputF shared.Resources // cumulative resource input from hunt participants
+		wantF  int              // output tier
 	}{
 		// Tiers and coressponding thresholds and cumlative cost
 		// Tiers		 			0		1		2		3			4		5			6
@@ -44,7 +44,7 @@ func TestFishUtilityTier(t *testing.T) {
 
 // Checks if total fish input is correct
 func TestTotalFishInput(t *testing.T) {
-	huntParticipants := map[shared.ClientID]shared.ForageContribution{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
+	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
 	huntF, _ := CreateFishingExpedition(huntParticipants)
 	ans := huntF.TotalInput()
 	if ans != 1.9 {
@@ -57,10 +57,10 @@ func TestFishReturn(t *testing.T) {
 	avReturn := 0.0
 	for i := 1; i <= 1000; i++ { // calculate empirical mean return over 1000 trials
 		d := fishingReturn(params)
-		avReturn = (avReturn*(float64(i)-1) + d) / float64(i)
+		avReturn = (avReturn*(float64(i)-1) + float64(d)) / float64(i)
 	}
-	expectedReturn := params.Mu                      // theoretical mean based on defined expectation
-	if math.Abs(1-expectedReturn/avReturn) > 0.012 { // The mean deviation from the theoretical mean with 99.7% confidence
+	expectedReturn := params.Mu                                 // theoretical mean based on defined expectation
+	if math.Abs(float64(1.0-expectedReturn/avReturn)) > 0.012 { // The mean deviation from the theoretical mean with 99.7% confidence
 		// (needs to be 3standard deviations out to return error)
 		t.Errorf("Empirical mean return deviated from theoretical for > 1.2 percent: got %.5f, want %.5f", avReturn, expectedReturn)
 	}

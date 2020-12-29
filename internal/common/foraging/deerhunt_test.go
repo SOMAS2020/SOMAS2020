@@ -5,6 +5,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -14,8 +15,8 @@ func TestDeerUtilityTier(t *testing.T) {
 	maxDeer := 4
 
 	var tests = []struct {
-		inputR shared.ForageContribution // cumulative resource input from hunt participants
-		want   int                       // output tier
+		inputR shared.Resources // cumulative resource input from hunt participants
+		want   int              // output tier
 	}{
 		{0.0, 0},
 		{0.99, 0},
@@ -37,8 +38,17 @@ func TestDeerUtilityTier(t *testing.T) {
 }
 
 func TestTotalInput(t *testing.T) {
-	huntParticipants := map[shared.ClientID]shared.ForageContribution{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
-	hunt, _ := CreateDeerHunt(huntParticipants)
+	fConf := config.DeerHuntConfig{
+		MaxDeerPerHunt:        4,
+		IncrementalInputDecay: 0.8,
+		BernoulliProb:         0.95,
+		ExponentialRate:       1,
+
+		MaxDeerPopulation:     12,
+		DeerGrowthCoefficient: 0.4,
+	}
+	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
+	hunt, _ := CreateDeerHunt(huntParticipants, fConf)
 	ans := hunt.TotalInput()
 	if ans != 1.9 {
 		t.Errorf("TotalInput() = %.2f; want 1.9", ans)
@@ -50,7 +60,7 @@ func TestDeerReturn(t *testing.T) {
 	avReturn := 0.0
 	for i := 1; i <= 1000; i++ { // calculate empirical mean return over 1000 trials
 		d := deerReturn(params)
-		avReturn = (avReturn*(float64(i)-1) + d) / float64(i)
+		avReturn = (avReturn*(float64(i)-1) + float64(d)) / float64(i)
 	}
 	expectedReturn := params.p * (1 + 1/params.lam) // theoretical mean based on def of expectation
 	if math.Abs(1-expectedReturn/avReturn) > 0.05 {

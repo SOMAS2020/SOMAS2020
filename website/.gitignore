@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+# Just so that we don't get npm users throwing a package-lock.json file in.
+package-lock.json
+
 # testing
 /coverage
 

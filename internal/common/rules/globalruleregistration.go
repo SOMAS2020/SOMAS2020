@@ -16,11 +16,11 @@ func registerDemoRule() {
 
 	//A very contrived rule//
 	name := "Kinda Complicated Rule"
-	reqVar := []string{
-		"number_of_islands_contributing_to_common_pool",
-		"number_of_failed_forages",
-		"number_of_broken_agreements",
-		"max_severity_of_sanctions",
+	reqVar := []VariableFieldName{
+		NumberOfIslandsContributingToCommonPool,
+		NumberOfFailedForages,
+		NumberOfBrokenAgreements,
+		MaxSeverityOfSanctions,
 	}
 
 	v := []float64{1, 0, 0, 0, -4, 0, -1, -1, 0, 2, 0, 0, 0, 1, -2, 0, 0, 1, 0, -1}
@@ -28,55 +28,60 @@ func registerDemoRule() {
 	aux := []float64{1, 1, 2, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, err := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector)
-	if err != nil {
-		panic(err)
+	_, ruleErr := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector, false)
+	if ruleErr != nil {
+		panic(ruleErr.Error())
 	}
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 }
 
 func registerRulesByMass() {
 	ruleSpecs := []struct {
-		name   string
-		reqVar []string
-		v      []float64
-		aux    []float64
+		name    string
+		reqVar  []VariableFieldName
+		v       []float64
+		aux     []float64
+		mutable bool
 	}{
 		{
 			name: "inspect_ballot_rule",
-			reqVar: []string{
-				"no_islands_alive",
-				"no_ballots_cast",
+			reqVar: []VariableFieldName{
+				NumberOfIslandsAlive,
+				NumberOfBallotsCast,
 			},
-			v:   []float64{1, -1, 0},
-			aux: []float64{0},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
 		},
 		{
 			name: "inspect_allocation_rule",
-			reqVar: []string{
-				"no_islands_alive",
-				"no_allocations_sent",
+			reqVar: []VariableFieldName{
+				NumberOfIslandsAlive,
+				NumberOfAllocationsSent,
 			},
-			v:   []float64{1, -1, 0},
-			aux: []float64{0},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
 		},
 		{
 			name: "check_taxation_rule",
-			reqVar: []string{
-				"island_tax_contribution",
-				"expected_tax_contribution",
+			reqVar: []VariableFieldName{
+				IslandTaxContribution,
+				ExpectedTaxContribution,
 			},
-			v:   []float64{1, -1, 0},
-			aux: []float64{2},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{2},
+			mutable: false,
 		},
 		{
 			name: "check_allocation_rule",
-			reqVar: []string{
-				"island_allocation",
-				"expected_allocation",
+			reqVar: []VariableFieldName{
+				IslandAllocation,
+				ExpectedAllocation,
 			},
-			v:   []float64{1, -1, 0},
-			aux: []float64{0},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
 		},
 	}
 
@@ -88,9 +93,9 @@ func registerRulesByMass() {
 		nrows := len(rs.v) / rowLength
 		CoreMatrix := mat.NewDense(nrows, rowLength, rs.v)
 		AuxiliaryVector := mat.NewVecDense(nrows, rs.aux)
-		_, err := RegisterNewRule(rs.name, rs.reqVar, *CoreMatrix, *AuxiliaryVector)
-		if err != nil {
-			panic(fmt.Sprintf("%v", err.Error()))
+		_, ruleError := RegisterNewRule(rs.name, rs.reqVar, *CoreMatrix, *AuxiliaryVector, rs.mutable)
+		if ruleError != nil {
+			panic(ruleError.Error())
 		}
 	}
 }
