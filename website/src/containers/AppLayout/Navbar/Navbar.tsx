@@ -9,9 +9,7 @@ import styles from './Navbar.module.css'
 
 const AppNavbar = () => {
   const [navExpanded, setNavExpanded] = useState(false)
-
   const closeNav = () => setNavExpanded(false)
-
   const getNavLink = (text: string, link: string) =>
     <LinkContainer to={link} onClick={closeNav}>
       <Nav.Link className="lightbluelink">{text}</Nav.Link>
@@ -40,15 +38,16 @@ const AppNavbar = () => {
 
       <Navbar.Toggle aria-controls="responsive-navbar-nav" onClick={closeNav} />
       <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-end">
-        <Nav className="mr-auto" >
+        <Nav className="mr-auto" />
+        <Nav >
           {getNavLink("Raw Output", "/rawoutput")}
           <NavDropdown title="Visualisations" id="collasible-nav-dropdown">
             <NavDropdown.Item href="/resources">Resources</NavDropdown.Item>
             <NavDropdown.Item href="/roles">Roles by Turn</NavDropdown.Item>
             <NavDropdown.Divider />
-            <NavDropdown.Item href="#action/3.4">IIGO</NavDropdown.Item>
-            <NavDropdown.Item href="#action/3.4">IITO</NavDropdown.Item>
-            <NavDropdown.Item href="#action/3.4">IIFO</NavDropdown.Item>
+            <NavDropdown.Item href="/IIGO">IIGO</NavDropdown.Item>
+            <NavDropdown.Item href="/IITO">IITO</NavDropdown.Item>
+            <NavDropdown.Item href="/IIFO">IIFO</NavDropdown.Item>
           </NavDropdown>
         </Nav>
       </Navbar.Collapse>
