@@ -160,7 +160,7 @@ func (e *executive) sendSpeakerSalary() error {
 
 			if withdrawSuccess {
 				// Pay into the client private resources pool
-				depositIntoClientPrivatePool(amountWithdraw, SpeakerIDGlobal, e.gameState)
+				depositIntoClientPrivatePool(amountWithdraw, e.gameState.SpeakerID, e.gameState)
 			}
 		}
 	}

@@ -47,7 +47,7 @@ func (j *judiciary) sendPresidentSalary() error {
 
 			if withdrawSuccess {
 				// Pay into the client private resources pool
-				depositIntoClientPrivatePool(amountWithdraw, PresidentIDGlobal, j.gameState)
+				depositIntoClientPrivatePool(amountWithdraw, j.gameState.PresidentID, j.gameState)
 			}
 		}
 	}
