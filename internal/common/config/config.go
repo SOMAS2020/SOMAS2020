@@ -62,70 +62,23 @@ type DisasterConfig struct {
 	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
 }
 
-/*
-// IIGOConfig (document cost of each action)
 type IIGOConfig struct {
-	ExecutiveActionCost   map[string]shared.Resources
-	JudiciaryActionCost   map[string]shared.Resources
-	LegislativeActionCost map[string]shared.Resources
+	// Executive branch
+	GetRuleForSpeakerActionCost        shared.Resources
+	BroadcastTaxationActionCost        shared.Resources
+	ReplyAllocationRequestsActionCost  shared.Resources
+	RequestAllocationRequestActionCost shared.Resources
+	RequestRuleProposalActionCost      shared.Resources
+	AppointNextSpeakerActionCost       shared.Resources
+	// Judiciary branch
+	InspectHistoryActionCost       shared.Resources
+	InspectBallotActionCost        shared.Resources
+	InspectAllocationActionCost    shared.Resources
+	AppointNextPresidentActionCost shared.Resources
+	// Legislative branch
+	SetVotingResultActionCost      shared.Resources
+	SetRuleToVoteActionCost        shared.Resources
+	AnnounceVotingResultActionCost shared.Resources
+	UpdateRulesActionCost          shared.Resources
+	AppointNextJudgeActionCost     shared.Resources
 }
-
-// GameConfig returns the configuration of the game.
-// (Made a function so it cannot be altered mid-game).
-func GameConfig() Config {
-	foragingConf := ForagingConfig{
-		MaxDeerPerHunt:        4,
-		IncrementalInputDecay: 0.8,
-		BernoulliProb:         0.95,
-		ExponentialRate:       1,
-
-		MaxDeerPopulation:     12,
-		DeerGrowthCoefficient: 0.4,
-	}
-	disasterConf := DisasterConfig{
-		XMin:            0.0,
-		XMax:            10.0, // chosen quite arbitrarily for now
-		YMin:            0.0,
-		YMax:            10.0,
-		GlobalProb:      0.1,
-		SpatialPDFType:  shared.Uniform,
-		MagnitudeLambda: 1.0,
-	}
-
-	iigoConf := IIGOConfig{
-		ExecutiveActionCost: map[string]shared.Resources{
-			"getRuleForSpeaker":        10,
-			"broadcastTaxation":        10,
-			"replyAllocationRequests":  10,
-			"requestAllocationRequest": 10,
-			"requestRuleProposal":      10,
-			"appointNextSpeaker":       10,
-		},
-		JudiciaryActionCost: map[string]shared.Resources{
-			"inspectHistory":       10,
-			"inspectBallot":        10,
-			"inspectAllocation":    10,
-			"appointNextPresident": 10,
-		},
-		LegislativeActionCost: map[string]shared.Resources{
-			"setVotingResult":      10,
-			"setRuleToVote":        10,
-			"announceVotingResult": 10,
-			"updateRules":          10,
-			"appointNextJudge":     10,
-		},
-	}
-
-	return Config{
-		MaxSeasons:                  100,
-		MaxTurns:                    100,
-		InitialResources:            100,
-		CostOfLiving:                10,
-		MinimumResourceThreshold:    5,
-		MaxCriticalConsecutiveTurns: 3,
-		ForagingConfig:              foragingConf,
-		DisasterConfig:              disasterConf,
-		IIGOConfig:                  iigoConf,
-	}
-}
-*/

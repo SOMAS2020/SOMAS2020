@@ -109,6 +109,94 @@ var (
 		1,
 		"Exponential rate param for disaster magnitude",
 	)
+
+	// config.IIGOConfig - Executive branch
+	getRuleForSpeakerActionCost = flag.Float64(
+		"getRuleForSpeakerActionCost",
+		10,
+		"IIGO action cost for getRuleForSpeaker action",
+	)
+	broadcastTaxationActionCost = flag.Float64(
+		"broadcastTaxationActionCost",
+		10,
+		"IIGO action cost for broadcastTaxation action",
+	)
+	replyAllocationRequestsActionCost = flag.Float64(
+		"replyAllocationRequestsActionCost",
+		10,
+		"IIGO action cost for replyAllocationRequests action",
+	)
+	requestAllocationRequestActionCost = flag.Float64(
+		"requestAllocationRequestActionCost",
+		10,
+		"IIGO action cost for requestAllocationRequest action",
+	)
+	requestRuleProposalActionCost = flag.Float64(
+		"requestRuleProposalActionCost",
+		10,
+		"IIGO action cost for requestRuleProposal action",
+	)
+	appointNextSpeakerActionCost = flag.Float64(
+		"appointNextSpeakerActionCost",
+		10,
+		"IIGO action cost for appointNextSpeaker action",
+	)
+
+	// config.IIGOConfig - Judiciary branch
+	inspectHistoryActionCost = flag.Float64(
+		"inspectHistoryActionCost",
+		10,
+		"IIGO action cost for inspectHistory",
+	)
+
+	inspectBallotActionCost = flag.Float64(
+		"inspectBallotActionCost",
+		10,
+		"IIGO action cost for inspectBallot",
+	)
+
+	inspectAllocationActionCost = flag.Float64(
+		"inspectAllocationActionCost",
+		10,
+		"IIGO action cost for inspectAllocation",
+	)
+
+	appointNextPresidentActionCost = flag.Float64(
+		"appointNextPresidentActionCost",
+		10,
+		"IIGO action cost for appointNextPresident",
+	)
+
+	// config.IIGOConfig - Legislative branch
+	setVotingResultActionCost = flag.Float64(
+		"setVotingResultActionCost",
+		10,
+		"IIGO action cost for setVotingResult",
+	)
+
+	setRuleToVoteActionCost = flag.Float64(
+		"setRuleToVoteActionCost",
+		10,
+		"IIGO action cost for setRuleToVote action",
+	)
+
+	announceVotingResultActionCost = flag.Float64(
+		"announceVotingResultActionCost",
+		10,
+		"IIGO action cost for announceVotingResult action",
+	)
+
+	updateRulesActionCost = flag.Float64(
+		"updateRulesActionCost",
+		10,
+		"IIGO action cost for updateRules action",
+	)
+
+	appointNextJudgeActionCost = flag.Float64(
+		"appointNextJudgeActionCost",
+		10,
+		"IIGO action cost for appointNextJudge action",
+	)
 )
 
 func parseConfig() config.Config {
@@ -131,6 +219,29 @@ func parseConfig() config.Config {
 		SpatialPDFType:  shared.ParseSpatialPDFType(*disasterSpatialPDFType),
 		MagnitudeLambda: *disasterMagnitudeLambda,
 	}
+
+	iigoConf := config.IIGOConfig{
+
+		// Executive branch
+		GetRuleForSpeakerActionCost:        shared.Resources(*getRuleForSpeakerActionCost),
+		BroadcastTaxationActionCost:        shared.Resources(*broadcastTaxationActionCost),
+		ReplyAllocationRequestsActionCost:  shared.Resources(*replyAllocationRequestsActionCost),
+		RequestAllocationRequestActionCost: shared.Resources(*requestAllocationRequestActionCost),
+		RequestRuleProposalActionCost:      shared.Resources(*requestRuleProposalActionCost),
+		AppointNextSpeakerActionCost:       shared.Resources(*appointNextSpeakerActionCost),
+		// Judiciary branch
+		InspectHistoryActionCost:       shared.Resources(*inspectHistoryActionCost),
+		InspectBallotActionCost:        shared.Resources(*inspectBallotActionCost),
+		InspectAllocationActionCost:    shared.Resources(*inspectAllocationActionCost),
+		AppointNextPresidentActionCost: shared.Resources(*appointNextPresidentActionCost),
+		// Legislative branch
+		SetVotingResultActionCost:      shared.Resources(*setVotingResultActionCost),
+		SetRuleToVoteActionCost:        shared.Resources(*setRuleToVoteActionCost),
+		AnnounceVotingResultActionCost: shared.Resources(*announceVotingResultActionCost),
+		UpdateRulesActionCost:          shared.Resources(*updateRulesActionCost),
+		AppointNextJudgeActionCost:     shared.Resources(*appointNextJudgeActionCost),
+	}
+
 	return config.Config{
 		MaxSeasons:                  *maxSeasons,
 		MaxTurns:                    *maxTurns,
@@ -140,5 +251,6 @@ func parseConfig() config.Config {
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
+		IIGOConfig:                  iigoConf,
 	}
 }

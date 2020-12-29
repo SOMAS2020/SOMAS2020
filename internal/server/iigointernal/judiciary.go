@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -38,28 +37,12 @@ func (j *judiciary) init() {
 	j.ResAllocID = 0
 }
 
-// TODO:- do we need this?
-// returnPresidentSalary returns the salary to the common pool.
-func (j *judiciary) returnPresidentSalary() shared.Resources {
-	x := j.presidentSalary
-	j.presidentSalary = 0
-	return x
-}
-
-// withdrawPresidentSalary withdraws the president's salary from the common pool.
-func (j *judiciary) withdrawPresidentSalary() bool {
-	var presidentSalary = shared.Resources(rules.VariableMap[rules.PresidentSalary].Values[0])
-	var withdrawAmount, withdrawSuccesful = WithdrawFromCommonPool(presidentSalary, j.gameState)
-	j.presidentSalary = withdrawAmount
-	return withdrawSuccesful
-}
-
 // sendPresidentSalary conduct the transaction based on amount from client implementation
 func (j *judiciary) sendPresidentSalary() error {
 	if j.clientJudge != nil {
-		amount, presidentPaid := j.clientJudge.PayPresident()
+		amount, presidentPaid := j.clientJudge.PayPresident(j.presidentSalary)
 		if presidentPaid {
-			// Subtract from common resources pool
+			// Subtract from common resources po
 			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, j.gameState)
 
 			if withdrawSuccess {
@@ -71,13 +54,6 @@ func (j *judiciary) sendPresidentSalary() error {
 	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
 
-// PayPresident pays the president salary.
-func (j *judiciary) PayPresident() shared.Resources {
-	hold := j.presidentSalary
-	j.presidentSalary = 0
-	return hold
-}
-
 // setSpeakerAndPresidentIDs set the speaker and president IDs.
 func (j *judiciary) setSpeakerAndPresidentIDs(speakerID shared.ClientID, presidentID shared.ClientID) {
 	j.speakerID = speakerID
@@ -87,7 +63,7 @@ func (j *judiciary) setSpeakerAndPresidentIDs(speakerID shared.ClientID, preside
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	if !j.incurServiceCharge("inspectHistory") {
+	if !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
 		return nil, false
 	}
 
@@ -99,7 +75,7 @@ func (j *judiciary) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
-	if !j.incurServiceCharge("inspectBallot") {
+	if !j.incurServiceCharge(actionCost.InspectBallotActionCost) {
 		return false, errors.Errorf("Insufficient Budget in common Pool: inspectBallot")
 	}
 
@@ -118,7 +94,7 @@ func (j *judiciary) inspectAllocation() (bool, error) {
 	//    in previous resourceAllocation
 	// 2. Compare each resource allocation action adheres to rules in ruleSet
 	//    matrix
-	if !j.incurServiceCharge("inspectAllocation") {
+	if !j.incurServiceCharge(actionCost.InspectAllocationActionCost) {
 		return false, errors.Errorf("Insufficient Budget in common Pool: inspectAllocation")
 	}
 
@@ -169,7 +145,7 @@ func (j *judiciary) declarePresidentPerformanceWrapped() {
 // appointNextPresident returns the island ID of the island appointed to be the president in the next turn
 // appointing new roles should be free
 func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) (shared.ClientID, error) {
-	if !j.incurServiceCharge("appointNextPresident") {
+	if !j.incurServiceCharge(actionCost.AppointNextPresidentActionCost) {
 		return j.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 	}
 	var election voting.Election
@@ -227,8 +203,7 @@ func generatePresidentPerformanceMessage(RID int, result bool, PID shared.Client
 	return returnMap
 }
 
-func (j *judiciary) incurServiceCharge(actionID string) bool {
-	cost := config.GameConfig().IIGOConfig.JudiciaryActionCost[actionID]
+func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, j.gameState)
 	if ok {
 		j.gameState.IIGORolesBudget["budget"] -= cost

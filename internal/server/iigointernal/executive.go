@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -52,7 +51,7 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
 func (e *executive) getRuleForSpeaker() (string, bool) {
-	if !e.incurServiceCharge("getRuleForSpeaker") {
+	if !e.incurServiceCharge(actionCost.GetRuleForSpeakerActionCost) {
 		return "", false
 	}
 
@@ -63,7 +62,7 @@ func (e *executive) getRuleForSpeaker() (string, bool) {
 // Called by orchestration at the end of the turn
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) error {
-	if e.incurServiceCharge("broadcastTaxation") {
+	if e.incurServiceCharge(actionCost.BroadcastTaxationActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 	taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
@@ -86,7 +85,7 @@ func (e *executive) getAllocationRequests(commonPool shared.Resources) (map[shar
 
 //requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() error {
-	if !e.incurServiceCharge("requestRuleProposal") {
+	if !e.incurServiceCharge(actionCost.RequestRuleProposalActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 
@@ -100,7 +99,7 @@ func (e *executive) requestRuleProposal() error {
 }
 
 func (e *executive) requestAllocationRequest() error {
-	if !e.incurServiceCharge("requestAllocationRequest") {
+	if !e.incurServiceCharge(actionCost.RequestAllocationRequestActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: requestAllocationRequest")
 	}
 	allocRequests := make(map[shared.ClientID]shared.Resources)
@@ -116,7 +115,7 @@ func (e *executive) requestAllocationRequest() error {
 // to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) error {
 	// If request costs, why does the reply cost? (Need to update return types)
-	if !e.incurServiceCharge("replyAllocationRequest") {
+	if !e.incurServiceCharge(actionCost.ReplyAllocationRequestsActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 	}
 
@@ -135,7 +134,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) error {
 // appointNextSpeaker returns the island id of the island appointed to be speaker in the next turn.
 // appointing new role should be free now
 func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) (shared.ClientID, error) {
-	if !e.incurServiceCharge("appointNextSpeaker") {
+	if !e.incurServiceCharge(actionCost.AppointNextSpeakerActionCost) {
 		return e.ID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
 	}
 	var election voting.Election
@@ -182,8 +181,7 @@ func getIslandAlive() []float64 {
 // incur charges in both budget and commonpool for performing an actions
 // actionID is typically the function name of the action
 // only return error if we can't withdraw from common pool
-func (e *executive) incurServiceCharge(actionID string) bool {
-	cost := config.GameConfig().IIGOConfig.ExecutiveActionCost[actionID]
+func (e *executive) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, e.gameState)
 	if ok {
 		e.gameState.IIGORolesBudget["president"] -= cost

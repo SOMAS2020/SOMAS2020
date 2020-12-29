@@ -2,12 +2,16 @@ package iigointernal
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
+
+// Single source of truth for all action
+var actionCost config.IIGOConfig
 
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
@@ -114,6 +118,8 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
+
+	// TODO get alive clients differently
 	var aliveClientIds []shared.ClientID
 	for _, v := range rules.VariableMap[rules.IslandsAlive].Values {
 		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
