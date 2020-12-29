@@ -52,5 +52,5 @@ func (f FishingExpedition) Fish(fConf config.FishingConfig) ForagingReport {
 	for i := uint(1); i < nFishFromInput; i++ {
 		returns = append(returns, fishingReturn(f.params))
 	}
-	return compileForagingReport(f.ParticipantContributions, returns)
+	return compileForagingReport(shared.FishForageType, f.ParticipantContributions, returns)
 }

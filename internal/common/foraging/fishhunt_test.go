@@ -19,16 +19,15 @@ func TestFishUtilityTier(t *testing.T) {
 		wantF  int              // output tier
 	}{
 		// Tiers and coressponding thresholds and cumlative cost
-		// Tiers		 			0		1		2		3			4		5			6
-		// Thresholds 				0.0		0.8		0.64	0.512		0.4096	0.32768		0.262144
-		// Cumlative cost 			0.0		0.8		1.44	1.952		2.3616	2.68928		2.951424
+		// Tiers		 			0		1		2		3			4
+		// Cumulative cost 			0.0		1.0		1.8		2.44 		2.952		...
+		// Incremental cost			0.0		1.0		0.8		0.64		0.512
 		{0.0, 0},
-		{0.1, 0},
 		{0.99, 1},
-		{1.52, 2},
-		{2.1, 3},
-		{2.42, 4},
-		{2.9, 5},
+		{1.52, 1},
+		{2.1, 2},
+		{2.45, 3},
+		{2.99, 4},
 		{1000.0, 6},
 	}
 	for _, tt := range tests {

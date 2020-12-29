@@ -5,6 +5,9 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -31,6 +34,9 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 		shared.FishForageType,
 	}
 
+	deerConfig := config.GameConfig().ForagingConfig.DeerHuntConfig // can add custom config here if desired
+	envConfig := config.GameConfig().DisasterConfig
+
 	for _, tc := range cases {
 		t.Run(fmt.Sprintf("%v", tc), func(t *testing.T) {
 			forageDecision := shared.ForageDecision{
@@ -43,6 +49,15 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 				forageUpdateCalled: false,
 			}
 
+			clientMap := map[shared.ClientID]baseclient.Client{
+				shared.Team1: &client,
+			}
+
+			clientIDs := make([]shared.ClientID, 0, len(clientMap))
+			for k := range clientMap {
+				clientIDs = append(clientIDs, k)
+			}
+
 			s := SOMASServer{
 				gameState: gamestate.GameState{
 					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
@@ -51,10 +66,14 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 							Resources:  100,
 						},
 					},
+					ForagingHistory: map[shared.ForageType][]foraging.ForagingReport{
+						shared.DeerForageType: make([]foraging.ForagingReport, 0),
+						shared.FishForageType: make([]foraging.ForagingReport, 0),
+					},
+					DeerPopulation: foraging.CreateDeerPopulationModel(deerConfig),
+					Environment:    disasters.InitEnvironment(clientIDs, envConfig),
 				},
-				clientMap: map[shared.ClientID]baseclient.Client{
-					shared.Team1: &client,
-				},
+				clientMap: clientMap,
 			}
 
 			err := s.runForage()

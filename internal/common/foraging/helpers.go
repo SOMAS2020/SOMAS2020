@@ -9,6 +9,7 @@ import (
 
 // ForagingReport holds information about the result of a foraging session
 type ForagingReport struct {
+	ForageType         shared.ForageType
 	InputResources     shared.Resources // combined input resources
 	NumberParticipants uint             // number of participants in foraging session
 	NumberCaught       uint             // number of deer/fish/... caught
@@ -25,8 +26,17 @@ func getTotalInput(contribs map[shared.ClientID]shared.Resources) shared.Resourc
 	return i
 }
 
-func compileForagingReport(contribs map[shared.ClientID]shared.Resources, forageReturns []shared.Resources) ForagingReport {
-	fR := ForagingReport{InputResources: getTotalInput(contribs), NumberParticipants: uint(len(contribs))}
+func compileForagingReport(
+	forageType shared.ForageType,
+	contribs map[shared.ClientID]shared.Resources,
+	forageReturns []shared.Resources) ForagingReport {
+
+	fR := ForagingReport{
+		ForageType:         forageType,
+		InputResources:     getTotalInput(contribs),
+		NumberParticipants: uint(len(contribs)),
+		CatchSizes:         make([]float64, 0),
+	}
 	for _, r := range forageReturns {
 		fR.TotalUtility += r
 		if r > 0.0 {

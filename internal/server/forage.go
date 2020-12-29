@@ -43,15 +43,21 @@ func (s *SOMASServer) runForage() error {
 			s.logf("%v did not have enough resources to participate in foraging", id)
 		}
 	}
-	errD := s.runDeerHunt(deerHunters)
-	errF := s.runFishingExpedition(fishers)
 
-	if errD != nil {
-		return errors.Errorf("Deer hunt returned with an error:%v", errD)
+	if len(deerHunters) > 0 {
+		errD := s.runDeerHunt(deerHunters)
+
+		if errD != nil {
+			return errors.Errorf("Deer hunt returned with an error: %v", errD)
+		}
 	}
 
-	if errF != nil {
-		return errors.Errorf("Fishing expedition returned with an error:%v", errD)
+	if len(fishers) > 0 {
+		errF := s.runFishingExpedition(fishers)
+
+		if errF != nil {
+			return errors.Errorf("Fishing expedition returned with an error: %v", errF)
+		}
 	}
 
 	return nil
@@ -95,22 +101,12 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	huntReport := hunt.Hunt(dhConf)
 	huntReport.Turn = s.gameState.Turn // update report's Turn with actual turn value
 	// update foraging history
+	if s.gameState.ForagingHistory[shared.DeerForageType] == nil {
+		return errors.Errorf("Foraging history not initialised properly: %v", err)
+	}
 	s.gameState.ForagingHistory[shared.DeerForageType] = append(s.gameState.ForagingHistory[shared.DeerForageType], huntReport)
 
-	totalContributions := hunt.TotalInput()
-
-	// distribute return amongst participants
-	for participantID, contribution := range contributions {
-		participantReturn := shared.Resources(0.0)
-		if totalContributions != 0.0 {
-			participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
-		}
-		s.giveResources(participantID, participantReturn, "Deer hunt return")
-		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
-			Type:         shared.DeerForageType,
-			Contribution: contribution,
-		}, participantReturn)
-	}
+	s.distributeForageReturn(contributions, huntReport)
 
 	s.logf("Deer hunt report: %v", huntReport.Display())
 
@@ -121,21 +117,52 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	return nil
 }
 
-func (s *SOMASServer) runFishingExpedition(participants map[shared.ClientID]shared.Resources) error {
+func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]shared.Resources, huntReport foraging.ForagingReport) {
+	// distribute return amongst participants
+	totalContributions := huntReport.InputResources
+	for participantID, contribution := range contributions {
+		participantReturn := shared.Resources(0.0)
+		if totalContributions > 0.0 {
+			participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
+		}
+		resourceReturnReasons := map[shared.ForageType]string{
+			shared.DeerForageType: "Deer hunt return",
+			shared.FishForageType: "Fishing return",
+		}
+		retReason := "Unspecified foraging return type" // default if f. type not found
+		// check if the foraging type has been specified above
+		if r, ok := resourceReturnReasons[huntReport.ForageType]; ok {
+			retReason = r
+		}
+
+		s.giveResources(participantID, participantReturn, retReason)
+		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
+			Type:         huntReport.ForageType,
+			Contribution: contribution,
+		}, participantReturn)
+	}
+}
+
+func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]shared.Resources) error {
 	s.logf("start runFishHunt")
 	defer s.logf("finish runFishHunt")
 
 	fConf := s.gameConfig.ForagingConfig.FishingConfig
 
-	huntF, err := foraging.CreateFishingExpedition(participants)
+	huntF, err := foraging.CreateFishingExpedition(contributions)
 	if err != nil {
 		return errors.Errorf("Error running fish hunt: %v", err)
 	}
 	fishingReport := huntF.Fish(fConf)
 
 	fishingReport.Turn = s.gameState.Turn // update report's Turn with actual turn value
+	if s.gameState.ForagingHistory[shared.DeerForageType] == nil {
+		return errors.Errorf("Foraging history not initialised properly: %v", err)
+	}
 	// update foraging history
 	s.gameState.ForagingHistory[shared.FishForageType] = append(s.gameState.ForagingHistory[shared.FishForageType], fishingReport)
+
+	s.distributeForageReturn(contributions, fishingReport)
 
 	s.logf("Fishing expedition report: %v", fishingReport.Display())
 

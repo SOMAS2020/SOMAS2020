@@ -34,7 +34,7 @@ func (d DeerHunt) Hunt(dhConf config.DeerHuntConfig) ForagingReport {
 	for i := uint(1); i < nDeerFromInput; i++ {
 		returns = append(returns, deerReturn(d.params))
 	}
-	return compileForagingReport(d.ParticipantContributions, returns)
+	return compileForagingReport(shared.DeerForageType, d.ParticipantContributions, returns)
 }
 
 // deerReturn() is effectively the combination of two other RVs:
