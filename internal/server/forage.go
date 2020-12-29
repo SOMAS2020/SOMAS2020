@@ -121,7 +121,7 @@ func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]s
 	// distribute return amongst participants
 	totalContributions := huntReport.InputResources
 	for participantID, contribution := range contributions {
-		participantReturn := shared.Resources(0.0)
+		participantReturn := shared.Resources(0.0) // default to zero
 		if totalContributions > 0.0 {
 			participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
 		}

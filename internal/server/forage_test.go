@@ -37,57 +37,62 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 	deerConfig := config.GameConfig().ForagingConfig.DeerHuntConfig // can add custom config here if desired
 	envConfig := config.GameConfig().DisasterConfig
 
-	for _, tc := range cases {
-		t.Run(fmt.Sprintf("%v", tc), func(t *testing.T) {
-			forageDecision := shared.ForageDecision{
-				Type:         tc,
-				Contribution: 10,
-			}
+	contribs := []shared.Resources{0.0, 1.0, 8.0} // test zero resource contribution first off
 
-			client := mockClientForage{
-				forageDecision:     forageDecision,
-				forageUpdateCalled: false,
-			}
+	for _, contrib := range contribs {
+		for _, tc := range cases {
+			t.Run(fmt.Sprintf("%v", tc), func(t *testing.T) {
+				forageDecision := shared.ForageDecision{
+					Type:         tc,
+					Contribution: contrib,
+				}
 
-			clientMap := map[shared.ClientID]baseclient.Client{
-				shared.Team1: &client,
-			}
+				client := mockClientForage{
+					forageDecision:     forageDecision,
+					forageUpdateCalled: false,
+				}
 
-			clientIDs := make([]shared.ClientID, 0, len(clientMap))
-			for k := range clientMap {
-				clientIDs = append(clientIDs, k)
-			}
+				clientMap := map[shared.ClientID]baseclient.Client{
+					shared.Team1: &client,
+				}
 
-			s := SOMASServer{
-				gameState: gamestate.GameState{
-					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-						shared.Team1: {
-							LifeStatus: shared.Alive,
-							Resources:  100,
+				clientIDs := make([]shared.ClientID, 0, len(clientMap))
+				for k := range clientMap {
+					clientIDs = append(clientIDs, k)
+				}
+
+				s := SOMASServer{
+					gameState: gamestate.GameState{
+						ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+							shared.Team1: {
+								LifeStatus: shared.Alive,
+								Resources:  100,
+							},
 						},
+						ForagingHistory: map[shared.ForageType][]foraging.ForagingReport{
+							shared.DeerForageType: make([]foraging.ForagingReport, 0),
+							shared.FishForageType: make([]foraging.ForagingReport, 0),
+						},
+						DeerPopulation: foraging.CreateDeerPopulationModel(deerConfig),
+						Environment:    disasters.InitEnvironment(clientIDs, envConfig),
 					},
-					ForagingHistory: map[shared.ForageType][]foraging.ForagingReport{
-						shared.DeerForageType: make([]foraging.ForagingReport, 0),
-						shared.FishForageType: make([]foraging.ForagingReport, 0),
-					},
-					DeerPopulation: foraging.CreateDeerPopulationModel(deerConfig),
-					Environment:    disasters.InitEnvironment(clientIDs, envConfig),
-				},
-				clientMap: clientMap,
-			}
+					clientMap: clientMap,
+				}
 
-			err := s.runForage()
+				err := s.runForage()
 
-			if err != nil {
-				t.Errorf("runForage error: %v", err)
-			}
-			if !client.forageUpdateCalled {
-				t.Errorf("ForageUpdate was not called")
-			}
-			if client.gotForageDecision != forageDecision {
-				t.Errorf("ForageUpdate got the wrong forageDecision")
-			}
+				if err != nil {
+					t.Errorf("runForage error: %v", err)
+				}
+				if !client.forageUpdateCalled {
+					t.Errorf("ForageUpdate was not called")
+				}
+				if client.gotForageDecision != forageDecision {
+					t.Errorf("ForageUpdate got the wrong forageDecision")
+				}
 
-		})
+			})
+		}
+
 	}
 }

@@ -32,4 +32,14 @@ func TestSamplingOfCertainties(t *testing.T) {
 	if updatedEnv.LastDisasterReport.Magnitude == 0.0 {
 		t.Error("No disaster recorded despite global prob. set to one")
 	}
+	x := updatedEnv.LastDisasterReport.X
+	y := updatedEnv.LastDisasterReport.Y
+
+	if x < disasterConf.XMin || x > disasterConf.XMax {
+		t.Error("Disaster location outside of config x bounds")
+	}
+
+	if y < disasterConf.YMin || y > disasterConf.YMax {
+		t.Error("Disaster location outside of config y bounds")
+	}
 }
