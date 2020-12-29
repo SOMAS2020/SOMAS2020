@@ -82,6 +82,23 @@ func (c *client) gameState() gamestate.ClientGameState {
 }
 
 /********************/
+/***  Desperation   */
+/********************/
+
+func (c *client) desperate() bool {
+	return c.gameState().ClientInfo.Resources < c.config.desperationThreshold
+}
+
+func (c *client) desperateForage() shared.ForageDecision {
+	forageDecision := shared.ForageDecision{
+		Type:         shared.DeerForageType,
+		Contribution: c.gameState().ClientInfo.Resources,
+	}
+	c.Logf("[Forage][Decision]: Desperate | Decision %v", forageDecision)
+	return forageDecision
+}
+
+/********************/
 /***  Messages      */
 /********************/
 
@@ -114,7 +131,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 /***    Foraging    */
 /********************/
 
-func (c *client) RandomForage() shared.ForageDecision {
+func (c *client) randomForage() shared.ForageDecision {
 	// Up to 10% of our current resources
 	forageContribution := shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources
 	c.Logf("[Forage][Decision]:Random")
@@ -125,7 +142,7 @@ func (c *client) RandomForage() shared.ForageDecision {
 	}
 }
 
-func (c *client) NormalForage() shared.ForageDecision {
+func (c *client) normalForage() shared.ForageDecision {
 	// Find the forageType with the best average returns
 	bestForageType := shared.ForageType(-1)
 	bestROI := 0.0
@@ -192,22 +209,13 @@ func (c *client) NormalForage() shared.ForageDecision {
 	return forageDecision
 }
 
-func (c *client) DesperateForage() shared.ForageDecision {
-	forageDecision := shared.ForageDecision{
-		Type:         shared.DeerForageType,
-		Contribution: c.gameState().ClientInfo.Resources,
-	}
-	c.Logf("[Forage][Decision]: Desperate | Decision %v", forageDecision)
-	return forageDecision
-}
-
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if c.forageHistorySize() < c.config.randomForageTurns {
-		return c.RandomForage(), nil
-	} else if c.gameState().ClientInfo.Resources <= c.config.desperationThreshold {
-		return c.DesperateForage(), nil
+		return c.randomForage(), nil
+	} else if c.desperate() {
+		return c.desperateForage(), nil
 	} else {
-		return c.NormalForage(), nil
+		return c.normalForage(), nil
 	}
 }
 
