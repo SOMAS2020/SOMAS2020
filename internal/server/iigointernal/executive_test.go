@@ -503,3 +503,91 @@ func TestGetAllocationRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestReplyAllocationRequest(t *testing.T) {
+	cases := []struct {
+		name           string
+		bPresident     executive // base
+		commonPool     shared.Resources
+		clientRequests map[shared.ClientID]shared.Resources
+		expected       map[shared.ClientID]shared.Resources
+	}{
+		{
+			name: "Excess resources",
+			bPresident: executive{
+				ID:              5,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+			commonPool: 150,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+		},
+		{
+			name: "Limited resources",
+			bPresident: executive{
+				ID:              1,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+			commonPool: 100,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: calcExpectedVal(5, 105, 100),
+				shared.Team2: calcExpectedVal(10, 105, 100),
+				shared.Team3: calcExpectedVal(15, 105, 100),
+				shared.Team4: calcExpectedVal(20, 105, 100),
+				shared.Team5: calcExpectedVal(25, 105, 100),
+				shared.Team6: calcExpectedVal(30, 105, 100),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			fakeClientMap := map[shared.ClientID]baseclient.Client{}
+			aliveID := []shared.ClientID{}
+
+			for clientID := range tc.clientRequests {
+				aliveID = append(aliveID, clientID)
+				fakeClientMap[clientID] = baseclient.NewClient(clientID)
+			}
+
+			setIIGOClients(&fakeClientMap)
+			tc.bPresident.setAllocationRequest(tc.clientRequests)
+			tc.bPresident.replyAllocationRequest(tc.commonPool, aliveID)
+
+			for clientID, expectedAllocation := range tc.expected {
+				communicationGot := *(fakeClientMap[clientID]).GetCommunications()
+				communicationExpected := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{
+					tc.bPresident.ID: {
+						{shared.AllocationAmount: {T: shared.CommunicationInt, IntegerData: int(expectedAllocation)}},
+					},
+				}
+				if !reflect.DeepEqual(communicationGot, communicationExpected) {
+					t.Errorf("Allocation request failed. Expected communication: %v,\n Got communication : %v", communicationExpected, communicationGot)
+				}
+			}
+		})
+	}
+}

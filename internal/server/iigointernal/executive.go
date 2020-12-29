@@ -156,7 +156,3 @@ func (e *executive) requestRuleProposal(aliveIslands []shared.ClientID) {
 
 	e.setRuleProposals(rules)
 }
-
-func getIslandAlive() []float64 {
-	return rules.VariableMap[rules.IslandsAlive].Values
-}
