@@ -48,11 +48,11 @@ type Client interface {
 	GetGiftRequests() shared.GiftRequestDict
 	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
-	UpdateGiftInfo(receivedResponses shared.GiftResponseDict) error
+	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
-	SentGift(sent shared.Resources, to shared.ClientID) error
-	ReceivedGift(received shared.Resources, from shared.ClientID) error
+	SentGift(sent shared.Resources, to shared.ClientID)
+	ReceivedGift(received shared.Resources, from shared.ClientID)
 }
 
 // ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate

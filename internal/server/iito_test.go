@@ -32,9 +32,8 @@ func (c *mockClientIITO) GetGiftResponses(offers shared.GiftOfferDict) shared.Gi
 	return c.responses
 }
 
-func (c *mockClientIITO) UpdateGiftInfo(responses shared.GiftResponseDict) error {
+func (c *mockClientIITO) UpdateGiftInfo(responses shared.GiftResponseDict) {
 	c.receivedResponses = responses
-	return nil
 }
 
 // Test that the server correctly forms the pipeline for IITO to run

@@ -57,24 +57,21 @@ func (c *BaseClient) GetGiftResponses(receivedOffers shared.GiftOfferDict) share
 // from the gift session. It is up to you to complete the transactions with the methods
 // that you will implement yourself below. This allows for opinion formation.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) error {
-	return nil
+func (c *BaseClient) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 }
 
 // SentGift is executed at the end of each turn and notifies clients that
 // their gift was successfully sent, along with the offer details.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) SentGift(sent shared.Resources, to shared.ClientID) error {
+func (c *BaseClient) SentGift(sent shared.Resources, to shared.ClientID) {
 	// You can check your updated resources like this:
 	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	return nil
 }
 
 // ReceivedGift is executed at the end of each turn and notifies clients that
 // their gift was successfully received, along with the offer details.
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientID) error {
+func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientID) {
 	// You can check your updated resources like this:
 	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	return nil
 }

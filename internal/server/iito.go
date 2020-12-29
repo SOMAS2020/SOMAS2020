@@ -84,7 +84,7 @@ func offersKnapsackSolver(capacity shared.GiftOffer, offers shared.GiftOfferDict
 
 	for team, offer := range offers {
 		currentOffer := shared.GiftOffer(0)
-		currentCombi := []shared.ClientID{}
+		var currentCombi []shared.ClientID
 
 		lessThisOffer := shared.GiftOfferDict{}
 		for team, offer := range offers {
