@@ -42,7 +42,7 @@ func (s *SOMASServer) runIIGOTax() error {
 			s.gameState.CommonPool += tax + sanction
 			s.clientMap[clientID].TaxTaken(tax)
 		} else {
-			s.logf("Error getting tax from %v: %v", clientID, err)
+			s.logf("Error getting tax or sanctions from %v: %v sanction error: %v", clientID, err, err2)
 		}
 		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
