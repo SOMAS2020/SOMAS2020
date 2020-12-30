@@ -13,7 +13,7 @@ func (s *SOMASServer) runIIGO() error {
 
 	nonDead := getNonDeadClientIDs(s.gameState.ClientInfos)
 	updateAliveIslands(nonDead)
-	iigoSuccessful, iigoStatus := iigointernal.RunIIGO(&s.gameState, &s.clientMap)
+	iigoSuccessful, iigoStatus := iigointernal.RunIIGO(&s.gameState, &s.clientMap, &s.gameConfig)
 	if !iigoSuccessful {
 		s.logf(iigoStatus)
 	}

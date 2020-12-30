@@ -56,7 +56,9 @@ var presidentPointer roles.President = nil
 var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
-func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
+func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
+
+	actionCost = gameConf.IIGOConfig
 
 	iigoClients = *clientMap
 
@@ -67,7 +69,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	g.IIGORolesBudget["speaker"] += 100
 
 	// Pass in gamestate -
-	// So that we don't have to pass gamestate as arguement in every function in roles
+	// So that we don't have to pass gamestate as arguments in every function in roles
 	judicialBranch.gameState = g
 	legislativeBranch.gameState = g
 	executiveBranch.gameState = g
