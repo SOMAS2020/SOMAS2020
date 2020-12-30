@@ -64,11 +64,14 @@ func (j *judiciary) setSpeakerAndPresidentIDs(speakerID shared.ClientID, preside
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	if !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
+	if !CheckEnoughInCommonPool(actionCost.InspectHistoryActionCost, j.gameState) {
 		return nil, false
 	}
-
-	return j.clientJudge.InspectHistory(iigoHistory)
+	historyMap, ok := j.clientJudge.InspectHistory(iigoHistory)
+	if ok && !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
+		return nil, false
+	}
+	return historyMap, ok
 }
 
 // inspectBallot checks each ballot action adheres to the rules
@@ -76,10 +79,10 @@ func (j *judiciary) inspectBallot() (bool, error) {
 	// 1. Evaluate difference between newRules and oldRules to check
 	//    rule changes are in line with RuleToVote in previous ballot
 	// 2. Compare each ballot action adheres to rules in ruleSet matrix
-	if !j.incurServiceCharge(actionCost.InspectBallotActionCost) {
-		return false, errors.Errorf("Insufficient Budget in common Pool: inspectBallot")
-	}
 
+	if !CheckEnoughInCommonPool(actionCost.InspectHistoryActionCost, j.gameState) {
+		return false, nil
+	}
 	rulesAffectedBySpeaker := j.EvaluationResults[j.speakerID]
 	indexOfBallotRule, err := searchForRule("inspect_ballot_rule", rulesAffectedBySpeaker.Rules)
 	if err {

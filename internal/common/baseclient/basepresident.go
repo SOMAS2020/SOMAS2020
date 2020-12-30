@@ -6,9 +6,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-type BasePresident struct {
-	FlatTaxRate float64
-}
+type BasePresident struct{}
 
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
 func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
@@ -74,7 +72,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 
 // PaySpeaker pays the speaker a salary.
 func (p *BasePresident) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
-	// TODO : Implement opinion based salary payment.
+	// TODO : Implement opinion based salary payment. Salary should be set by a rule
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
 		SpeakerSalary: 0,

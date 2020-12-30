@@ -55,25 +55,33 @@ func (e *executive) setGameState(g *gamestate.GameState) {
 
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
-func (e *executive) getRuleForSpeaker() shared.PresidentReturnContent {
-	if !e.incurServiceCharge(actionCost.GetRuleForSpeakerActionCost) {
-		return shared.PresidentReturnContent{
-			ContentType:  shared.PresidentRuleProposal,
-			ProposedRule: "",
-			ActionTaken:  false,
+func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
+	if !CheckEnoughInCommonPool(actionCost.GetRuleForSpeakerActionCost, e.gameState) {
+		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRule: "", ActionTaken: false},
+			errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+	}
+
+	returnRule := e.clientPresident.PickRuleToVote(e.RulesProposals)
+
+	if returnRule.ActionTaken && (returnRule.ContentType == shared.PresidentRuleProposal) {
+		if !e.incurServiceCharge(actionCost.GetRuleForSpeakerActionCost) {
+			return returnRule, errors.Errorf("Insufficient Budget in common Pool: getRuleForSpeaker")
 		}
 	}
 
-	return e.clientPresident.PickRuleToVote(e.RulesProposals)
+	return returnRule, nil
 }
 
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.ResourcesReport, aliveIslands []shared.ClientID) error {
-	if e.incurServiceCharge(actionCost.BroadcastTaxationActionCost) {
+	if !CheckEnoughInCommonPool(actionCost.BroadcastTaxationActionCost, e.gameState) {
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 	taxMapReturn := e.getTaxMap(islandsResources)
 	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {
+		if !e.incurServiceCharge(actionCost.BroadcastTaxationActionCost) {
+			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+		}
 		for _, islandID := range aliveIslands {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxMapReturn.ResourceMap[islandID])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
@@ -92,6 +100,7 @@ func (e *executive) getAllocationRequests(commonPool shared.Resources) shared.Pr
 
 //requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal(aliveIslands []shared.ClientID) error {
+	// Listening to islands rule proposals incurs cost to the president. Set the cost to 0?
 	if !e.incurServiceCharge(actionCost.RequestRuleProposalActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
@@ -106,6 +115,7 @@ func (e *executive) requestRuleProposal(aliveIslands []shared.ClientID) error {
 }
 
 func (e *executive) requestAllocationRequest(aliveIslands []shared.ClientID) error {
+	// Listening to islands requests incurs cost to the president. Set the cost to 0?
 	if !e.incurServiceCharge(actionCost.RequestAllocationRequestActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: requestAllocationRequest")
 	}
@@ -122,11 +132,14 @@ func (e *executive) requestAllocationRequest(aliveIslands []shared.ClientID) err
 // to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources, aliveIslands []shared.ClientID) error {
 	// If request costs, why does the reply cost? (Need to update return types)
-	if !e.incurServiceCharge(actionCost.ReplyAllocationRequestsActionCost) {
+	if !CheckEnoughInCommonPool(actionCost.ReplyAllocationRequestsActionCost, e.gameState) {
 		return errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 	}
 	allocationMapReturn := e.getAllocationRequests(commonPool)
 	if allocationMapReturn.ActionTaken && allocationMapReturn.ContentType == shared.PresidentAllocation {
+		if !e.incurServiceCharge(actionCost.ReplyAllocationRequestsActionCost) {
+			return errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
+		}
 		for _, islandID := range aliveIslands {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMapReturn.ResourceMap[islandID])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
@@ -165,7 +178,7 @@ func (e *executive) sendSpeakerSalary() error {
 			}
 		}
 	}
-	return errors.Errorf("Cannot perform sendJudgeSalary")
+	return errors.Errorf("Cannot perform sendSpeakerSalary")
 }
 
 func (e *executive) reset(val string) {

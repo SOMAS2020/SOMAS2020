@@ -34,7 +34,7 @@ func (l *legislature) loadClientSpeaker(clientSpeakerPointer roles.Speaker) {
 func (l *legislature) sendJudgeSalary() error {
 	if l.clientSpeaker != nil {
 		amountReturn := l.clientSpeaker.PayJudge(l.judgeSalary)
-		if amountReturn.ActionTaken {
+		if amountReturn.ActionTaken && amountReturn.ContentType == shared.SpeakerJudgeSalary {
 			// Subtract from common resources pool
 			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn.JudgeSalary, l.gameState)
 
@@ -50,13 +50,15 @@ func (l *legislature) sendJudgeSalary() error {
 
 // Receive a rule to call a vote on
 func (l *legislature) setRuleToVote(r string) error {
-
-	if !l.incurServiceCharge(actionCost.SetRuleToVoteActionCost) {
+	if !CheckEnoughInCommonPool(actionCost.SetRuleToVoteActionCost, l.gameState) {
 		return errors.Errorf("Insufficient Budget in common Pool: setRuleToVote")
 	}
 
 	agendaReturn := l.clientSpeaker.DecideAgenda(r)
-	if agendaReturn.ActionTaken {
+	if agendaReturn.ActionTaken && agendaReturn.ContentType == shared.SpeakerAgenda {
+		if !l.incurServiceCharge(actionCost.SetRuleToVoteActionCost) {
+			return errors.Errorf("Insufficient Budget in common Pool: setRuleToVote")
+		}
 		l.ruleToVote = agendaReturn.RuleID
 	}
 	return nil
@@ -65,18 +67,19 @@ func (l *legislature) setRuleToVote(r string) error {
 //Asks islands to vote on a rule
 //Called by orchestration
 func (l *legislature) setVotingResult(clientIDs []shared.ClientID) error {
-
-	if !l.incurServiceCharge(actionCost.SetVotingResultActionCost) {
-		return errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
+	if !CheckEnoughInCommonPool(actionCost.SetVotingResultActionCost, l.gameState) {
+		return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
 	}
+
 	returnVote := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
-	if !returnVote.ActionTaken {
-		return nil
+	if returnVote.ActionTaken && returnVote.ContentType == shared.SpeakerVote {
+		if !l.incurServiceCharge(actionCost.SetVotingResultActionCost) {
+			return errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
+		}
+		l.ballotBox = l.RunVote(returnVote.RuleID, returnVote.ParticipatingIslands)
+
+		l.votingResult = l.ballotBox.CountVotesMajority()
 	}
-
-	l.ballotBox = l.RunVote(returnVote.RuleID, returnVote.ParticipatingIslands)
-
-	l.votingResult = l.ballotBox.CountVotesMajority()
 
 	return nil
 }
@@ -108,9 +111,13 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
 func (l *legislature) announceVotingResult() error {
+	if !CheckEnoughInCommonPool(actionCost.AnnounceVotingResultActionCost, l.gameState) {
+		return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
+	}
+
 	returnAnouncement := l.clientSpeaker.DecideAnnouncement(l.ruleToVote, l.votingResult)
 
-	if returnAnouncement.ActionTaken {
+	if returnAnouncement.ActionTaken && returnAnouncement.ContentType == shared.SpeakerAnnouncement {
 		//Deduct action cost
 		if !l.incurServiceCharge(actionCost.AnnounceVotingResultActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")

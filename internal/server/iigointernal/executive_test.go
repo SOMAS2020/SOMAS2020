@@ -426,7 +426,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			got := tc.bPresident.getRuleForSpeaker()
+			got, _ := tc.bPresident.getRuleForSpeaker()
 
 			if got.ContentType != wantPresidentReturnType {
 				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)

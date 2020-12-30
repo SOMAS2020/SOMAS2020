@@ -17,16 +17,21 @@ func TestPutSalaryBack(t *testing.T) {
 			"judge":     0,
 		},
 		ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-			shared.Team1: {Resources: 0},
-			shared.Team2: {Resources: 0},
-			shared.Team3: {Resources: 0},
+			shared.Team1: {Resources: 0, LifeStatus: shared.Alive},
+			shared.Team2: {Resources: 0, LifeStatus: shared.Alive},
+			shared.Team3: {Resources: 0, LifeStatus: shared.Alive},
 		},
+		SpeakerID:   shared.Team1,
+		JudgeID:     shared.Team2,
+		PresidentID: shared.Team3,
 	}
-	goodRun, _ := RunIIGO(&fakeGameState, &map[shared.ClientID]baseclient.Client{
-		shared.Team1: &baseclient.BaseClient{},
-		shared.Team2: &baseclient.BaseClient{},
-		shared.Team3: &baseclient.BaseClient{},
-	})
+	fakeClientMap := map[shared.ClientID]baseclient.Client{
+		shared.Team1: baseclient.NewClient(shared.Team1),
+		shared.Team2: baseclient.NewClient(shared.Team2),
+		shared.Team3: baseclient.NewClient(shared.Team3),
+	}
+	goodRun, _ := RunIIGO(&fakeGameState, &fakeClientMap)
+
 	if goodRun {
 		t.Errorf("IIGO didn't throw error when salaries couldn't be paid")
 	} else {

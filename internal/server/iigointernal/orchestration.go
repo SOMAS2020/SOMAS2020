@@ -118,6 +118,8 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// Throw error if any of the actions returns error
 	insufficientBudget := executiveBranch.broadcastTaxation(resourceReports, aliveClientIds)
+	var ruleToVoteReturn shared.PresidentReturnContent
+
 	if insufficientBudget == nil {
 		insufficientBudget = executiveBranch.requestAllocationRequest(aliveClientIds)
 	}
@@ -127,10 +129,12 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	if insufficientBudget == nil {
 		insufficientBudget = executiveBranch.requestRuleProposal(aliveClientIds)
 	}
+	if insufficientBudget == nil {
+		ruleToVoteReturn, insufficientBudget = executiveBranch.getRuleForSpeaker()
+	}
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for executiveBranch actions"
 	}
-	ruleToVoteReturn := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
 
