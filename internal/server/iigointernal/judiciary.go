@@ -155,7 +155,7 @@ func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]ro
 // getIslandSanctionTier if statement based evaluator for which sanction tier a particular score is in
 func getIslandSanctionTier(islandScore roles.IIGOSanctionScore, scoreMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) roles.IIGOSanctionTier {
 	if islandScore <= scoreMap[roles.SanctionTier1] {
-		return roles.None
+		return roles.NoSanction
 	} else if islandScore <= scoreMap[roles.SanctionTier2] {
 		return roles.SanctionTier1
 	} else if islandScore <= scoreMap[roles.SanctionTier3] {
