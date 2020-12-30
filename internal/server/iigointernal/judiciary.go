@@ -18,6 +18,15 @@ type judiciary struct {
 	EvaluationResults     map[shared.ClientID]roles.EvaluationReturn
 	clientJudge           roles.Judge
 	presidentTurnsInPower int
+	sanctionRecord        map[shared.ClientID]roles.IIGOSanctionScore
+	sanctionThresholds    map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+	ruleViolationSeverity map[string]roles.IIGOSanctionScore
+}
+
+// Loads ruleViolationSeverity and sanction thresholds
+func (j *judiciary) loadSanctionConfig() {
+	j.sanctionThresholds = softMergeSanctionThresholds(j.clientJudge.GetSanctionThresholds())
+	j.ruleViolationSeverity = j.clientJudge.GetRuleViolationSeverity()
 }
 
 // loadClientJudge checks client pointer is good and if not panics
@@ -98,4 +107,28 @@ func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIs
 		nextPresident = currentPresident
 	}
 	return nextPresident
+}
+
+// Helper functions //
+
+// getDefaultSanctionThresholds provides default thresholds for sanctions
+func getDefaultSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
+		roles.SanctionTier1: 1,
+		roles.SanctionTier2: 5,
+		roles.SanctionTier3: 10,
+		roles.SanctionTier4: 20,
+		roles.SanctionTier5: 30,
+	}
+}
+
+// softMergeSanctionThresholds merges the default sanction thresholds with a (preferred) client version
+func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	defaultMap := getDefaultSanctionThresholds()
+	for k := range defaultMap {
+		if clientVal, ok := clientSanctionMap[k]; ok {
+			defaultMap[k] = clientVal
+		}
+	}
+	return defaultMap
 }
