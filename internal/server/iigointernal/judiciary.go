@@ -233,26 +233,26 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 
 // cycleSanctionCache rolls the sanction cahce one turn forward (effectively dropping any sanctions longer than the depth)
 func (j *judiciary) cycleSanctionCache() {
-	newMap := j.localSanctionCache
-	delete(newMap, sanctionCacheDepth-1)
-	newMapCache := newMap
+	oldMap := j.localSanctionCache
+	delete(oldMap, sanctionCacheDepth-1)
+	newMapReturn := defaultInitLocalSanctionCache(sanctionCacheDepth)
 	for i := 0; i < sanctionCacheDepth-1; i++ {
-		newMap[i+1] = newMapCache[i]
+		newMapReturn[i+1] = oldMap[i]
 	}
-	newMap[0] = []roles.Sanction{}
-	j.localSanctionCache = newMap
+	newMapReturn[0] = []roles.Sanction{}
+	j.localSanctionCache = newMapReturn
 }
 
 // cycleHistoryCache rolls the history cache (for retributive justice) forward
 func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
-	newMap := j.localHistoryCache
-	delete(newMap, historyCacheDepth-1)
-	newMapCache := newMap
+	oldMap := j.localHistoryCache
+	delete(oldMap, historyCacheDepth-1)
+	newMapReturn := defaultInitLocalHistoryCache(historyCacheDepth)
 	for i := 0; i < historyCacheDepth-1; i++ {
-		newMap[i+1] = newMapCache[i]
+		newMapReturn[i+1] = oldMap[i]
 	}
-	newMap[0] = iigoHistory
-	j.localHistoryCache = newMap
+	newMapReturn[0] = iigoHistory
+	j.localHistoryCache = newMapReturn
 }
 
 // clearHistoryCache wipes the history cache (when retributive justice has happened)
@@ -284,13 +284,35 @@ func getDefaultSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctio
 
 // softMergeSanctionThresholds merges the default sanction thresholds with a (preferred) client version
 func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
-	defaultMap := getDefaultSanctionThresholds()
-	for k := range defaultMap {
+	outputMap := getDefaultSanctionThresholds()
+	for k := range outputMap {
 		if clientVal, ok := clientSanctionMap[k]; ok {
-			defaultMap[k] = clientVal
+			outputMap[k] = clientVal
 		}
 	}
-	return defaultMap
+	if checkMonotonicityOfSanctionThresholds(outputMap) {
+		return outputMap
+	} else {
+		return getDefaultSanctionThresholds()
+	}
+}
+
+func checkMonotonicityOfSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) bool {
+	sanctionsInOrder := []roles.IIGOSanctionTier{
+		roles.SanctionTier1,
+		roles.SanctionTier2,
+		roles.SanctionTier3,
+		roles.SanctionTier4,
+		roles.SanctionTier5,
+	}
+	hold := roles.IIGOSanctionScore(0)
+	for _, v := range sanctionsInOrder {
+		if clientSanctionMap[v] < hold {
+			return false
+		}
+		hold = clientSanctionMap[v]
+	}
+	return true
 }
 
 // unpackSingleIslandTransgressions fetches the rule names of any broken rules as per EvaluationReturns
@@ -306,15 +328,15 @@ func unpackSingleIslandTransgressions(evaluationReturn roles.EvaluationReturn) [
 
 // getIslandSanctionTier if statement based evaluator for which sanction tier a particular score is in
 func getIslandSanctionTier(islandScore roles.IIGOSanctionScore, scoreMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) roles.IIGOSanctionTier {
-	if islandScore <= scoreMap[roles.SanctionTier1] {
+	if islandScore < scoreMap[roles.SanctionTier1] {
 		return roles.NoSanction
-	} else if islandScore <= scoreMap[roles.SanctionTier2] {
+	} else if islandScore < scoreMap[roles.SanctionTier2] {
 		return roles.SanctionTier1
-	} else if islandScore <= scoreMap[roles.SanctionTier3] {
+	} else if islandScore < scoreMap[roles.SanctionTier3] {
 		return roles.SanctionTier2
-	} else if islandScore <= scoreMap[roles.SanctionTier4] {
+	} else if islandScore < scoreMap[roles.SanctionTier4] {
 		return roles.SanctionTier3
-	} else if islandScore <= scoreMap[roles.SanctionTier5] {
+	} else if islandScore < scoreMap[roles.SanctionTier5] {
 		return roles.SanctionTier4
 	} else {
 		return roles.SanctionTier5
