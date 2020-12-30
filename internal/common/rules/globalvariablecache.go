@@ -70,7 +70,7 @@ const (
 	SanctionPaid
 	SanctionExpected
 	TestVariable
-	JudgeInspectionBroadcasted
+	JudgeInspectionPerformed
 )
 
 func (v VariableFieldName) String() string {

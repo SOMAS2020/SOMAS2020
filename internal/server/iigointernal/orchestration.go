@@ -106,8 +106,14 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	legislativeBranch.sendJudgeSalary(&judicialBranch)
 	executiveBranch.sendSpeakerSalary(&legislativeBranch)
 
-	// 1 Judge actions - inspect history
-	_, _ = judicialBranch.inspectHistory(g.IIGOHistory)
+	// 1 Judge action - inspect history
+	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
+
+	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
+	valuesToCache := [][]float64{{boolToFloat(historyInspected)}}
+	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
+
+	monitoring.monitorRole(iigoClients[g.PresidentID])
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
@@ -122,8 +128,8 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.requestRuleProposal()
 	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
 
-	variablesToCache := []rules.VariableFieldName{rules.AllocationMade}
-	valuesToCache := [][]float64{{boolToFloat(allocationsMade)}}
+	variablesToCache = []rules.VariableFieldName{rules.AllocationMade}
+	valuesToCache = [][]float64{{boolToFloat(allocationsMade)}}
 	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
 	monitoring.monitorRole(iigoClients[g.SpeakerID])

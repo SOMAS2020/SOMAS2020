@@ -67,7 +67,7 @@ func registerRulesByMass() {
 		{
 			name: "judge_inspection_broadcast_rule",
 			reqVar: []VariableFieldName{
-				JudgeInspectionBroadcasted,
+				JudgeInspectionPerformed,
 			},
 			v:       []float64{1, -1},
 			aux:     []float64{0},
