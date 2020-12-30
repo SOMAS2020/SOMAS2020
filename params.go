@@ -42,7 +42,7 @@ var (
 		3,
 		"The maximum consecutive turns an island can be in the critical state.",
 	)
-	foragingMaxDeerPerHunt = flag.Uint(
+	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
 		"Max possible number of deer on a single hunt (regardless of number of participants).",
@@ -72,8 +72,8 @@ var (
 		int(shared.InputProportionalSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
-	foragingMaxDeerPopulation = flag.Uint(
-		"maxDeerPopulation",
+	foragingDeerMaxPopulation = flag.Uint(
+		"foragingDeerMaxPopulation",
 		12,
 		"Max possible deer population.",
 	)
@@ -82,7 +82,7 @@ var (
 		0.4,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
-	foragingMaxFishPerHunt = flag.Uint(
+	foragingFishMaxPerHunt = flag.Uint(
 		"foragingMaxFishPerHunt",
 		6,
 		"Max possible catch (num. fish) on a single expedition (regardless of number of participants).",
@@ -155,19 +155,19 @@ func parseConfig() config.Config {
 
 	deerConf := config.DeerHuntConfig{
 		//Deer parameters
-		MaxDeerPerHunt:        *foragingMaxDeerPerHunt,
+		MaxDeerPerHunt:        *foragingDeerMaxPerHunt,
 		IncrementalInputDecay: *foragingDeerIncrementalInputDecay,
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
 		ResourceMultiplier:    *foragingDeerResourceMultiplier,
 		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy),
 
-		MaxDeerPopulation:     *foragingMaxDeerPopulation,
+		MaxDeerPopulation:     *foragingDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
 	}
 	fishingConf := config.FishingConfig{
 		// Fish parameters
-		MaxFishPerHunt:        *foragingMaxFishPerHunt,
+		MaxFishPerHunt:        *foragingFishMaxPerHunt,
 		IncrementalInputDecay: *foragingFishingIncrementalInputDecay,
 		Mean:                  *foragingFishingMean,
 		Variance:              *foragingFishingVariance,
