@@ -24,6 +24,11 @@ var (
 		100,
 		"The default number of resources at the start of the game.",
 	)
+	initialCommonPool = flag.Float64(
+		"initialCommonPool",
+		100,
+		"The default number of resources in the common pool at the start of the game.",
+	)
 	costOfLiving = flag.Float64(
 		"costOfLiving",
 		10,
@@ -200,7 +205,6 @@ var (
 )
 
 func parseConfig() config.Config {
-	flag.Parse()
 	foragingConf := config.ForagingConfig{
 		MaxDeerPerHunt:        *foragingMaxDeerPerHunt,
 		IncrementalInputDecay: *foragingIncrementalInputDecay,
@@ -246,6 +250,7 @@ func parseConfig() config.Config {
 		MaxSeasons:                  *maxSeasons,
 		MaxTurns:                    *maxTurns,
 		InitialResources:            shared.Resources(*initialResources),
+		InitialCommonPool:           shared.Resources(*initialCommonPool),
 		CostOfLiving:                shared.Resources(*costOfLiving),
 		MinimumResourceThreshold:    shared.Resources(*minimumResourceThreshold),
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,

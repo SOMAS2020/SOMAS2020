@@ -16,6 +16,9 @@ type Config struct {
 	// InitialResources is the default number of resources at the start of the game.
 	InitialResources shared.Resources
 
+	// InitialCommonPool is the default number of resources in the common pool at the start of the game.
+	InitialCommonPool shared.Resources
+
 	// CostOfLiving is subtracted from an islands pool before
 	// the next turn. This is the simulation-level equivalent to using resources to stay
 	// alive (e.g. food consumed). These resources are permanently consumed and do

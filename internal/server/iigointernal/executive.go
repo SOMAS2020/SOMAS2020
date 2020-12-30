@@ -12,15 +12,16 @@ import (
 )
 
 type executive struct {
-	gameState        *gamestate.GameState
-	PresidentID      shared.ClientID
-	clientPresident  roles.President
-	speakerSalary    shared.Resources
-	RulesProposals   []string
-	ResourceRequests map[shared.ClientID]shared.Resources
+	gameState           *gamestate.GameState
+	PresidentID         shared.ClientID
+	clientPresident     roles.President
+	speakerSalary       shared.Resources
+	RulesProposals      []string
+	ResourceRequests    map[shared.ClientID]shared.Resources
+	speakerTurnsInPower int
 }
 
-// loadClientJudge checks client pointer is good and if not panics
+// loadClientPresident checks client pointer is good and if not panics
 func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
 	if clientPresidentPointer == nil {
 		panic(fmt.Sprintf("Client '%v' has loaded a nil president pointer", e.PresidentID))
@@ -150,17 +151,26 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources, aliveIsl
 	return nil
 }
 
-// appointNextSpeaker returns the island id of the island appointed to be speaker in the next turn.
-// appointing new role should be free now
-func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) (shared.ClientID, error) {
-	if !e.incurServiceCharge(actionCost.AppointNextSpeakerActionCost) {
-		return e.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
-	}
+// appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
+func (e *executive) appointNextSpeaker(currentSpeaker shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
-	election.ProposeElection(baseclient.Speaker, voting.Plurality)
-	election.OpenBallot(clientIDs)
-	election.Vote(iigoClients)
-	return election.CloseBallot(), nil
+	var nextSpeaker shared.ClientID
+	electionsettings := e.clientPresident.CallSpeakerElection(e.speakerTurnsInPower, allIslands)
+	if electionsettings.HoldElection {
+		if !e.incurServiceCharge(actionCost.AppointNextSpeakerActionCost) {
+			return e.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
+		}
+		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
+		election.OpenBallot(electionsettings.IslandsToVote)
+		election.Vote(iigoClients)
+		e.speakerTurnsInPower = 0
+		nextSpeaker = election.CloseBallot()
+		nextSpeaker = e.clientPresident.DecideNextSpeaker(nextSpeaker)
+	} else {
+		e.speakerTurnsInPower++
+		nextSpeaker = currentSpeaker
+	}
+	return nextSpeaker, nil
 }
 
 // sendSpeakerSalary conduct the transaction based on amount from client implementation

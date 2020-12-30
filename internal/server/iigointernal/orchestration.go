@@ -18,10 +18,6 @@ var judicialBranch = judiciary{
 	gameState:         nil,
 	JudgeID:           0,
 	presidentSalary:   0,
-	BallotID:          0,
-	ResAllocID:        0,
-	speakerID:         0,
-	presidentID:       0,
 	EvaluationResults: nil,
 }
 
@@ -104,7 +100,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// 1 Judge actions - inspect history
-	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
+	_, _ = judicialBranch.inspectHistory(g.IIGOHistory)
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.ResourcesReport{}
@@ -152,29 +148,23 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		}
 	}
 
-	// 4 Declare performance (Judge) (in future all the iigointernal)
-	if historyInspected {
-		judicialBranch.declarePresidentPerformanceWrapped()
-
-		judicialBranch.declareSpeakerPerformanceWrapped()
-	}
-
 	// TODO:- at the moment, these are action (and cost resources) but should they?
 	var appointJudgeError, appointSpeakerError, appointPresidentError error
 	// Get new Judge ID
-	g.JudgeID, appointJudgeError = legislativeBranch.appointNextJudge(aliveClientIds)
+	g.JudgeID, appointJudgeError = legislativeBranch.appointNextJudge(g.JudgeID, aliveClientIds)
 	if appointJudgeError != nil {
 		return false, "Judge was not apointed by the Speaker. Insufficient budget"
 	}
 	// Get new Speaker ID
-	g.SpeakerID, appointSpeakerError = executiveBranch.appointNextSpeaker(aliveClientIds)
+	g.SpeakerID, appointSpeakerError = executiveBranch.appointNextSpeaker(g.SpeakerID, aliveClientIds)
 	if appointSpeakerError != nil {
 		return false, "Speaker was not apointed by the President. Insufficient budget"
 	}
 	// Get new President ID
-	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(aliveClientIds)
+	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(g.PresidentID, aliveClientIds)
 	if appointPresidentError != nil {
 		return false, "President was not apointed by the Judge. Insufficient budget"
 	}
+
 	return true, "IIGO Run Successful"
 }

@@ -29,9 +29,9 @@ func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []ru
 	)
 }
 
-func (s *SOMASServer) runIIGOEndOfTurn() error {
-	s.logf("start runIIGOEndOfTurn")
-	defer s.logf("finish runIIGOEndOfTurn")
+func (s *SOMASServer) runIIGOTax() error {
+	s.logf("start runIIGOTax")
+	defer s.logf("finish runIIGOTax")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		tax := v.GetTaxContribution()

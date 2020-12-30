@@ -13,13 +13,14 @@ import (
 )
 
 type legislature struct {
-	gameState     *gamestate.GameState
-	SpeakerID     shared.ClientID
-	judgeSalary   shared.Resources
-	ruleToVote    string
-	ballotBox     voting.BallotBox
-	votingResult  bool
-	clientSpeaker roles.Speaker
+	gameState         *gamestate.GameState
+	SpeakerID         shared.ClientID
+	judgeSalary       shared.Resources
+	ruleToVote        string
+	ballotBox         voting.BallotBox
+	votingResult      bool
+	clientSpeaker     roles.Speaker
+	judgeTurnsInPower int
 }
 
 // loadClientSpeaker checks client pointer is good and if not panics
@@ -184,15 +185,26 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 
 }
 
-func (l *legislature) appointNextJudge(clientIDs []shared.ClientID) (shared.ClientID, error) {
-	if !l.incurServiceCharge(actionCost.AppointNextJudgeActionCost) {
-		return l.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
-	}
+// appointNextJudge returns the island ID of the island appointed to be Judge in the next turn
+func (l *legislature) appointNextJudge(currentJudge shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
-	election.ProposeElection(baseclient.Judge, voting.Plurality)
-	election.OpenBallot(clientIDs)
-	election.Vote(iigoClients)
-	return election.CloseBallot(), nil
+	var nextJudge shared.ClientID
+	electionsettings := l.clientSpeaker.CallJudgeElection(l.judgeTurnsInPower, allIslands)
+	if electionsettings.HoldElection {
+		if !l.incurServiceCharge(actionCost.AppointNextJudgeActionCost) {
+			return l.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
+		}
+		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
+		election.OpenBallot(electionsettings.IslandsToVote)
+		election.Vote(iigoClients)
+		l.judgeTurnsInPower = 0
+		nextJudge = election.CloseBallot()
+		nextJudge = l.clientSpeaker.DecideNextJudge(nextJudge)
+	} else {
+		l.judgeTurnsInPower++
+		nextJudge = currentJudge
+	}
+	return nextJudge, nil
 }
 
 func (l *legislature) incurServiceCharge(cost shared.Resources) bool {
