@@ -13,7 +13,7 @@ const fs = require('fs')
 const path = require('path')
 
 try {
-    const websiteRoot = path.dirname(path.dirname(__dirname))
+    const websiteRoot = path.dirname(__dirname)
     const repoRoot = path.dirname(websiteRoot)
 
     fse.copySync(

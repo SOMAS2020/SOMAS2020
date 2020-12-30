@@ -27,21 +27,8 @@ sudo npm i -g yarn
 
 ### Make sure you have the output from the Go program
 
-To run the website, you must follow the steps in `running code` in the primary README.\
+To run the website, you must follow the steps in `running code` in the root [README.md](../README.md).\
 The `output` folder in the root of the repository must be present.
-
-### WebAssembly Output
-
-You also need to compile the Go program into WASM.\
-On Linux/maxOS,
-```bash
-./build_wasm.sh
-```
-
-On Windows,
-```bash
-build_cmd.cmd
-```
 
 ## Scripts
 
