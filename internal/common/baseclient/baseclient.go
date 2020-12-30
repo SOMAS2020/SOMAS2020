@@ -39,8 +39,8 @@ type Client interface {
 	ForageUpdate(shared.ForageDecision, shared.Resources)
 
 	//IIFO: OPTIONAL
-	MakePrediction() (shared.PredictionInfo, error)
-	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
+	MakePrediction() shared.PredictionInfo
+	ReceivePredictions(receivedPredictions shared.PredictionInfoDict)
 	MakeForageInfo() shared.ForageShareInfo
 	ReceiveForageInfo([]shared.ForageShareInfo)
 

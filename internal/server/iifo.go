@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/pkg/errors"
 )
 
 // runIIFO : IIFO allows sharing of disaster predictions between islands
@@ -11,10 +10,7 @@ func (s *SOMASServer) runIIFO() error {
 	defer s.logf("finish runIIFO")
 
 	// This is for Disaster prediction
-	err := s.runPredictionSession()
-	if err != nil {
-		return errors.Errorf("Error running prediction session: %v", err)
-	}
+	s.runPredictionSession()
 
 	s.runForageSharing()
 
@@ -29,20 +25,12 @@ func (s *SOMASServer) runIIFOEndOfTurn() error {
 	return nil
 }
 
-func (s *SOMASServer) runPredictionSession() error {
+func (s *SOMASServer) runPredictionSession() {
 	s.logf("start runPredictionSession")
 	defer s.logf("finish runPredictionSession")
-	islandPredictionDict, err := s.getPredictions()
-	if err != nil {
-		return err
-	}
+	islandPredictionDict := s.getPredictions()
 
-	err = s.distributePredictions(islandPredictionDict)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	s.distributePredictions(islandPredictionDict)
 }
 
 func (s *SOMASServer) runForageSharing() {
@@ -53,23 +41,18 @@ func (s *SOMASServer) runForageSharing() {
 	s.distributeForageSharing(otherIslandInfo)
 }
 
-func (s *SOMASServer) getPredictions() (shared.PredictionInfoDict, error) {
+func (s *SOMASServer) getPredictions() shared.PredictionInfoDict {
 	islandPredictionsDict := shared.PredictionInfoDict{}
-	var err error
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		islandPredictionsDict[id], err = c.MakePrediction()
-		if err != nil {
-			return islandPredictionsDict, errors.Errorf("Failed to get prediction from %v: %v", id, err)
-		}
+		islandPredictionsDict[id] = c.MakePrediction()
 	}
-	return islandPredictionsDict, nil
+	return islandPredictionsDict
 }
 
-func (s *SOMASServer) distributePredictions(islandPredictionDict shared.PredictionInfoDict) error {
+func (s *SOMASServer) distributePredictions(islandPredictionDict shared.PredictionInfoDict) {
 	receivedPredictionsDict := make(shared.ReceivedPredictionsDict)
-	var err error
 	// Add the predictions/sources to the dict containing which predictions each island should receive
 	// Don't allow teams to know who else these predictions were shared with in MVP
 	for idSource, info := range islandPredictionDict {
@@ -89,13 +72,8 @@ func (s *SOMASServer) distributePredictions(islandPredictionDict shared.Predicti
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		err = c.ReceivePredictions(receivedPredictionsDict[id])
-		if err != nil {
-			return errors.Errorf("Failed to receive prediction from client %v: %v", id, err)
-		}
+		c.ReceivePredictions(receivedPredictionsDict[id])
 	}
-
-	return nil
 }
 
 // getForageSharing will ping each nonDeadClient and will save what their ForagingDecision,

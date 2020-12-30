@@ -22,7 +22,7 @@ type PastDisastersList = []DisasterInfo
 // MakePrediction is called on each client for them to make a prediction about a disaster
 // Prediction includes location, magnitude, confidence etc
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
+func (c *BaseClient) MakePrediction() shared.PredictionInfo {
 	// Set up dummy disasters for testing purposes
 	pastDisastersList := make(PastDisastersList, 5)
 	for i := 0; i < 4; i++ {
@@ -35,10 +35,7 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 	}
 
 	// Use the sample mean of each field as our prediction
-	meanDisaster, err := getMeanDisaster(pastDisastersList)
-	if err != nil {
-		return shared.PredictionInfo{}, err
-	}
+	meanDisaster := getMeanDisaster(pastDisastersList)
 
 	prediction := shared.Prediction{
 		CoordinateX: meanDisaster.CoordinateX,
@@ -50,10 +47,7 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 	// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
 	// Use a variance limit of 100 for now
 	varianceLimit := 100.0
-	prediction.Confidence, err = determineConfidence(pastDisastersList, meanDisaster, varianceLimit)
-	if err != nil {
-		return shared.PredictionInfo{}, err
-	}
+	prediction.Confidence = determineConfidence(pastDisastersList, meanDisaster, varianceLimit)
 
 	// For MVP, share this prediction with all islands since trust has not yet been implemented
 	trustedIslands := make([]shared.ClientID, len(RegisteredClients))
@@ -67,10 +61,10 @@ func (c *BaseClient) MakePrediction() (shared.PredictionInfo, error) {
 		TeamsOfferedTo: trustedIslands,
 	}
 	c.predictionInfo = predictionInfo
-	return predictionInfo, nil
+	return predictionInfo
 }
 
-func getMeanDisaster(pastDisastersList PastDisastersList) (DisasterInfo, error) {
+func getMeanDisaster(pastDisastersList PastDisastersList) DisasterInfo {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	numberDisastersPassed := float64(len(pastDisastersList))
 
@@ -87,10 +81,10 @@ func getMeanDisaster(pastDisastersList PastDisastersList) (DisasterInfo, error) 
 		Magnitude:   totalMagnitude / numberDisastersPassed,
 		Turn:        uint(math.Round(totalTurn / numberDisastersPassed)),
 	}
-	return meanDisaster, nil
+	return meanDisaster
 }
 
-func determineConfidence(pastDisastersList PastDisastersList, meanDisaster DisasterInfo, varianceLimit float64) (float64, error) {
+func determineConfidence(pastDisastersList PastDisastersList, meanDisaster DisasterInfo, varianceLimit float64) float64 {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	totalDisaster := DisasterInfo{}
 	numberDisastersPassed := float64(len(pastDisastersList))
@@ -113,13 +107,13 @@ func determineConfidence(pastDisastersList PastDisastersList, meanDisaster Disas
 	}
 
 	// Return the confidence of the prediction
-	return math.Round(varianceLimit - averageVariance), nil
+	return math.Round(varianceLimit - averageVariance)
 }
 
 // ReceivePredictions provides each client with the prediction info, in addition to the source island,
 // that they have been granted access to see
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error {
+func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInfoDict) {
 	// If we assume that we trust each island equally (including ourselves), then take the final prediction
 	// of disaster as being the weighted mean of predictions according to confidence
 	numberOfPredictions := float64(len(receivedPredictions) + 1)
@@ -152,7 +146,6 @@ func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInf
 	}
 
 	c.Logf("Final Prediction: [%v]", finalPrediction)
-	return nil
 }
 
 // MakeForageInfo allows clients to share their most recent foraging DecisionMade, ResourceObtained from it to
