@@ -34,6 +34,8 @@ type Client interface {
 	TaxTaken(shared.Resources)
 	GetTaxContribution() shared.Resources
 	RequestAllocation() shared.Resources
+	ShareIntendedContribution() shared.IntendedContribution
+	ReceiveIntendedContribution(receivedIntendedContribution shared.ReceivedIntendedContribution)
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
@@ -79,6 +81,7 @@ type BaseClient struct {
 	id shared.ClientID
 
 	predictionInfo shared.DisasterPredictionInfo
+	intendedContribution shared.IntendedContribution
 
 	// exported variables are accessible by the client implementations
 	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent

@@ -8,6 +8,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"math/rand"
 )
 
 // The response from any client to a gift-related query must be sanitised to have an entry for all alive clients.
@@ -18,6 +19,7 @@ type mockClientIITO struct {
 	offers            shared.GiftOfferDict
 	responses         shared.GiftResponseDict
 	receivedResponses shared.GiftResponseDict
+	otherIslandContribution shared.ReceivedIntendedContribution
 }
 
 func (c *mockClientIITO) GetGiftRequests() shared.GiftRequestDict {
@@ -34,6 +36,30 @@ func (c *mockClientIITO) GetGiftResponses(offers shared.GiftOfferDict) shared.Gi
 
 func (c *mockClientIITO) UpdateGiftInfo(responses shared.GiftResponseDict) {
 	c.receivedResponses = responses
+}
+
+func shareIntendedContribution(contribution float64, shareTo []shared.ClientID) shared.IntendedContribution {
+	if len(shareTo) > 0 {
+		return shared.IntendedContribution{
+			Contribution: contribution,
+			TeamsOfferedTo: shareTo,
+		}
+	}
+	// People can be selfish and choose not to share their common pool intended contribution
+	return shared.IntendedContribution{
+		Contribution: contribution,
+	}
+}
+
+func receiveIntendedContribution(contribution float64, sharedFrom shared.ClientID) shared.ReceivedIntendedContribution {
+	return shared.ReceivedIntendedContribution{
+		Contribution: contribution,
+		SharedFrom:     sharedFrom,
+	}
+}
+
+func (c *mockClientIITO) getOtherIslandsCommonPoolContribution() shared.ReceivedIntendedContribution {
+	return c.otherIslandContribution
 }
 
 // Test that the server correctly forms the pipeline for IITO to run
@@ -302,4 +328,60 @@ func TestDistributeGiftHistory(t *testing.T) {
 	if !reflect.DeepEqual(want3, c3.receivedResponses) {
 		t.Errorf("want '%v' got '%v'", want3, c3.receivedResponses)
 	}
+}
+
+func TestDistributeContributions(t *testing.T) {
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Critical,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Dead,
+		},
+	}
+
+	mockClient := map[shared.ClientID]*mockClientIIFO{
+		shared.Team1: {},
+		shared.Team2: {},
+		shared.Team3: {},
+	}
+
+	clientMap := map[shared.ClientID]baseclient.Client{
+		shared.Team1: mockClient[shared.Team1],
+		shared.Team2: mockClient[shared.Team2],
+		shared.Team3: mockClient[shared.Team3],
+	}
+
+	team1Contribution := rand.Float64()
+	
+	input := shared.IntendedContribution{
+		shared.Team1: shareIntendedContribution(team1Contribution, []shared.ClientID{shared.Team2, shared.Team3}),
+		shared.Team2: shareIntendedContribution(0.0, []shared.ClientID{}),
+		shared.Team3: shareIntendedContribution(0.0, []shared.ClientID{shared.Team1, shared.Team2}),
+	}
+	want := map[shared.ClientID]shared.ReceivedIntendedContribution{
+		shared.Team1: shared.ReceivedIntendedContribution(nil),
+		shared.Team2: {shared.Team1: receiveIntendedContribution(team1Prediction, shared.Team1)},
+	}
+
+	server := &SOMASServer{
+		gameState: gamestate.GameState{
+			ClientInfos: clientInfos,
+		},
+		clientMap: clientMap,
+	}
+
+	//	distributeIntendedContributions and verify results
+	server.distributeIntendedContributions(input)
+	for id := range mockClient {
+		got := mockClient[id].getOtherIslandsCommonPoolContribution()
+		w := want[id]
+		if !reflect.DeepEqual(w, got) {
+			t.Errorf("want '%#v' got '%#v' for %#v", w, got, id)
+		}
+	}
+
 }
