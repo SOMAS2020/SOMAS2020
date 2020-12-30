@@ -52,18 +52,6 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 	return outputMap, true
 }
 
-// DeclareSpeakerPerformance checks how well the speaker did their job.
-func (j *BaseJudge) DeclareSpeakerPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
-	// TODO: Implement opinion based Speaker performance declaration.
-	return inspectBallot, conductedRole
-}
-
-// DeclarePresidentPerformance checks how well the president did their job.
-func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
-	// TODO: Implement opinion based President performance declaration.
-	return inspectBallot, conductedRole
-}
-
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
 func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
 	var Rules []string
@@ -88,4 +76,19 @@ func searchForVariableInArray(val rules.VariableFieldName, array []rules.Variabl
 		}
 	}
 	return -1, false
+}
+
+// CallPresidentElection is called by the judiciary to decide on power-transfer
+func (j *BaseJudge) CallPresidentElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Plurality,
+		IslandsToVote: allIslands,
+		HoldElection:  true,
+	}
+	return electionsettings
+}
+
+// DecideNextPresident returns the ID of chosen next President
+func (j *BaseJudge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
+	return winner
 }
