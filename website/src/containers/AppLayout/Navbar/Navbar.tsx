@@ -21,11 +21,10 @@ import styles from './Navbar.module.css'
 const AppNavbar = () => {
   const [navExpanded, setNavExpanded] = useState(false)
   const closeNav = () => setNavExpanded(false)
-  const getNavLink = (text: string, link: string) => {
+  const getNavLink = (text: string, link: string) =>
     <LinkContainer to={link} onClick={closeNav}>
       <Nav.Link className="lightbluelink">{text}</Nav.Link>
     </LinkContainer>
-  }
 
   return <>
     <Navbar fixed="top" bg="dark" variant="dark" expand="lg"
@@ -44,14 +43,18 @@ const AppNavbar = () => {
       <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={closeNav} />
       <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
         <Nav className="mr-auto" />
-        {getNavLink("New Run", newrun)}
-        {getNavLink("CI Output", cioutput)}
-        {getNavLink("Game Visualisation", gamevisualisation)}
-        {getNavLink("IIGO Visualisation", iigovisualisation)}
-        {getNavLink("IITO Visualisation", iitovisualisation)}
-        {getNavLink("IIFO Visualisation", iifovisualisation)}
-        {getNavLink("Resources Visualisation", resourcesvisualisation)}
-        {getNavLink("Roles Visualisation", rolesvisualisation)}
+        <Nav>
+          {getNavLink("New Run", newrun)}
+          {getNavLink("CI Output", cioutput)}
+          <NavDropdown title="Visualisations" id="collabsible-nav-dropdown">
+            {getNavLink("Game", gamevisualisation)}
+            {getNavLink("IIGO", iigovisualisation)}
+            {getNavLink("IITO", iitovisualisation)}
+            {getNavLink("IIFO", iifovisualisation)}
+            {getNavLink("Resources", resourcesvisualisation)}
+            {getNavLink("Roles", rolesvisualisation)}
+          </NavDropdown>
+        </Nav>
       </Navbar.Collapse>
     </Navbar>
   </>
