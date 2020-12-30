@@ -396,7 +396,7 @@ func TestPickUpRulesByVariable(t *testing.T) {
 // TestCheckPardons checks whether checkPardons is able to correctly identify pardons issued on sanctions that
 // don't exist, and then subtracts these pardoned sanctions from the sanctionCache
 func TestImplementPardons(t *testing.T) {
-	TeamIDs := []shared.ClientID{shared.Team1, shared.Team2, shared.Team3, shared.Team4, shared.Team5, shared.Team6}
+	TeamIDs := [...]shared.ClientID{shared.Team1, shared.Team2, shared.Team3, shared.Team4, shared.Team5, shared.Team6}
 	cases := []struct {
 		name          string
 		sanctionCache map[int][]roles.Sanction

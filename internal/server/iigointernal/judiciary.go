@@ -188,7 +188,7 @@ func (j *judiciary) applySanctions() {
 // sanctionEvaluate allows the clients to effectively pardon islands, levy and communicate sanctions
 func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID]shared.Resources) {
 	pardons := j.clientJudge.GetPardonedIslands(j.localSanctionCache)
-	pardonsValid, communications, newSanctionMap := checkPardons(j.localSanctionCache, pardons)
+	pardonsValid, newSanctionMap, communications := implementPardons(j.localSanctionCache, pardons, shared.TeamIDs)
 	if pardonsValid {
 		for _, communicationList := range communications {
 			for _, v := range communicationList {
@@ -341,7 +341,7 @@ func defaultInitLocalSanctionCache(depth int) map[int][]roles.Sanction {
 	return returnMap
 }
 
-func implementPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool, allTeamIds []shared.ClientID) (bool, map[int][]roles.Sanction, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func implementPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool, allTeamIds [6]shared.ClientID) (bool, map[int][]roles.Sanction, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	if validatePardons(sanctionCache, pardons) {
 		finalSanctionCache := sanctionCache
 		communicationsAboutPardons := generateEmptyCommunicationsMap(allTeamIds)
@@ -364,7 +364,7 @@ func defaultInitLocalHistoryCache(depth int) map[int][]shared.Accountability {
 	return returnMap
 }
 
-func generateEmptyCommunicationsMap(allTeamIds []shared.ClientID) map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
+func generateEmptyCommunicationsMap(allTeamIds [6]shared.ClientID) map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
 	commsMap := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
 	for _, clientID := range allTeamIds {
 		commsMap[clientID] = []map[shared.CommunicationFieldName]shared.CommunicationContent{}
@@ -386,7 +386,7 @@ func knitPardonCommunications(originalCommunications map[shared.ClientID][]map[s
 	return originalCommunications
 }
 
-func processSingleTimeStep(sanctions []roles.Sanction, pardons []bool, allTeamIds []shared.ClientID) (sanctionsAfterPardons []roles.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func processSingleTimeStep(sanctions []roles.Sanction, pardons []bool, allTeamIds [6]shared.ClientID) (sanctionsAfterPardons []roles.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	finalSanctions := []roles.Sanction{}
 	finalComms := generateEmptyCommunicationsMap(allTeamIds)
 	for entry, pardoned := range pardons {
