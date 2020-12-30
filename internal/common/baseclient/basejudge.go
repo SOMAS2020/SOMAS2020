@@ -82,7 +82,7 @@ func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[s
 	if _, ok := rules.VariableMap[variableName]; ok {
 		for k, v := range ruleStore {
 			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
-			if !found {
+			if found {
 				Rules = append(Rules, k)
 			}
 		}
