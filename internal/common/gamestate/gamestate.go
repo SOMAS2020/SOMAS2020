@@ -23,9 +23,14 @@ type GameState struct {
 	Environment    disasters.Environment
 	DeerPopulation foraging.DeerPopulationModel
 
+	// Foraging History
+	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
+
 	// IIGO History
 	IIGOHistory []shared.Accountability
 
+	// IIGO roles budget (initialised in orchestration.go)
+	IIGORolesBudget map[string]shared.Resources
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
 	// Orchestration
@@ -43,7 +48,9 @@ func (g GameState) Copy() GameState {
 	ret.ClientInfos = copyClientInfos(g.ClientInfos)
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
+	ret.ForagingHistory = copyForagingHistory(g.ForagingHistory)
 	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
+	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	return ret
 }
 
@@ -59,6 +66,7 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		Turn:               g.Turn,
 		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
+		CommonPool:         g.CommonPool,
 	}
 }
 
@@ -70,9 +78,28 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 	return ret
 }
 
+func copyRolesBudget(m map[string]shared.Resources) map[string]shared.Resources {
+	ret := make(map[string]shared.Resources, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
 func copyIIGOHistory(iigoHistory []shared.Accountability) []shared.Accountability {
 	ret := make([]shared.Accountability, len(iigoHistory))
 	copy(ret, iigoHistory)
+	return ret
+}
+
+func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) map[shared.ForageType][]foraging.ForagingReport {
+	ret := make(map[shared.ForageType][]foraging.ForagingReport, len(fHist))
+	for k, v := range fHist { // iterate over different foraging types
+		ret[k] = make([]foraging.ForagingReport, len(v))
+		for i, el := range v { // iterate over reports across time for given foraging type
+			ret[k][i] = el.Copy()
+		}
+	}
 	return ret
 }
 

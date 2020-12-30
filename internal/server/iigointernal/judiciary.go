@@ -9,15 +9,25 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
+	"github.com/pkg/errors"
 )
 
 type judiciary struct {
+	gameState             *gamestate.GameState
 	JudgeID               shared.ClientID
-	budget                shared.Resources
 	presidentSalary       shared.Resources
 	EvaluationResults     map[shared.ClientID]roles.EvaluationReturn
 	clientJudge           roles.Judge
 	presidentTurnsInPower int
+	sanctionRecord        map[shared.ClientID]roles.IIGOSanctionScore
+	sanctionThresholds    map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+	ruleViolationSeverity map[string]roles.IIGOSanctionScore
+}
+
+// Loads ruleViolationSeverity and sanction thresholds
+func (j *judiciary) loadSanctionConfig() {
+	j.sanctionThresholds = softMergeSanctionThresholds(j.clientJudge.GetSanctionThresholds())
+	j.ruleViolationSeverity = j.clientJudge.GetRuleViolationSeverity()
 }
 
 // loadClientJudge checks client pointer is good and if not panics
@@ -28,46 +38,35 @@ func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
 	j.clientJudge = clientJudgePointer
 }
 
-// returnPresidentSalary returns the salary to the common pool.
-func (j *judiciary) returnPresidentSalary() shared.Resources {
-	x := j.presidentSalary
-	j.presidentSalary = 0
-	return x
-}
-
-// withdrawPresidentSalary withdraws the president's salary from the common pool.
-func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool {
-	var presidentSalary = shared.Resources(rules.VariableMap[rules.PresidentSalary].Values[0])
-	var withdrawAmount, withdrawSuccesful = WithdrawFromCommonPool(presidentSalary, gameState)
-	j.presidentSalary = withdrawAmount
-	return withdrawSuccesful
-}
-
-// sendPresidentSalary sends the president's salary to the president.
-func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
+// sendPresidentSalary conduct the transaction based on amount from client implementation
+func (j *judiciary) sendPresidentSalary() error {
 	if j.clientJudge != nil {
-		amount, payPresident := j.clientJudge.PayPresident(j.presidentSalary)
-		if payPresident {
-			executiveBranch.budget = amount
-		}
-		return
-	}
-	amount := j.PayPresident()
-	executiveBranch.budget = amount
-}
+		amount, presidentPaid := j.clientJudge.PayPresident(j.presidentSalary)
+		if presidentPaid {
+			// Subtract from common resources po
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, j.gameState)
 
-// PayPresident pays the president salary.
-func (j *judiciary) PayPresident() shared.Resources {
-	hold := j.presidentSalary
-	j.presidentSalary = 0
-	return hold
+			if withdrawSuccess {
+				// Pay into the client private resources pool
+				depositIntoClientPrivatePool(amountWithdraw, j.gameState.PresidentID, j.gameState)
+				return nil
+			}
+		}
+	}
+	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
 
 // InspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	j.budget -= serviceCharge
-	return j.clientJudge.InspectHistory(iigoHistory)
+	if !CheckEnoughInCommonPool(actionCost.InspectHistoryActionCost, j.gameState) {
+		return nil, false
+	}
+	historyMap, ok := j.clientJudge.InspectHistory(iigoHistory)
+	if ok && !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
+		return nil, false
+	}
+	return historyMap, ok
 }
 
 // searchForRule searches for a given rule in the RuleMatrix
@@ -81,12 +80,14 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 }
 
 // appointNextPresident returns the island ID of the island appointed to be President in the next turn
-func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
+func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
 	var nextPresident shared.ClientID
 	electionsettings := j.clientJudge.CallPresidentElection(j.presidentTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
-		// TODO: deduct the cost of holding an election
+		if !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
+			return j.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
+		}
 		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
@@ -97,5 +98,37 @@ func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIs
 		j.presidentTurnsInPower++
 		nextPresident = currentPresident
 	}
-	return nextPresident
+	return nextPresident, nil
+}
+
+func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
+	_, ok := WithdrawFromCommonPool(cost, j.gameState)
+	if ok {
+		j.gameState.IIGORolesBudget["judge"] -= cost
+	}
+	return ok
+}
+
+// Helper functions //
+
+// getDefaultSanctionThresholds provides default thresholds for sanctions
+func getDefaultSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
+		roles.SanctionTier1: 1,
+		roles.SanctionTier2: 5,
+		roles.SanctionTier3: 10,
+		roles.SanctionTier4: 20,
+		roles.SanctionTier5: 30,
+	}
+}
+
+// softMergeSanctionThresholds merges the default sanction thresholds with a (preferred) client version
+func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	defaultMap := getDefaultSanctionThresholds()
+	for k := range defaultMap {
+		if clientVal, ok := clientSanctionMap[k]; ok {
+			defaultMap[k] = clientVal
+		}
+	}
+	return defaultMap
 }

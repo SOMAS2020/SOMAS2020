@@ -50,8 +50,11 @@ func (c *BaseClient) CommonPoolResourceRequest() shared.Resources {
 }
 
 // ResourceReport is an island's self-report of its own resources.
-func (c *BaseClient) ResourceReport() shared.Resources {
-	return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+func (c *BaseClient) ResourceReport() shared.ResourcesReport {
+	return shared.ResourcesReport{
+		ReportedAmount: c.ServerReadHandle.GetGameState().ClientInfo.Resources,
+		Reported:       true,
+	}
 }
 
 // RuleProposal is called by the President in IIGO to propose a

@@ -53,20 +53,31 @@ func createSOMASServer(
 		clientIDs = append(clientIDs, k)
 	}
 
+	forageHistory := map[shared.ForageType][]foraging.ForagingReport{}
+	for _, t := range shared.AllForageTypes() {
+		forageHistory[t] = make([]foraging.ForagingReport, 0)
+	}
+
 	server := &SOMASServer{
 		clientMap:  clientMap,
 		gameConfig: gameConfig,
 		gameState: gamestate.GameState{
-			Season:         1,
-			Turn:           1,
-			CommonPool:     gameConfig.InitialCommonPool,
-			ClientInfos:    clientInfos,
-			Environment:    disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
-			DeerPopulation: foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig),
-			IIGOHistory:    []shared.Accountability{},
-			SpeakerID:      shared.Team1,
-			JudgeID:        shared.Team2,
-			PresidentID:    shared.Team3,
+			Season:          1,
+			Turn:            1,
+			ClientInfos:     clientInfos,
+			Environment:     disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
+			DeerPopulation:  foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig),
+			ForagingHistory: forageHistory,
+			IIGOHistory:     []shared.Accountability{},
+			IIGORolesBudget: map[string]shared.Resources{
+				"president": 0,
+				"judge":     0,
+				"speaker":   0,
+			},
+			SpeakerID:   shared.Team1,
+			JudgeID:     shared.Team2,
+			PresidentID: shared.Team3,
+			CommonPool:  gameConfig.InitialCommonPool,
 		},
 	}
 

@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	// config.Config
+	//config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
 		100,
@@ -47,29 +47,38 @@ var (
 		3,
 		"The maximum consecutive turns an island can be in the critical state.",
 	)
-	// config.ForagingConfig
-	foragingMaxDeerPerHunt = flag.Uint(
+	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
 		"Max possible number of deer on a single hunt (regardless of number of participants).",
 	)
-	foragingIncrementalInputDecay = flag.Float64(
-		"foragingIncrementalInputDecay",
+	foragingDeerIncrementalInputDecay = flag.Float64(
+		"foragingDeerIncrementalInputDecay",
 		0.8,
 		"Determines decay of incremental input cost of hunting more deer.",
 	)
-	foragingBernoulliProb = flag.Float64(
-		"foragingBernoulliProb",
+	foragingDeerBernoulliProb = flag.Float64(
+		"foragingDeerBernoulliProb",
 		0.95,
 		"`p` param in D variable (see foraging README). Controls prob of catching a deer or not.",
 	)
-	foragingExponentialRate = flag.Float64(
-		"foragingExponentialRate",
+	foragingDeerExponentialRate = flag.Float64(
+		"foragingDeerExponentialRate",
 		1,
 		"`lambda` param in W variable (see foraging README). Controls distribution of deer sizes.",
 	)
-	foragingMaxDeerPopulation = flag.Uint(
-		"maxDeerPopulation",
+	foragingDeerResourceMultiplier = flag.Float64(
+		"foragingDeerResourceMultiplier",
+		1,
+		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingDeerDistributionStrategy = flag.Int(
+		"foragingDeerDistributionStrategy",
+		int(shared.InputProportionalSplit),
+		shared.HelpResourceDistributionStrategy(),
+	)
+	foragingDeerMaxPopulation = flag.Uint(
+		"foragingDeerMaxPopulation",
 		12,
 		"Max possible deer population.",
 	)
@@ -77,6 +86,36 @@ var (
 		"foragingDeerGrowthCoefficient",
 		0.4,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
+	)
+	foragingFishMaxPerHunt = flag.Uint(
+		"foragingMaxFishPerHunt",
+		6,
+		"Max possible catch (num. fish) on a single expedition (regardless of number of participants).",
+	)
+	foragingFishingIncrementalInputDecay = flag.Float64(
+		"foragingFishingIncrementalInputDecay",
+		0.8,
+		"Determines decay of incremental input cost of catching more fish.",
+	)
+	foragingFishingMean = flag.Float64(
+		"foragingFishingMean",
+		0.9,
+		"Determines mean of normal distribution of fishing return (see foraging README)",
+	)
+	foragingFishingVariance = flag.Float64(
+		"foragingFishingVariance",
+		0.2,
+		"Determines variance of normal distribution of fishing return (see foraging README)",
+	)
+	foragingFishingResourceMultiplier = flag.Float64(
+		"foragingFishingResourceMultiplier",
+		1,
+		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingFishingDistributionStrategy = flag.Int(
+		"foragingFishingDistributionStrategy",
+		int(shared.EqualSplit),
+		shared.HelpResourceDistributionStrategy(),
 	)
 	// config.DisasterConfig
 	disasterXMin = flag.Float64(
@@ -114,17 +153,123 @@ var (
 		1,
 		"Exponential rate param for disaster magnitude",
 	)
+
+	// config.IIGOConfig - Executive branch
+	getRuleForSpeakerActionCost = flag.Float64(
+		"getRuleForSpeakerActionCost",
+		10,
+		"IIGO action cost for getRuleForSpeaker action",
+	)
+	broadcastTaxationActionCost = flag.Float64(
+		"broadcastTaxationActionCost",
+		10,
+		"IIGO action cost for broadcastTaxation action",
+	)
+	replyAllocationRequestsActionCost = flag.Float64(
+		"replyAllocationRequestsActionCost",
+		10,
+		"IIGO action cost for replyAllocationRequests action",
+	)
+	requestAllocationRequestActionCost = flag.Float64(
+		"requestAllocationRequestActionCost",
+		10,
+		"IIGO action cost for requestAllocationRequest action",
+	)
+	requestRuleProposalActionCost = flag.Float64(
+		"requestRuleProposalActionCost",
+		10,
+		"IIGO action cost for requestRuleProposal action",
+	)
+	appointNextSpeakerActionCost = flag.Float64(
+		"appointNextSpeakerActionCost",
+		10,
+		"IIGO action cost for appointNextSpeaker action",
+	)
+
+	// config.IIGOConfig - Judiciary branch
+	inspectHistoryActionCost = flag.Float64(
+		"inspectHistoryActionCost",
+		10,
+		"IIGO action cost for inspectHistory",
+	)
+
+	inspectBallotActionCost = flag.Float64(
+		"inspectBallotActionCost",
+		10,
+		"IIGO action cost for inspectBallot",
+	)
+
+	inspectAllocationActionCost = flag.Float64(
+		"inspectAllocationActionCost",
+		10,
+		"IIGO action cost for inspectAllocation",
+	)
+
+	appointNextPresidentActionCost = flag.Float64(
+		"appointNextPresidentActionCost",
+		10,
+		"IIGO action cost for appointNextPresident",
+	)
+
+	// config.IIGOConfig - Legislative branch
+	setVotingResultActionCost = flag.Float64(
+		"setVotingResultActionCost",
+		10,
+		"IIGO action cost for setVotingResult",
+	)
+
+	setRuleToVoteActionCost = flag.Float64(
+		"setRuleToVoteActionCost",
+		10,
+		"IIGO action cost for setRuleToVote action",
+	)
+
+	announceVotingResultActionCost = flag.Float64(
+		"announceVotingResultActionCost",
+		10,
+		"IIGO action cost for announceVotingResult action",
+	)
+
+	updateRulesActionCost = flag.Float64(
+		"updateRulesActionCost",
+		10,
+		"IIGO action cost for updateRules action",
+	)
+
+	appointNextJudgeActionCost = flag.Float64(
+		"appointNextJudgeActionCost",
+		10,
+		"IIGO action cost for appointNextJudge action",
+	)
 )
 
 func parseConfig() config.Config {
-	foragingConf := config.ForagingConfig{
-		MaxDeerPerHunt:        *foragingMaxDeerPerHunt,
-		IncrementalInputDecay: *foragingIncrementalInputDecay,
-		BernoulliProb:         *foragingBernoulliProb,
-		ExponentialRate:       *foragingExponentialRate,
+	flag.Parse()
 
-		MaxDeerPopulation:     *foragingMaxDeerPopulation,
+	deerConf := config.DeerHuntConfig{
+		//Deer parameters
+		MaxDeerPerHunt:        *foragingDeerMaxPerHunt,
+		IncrementalInputDecay: *foragingDeerIncrementalInputDecay,
+		BernoulliProb:         *foragingDeerBernoulliProb,
+		ExponentialRate:       *foragingDeerExponentialRate,
+		ResourceMultiplier:    *foragingDeerResourceMultiplier,
+		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy),
+
+		MaxDeerPopulation:     *foragingDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
+	}
+	fishingConf := config.FishingConfig{
+		// Fish parameters
+		MaxFishPerHunt:        *foragingFishMaxPerHunt,
+		IncrementalInputDecay: *foragingFishingIncrementalInputDecay,
+		Mean:                  *foragingFishingMean,
+		Variance:              *foragingFishingVariance,
+		ResourceMultiplier:    *foragingFishingResourceMultiplier,
+		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy),
+	}
+	foragingConf := config.ForagingConfig{
+		DeerHuntConfig: deerConf,
+		FishingConfig:  fishingConf,
 	}
 	disasterConf := config.DisasterConfig{
 		XMin:            *disasterXMin,
@@ -135,6 +280,29 @@ func parseConfig() config.Config {
 		SpatialPDFType:  shared.ParseSpatialPDFType(*disasterSpatialPDFType),
 		MagnitudeLambda: *disasterMagnitudeLambda,
 	}
+
+	iigoConf := config.IIGOConfig{
+
+		// Executive branch
+		GetRuleForSpeakerActionCost:        shared.Resources(*getRuleForSpeakerActionCost),
+		BroadcastTaxationActionCost:        shared.Resources(*broadcastTaxationActionCost),
+		ReplyAllocationRequestsActionCost:  shared.Resources(*replyAllocationRequestsActionCost),
+		RequestAllocationRequestActionCost: shared.Resources(*requestAllocationRequestActionCost),
+		RequestRuleProposalActionCost:      shared.Resources(*requestRuleProposalActionCost),
+		AppointNextSpeakerActionCost:       shared.Resources(*appointNextSpeakerActionCost),
+		// Judiciary branch
+		InspectHistoryActionCost:       shared.Resources(*inspectHistoryActionCost),
+		InspectBallotActionCost:        shared.Resources(*inspectBallotActionCost),
+		InspectAllocationActionCost:    shared.Resources(*inspectAllocationActionCost),
+		AppointNextPresidentActionCost: shared.Resources(*appointNextPresidentActionCost),
+		// Legislative branch
+		SetVotingResultActionCost:      shared.Resources(*setVotingResultActionCost),
+		SetRuleToVoteActionCost:        shared.Resources(*setRuleToVoteActionCost),
+		AnnounceVotingResultActionCost: shared.Resources(*announceVotingResultActionCost),
+		UpdateRulesActionCost:          shared.Resources(*updateRulesActionCost),
+		AppointNextJudgeActionCost:     shared.Resources(*appointNextJudgeActionCost),
+	}
+
 	return config.Config{
 		MaxSeasons:                  *maxSeasons,
 		MaxTurns:                    *maxTurns,
@@ -145,5 +313,6 @@ func parseConfig() config.Config {
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
+		IIGOConfig:                  iigoConf,
 	}
 }

@@ -41,6 +41,12 @@ func WithdrawFromCommonPool(value shared.Resources, gameState *gamestate.GameSta
 	}
 }
 
+func depositIntoClientPrivatePool(value shared.Resources, id shared.ClientID, state *gamestate.GameState) {
+	participantInfo := state.ClientInfos[id]
+	participantInfo.Resources += value
+	state.ClientInfos[id] = participantInfo
+}
+
 func depositIntoCommonPool(value shared.Resources, state *gamestate.GameState) {
 	state.CommonPool += value
 }

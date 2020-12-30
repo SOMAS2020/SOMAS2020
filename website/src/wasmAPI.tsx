@@ -1,7 +1,8 @@
 import outputJSONData from './output/output.json'
+import './wasmjs/wasm_exec'
 
 // @ts-ignore
-const go: any = window.go
+const go: any = new Go()
 
 export type GoFlag = {
     Name: string,
