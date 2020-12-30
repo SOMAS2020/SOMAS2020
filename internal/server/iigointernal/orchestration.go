@@ -57,6 +57,12 @@ var iigoClients map[shared.ClientID]baseclient.Client
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
 
+	var monitoring = monitor{
+		speakerID:         g.SpeakerID,
+		presidentID:       g.PresidentID,
+		judgeID:           g.JudgeID,
+		internalIIGOCache: []shared.Accountability{},
+	}
 	iigoClients = *clientMap
 
 	// Initialise IDs
@@ -75,9 +81,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	judicialBranch.loadClientJudge(judgePointer)
 	executiveBranch.loadClientPresident(presidentPointer)
 	legislativeBranch.loadClientSpeaker(speakerPointer)
-
-	// Initialise roles action caches for monitoring
-	var speakerCache []shared.Accountability
 
 	// Withdraw the salaries
 	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary(g)
@@ -124,19 +127,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	voteCalled := legislativeBranch.setVotingResult(aliveClientIds)
 	legislativeBranch.announceVotingResult()
 
-	ruleSelectedPair := rules.VariableValuePair{
-		VariableName: rules.RuleSelected,
-		Values:       []float64{boolToFloat(ruleSelected)},
-	}
-	voteCalledPair := rules.VariableValuePair{
-		VariableName: rules.VoteCalled,
-		Values:       []float64{boolToFloat(voteCalled)},
-	}
-	speakerCache = append(speakerCache, shared.Accountability{
-		ClientID: g.SpeakerID,
-		Pairs:    []rules.VariableValuePair{voteCalledPair, ruleSelectedPair},
-	})
-	executiveBranch.monitorSpeaker(speakerCache)
+	variablesToCache := []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
+	valuesToCache := [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
+	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+	monitoring.monitorRole(g.SpeakerID)
 
 	// Get new Judge ID
 	g.JudgeID = legislativeBranch.appointNextJudge(g.JudgeID, aliveClientIds)
