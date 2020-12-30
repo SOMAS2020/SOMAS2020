@@ -48,7 +48,6 @@ func depositIntoCommonPool(value shared.Resources, state *gamestate.GameState) {
 func boolToFloat(input bool) float64 {
 	if input {
 		return 1
-	} else {
-		return 0
 	}
+	return 0
 }
