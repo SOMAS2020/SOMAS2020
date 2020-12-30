@@ -42,19 +42,30 @@ type Config struct {
 	IIGOConfig IIGOConfig
 }
 
-// ForagingConfig captures foraging-specific config
-type ForagingConfig struct {
+// DeerHuntConfig is a subset of foraging config
+type DeerHuntConfig struct {
 	// Deer Hunting
-	MaxDeerPerHunt        uint    // Max possible number of deer on a single hunt (regardless of number of participants)
-	IncrementalInputDecay float64 // Determines decay of incremental input cost of hunting more deer
-	BernoulliProb         float64 // `p` param in D variable (see README). Controls prob of catching a deer or not
-	ExponentialRate       float64 // `lambda` param in W variable (see README). Controls distribution of deer sizes.
+	MaxDeerPerHunt        uint                                // Max possible number of deer on a single hunt (regardless of number of participants)
+	IncrementalInputDecay float64                             // Determines decay of incremental input cost of hunting more deer
+	BernoulliProb         float64                             // `p` param in D variable (see README). Controls prob of catching a deer or not
+	ExponentialRate       float64                             // `lambda` param in W variable (see README). Controls distribution of deer sizes.
+	ResourceMultiplier    float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	DistributionStrategy  shared.ResourceDistributionStrategy // basis on which returns are split amongst hunters
 
 	// Deer Population
 	MaxDeerPopulation     uint    // Max possible deer population.
 	DeerGrowthCoefficient float64 // Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster
+}
 
-	// TODO: add other pertinent params here (for fishing etc)
+// FishingConfig is a subset of foraging config
+type FishingConfig struct {
+	// Fishing
+	MaxFishPerHunt        uint                                // Max possible number of fish on a single fishing expedition
+	IncrementalInputDecay float64                             // Determines decay of incremental input cost of catching additional fish
+	Mean                  float64                             // mean of normally distributed fish size
+	Variance              float64                             // variance of normally distributed fish size
+	ResourceMultiplier    float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	DistributionStrategy  shared.ResourceDistributionStrategy // basis on which returns are split amongst fishermen
 }
 
 // DisasterConfig captures disaster-specific config
@@ -84,4 +95,10 @@ type IIGOConfig struct {
 	AnnounceVotingResultActionCost shared.Resources
 	UpdateRulesActionCost          shared.Resources
 	AppointNextJudgeActionCost     shared.Resources
+}
+
+// ForagingConfig captures foraging-specific config
+type ForagingConfig struct {
+	DeerHuntConfig DeerHuntConfig
+	FishingConfig  FishingConfig
 }

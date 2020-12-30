@@ -60,6 +60,11 @@ const (
 	ExpectedAllocation
 	IslandTaxContribution
 	IslandAllocation
+	IslandReportedResources
+	ConstSanctionAmount
+	TurnsLeftOnSanction
+	SanctionPaid
+	SanctionExpected
 	TestVariable
 )
 
@@ -80,6 +85,11 @@ func (v VariableFieldName) String() string {
 		"ExpectedAllocation",
 		"IslandTaxContribution",
 		"IslandAllocation",
+		"IslandReportedResources",
+		"ConstSanctionAmount",
+		"TurnsLeftOnSanction",
+		"SanctionPaid",
+		"SanctionExpected",
 		"TestVariable",
 	}
 	if v >= 0 && int(v) < len(strs) {

@@ -1,3 +1,0 @@
-(() => {
-    window.go = new Go()
-})()
