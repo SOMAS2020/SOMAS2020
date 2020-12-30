@@ -4,6 +4,9 @@
  * This script copies the output from the completed Go program simulation
  * from the root of the repository.
  * 
+ * The logs are processed into a JSON list for ease of inclusion in the
+ * React App.
+ * 
  * If the output is not found, this scripts attempts to run the simulation.
  * 
  * You can run this script using `yarn copyoutput`.
