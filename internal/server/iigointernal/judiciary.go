@@ -12,13 +12,12 @@ import (
 )
 
 type judiciary struct {
-	JudgeID           shared.ClientID
-	budget            shared.Resources
-	presidentSalary   shared.Resources
-	BallotID          int
-	ResAllocID        int
-	EvaluationResults map[shared.ClientID]roles.EvaluationReturn
-	clientJudge       roles.Judge
+	JudgeID               shared.ClientID
+	budget                shared.Resources
+	presidentSalary       shared.Resources
+	EvaluationResults     map[shared.ClientID]roles.EvaluationReturn
+	clientJudge           roles.Judge
+	presidentTurnsInPower int
 }
 
 // loadClientJudge checks client pointer is good and if not panics
@@ -27,11 +26,6 @@ func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
 		panic(fmt.Sprintf("Client '%v' has loaded a nil judge pointer", j.JudgeID))
 	}
 	j.clientJudge = clientJudgePointer
-}
-
-func (j *judiciary) init() {
-	j.BallotID = 0
-	j.ResAllocID = 0
 }
 
 // returnPresidentSalary returns the salary to the common pool.
@@ -86,12 +80,22 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 	return -1, false
 }
 
-// appointNextPresident returns the island ID of the island appointed to be the president in the next turn
-func (j *judiciary) appointNextPresident(clientIDs []shared.ClientID) shared.ClientID {
-	j.budget -= serviceCharge
+// appointNextPresident returns the island ID of the island appointed to be President in the next turn
+func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
-	election.ProposeElection(baseclient.President, voting.Plurality)
-	election.OpenBallot(clientIDs)
-	election.Vote(iigoClients)
-	return election.CloseBallot()
+	var nextPresident shared.ClientID
+	electionsettings := j.clientJudge.CallPresidentElection(j.presidentTurnsInPower, allIslands)
+	if electionsettings.HoldElection {
+		// TODO: deduct the cost of holding an election
+		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
+		election.OpenBallot(electionsettings.IslandsToVote)
+		election.Vote(iigoClients)
+		j.presidentTurnsInPower = 0
+		nextPresident = election.CloseBallot()
+		nextPresident = j.clientJudge.DecideNextPresident(nextPresident)
+	} else {
+		j.presidentTurnsInPower++
+		nextPresident = currentPresident
+	}
+	return nextPresident
 }
