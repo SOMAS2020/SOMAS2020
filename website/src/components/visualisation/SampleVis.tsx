@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
 
 interface IProps {
-    data?: number[];
+    data?: any[];
 }
 
 const SampleVis = (props: IProps) => {
