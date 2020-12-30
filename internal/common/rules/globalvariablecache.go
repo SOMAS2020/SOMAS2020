@@ -52,6 +52,8 @@ const (
 	NumberOfIslandsAlive
 	NumberOfBallotsCast
 	NumberOfAllocationsSent
+	AllocationRequestsMade
+	AllocationMade
 	IslandsAlive
 	SpeakerSalary
 	JudgeSalary
@@ -68,6 +70,7 @@ const (
 	SanctionPaid
 	SanctionExpected
 	TestVariable
+	JudgeInspectionBroadcasted
 )
 
 func (v VariableFieldName) String() string {

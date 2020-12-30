@@ -55,12 +55,21 @@ func registerRulesByMass() {
 			mutable: false,
 		},
 		{
-			name: "inspect_allocation_rule",
+			name: "allocations_made_rule",
 			reqVar: []VariableFieldName{
-				NumberOfIslandsAlive,
-				NumberOfAllocationsSent,
+				AllocationRequestsMade,
+				AllocationMade,
 			},
 			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
+		},
+		{
+			name: "judge_inspection_broadcast_rule",
+			reqVar: []VariableFieldName{
+				JudgeInspectionBroadcasted,
+			},
+			v:       []float64{1, -1},
 			aux:     []float64{0},
 			mutable: false,
 		},

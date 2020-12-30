@@ -118,17 +118,21 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 	executiveBranch.broadcastTaxation(resourceReports)
 	executiveBranch.requestAllocationRequest()
-	executiveBranch.replyAllocationRequest(g.CommonPool)
+	allocationsMade := executiveBranch.replyAllocationRequest(g.CommonPool)
 	executiveBranch.requestRuleProposal()
 	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
+
+	variablesToCache := []rules.VariableFieldName{rules.AllocationMade}
+	valuesToCache := [][]float64{{boolToFloat(allocationsMade)}}
+	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
 	// 3 Speaker actions
 	legislativeBranch.setRuleToVote(ruleToVote)
 	voteCalled := legislativeBranch.setVotingResult(aliveClientIds)
 	legislativeBranch.announceVotingResult()
 
-	variablesToCache := []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
-	valuesToCache := [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
+	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
+	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
 	monitoring.monitorRole(iigoClients[g.PresidentID])

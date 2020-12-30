@@ -102,4 +102,16 @@ var StaticVariables = []VariableValuePair{
 		VariableName: SanctionExpected,
 		Values:       []float64{0},
 	},
+	{
+		VariableName: AllocationRequestsMade,
+		Values:       []float64{1},
+	},
+	{
+		VariableName: AllocationMade,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: JudgeInspectionBroadcasted,
+		Values:       []float64{0},
+	},
 }
