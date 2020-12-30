@@ -25,3 +25,10 @@ func searchForVariableInArray(val VariableFieldName, array []VariableFieldName) 
 	}
 	return -1, false
 }
+
+func MakeVariableValuePair(variable VariableFieldName, value []float64) VariableValuePair {
+	return VariableValuePair{
+		VariableName: variable,
+		Values:       value,
+	}
+}

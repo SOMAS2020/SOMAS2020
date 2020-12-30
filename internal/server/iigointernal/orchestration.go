@@ -130,6 +130,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	variablesToCache := []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
 	valuesToCache := [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+
 	monitoring.monitorRole(g.SpeakerID)
 
 	// Get new Judge ID
