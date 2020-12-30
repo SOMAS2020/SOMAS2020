@@ -93,6 +93,10 @@ func (s *SOMASServer) endOfTurn() error {
 	disasterHappened := updatedEnv.LastDisasterReport.Magnitude > 0
 	s.incrementTurnAndSeason(disasterHappened)
 
+	if disasterHappened {
+		s.notifyClientsOfDisaster() // sends disaster report and effects to all non-dead clients
+	}
+
 	// deduct cost of living
 	s.deductCostOfLiving(s.gameConfig.CostOfLiving)
 
@@ -112,6 +116,18 @@ func (s *SOMASServer) incrementTurnAndSeason(disasterHappened bool) {
 	s.gameState.Turn++
 	if disasterHappened {
 		s.gameState.Season++
+	}
+}
+
+func (s *SOMASServer) notifyClientsOfDisaster() {
+	s.logf("start notifying clients of disaster")
+	defer s.logf("finish notifying clients of disaster")
+
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		effects := s.gameState.Environment.DisasterEffects() // gets effects of most recent disaster
+		c.DisasterNotification(s.gameState.Environment.LastDisasterReport, effects)
 	}
 }
 
