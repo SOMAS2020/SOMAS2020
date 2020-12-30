@@ -19,6 +19,7 @@ var judicialBranch = judiciary{
 	presidentSalary:    0,
 	EvaluationResults:  nil,
 	localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
+	localHistoryCache:  defaultInitLocalHistoryCache(historyCacheDepth),
 }
 
 // featureSpeaker is an instantiation of the Speaker interface

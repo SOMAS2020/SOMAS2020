@@ -11,6 +11,259 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+// TestSearchEvalReturnForRuleName checks whether the searchEvalReturnForRuleName is able to pick up which rules
+// have been evaluated in a set of EvaluationReturns
+func TestSearchEvalReturnForRuleName(t *testing.T) {
+	availableRules := generateDummyRuleMatrices()
+	cases := []struct {
+		name     string
+		ruleName string
+		evalRet  roles.EvaluationReturn
+		expected bool
+	}{
+		{
+			name:     "Simple search",
+			ruleName: "iigo_economic_sanction_5",
+			evalRet: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+					availableRules[8],
+				},
+				Evaluations: []bool{true, true},
+			},
+			expected: true,
+		},
+		{
+			name:     "Expect search to return false",
+			ruleName: "iigo_economic_sanction_5",
+			evalRet: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+					availableRules[1],
+				},
+				Evaluations: []bool{true, true},
+			},
+			expected: false,
+		},
+		{
+			name:     "More complex search",
+			ruleName: "iigo_economic_sanction_5",
+			evalRet: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+					availableRules[1],
+					availableRules[3],
+					availableRules[4],
+					availableRules[8],
+				},
+				Evaluations: []bool{true, true, false, true, false},
+			},
+			expected: true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := searchEvalReturnForRuleName(tc.ruleName, tc.evalRet)
+			if res != tc.expected {
+				t.Errorf("Expected %v got %v", tc.expected, res)
+			}
+		})
+	}
+}
+
+// TestCullCheckedRules checks whether cullCheckedRules is able to remove elements of the history of a turn that
+// have already been checked by a client Judge
+func TestCullCheckedRules(t *testing.T) {
+	availableRules := generateDummyRuleMatrices()
+	cases := []struct {
+		name     string
+		history  []shared.Accountability
+		evalRes  map[shared.ClientID]roles.EvaluationReturn
+		expected []shared.Accountability
+	}{
+		{
+			name: "Basic cull test",
+			history: []shared.Accountability{
+				{
+					ClientID: shared.Team1,
+					Pairs: []rules.VariableValuePair{
+						{
+							VariableName: rules.SanctionPaid,
+							Values:       []float64{5},
+						},
+						{
+							VariableName: rules.SanctionExpected,
+							Values:       []float64{5},
+						},
+					},
+				},
+			},
+			evalRes: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[9],
+					},
+					Evaluations: []bool{true},
+				},
+			},
+			expected: []shared.Accountability{},
+		},
+		{
+			name: "More Advanced Cull",
+			history: []shared.Accountability{
+				{
+					ClientID: shared.Team1,
+					Pairs: []rules.VariableValuePair{
+						{
+							VariableName: rules.SanctionPaid,
+							Values:       []float64{5},
+						},
+						{
+							VariableName: rules.SanctionExpected,
+							Values:       []float64{5},
+						},
+					},
+				},
+				{
+					ClientID: shared.Team2,
+					Pairs: []rules.VariableValuePair{
+						{
+							VariableName: rules.SanctionPaid,
+							Values:       []float64{5},
+						},
+						{
+							VariableName: rules.SanctionExpected,
+							Values:       []float64{5},
+						},
+					},
+				},
+			},
+			evalRes: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[9],
+					},
+					Evaluations: []bool{true},
+				},
+			},
+			expected: []shared.Accountability{
+				{
+					ClientID: shared.Team2,
+					Pairs: []rules.VariableValuePair{
+						{
+							VariableName: rules.SanctionPaid,
+							Values:       []float64{5},
+						},
+						{
+							VariableName: rules.SanctionExpected,
+							Values:       []float64{5},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Even More Advanced Cull",
+			history: []shared.Accountability{
+				{
+					ClientID: shared.Team1,
+					Pairs: []rules.VariableValuePair{
+						{
+							VariableName: rules.SanctionPaid,
+							Values:       []float64{5},
+						},
+						{
+							VariableName: rules.SanctionExpected,
+							Values:       []float64{5},
+						},
+					},
+				},
+				{
+					ClientID: shared.Team2,
+					Pairs: []rules.VariableValuePair{
+						{
+							VariableName: rules.SanctionPaid,
+							Values:       []float64{5},
+						},
+						{
+							VariableName: rules.SanctionExpected,
+							Values:       []float64{5},
+						},
+					},
+				},
+			},
+			evalRes: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[9],
+					},
+					Evaluations: []bool{true},
+				},
+				shared.Team2: {
+					Rules: []rules.RuleMatrix{
+						availableRules[8],
+					},
+					Evaluations: []bool{true},
+				},
+			},
+			expected: []shared.Accountability{
+				{
+					ClientID: shared.Team2,
+					Pairs: []rules.VariableValuePair{
+						{
+							VariableName: rules.SanctionPaid,
+							Values:       []float64{5},
+						},
+						{
+							VariableName: rules.SanctionExpected,
+							Values:       []float64{5},
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := cullCheckedRules(tc.history, tc.evalRes, generateRuleStore(), generateDummyVariableCache())
+			if !reflect.DeepEqual(res, tc.expected) {
+				t.Errorf("Expected %v got %v", tc.expected, res)
+			}
+		})
+	}
+}
+
+// TestPickUpRulesByVariable checks whether the pickUpRulesByVariable is able to correctly identify what rules
+// a particular variable has affected
+func TestPickUpRulesByVariable(t *testing.T) {
+	ruleMap := generateRuleStore()
+	cases := []struct {
+		name        string
+		searchVar   rules.VariableFieldName
+		ruleStore   map[string]rules.RuleMatrix
+		expectedRes bool
+		expectedArr []string
+	}{
+		{
+			name:        "Basic Pickup Test",
+			searchVar:   rules.SanctionExpected,
+			ruleStore:   ruleMap,
+			expectedRes: true,
+			expectedArr: []string{"check_sanction_rule"},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			arr, res := pickUpRulesByVariable(tc.searchVar, tc.ruleStore, generateDummyVariableCache())
+			if !reflect.DeepEqual(arr, tc.expectedArr) {
+				t.Errorf("Expected %v got %v", tc.expectedArr, arr)
+			} else if res != tc.expectedRes {
+				t.Errorf("Expected %v got %v", tc.expectedRes, res)
+			}
+		})
+	}
+}
+
 // TestCheckPardons checks whether checkPardons is able to correctly identify pardons issued on sanctions that
 // don't exist, and then subtracts these pardoned sanctions from the sanctionCache
 func TestImplementPardons(t *testing.T) {
