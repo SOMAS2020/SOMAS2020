@@ -2,11 +2,12 @@ package iigointernal
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"gonum.org/v1/gonum/mat"
-	"reflect"
-	"testing"
 )
 
 // TestSoftMergeSanctionThreshold checks whether the softMergeSanctionThresholds is able to correctly merge

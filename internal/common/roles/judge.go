@@ -34,7 +34,7 @@ const (
 	SanctionTier3
 	SanctionTier4
 	SanctionTier5
-	None
+	NoSanction
 )
 
 // Judge is the decision interface for the judiciary branch of IIGO
