@@ -28,7 +28,7 @@ func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
 	j.clientJudge = clientJudgePointer
 }
 
-// returnPresidentSalary returns the salary to the common pooj.
+// returnPresidentSalary returns the salary to the common pool.
 func (j *judiciary) returnPresidentSalary() shared.Resources {
 	x := j.presidentSalary
 	j.presidentSalary = 0
