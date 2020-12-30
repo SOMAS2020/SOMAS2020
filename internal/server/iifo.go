@@ -52,27 +52,29 @@ func (s *SOMASServer) getPredictions() shared.PredictionInfoDict {
 }
 
 func (s *SOMASServer) distributePredictions(islandPredictionDict shared.PredictionInfoDict) {
-	receivedPredictionsDict := make(shared.ReceivedPredictionsDict)
+	reorderDictionary := make(map[shared.ClientID]shared.ReceivedDisasterPredictionsDict)
 	// Add the predictions/sources to the dict containing which predictions each island should receive
 	// Don't allow teams to know who else these predictions were shared with in MVP
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+
 	for idSource, info := range islandPredictionDict {
-		for _, idShare := range info.TeamsOfferedTo {
-			if idShare == idSource {
-				continue
+		if clientArrayContains(nonDeadClients, idSource) {
+			for _, idShare := range info.TeamsOfferedTo {
+				if idShare == idSource {
+					continue
+				}
+				if reorderDictionary[idShare] == nil {
+					reorderDictionary[idShare] = make(shared.ReceivedDisasterPredictionsDict)
+				}
+				reorderDictionary[idShare][idSource] = shared.ReceivedDisasterPredictionInfo{PredictionMade: info.PredictionMade, SharedFrom: idSource}
 			}
-			if receivedPredictionsDict[idShare] == nil {
-				receivedPredictionsDict[idShare] = make(shared.PredictionInfoDict)
-			}
-			info.TeamsOfferedTo = nil
-			receivedPredictionsDict[idShare][idSource] = info
 		}
 	}
 
 	// Now distribute these predictions to the islands
-	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		c.ReceivePredictions(receivedPredictionsDict[id])
+		c.ReceivePredictions(reorderDictionary[id])
 	}
 }
 
@@ -113,4 +115,13 @@ func (s *SOMASServer) distributeForageSharing(otherIslandInfo shared.ForagingOff
 
 		c.ReceiveForageInfo(islandForagingDict[id])
 	}
+}
+
+func clientArrayContains(clientArray []shared.ClientID, client shared.ClientID) bool {
+	for _, c := range clientArray {
+		if client == c {
+			return true
+		}
+	}
+	return false
 }

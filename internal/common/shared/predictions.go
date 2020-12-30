@@ -20,8 +20,15 @@ type PredictionInfo struct {
 	TeamsOfferedTo []ClientID
 }
 
+// ReceivedDisasterPredictionInfo is a struct containing the information describing a prediction
+// made by a given island
+type ReceivedDisasterPredictionInfo struct {
+	PredictionMade Prediction
+	SharedFrom     ClientID
+}
+
 // PredictionInfoDict is a dictionary of PredictionInfo
 type PredictionInfoDict = map[ClientID]PredictionInfo
 
-// ReceivedPredictionsDict is a dictionary of PredictionInfoDict
-type ReceivedPredictionsDict = map[ClientID]PredictionInfoDict
+// ReceivedDisasterPredictionsDict is a dictionary of ReceivedDisasterPredictionInfo
+type ReceivedDisasterPredictionsDict = map[ClientID]ReceivedDisasterPredictionInfo

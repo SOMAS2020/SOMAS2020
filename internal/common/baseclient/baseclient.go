@@ -40,7 +40,7 @@ type Client interface {
 
 	//IIFO: OPTIONAL
 	MakePrediction() shared.PredictionInfo
-	ReceivePredictions(receivedPredictions shared.PredictionInfoDict)
+	ReceivePredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict)
 	MakeForageInfo() shared.ForageShareInfo
 	ReceiveForageInfo([]shared.ForageShareInfo)
 

@@ -113,7 +113,7 @@ func determineConfidence(pastDisastersList PastDisastersList, meanDisaster Disas
 // ReceivePredictions provides each client with the prediction info, in addition to the source island,
 // that they have been granted access to see
 // COMPULSORY, you need to implement this method
-func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInfoDict) {
+func (c *BaseClient) ReceivePredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
 	// If we assume that we trust each island equally (including ourselves), then take the final prediction
 	// of disaster as being the weighted mean of predictions according to confidence
 	numberOfPredictions := float64(len(receivedPredictions) + 1)
