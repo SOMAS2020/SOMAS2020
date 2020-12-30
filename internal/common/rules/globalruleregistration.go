@@ -65,7 +65,7 @@ func registerRulesByMass() {
 			mutable: false,
 		},
 		{
-			name: "judge_inspection_broadcast_rule",
+			name: "judge_inspection_rule",
 			reqVar: []VariableFieldName{
 				JudgeInspectionPerformed,
 			},
