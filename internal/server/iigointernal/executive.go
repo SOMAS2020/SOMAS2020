@@ -21,7 +21,7 @@ type executive struct {
 	speakerTurnsInPower int
 }
 
-// loadClientSpeaker checks client pointer is good and if not panics
+// loadClientPresident checks client pointer is good and if not panics
 func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
 	if clientPresidentPointer == nil {
 		panic(fmt.Sprintf("Client '%v' has loaded a nil president pointer", e.ID))
