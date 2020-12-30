@@ -56,6 +56,8 @@ const (
 	SpeakerSalary
 	JudgeSalary
 	PresidentSalary
+	RuleSelected
+	VoteCalled
 	ExpectedTaxContribution
 	ExpectedAllocation
 	IslandTaxContribution

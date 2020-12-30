@@ -76,6 +76,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.loadClientPresident(presidentPointer)
 	legislativeBranch.loadClientSpeaker(speakerPointer)
 
+	// Initialise monitoring caches
+	var speakerCache []shared.Accountability
+
 	// Withdraw the salaries
 	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary(g)
 	judgeWithdrawSuccess := legislativeBranch.withdrawJudgeSalary(g)
@@ -117,11 +120,24 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
-	if ruleSelected {
-		legislativeBranch.setRuleToVote(ruleToVote)
-		legislativeBranch.setVotingResult(aliveClientIds)
-		legislativeBranch.announceVotingResult()
-	}
+	legislativeBranch.setRuleToVote(ruleToVote)
+	voteCalled := legislativeBranch.setVotingResult(aliveClientIds)
+	legislativeBranch.announceVotingResult()
+
+	speakerCache = append(speakerCache, shared.Accountability{
+		ClientID: g.SpeakerID,
+		Pairs: []rules.VariableValuePair{
+			{
+				VariableName: rules.RuleSelected,
+				Values:       []float64{boolToFloat(ruleSelected)},
+			},
+			{
+				VariableName: rules.VoteCalled,
+				Values:       []float64{boolToFloat(voteCalled)},
+			},
+		},
+	})
+	executiveBranch.monitorSpeaker(speakerCache)
 
 	// Get new Judge ID
 	g.JudgeID = legislativeBranch.appointNextJudge(g.JudgeID, aliveClientIds)

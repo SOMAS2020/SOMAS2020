@@ -21,6 +21,10 @@ type executive struct {
 	speakerTurnsInPower int
 }
 
+func (e *executive) monitorSpeaker(speakerCache []shared.Accountability) bool {
+	return true
+}
+
 // loadClientPresident checks client pointer is good and if not panics
 func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
 	if clientPresidentPointer == nil {

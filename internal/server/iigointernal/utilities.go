@@ -44,3 +44,11 @@ func WithdrawFromCommonPool(value shared.Resources, gameState *gamestate.GameSta
 func depositIntoCommonPool(value shared.Resources, state *gamestate.GameState) {
 	state.CommonPool += value
 }
+
+func boolToFloat(input bool) float64 {
+	if input {
+		return 1
+	} else {
+		return 0
+	}
+}
