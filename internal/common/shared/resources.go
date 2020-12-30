@@ -20,7 +20,7 @@ const (
 	RankProportionalSplit
 
 	// don't modify this
-	_end
+	_resourceDistrEnd
 )
 
 func (rd ResourceDistributionStrategy) String() string {
@@ -48,7 +48,7 @@ func (rd ResourceDistributionStrategy) MarshalJSON() ([]byte, error) {
 
 // ParseResourceDistributionStrategy gets the ResourceDistributionStrategy based on an iota index
 func ParseResourceDistributionStrategy(x int) ResourceDistributionStrategy {
-	if x >= 0 && ResourceDistributionStrategy(x) < _end {
+	if x >= 0 && ResourceDistributionStrategy(x) < _resourceDistrEnd {
 		return ResourceDistributionStrategy(x)
 	}
 	log.Printf("Unknown ResourceDistribution Strategy specified: '%v'\nUse --help. Defaulting to %v", x, EqualSplit)
@@ -59,7 +59,7 @@ func ParseResourceDistributionStrategy(x int) ResourceDistributionStrategy {
 func HelpResourceDistributionStrategy() string {
 	help := "Determine basis on which group resources are split amongst concerned parties\n"
 
-	for i := 0; i < int(_end); i++ {
+	for i := 0; i < int(_resourceDistrEnd); i++ {
 		help += fmt.Sprintf("%v: %v\n", i, ResourceDistributionStrategy(i))
 	}
 
