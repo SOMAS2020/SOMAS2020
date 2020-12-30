@@ -25,6 +25,7 @@ jobs:
       run: cat output/output.json
     - name: Build website
       run: |
+        sudo bash build_wasm.sh
         cd website
         npm i -g yarn
         yarn install

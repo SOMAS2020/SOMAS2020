@@ -6,7 +6,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// Disaster defines the disaster location and magnitude.
+// DisasterInfo defines the disaster location and magnitude.
 // These disasters will be stored in PastDisastersDict (maps round number to disaster that occurred)
 // TODO: Agree with environment team on disaster struct representation
 type DisasterInfo struct {
@@ -16,7 +16,7 @@ type DisasterInfo struct {
 	Turn        uint
 }
 
-// PastDisastersDict is a helpful construct for
+// PastDisastersList is a List of previous disasters.
 type PastDisastersList = []DisasterInfo
 
 // MakePrediction is called on each client for them to make a prediction about a disaster
@@ -151,7 +151,7 @@ func (c *BaseClient) ReceivePredictions(receivedPredictions shared.PredictionInf
 		Confidence:  totalConfidence / numberOfPredictions,
 	}
 
-	c.Logf("Final Prediction: [%v]\n", finalPrediction)
+	c.Logf("Final Prediction: [%v]", finalPrediction)
 	return nil
 }
 
