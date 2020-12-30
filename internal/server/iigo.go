@@ -39,7 +39,7 @@ func (s *SOMASServer) runIIGOTax() error {
 		err := s.takeResources(clientID, tax, "tax")
 		err2 := s.takeResources(clientID, sanction, "sanction")
 		if err == nil && err2 == nil {
-			s.gameState.CommonPool += tax
+			s.gameState.CommonPool += tax + sanction
 			s.clientMap[clientID].TaxTaken(tax)
 		} else {
 			s.logf("Error getting tax from %v: %v", clientID, err)
