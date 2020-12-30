@@ -23,9 +23,23 @@ U_{\theta}=\left\{\begin{array}{ll}
 \end{array}\right.
 $$
 
-where the maximum number of deer that can be hunted in a single hunt is 4. Notice that the expected return for $n$ deer is simply $n$ times the return of a single deer (i.i.d. assumption). *However*, the incremental input resources required to hunt $n$ deer *decreases* as $n$ increases. That is, it costs less (per deer) to hunt more deer. This is to incentivise **collaboration**. In this package, this dynamic is implemented in the `deerUtilityTier()` function that returns the number of deer that can be hunted (i.e. the utility tier) given a scalar collective resource input ($x$ from above). In this implementation, $\theta=1$, but it could be multiplied by an arbitrary multiplier to scale as desired.
+where the maximum number of deer that can be hunted in a single hunt is 4. Notice that the expected return for $n$ deer is simply $n$ times the return of a single deer (i.i.d. assumption). *However*, the incremental input resources required to hunt $n$ deer decreases as $n$ increases. That is, it costs less (per deer) to hunt more deer, this is to incentivise collaboration. This dynamic is incorporated using a variable $\Delta$ (decay = gameConf.ForagingConfig.IncrementalInputDecay) which is the rate of decrease as the number of deer's being hunted ,$n$, increases. For each additional deer the additional cost need to hunt it is calculated by $\Delta^n$ thus decreasing if the $\Delta < 1$ and increasing if $\Delta > 1$. 
+
+Assuming $\Delta=0.8$ for the MVP 
+$$ Increments\ of\ catching\ n\ deer's=
+\left( \begin{array}{ll@{}}
+n=0: \Delta^0 = 1 \\
+n=1: \Delta^1 = 0.8^1 \\
+n=2: \Delta^2 = 0.8^2 = 0.64 \\
+n=2: \Delta^3 = 0.8^3 = 0.512 \\
+n=4: \Delta^4 = 0.8^4 = 0.4096\\ 
+\end{array} \right) $$
+The minimum amount of resources needed to hunt $n$ deer can be calculated as the cumulative cost, represented by 
+$$ 
+\sum_{n=0}^{n} \Delta^{n} = \Delta^{0} + \Delta^{1} + \Delta^{2} + \Delta^{3} + \Delta^{4} + ....
+$$
+Where $n$, the number of deers you can hunt, is determined by the amount of resources input to the system 
 
 #### ToDo
 
-- fishing
 - link deer population (governed by a predefined differential equation and historical consumption) with Bernoulli param `p` in deer return RV.
