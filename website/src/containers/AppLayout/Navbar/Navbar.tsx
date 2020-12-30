@@ -40,6 +40,7 @@ const AppNavbar = () => {
         <Nav >
           {getNavLink("Raw Output", "/rawoutput")}
           <NavDropdown title="Visualisations" id="collasible-nav-dropdown">
+            <NavDropdown.Item href="/game">Game</NavDropdown.Item>
             <NavDropdown.Item href="/resources">Resources</NavDropdown.Item>
             <NavDropdown.Item href="/roles">Roles by Turn</NavDropdown.Item>
             <NavDropdown.Divider />

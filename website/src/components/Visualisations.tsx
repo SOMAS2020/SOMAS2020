@@ -1,3 +1,4 @@
+export { default as Game } from "./Game/Game";
 export { default as Resources } from "./Resources/Resources";
 export { default as Roles } from "./Roles/Roles";
 export { default as IIGO } from "./IIGO/IIGO";
