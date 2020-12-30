@@ -13,7 +13,7 @@ import (
 
 type executive struct {
 	gameState        *gamestate.GameState
-	ID               shared.ClientID
+	PresidentID      shared.ClientID
 	clientPresident  roles.President
 	speakerSalary    shared.Resources
 	RulesProposals   []string
@@ -23,7 +23,7 @@ type executive struct {
 // loadClientJudge checks client pointer is good and if not panics
 func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
 	if clientPresidentPointer == nil {
-		panic(fmt.Sprintf("Client '%v' has loaded a nil president pointer", e.ID))
+		panic(fmt.Sprintf("Client '%v' has loaded a nil president pointer", e.PresidentID))
 	}
 	e.clientPresident = clientPresidentPointer
 }
@@ -78,7 +78,7 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxMapReturn.ResourceMap[islandID])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
 			data[shared.TaxAmount] = d
-			communicateWithIslands(islandID, shared.TeamIDs[e.ID], data)
+			communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 		}
 	}
 	return nil
@@ -131,7 +131,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources, aliveIsl
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMapReturn.ResourceMap[islandID])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
 			data[shared.AllocationAmount] = d
-			communicateWithIslands(islandID, shared.TeamIDs[e.ID], data)
+			communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 		}
 	}
 	return nil
@@ -141,7 +141,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources, aliveIsl
 // appointing new role should be free now
 func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) (shared.ClientID, error) {
 	if !e.incurServiceCharge(actionCost.AppointNextSpeakerActionCost) {
-		return e.ID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
+		return e.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
 	}
 	var election voting.Election
 	election.ProposeElection(baseclient.Speaker, voting.Plurality)
@@ -153,7 +153,7 @@ func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) (shared.Clie
 // sendSpeakerSalary conduct the transaction based on amount from client implementation
 func (e *executive) sendSpeakerSalary() error {
 	if e.clientPresident != nil {
-		amountReturn := e.clientPresident.PaySpeaker()
+		amountReturn := e.clientPresident.PaySpeaker(e.speakerSalary)
 		if amountReturn.ActionTaken && amountReturn.ContentType == shared.PresidentSpeakerSalary {
 			// Subtract from common resources pool
 			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn.SpeakerSalary, e.gameState)
@@ -169,7 +169,7 @@ func (e *executive) sendSpeakerSalary() error {
 }
 
 func (e *executive) reset(val string) {
-	e.ID = 0
+	e.PresidentID = 0
 	e.clientPresident = nil
 	e.ResourceRequests = map[shared.ClientID]shared.Resources{}
 	e.RulesProposals = []string{}

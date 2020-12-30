@@ -88,7 +88,7 @@ func TestAllocationRequests(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			executive := &executive{
-				ID:              shared.Team1,
+				PresidentID:     shared.Team1,
 				clientPresident: &baseclient.BasePresident{},
 			}
 
@@ -214,7 +214,7 @@ func TestSetRuleProposals(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			executive := &executive{
-				ID:             shared.Team1,
+				PresidentID:    shared.Team1,
 				RulesProposals: []string{},
 			}
 
@@ -240,7 +240,7 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Empty tax map base",
 			input: map[shared.ClientID]shared.ResourcesReport{},
 			bPresident: executive{
-				ID:              3,
+				PresidentID:     3,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 0,
@@ -251,7 +251,7 @@ func TestGetTaxMap(t *testing.T) {
 				1: {ReportedAmount: 5, Reported: true},
 			},
 			bPresident: executive{
-				ID:              3,
+				PresidentID:     3,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 1,
@@ -267,7 +267,7 @@ func TestGetTaxMap(t *testing.T) {
 				6: {ReportedAmount: 30, Reported: true},
 			},
 			bPresident: executive{
-				ID:              4,
+				PresidentID:     4,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 6,
@@ -276,7 +276,7 @@ func TestGetTaxMap(t *testing.T) {
 			name:  "Client empty tax map base",
 			input: map[shared.ClientID]shared.ResourcesReport{},
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 0,
@@ -287,7 +287,7 @@ func TestGetTaxMap(t *testing.T) {
 				1: {ReportedAmount: 5, Reported: true},
 			},
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 1,
@@ -303,7 +303,7 @@ func TestGetTaxMap(t *testing.T) {
 				6: {ReportedAmount: 30, Reported: true},
 			},
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 6,
@@ -319,7 +319,7 @@ func TestGetTaxMap(t *testing.T) {
 				6: {ReportedAmount: 30, Reported: false},
 			},
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expected: map[shared.ClientID]shared.Resources{
@@ -373,7 +373,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Empty tax map base",
 			bPresident: executive{
-				ID:              3,
+				PresidentID:     3,
 				RulesProposals:  []string{},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
@@ -383,7 +383,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Short tax map base",
 			bPresident: executive{
-				ID:              3,
+				PresidentID:     3,
 				RulesProposals:  []string{"test"},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
@@ -393,7 +393,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Long tax map base",
 			bPresident: executive{
-				ID:              3,
+				PresidentID:     3,
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
@@ -403,7 +403,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Client empty tax map base",
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
@@ -413,7 +413,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 		{
 			name: "Client tax map base override",
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
@@ -453,7 +453,7 @@ func TestGetAllocationRequests(t *testing.T) {
 		{
 			name: "Limited Resources",
 			bPresident: executive{
-				ID: 3,
+				PresidentID: 3,
 				ResourceRequests: map[shared.ClientID]shared.Resources{
 					shared.Team1: 5,
 					shared.Team2: 10,
@@ -477,7 +477,7 @@ func TestGetAllocationRequests(t *testing.T) {
 		{
 			name: "Excess Resources",
 			bPresident: executive{
-				ID: 3,
+				PresidentID: 3,
 				ResourceRequests: map[shared.ClientID]shared.Resources{
 					shared.Team1: 5,
 					shared.Team2: 10,
@@ -500,7 +500,7 @@ func TestGetAllocationRequests(t *testing.T) {
 		{
 			name: "Client override limited resourceRequests",
 			bPresident: executive{
-				ID: 5,
+				PresidentID: 5,
 				ResourceRequests: map[shared.ClientID]shared.Resources{
 					shared.Team1: 5,
 					shared.Team2: 10,
@@ -524,7 +524,7 @@ func TestGetAllocationRequests(t *testing.T) {
 		{
 			name: "Client override excess resourceRequests",
 			bPresident: executive{
-				ID: 5,
+				PresidentID: 5,
 				ResourceRequests: map[shared.ClientID]shared.Resources{
 					shared.Team1: 5,
 					shared.Team2: 10,
@@ -574,7 +574,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 		{
 			name: "Excess resources",
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
@@ -598,7 +598,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 		{
 			name: "Limited resources",
 			bPresident: executive{
-				ID:              1,
+				PresidentID:     1,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
@@ -622,7 +622,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 		{
 			name: "Zero requests",
 			bPresident: executive{
-				ID:              3,
+				PresidentID:     3,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
@@ -673,7 +673,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			for clientID, expectedAllocation := range tc.expected {
 				communicationGot := *(fakeClientMap[clientID]).GetCommunications()
 				communicationExpected := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{
-					tc.bPresident.ID: {
+					tc.bPresident.PresidentID: {
 						{shared.AllocationAmount: {T: shared.CommunicationInt, IntegerData: int(expectedAllocation)}},
 					},
 				}
@@ -697,7 +697,7 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 		{
 			name: "Excess pay",
 			bPresident: executive{
-				ID: shared.Team1,
+				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
 					IIGORolesBudget: map[string]shared.Resources{
@@ -715,7 +715,7 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 		{
 			name: "Negative Budget",
 			bPresident: executive{
-				ID: shared.Team1,
+				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
 					IIGORolesBudget: map[string]shared.Resources{
@@ -733,7 +733,7 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 		{
 			name: "Limited common pool",
 			bPresident: executive{
-				ID: shared.Team1,
+				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 40,
 					IIGORolesBudget: map[string]shared.Resources{

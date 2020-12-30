@@ -40,7 +40,7 @@ var legislativeBranch = legislature{
 // with both the basePresident features and a reference to client presidents
 var executiveBranch = executive{
 	gameState:        nil,
-	ID:               0,
+	PresidentID:      0,
 	speakerSalary:    0,
 	ResourceRequests: nil,
 }
@@ -79,7 +79,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// Initialise IDs
 	judicialBranch.JudgeID = g.JudgeID
 	legislativeBranch.SpeakerID = g.SpeakerID
-	executiveBranch.ID = g.PresidentID
+	executiveBranch.PresidentID = g.PresidentID
 
 	// Set judgePointer
 	judgePointer = iigoClients[g.JudgeID].GetClientJudgePointer()
