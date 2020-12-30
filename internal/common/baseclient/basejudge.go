@@ -78,6 +78,7 @@ func searchForVariableInArray(val rules.VariableFieldName, array []rules.Variabl
 	return -1, false
 }
 
+// CallPresidentElection is called by the judiciary to decide on power-transfer
 func (j *BaseJudge) CallPresidentElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Plurality,
@@ -87,6 +88,7 @@ func (j *BaseJudge) CallPresidentElection(turnsInPower int, allIslands []shared.
 	return electionsettings
 }
 
+// DecideNextPresident returns the ID of chosen next President
 func (j *BaseJudge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	return winner
 }
