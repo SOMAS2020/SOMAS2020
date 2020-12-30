@@ -41,17 +41,17 @@ func (s *SOMASServer) runForageSharing() {
 	s.distributeForageSharing(otherIslandInfo)
 }
 
-func (s *SOMASServer) getPredictions() shared.PredictionInfoDict {
-	islandPredictionsDict := shared.PredictionInfoDict{}
+func (s *SOMASServer) getPredictions() shared.DisasterPredictionInfoDict {
+	islandPredictionsDict := shared.DisasterPredictionInfoDict{}
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		islandPredictionsDict[id] = c.MakePrediction()
+		islandPredictionsDict[id] = c.MakeDisasterPrediction()
 	}
 	return islandPredictionsDict
 }
 
-func (s *SOMASServer) distributePredictions(islandPredictionDict shared.PredictionInfoDict) {
+func (s *SOMASServer) distributePredictions(islandPredictionDict shared.DisasterPredictionInfoDict) {
 	reorderDictionary := make(map[shared.ClientID]shared.ReceivedDisasterPredictionsDict)
 	// Add the predictions/sources to the dict containing which predictions each island should receive
 	// Don't allow teams to know who else these predictions were shared with in MVP
@@ -74,7 +74,7 @@ func (s *SOMASServer) distributePredictions(islandPredictionDict shared.Predicti
 	// Now distribute these predictions to the islands
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		c.ReceivePredictions(reorderDictionary[id])
+		c.ReceiveDisasterPredictions(reorderDictionary[id])
 	}
 }
 

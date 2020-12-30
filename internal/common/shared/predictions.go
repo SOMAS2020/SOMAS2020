@@ -1,8 +1,8 @@
 package shared
 
-// Prediction is a struct containing the necessary parameters for an island to
+// DisasterPrediction is a struct containing the necessary parameters for an island to
 // make a prediction about a disaster
-type Prediction struct {
+type DisasterPrediction struct {
 	CoordinateX Coordinate
 	CoordinateY Coordinate
 	Magnitude   Magnitude
@@ -13,22 +13,22 @@ type Prediction struct {
 // PredictionConfidence is bounded between 0 and 100
 type PredictionConfidence = float64
 
-// PredictionInfo is a struct containing the information describing a prediction
+// DisasterPredictionInfo is a struct containing the information describing a prediction
 // made by a given island
-type PredictionInfo struct {
-	PredictionMade Prediction
+type DisasterPredictionInfo struct {
+	PredictionMade DisasterPrediction
 	TeamsOfferedTo []ClientID
 }
 
 // ReceivedDisasterPredictionInfo is a struct containing the information describing a prediction
 // made by a given island
 type ReceivedDisasterPredictionInfo struct {
-	PredictionMade Prediction
+	PredictionMade DisasterPrediction
 	SharedFrom     ClientID
 }
 
-// PredictionInfoDict is a dictionary of PredictionInfo
-type PredictionInfoDict = map[ClientID]PredictionInfo
+// DisasterPredictionInfoDict is a dictionary of DisasterPredictionInfo
+type DisasterPredictionInfoDict = map[ClientID]DisasterPredictionInfo
 
 // ReceivedDisasterPredictionsDict is a dictionary of ReceivedDisasterPredictionInfo
 type ReceivedDisasterPredictionsDict = map[ClientID]ReceivedDisasterPredictionInfo

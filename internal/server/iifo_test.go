@@ -13,7 +13,6 @@ type mockClientIIFO struct {
 	baseclient.Client
 	foragingValues                shared.ForageShareInfo
 	otherIslandInfo               []shared.ForageShareInfo
-	ownPrediction                 shared.PredictionInfo
 	otherIslandDisasterPrediction shared.ReceivedDisasterPredictionsDict
 }
 
@@ -29,7 +28,7 @@ func (c *mockClientIIFO) getOtherIslandInfo() []shared.ForageShareInfo {
 	return c.otherIslandInfo
 }
 
-func (c *mockClientIIFO) ReceivePredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
+func (c *mockClientIIFO) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
 	c.otherIslandDisasterPrediction = receivedPredictions
 }
 
@@ -60,20 +59,20 @@ func receiveForagingInfo(contribution shared.Resources, resources shared.Resourc
 	}
 }
 
-func makeDisasterPrediction(prediction shared.Prediction, shareTo []shared.ClientID) shared.PredictionInfo {
+func makeDisasterPrediction(prediction shared.DisasterPrediction, shareTo []shared.ClientID) shared.DisasterPredictionInfo {
 	if len(shareTo) > 0 {
-		return shared.PredictionInfo{
+		return shared.DisasterPredictionInfo{
 			PredictionMade: prediction,
 			TeamsOfferedTo: shareTo,
 		}
 	}
 	// People can be selfish and choose not to share their foraging information
-	return shared.PredictionInfo{
+	return shared.DisasterPredictionInfo{
 		PredictionMade: prediction,
 	}
 }
 
-func receiveDisasterPrediction(prediction shared.Prediction, sharedFrom shared.ClientID) shared.ReceivedDisasterPredictionInfo {
+func receiveDisasterPrediction(prediction shared.DisasterPrediction, sharedFrom shared.ClientID) shared.ReceivedDisasterPredictionInfo {
 	return shared.ReceivedDisasterPredictionInfo{
 		PredictionMade: prediction,
 		SharedFrom:     sharedFrom,
@@ -201,17 +200,17 @@ func TestDistributePredictions(t *testing.T) {
 		shared.Team2: mockClient[shared.Team2],
 		shared.Team3: mockClient[shared.Team3],
 	}
-	team1Prediction := shared.Prediction{
+	team1Prediction := shared.DisasterPrediction{
 		CoordinateX: 0,
 		CoordinateY: 1,
 		Magnitude:   1,
 		TimeLeft:    4,
 		Confidence:  100,
 	}
-	input := shared.PredictionInfoDict{
+	input := shared.DisasterPredictionInfoDict{
 		shared.Team1: makeDisasterPrediction(team1Prediction, []shared.ClientID{shared.Team2, shared.Team3}),
-		shared.Team2: makeDisasterPrediction(shared.Prediction{}, []shared.ClientID{}),
-		shared.Team3: makeDisasterPrediction(shared.Prediction{}, []shared.ClientID{shared.Team1, shared.Team2}),
+		shared.Team2: makeDisasterPrediction(shared.DisasterPrediction{}, []shared.ClientID{}),
+		shared.Team3: makeDisasterPrediction(shared.DisasterPrediction{}, []shared.ClientID{shared.Team1, shared.Team2}),
 	}
 	want := map[shared.ClientID]shared.ReceivedDisasterPredictionsDict{
 		shared.Team1: shared.ReceivedDisasterPredictionsDict(nil),
