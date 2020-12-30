@@ -2,7 +2,17 @@ import React, { useState } from 'react'
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap'
 import { Link } from 'react-router-dom';
-import { cioutput, newrun, gamevisualisation, iigovisualisation, iitovisualisation, iifovisualisation } from '../../../consts/paths';
+import {
+  cioutput,
+  newrun,
+  gamevisualisation,
+  iigovisualisation,
+  iitovisualisation,
+  iifovisualisation,
+  resourcesvisualisation,
+  rolesvisualisation
+} from '../../../consts/paths';
+
 import logo from '../../../assets/logo/logo192.png';
 import outputJSONData from '../../../output/output.json'
 
@@ -40,6 +50,8 @@ const AppNavbar = () => {
         {getNavLink("IIGO Visualisation", iigovisualisation)}
         {getNavLink("IITO Visualisation", iitovisualisation)}
         {getNavLink("IIFO Visualisation", iifovisualisation)}
+        {getNavLink("Resources Visualisation", resourcesvisualisation)}
+        {getNavLink("Roles Visualisation", rolesvisualisation)}
       </Navbar.Collapse>
     </Navbar>
   </>
