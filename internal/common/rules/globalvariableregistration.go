@@ -74,4 +74,12 @@ var StaticVariables = []VariableValuePair{
 		VariableName: IslandAllocation,
 		Values:       []float64{0},
 	},
+	{
+		VariableName: RuleSelected,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: VoteCalled,
+		Values:       []float64{0},
+	},
 }

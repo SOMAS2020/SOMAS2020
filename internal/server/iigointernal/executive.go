@@ -22,7 +22,8 @@ type executive struct {
 }
 
 func (e *executive) monitorSpeaker(speakerCache []shared.Accountability) bool {
-	return true
+	performedRoleCorrectly := true
+	return performedRoleCorrectly
 }
 
 // loadClientPresident checks client pointer is good and if not panics
