@@ -2,12 +2,13 @@ package iigointernal
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
-	"reflect"
-	"testing"
 )
 
 // TestCheckPardons checks whether checkPardons is able to correctly identify pardons issued on sanctions that
