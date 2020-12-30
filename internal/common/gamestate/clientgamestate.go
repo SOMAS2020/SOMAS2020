@@ -15,4 +15,7 @@ type ClientGameState struct {
 
 	// AliveStatuses is whether each of the other clients is alive
 	ClientLifeStatuses map[shared.ClientID]shared.ClientLifeStatus
+
+	// CommonPool
+	CommonPool shared.Resources
 }
