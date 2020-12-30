@@ -54,7 +54,7 @@ func createSOMASServer(
 	}
 
 	forageHistory := map[shared.ForageType][]foraging.ForagingReport{}
-	for _, t := range shared.AllForageTypes {
+	for _, t := range shared.AllForageTypes() {
 		forageHistory[t] = make([]foraging.ForagingReport, 0)
 	}
 

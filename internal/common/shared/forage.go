@@ -14,10 +14,19 @@ const (
 	DeerForageType ForageType = iota
 	// FishForageType is another foraging resource also defined in foraging package
 	FishForageType
+
+	// don't change this
+	_endForageType
 )
 
 // AllForageTypes specifies all available foraging types. Used for foraging history initialisation
-var AllForageTypes = []ForageType{DeerForageType, FishForageType}
+func AllForageTypes() []ForageType {
+	ts := make([]ForageType, _endForageType)
+	for i := 0; i < int(_endForageType); i++ {
+		ts[i] = ForageType(i)
+	}
+	return ts
+}
 
 func (ft ForageType) String() string {
 	strings := [...]string{"DeerForageType", "FishForageType"}
