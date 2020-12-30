@@ -169,7 +169,7 @@ func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]sha
 
 	fConf := s.gameConfig.ForagingConfig.FishingConfig
 
-	huntF, err := foraging.CreateFishingExpedition(contributions)
+	huntF, err := foraging.CreateFishingExpedition(contributions, fConf)
 	if err != nil {
 		return errors.Errorf("Error running fish hunt: %v", err)
 	}
