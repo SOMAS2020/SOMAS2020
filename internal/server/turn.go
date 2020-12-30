@@ -56,18 +56,31 @@ func (s *SOMASServer) runOrgs() error {
 }
 
 // endOfTurn performs end of turn updates
+// TODO: organise order of end of turn actions
 func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
 	defer s.logf("finish endOfTurn")
 
-	err := s.runOrgsEndOfTurn()
-	if err != nil {
-		return errors.Errorf("Failed to run orgs end of turn: %v", err)
+	if err := s.runIIGOTax(); err != nil {
+		return errors.Errorf("Failed to put taxes into common pool at end of turn: %v", err)
 	}
 
-	err = s.runForage()
-	if err != nil {
+	if err := s.runIIFOEndOfTurn(); err != nil {
+		return errors.Errorf("IIFO EndOfTurn error: %v", err)
+	}
+
+	// TODO: break IITO down into giving gifts and receiving gifts
+	if err := s.runIITOEndOfTurn(); err != nil {
+		return errors.Errorf("IITO EndOfTurn error: %v", err)
+	}
+
+	// TODO : break foraging down into foraging investments and foraging returns
+	if err := s.runForage(); err != nil {
 		return errors.Errorf("Failed to run hunt at end of turn: %v", err)
+	}
+
+	if err := s.runIIGOAllocations(); err != nil {
+		return errors.Errorf("Failed to get common pool allocations at end of turn: %v", err)
 	}
 
 	// probe for disaster
@@ -86,26 +99,6 @@ func (s *SOMASServer) endOfTurn() error {
 	err = s.updateIslandLivingStatus()
 	if err != nil {
 		return errors.Errorf("Failed to update island living status: %v", err)
-	}
-
-	return nil
-}
-
-// runOrgsEndOfTurn runs all the end of turn variants of the orgs.
-func (s *SOMASServer) runOrgsEndOfTurn() error {
-	s.logf("start runOrgsEndOfTurn")
-	defer s.logf("finish runOrgsEndOfTurn")
-
-	if err := s.runIIGOEndOfTurn(); err != nil {
-		return errors.Errorf("IIGO EndOfTurn error: %v", err)
-	}
-
-	if err := s.runIIFOEndOfTurn(); err != nil {
-		return errors.Errorf("IIFO EndOfTurn error: %v", err)
-	}
-
-	if err := s.runIITOEndOfTurn(); err != nil {
-		return errors.Errorf("IITO EndOfTurn error: %v", err)
 	}
 
 	return nil

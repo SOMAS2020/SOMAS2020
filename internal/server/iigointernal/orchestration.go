@@ -4,7 +4,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
@@ -17,10 +16,6 @@ var judicialBranch = judiciary{
 	JudgeID:           0,
 	budget:            0,
 	presidentSalary:   0,
-	BallotID:          0,
-	ResAllocID:        0,
-	speakerID:         0,
-	presidentID:       0,
 	EvaluationResults: nil,
 }
 
@@ -105,41 +100,37 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.sendSpeakerSalary(&legislativeBranch)
 
 	// 1 Judge actions - inspect history
-	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
+	_, _ = judicialBranch.inspectHistory(g.IIGOHistory)
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
-	var aliveClientIds []shared.ClientID
-	for _, v := range rules.VariableMap[rules.IslandsAlive].Values {
-		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
-		resourceReports[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].ResourceReport()
+	aliveClientIds := []shared.ClientID{}
+	for clientID, clientGameState := range g.ClientInfos {
+		if clientGameState.LifeStatus != shared.Dead {
+			aliveClientIds = append(aliveClientIds, clientID)
+			resourceReports[clientID] = iigoClients[clientID].ResourceReport()
+		}
 	}
-	executiveBranch.broadcastTaxation(resourceReports)
-	executiveBranch.requestAllocationRequest()
-	executiveBranch.replyAllocationRequest(g.CommonPool)
-	executiveBranch.requestRuleProposal()
-	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
+
+	executiveBranch.broadcastTaxation(resourceReports, aliveClientIds)
+	executiveBranch.requestAllocationRequest(aliveClientIds)
+	executiveBranch.replyAllocationRequest(g.CommonPool, aliveClientIds)
+	executiveBranch.requestRuleProposal(aliveClientIds)
+	ruleToVoteReturn := executiveBranch.getRuleForSpeaker()
 
 	// 3 Speaker actions
-	if ruleSelected {
-		legislativeBranch.setRuleToVote(ruleToVote)
+	if ruleToVoteReturn.ActionTaken && ruleToVoteReturn.ContentType == shared.PresidentRuleProposal {
+		legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRule)
 		legislativeBranch.setVotingResult(aliveClientIds)
 		legislativeBranch.announceVotingResult()
 	}
 
-	// 4 Declare performance (Judge) (in future all the iigointernal)
-	if historyInspected {
-		judicialBranch.declarePresidentPerformanceWrapped()
-
-		judicialBranch.declareSpeakerPerformanceWrapped()
-	}
-
 	// Get new Judge ID
-	g.JudgeID = legislativeBranch.appointNextJudge(aliveClientIds)
+	g.JudgeID = legislativeBranch.appointNextJudge(g.JudgeID, aliveClientIds)
 	// Get new Speaker ID
-	g.SpeakerID = executiveBranch.appointNextSpeaker(aliveClientIds)
+	g.SpeakerID = executiveBranch.appointNextSpeaker(g.SpeakerID, aliveClientIds)
 	// Get new President ID
-	g.PresidentID = judicialBranch.appointNextPresident(aliveClientIds)
+	g.PresidentID = judicialBranch.appointNextPresident(g.PresidentID, aliveClientIds)
 
 	return true, "IIGO Run Successful"
 }
