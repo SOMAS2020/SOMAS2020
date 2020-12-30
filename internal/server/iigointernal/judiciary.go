@@ -194,7 +194,9 @@ func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int]map[in
 	comms := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
 	newSanctionCache := map[int][]roles.Sanction{}
 	for k, v := range sanctionCache {
-		newSanctionCache[k] = v
+		ctr := make([]roles.Sanction, len(v))
+		copy(ctr, v)
+		newSanctionCache[k] = ctr
 	}
 	for i, v := range pardons {
 		for iSan, vSan := range v {
