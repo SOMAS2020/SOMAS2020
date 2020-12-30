@@ -17,8 +17,6 @@ var judicialBranch = judiciary{
 	JudgeID:           0,
 	budget:            0,
 	presidentSalary:   0,
-	BallotID:          0,
-	ResAllocID:        0,
 	EvaluationResults: nil,
 }
 
@@ -126,11 +124,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	// Get new Judge ID
-	g.JudgeID = legislativeBranch.appointNextJudge(aliveClientIds)
+	g.JudgeID = legislativeBranch.appointNextJudge(g.JudgeID, aliveClientIds)
 	// Get new Speaker ID
-	g.SpeakerID = executiveBranch.appointNextSpeaker(aliveClientIds)
+	g.SpeakerID = executiveBranch.appointNextSpeaker(g.SpeakerID, aliveClientIds)
 	// Get new President ID
-	g.PresidentID = judicialBranch.appointNextPresident(aliveClientIds)
+	g.PresidentID = judicialBranch.appointNextPresident(g.PresidentID, aliveClientIds)
 
 	return true, "IIGO Run Successful"
 }

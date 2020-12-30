@@ -31,3 +31,18 @@ func (s *BaseSpeaker) DecideVote(ruleID string, aliveClients []shared.ClientID) 
 func (s *BaseSpeaker) DecideAnnouncement(ruleId string, result bool) (string, bool, bool) {
 	return ruleId, result, true
 }
+
+// CallJudgeElection is called by the legislature to decide on power-transfer
+func (s *BaseSpeaker) CallJudgeElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Plurality,
+		IslandsToVote: allIslands,
+		HoldElection:  true,
+	}
+	return electionsettings
+}
+
+// DecideNextJudge returns the ID of chosen next Judge
+func (s *BaseSpeaker) DecideNextJudge(winner shared.ClientID) shared.ClientID {
+	return winner
+}
