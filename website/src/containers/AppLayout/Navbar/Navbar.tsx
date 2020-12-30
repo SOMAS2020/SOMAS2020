@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap'
 import { Link } from 'react-router-dom';
+import { cioutput, newrun } from '../../../consts/paths';
 import logo from '../../../assets/logo/logo192.png';
 import outputJSONData from '../../../output/output.json'
 
@@ -29,26 +30,12 @@ const AppNavbar = () => {
         />{' '}
                     SOMAS 2020
             </Navbar.Brand>
-
-      <a rel="noopener noreferrer" target="_blank" href={outputJSONData.GitInfo.GithubURL} className="lightbluelink">
-        {outputJSONData.GitInfo.Hash.substr(0, 7)}
-      </a>
-
-      <Navbar.Toggle aria-controls="responsive-navbar-nav" onClick={closeNav} />
-      <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-end">
+      <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={closeNav} />
+      <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
         <Nav className="mr-auto" />
-        <Nav >
-          {getNavLink("Raw Output", "/rawoutput")}
-          <NavDropdown title="Visualisations" id="collasible-nav-dropdown">
-            <NavDropdown.Item href="/game">Game</NavDropdown.Item>
-            <NavDropdown.Item href="/resources">Resources</NavDropdown.Item>
-            <NavDropdown.Item href="/roles">Roles by Turn</NavDropdown.Item>
-            <NavDropdown.Divider />
-            <NavDropdown.Item href="/IIGO">IIGO</NavDropdown.Item>
-            <NavDropdown.Item href="/IITO">IITO</NavDropdown.Item>
-            <NavDropdown.Item href="/IIFO">IIFO</NavDropdown.Item>
-          </NavDropdown>
-        </Nav>
+        {getNavLink("New Run", newrun)}
+        {getNavLink("CI Output", cioutput)}
+
       </Navbar.Collapse>
     </Navbar>
   </>
