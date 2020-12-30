@@ -230,19 +230,14 @@ func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]s
 func (s *SOMASServer) executeTransactions(transactions map[shared.ClientID]shared.GiftResponseDict) {
 	for fromTeam, responses := range transactions {
 		for toTeam, indivResponse := range responses {
-			giftAmount := s.clientMap[fromTeam].DecideGiftAmount(toTeam, indivResponse.AcceptedAmount)
-			if giftAmount < 0 {
-				s.logf("Negative resources received in executeTransactions() from %v. Nice Try", fromTeam)
-				continue
-			}
-			transactionMsg := fmt.Sprintf("Team %v received gift from %v: %v", toTeam, fromTeam, giftAmount)
-			errTake := s.takeResources(fromTeam, giftAmount, "TAKE: "+transactionMsg)
+			transactionMsg := fmt.Sprintf("Team %v received gift from %v: %v", toTeam, fromTeam, indivResponse.AcceptedAmount)
+			errTake := s.takeResources(fromTeam, indivResponse.AcceptedAmount, "TAKE: "+transactionMsg)
 			if errTake != nil {
 				s.logf("Error deducting amount: %v", errTake)
 			} else {
-				s.giveResources(toTeam, giftAmount, "GIVE: "+transactionMsg)
-				s.clientMap[toTeam].ReceivedGift(giftAmount, fromTeam)
-				s.clientMap[fromTeam].SentGift(giftAmount, toTeam)
+				s.giveResources(toTeam, indivResponse.AcceptedAmount, "GIVE: "+transactionMsg)
+				s.clientMap[toTeam].ReceivedGift(indivResponse.AcceptedAmount, fromTeam)
+				s.clientMap[fromTeam].SentGift(indivResponse.AcceptedAmount, toTeam)
 			}
 		}
 	}

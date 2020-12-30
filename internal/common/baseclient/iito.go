@@ -75,10 +75,3 @@ func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientI
 	// You can check your updated resources like this:
 	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 }
-
-// DecideGiftAmount is executed at the end of each turn and asks clients how much
-// they want to fulfill a gift offer they have made.
-// COMPULSORY, you need to implement this method
-func (c *BaseClient) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	return giftOffer
-}
