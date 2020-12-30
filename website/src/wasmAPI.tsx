@@ -35,6 +35,14 @@ let loaded = false
 let runGameWASM: ((args: string) => RunGameReturnTypeWASM) | undefined;
 let getFlagsFormatsWASM: (() => GetFlagsFormatsReturnTypeWASM) | undefined;
 
+// Safari polyfill
+if (!WebAssembly.instantiateStreaming) { 
+    WebAssembly.instantiateStreaming = async (resp, importObject) => {
+        const source = await (await resp).arrayBuffer();
+        return await WebAssembly.instantiate(source, importObject);
+    };
+}
+
 const load = async () => {
     const { instance } = await WebAssembly.instantiateStreaming(
         fetch(`${process.env.PUBLIC_URL}/SOMAS2020.wasm`),
