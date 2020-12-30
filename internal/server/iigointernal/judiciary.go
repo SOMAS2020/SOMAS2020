@@ -147,6 +147,23 @@ func (j *judiciary) clearHistoryCache() {
 	j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
 }
 
+// cycleHistoryCache rolls the history cache (for retributive justice) forward
+func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
+	newMap := j.localHistoryCache
+	delete(newMap, historyCacheDepth-1)
+	newMapCache := newMap
+	for i := 0; i < historyCacheDepth-1; i++ {
+		newMap[i+1] = newMapCache[i]
+	}
+	newMap[0] = iigoHistory
+	j.localHistoryCache = newMap
+}
+
+// clearHistoryCache wipes the history cache (when retributive justice has happened)
+func (j *judiciary) clearHistoryCache() {
+	j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
+}
+
 // Helper functions //
 
 // getDefaultSanctionThresholds provides default thresholds for sanctions
