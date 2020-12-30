@@ -1,6 +1,7 @@
 package iigointernal
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -23,7 +24,17 @@ func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.
 	})
 }
 
-func (m *monitor) monitorRole(roleToMonitorID shared.ClientID) bool {
+func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool) {
+	roleToMonitor, roleName := m.findRoleToMonitor(roleAccountable)
+	decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
+	evaluationResult := false
+	if decideToMonitor {
+		evaluationResult = m.evaluateCache(roleToMonitor)
+	}
+	return decideToMonitor, evaluationResult
+}
+
+func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID) bool {
 	performedRoleCorrectly := true
 	for _, entry := range m.internalIIGOCache {
 		if entry.ClientID == roleToMonitorID {
@@ -46,4 +57,15 @@ func (m *monitor) monitorRole(roleToMonitorID shared.ClientID) bool {
 		}
 	}
 	return performedRoleCorrectly
+}
+
+func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, baseclient.Role, error) {
+	switch roleAccountable.GetID() {
+	case m.speakerID:
+		return m.presidentID, baseclient.President, nil
+	case m.presidentID:
+		return m.judgeID, baseclient.Judge, nil
+	case m.judgeID:
+		return m.speakerID, baseclient.Speaker, nil
+	}
 }
