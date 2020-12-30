@@ -147,10 +147,10 @@ func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]s
 
 			if totalContributions > 0.0 {
 				switch r.distrStrategy {
-				case shared.EqualSplit:
-					participantReturn = huntReport.TotalUtility / shared.Resources(huntReport.NumberParticipants) // this casting is a bit lazy
 				case shared.InputProportionalSplit:
 					participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
+				default: // default to EqualSplit for now
+					participantReturn = huntReport.TotalUtility / shared.Resources(huntReport.NumberParticipants) // this casting is a bit lazy
 				}
 			}
 		}
