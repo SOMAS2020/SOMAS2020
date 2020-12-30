@@ -26,6 +26,7 @@ func searchForVariableInArray(val VariableFieldName, array []VariableFieldName) 
 	return -1, false
 }
 
+// MakeVariableValuePair creates a VariableValuePair from the variable name and its value
 func MakeVariableValuePair(variable VariableFieldName, value []float64) VariableValuePair {
 	return VariableValuePair{
 		VariableName: variable,
