@@ -126,6 +126,8 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	valuesToCache := [][]float64{{boolToFloat(allocationsMade)}}
 	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
+	monitoring.monitorRole(iigoClients[g.SpeakerID])
+
 	// 3 Speaker actions
 	legislativeBranch.setRuleToVote(ruleToVote)
 	voteCalled := legislativeBranch.setVotingResult(aliveClientIds)
@@ -135,7 +137,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
-	monitoring.monitorRole(iigoClients[g.PresidentID])
+	monitoring.monitorRole(iigoClients[g.JudgeID])
 
 	// Get new Judge ID
 	g.JudgeID = legislativeBranch.appointNextJudge(g.JudgeID, aliveClientIds)
