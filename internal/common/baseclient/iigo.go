@@ -89,6 +89,10 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	return 0
 }
 
+func (c *BaseClient) GetSanctionPayment() shared.Resources {
+	return 0
+}
+
 // RequestAllocation FIXME: Add documentation. What does this function do?
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.

@@ -17,7 +17,7 @@ var judicialBranch = judiciary{
 	JudgeID:            0,
 	budget:             0,
 	presidentSalary:    0,
-	EvaluationResults:  nil,
+	evaluationResults:  nil,
 	localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
 	localHistoryCache:  defaultInitLocalHistoryCache(historyCacheDepth),
 }
@@ -47,6 +47,9 @@ var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
 // AllocationAmountMapExport is a local allocation map for checking of rules
 var AllocationAmountMapExport map[shared.ClientID]shared.Resources
+
+// SanctionAmountMapExport
+var SanctionAmountMapExport map[shared.ClientID]shared.Resources
 
 // Pointers allow clients to customise implementations of mutable functions
 var judgePointer roles.Judge = nil

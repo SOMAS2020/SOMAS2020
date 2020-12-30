@@ -11,6 +11,135 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+/// Unit tests ///
+
+// TestMergeEvalResults checks whether the mergeEvalResults function can perform a soft merge of two maps of
+// the type map[shared.ClientID]roles.EvaluationReturn
+func TestMergeEvalResults(t *testing.T) {
+	availableRules := generateDummyRuleMatrices()
+	cases := []struct {
+		name   string
+		set1   map[shared.ClientID]roles.EvaluationReturn
+		set2   map[shared.ClientID]roles.EvaluationReturn
+		expect map[shared.ClientID]roles.EvaluationReturn
+	}{
+		{
+			name: "Simple merge test",
+			set1: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[0],
+						availableRules[1],
+					},
+					Evaluations: []bool{true, false},
+				},
+			},
+			set2: map[shared.ClientID]roles.EvaluationReturn{},
+			expect: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[0],
+						availableRules[1],
+					},
+					Evaluations: []bool{true, false},
+				},
+			},
+		},
+		{
+			name: "Complex Merge Test",
+			set1: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[0],
+						availableRules[1],
+					},
+					Evaluations: []bool{true, false},
+				},
+			},
+			set2: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team2: {
+					Rules: []rules.RuleMatrix{
+						availableRules[2],
+						availableRules[3],
+					},
+					Evaluations: []bool{true, false},
+				},
+			},
+			expect: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[0],
+						availableRules[1],
+					},
+					Evaluations: []bool{true, false},
+				},
+				shared.Team2: {
+					Rules: []rules.RuleMatrix{
+						availableRules[2],
+						availableRules[3],
+					},
+					Evaluations: []bool{true, false},
+				},
+			},
+		},
+		{
+			name: "Patchwork merge test",
+			set1: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[0],
+						availableRules[1],
+					},
+					Evaluations: []bool{true, false},
+				},
+			},
+			set2: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[0],
+						availableRules[1],
+					},
+					Evaluations: []bool{true, false},
+				},
+				shared.Team2: {
+					Rules: []rules.RuleMatrix{
+						availableRules[2],
+						availableRules[3],
+					},
+					Evaluations: []bool{true, false},
+				},
+			},
+			expect: map[shared.ClientID]roles.EvaluationReturn{
+				shared.Team1: {
+					Rules: []rules.RuleMatrix{
+						availableRules[0],
+						availableRules[1],
+						availableRules[0],
+						availableRules[1],
+					},
+					Evaluations: []bool{true, false, true, false},
+				},
+				shared.Team2: {
+					Rules: []rules.RuleMatrix{
+						availableRules[2],
+						availableRules[3],
+					},
+					Evaluations: []bool{true, false},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := mergeEvalResults(tc.set1, tc.set2)
+			if !reflect.DeepEqual(res, tc.expect) {
+				t.Errorf("Expected %v got %v", tc.expect, res)
+			}
+		})
+	}
+}
+
 // TestSearchEvalReturnForRuleName checks whether the searchEvalReturnForRuleName is able to pick up which rules
 // have been evaluated in a set of EvaluationReturns
 func TestSearchEvalReturnForRuleName(t *testing.T) {
@@ -483,6 +612,60 @@ func TestImplementPardons(t *testing.T) {
 				t.Errorf("Expected Communications to be %v got %v", tc.expComms, comms)
 			} else if !reflect.DeepEqual(finalCache, tc.expFinCache) {
 				t.Errorf("Expected Final Cache to be %v got %v", tc.expFinCache, finalCache)
+			}
+		})
+	}
+}
+
+// TestUnpackSingleIslandTransgression checks whether unpackSingleIslandTransgressions is able to check an
+// EvaluationReturn data-structure and collect all rules that have found to be broken
+func TestUnpackSingleIslandTransgression(t *testing.T) {
+	availableRules := generateDummyRuleMatrices()
+	cases := []struct {
+		name       string
+		evalReturn roles.EvaluationReturn
+		expected   []string
+	}{
+		{
+			name: "Basic unpack test",
+			evalReturn: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+				},
+				Evaluations: []bool{false},
+			},
+			expected: []string{
+				"inspect_ballot_rule",
+			},
+		},
+		{
+			name: "None to unpack",
+			evalReturn: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+				},
+				Evaluations: []bool{true},
+			},
+			expected: []string{},
+		},
+		{
+			name: "Multiple unpack",
+			evalReturn: roles.EvaluationReturn{
+				Rules: []rules.RuleMatrix{
+					availableRules[0],
+					availableRules[1],
+					availableRules[2],
+				},
+				Evaluations: []bool{false, false, false},
+			},
+			expected: []string{availableRules[0].RuleName, availableRules[1].RuleName, availableRules[2].RuleName},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tra := unpackSingleIslandTransgressions(tc.evalReturn)
+			if !reflect.DeepEqual(tra, tc.expected) {
+				t.Errorf("Expected final transgressions to be %v got %v", tc.expected, tra)
 			}
 		})
 	}
