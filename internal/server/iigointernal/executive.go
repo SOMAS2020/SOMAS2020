@@ -23,6 +23,21 @@ type executive struct {
 
 func (e *executive) monitorSpeaker(speakerCache []shared.Accountability) bool {
 	performedRoleCorrectly := true
+	for _, entry := range speakerCache {
+		variablePairs := entry.Pairs
+		var rulesAffected []string
+		for _, variable := range variablePairs {
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
+			if foundRules {
+				rulesAffected = append(rulesAffected, valuesToBeAdded...)
+			}
+			rules.UpdateVariable(variable.VariableName, variable)
+		}
+		for _, rule := range rulesAffected {
+			evaluation, _ := rules.BasicBooleanRuleEvaluator(rule)
+			performedRoleCorrectly = evaluation && performedRoleCorrectly
+		}
+	}
 	return performedRoleCorrectly
 }
 

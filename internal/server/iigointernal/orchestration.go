@@ -132,8 +132,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		VariableName: rules.VoteCalled,
 		Values:       []float64{boolToFloat(voteCalled)},
 	}
-	rules.UpdateVariable(rules.RuleSelected, ruleSelectedPair)
-	rules.UpdateVariable(rules.VoteCalled, voteCalledPair)
 	speakerCache = append(speakerCache, shared.Accountability{
 		ClientID: g.SpeakerID,
 		Pairs:    []rules.VariableValuePair{voteCalledPair, ruleSelectedPair},
