@@ -68,4 +68,6 @@ func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.C
 	case m.judgeID:
 		return m.speakerID, baseclient.Speaker, nil
 	}
+default:
+	return nil, nil, 
 }
