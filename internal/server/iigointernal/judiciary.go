@@ -189,40 +189,91 @@ func defaultInitLocalSanctionCache(depth int) map[int][]roles.Sanction {
 	return returnMap
 }
 
-// checkPardons checks the pardons issued by an island judge making sure they are valid, returns the remaining sanctions
-func checkPardons(sanctionCache map[int][]roles.Sanction, pardons map[int]map[int]roles.Sanction) (pardonsValid bool, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent, finalCache map[int][]roles.Sanction) {
-	comms := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
-	newSanctionCache := map[int][]roles.Sanction{}
-	for k, v := range sanctionCache {
-		ctr := make([]roles.Sanction, len(v))
-		copy(ctr, v)
-		newSanctionCache[k] = ctr
-	}
-	for i, v := range pardons {
-		for iSan, vSan := range v {
-			if sanctionCache[i][iSan] != vSan {
-				return false, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}, sanctionCache
-			} else {
-				comms[vSan.ClientID] = append(comms[vSan.ClientID], map[shared.CommunicationFieldName]shared.CommunicationContent{
-					shared.PardonClientID: {
-						T:           shared.CommunicationInt,
-						IntegerData: int(vSan.ClientID),
-					},
-					shared.PardonTier: {
-						T:           shared.CommunicationInt,
-						IntegerData: int(vSan.SanctionTier),
-					},
-				})
-				copyOfNewSanctionCache := make([]roles.Sanction, len(newSanctionCache[i]))
-				copy(copyOfNewSanctionCache, newSanctionCache[i])
-				newSanctionCache[i] = removeSanctions(copyOfNewSanctionCache, iSan-getDifferenceInLength(sanctionCache[i], copyOfNewSanctionCache))
-			}
+func implementPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool, allTeamIds []shared.ClientID) (bool, map[int][]roles.Sanction, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	if validatePardons(sanctionCache, pardons) {
+		finalSanctionCache := sanctionCache
+		communicationsAboutPardons := generateEmptyCommunicationsMap(allTeamIds)
+		for timeStep, _ := range sanctionCache {
+			sanctionsAfterPardons, communicationsForTimeStep := processSingleTimeStep(sanctionCache[timeStep], pardons[timeStep], allTeamIds)
+			finalSanctionCache = knitSanctions(finalSanctionCache, timeStep, sanctionsAfterPardons)
+			communicationsAboutPardons = knitPardonCommunications(communicationsAboutPardons, communicationsForTimeStep)
 		}
+		return true, finalSanctionCache, communicationsAboutPardons
 	}
-	return true, comms, newSanctionCache
+	return false, sanctionCache, nil
 }
 
-// removeSanctions is a helper function to remoce a sanction element from a slice
+func generateEmptyCommunicationsMap(allTeamIds []shared.ClientID) map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
+	commsMap := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
+	for _, clientID := range allTeamIds {
+		commsMap[clientID] = []map[shared.CommunicationFieldName]shared.CommunicationContent{}
+	}
+	return commsMap
+}
+
+func knitSanctions(sanctionCache map[int][]roles.Sanction, loc int, newSanctions []roles.Sanction) map[int][]roles.Sanction {
+	sanctionCache[loc] = newSanctions
+	return sanctionCache
+}
+
+func knitPardonCommunications(originalCommunications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent, newCommunications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
+	for clientID, oldComms := range originalCommunications {
+		if newComms, ok := newCommunications[clientID]; ok {
+			originalCommunications[clientID] = append(oldComms, newComms...)
+		}
+	}
+	return originalCommunications
+}
+
+func processSingleTimeStep(sanctions []roles.Sanction, pardons []bool, allTeamIds []shared.ClientID) (sanctionsAfterPardons []roles.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	finalSanctions := []roles.Sanction{}
+	finalComms := generateEmptyCommunicationsMap(allTeamIds)
+	for entry, pardoned := range pardons {
+		if pardoned {
+			finalComms[sanctions[entry].ClientID] = append(finalComms[sanctions[entry].ClientID], generateCommunication(sanctions[entry].ClientID, sanctions[entry].SanctionTier))
+		} else {
+			finalSanctions = append(finalSanctions, sanctions[entry])
+		}
+	}
+	return finalSanctions, finalComms
+}
+
+func generateCommunication(clientID shared.ClientID, pardonTier roles.IIGOSanctionTier) map[shared.CommunicationFieldName]shared.CommunicationContent {
+	return map[shared.CommunicationFieldName]shared.CommunicationContent{
+		shared.PardonClientID: {
+			T:           shared.CommunicationInt,
+			IntegerData: int(clientID),
+		},
+		shared.PardonTier: {
+			T:           shared.CommunicationInt,
+			IntegerData: int(pardonTier),
+		},
+	}
+}
+
+func validatePardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) bool {
+	return checkKeys(sanctionCache, pardons) && checkSizes(sanctionCache, pardons)
+}
+
+func checkKeys(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) bool {
+	for k, _ := range sanctionCache {
+		if _, ok := pardons[k]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func checkSizes(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) bool {
+	for k, _ := range sanctionCache {
+		if len(sanctionCache[k]) != len(pardons[k]) {
+			return false
+		}
+	}
+	return true
+}
+
+// removeSanctions is a helper function to remove a sanction element from a slice
 func removeSanctions(slice []roles.Sanction, s int) []roles.Sanction {
 	var output []roles.Sanction
 	for i, v := range slice {

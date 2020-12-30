@@ -64,8 +64,8 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 	return outputMap, true
 }
 
-func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int]map[int]roles.Sanction {
-	return map[int]map[int]roles.Sanction{}
+func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
+	return map[int][]bool{}
 }
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.

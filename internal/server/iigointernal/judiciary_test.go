@@ -13,11 +13,12 @@ import (
 
 // TestCheckPardons checks whether checkPardons is able to correctly identify pardons issued on sanctions that
 // don't exist, and then subtracts these pardoned sanctions from the sanctionCache
-func TestCheckPardons(t *testing.T) {
+func TestImplementPardons(t *testing.T) {
+	TeamIDs := []shared.ClientID{shared.Team1, shared.Team2, shared.Team3, shared.Team4, shared.Team5, shared.Team6}
 	cases := []struct {
 		name          string
 		sanctionCache map[int][]roles.Sanction
-		pardons       map[int]map[int]roles.Sanction
+		pardons       map[int][]bool
 		expValidity   bool
 		expComms      map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 		expFinCache   map[int][]roles.Sanction
@@ -33,9 +34,13 @@ func TestCheckPardons(t *testing.T) {
 					},
 				},
 			},
-			pardons:     map[int]map[int]roles.Sanction{},
+			pardons: map[int][]bool{
+				1: {
+					false,
+				},
+			},
 			expValidity: true,
-			expComms:    map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{},
+			expComms:    generateEmptyCommunicationsMap(TeamIDs),
 			expFinCache: map[int][]roles.Sanction{
 				1: {
 					{
@@ -62,13 +67,10 @@ func TestCheckPardons(t *testing.T) {
 					},
 				},
 			},
-			pardons: map[int]map[int]roles.Sanction{
+			pardons: map[int][]bool{
 				1: {
-					0: {
-						ClientID:     shared.Team1,
-						SanctionTier: roles.SanctionTier3,
-						TurnsLeft:    3,
-					},
+					true,
+					false,
 				},
 			},
 			expValidity: true,
@@ -85,6 +87,11 @@ func TestCheckPardons(t *testing.T) {
 						},
 					},
 				},
+				shared.Team2: {},
+				shared.Team3: {},
+				shared.Team4: {},
+				shared.Team5: {},
+				shared.Team6: {},
 			},
 			expFinCache: map[int][]roles.Sanction{
 				1: {
@@ -117,18 +124,11 @@ func TestCheckPardons(t *testing.T) {
 					},
 				},
 			},
-			pardons: map[int]map[int]roles.Sanction{
+			pardons: map[int][]bool{
 				1: {
-					0: {
-						ClientID:     shared.Team1,
-						SanctionTier: roles.SanctionTier3,
-						TurnsLeft:    3,
-					},
-					2: {
-						ClientID:     shared.Team3,
-						SanctionTier: roles.SanctionTier2,
-						TurnsLeft:    2,
-					},
+					true,
+					false,
+					true,
 				},
 			},
 			expValidity: true,
@@ -157,6 +157,10 @@ func TestCheckPardons(t *testing.T) {
 						},
 					},
 				},
+				shared.Team2: {},
+				shared.Team4: {},
+				shared.Team5: {},
+				shared.Team6: {},
 			},
 			expFinCache: map[int][]roles.Sanction{
 				1: {
@@ -189,22 +193,13 @@ func TestCheckPardons(t *testing.T) {
 					},
 				},
 			},
-			pardons: map[int]map[int]roles.Sanction{
+			pardons: map[int][]bool{
 				1: {
-					0: {
-						ClientID:     shared.Team1,
-						SanctionTier: roles.SanctionTier3,
-						TurnsLeft:    3,
-					},
-					2: {
-						ClientID:     shared.Team3,
-						SanctionTier: roles.SanctionTier2,
-						TurnsLeft:    3,
-					},
+					false,
 				},
 			},
 			expValidity: false,
-			expComms:    map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{},
+			expComms:    nil,
 			expFinCache: map[int][]roles.Sanction{
 				1: {
 					{
@@ -228,13 +223,13 @@ func TestCheckPardons(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			val, comm, finCache := checkPardons(tc.sanctionCache, tc.pardons)
+			val, finalCache, comms := implementPardons(tc.sanctionCache, tc.pardons, TeamIDs)
 			if val != tc.expValidity {
 				t.Errorf("Expected validity %v got %v", tc.expValidity, val)
-			} else if !reflect.DeepEqual(comm, tc.expComms) {
-				t.Errorf("Expected Communications to be %v got %v", tc.expComms, comm)
-			} else if !reflect.DeepEqual(finCache, tc.expFinCache) {
-				t.Errorf("Expected Final Cache to be %v got %v", tc.expFinCache, finCache)
+			} else if !reflect.DeepEqual(comms, tc.expComms) {
+				t.Errorf("Expected Communications to be %v got %v", tc.expComms, comms)
+			} else if !reflect.DeepEqual(finalCache, tc.expFinCache) {
+				t.Errorf("Expected Final Cache to be %v got %v", tc.expFinCache, finalCache)
 			}
 		})
 	}
