@@ -10,7 +10,7 @@ import (
 
 // DeerPopulationModel encapsulates a deer population over time (governed by a predefined DE)
 type DeerPopulationModel struct {
-	deProblem  simulation.ODEProblem // definition of DE governing rate of change of deer pop.
+	deProblem  simulation.ODEProblem // definition of DE governing rate of change of deeer pop.
 	Population float64               // current number of deer in env
 	T          float64               // temporal parameter. Time, turn or whatever other incarnation
 }
@@ -19,15 +19,14 @@ type DeerPopulationModel struct {
 // it easier to read logs. DO NOT use other loggers that will mess logs up!
 // BASE: Do not overwrite in team client.
 func (dp *DeerPopulationModel) Logf(format string, a ...interface{}) {
-	log.Printf("DeerPop [t=%.1f]: %v", dp.T, fmt.Sprintf(format, a...))
+	log.Printf("[SERVER]: DeerPop [t=%.1f]: %v", dp.T, fmt.Sprintf(format, a...))
 }
 
 // CreateBasicDeerPopulationModel returns a basic population model based on dP/dt = k(N-y) model. k = growth coeff., N = max deer (constants).
-func createBasicDeerPopulationModel(fConf config.ForagingConfig) DeerPopulationModel {
-	// definition of deer pop. gradient. Provides dy/dt given y, t.
-	maxDeer := fConf.MaxDeerPopulation
+func createBasicDeerPopulationModel(dhConf config.DeerHuntConfig) DeerPopulationModel {
+	maxDeer := dhConf.MaxDeerPopulation
 	deerPopulationGrowth := func(t, y float64) float64 {
-		return fConf.DeerGrowthCoefficient * (float64(maxDeer) - y) // DE of form dy/dt = k(N-y) where k, N are constants
+		return dhConf.DeerGrowthCoefficient * (float64(maxDeer) - y) // DE of form dy/dt = k(N-y) where k, N are constants
 	}
 	return DeerPopulationModel{
 		deProblem:  simulation.ODEProblem{YPrime: deerPopulationGrowth, Y0: float64(maxDeer), T0: 0, DtStep: 0.1},
@@ -39,12 +38,13 @@ func createBasicDeerPopulationModel(fConf config.ForagingConfig) DeerPopulationM
 // Simulate method simulates the reaction of a deer pop. over i=len(deerConsumption) days where [0, maxDeer] are hunted each day i.
 // Note: if only simulating for one turn ('step'), len(deerConsumption) = 1
 func (dp *DeerPopulationModel) Simulate(deerConsumption []int) {
-	var t float64
-	y := dp.Population
 	deStep := dp.deProblem.StepDeltaY()
+
 	for i := 0; i < len(deerConsumption); i++ { // note: can use DE.SolveUntilT(10) but in this case we want access to y, t at each iteration
-		y0 := y - float64(deerConsumption[i])
-		t, y = deStep(float64(-deerConsumption[i])) // this will update population, t in receiver
-		dp.Logf("Day %v - P(t): %.2f, \tdeer after hunt %v, \tdeer end of day: %v, \tdeer hunted: %v\n", t, y, int(y0), int(y), deerConsumption[i])
+		y0 := dp.Population - float64(deerConsumption[i])
+		t, y := deStep(float64(-deerConsumption[i])) // this will update population, t in receiver
+		dp.Logf("P(t): %.2f, \tdeer after hunt %v, \tdeer end of day: %v, \tdeer hunted: %v\n", y, int(y0), int(y), deerConsumption[i])
+
+		dp.Population, dp.T = y, t
 	}
 }
