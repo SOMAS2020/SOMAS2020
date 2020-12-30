@@ -183,7 +183,7 @@ func (l *legislature) appointNextJudge(currentJudge shared.ClientID, allIslands 
 		nextJudge = election.CloseBallot()
 		nextJudge = l.clientSpeaker.DecideNextJudge(nextJudge)
 	} else {
-		l.judgeTurnsInPower += 1
+		l.judgeTurnsInPower++
 		nextJudge = currentJudge
 	}
 	return nextJudge

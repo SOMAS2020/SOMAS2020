@@ -94,7 +94,7 @@ func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIs
 		nextPresident = election.CloseBallot()
 		nextPresident = j.clientJudge.DecideNextPresident(nextPresident)
 	} else {
-		j.presidentTurnsInPower += 1
+		j.presidentTurnsInPower++
 		nextPresident = currentPresident
 	}
 	return nextPresident

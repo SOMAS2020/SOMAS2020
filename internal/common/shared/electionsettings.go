@@ -6,14 +6,17 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
 
+// ElectionVotingMethod provides enumerated type for selection of voting system to be used
 type ElectionVotingMethod int
 
+// Methods for winner selection in IIGO elections
 const (
 	BordaCount ElectionVotingMethod = iota
 	Plurality
 	Majority
 )
 
+// ElectionSettings allows islands to configure elections for power transfer in IIGO
 type ElectionSettings struct {
 	VotingMethod  ElectionVotingMethod
 	IslandsToVote []ClientID

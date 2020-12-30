@@ -122,7 +122,7 @@ func (e *executive) appointNextSpeaker(currentSpeaker shared.ClientID, allIsland
 		nextSpeaker = election.CloseBallot()
 		nextSpeaker = e.clientPresident.DecideNextSpeaker(nextSpeaker)
 	} else {
-		e.speakerTurnsInPower += 1
+		e.speakerTurnsInPower++
 		nextSpeaker = currentSpeaker
 	}
 	return nextSpeaker
