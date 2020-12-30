@@ -1,6 +1,11 @@
+/* eslint-disable */
+
 // Copyright 2018 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
+// https://github.com/golang/go/blob/master/misc/wasm/wasm_exec.js
+// 7be8358f70ff858f28b9aefe11986da25f1762bc
 
 (() => {
 	// Map multiple JavaScript environments to a single common API,
@@ -11,28 +16,30 @@
 	// - Node.js
 	// - Electron
 	// - Parcel
-	// - Webpack
+    // - Webpack
+    
+    // @lhl2617: not node env
 
-	if (typeof global !== "undefined") {
-		// global already exists
-	} else if (typeof window !== "undefined") {
-		window.global = window;
-	} else if (typeof self !== "undefined") {
-		self.global = self;
-	} else {
-		throw new Error("cannot export Go (neither global, window nor self is defined)");
-	}
+	// if (typeof global !== "undefined") {
+	// 	// global already exists
+	// } else if (typeof window !== "undefined") {
+	// 	window.global = window;
+	// } else if (typeof self !== "undefined") {
+	// 	self.global = self;
+	// } else {
+	// 	throw new Error("cannot export Go (neither global, window nor self is defined)");
+	// }
 
-	if (!global.require && typeof require !== "undefined") {
-		global.require = require;
-	}
+	// if (!global.require && typeof require !== "undefined") {
+	// 	global.require = require;
+	// }
 
-	if (!global.fs && global.require) {
-		const fs = require("fs");
-		if (typeof fs === "object" && fs !== null && Object.keys(fs).length !== 0) {
-			global.fs = fs;
-		}
-	}
+	// if (!global.fs && global.require) {
+	// 	const fs = require("fs");
+	// 	if (typeof fs === "object" && fs !== null && Object.keys(fs).length !== 0) {
+	// 		global.fs = fs;
+	// 	}
+	// }
 
 	const enosys = () => {
 		const err = new Error("not implemented");

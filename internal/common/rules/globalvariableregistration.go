@@ -74,4 +74,24 @@ var StaticVariables = []VariableValuePair{
 		VariableName: IslandAllocation,
 		Values:       []float64{0},
 	},
+	{
+		VariableName: IslandReportedResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: ConstSanctionAmount,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: TurnsLeftOnSanction,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: SanctionPaid,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: SanctionExpected,
+		Values:       []float64{0},
+	},
 }
