@@ -4,10 +4,240 @@ import (
 	"fmt"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
 	"reflect"
 	"testing"
 )
+
+// TestCheckPardons checks whether checkPardons is able to correctly identify pardons issued on sanctions that
+// don't exist, and then subtracts these pardoned sanctions from the sanctionCache
+func TestCheckPardons(t *testing.T) {
+	cases := []struct {
+		name          string
+		sanctionCache map[int][]roles.Sanction
+		pardons       map[int]map[int]roles.Sanction
+		expValidity   bool
+		expComms      map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
+		expFinCache   map[int][]roles.Sanction
+	}{
+		{
+			name: "No Pardons Check",
+			sanctionCache: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+				},
+			},
+			pardons:     map[int]map[int]roles.Sanction{},
+			expValidity: true,
+			expComms:    map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{},
+			expFinCache: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+				},
+			},
+		},
+		{
+			name: "Simple Pardons Case",
+			sanctionCache: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+				},
+			},
+			pardons: map[int]map[int]roles.Sanction{
+				1: {
+					0: {
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+				},
+			},
+			expValidity: true,
+			expComms: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{
+				shared.Team1: {
+					{
+						shared.PardonClientID: {
+							T:           shared.CommunicationInt,
+							IntegerData: int(shared.Team1),
+						},
+						shared.PardonTier: {
+							T:           shared.CommunicationInt,
+							IntegerData: int(roles.SanctionTier3),
+						},
+					},
+				},
+			},
+			expFinCache: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+				},
+			},
+		},
+		{
+			name: "Complex Pardons Case",
+			sanctionCache: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team3,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    2,
+					},
+				},
+			},
+			pardons: map[int]map[int]roles.Sanction{
+				1: {
+					0: {
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					2: {
+						ClientID:     shared.Team3,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    2,
+					},
+				},
+			},
+			expValidity: true,
+			expComms: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{
+				shared.Team1: {
+					{
+						shared.PardonClientID: {
+							T:           shared.CommunicationInt,
+							IntegerData: int(shared.Team1),
+						},
+						shared.PardonTier: {
+							T:           shared.CommunicationInt,
+							IntegerData: int(roles.SanctionTier3),
+						},
+					},
+				},
+				shared.Team3: {
+					{
+						shared.PardonClientID: {
+							T:           shared.CommunicationInt,
+							IntegerData: int(shared.Team3),
+						},
+						shared.PardonTier: {
+							T:           shared.CommunicationInt,
+							IntegerData: int(roles.SanctionTier2),
+						},
+					},
+				},
+			},
+			expFinCache: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+				},
+			},
+		},
+		{
+			name: "Complex Pardons Failure Case",
+			sanctionCache: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team3,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    2,
+					},
+				},
+			},
+			pardons: map[int]map[int]roles.Sanction{
+				1: {
+					0: {
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					2: {
+						ClientID:     shared.Team3,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    3,
+					},
+				},
+			},
+			expValidity: false,
+			expComms:    map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{},
+			expFinCache: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: roles.SanctionTier3,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team3,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    2,
+					},
+				},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			val, comm, finCache := checkPardons(tc.sanctionCache, tc.pardons)
+			if val != tc.expValidity {
+				t.Errorf("Expected validity %v got %v", tc.expValidity, val)
+			} else if !reflect.DeepEqual(comm, tc.expComms) {
+				t.Errorf("Expected Communications to be %v got %v", tc.expComms, comm)
+			} else if !reflect.DeepEqual(finCache, tc.expFinCache) {
+				t.Errorf("Expected Final Cache to be %v got %v", tc.expFinCache, finCache)
+			}
+		})
+	}
+}
 
 // TestSoftMergeSanctionThreshold checks whether the softMergeSanctionThresholds is able to correctly merge
 // the clients threshols with the default ones
