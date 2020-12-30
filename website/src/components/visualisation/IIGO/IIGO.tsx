@@ -1,8 +1,8 @@
 import React from 'react';
-import logo from '../../assets/logo/logo512.png';
-import styles from './IIFO.module.css';
+import logo from '../../../assets/logo/logo512.png';
+import styles from './IIGO.module.css';
 
-function IIFO() {
+const IIGO = () => {
   return (
     <div className={styles.root}>
       <img src={logo} className={styles.appLogo} alt="logo" />
@@ -13,4 +13,4 @@ function IIFO() {
   );
 }
 
-export default IIFO;
+export default IIGO;

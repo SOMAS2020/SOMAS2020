@@ -1,8 +1,8 @@
 import React from 'react';
-import logo from '../../assets/logo/logo512.png';
-import styles from './Resources.module.css';
+import logo from '../../../assets/logo/logo512.png';
+import styles from './Roles.module.css';
 
-function Resources() {
+const Roles = () => {
   return (
     <div className={styles.root}>
       <img src={logo} className={styles.appLogo} alt="logo" />
@@ -13,4 +13,4 @@ function Resources() {
   );
 }
 
-export default Resources;
+export default Roles;
