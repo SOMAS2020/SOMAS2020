@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/pkg/errors"
 )
 
 // runIIFO : IIFO allows sharing of disaster predictions between islands
@@ -11,10 +10,7 @@ func (s *SOMASServer) runIIFO() error {
 	defer s.logf("finish runIIFO")
 
 	// This is for Disaster prediction
-	err := s.runPredictionSession()
-	if err != nil {
-		return errors.Errorf("Error running prediction session: %v", err)
-	}
+	s.runPredictionSession()
 
 	s.runForageSharing()
 
@@ -29,20 +25,12 @@ func (s *SOMASServer) runIIFOEndOfTurn() error {
 	return nil
 }
 
-func (s *SOMASServer) runPredictionSession() error {
+func (s *SOMASServer) runPredictionSession() {
 	s.logf("start runPredictionSession")
 	defer s.logf("finish runPredictionSession")
-	islandPredictionDict, err := s.getPredictions()
-	if err != nil {
-		return err
-	}
+	islandPredictionDict := s.getPredictions()
 
-	err = s.distributePredictions(islandPredictionDict)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	s.distributePredictions(islandPredictionDict)
 }
 
 func (s *SOMASServer) runForageSharing() {
@@ -53,49 +41,41 @@ func (s *SOMASServer) runForageSharing() {
 	s.distributeForageSharing(otherIslandInfo)
 }
 
-func (s *SOMASServer) getPredictions() (shared.PredictionInfoDict, error) {
-	islandPredictionsDict := shared.PredictionInfoDict{}
-	var err error
+func (s *SOMASServer) getPredictions() shared.DisasterPredictionInfoDict {
+	islandPredictionsDict := shared.DisasterPredictionInfoDict{}
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		islandPredictionsDict[id], err = c.MakePrediction()
-		if err != nil {
-			return islandPredictionsDict, errors.Errorf("Failed to get prediction from %v: %v", id, err)
-		}
+		islandPredictionsDict[id] = c.MakeDisasterPrediction()
 	}
-	return islandPredictionsDict, nil
+	return islandPredictionsDict
 }
 
-func (s *SOMASServer) distributePredictions(islandPredictionDict shared.PredictionInfoDict) error {
-	receivedPredictionsDict := make(shared.ReceivedPredictionsDict)
-	var err error
+func (s *SOMASServer) distributePredictions(islandPredictionDict shared.DisasterPredictionInfoDict) {
+	reorderDictionary := make(map[shared.ClientID]shared.ReceivedDisasterPredictionsDict)
 	// Add the predictions/sources to the dict containing which predictions each island should receive
 	// Don't allow teams to know who else these predictions were shared with in MVP
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+
 	for idSource, info := range islandPredictionDict {
-		for _, idShare := range info.TeamsOfferedTo {
-			if idShare == idSource {
-				continue
+		if clientArrayContains(nonDeadClients, idSource) {
+			for _, idShare := range info.TeamsOfferedTo {
+				if idShare == idSource {
+					continue
+				}
+				if reorderDictionary[idShare] == nil {
+					reorderDictionary[idShare] = make(shared.ReceivedDisasterPredictionsDict)
+				}
+				reorderDictionary[idShare][idSource] = shared.ReceivedDisasterPredictionInfo{PredictionMade: info.PredictionMade, SharedFrom: idSource}
 			}
-			if receivedPredictionsDict[idShare] == nil {
-				receivedPredictionsDict[idShare] = make(shared.PredictionInfoDict)
-			}
-			info.TeamsOfferedTo = nil
-			receivedPredictionsDict[idShare][idSource] = info
 		}
 	}
 
 	// Now distribute these predictions to the islands
-	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		err = c.ReceivePredictions(receivedPredictionsDict[id])
-		if err != nil {
-			return errors.Errorf("Failed to receive prediction from client %v: %v", id, err)
-		}
+		c.ReceiveDisasterPredictions(reorderDictionary[id])
 	}
-
-	return nil
 }
 
 // getForageSharing will ping each nonDeadClient and will save what their ForagingDecision,
@@ -135,4 +115,13 @@ func (s *SOMASServer) distributeForageSharing(otherIslandInfo shared.ForagingOff
 
 		c.ReceiveForageInfo(islandForagingDict[id])
 	}
+}
+
+func clientArrayContains(clientArray []shared.ClientID, client shared.ClientID) bool {
+	for _, c := range clientArray {
+		if client == c {
+			return true
+		}
+	}
+	return false
 }
