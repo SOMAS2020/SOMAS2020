@@ -189,16 +189,6 @@ func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]sha
 	return nil
 }
 
-func (s *SOMASServer) runDummyHunt() error {
-	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
-	return s.runDeerHunt(huntParticipants)
-}
-
-func (s *SOMASServer) runDummyFishingExpedition() error {
-	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
-	return s.runFishingExpedition(huntParticipants)
-}
-
 // updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt
 func (s *SOMASServer) updateDeerPopulation(consumption uint) {
 	s.gameState.DeerPopulation.Simulate([]int{int(consumption)}) // updates pop. according to DE definition
