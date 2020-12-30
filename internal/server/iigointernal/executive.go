@@ -161,6 +161,7 @@ func (e *executive) sendSpeakerSalary() error {
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, e.gameState.SpeakerID, e.gameState)
+				return nil
 			}
 		}
 	}

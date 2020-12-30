@@ -684,3 +684,84 @@ func TestReplyAllocationRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestPresidentIncurServiceCharge(t *testing.T) {
+	cases := []struct {
+		name                    string
+		bPresident              executive // base
+		input                   shared.Resources
+		expectedReturn          bool
+		expectedCommonPool      shared.Resources
+		expectedPresidentBudget shared.Resources
+	}{
+		{
+			name: "Excess pay",
+			bPresident: executive{
+				ID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 400,
+					IIGORolesBudget: map[string]shared.Resources{
+						"president": 100,
+						"speaker":   10,
+						"judge":     10,
+					},
+				},
+			},
+			input:                   50,
+			expectedReturn:          true,
+			expectedCommonPool:      350,
+			expectedPresidentBudget: 50,
+		},
+		{
+			name: "Negative Budget",
+			bPresident: executive{
+				ID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 400,
+					IIGORolesBudget: map[string]shared.Resources{
+						"president": 10,
+						"speaker":   10,
+						"judge":     10,
+					},
+				},
+			},
+			input:                   50,
+			expectedReturn:          true,
+			expectedCommonPool:      350,
+			expectedPresidentBudget: -40,
+		},
+		{
+			name: "Limited common pool",
+			bPresident: executive{
+				ID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 40,
+					IIGORolesBudget: map[string]shared.Resources{
+						"president": 10,
+						"speaker":   10,
+						"judge":     10,
+					},
+				},
+			},
+			input:                   50,
+			expectedReturn:          false,
+			expectedCommonPool:      40,
+			expectedPresidentBudget: 10,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			returned := tc.bPresident.incurServiceCharge(tc.input)
+			commonPool := tc.bPresident.gameState.CommonPool
+			presidentBudget := tc.bPresident.gameState.IIGORolesBudget["president"]
+			if returned != tc.expectedReturn ||
+				commonPool != tc.expectedCommonPool ||
+				presidentBudget != tc.expectedPresidentBudget {
+				t.Errorf("%v - Failed. Got '%v, %v, %v', but expected '%v, %v, %v'",
+					tc.name, returned, commonPool, presidentBudget,
+					tc.expectedReturn, tc.expectedCommonPool, tc.expectedPresidentBudget)
+			}
+		})
+	}
+}

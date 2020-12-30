@@ -41,6 +41,7 @@ func (l *legislature) sendJudgeSalary() error {
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, l.gameState.JudgeID, l.gameState)
+				return nil
 			}
 		}
 	}
