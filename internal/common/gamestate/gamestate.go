@@ -59,6 +59,7 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		Turn:               g.Turn,
 		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
+		CommonPool:         g.CommonPool,
 	}
 }
 
