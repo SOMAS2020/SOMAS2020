@@ -54,7 +54,6 @@ type Client interface {
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
 
-	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SentGift(sent shared.Resources, to shared.ClientID)
 	ReceivedGift(received shared.Resources, from shared.ClientID)
 }
