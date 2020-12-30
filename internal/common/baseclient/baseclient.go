@@ -154,6 +154,7 @@ func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.Commu
 	return &c.Communications
 }
 
+//MonitorIIGORole decides whether to perform monitoring on the
 func (c *BaseClient) MonitorIIGORole(roleName Role) bool {
 	return true
 }
