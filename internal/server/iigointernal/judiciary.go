@@ -193,7 +193,7 @@ func implementPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]
 	if validatePardons(sanctionCache, pardons) {
 		finalSanctionCache := sanctionCache
 		communicationsAboutPardons := generateEmptyCommunicationsMap(allTeamIds)
-		for timeStep, _ := range sanctionCache {
+		for timeStep := range sanctionCache {
 			sanctionsAfterPardons, communicationsForTimeStep := processSingleTimeStep(sanctionCache[timeStep], pardons[timeStep], allTeamIds)
 			finalSanctionCache = knitSanctions(finalSanctionCache, timeStep, sanctionsAfterPardons)
 			communicationsAboutPardons = knitPardonCommunications(communicationsAboutPardons, communicationsForTimeStep)
@@ -256,7 +256,7 @@ func validatePardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]b
 }
 
 func checkKeys(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) bool {
-	for k, _ := range sanctionCache {
+	for k := range sanctionCache {
 		if _, ok := pardons[k]; !ok {
 			return false
 		}
@@ -265,7 +265,7 @@ func checkKeys(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) b
 }
 
 func checkSizes(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) bool {
-	for k, _ := range sanctionCache {
+	for k := range sanctionCache {
 		if len(sanctionCache[k]) != len(pardons[k]) {
 			return false
 		}
