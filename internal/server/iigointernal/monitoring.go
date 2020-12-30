@@ -49,25 +49,22 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID) bool {
 			}
 			for _, rule := range rulesAffected {
 				evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
-				if err != nil {
-					continue
+				if err == nil {
+					performedRoleCorrectly = evaluation && performedRoleCorrectly
 				}
-				performedRoleCorrectly = evaluation && performedRoleCorrectly
 			}
 		}
 	}
 	return performedRoleCorrectly
 }
 
-func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, baseclient.Role, error) {
+func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, baseclient.Role) {
 	switch roleAccountable.GetID() {
 	case m.speakerID:
-		return m.presidentID, baseclient.President, nil
+		return m.presidentID, baseclient.President
 	case m.presidentID:
-		return m.judgeID, baseclient.Judge, nil
-	case m.judgeID:
-		return m.speakerID, baseclient.Speaker, nil
+		return m.judgeID, baseclient.Judge
+	default:
+		return m.speakerID, baseclient.Speaker
 	}
-default:
-	return nil, nil, 
 }
