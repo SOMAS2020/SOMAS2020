@@ -17,7 +17,7 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 		requestSum += request
 	}
 
-	if requestSum < 0.75*availCommonPool {
+	if requestSum < 0.75*availCommonPool || requestSum == 0 {
 		resourceAllocation = resourceRequest
 	} else {
 		for id, request := range resourceRequest {
@@ -73,4 +73,19 @@ func (p *BasePresident) PaySpeaker(salary shared.Resources) shared.PresidentRetu
 		SpeakerSalary: salary,
 		ActionTaken:   true,
 	}
+}
+
+// CallSpeakerElection is called by the executive to decide on power-transfer
+func (p *BasePresident) CallSpeakerElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Plurality,
+		IslandsToVote: allIslands,
+		HoldElection:  true,
+	}
+	return electionsettings
+}
+
+// DecideNextSpeaker returns the ID of chosen next Speaker
+func (p *BasePresident) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
+	return winner
 }

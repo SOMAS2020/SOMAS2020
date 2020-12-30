@@ -1,58 +1,19 @@
 package voting
 
 import (
-	"fmt"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
 
 type Election struct {
 	roleToElect   baseclient.Role
-	votingMethod  ElectionVotingMethod
+	votingMethod  shared.ElectionVotingMethod
 	islandsToVote []shared.ClientID
 	votes         [][]shared.ClientID
 }
 
-// ElectionVotingMethod provides enumerated type for selection of voting system to be used
-type ElectionVotingMethod int
-
-const (
-	BordaCount = iota
-	Plurality
-	Majority
-)
-
-func (e ElectionVotingMethod) String() string {
-	strs := [...]string{
-		"BordaCount",
-		"Plurality",
-		"Majority",
-	}
-	if e >= 0 && int(e) < len(strs) {
-		return strs[e]
-	}
-	return fmt.Sprintf("UNKNOWN ElectionVotingMethod '%v'", int(e))
-}
-
-// GoString implements GoStringer
-func (e ElectionVotingMethod) GoString() string {
-	return e.String()
-}
-
-// MarshalText implements TextMarshaler
-func (e ElectionVotingMethod) MarshalText() ([]byte, error) {
-	return miscutils.MarshalTextForString(e.String())
-}
-
-// MarshalJSON implements RawMessage
-func (e ElectionVotingMethod) MarshalJSON() ([]byte, error) {
-	return miscutils.MarshalJSONForString(e.String())
-}
-
 // ProposeMotion sets the role to be voted on
-func (e *Election) ProposeElection(role baseclient.Role, method ElectionVotingMethod) {
+func (e *Election) ProposeElection(role baseclient.Role, method shared.ElectionVotingMethod) {
 	e.roleToElect = role
 	e.votingMethod = method
 }
@@ -75,11 +36,11 @@ func (e *Election) CloseBallot() shared.ClientID {
 	var result shared.ClientID
 
 	switch e.votingMethod {
-	case BordaCount:
+	case shared.BordaCount:
 		result = e.bordaCountResult()
-	case Plurality:
+	case shared.Plurality:
 		result = e.pluralityResult()
-	case Majority:
+	case shared.Majority:
 		result = e.majorityResult()
 	}
 	return result
