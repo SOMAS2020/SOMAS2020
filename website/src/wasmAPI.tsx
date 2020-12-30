@@ -1,5 +1,4 @@
 import outputJSONData from './output/output.json'
-import { notEmpty } from './utils'
 
 // @ts-ignore
 const go: any = window.go
@@ -35,6 +34,14 @@ let loaded = false
 
 let runGameWASM: ((args: string) => RunGameReturnTypeWASM) | undefined;
 let getFlagsFormatsWASM: (() => GetFlagsFormatsReturnTypeWASM) | undefined;
+
+// Safari polyfill
+if (!WebAssembly.instantiateStreaming) { 
+    WebAssembly.instantiateStreaming = async (resp, importObject) => {
+        const source = await (await resp).arrayBuffer();
+        return await WebAssembly.instantiate(source, importObject);
+    };
+}
 
 const load = async () => {
     const { instance } = await WebAssembly.instantiateStreaming(
@@ -81,21 +88,14 @@ export const runGame = async (flags: Flag[]): Promise<RunGameReturnType> => {
 }
 
 /**
- * Take all the flags and get the ones that are different to their default values
- * then make them into the string argument required by runGame 
+ * Take all the flags and make them into the string argument required by runGame 
  * (`arg1=value,arg2=value,...`)
  * 
  * @param flags all input flags with information initially gotten from getFlagsFormats
  */
 const prepareFlags = async (flags: Flag[]): Promise<string> => {
     return flags
-        .map(f => {
-            if (f.Value !== f.DefValue) {
-                return `${f.Name}=${f.Value}`
-            }
-            return undefined
-        })
-        .filter(notEmpty)
+        .map(f => `${f.Name}=${f.Value}`)
         .join(`,`)
 }
 
