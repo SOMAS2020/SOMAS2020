@@ -50,3 +50,12 @@ func depositIntoClientPrivatePool(value shared.Resources, id shared.ClientID, st
 func depositIntoCommonPool(value shared.Resources, state *gamestate.GameState) {
 	state.CommonPool += value
 }
+
+func Contains(islandIDSlice []shared.ClientID, islandID shared.ClientID) bool {
+	for _, a := range islandIDSlice {
+		if a == islandID {
+			return true
+		}
+	}
+	return false
+}

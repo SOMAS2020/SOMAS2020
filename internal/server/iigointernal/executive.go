@@ -83,11 +83,13 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		if !e.incurServiceCharge(actionCost.BroadcastTaxationActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 		}
-		for _, islandID := range aliveIslands {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxMapReturn.ResourceMap[islandID])}
-			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-			data[shared.TaxAmount] = d
-			communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+		for islandID, resourceAmount := range taxMapReturn.ResourceMap {
+			if Contains(aliveIslands, islandID) {
+				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(resourceAmount)}
+				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+				data[shared.TaxAmount] = d
+				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+			}
 		}
 	}
 	return nil
@@ -141,11 +143,13 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources, aliveIsl
 		if !e.incurServiceCharge(actionCost.ReplyAllocationRequestsActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
-		for _, islandID := range aliveIslands {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMapReturn.ResourceMap[islandID])}
-			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-			data[shared.AllocationAmount] = d
-			communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+		for islandID, resourceAmount := range allocationMapReturn.ResourceMap {
+			if Contains(aliveIslands, islandID) {
+				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(resourceAmount)}
+				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+				data[shared.AllocationAmount] = d
+				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+			}
 		}
 	}
 	return nil
