@@ -64,10 +64,15 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 	return outputMap, true
 }
 
+// GetPardonedIslands allows a client to check all the sanctions that are currently levied against any islands.
+// By returning true for a particular position a pardon will be issued for that sanction,
+// false will continue the sanction as is
 func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
 	return map[int][]bool{}
 }
 
+// HistoricalRetributionEnabled Setting this to true will instruct the judiciary to give the judge role the entire
+// history cache to browse through for evaluations
 func (j *BaseJudge) HistoricalRetributionEnabled() bool {
 	return false
 }
