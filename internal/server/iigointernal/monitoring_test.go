@@ -6,6 +6,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"gonum.org/v1/gonum/mat"
 )
 
 func TestAddToCache(t *testing.T) {
@@ -41,6 +42,7 @@ func TestAddToCache(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+
 			monitor := &monitor{
 				internalIIGOCache: []shared.Accountability{},
 			}
@@ -95,6 +97,8 @@ func TestEvaluateCache(t *testing.T) {
 			expectedVal: true,
 		},
 	}
+	rules.RulesInPlay = registerMonitoringTestRule()
+	rules.AvailableRules = rules.RulesInPlay
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			monitor := &monitor{
@@ -106,4 +110,26 @@ func TestEvaluateCache(t *testing.T) {
 			}
 		})
 	}
+	rules.RulesInPlay = map[string]rules.RuleMatrix{}
+	rules.AvailableRules = map[string]rules.RuleMatrix{}
+}
+
+func registerMonitoringTestRule() map[string]rules.RuleMatrix {
+
+	rulesStore := map[string]rules.RuleMatrix{}
+
+	name := "vote_called_rule"
+	reqVar := []rules.VariableFieldName{
+		rules.RuleSelected,
+		rules.VoteCalled,
+	}
+
+	v := []float64{1, -1, 0}
+	CoreMatrix := mat.NewDense(1, 3, v)
+	aux := []float64{0}
+	AuxiliaryVector := mat.NewVecDense(1, aux)
+
+	rm := rules.RuleMatrix{RuleName: name, RequiredVariables: reqVar, ApplicableMatrix: *CoreMatrix, AuxiliaryVector: *AuxiliaryVector, Mutable: false}
+	rulesStore[name] = rm
+	return rulesStore
 }

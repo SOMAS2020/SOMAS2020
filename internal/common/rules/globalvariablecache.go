@@ -82,10 +82,14 @@ func (v VariableFieldName) String() string {
 		"NumberOfIslandsAlive",
 		"NumberOfBallotsCast",
 		"NumberOfAllocationsSent",
+		"AllocationRequestsMade",
+		"AllocationMade",
 		"IslandsAlive",
 		"SpeakerSalary",
 		"JudgeSalary",
 		"PresidentSalary",
+		"RuleSelected",
+		"VoteCalled",
 		"ExpectedTaxContribution",
 		"ExpectedAllocation",
 		"IslandTaxContribution",
@@ -96,6 +100,7 @@ func (v VariableFieldName) String() string {
 		"SanctionPaid",
 		"SanctionExpected",
 		"TestVariable",
+		"JudgeInspectionPerformed",
 	}
 	if v >= 0 && int(v) < len(strs) {
 		return strs[v]

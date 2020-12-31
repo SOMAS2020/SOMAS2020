@@ -6,13 +6,12 @@ func PickUpRulesByVariable(variableName VariableFieldName, ruleStore map[string]
 	if _, ok := VariableMap[variableName]; ok {
 		for k, v := range ruleStore {
 			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
-			if !found {
+			if found {
 				Rules = append(Rules, k)
 			}
 		}
 		return Rules, true
 	}
-	// fmt.Sprintf("Variable name '%v' was not found in the variable cache", variableName)
 	return []string{}, false
 }
 
