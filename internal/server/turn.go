@@ -61,8 +61,13 @@ func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
 	defer s.logf("finish endOfTurn")
 
-	if err := s.runIIGOTax(); err != nil {
-		return errors.Errorf("Failed to put taxes into common pool at end of turn: %v", err)
+	if err := s.runIIGOAllocations(); err != nil {
+		return errors.Errorf("Failed to get common pool allocations at end of turn: %v", err)
+	}
+
+	// TODO : break foraging down into foraging investments and foraging returns
+	if err := s.runForage(); err != nil {
+		return errors.Errorf("Failed to run hunt at end of turn: %v", err)
 	}
 
 	if err := s.runIIFOEndOfTurn(); err != nil {
@@ -74,13 +79,8 @@ func (s *SOMASServer) endOfTurn() error {
 		return errors.Errorf("IITO EndOfTurn error: %v", err)
 	}
 
-	// TODO : break foraging down into foraging investments and foraging returns
-	if err := s.runForage(); err != nil {
-		return errors.Errorf("Failed to run hunt at end of turn: %v", err)
-	}
-
-	if err := s.runIIGOAllocations(); err != nil {
-		return errors.Errorf("Failed to get common pool allocations at end of turn: %v", err)
+	if err := s.runIIGOTax(); err != nil {
+		return errors.Errorf("Failed to put taxes into common pool at end of turn: %v", err)
 	}
 
 	// probe for disaster

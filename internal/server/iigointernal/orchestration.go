@@ -14,10 +14,11 @@ const serviceCharge = shared.Resources(10)
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
 var judicialBranch = judiciary{
-	JudgeID:           0,
-	budget:            0,
-	presidentSalary:   0,
-	EvaluationResults: nil,
+	JudgeID:            0,
+	budget:             0,
+	presidentSalary:    0,
+	EvaluationResults:  nil,
+	localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
 }
 
 // featureSpeaker is an instantiation of the Speaker interface

@@ -9,6 +9,18 @@ import (
 type BaseJudge struct {
 }
 
+// GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
+// If a rule is not named here, the default sanction value added is 1
+func (j *BaseJudge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
+	return map[string]roles.IIGOSanctionScore{}
+}
+
+// GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
+// For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
+func (j *BaseJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{}
+}
+
 // PayPresident pays the President a salary.
 func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
@@ -50,6 +62,10 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 		outputMap[clientID] = tempReturn
 	}
 	return outputMap, true
+}
+
+func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
+	return map[int][]bool{}
 }
 
 // PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
