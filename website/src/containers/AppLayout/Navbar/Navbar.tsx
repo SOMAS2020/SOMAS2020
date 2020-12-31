@@ -24,7 +24,7 @@ const AppNavbar = () => {
       <Nav.Link className="lightbluelink">{text}</Nav.Link>
     </LinkContainer>
 
-  const getVisNavLink = (text: string, link: string) =>
+  const getNavDropdownLink = (text: string, link: string) =>
     <LinkContainer to={link} onClick={closeNav}>
       <NavDropdown.Item className="lightbluelink">{text}</NavDropdown.Item>
     </LinkContainer>
