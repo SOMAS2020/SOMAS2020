@@ -25,19 +25,6 @@ sudo npm i -g yarn
 
 `yarn install`
 
-### WebAssembly Output
-
-You also need to compile the Go program into WASM.\
-On Linux/maxOS,
-```bash
-./build_wasm.sh
-```
-
-On Windows,
-```bash
-build_cmd.cmd
-```
-
 ## Scripts
 
 ### `yarn prestart`

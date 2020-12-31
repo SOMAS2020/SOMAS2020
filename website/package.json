@@ -15,10 +15,11 @@
     "web-vitals": "^0.2.4"
   },
   "scripts": {
-    "copyoutput": "node src/scripts/copyOutput.js",
-    "prestart": "yarn copyoutput",
+    "copyoutput": "node scripts/copyOutput.js",
+    "buildwasm": "node scripts/buildWasm.js",
+    "prestart": "yarn copyoutput && yarn buildwasm",
     "start": "react-scripts start",
-    "prebuild": "yarn copyoutput",
+    "prebuild": "yarn copyoutput && yarn buildwasm",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
