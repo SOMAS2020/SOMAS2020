@@ -25,7 +25,7 @@ const FlagForm = (props: flagFormProps) => {
             placement="top"
             overlay={
               <Tooltip id={flag.Name}>
-                {flag.Usage}
+                {flag.Usage} (Type: {flag.Type}, Default: {flag.DefValue})
               </Tooltip>
             }
           >
@@ -56,6 +56,7 @@ const NewRun = () => {
       let fs: Map<string, Flag> = new Map()
       goFlags.forEach(f => { fs.set(f.Name, { ...f, Value: f.DefValue }) })
       setFlags(fs)
+      setRunError(undefined)
     }
     catch (err) {
       setRunError(err.message)
@@ -95,6 +96,7 @@ const NewRun = () => {
       const flagArr = Array.from(flags, ([_, value]) => value)
       const res = await runGame(flagArr)
       setOutput(res)
+      setRunError(undefined)
     }
     catch (err) {
       setRunError(err.message)
