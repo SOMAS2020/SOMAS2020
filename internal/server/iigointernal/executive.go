@@ -113,7 +113,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) bool {
 func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextSpeaker shared.ClientID
-	electionsettings := e.clientPresident.CallSpeakerElection(e.speakerTurnsInPower, allIslands)
+	electionsettings := e.clientPresident.CallSpeakerElection(monitoring, e.speakerTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		// TODO: deduct the cost of holding an election
 		election.ProposeElection(shared.Speaker, electionsettings.VotingMethod)

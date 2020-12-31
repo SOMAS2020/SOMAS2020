@@ -172,7 +172,7 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJudge shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextJudge shared.ClientID
-	electionsettings := l.clientSpeaker.CallJudgeElection(l.judgeTurnsInPower, allIslands)
+	electionsettings := l.clientSpeaker.CallJudgeElection(monitoring, l.judgeTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		// TODO: deduct the cost of holding an election
 		election.ProposeElection(shared.Judge, electionsettings.VotingMethod)

@@ -53,7 +53,7 @@ func (p *BasePresident) PaySpeaker(salary shared.Resources) (shared.Resources, b
 }
 
 // CallSpeakerElection is called by the executive to decide on power-transfer
-func (p *BasePresident) CallSpeakerElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (p *BasePresident) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Plurality,
 		IslandsToVote: allIslands,

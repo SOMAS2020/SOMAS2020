@@ -99,7 +99,7 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, currentPresident shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextPresident shared.ClientID
-	electionsettings := j.clientJudge.CallPresidentElection(j.presidentTurnsInPower, allIslands)
+	electionsettings := j.clientJudge.CallPresidentElection(monitoring, j.presidentTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		// TODO: deduct the cost of holding an election
 		election.ProposeElection(shared.President, electionsettings.VotingMethod)

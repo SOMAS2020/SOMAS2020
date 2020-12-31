@@ -33,7 +33,7 @@ func (s *BaseSpeaker) DecideAnnouncement(ruleId string, result bool) (string, bo
 }
 
 // CallJudgeElection is called by the legislature to decide on power-transfer
-func (s *BaseSpeaker) CallJudgeElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (s *BaseSpeaker) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Plurality,
 		IslandsToVote: allIslands,
