@@ -31,19 +31,19 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool) {
 	decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
 	evaluationResult := false
 	if decideToMonitor {
-		evaluationResult = m.evaluateCache(roleToMonitor)
+		evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
 	}
 	return decideToMonitor, evaluationResult
 }
 
-func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID) bool {
+func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[string]rules.RuleMatrix) bool {
 	performedRoleCorrectly := true
 	for _, entry := range m.internalIIGOCache {
 		if entry.ClientID == roleToMonitorID {
 			variablePairs := entry.Pairs
 			var rulesAffected []string
 			for _, variable := range variablePairs {
-				valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
+				valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, ruleStore)
 				if foundRules {
 					rulesAffected = append(rulesAffected, valuesToBeAdded...)
 				}

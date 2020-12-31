@@ -97,21 +97,21 @@ func TestEvaluateCache(t *testing.T) {
 			expectedVal: true,
 		},
 	}
-	rules.RulesInPlay = registerMonitoringTestRule()
-	rules.AvailableRules = rules.RulesInPlay
+	ruleStore := registerMonitoringTestRule()
+	tempCache := rules.AvailableRules
+	rules.AvailableRules = ruleStore
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			monitor := &monitor{
 				internalIIGOCache: tc.iigoCache,
 			}
-			res := monitor.evaluateCache(tc.roleID)
+			res := monitor.evaluateCache(tc.roleID, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
 				t.Errorf("Expected evaluation of internalIIGOCache to be %v got %v", tc.expectedVal, res)
 			}
 		})
 	}
-	rules.RulesInPlay = map[string]rules.RuleMatrix{}
-	rules.AvailableRules = map[string]rules.RuleMatrix{}
+	rules.AvailableRules = tempCache
 }
 
 func registerMonitoringTestRule() map[string]rules.RuleMatrix {
