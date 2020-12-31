@@ -45,4 +45,5 @@ type Judge interface {
 	DecideNextPresident(shared.ClientID) shared.ClientID
 	GetRuleViolationSeverity() map[string]IIGOSanctionScore
 	GetSanctionThresholds() map[IIGOSanctionTier]IIGOSanctionScore
+	GetPardonedIslands(currentSanctions map[int][]Sanction) map[int][]bool
 }
