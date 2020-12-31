@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/SOMAS2020/static/css/main.7c47c463.chunk.css",
-    "main.js": "/SOMAS2020/static/js/main.3c1fb238.chunk.js",
-    "main.js.map": "/SOMAS2020/static/js/main.3c1fb238.chunk.js.map",
+    "main.js": "/SOMAS2020/static/js/main.68e32584.chunk.js",
+    "main.js.map": "/SOMAS2020/static/js/main.68e32584.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_abap.js": "/SOMAS2020/static/js/react-syntax-highlighter_languages_refractor_abap.b1786958.chunk.js",
     "react-syntax-highlighter_languages_refractor_abap.js.map": "/SOMAS2020/static/js/react-syntax-highlighter_languages_refractor_abap.b1786958.chunk.js.map",
     "react-syntax-highlighter_languages_refractor_actionscript.js": "/SOMAS2020/static/js/react-syntax-highlighter_languages_refractor_actionscript.2f9b3f43.chunk.js",
@@ -322,6 +322,6 @@
     "static/js/runtime-main.478caaef.js",
     "static/js/153.c83fba66.chunk.js",
     "static/css/main.7c47c463.chunk.css",
-    "static/js/main.3c1fb238.chunk.js"
+    "static/js/main.68e32584.chunk.js"
   ]
 }
