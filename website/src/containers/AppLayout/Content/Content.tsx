@@ -14,12 +14,12 @@ import {
 
 import CIOutput from "../../../components/CIOutput/CIOutput"
 import NewRun from "../../../components/NewRun/NewRun"
-import GameVisualisation from "../../../components/visualisation/Game/Game"
-import IIGOVisualisation from "../../../components/visualisation/IIGO/IIGO"
-import IITOVisualisation from "../../../components/visualisation/IITO/IITO"
-import IIFOVisualisation from "../../../components/visualisation/IIFO/IIFO"
-import RolesVisualisation from "../../../components/visualisation/Roles/Roles"
-import ResourcesVisualisation from "../../../components/visualisation/Resources/Resources"
+import GameVisualisation from "../../../components/Visualisations/Game/Game"
+import IIGOVisualisation from "../../../components/Visualisations/IIGO/IIGO"
+import IITOVisualisation from "../../../components/Visualisations/IITO/IITO"
+import IIFOVisualisation from "../../../components/Visualisations/IIFO/IIFO"
+import RolesVisualisation from "../../../components/Visualisations/Roles/Roles"
+import ResourcesVisualisation from "../../../components/Visualisations/Resources/Resources"
 
 const Content = () => {
   return (
