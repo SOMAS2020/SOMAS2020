@@ -1,4 +1,4 @@
-type Role = "president" | "judge" | "speaker" | "none"
+type Role = "president" | "judge" | "speaker" | "none";
 
 export class TurnsInRoles {
     president: number;
@@ -6,7 +6,12 @@ export class TurnsInRoles {
     speaker: number;
     none: number;
 
-    constructor(president?: number, judge?: number, speaker?: number, none?: number) {
+    constructor(
+        president?: number,
+        judge?: number,
+        speaker?: number,
+        none?: number
+    ) {
         this.president = president || 0;
         this.judge = judge || 0;
         this.speaker = speaker || 0;
@@ -14,7 +19,7 @@ export class TurnsInRoles {
     }
 
     set(role: Role, val: number) {
-        switch(role) {
+        switch (role) {
             case "president": {
                 this.president = val;
                 break;
@@ -35,7 +40,7 @@ export class TurnsInRoles {
     }
 
     increment(role: Role) {
-        switch(role) {
+        switch (role) {
             case "president": {
                 this.president += 1;
                 break;
@@ -56,7 +61,7 @@ export class TurnsInRoles {
     }
 
     get(role: Role) {
-        switch(role) {
+        switch (role) {
             case "president": {
                 return this.president;
             }
@@ -71,7 +76,7 @@ export class TurnsInRoles {
             }
         }
     }
-};
+}
 
 export class ProcessedRoleElement {
     name: string;
@@ -91,6 +96,6 @@ export class ProcessedRoleElement {
             this.roles[this.roles.length - 1].increment(role);
         }
     }
-};
+}
 
 export type ProcessedRoleData = ProcessedRoleElement[];

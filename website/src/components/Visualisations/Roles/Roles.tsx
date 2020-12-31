@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./Roles.module.css";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import { TurnsInRoles, ProcessedRoleData, ProcessedRoleElement } from "./Util/RoleTypes";
+import { TurnsInRoles, ProcessedRoleData } from "./Util/RoleTypes";
 import { getProcessedRoleData } from "./Util/ProcessedRoleData";
 
 const presidentColor = "#00bbf9";
@@ -12,60 +12,42 @@ const noneColor = "#b2bec3";
 const data = getProcessedRoleData();
 
 // const data: ProcessedRoleData = [
-//     new ProcessedRoleElement(
-//         "Team1",
-//         [
-//             new TurnsInRoles(5, 0, 0, 0),
-//             new TurnsInRoles(0, 0, 0, 2),
-//             new TurnsInRoles(0, 1, 0, 0),
-//             new TurnsInRoles(0, 0, 0, 0),
-//         ],
-//     ),
-//     new ProcessedRoleElement(
-//         "Team2",
-//         [
-//             new TurnsInRoles(0, 3, 0, 0),
-//             new TurnsInRoles(0, 0, 0, 3),
-//             new TurnsInRoles(0, 0, 1, 0),
-//             new TurnsInRoles(0, 0, 0, 1),
-//         ],
-//     ),
-//     new ProcessedRoleElement(
-//         "Team3",
-//         [
-//             new TurnsInRoles(0, 0, 5, 0),
-//             new TurnsInRoles(0, 0, 0, 3),
-//             new TurnsInRoles(0, 0, 0, 0),
-//             new TurnsInRoles(0, 0, 0, 0),
-//         ],
-//     ),
-//     new ProcessedRoleElement(
-//         "Team4",
-//         [
-//             new TurnsInRoles(0, 0, 0, 3),
-//             new TurnsInRoles(0, 2, 0, 0),
-//             new TurnsInRoles(0, 0, 0, 3),
-//             new TurnsInRoles(0, 0, 0, 0),
-//         ],
-//     ),
-//     new ProcessedRoleElement(
-//         "Team5",
-//         [
-//             new TurnsInRoles(0, 0, 0, 5),
-//             new TurnsInRoles(1, 0, 0, 0),
-//             new TurnsInRoles(0, 1, 0, 0),
-//             new TurnsInRoles(0, 0, 1, 0),
-//         ],
-//     ),
-//     new ProcessedRoleElement(
-//         "Team6",
-//         [
-//             new TurnsInRoles(0, 0, 0, 5),
-//             new TurnsInRoles(0, 0, 1, 0),
-//             new TurnsInRoles(0, 0, 0, 2),
-//             new TurnsInRoles(0, 0, 0, 0),
-//         ],
-//     ),
+//     new ProcessedRoleElement("Team1", [
+//         new TurnsInRoles(5, 0, 0, 0),
+//         new TurnsInRoles(0, 0, 0, 2),
+//         new TurnsInRoles(0, 1, 0, 0),
+//         new TurnsInRoles(0, 0, 0, 0),
+//     ]),
+//     new ProcessedRoleElement("Team2", [
+//         new TurnsInRoles(0, 3, 0, 0),
+//         new TurnsInRoles(0, 0, 0, 3),
+//         new TurnsInRoles(0, 0, 1, 0),
+//         new TurnsInRoles(0, 0, 0, 1),
+//     ]),
+//     new ProcessedRoleElement("Team3", [
+//         new TurnsInRoles(0, 0, 5, 0),
+//         new TurnsInRoles(0, 0, 0, 3),
+//         new TurnsInRoles(0, 0, 0, 0),
+//         new TurnsInRoles(0, 0, 0, 0),
+//     ]),
+//     new ProcessedRoleElement("Team4", [
+//         new TurnsInRoles(0, 0, 0, 3),
+//         new TurnsInRoles(0, 2, 0, 0),
+//         new TurnsInRoles(0, 0, 0, 3),
+//         new TurnsInRoles(0, 0, 0, 0),
+//     ]),
+//     new ProcessedRoleElement("Team5", [
+//         new TurnsInRoles(0, 0, 0, 5),
+//         new TurnsInRoles(1, 0, 0, 0),
+//         new TurnsInRoles(0, 1, 0, 0),
+//         new TurnsInRoles(0, 0, 1, 0),
+//     ]),
+//     new ProcessedRoleElement("Team6", [
+//         new TurnsInRoles(0, 0, 0, 5),
+//         new TurnsInRoles(0, 0, 1, 0),
+//         new TurnsInRoles(0, 0, 0, 2),
+//         new TurnsInRoles(0, 0, 0, 0),
+//     ]),
 // ];
 
 type CustomTooltipProps = {
@@ -84,7 +66,12 @@ const getTurnsInRoles = (
         const turnsAsJudge = roles.reduce((acc, a) => acc + a.judge, 0);
         const turnsAsSpeaker = roles.reduce((acc, a) => acc + a.speaker, 0);
         const turnsAsNone = roles.reduce((acc, a) => acc + a.none, 0);
-        return new TurnsInRoles(turnsAsPresident, turnsAsJudge, turnsAsSpeaker, turnsAsNone);
+        return new TurnsInRoles(
+            turnsAsPresident,
+            turnsAsJudge,
+            turnsAsSpeaker,
+            turnsAsNone
+        );
     } else {
         console.log(`[VisRole] Could not find ${name} in data...`);
         return new TurnsInRoles();
