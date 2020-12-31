@@ -32,6 +32,11 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool) {
 	evaluationResult := false
 	if decideToMonitor {
 		evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
+		evaluationResult, announce := roleAccountable.DecideIIGOMonitoringAnnouncement(evaluationResult)
+		if announce {
+			message := generateMonitoringMessage(roleName, evaluationResult)
+			broadcastToAllIslands(roleAccountable.GetID(), message)
+		}
 	}
 	return decideToMonitor, evaluationResult
 }
@@ -60,13 +65,28 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 	return performedRoleCorrectly
 }
 
-func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, baseclient.Role) {
+func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, shared.Role) {
 	switch roleAccountable.GetID() {
 	case m.speakerID:
-		return m.presidentID, baseclient.President
+		return m.presidentID, shared.President
 	case m.presidentID:
-		return m.judgeID, baseclient.Judge
+		return m.judgeID, shared.Judge
 	default:
-		return m.speakerID, baseclient.Speaker
+		return m.speakerID, shared.Speaker
 	}
+}
+
+func generateMonitoringMessage(role shared.Role, result bool) map[shared.CommunicationFieldName]shared.CommunicationContent {
+	returnMap := map[shared.CommunicationFieldName]shared.CommunicationContent{}
+
+	returnMap[shared.RoleMonitored] = shared.CommunicationContent{
+		T:        shared.CommunicationIIGORole,
+		IIGORole: role,
+	}
+	returnMap[shared.MonitoringResult] = shared.CommunicationContent{
+		T:           shared.CommunicationBool,
+		BooleanData: result,
+	}
+
+	return returnMap
 }
