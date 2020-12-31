@@ -1,42 +1,11 @@
 import React, { useState, useEffect } from "react"
 import { runGame, getFlagsFormats, RunGameReturnType, Flag } from "../../wasmAPI"
-import { Alert, Button, Row, Col, OverlayTrigger, Tooltip, Form } from 'react-bootstrap'
+import { Alert, Button, Row } from 'react-bootstrap'
 import { useLoadingState, initialLoadingState } from "../../contexts/loadingState"
 import Artifacts from '../Artifacts/Artifacts'
+import FlagForm from "./FlagForm"
+import { setFlagWithValidation } from "./utils"
 
-
-type flagFormProps = {
-  flag: Flag,
-  setFlag: (val: string) => Promise<void>,
-  disabled: boolean,
-}
-
-const FlagForm = (props: flagFormProps) => {
-  const { flag, setFlag, disabled } = props
-
-  const handleChange = async (event: React.ChangeEvent<any>) => {
-    await setFlag(event.target.value)
-  }
-  return <Col xs={4}>
-    <Form>
-      <Form.Group>
-        <Form.Label>
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip id={flag.Name}>
-                {flag.Usage}
-              </Tooltip>
-            }
-          >
-            <span style={{ wordBreak: `break-all` }}>{flag.Name}</span>
-          </OverlayTrigger >
-        </Form.Label>
-        <Form.Control value={flag.Value} onChange={handleChange} readOnly={disabled} />
-      </Form.Group>
-    </Form>
-  </Col >
-}
 
 const NewRun = () => {
   const [, setLoading] = useLoadingState()
@@ -54,7 +23,7 @@ const NewRun = () => {
     try {
       const goFlags = await getFlagsFormats()
       let fs: Map<string, Flag> = new Map()
-      goFlags.forEach(f => { fs.set(f.Name, { ...f, Value: f.DefValue }) })
+      goFlags.forEach(f => { fs.set(f.Name, { ...f, Value: f.DefValue, InvalidReason: undefined }) })
       setFlags(fs)
     }
     catch (err) {
@@ -73,7 +42,7 @@ const NewRun = () => {
     if (!currFlag) {
       throw new Error(`Unknown flag name ${flagName}`)
     }
-    const newCurrFlag = { ...currFlag, Value: val }
+    const newCurrFlag = await setFlagWithValidation(currFlag, val)
 
     setFlags(new Map(flags.set(flagName, newCurrFlag)))
   }
@@ -92,7 +61,7 @@ const NewRun = () => {
       if (!flags) {
         throw new Error(`Flags unset!`)
       }
-      const flagArr = Array.from(flags, ([_, value]) => value)
+      const flagArr = Array.from(flags, ([, value]) => value)
       const res = await runGame(flagArr)
       setOutput(res)
     }
@@ -100,6 +69,19 @@ const NewRun = () => {
       setRunError(err.message)
     }
     setLoading(initialLoadingState)
+  }
+
+  const runDisabled = () => {
+    if (!flags) return true
+
+    const flagsHasInvalid = 
+      Array.from(flags, ([, value]) => value.InvalidReason)
+        .map(a => a !== undefined) // true if invalid
+        .reduce((a, b) => (a || b), false)
+
+    if (flagsHasInvalid) return false
+
+    return false
   }
 
   const getFlagForms = (fs: Map<string, Flag>): JSX.Element[] => {
@@ -118,7 +100,7 @@ const NewRun = () => {
     {
       !output &&
       <div>
-        <Button variant="success" size="lg" onClick={run} disabled={flags === undefined}>Run</Button>
+        <Button variant="success" size="lg" onClick={run} disabled={runDisabled()}>Run</Button>
       </div>
     }
     {

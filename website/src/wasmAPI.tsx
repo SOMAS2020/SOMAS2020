@@ -4,14 +4,18 @@ import './wasmjs/wasm_exec'
 // @ts-ignore
 const go: any = new Go()
 
+// Does not include duration
+// see https://golang.org/pkg/flag/
+export type GoFlagType = `string` | `bool` | `uint` | `uint64` | `int` | `int64` | `float64`
+
 export type GoFlag = {
     Name: string,
     Usage: string,
     DefValue: string,
-    Type: string,
+    Type: GoFlagType,
 }
 
-export type Flag = GoFlag & { Value: string }
+export type Flag = GoFlag & { Value: string, InvalidReason: string|undefined }
 
 type RunGameReturnTypeWASM = {
     output?: string,
