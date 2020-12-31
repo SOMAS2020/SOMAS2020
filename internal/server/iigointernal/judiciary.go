@@ -91,9 +91,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 	if j.clientJudge.HistoricalRetributionEnabled() {
 		for _, v := range j.localHistoryCache {
 			res, rsuccess := j.clientJudge.InspectHistory(v)
-			if !rsuccess {
-				success = false
-			} else {
+			if rsuccess {
 				for key, accounts := range res {
 					curr := finalResults[key]
 					curr.Evaluations = append(curr.Evaluations, accounts.Evaluations...)
