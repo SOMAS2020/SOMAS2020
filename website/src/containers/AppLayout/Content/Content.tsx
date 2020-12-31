@@ -1,6 +1,5 @@
-import React from "react"
-import Home from "../../../components/Home/Home"
-import { Route, Switch } from "react-router-dom"
+import React from "react";
+import { Route, Switch } from "react-router-dom";
 import {
   cioutput,
   newrun,
@@ -9,17 +8,13 @@ import {
   iitovisualisation,
   iifovisualisation,
   rolesvisualisation,
-  resourcesvisualisation
-} from "../../../consts/paths"
+  resourcesvisualisation,
+} from "../../../consts/paths";
 
-import CIOutput from "../../../components/CIOutput/CIOutput"
-import NewRun from "../../../components/NewRun/NewRun"
-import GameVisualisation from "../../../components/visualisation/Game/Game"
-import IIGOVisualisation from "../../../components/visualisation/IIGO/IIGO"
-import IITOVisualisation from "../../../components/visualisation/IITO/IITO"
-import IIFOVisualisation from "../../../components/visualisation/IIFO/IIFO"
-import RolesVisualisation from "../../../components/visualisation/Roles/Roles"
-import ResourcesVisualisation from "../../../components/visualisation/Resources/Resources"
+import Home from "../../../components/Home/Home";
+import CIOutput from "../../../components/CIOutput/CIOutput";
+import NewRun from "../../../components/NewRun/NewRun";
+import * as Visualisations from "../../../components/Visualisations/Visualisations";
 
 const Content = () => {
   return (
@@ -27,16 +22,24 @@ const Content = () => {
       <Switch>
         <Route path={cioutput} exact component={CIOutput} />
         <Route path={newrun} exact component={NewRun} />
-        <Route path={gamevisualisation} exact component={GameVisualisation} />
-        <Route path={iigovisualisation} exact component={IIGOVisualisation} />
-        <Route path={iitovisualisation} exact component={IITOVisualisation} />
-        <Route path={iifovisualisation} exact component={IIFOVisualisation} />
-        <Route path={rolesvisualisation} exact component={RolesVisualisation} />
-        <Route path={resourcesvisualisation} exact component={ResourcesVisualisation} />
+        <Route path={gamevisualisation} exact component={Visualisations.Game} />
+        <Route path={iigovisualisation} exact component={Visualisations.IIGO} />
+        <Route path={iitovisualisation} exact component={Visualisations.IITO} />
+        <Route path={iifovisualisation} exact component={Visualisations.IIFO} />
+        <Route
+          path={rolesvisualisation}
+          exact
+          component={Visualisations.Roles}
+        />
+        <Route
+          path={resourcesvisualisation}
+          exact
+          component={Visualisations.Resources}
+        />
         <Route component={Home} />
       </Switch>
     </div>
-  )
-}
+  );
+};
 
 export default Content;

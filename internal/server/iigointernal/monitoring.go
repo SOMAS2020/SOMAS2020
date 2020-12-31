@@ -27,8 +27,13 @@ func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.
 	}
 }
 
+<<<<<<< HEAD
 func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorResult {
 	roleToMonitor, roleName, err := m.findRoleToMonitor(roleAccountable.GetID())
+=======
+func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool, error) {
+	roleToMonitor, roleName, err := m.findRoleToMonitor(roleAccountable)
+>>>>>>> main
 	if err == nil {
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
 		evaluationResult := false
@@ -40,11 +45,17 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 				broadcastToAllIslands(roleAccountable.GetID(), message)
 			}
 		}
+<<<<<<< HEAD
 		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}
 		return result
 	}
 	result := shared.MonitorResult{Performed: false, Result: false}
 	return result
+=======
+		return decideToMonitor, evaluationResult, nil
+	}
+	return false, false, err
+>>>>>>> main
 }
 
 func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[string]rules.RuleMatrix) bool {
@@ -71,8 +82,13 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 	return performedRoleCorrectly
 }
 
+<<<<<<< HEAD
 func (m *monitor) findRoleToMonitor(roleAccountable shared.ClientID) (shared.ClientID, shared.Role, error) {
 	switch roleAccountable {
+=======
+func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, shared.Role, error) {
+	switch roleAccountable.GetID() {
+>>>>>>> main
 	case m.speakerID:
 		return m.presidentID, shared.President, nil
 	case m.presidentID:
@@ -88,8 +104,13 @@ func generateMonitoringMessage(role shared.Role, result bool) map[shared.Communi
 	returnMap := map[shared.CommunicationFieldName]shared.CommunicationContent{}
 
 	returnMap[shared.RoleMonitored] = shared.CommunicationContent{
+<<<<<<< HEAD
 		T:            shared.CommunicationIIGORole,
 		IIGORoleData: role,
+=======
+		T:        shared.CommunicationIIGORole,
+		IIGORole: role,
+>>>>>>> main
 	}
 	returnMap[shared.MonitoringResult] = shared.CommunicationContent{
 		T:           shared.CommunicationBool,

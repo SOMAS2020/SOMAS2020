@@ -47,11 +47,19 @@ func (c CommunicationContentType) MarshalJSON() ([]byte, error) {
 
 // CommunicationContent is a general datastructure used for communications
 type CommunicationContent struct {
+<<<<<<< HEAD
 	T            CommunicationContentType
 	IntegerData  int
 	TextData     string
 	BooleanData  bool
 	IIGORoleData Role
+=======
+	T           CommunicationContentType
+	IntegerData int
+	TextData    string
+	BooleanData bool
+	IIGORole    Role
+>>>>>>> main
 }
 
 type CommunicationFieldName int
