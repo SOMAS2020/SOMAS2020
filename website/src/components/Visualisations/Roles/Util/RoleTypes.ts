@@ -73,9 +73,18 @@ export class TurnsInRoles {
     }
 };
 
-export type ProcessedRoleElement = {
+export class ProcessedRoleElement {
     name: string;
     roles: TurnsInRoles[];
+
+    constructor(name: string, roles: TurnsInRoles[] = [new TurnsInRoles()]) {
+        this.name = name;
+        this.roles = roles;
+    }
+
+    increment(role: Role) {
+        
+    }
 };
 
 export type ProcessedRoleData = ProcessedRoleElement[];
