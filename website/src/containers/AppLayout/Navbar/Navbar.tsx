@@ -12,8 +12,7 @@ import {
   resourcesvisualisation,
   rolesvisualisation,
 } from "../../../consts/paths";
-import outputJSONData from '../../../output/output.json';
-
+import outputJSONData from "../../../output/output.json";
 
 import logo from "../../../assets/logo/logo192.png";
 
@@ -65,7 +64,7 @@ const AppNavbar = () => {
         >
           {outputJSONData.GitInfo.Hash.substr(0, 7)}
         </a>
-        
+
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={closeNav} />
         <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
           <Nav className="mr-auto" />
