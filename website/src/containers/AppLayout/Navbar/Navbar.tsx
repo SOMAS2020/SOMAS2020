@@ -51,12 +51,12 @@ const AppNavbar = () => {
           {getNavLink("CI Output", cioutput)}
           <NavDropdown title="Visualisations" id="collabsible-nav-dropdown">
 
-            {getVisNavLink("Game", gamevisualisation)}
-            {getVisNavLink("IIGO", iigovisualisation)}
-            {getVisNavLink("IITO", iitovisualisation)}
-            {getVisNavLink("IIFO", iifovisualisation)}
-            {getVisNavLink("Resources", resourcesvisualisation)}
-            {getVisNavLink("Roles", rolesvisualisation)}
+            {getNavDropdownLink("Game", gamevisualisation)}
+            {getNavDropdownLink("IIGO", iigovisualisation)}
+            {getNavDropdownLink("IITO", iitovisualisation)}
+            {getNavDropdownLink("IIFO", iifovisualisation)}
+            {getNavDropdownLink("Resources", resourcesvisualisation)}
+            {getNavDropdownLink("Roles", rolesvisualisation)}
           </NavDropdown>
         </Nav>
       </Navbar.Collapse>
