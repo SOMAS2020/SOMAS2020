@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap'
-import { Link } from 'react-router-dom';
 import {
   cioutput,
   newrun,
@@ -14,7 +13,6 @@ import {
 } from '../../../consts/paths';
 
 import logo from '../../../assets/logo/logo192.png';
-import outputJSONData from '../../../output/output.json'
 
 import styles from './Navbar.module.css'
 
