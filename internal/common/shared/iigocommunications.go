@@ -14,6 +14,7 @@ const (
 	CommunicationInt CommunicationContentType = iota
 	CommunicationString
 	CommunicationBool
+	CommunicationIIGORole
 )
 
 func (c CommunicationContentType) String() string {
@@ -21,6 +22,7 @@ func (c CommunicationContentType) String() string {
 		"CommunicationInt",
 		"CommunicationString",
 		"CommunicationBool",
+		"CommunicationIIGORole",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]
@@ -49,17 +51,16 @@ type CommunicationContent struct {
 	IntegerData int
 	TextData    string
 	BooleanData bool
+	IIGORole    Role
 }
 
 type CommunicationFieldName int
 
 const (
 	BallotID CommunicationFieldName = iota
-	PresidentAllocationCheck
 	SpeakerID
 	RoleConducted
 	ResAllocID
-	SpeakerBallotCheck
 	PresidentID
 	RuleName
 	RuleVoteResult
@@ -68,21 +69,26 @@ const (
 	PardonClientID
 	PardonTier
 	SanctionAmount
+	RoleMonitored
+	MonitoringResult
 )
 
 func (c CommunicationFieldName) String() string {
 	strs := [...]string{
 		"BallotID",
-		"PresidentAllocationCheck",
 		"SpeakerID",
 		"RoleConducted",
 		"ResAllocID",
-		"SpeakerBallotCheck",
 		"PresidentID",
 		"RuleName",
 		"RuleVoteResult",
 		"TaxAmount",
 		"AllocationAmount",
+		"PardonClientID",
+		"PardonTier",
+		"SanctionAmount",
+		"RoleMonitored",
+		"MonitoringResult",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]
