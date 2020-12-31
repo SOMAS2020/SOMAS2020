@@ -32,7 +32,7 @@ func TestAddToCache(t *testing.T) {
 			},
 		},
 		{
-			name:        "Adding variable and too many values",
+			name:        "Adding a variable and too many values",
 			roleID:      shared.ClientID(1),
 			variables:   []rules.VariableFieldName{rules.RuleSelected},
 			values:      [][]float64{{1}, {1}},
@@ -48,6 +48,61 @@ func TestAddToCache(t *testing.T) {
 			res := monitor.internalIIGOCache
 			if !reflect.DeepEqual(res, tc.expectedVal) {
 				t.Errorf("Expected internalIIGOCache to be %v got %v", tc.expectedVal, res)
+			}
+		})
+	}
+}
+
+func TestEvaluateCache(t *testing.T) {
+	cases := []struct {
+		name        string
+		roleID      shared.ClientID
+		iigoCache   []shared.Accountability
+		expectedVal bool
+	}{
+		{
+			name:   "Basic evaluation of compliant President",
+			roleID: shared.ClientID(1),
+			iigoCache: []shared.Accountability{
+				{
+					ClientID: shared.ClientID(1),
+					Pairs: []rules.VariableValuePair{
+						rules.MakeVariableValuePair(rules.RuleSelected, []float64{1}),
+						rules.MakeVariableValuePair(rules.VoteCalled, []float64{1}),
+					},
+				},
+			},
+			expectedVal: true,
+		},
+		{
+			name:   "Basic evaluation of non compliant Speaker",
+			roleID: shared.ClientID(1),
+			iigoCache: []shared.Accountability{
+				{
+					ClientID: shared.ClientID(1),
+					Pairs: []rules.VariableValuePair{
+						rules.MakeVariableValuePair(rules.RuleSelected, []float64{0}),
+						rules.MakeVariableValuePair(rules.VoteCalled, []float64{1}),
+					},
+				},
+			},
+			expectedVal: false,
+		},
+		{
+			name:        "Evaluating with empty cache",
+			roleID:      shared.ClientID(1),
+			iigoCache:   []shared.Accountability{},
+			expectedVal: true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			monitor := &monitor{
+				internalIIGOCache: tc.iigoCache,
+			}
+			res := monitor.evaluateCache(tc.roleID)
+			if !reflect.DeepEqual(res, tc.expectedVal) {
+				t.Errorf("Expected evaluation of internalIIGOCache to be %v got %v", tc.expectedVal, res)
 			}
 		})
 	}
