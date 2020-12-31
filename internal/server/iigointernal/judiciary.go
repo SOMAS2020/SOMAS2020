@@ -85,8 +85,8 @@ func (j *judiciary) PayPresident() shared.Resources {
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	j.budget -= serviceCharge
-	success := false
-	tempResults := map[shared.ClientID]roles.EvaluationReturn{}
+	var success bool
+	var tempResults map[shared.ClientID]roles.EvaluationReturn
 	finalResults := getBaseEvalResults()
 	if j.clientJudge.HistoricalRetributionEnabled() {
 		for _, v := range j.localHistoryCache {
