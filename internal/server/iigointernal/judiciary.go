@@ -456,48 +456,6 @@ func checkSizes(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) 
 	return true
 }
 
-// removeSanctions is a helper function to remove a sanction element from a slice
-func removeSanctions(slice []roles.Sanction, s int) []roles.Sanction {
-	var output []roles.Sanction
-	for i, v := range slice {
-		if i != s {
-			output = append(output, v)
-		}
-	}
-	return output
-}
-
-// getDifferenceInLength helper function to get difference in length between two lists
-func getDifferenceInLength(slice1 []roles.Sanction, slice2 []roles.Sanction) int {
-	return len(slice1) - len(slice2)
-}
-
-// pickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
-func pickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix, variableMap map[rules.VariableFieldName]rules.VariableValuePair) ([]string, bool) {
-	var Rules []string
-	if _, ok := variableMap[variableName]; ok {
-		for k, v := range ruleStore {
-			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
-			if found {
-				Rules = append(Rules, k)
-			}
-		}
-		return Rules, true
-	} else {
-		// fmt.Sprintf("Variable name '%v' was not found in the variable cache", variableName)
-		return []string{}, false
-	}
-}
-
-func searchForVariableInArray(val rules.VariableFieldName, array []rules.VariableFieldName) (int, bool) {
-	for i, v := range array {
-		if v == val {
-			return i, true
-		}
-	}
-	return -1, false
-}
-
 func getBaseEvalResults() map[shared.ClientID]roles.EvaluationReturn {
 	return map[shared.ClientID]roles.EvaluationReturn{
 		shared.Team1: {
@@ -534,7 +492,7 @@ func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[share
 		pairsAffected := v.Pairs
 		var allRulesAffected []string
 		for _, pair := range pairsAffected {
-			additionalRules, success := pickUpRulesByVariable(pair.VariableName, rulesCache, variableCache)
+			additionalRules, success := rules.PickUpRulesByVariable(pair.VariableName, rulesCache, variableCache)
 			if success {
 				allRulesAffected = append(allRulesAffected, additionalRules...)
 			}

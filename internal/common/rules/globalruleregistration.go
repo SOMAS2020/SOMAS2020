@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -54,12 +55,21 @@ func registerRulesByMass() {
 			mutable: false,
 		},
 		{
-			name: "inspect_allocation_rule",
+			name: "allocations_made_rule",
 			reqVar: []VariableFieldName{
-				NumberOfIslandsAlive,
-				NumberOfAllocationsSent,
+				AllocationRequestsMade,
+				AllocationMade,
 			},
 			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
+		},
+		{
+			name: "judge_inspection_rule",
+			reqVar: []VariableFieldName{
+				JudgeInspectionPerformed,
+			},
+			v:       []float64{1, -1},
 			aux:     []float64{0},
 			mutable: false,
 		},
@@ -78,6 +88,16 @@ func registerRulesByMass() {
 			reqVar: []VariableFieldName{
 				IslandAllocation,
 				ExpectedAllocation,
+			},
+			v:       []float64{1, -1, 0},
+			aux:     []float64{0},
+			mutable: false,
+		},
+		{
+			name: "vote_called_rule",
+			reqVar: []VariableFieldName{
+				RuleSelected,
+				VoteCalled,
 			},
 			v:       []float64{1, -1, 0},
 			aux:     []float64{0},

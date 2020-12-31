@@ -68,15 +68,15 @@ func (l *legislature) setRuleToVote(r string) {
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (l *legislature) setVotingResult(clientIDs []shared.ClientID) {
+func (l *legislature) setVotingResult(clientIDs []shared.ClientID) bool {
 
 	ruleID, participatingIslands, voteDecided := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
 	if !voteDecided {
-		return
+		return false
 	}
 	l.ballotBox = l.RunVote(ruleID, participatingIslands)
 	l.votingResult = l.ballotBox.CountVotesMajority()
-
+	return true
 }
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.

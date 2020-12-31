@@ -35,7 +35,7 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, rules.VariableMap)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}

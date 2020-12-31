@@ -383,7 +383,7 @@ func TestPickUpRulesByVariable(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			arr, res := pickUpRulesByVariable(tc.searchVar, tc.ruleStore, generateDummyVariableCache())
+			arr, res := rules.PickUpRulesByVariable(tc.searchVar, tc.ruleStore, generateDummyVariableCache())
 			if !reflect.DeepEqual(arr, tc.expectedArr) {
 				t.Errorf("Expected %v got %v", tc.expectedArr, arr)
 			} else if res != tc.expectedRes {
