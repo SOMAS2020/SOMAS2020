@@ -24,30 +24,20 @@ export const getProcessedRoleData = (): ProcessedRoleData => {
 
     if (allRoles.length === 0) return [];
 
-    /*
-    METHOD:
-        - For each gamestate
-        - For each team in allRoles
-        - Check if in power
-        - If so increment power
-        - If not increment none
-        - standardise
-        - return
-    */
-
-    // allRoles = outputJSON.GameStates.reduce((allRolesNew, gameState) => (
-    //     allRolesNew.map((allRolesElem) => {
-    //         if (allRolesElem.name === gameState.PresidentID) {
-
-    //         } else if (allRolesElem.name === gameState.JudgeID) {
-
-    //         } else if (allRolesElem.name === gameState.SpeakerID) {
-
-    //         } else {
-
-    //         }
-    //     })
-    // ), allRoles);
+    allRoles = outputJSON.GameStates.reduce((allRolesNew, gameState) => (
+        allRolesNew.map((allRolesElem) => {
+            if (allRolesElem.name === gameState.PresidentID) {
+                allRolesElem.increment("president");
+            } else if (allRolesElem.name === gameState.JudgeID) {
+                allRolesElem.increment("judge");
+            } else if (allRolesElem.name === gameState.SpeakerID) {
+                allRolesElem.increment("speaker");
+            } else {
+                allRolesElem.increment("none");
+            }
+            return allRolesElem;
+        })
+    ), allRoles);
 
     return standardise(allRoles);
 };

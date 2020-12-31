@@ -9,64 +9,64 @@ const judgeColor = "#fee440";
 const speakerColor = "#f15bb5";
 const noneColor = "#b2bec3";
 
-// const data = getProcessedRoleData();
+const data = getProcessedRoleData();
 
-const data: ProcessedRoleData = [
-    new ProcessedRoleElement(
-        "Team1",
-        [
-            new TurnsInRoles(5, 0, 0, 0),
-            new TurnsInRoles(0, 0, 0, 2),
-            new TurnsInRoles(0, 1, 0, 0),
-            new TurnsInRoles(0, 0, 0, 0),
-        ],
-    ),
-    new ProcessedRoleElement(
-        "Team2",
-        [
-            new TurnsInRoles(0, 3, 0, 0),
-            new TurnsInRoles(0, 0, 0, 3),
-            new TurnsInRoles(0, 0, 1, 0),
-            new TurnsInRoles(0, 0, 0, 1),
-        ],
-    ),
-    new ProcessedRoleElement(
-        "Team3",
-        [
-            new TurnsInRoles(0, 0, 5, 0),
-            new TurnsInRoles(0, 0, 0, 3),
-            new TurnsInRoles(0, 0, 0, 0),
-            new TurnsInRoles(0, 0, 0, 0),
-        ],
-    ),
-    new ProcessedRoleElement(
-        "Team4",
-        [
-            new TurnsInRoles(0, 0, 0, 3),
-            new TurnsInRoles(0, 2, 0, 0),
-            new TurnsInRoles(0, 0, 0, 3),
-            new TurnsInRoles(0, 0, 0, 0),
-        ],
-    ),
-    new ProcessedRoleElement(
-        "Team5",
-        [
-            new TurnsInRoles(0, 0, 0, 5),
-            new TurnsInRoles(1, 0, 0, 0),
-            new TurnsInRoles(0, 1, 0, 0),
-            new TurnsInRoles(0, 0, 1, 0),
-        ],
-    ),
-    new ProcessedRoleElement(
-        "Team6",
-        [
-            new TurnsInRoles(0, 0, 0, 5),
-            new TurnsInRoles(0, 0, 1, 0),
-            new TurnsInRoles(0, 0, 0, 2),
-            new TurnsInRoles(0, 0, 0, 0),
-        ],
-    ),
-];
+// const data: ProcessedRoleData = [
+//     new ProcessedRoleElement(
+//         "Team1",
+//         [
+//             new TurnsInRoles(5, 0, 0, 0),
+//             new TurnsInRoles(0, 0, 0, 2),
+//             new TurnsInRoles(0, 1, 0, 0),
+//             new TurnsInRoles(0, 0, 0, 0),
+//         ],
+//     ),
+//     new ProcessedRoleElement(
+//         "Team2",
+//         [
+//             new TurnsInRoles(0, 3, 0, 0),
+//             new TurnsInRoles(0, 0, 0, 3),
+//             new TurnsInRoles(0, 0, 1, 0),
+//             new TurnsInRoles(0, 0, 0, 1),
+//         ],
+//     ),
+//     new ProcessedRoleElement(
+//         "Team3",
+//         [
+//             new TurnsInRoles(0, 0, 5, 0),
+//             new TurnsInRoles(0, 0, 0, 3),
+//             new TurnsInRoles(0, 0, 0, 0),
+//             new TurnsInRoles(0, 0, 0, 0),
+//         ],
+//     ),
+//     new ProcessedRoleElement(
+//         "Team4",
+//         [
+//             new TurnsInRoles(0, 0, 0, 3),
+//             new TurnsInRoles(0, 2, 0, 0),
+//             new TurnsInRoles(0, 0, 0, 3),
+//             new TurnsInRoles(0, 0, 0, 0),
+//         ],
+//     ),
+//     new ProcessedRoleElement(
+//         "Team5",
+//         [
+//             new TurnsInRoles(0, 0, 0, 5),
+//             new TurnsInRoles(1, 0, 0, 0),
+//             new TurnsInRoles(0, 1, 0, 0),
+//             new TurnsInRoles(0, 0, 1, 0),
+//         ],
+//     ),
+//     new ProcessedRoleElement(
+//         "Team6",
+//         [
+//             new TurnsInRoles(0, 0, 0, 5),
+//             new TurnsInRoles(0, 0, 1, 0),
+//             new TurnsInRoles(0, 0, 0, 2),
+//             new TurnsInRoles(0, 0, 0, 0),
+//         ],
+//     ),
+// ];
 
 type CustomTooltipProps = {
     active: boolean;

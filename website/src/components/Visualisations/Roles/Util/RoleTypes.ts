@@ -83,7 +83,13 @@ export class ProcessedRoleElement {
     }
 
     increment(role: Role) {
-        
+        if (this.roles[this.roles.length - 1].get(role) === 0) {
+            const newTurnsInRoles = new TurnsInRoles();
+            newTurnsInRoles.increment(role);
+            this.roles.push(newTurnsInRoles);
+        } else {
+            this.roles[this.roles.length - 1].increment(role);
+        }
     }
 };
 
