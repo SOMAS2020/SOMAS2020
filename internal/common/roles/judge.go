@@ -46,4 +46,5 @@ type Judge interface {
 	GetRuleViolationSeverity() map[string]IIGOSanctionScore
 	GetSanctionThresholds() map[IIGOSanctionTier]IIGOSanctionScore
 	GetPardonedIslands(currentSanctions map[int][]Sanction) map[int][]bool
+	HistoricalRetributionEnabled() bool
 }
