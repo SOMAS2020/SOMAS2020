@@ -88,8 +88,8 @@ func generateMonitoringMessage(role shared.Role, result bool) map[shared.Communi
 	returnMap := map[shared.CommunicationFieldName]shared.CommunicationContent{}
 
 	returnMap[shared.RoleMonitored] = shared.CommunicationContent{
-		T:        shared.CommunicationIIGORole,
-		IIGORole: role,
+		T:            shared.CommunicationIIGORole,
+		IIGORoleData: role,
 	}
 	returnMap[shared.MonitoringResult] = shared.CommunicationContent{
 		T:           shared.CommunicationBool,
