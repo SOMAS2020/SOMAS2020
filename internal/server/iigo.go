@@ -36,18 +36,29 @@ func (s *SOMASServer) runIIGOTax() error {
 	for clientID, v := range clientMap {
 		tax := v.GetTaxContribution()
 		sanction := v.GetSanctionPayment()
-		err := s.takeResources(clientID, tax, "tax")
-		err2 := s.takeResources(clientID, sanction, "sanction")
-		if err == nil && err2 == nil {
-			s.gameState.CommonPool += tax + sanction
+		clientTaxErr := s.takeResources(clientID, tax, "tax")
+		var taxPaid shared.Resources
+		var sanctionPaid shared.Resources
+		if clientTaxErr == nil {
+			s.gameState.CommonPool += tax
 			s.clientMap[clientID].TaxTaken(tax)
+			taxPaid = tax
 		} else {
-			s.logf("Error getting tax or sanctions from %v: %v sanction error: %v", clientID, err, err2)
+			s.logf("Error getting tax from %v: %v", clientID, clientTaxErr)
+			taxPaid = 0
+		}
+		clientSanctionErr := s.takeResources(clientID, sanction, "sanction")
+		if clientSanctionErr == nil {
+			s.gameState.CommonPool += sanction
+			sanctionPaid = sanction
+		} else {
+			s.logf("Error getting sanctions from %v: %v ", clientID, clientSanctionErr)
+			sanctionPaid = 0
 		}
 		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,
-				Values:       []float64{float64(tax)},
+				Values:       []float64{float64(taxPaid)},
 			},
 			{
 				VariableName: rules.ExpectedTaxContribution,
@@ -57,7 +68,7 @@ func (s *SOMASServer) runIIGOTax() error {
 		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.SanctionPaid,
-				Values:       []float64{float64(sanction)},
+				Values:       []float64{float64(sanctionPaid)},
 			},
 			{
 				VariableName: rules.SanctionExpected,
