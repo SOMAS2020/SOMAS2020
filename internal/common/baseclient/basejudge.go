@@ -72,32 +72,6 @@ func (j *BaseJudge) HistoricalRetributionEnabled() bool {
 	return false
 }
 
-// PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
-func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
-	var Rules []string
-	if _, ok := rules.VariableMap[variableName]; ok {
-		for k, v := range ruleStore {
-			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
-			if !found {
-				Rules = append(Rules, k)
-			}
-		}
-		return Rules, true
-	} else {
-		// fmt.Sprintf("Variable name '%v' was not found in the variable cache", variableName)
-		return []string{}, false
-	}
-}
-
-func searchForVariableInArray(val rules.VariableFieldName, array []rules.VariableFieldName) (int, bool) {
-	for i, v := range array {
-		if v == val {
-			return i, true
-		}
-	}
-	return -1, false
-}
-
 // CallPresidentElection is called by the judiciary to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
 func (j *BaseJudge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
