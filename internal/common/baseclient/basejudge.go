@@ -9,6 +9,18 @@ import (
 type BaseJudge struct {
 }
 
+// GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
+// If a rule is not named here, the default sanction value added is 1
+func (j *BaseJudge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
+	return map[string]roles.IIGOSanctionScore{}
+}
+
+// GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
+// For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
+func (j *BaseJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{}
+}
+
 // PayPresident pays the President a salary.
 func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
@@ -23,7 +35,7 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
@@ -52,30 +64,8 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 	return outputMap, true
 }
 
-// PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
-func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
-	var Rules []string
-	if _, ok := rules.VariableMap[variableName]; ok {
-		for k, v := range ruleStore {
-			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
-			if !found {
-				Rules = append(Rules, k)
-			}
-		}
-		return Rules, true
-	} else {
-		// fmt.Sprintf("Variable name '%v' was not found in the variable cache", variableName)
-		return []string{}, false
-	}
-}
-
-func searchForVariableInArray(val rules.VariableFieldName, array []rules.VariableFieldName) (int, bool) {
-	for i, v := range array {
-		if v == val {
-			return i, true
-		}
-	}
-	return -1, false
+func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
+	return map[int][]bool{}
 }
 
 // CallPresidentElection is called by the judiciary to decide on power-transfer

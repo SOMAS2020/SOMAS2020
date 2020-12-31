@@ -90,15 +90,16 @@ func (e *executive) requestAllocationRequest() {
 	}
 	AllocationAmountMapExport = allocRequests
 	e.setAllocationRequest(allocRequests)
-
 }
 
 // replyAllocationRequest broadcasts the allocation of resources decided by the president
 // to all islands alive
-func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
+func (e *executive) replyAllocationRequest(commonPool shared.Resources) bool {
 	e.budget -= serviceCharge
 	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
+	allocationsMade := false
 	if requestsEvaluated {
+		allocationsMade = true
 		for _, island := range getIslandAlive() {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
@@ -106,6 +107,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
 		}
 	}
+	return allocationsMade
 }
 
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
