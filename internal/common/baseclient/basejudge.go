@@ -69,7 +69,7 @@ func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction
 }
 
 // CallPresidentElection is called by the judiciary to decide on power-transfer
-func (j *BaseJudge) CallPresidentElection(monitoring, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (j *BaseJudge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Plurality,
 		IslandsToVote: allIslands,
