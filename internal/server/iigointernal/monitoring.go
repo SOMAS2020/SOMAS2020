@@ -27,7 +27,7 @@ func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.
 	}
 }
 
-func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool, error) {
+func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorResult {
 	roleToMonitor, roleName, err := m.findRoleToMonitor(roleAccountable)
 	if err == nil {
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
@@ -40,9 +40,11 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool, er
 				broadcastToAllIslands(roleAccountable.GetID(), message)
 			}
 		}
-		return decideToMonitor, evaluationResult, nil
+		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}
+		return result
 	}
-	return false, false, err
+	result := shared.MonitorResult{Performed: false, Result: false}
+	return result
 }
 
 func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[string]rules.RuleMatrix) bool {
