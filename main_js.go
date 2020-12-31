@@ -9,8 +9,10 @@ import (
 	"io"
 	"log"
 	"reflect"
+	"runtime"
 	"strings"
 	"syscall/js"
+	"time"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
@@ -39,6 +41,7 @@ func main() {
 // args[0] are optional arguments to set flag values
 // The format is `arg1=value,arg2=value,...`
 func RunGame(this js.Value, args []js.Value) interface{} {
+	timeStart := time.Now()
 	gameConfig, err := getConfigFromArgs(args)
 	if err != nil {
 		return js.ValueOf(map[string]interface{}{
@@ -60,11 +63,19 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 			"error": convertError(err),
 		})
 	}
-
+	timeEnd := time.Now()
 	o = output{
 		GameStates: gameStates,
 		Config:     gameConfig,
 		// no git info
+		RunInfo: runInfo{
+			TimeStart:       timeStart,
+			TimeEnd:         timeEnd,
+			DurationSeconds: timeEnd.Sub(timeStart).Seconds(),
+			Version:         runtime.Version(),
+			GOOS:            runtime.GOOS,
+			GOARCH:          runtime.GOARCH,
+		},
 	}
 	outputJSON, err = getOutputJSON(o)
 
