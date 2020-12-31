@@ -24,6 +24,11 @@ const AppNavbar = () => {
       <Nav.Link className="lightbluelink">{text}</Nav.Link>
     </LinkContainer>
 
+  const getNavDropdownLink = (text: string, link: string) =>
+    <LinkContainer to={link} onClick={closeNav}>
+      <NavDropdown.Item className="lightbluelink">{text}</NavDropdown.Item>
+    </LinkContainer>
+
   return <>
     <Navbar fixed="top" bg="dark" variant="dark" expand="lg"
       onToggle={() => setNavExpanded(!navExpanded)} expanded={navExpanded}>
@@ -45,12 +50,13 @@ const AppNavbar = () => {
           {getNavLink("New Run", newrun)}
           {getNavLink("CI Output", cioutput)}
           <NavDropdown title="Visualisations" id="collabsible-nav-dropdown">
-            <NavDropdown.Item href={gamevisualisation}>Game</NavDropdown.Item>
-            <NavDropdown.Item href={iigovisualisation}>IIGO</NavDropdown.Item>
-            <NavDropdown.Item href={iitovisualisation}>IITO</NavDropdown.Item>
-            <NavDropdown.Item href={iifovisualisation}>IIFO</NavDropdown.Item>
-            <NavDropdown.Item href={resourcesvisualisation}>Resources</NavDropdown.Item>
-            <NavDropdown.Item href={rolesvisualisation}>Roles</NavDropdown.Item>
+
+            {getNavDropdownLink("Game", gamevisualisation)}
+            {getNavDropdownLink("IIGO", iigovisualisation)}
+            {getNavDropdownLink("IITO", iitovisualisation)}
+            {getNavDropdownLink("IIFO", iifovisualisation)}
+            {getNavDropdownLink("Resources", resourcesvisualisation)}
+            {getNavDropdownLink("Roles", rolesvisualisation)}
           </NavDropdown>
         </Nav>
       </Navbar.Collapse>
