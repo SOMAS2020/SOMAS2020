@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
@@ -112,6 +113,49 @@ func TestEvaluateCache(t *testing.T) {
 		})
 	}
 	rules.AvailableRules = tempCache
+}
+
+
+func TestFindRoleToMonitor(t *testing.T) {
+	cases := []struct{
+		name 			string
+		roleAccountable shared.ClientID
+		expectedVal 	(shared.ClientID, shared.Role, error)
+	}{
+		{
+			name: "Test Speaker to perform monitoring",
+			roleAccountable: shared.ClientID(1),
+			expectedVal: (shared.ClientID(2), shared.President, nil),
+		},
+		{
+			name: "Test President to perform monitoring",
+			roleAccountable: shared.ClientID(2),
+			expectedVal: (shared.ClientID(3), shared.Judge, nil),
+		},
+		{
+			name: "Test Judge to perform monitoring",
+			roleAccountable: shared.ClientID(3),
+			expectedVal: (shared.ClientID(1), shared.Speaker, nil),
+		},
+		{
+			name: "Test non IIGO role trying to perform monitoring",
+			roleAccountable: shared.ClientID(4),
+			expectedVal: (shared.ClientID(-1), shared.Speaker, errors.Errorf("Monitoring by island that is not an IIGO Role")),
+		},
+	}
+	monitor := &monitor{
+		speakerID: 1,
+		presidentID: 2,
+		judgeID: 3,
+	}
+	for _, tc := range cases{
+		t.Run(tc.name, func(t *testting.T){
+			res:=monitor.findRoleToMonitor(tc.roleAccountable)
+			if!reflect.DeepEqual(tc.expectedVal, res){
+				t.Errorf("Expected role to monitor to be %v got %v", tc.expectedVal, res)
+			}
+		})
+	}
 }
 
 func registerMonitoringTestRule() map[string]rules.RuleMatrix {
