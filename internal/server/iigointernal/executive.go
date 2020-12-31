@@ -162,7 +162,7 @@ func (e *executive) appointNextSpeaker(currentSpeaker shared.ClientID, allIsland
 	electionsettings := e.clientPresident.CallSpeakerElection(e.speakerTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		if !e.incurServiceCharge(actionCost.AppointNextSpeakerActionCost) {
-			return e.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
+			return e.gameState.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
 		}
 		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)

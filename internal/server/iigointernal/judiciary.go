@@ -86,7 +86,7 @@ func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIs
 	electionsettings := j.clientJudge.CallPresidentElection(j.presidentTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		if !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
-			return j.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
+			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 		}
 		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)

@@ -192,7 +192,7 @@ func (l *legislature) appointNextJudge(currentJudge shared.ClientID, allIslands 
 	electionsettings := l.clientSpeaker.CallJudgeElection(l.judgeTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		if !l.incurServiceCharge(actionCost.AppointNextJudgeActionCost) {
-			return l.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
+			return l.gameState.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
 		}
 		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)

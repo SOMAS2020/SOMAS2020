@@ -153,6 +153,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// TODO:- at the moment, these are action (and cost resources) but should they?
 	var appointJudgeError, appointSpeakerError, appointPresidentError error
 	// Get new Judge ID
+	costOfElection := actionCost.AppointNextSpeakerActionCost + actionCost.AppointNextJudgeActionCost + actionCost.AppointNextPresidentActionCost
+	if !CheckEnoughInCommonPool(costOfElection, g) {
+		return false, "Insufficient budget to run IIGO elections"
+	}
 	g.JudgeID, appointJudgeError = legislativeBranch.appointNextJudge(g.JudgeID, aliveClientIds)
 	if appointJudgeError != nil {
 		return false, "Judge was not apointed by the Speaker. Insufficient budget"
