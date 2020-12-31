@@ -38,7 +38,6 @@ func (r Role) MarshalText() ([]byte, error) {
 func (r Role) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(r.String())
 }
-<<<<<<< HEAD
 
 // MonitorResult is a type for communicating whether
 // monitoring has been performed and the decided result
@@ -46,5 +45,3 @@ type MonitorResult struct {
 	Performed bool
 	Result    bool
 }
-=======
->>>>>>> main
