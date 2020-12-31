@@ -100,10 +100,18 @@ func searchForVariableInArray(val rules.VariableFieldName, array []rules.Variabl
 
 // CallPresidentElection is called by the judiciary to decide on power-transfer
 func (j *BaseJudge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	// example implementation calls an election if monitoring was performed and the result was negative
+	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Plurality,
 		IslandsToVote: allIslands,
 		HoldElection:  true,
+	}
+	if monitoring.Performed && monitoring.Result {
+		electionsettings.HoldElection = false
+	}
+	if turnsInPower >= 2 {
+		electionsettings.HoldElection = false
 	}
 	return electionsettings
 }
