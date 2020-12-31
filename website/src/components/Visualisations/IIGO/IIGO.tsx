@@ -6,9 +6,7 @@ const IIGO = () => {
   return (
     <div className={styles.root}>
       <img src={logo} className={styles.appLogo} alt="logo" />
-      <p className={styles.text}>
-        Self-Organising Multi-Agent Systems 2020
-        </p>
+      <p className={styles.text}>IIGO Visualisation</p>
     </div>
   );
 }

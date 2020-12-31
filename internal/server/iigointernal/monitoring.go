@@ -4,6 +4,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 )
 
 type monitor struct {
@@ -26,14 +27,22 @@ func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.
 	}
 }
 
-func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool) {
-	roleToMonitor, roleName := m.findRoleToMonitor(roleAccountable)
-	decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
-	evaluationResult := false
-	if decideToMonitor {
-		evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
+func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool, error) {
+	roleToMonitor, roleName, err := m.findRoleToMonitor(roleAccountable)
+	if err == nil {
+		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
+		evaluationResult := false
+		if decideToMonitor {
+			evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
+			evaluationResult, announce := roleAccountable.DecideIIGOMonitoringAnnouncement(evaluationResult)
+			if announce {
+				message := generateMonitoringMessage(roleName, evaluationResult)
+				broadcastToAllIslands(roleAccountable.GetID(), message)
+			}
+		}
+		return decideToMonitor, evaluationResult, nil
 	}
-	return decideToMonitor, evaluationResult
+	return false, false, err
 }
 
 func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[string]rules.RuleMatrix) bool {
@@ -60,13 +69,30 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 	return performedRoleCorrectly
 }
 
-func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, baseclient.Role) {
+func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, shared.Role, error) {
 	switch roleAccountable.GetID() {
 	case m.speakerID:
-		return m.presidentID, baseclient.President
+		return m.presidentID, shared.President, nil
 	case m.presidentID:
-		return m.judgeID, baseclient.Judge
+		return m.judgeID, shared.Judge, nil
+	case m.judgeID:
+		return m.speakerID, shared.Speaker, nil
 	default:
-		return m.speakerID, baseclient.Speaker
+		return shared.ClientID(-1), shared.Speaker, errors.Errorf("Monitoring by island that is not an IIGO Role")
 	}
+}
+
+func generateMonitoringMessage(role shared.Role, result bool) map[shared.CommunicationFieldName]shared.CommunicationContent {
+	returnMap := map[shared.CommunicationFieldName]shared.CommunicationContent{}
+
+	returnMap[shared.RoleMonitored] = shared.CommunicationContent{
+		T:        shared.CommunicationIIGORole,
+		IIGORole: role,
+	}
+	returnMap[shared.MonitoringResult] = shared.CommunicationContent{
+		T:           shared.CommunicationBool,
+		BooleanData: result,
+	}
+
+	return returnMap
 }
