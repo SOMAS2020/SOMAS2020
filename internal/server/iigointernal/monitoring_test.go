@@ -104,10 +104,10 @@ func TestEvaluateCache(t *testing.T) {
 	rules.AvailableRules = ruleStore
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			monitor := &monitor{
+			monitoring := &monitor{
 				internalIIGOCache: tc.iigoCache,
 			}
-			res := monitor.evaluateCache(tc.roleID, ruleStore)
+			res := monitoring.evaluateCache(tc.roleID, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
 				t.Errorf("Expected evaluation of internalIIGOCache to be %v got %v", tc.expectedVal, res)
 			}
@@ -142,7 +142,7 @@ func TestFindRoleToMonitor(t *testing.T) {
 			name:            "Test Judge to perform monitoring",
 			roleAccountable: shared.ClientID(3),
 			expectedRoleID:  shared.ClientID(1),
-			expectedRole:    shared.Judge,
+			expectedRole:    shared.Speaker,
 			expectedError:   nil,
 		},
 		{
@@ -153,16 +153,17 @@ func TestFindRoleToMonitor(t *testing.T) {
 			expectedError:   errors.Errorf("Monitoring by island that is not an IIGO Role"),
 		},
 	}
-	monitor := &monitor{
+	monitoring := &monitor{
 		speakerID:   1,
 		presidentID: 2,
 		judgeID:     3,
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			id, role, err := monitor.findRoleToMonitor(tc.roleAccountable)
+			id, role, err := monitoring.findRoleToMonitor(tc.roleAccountable)
 			if !(reflect.DeepEqual(tc.expectedRoleID, id) && reflect.DeepEqual(tc.expectedRole, role)) {
 				t.Errorf("Expected role to monitor to be %v got %v", tc.expectedRoleID, id)
+				t.Errorf("Expected role to monitor to be %v got %v", tc.expectedRole, role)
 			}
 			testutils.CompareTestErrors(tc.expectedError, err, t)
 		})
