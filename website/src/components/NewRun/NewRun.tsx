@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import { runGame, getFlagsFormats, RunGameReturnType, Flag } from "../../wasmAPI"
 import { Alert, Button, Row, Col, OverlayTrigger, Tooltip, Form } from 'react-bootstrap'
 import { useLoadingState, initialLoadingState } from "../../contexts/loadingState"
-import CodeBlocks from '../CodeBlocks/CodeBlocks'
+import Artifacts from '../Artifacts/Artifacts'
 
 
 type flagFormProps = {
@@ -29,7 +29,7 @@ const FlagForm = (props: flagFormProps) => {
               </Tooltip>
             }
           >
-            <span>{flag.Name}</span>
+            <span style={{ wordBreak: `break-all` }}>{flag.Name}</span>
           </OverlayTrigger >
         </Form.Label>
         <Form.Control value={flag.Value} onChange={handleChange} readOnly={disabled} />
@@ -144,7 +144,8 @@ const NewRun = () => {
           <Button variant="danger" size="lg" onClick={reset}>Reset Run</Button>
         </div>
 
-        <CodeBlocks output={JSON.stringify(output.output, null, "\t")} logs={output.logs} />
+        <h3 style={{ marginTop: 24 }}>Artifacts</h3>
+        <Artifacts output={output.output} logs={output.logs} />
       </div>
     }
   </div>
