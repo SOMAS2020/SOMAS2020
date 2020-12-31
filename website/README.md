@@ -25,8 +25,11 @@ sudo npm i -g yarn
 
 `yarn install`
 
-
 ## Scripts
+
+### `yarn prestart`
+
+This runs `copyOutput.js` for you ahead of starting the development server. Other necessary actions can be bundled here in the future.
 
 ### `yarn start`
 
