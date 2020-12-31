@@ -11,10 +11,8 @@ func PickUpRulesByVariable(variableName VariableFieldName, ruleStore map[string]
 			}
 		}
 		return Rules, true
-	} else {
-		// fmt.Sprintf("Variable name '%v' was not found in the variable cache", variableName)
-		return []string{}, false
 	}
+	return []string{}, false
 }
 
 func searchForVariableInArray(val VariableFieldName, array []VariableFieldName) (int, bool) {
