@@ -15,13 +15,15 @@ type monitor struct {
 
 func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.VariableFieldName, values [][]float64) {
 	pairs := []rules.VariableValuePair{}
-	for index, variable := range variables {
-		pairs = append(pairs, rules.MakeVariableValuePair(variable, values[index]))
+	if len(variables) == len(values) {
+		for index, variable := range variables {
+			pairs = append(pairs, rules.MakeVariableValuePair(variable, values[index]))
+		}
+		m.internalIIGOCache = append(m.internalIIGOCache, shared.Accountability{
+			ClientID: roleToMonitorID,
+			Pairs:    pairs,
+		})
 	}
-	m.internalIIGOCache = append(m.internalIIGOCache, shared.Accountability{
-		ClientID: roleToMonitorID,
-		Pairs:    pairs,
-	})
 }
 
 func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool) {
