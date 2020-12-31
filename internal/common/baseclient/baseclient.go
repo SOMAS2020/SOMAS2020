@@ -54,7 +54,7 @@ type Client interface {
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
 
-	//IIGO: OPTIONAL
+	//IIGO: COMPULSORY
 	MonitorIIGORole(Role) bool
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
@@ -154,7 +154,8 @@ func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.Commu
 	return &c.Communications
 }
 
-//MonitorIIGORole decides whether to perform monitoring on the
+//MonitorIIGORole decides whether to perform monitoring on a role
+//COMPULOSRY: must be implemented
 func (c *BaseClient) MonitorIIGORole(roleName Role) bool {
 	return true
 }
