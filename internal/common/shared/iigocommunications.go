@@ -65,6 +65,9 @@ const (
 	RuleVoteResult
 	TaxAmount
 	AllocationAmount
+	PardonClientID
+	PardonTier
+	SanctionAmount
 )
 
 func (c CommunicationFieldName) String() string {
