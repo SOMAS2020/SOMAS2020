@@ -1,8 +1,8 @@
 import React from 'react';
-import logo from '../../assets/logo/logo512.png';
-import styles from './Home.module.css';
+import logo from '../../../assets/logo/logo512.png';
+import styles from './IITO.module.css';
 
-function Home() {
+const IITO = () => {
   return (
     <div className={styles.root}>
       <img src={logo} className={styles.appLogo} alt="logo" />
@@ -13,4 +13,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default IITO;
