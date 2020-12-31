@@ -54,7 +54,7 @@ type Client interface {
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
 
-	//IIGO
+	//IIGO: OPTIONAL
 	MonitorIIGORole(Role) bool
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
