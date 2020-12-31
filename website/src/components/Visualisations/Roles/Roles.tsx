@@ -9,64 +9,64 @@ const judgeColor = "#fee440";
 const speakerColor = "#f15bb5";
 const noneColor = "#b2bec3";
 
-const data = getProcessedRoleData();
+// const data = getProcessedRoleData();
 
-// const data: ProcessedRoleData = [
-//     {
-//         name: "Team1",
-//         roles: [
-//             { president: 5, judge: 0, speaker: 0, none: 0 },
-//             { president: 0, judge: 0, speaker: 0, none: 2 },
-//             { president: 0, judge: 1, speaker: 0, none: 0 },
-//             { president: 0, judge: 0, speaker: 0, none: 0 },
-//         ],
-//     },
-//     {
-//         name: "Team2",
-//         roles: [
-//             { president: 0, judge: 3, speaker: 0, none: 0 },
-//             { president: 0, judge: 0, speaker: 0, none: 3 },
-//             { president: 0, judge: 0, speaker: 1, none: 0 },
-//             { president: 0, judge: 0, speaker: 0, none: 1 },
-//         ],
-//     },
-//     {
-//         name: "Team3",
-//         roles: [
-//             { president: 0, judge: 0, speaker: 5, none: 0 },
-//             { president: 0, judge: 0, speaker: 0, none: 3 },
-//             { president: 0, judge: 0, speaker: 0, none: 0 },
-//             { president: 0, judge: 0, speaker: 0, none: 0 },
-//         ],
-//     },
-//     {
-//         name: "Team4",
-//         roles: [
-//             { president: 0, judge: 0, speaker: 0, none: 3 },
-//             { president: 0, judge: 2, speaker: 0, none: 0 },
-//             { president: 0, judge: 0, speaker: 0, none: 3 },
-//             { president: 0, judge: 0, speaker: 0, none: 0 },
-//         ],
-//     },
-//     {
-//         name: "Team5",
-//         roles: [
-//             { president: 0, judge: 0, speaker: 0, none: 5 },
-//             { president: 1, judge: 0, speaker: 0, none: 0 },
-//             { president: 0, judge: 1, speaker: 0, none: 0 },
-//             { president: 0, judge: 0, speaker: 1, none: 0 },
-//         ],
-//     },
-//     {
-//         name: "Team6",
-//         roles: [
-//             { president: 0, judge: 0, speaker: 0, none: 5 },
-//             { president: 0, judge: 0, speaker: 1, none: 0 },
-//             { president: 0, judge: 0, speaker: 0, none: 2 },
-//             { president: 0, judge: 0, speaker: 0, none: 0 },
-//         ],
-//     },
-// ];
+const data: ProcessedRoleData = [
+    {
+        name: "Team1",
+        roles: [
+            new TurnsInRoles(5, 0, 0, 0),
+            new TurnsInRoles(0, 0, 0, 2),
+            new TurnsInRoles(0, 1, 0, 0),
+            new TurnsInRoles(0, 0, 0, 0),
+        ],
+    },
+    {
+        name: "Team2",
+        roles: [
+            new TurnsInRoles(0, 3, 0, 0),
+            new TurnsInRoles(0, 0, 0, 3),
+            new TurnsInRoles(0, 0, 1, 0),
+            new TurnsInRoles(0, 0, 0, 1),
+        ],
+    },
+    {
+        name: "Team3",
+        roles: [
+            new TurnsInRoles(0, 0, 5, 0),
+            new TurnsInRoles(0, 0, 0, 3),
+            new TurnsInRoles(0, 0, 0, 0),
+            new TurnsInRoles(0, 0, 0, 0),
+        ],
+    },
+    {
+        name: "Team4",
+        roles: [
+            new TurnsInRoles(0, 0, 0, 3),
+            new TurnsInRoles(0, 2, 0, 0),
+            new TurnsInRoles(0, 0, 0, 3),
+            new TurnsInRoles(0, 0, 0, 0),
+        ],
+    },
+    {
+        name: "Team5",
+        roles: [
+            new TurnsInRoles(0, 0, 0, 5),
+            new TurnsInRoles(1, 0, 0, 0),
+            new TurnsInRoles(0, 1, 0, 0),
+            new TurnsInRoles(0, 0, 1, 0),
+        ],
+    },
+    {
+        name: "Team6",
+        roles: [
+            new TurnsInRoles(0, 0, 0, 5),
+            new TurnsInRoles(0, 0, 1, 0),
+            new TurnsInRoles(0, 0, 0, 2),
+            new TurnsInRoles(0, 0, 0, 0),
+        ],
+    },
+];
 
 type CustomTooltipProps = {
     active: boolean;
@@ -84,15 +84,10 @@ const getTurnsInRoles = (
         const turnsAsJudge = roles.reduce((acc, a) => acc + a.judge, 0);
         const turnsAsSpeaker = roles.reduce((acc, a) => acc + a.speaker, 0);
         const turnsAsNone = roles.reduce((acc, a) => acc + a.none, 0);
-        return {
-            president: turnsAsPresident,
-            judge: turnsAsJudge,
-            speaker: turnsAsSpeaker,
-            none: turnsAsNone,
-        };
+        return new TurnsInRoles(turnsAsPresident, turnsAsJudge, turnsAsSpeaker, turnsAsNone);
     } else {
         console.log(`[VisRole] Could not find ${name} in data...`);
-        return { president: 0, judge: 0, speaker: 0, none: 0 };
+        return new TurnsInRoles();
     }
 };
 
