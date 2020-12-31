@@ -53,19 +53,20 @@ func (p *BasePresident) PaySpeaker(salary shared.Resources) (shared.Resources, b
 }
 
 // CallSpeakerElection is called by the executive to decide on power-transfer
+// COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
 func (p *BasePresident) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Plurality,
 		IslandsToVote: allIslands,
-		HoldElection:  true,
+		HoldElection:  false,
 	}
-	if monitoring.Performed && monitoring.Result {
-		electionsettings.HoldElection = false
+	if monitoring.Performed && !monitoring.Result {
+		electionsettings.HoldElection = true
 	}
 	if turnsInPower >= 2 {
-		electionsettings.HoldElection = false
+		electionsettings.HoldElection = true
 	}
 	return electionsettings
 }
