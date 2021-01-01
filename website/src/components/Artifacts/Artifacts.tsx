@@ -46,9 +46,11 @@ const Artifacts = (props: Props) => {
   return <div style={{ textAlign: `left`, padding: `0 3vw` }} className={styles.root}>
     <Table striped bordered hover>
       <thead>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Download</th>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Download</th>
+        </tr>
       </thead>
       <tbody>
         {
