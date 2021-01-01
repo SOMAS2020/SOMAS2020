@@ -259,9 +259,9 @@ func (j *judiciary) clearHistoryCache() {
 // Helper functions //
 
 func decrementSanctionTime(sanctions map[int][]roles.Sanction) (updatedSanctions map[int][]roles.Sanction) {
-	for _, v := range sanctions {
-		for _, sanction := range v {
-			sanction.TurnsLeft -= 1
+	for k, v := range sanctions {
+		for index, sanction := range v {
+			sanctions[k][index].TurnsLeft = sanction.TurnsLeft - 1
 		}
 	}
 	return sanctions

@@ -13,6 +13,91 @@ import (
 
 /// Unit tests ///
 
+// TestDecrementSanctionTime checks whether the decrementSanctionTime function is able to reduce the time
+// on the given sanctions by one time step.
+func TestDecrementSanctionTime(t *testing.T) {
+	cases := []struct {
+		name             string
+		initialSanctions map[int][]roles.Sanction
+		updatedSanctions map[int][]roles.Sanction
+	}{
+		{
+			name: "Basic Decrement Test",
+			initialSanctions: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    2,
+					},
+				},
+			},
+			updatedSanctions: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    1,
+					},
+				},
+			},
+		},
+		{
+			name: "Complex Decrement Test",
+			initialSanctions: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    2,
+					},
+					{
+						ClientID:     shared.Team3,
+						SanctionTier: roles.SanctionTier4,
+						TurnsLeft:    8,
+					},
+				},
+				2: {
+					{
+						ClientID:     shared.Team4,
+						SanctionTier: roles.SanctionTier4,
+						TurnsLeft:    1,
+					},
+				},
+			},
+			updatedSanctions: map[int][]roles.Sanction{
+				1: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: roles.SanctionTier2,
+						TurnsLeft:    1,
+					},
+					{
+						ClientID:     shared.Team3,
+						SanctionTier: roles.SanctionTier4,
+						TurnsLeft:    7,
+					},
+				},
+				2: {
+					{
+						ClientID:     shared.Team4,
+						SanctionTier: roles.SanctionTier4,
+						TurnsLeft:    0,
+					},
+				},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := decrementSanctionTime(tc.initialSanctions)
+			if !reflect.DeepEqual(res, tc.updatedSanctions) {
+				t.Errorf("Expected %v got %v", tc.updatedSanctions, res)
+			}
+		})
+	}
+}
+
 // TestMergeEvalResults checks whether the mergeEvaluationReturn function can perform a soft merge of two maps of
 // the type map[shared.ClientID]roles.EvaluationReturn
 func TestMergeEvalResults(t *testing.T) {
