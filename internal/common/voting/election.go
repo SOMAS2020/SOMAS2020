@@ -21,7 +21,9 @@ func (e *Election) ProposeElection(role shared.Role, method shared.ElectionVotin
 
 // OpenBallot sets the islands eligible to vote.
 func (e *Election) OpenBallot(clientIDs []shared.ClientID) {
-	e.islandsToVote = clientIDs
+	e.voterList = clientIDs
+	//TODO candidate list in each election need to be determined, as it won't always equals to voter list.
+	e.candidateList = e.voterList
 }
 
 // Vote gets votes from eligible islands.
