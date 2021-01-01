@@ -81,7 +81,7 @@ const getTurnsInRoles = (
             turnsAsNone
         );
     } else {
-        console.log(`[VisRole] Could not find ${name} in data...`);
+        console.log(`[VIS ROLE] Could not find ${name} in data...`);
         return new TurnsInRoles();
     }
 };
@@ -100,19 +100,19 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                 <p className={styles.label}>{label}</p>
                 <p className={styles.content}>
                     Turns as President: {turnsInRoles.president} (
-                    {(turnsInRoles.president * 100) / turns}%)
+                    {((turnsInRoles.president * 100) / turns).toFixed(1)}%)
                 </p>
                 <p className={styles.content}>
                     Turns as Judge: {turnsInRoles.judge} (
-                    {(turnsInRoles.judge * 100) / turns}%)
+                    {((turnsInRoles.judge * 100) / turns).toFixed(1)}%)
                 </p>
                 <p className={styles.content}>
                     Turns as Speaker: {turnsInRoles.speaker} (
-                    {(turnsInRoles.speaker * 100) / turns}%)
+                    {((turnsInRoles.speaker * 100) / turns).toFixed(1)}%)
                 </p>
                 <p className={styles.content}>
                     Turns without power: {turnsInRoles.none} (
-                    {(turnsInRoles.none * 100) / turns}%)
+                    {((turnsInRoles.none * 100) / turns).toFixed(1)}%)
                 </p>
             </div>
         );
@@ -123,63 +123,66 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 const Roles = () => {
     return (
-        <ResponsiveContainer height={400} width="60%">
-            <BarChart data={data} layout="vertical">
-                <YAxis type="category" dataKey="name" />
-                <XAxis type="number" />
-                <Tooltip content={CustomTooltip} />
-                <Legend
-                    payload={[
-                        {
-                            value: "President",
-                            type: "square",
-                            id: "ID01",
-                            color: presidentColor,
-                        },
-                        {
-                            value: "Judge",
-                            type: "square",
-                            id: "ID02",
-                            color: judgeColor,
-                        },
-                        {
-                            value: "Speaker",
-                            type: "square",
-                            id: "ID03",
-                            color: speakerColor,
-                        },
-                        {
-                            value: "None",
-                            type: "square",
-                            id: "ID04",
-                            color: noneColor,
-                        },
-                    ]}
-                />
-                {data[0].roles.map((_, i) => [
-                    <Bar
-                        dataKey={`roles[${i}].president`}
-                        stackId="a"
-                        fill={presidentColor}
-                    />,
-                    <Bar
-                        dataKey={`roles[${i}].judge`}
-                        stackId="a"
-                        fill={judgeColor}
-                    />,
-                    <Bar
-                        dataKey={`roles[${i}].speaker`}
-                        stackId="a"
-                        fill={speakerColor}
-                    />,
-                    <Bar
-                        dataKey={`roles[${i}].none`}
-                        stackId="a"
-                        fill={noneColor}
-                    />,
-                ])}
-            </BarChart>
-        </ResponsiveContainer>
+        <div className={styles.root}>
+            <ResponsiveContainer height={460} width="100%">
+                <BarChart data={data} layout="vertical" margin={{ bottom: 30 }}>
+                    <YAxis type="category" dataKey="name" />
+                    <XAxis type="number" />
+                    <Tooltip content={CustomTooltip} />
+                    <Legend
+                        payload={[
+                            {
+                                value: "President",
+                                type: "square",
+                                id: "ID01",
+                                color: presidentColor,
+                            },
+                            {
+                                value: "Judge",
+                                type: "square",
+                                id: "ID02",
+                                color: judgeColor,
+                            },
+                            {
+                                value: "Speaker",
+                                type: "square",
+                                id: "ID03",
+                                color: speakerColor,
+                            },
+                            {
+                                value: "None",
+                                type: "square",
+                                id: "ID04",
+                                color: noneColor,
+                            },
+                        ]}
+                    />
+                    {data[0].roles.map((_, i) => [
+                        <Bar
+                            dataKey={`roles[${i}].president`}
+                            stackId="a"
+                            fill={presidentColor}
+                        />,
+                        <Bar
+                            dataKey={`roles[${i}].judge`}
+                            stackId="a"
+                            fill={judgeColor}
+                        />,
+                        <Bar
+                            dataKey={`roles[${i}].speaker`}
+                            stackId="a"
+                            fill={speakerColor}
+                        />,
+                        <Bar
+                            dataKey={`roles[${i}].none`}
+                            stackId="a"
+                            fill={noneColor}
+                        />,
+                    ])}
+                </BarChart>
+            </ResponsiveContainer>
+            <p className={styles.text}>Role Visualisation</p>
+        </div>
     );
 };
 
