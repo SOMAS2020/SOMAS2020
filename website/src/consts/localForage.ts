@@ -1,4 +1,4 @@
 // keys for localForage
 
-export const LOCAL_FLAGS = `LOCAL_FLAGS`
-export const LOCAL_OUTPUT = `LOCAL_OUTPUT`
+export const NEW_RUN_FLAGS = `NEW_RUN_FLAGS`
+export const NEW_RUN_OUTPUT = `NEW_RUN_OUTPUT`

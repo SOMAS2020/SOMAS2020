@@ -1,4 +1,4 @@
-import { LOCAL_FLAGS, LOCAL_OUTPUT } from "../../consts/localForage"
+import { NEW_RUN_FLAGS, NEW_RUN_OUTPUT } from "../../consts/localForage"
 import { Flag, getFlagsFormats, RunGameReturnType, runGame } from "../../wasmAPI"
 import * as localForage from "localforage"
 
@@ -9,7 +9,7 @@ export const loadFlags = async (loadLocal: boolean = true): Promise<Map<string, 
 
   if (loadLocal) {
     // try to load local flags' values if present
-    const localFs: Map<string, Flag> | undefined | null = await localForage.getItem(LOCAL_FLAGS)
+    const localFs: Map<string, Flag> | undefined | null = await localForage.getItem(NEW_RUN_FLAGS)
     if (localFs) {
       localFs.forEach(f => {
         const origFlag = fs.get(f.Name)
@@ -24,7 +24,7 @@ export const loadFlags = async (loadLocal: boolean = true): Promise<Map<string, 
 }
 
 export const loadLocalOutput = async () => {
-  const localOutput: RunGameReturnType | undefined | null = await localForage.getItem(LOCAL_OUTPUT)
+  const localOutput: RunGameReturnType | undefined | null = await localForage.getItem(NEW_RUN_OUTPUT)
   return localOutput
 }
 
@@ -34,10 +34,10 @@ export const runGameHelper = async (flags: Map<string, Flag>): Promise<RunGameRe
 
   // async-ally save the flags and output in localForage
   // best effort, so we don't really care if it's not oK
-  localForage.setItem(LOCAL_FLAGS, flags)
+  localForage.setItem(NEW_RUN_FLAGS, flags)
     .then(() => console.debug(`Set local flags`))
     .catch((err: any) => console.error(err))
-  localForage.setItem(LOCAL_OUTPUT, output)
+  localForage.setItem(NEW_RUN_OUTPUT, output)
     .then(() => console.debug(`Set local output`))
     .catch((err: any) => console.error(err))
 
@@ -59,13 +59,13 @@ export const setFlagHelper = async (flags: Map<string, Flag> | undefined, flagNa
 }
 
 export const clearLocalOutput = async () => {
-  localForage.removeItem(LOCAL_OUTPUT)
+  localForage.removeItem(NEW_RUN_OUTPUT)
     .then(() => console.debug(`Clear local output`))
     .catch((err: any) => console.error(err))
 }
 
 export const clearLocalFlags = async () => {
-  localForage.removeItem(LOCAL_FLAGS)
+  localForage.removeItem(NEW_RUN_FLAGS)
     .then(() => console.debug(`Clear local flags`))
     .catch((err: any) => console.error(err))
 }
