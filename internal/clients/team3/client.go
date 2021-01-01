@@ -50,7 +50,7 @@ type client struct {
 
 	timeSinceCaught uint
 	numTimeCaught   uint
-	compliance      float32
+	compliance      float64
 
 	// allVotes [rule][shared.ClientID] TODO
 
@@ -62,20 +62,20 @@ type client struct {
 
 type islandParams struct {
 	giftingThreshold            int
-	equity                      float32
-	complianceLevel             float32
-	resourcesSkew               float32
+	equity                      float64
+	complianceLevel             float64
+	resourcesSkew               float64
 	saveCriticalIsland          bool
 	escapeCritcaIsland          bool
-	selfishness                 float32
+	selfishness                 float64
 	minimumRequest              int
-	disasterPredictionWeighting float32
+	disasterPredictionWeighting float64
 	DesiredRuleSet              []string
-	recidivism                  float32
-	riskFactor                  float32
-	friendliness                float32
-	anger                       float32
-	aggression                  float32
+	recidivism                  float64
+	riskFactor                  float64
+	friendliness                float64
+	anger                       float64
+	aggression                  float64
 }
 
 func (c *client) DemoEvaluation() {
