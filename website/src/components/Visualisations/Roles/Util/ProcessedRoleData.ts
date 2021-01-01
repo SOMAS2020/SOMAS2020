@@ -13,7 +13,7 @@ const standardise = (allRoles: ProcessedRoleData): ProcessedRoleData => {
     );
 
     return allRoles.map((allRolesElem) => {
-        for (let i = 0; i < maxLength - allRolesElem.roles.length; i++) {
+        for (let i = 0; i <= maxLength - allRolesElem.roles.length; i++) {
             allRolesElem.roles.push(new TurnsInRoles());
         }
         return allRolesElem;
