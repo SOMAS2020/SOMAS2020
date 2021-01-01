@@ -533,8 +533,12 @@ func mergeEvalResults(set1 map[shared.ClientID]roles.EvaluationReturn, set2 map[
 		if set2Val, ok := set2[key]; ok {
 			defRules := set2Val.Rules
 			defEvals := set2Val.Evaluations
-			finalRules := append(defRules, val.Rules...)
-			finalEvals := append(defEvals, val.Evaluations...)
+			var finalRules = make([]rules.RuleMatrix, len(defRules))
+			copy(finalRules, defRules)
+			var finalEvals = make([]bool, len(defEvals))
+			copy(finalEvals, defEvals)
+			finalRules = append(finalRules, val.Rules...)
+			finalEvals = append(finalEvals, val.Evaluations...)
 			resolved := roles.EvaluationReturn{
 				Rules:       finalRules,
 				Evaluations: finalEvals,
