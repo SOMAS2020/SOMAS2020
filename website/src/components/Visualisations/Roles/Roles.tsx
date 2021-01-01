@@ -21,6 +21,7 @@ type CustomTooltipProps = {
     active: boolean;
     payload: [{ name: string; value: number; unit: string }];
     label: string;
+    data: ProcessedRoleData;
 };
 
 const getTurnsInRoles = (
@@ -46,8 +47,7 @@ const getTurnsInRoles = (
 };
 
 const CustomTooltip = (
-    data: ProcessedRoleData,
-    { active, payload, label }: CustomTooltipProps
+    { active, payload, label, data }: CustomTooltipProps
 ) => {
     if (active) {
         const turnsInRoles = getTurnsInRoles(data, label);
@@ -94,7 +94,7 @@ const Roles = () => {
                     <XAxis type="number" />
                     <Tooltip
                         content={(props: CustomTooltipProps) =>
-                            CustomTooltip(data, props)
+                            CustomTooltip({...props, data})
                         }
                     />
                     <Legend
