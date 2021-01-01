@@ -115,7 +115,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	valuesToCache := [][]float64{{boolToFloat(historyInspected)}}
 	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
-	monitoring.monitorRole(iigoClients[g.PresidentID])
+	judgeMonitored := monitoring.monitorRole(iigoClients[g.PresidentID])
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
@@ -134,7 +134,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	valuesToCache = [][]float64{{boolToFloat(allocationsMade)}}
 	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
-	monitoring.monitorRole(iigoClients[g.SpeakerID])
+	presidentMonitored := monitoring.monitorRole(iigoClients[g.SpeakerID])
 
 	// 3 Speaker actions
 	legislativeBranch.setRuleToVote(ruleToVote)
@@ -145,14 +145,14 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
-	monitoring.monitorRole(iigoClients[g.JudgeID])
+	speakerMonitored := monitoring.monitorRole(iigoClients[g.JudgeID])
 
 	// Get new Judge ID
-	g.JudgeID = legislativeBranch.appointNextJudge(g.JudgeID, aliveClientIds)
+	g.JudgeID = legislativeBranch.appointNextJudge(judgeMonitored, g.JudgeID, aliveClientIds)
 	// Get new Speaker ID
-	g.SpeakerID = executiveBranch.appointNextSpeaker(g.SpeakerID, aliveClientIds)
+	g.SpeakerID = executiveBranch.appointNextSpeaker(speakerMonitored, g.SpeakerID, aliveClientIds)
 	// Get new President ID
-	g.PresidentID = judicialBranch.appointNextPresident(g.PresidentID, aliveClientIds)
+	g.PresidentID = judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
 
 	return true, "IIGO Run Successful"
 }

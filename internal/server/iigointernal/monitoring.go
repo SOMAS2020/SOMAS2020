@@ -27,8 +27,8 @@ func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.
 	}
 }
 
-func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool, error) {
-	roleToMonitor, roleName, err := m.findRoleToMonitor(roleAccountable)
+func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorResult {
+	roleToMonitor, roleName, err := m.findRoleToMonitor(roleAccountable.GetID())
 	if err == nil {
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
 		evaluationResult := false
@@ -40,9 +40,11 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) (bool, bool, er
 				broadcastToAllIslands(roleAccountable.GetID(), message)
 			}
 		}
-		return decideToMonitor, evaluationResult, nil
+		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}
+		return result
 	}
-	return false, false, err
+	result := shared.MonitorResult{Performed: false, Result: false}
+	return result
 }
 
 func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[string]rules.RuleMatrix) bool {
@@ -69,8 +71,8 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 	return performedRoleCorrectly
 }
 
-func (m *monitor) findRoleToMonitor(roleAccountable baseclient.Client) (shared.ClientID, shared.Role, error) {
-	switch roleAccountable.GetID() {
+func (m *monitor) findRoleToMonitor(roleAccountable shared.ClientID) (shared.ClientID, shared.Role, error) {
+	switch roleAccountable {
 	case m.speakerID:
 		return m.presidentID, shared.President, nil
 	case m.presidentID:
@@ -86,8 +88,8 @@ func generateMonitoringMessage(role shared.Role, result bool) map[shared.Communi
 	returnMap := map[shared.CommunicationFieldName]shared.CommunicationContent{}
 
 	returnMap[shared.RoleMonitored] = shared.CommunicationContent{
-		T:        shared.CommunicationIIGORole,
-		IIGORole: role,
+		T:            shared.CommunicationIIGORole,
+		IIGORoleData: role,
 	}
 	returnMap[shared.MonitoringResult] = shared.CommunicationContent{
 		T:           shared.CommunicationBool,
