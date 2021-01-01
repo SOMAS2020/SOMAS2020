@@ -85,7 +85,7 @@ func (j *judiciary) PayPresident() shared.Resources {
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	j.budget -= serviceCharge
-	finalResults := getBaseEvalResults()
+	finalResults := getBaseEvalResults(shared.TeamIDs)
 	if j.clientJudge.HistoricalRetributionEnabled() {
 		for _, v := range j.localHistoryCache {
 			res, rsuccess := j.clientJudge.InspectHistory(v)
@@ -452,33 +452,15 @@ func checkSizes(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) 
 	return true
 }
 
-func getBaseEvalResults() map[shared.ClientID]roles.EvaluationReturn {
-	return map[shared.ClientID]roles.EvaluationReturn{
-		shared.Team1: {
+func getBaseEvalResults(teamIDs [6]shared.ClientID) map[shared.ClientID]roles.EvaluationReturn {
+	baseResults := map[shared.ClientID]roles.EvaluationReturn{}
+	for _, teamID := range teamIDs {
+		baseResults[teamID] = roles.EvaluationReturn{
 			Rules:       []rules.RuleMatrix{},
 			Evaluations: []bool{},
-		},
-		shared.Team2: {
-			Rules:       []rules.RuleMatrix{},
-			Evaluations: []bool{},
-		},
-		shared.Team3: {
-			Rules:       []rules.RuleMatrix{},
-			Evaluations: []bool{},
-		},
-		shared.Team4: {
-			Rules:       []rules.RuleMatrix{},
-			Evaluations: []bool{},
-		},
-		shared.Team5: {
-			Rules:       []rules.RuleMatrix{},
-			Evaluations: []bool{},
-		},
-		shared.Team6: {
-			Rules:       []rules.RuleMatrix{},
-			Evaluations: []bool{},
-		},
+		}
 	}
+	return baseResults
 }
 
 // cullCheckedRules removes any entries in the history that have been evaluated in evalResults (for historical retribution)
