@@ -131,18 +131,13 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 func (c *BaseClient) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
 	// Done ;)
 	// Get all alive islands
-	//aliveClients := rules.VariableMap[rules.IslandsAlive]
-	// Convert to ClientID type and place into unordered map
-	aliveClientIDs := map[int]shared.ClientID{}
-	//for i, v := range aliveClients.Values {
-	//	aliveClientIDs[i] = shared.ClientID(int(v))
-	//}
+	candidates := map[int]shared.ClientID{}
 	for i := 0; i < len(candidateList); i++ {
-		aliveClientIDs[i] = candidateList[i]
+		candidates[i] = candidateList[i]
 	}
 	// Recombine map, in shuffled order
 	var returnList []shared.ClientID
-	for _, v := range aliveClientIDs {
+	for _, v := range candidates {
 		returnList = append(returnList, v)
 	}
 	return returnList
