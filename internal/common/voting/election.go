@@ -118,13 +118,14 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 
 	}
 
-	//Calculate the final score for all candidates and ditermine the winner.
+	//Calculate the final score for all candidates.
 	finalScore := make([]int, candidatesNumber)
 	for _, v := range preferenceMap {
 		for i := 0; i < candidatesNumber; i++ {
 			finalScore[i] += v[i]
 		}
 	}
+	//variance is needed when two or more candidates have equal votes. 
 	variance := make([]float32, candidatesNumber)
 	for _, v := range preferenceMap {
 		for i := 0; i < candidatesNumber; i++ {
@@ -262,7 +263,7 @@ func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.
 				}
 			}
 		}
-
+		//keep eliminating the least popular one untill the most popular one has more than half of the total score. 
 		if float32(maxScore) > halfTotalScore {
 			winner = candidateList[maxScoreIndex]
 			break
@@ -312,7 +313,7 @@ func (e *Election) approvalResult() shared.ClientID {
 	var winner shared.ClientID
 	candidateList := e.candidateList
 	scoreList := make([]int, len(candidateList))
-	//TODO implement approval voting method.
+	//If there are more than two candidates has the highest score, then the winner will be randomly chosen.
 	for i := 0; i < len(e.votes); i++ {
 		for j := 0; j < len(e.votes[i]); j++ {
 			for p := 0; p < len(candidateList); p++ {
