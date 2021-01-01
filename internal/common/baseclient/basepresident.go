@@ -9,6 +9,7 @@ import (
 type BasePresident struct{}
 
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
+// COMPULSORY: decide how much each island can take from the common pool.
 func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	var requestSum shared.Resources
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
@@ -28,6 +29,7 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 }
 
 // PickRuleToVote chooses a rule proposal from all the proposals
+// COMPULSORY: decide a method for picking a rule to vote on
 func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
@@ -38,6 +40,7 @@ func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 
 // SetTaxationAmount sets taxation amount for all of the living islands
 // islandsResources: map of all the living islands and their remaining resources
+// COMPULSORY: decide how much to tax islands, using rules as a guide if you wish.
 func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 	for id, resourceLeft := range islandsResources {
@@ -47,6 +50,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 }
 
 // PaySpeaker pays the speaker a salary.
+// OPTIONAL: override to pay the Speaker less than the full amount.
 func (p *BasePresident) PaySpeaker(salary shared.Resources) (shared.Resources, bool) {
 	// TODO : Implement opinion based salary payment.
 	return salary, true
@@ -72,6 +76,7 @@ func (p *BasePresident) CallSpeakerElection(monitoring shared.MonitorResult, tur
 }
 
 // DecideNextSpeaker returns the ID of chosen next Speaker
+// OPTIONAL: override to manipulate the result of the election
 func (p *BasePresident) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	return winner
 }

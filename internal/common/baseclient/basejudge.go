@@ -11,23 +11,27 @@ type BaseJudge struct {
 
 // GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
 // If a rule is not named here, the default sanction value added is 1
+// OPTIONAL: override to set custom sanction severities for specific rules
 func (j *BaseJudge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
 	return map[string]roles.IIGOSanctionScore{}
 }
 
 // GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
 // For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
+// OPTIONAL: override to set custom sanction thresholds
 func (j *BaseJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
 	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{}
 }
 
 // PayPresident pays the President a salary.
+// OPTIONAL: override to pay the President less than the full amount.
 func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
 	return presidentSalary, true
 }
 
 // inspectHistoryInternal is the base implementation of InspectHistory.
+// OPTIONAL: override if you want to evaluate the history log differently.
 func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
 	for _, entry := range iigoHistory {
@@ -64,10 +68,14 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 	return outputMap, true
 }
 
+// GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
+// COMPULSORY: decide which islands, if any, to forgive
 func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
 	return map[int][]bool{}
 }
 
+// HistoricalRetributionEnabled allows you to punish more than the previous turns transgressions
+// OPTIONAL: override if you want to punish historical transgressions
 func (j *BaseJudge) HistoricalRetributionEnabled() bool {
 	return false
 }
@@ -92,6 +100,7 @@ func (j *BaseJudge) CallPresidentElection(monitoring shared.MonitorResult, turns
 }
 
 // DecideNextPresident returns the ID of chosen next President
+// OPTIONAL: override to manipulate the result of the election
 func (j *BaseJudge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	return winner
 }
