@@ -55,8 +55,6 @@ type client struct {
 
 	// params is list of island wide function parameters
 	params islandParams
-
-	presidentObj president
 }
 
 type islandParams struct {
