@@ -13,7 +13,7 @@ import (
 
 /// Unit tests ///
 
-// TestMergeEvalResults checks whether the mergeEvalResults function can perform a soft merge of two maps of
+// TestMergeEvalResults checks whether the mergeEvaluationReturn function can perform a soft merge of two maps of
 // the type map[shared.ClientID]roles.EvaluationReturn
 func TestMergeEvalResults(t *testing.T) {
 	availableRules := generateDummyRuleMatrices()
@@ -132,7 +132,7 @@ func TestMergeEvalResults(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			res := mergeEvalResults(tc.set1, tc.set2)
+			res := mergeEvaluationReturn(tc.set1, tc.set2)
 			if !reflect.DeepEqual(res, tc.expect) {
 				t.Errorf("Expected %v got %v", tc.expect, res)
 			}

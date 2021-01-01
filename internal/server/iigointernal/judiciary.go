@@ -101,7 +101,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 		j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
 	}
 	tempResults, success := j.clientJudge.InspectHistory(iigoHistory)
-	finalResults = mergeEvalResults(tempResults, finalResults)
+	finalResults = mergeEvaluationReturn(tempResults, finalResults)
 	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
 	j.cycleHistoryCache(entryForHistoryCache)
 	j.evaluationResults = finalResults
@@ -527,8 +527,8 @@ func searchEvalReturnForRuleName(name string, evaluationReturn roles.EvaluationR
 	return false
 }
 
-// mergeEvalResults takes two evaluation results and merges them to provide a unified set
-func mergeEvalResults(set1 map[shared.ClientID]roles.EvaluationReturn, set2 map[shared.ClientID]roles.EvaluationReturn) map[shared.ClientID]roles.EvaluationReturn {
+// mergeEvaluationReturn takes two evaluation results and merges them to provide a unified set
+func mergeEvaluationReturn(set1 map[shared.ClientID]roles.EvaluationReturn, set2 map[shared.ClientID]roles.EvaluationReturn) map[shared.ClientID]roles.EvaluationReturn {
 	for key, val := range set1 {
 		if set2Val, ok := set2[key]; ok {
 			defRules := set2Val.Rules
