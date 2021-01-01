@@ -41,6 +41,10 @@ func main() {
 // args[0] are optional arguments to set flag values
 // The format is `arg1=value,arg2=value,...`
 func RunGame(this js.Value, args []js.Value) interface{} {
+	// log into a buffer
+	logBuf := bytes.Buffer{}
+	log.SetOutput(logger.NewLogWriter([]io.Writer{&logBuf}))
+
 	timeStart := time.Now()
 	gameConfig, err := getConfigFromArgs(args)
 	if err != nil {
@@ -48,10 +52,6 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 			"error": convertError(err),
 		})
 	}
-
-	// log into a buffer
-	logBuf := bytes.Buffer{}
-	log.SetOutput(logger.NewLogWriter([]io.Writer{&logBuf}))
 
 	s := server.NewSOMASServer(gameConfig)
 
@@ -129,7 +129,12 @@ func getConfigFromArgs(jsArgs []js.Value) (config.Config, error) {
 		}
 	}
 
-	return parseConfig(), nil
+	conf, err := parseConfig()
+	if err != nil {
+		return conf, errors.Errorf("Flag parse error: %v", err)
+	}
+
+	return conf, nil
 }
 
 // getFlagBaseType processes the String of the reflect.Type of a flag to
