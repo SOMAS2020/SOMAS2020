@@ -73,6 +73,7 @@ const NewRun = () => {
     try {
       const newFlags = await setFlagHelper(flags, flagName, val)
       setFlags(newFlags)
+      setRunError(undefined)
     }
     catch (err) {
       setRunError(err.message)
@@ -96,6 +97,7 @@ const NewRun = () => {
       }
       const res = await runGameHelper(flags)
       setOutput(res)
+      setRunError(undefined)
     }
     catch (err) {
       setRunError(err.message)
