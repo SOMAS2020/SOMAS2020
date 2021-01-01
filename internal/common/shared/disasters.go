@@ -2,9 +2,9 @@ package shared
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
+	"github.com/pkg/errors"
 )
 
 // Coordinate is a floating point number that can be used represent a position on the map
@@ -50,12 +50,11 @@ func (s SpatialPDFType) MarshalJSON() ([]byte, error) {
 }
 
 // ParseSpatialPDFType gets the SpatialPDFType based on the number
-func ParseSpatialPDFType(x int) SpatialPDFType {
+func ParseSpatialPDFType(x int) (SpatialPDFType, error) {
 	if x >= 0 && SpatialPDFType(x) < spatialPDFTypeEnd {
-		return SpatialPDFType(x)
+		return SpatialPDFType(x), nil
 	}
-	log.Printf("Unknown SpatialPDFType specified: '%v'\nUse --help. Defaulting to %v", x, Uniform)
-	return Uniform
+	return Uniform, errors.Errorf("Unknown SpatialPDFType specified: '%v'.", x)
 }
 
 // HelpSpatialPDFType returns a help string for SpatialPDFType
