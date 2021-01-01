@@ -17,47 +17,6 @@ const judgeColor = "#fee440";
 const speakerColor = "#f15bb5";
 const noneColor = "#b2bec3";
 
-const data = getProcessedRoleData();
-
-// const data: ProcessedRoleData = [
-//     new ProcessedRoleElement("Team1", [
-//         new TurnsInRoles(5, 0, 0, 0),
-//         new TurnsInRoles(0, 0, 0, 2),
-//         new TurnsInRoles(0, 1, 0, 0),
-//         new TurnsInRoles(0, 0, 0, 0),
-//     ]),
-//     new ProcessedRoleElement("Team2", [
-//         new TurnsInRoles(0, 3, 0, 0),
-//         new TurnsInRoles(0, 0, 0, 3),
-//         new TurnsInRoles(0, 0, 1, 0),
-//         new TurnsInRoles(0, 0, 0, 1),
-//     ]),
-//     new ProcessedRoleElement("Team3", [
-//         new TurnsInRoles(0, 0, 5, 0),
-//         new TurnsInRoles(0, 0, 0, 3),
-//         new TurnsInRoles(0, 0, 0, 0),
-//         new TurnsInRoles(0, 0, 0, 0),
-//     ]),
-//     new ProcessedRoleElement("Team4", [
-//         new TurnsInRoles(0, 0, 0, 3),
-//         new TurnsInRoles(0, 2, 0, 0),
-//         new TurnsInRoles(0, 0, 0, 3),
-//         new TurnsInRoles(0, 0, 0, 0),
-//     ]),
-//     new ProcessedRoleElement("Team5", [
-//         new TurnsInRoles(0, 0, 0, 5),
-//         new TurnsInRoles(1, 0, 0, 0),
-//         new TurnsInRoles(0, 1, 0, 0),
-//         new TurnsInRoles(0, 0, 1, 0),
-//     ]),
-//     new ProcessedRoleElement("Team6", [
-//         new TurnsInRoles(0, 0, 0, 5),
-//         new TurnsInRoles(0, 0, 1, 0),
-//         new TurnsInRoles(0, 0, 0, 2),
-//         new TurnsInRoles(0, 0, 0, 0),
-//     ]),
-// ];
-
 type CustomTooltipProps = {
     active: boolean;
     payload: [{ name: string; value: number; unit: string }];
@@ -86,7 +45,10 @@ const getTurnsInRoles = (
     }
 };
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+const CustomTooltip = (
+    data: ProcessedRoleData,
+    { active, payload, label }: CustomTooltipProps
+) => {
     if (active) {
         const turnsInRoles = getTurnsInRoles(data, label);
         const turns =
@@ -122,13 +84,19 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 const Roles = () => {
+    const data = getProcessedRoleData();
+
     return (
         <div className={styles.root}>
             <ResponsiveContainer height={460} width="100%">
                 <BarChart data={data} layout="vertical" margin={{ bottom: 30 }}>
                     <YAxis type="category" dataKey="name" />
                     <XAxis type="number" />
-                    <Tooltip content={CustomTooltip} />
+                    <Tooltip
+                        content={(props: CustomTooltipProps) =>
+                            CustomTooltip(data, props)
+                        }
+                    />
                     <Legend
                         payload={[
                             {
