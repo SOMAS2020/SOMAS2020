@@ -14,24 +14,26 @@ const (
 	friendly
 )
 
+// GiftReceivedHistory is what gifts that we have received from which islands
 type GiftReceivedHistory map[shared.ClientID]shared.GiftOffer
 
+// Friendship indicates friendship level
 type Friendship int
 
+// FriendshipWith indicates level with other islands
 type FriendshipWith map[shared.ClientID]Friendship
+
+// Config configures our island's initial state
+type Config struct {
+	friendshipWith FriendshipWith
+}
 
 func init() {
 	baseclient.RegisterClient(
 		id,
 		&client{
 			BaseClient: baseclient.NewClient(id),
-			friendshipWith: FriendshipWith{
-				shared.Team1: neutral,
-				shared.Team2: neutral,
-				shared.Team3: neutral,
-				shared.Team4: neutral,
-				shared.Team5: neutral,
-			},
+			configInfo: clientConfigInfo,
 		},
 	)
 }
@@ -39,13 +41,29 @@ func init() {
 type client struct {
 	*baseclient.BaseClient
 
-	friendshipWith FriendshipWith
+	configInfo Config
 }
 
-func (c *client) RaiseFriendshipLevel() {
-	// increase the friendship level with some other islands
+// increases the friendship level with some other islands
+func (c *client) RaiseFriendshipLevel(clientID shared.ClientID) {
+	currFriendship := c.configInfo.friendshipWith[clientID]
+
+	switch {
+	case currFriendship == hostile:
+		c.configInfo.friendshipWith[clientID] = neutral
+	case currFriendship == neutral:
+		c.configInfo.friendshipWith[clientID] = friendly
+	}
 }
 
-func (c *client) LowerFriendshipLevel() {
-	// decrease the friendship level with some other islands
+// decreases the friendship level with some other islands
+func (c *client) LowerFriendshipLevel(clientID shared.ClientID) {
+	currFriendship := c.configInfo.friendshipWith[clientID]
+
+	switch {
+	case currFriendship == friendly:
+		c.configInfo.friendshipWith[clientID] = neutral
+	case currFriendship == neutral:
+		c.configInfo.friendshipWith[clientID] = hostile
+	}
 }
