@@ -21,6 +21,7 @@ package team3
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
+	// The server should handle the below functions maybe?
 	SentGift(sent shared.Resources, to shared.ClientID)
 	ReceivedGift(received shared.Resources, from shared.ClientID)
 
