@@ -1,6 +1,14 @@
 import React from "react";
 import styles from "./Roles.module.css";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from "recharts";
 import { TurnsInRoles, ProcessedRoleData } from "./Util/RoleTypes";
 import { getProcessedRoleData } from "./Util/ProcessedRoleData";
 
@@ -115,72 +123,63 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 const Roles = () => {
     return (
-        <BarChart
-            width={500}
-            height={300}
-            data={data}
-            margin={{
-                top: 20,
-                right: 30,
-                left: 20,
-                bottom: 5,
-            }}
-            layout="vertical"
-        >
-            <YAxis type="category" dataKey="name" />
-            <XAxis type="number" />
-            <Tooltip content={CustomTooltip} />
-            <Legend
-                payload={[
-                    {
-                        value: "President",
-                        type: "square",
-                        id: "ID01",
-                        color: presidentColor,
-                    },
-                    {
-                        value: "Judge",
-                        type: "square",
-                        id: "ID02",
-                        color: judgeColor,
-                    },
-                    {
-                        value: "Speaker",
-                        type: "square",
-                        id: "ID03",
-                        color: speakerColor,
-                    },
-                    {
-                        value: "None",
-                        type: "square",
-                        id: "ID04",
-                        color: noneColor,
-                    },
-                ]}
-            />
-            {data[0].roles.map((_, i) => [
-                <Bar
-                    dataKey={`roles[${i}].president`}
-                    stackId="a"
-                    fill={presidentColor}
-                />,
-                <Bar
-                    dataKey={`roles[${i}].judge`}
-                    stackId="a"
-                    fill={judgeColor}
-                />,
-                <Bar
-                    dataKey={`roles[${i}].speaker`}
-                    stackId="a"
-                    fill={speakerColor}
-                />,
-                <Bar
-                    dataKey={`roles[${i}].none`}
-                    stackId="a"
-                    fill={noneColor}
-                />,
-            ])}
-        </BarChart>
+        <ResponsiveContainer height={400} width="60%">
+            <BarChart data={data} layout="vertical">
+                <YAxis type="category" dataKey="name" />
+                <XAxis type="number" />
+                <Tooltip content={CustomTooltip} />
+                <Legend
+                    payload={[
+                        {
+                            value: "President",
+                            type: "square",
+                            id: "ID01",
+                            color: presidentColor,
+                        },
+                        {
+                            value: "Judge",
+                            type: "square",
+                            id: "ID02",
+                            color: judgeColor,
+                        },
+                        {
+                            value: "Speaker",
+                            type: "square",
+                            id: "ID03",
+                            color: speakerColor,
+                        },
+                        {
+                            value: "None",
+                            type: "square",
+                            id: "ID04",
+                            color: noneColor,
+                        },
+                    ]}
+                />
+                {data[0].roles.map((_, i) => [
+                    <Bar
+                        dataKey={`roles[${i}].president`}
+                        stackId="a"
+                        fill={presidentColor}
+                    />,
+                    <Bar
+                        dataKey={`roles[${i}].judge`}
+                        stackId="a"
+                        fill={judgeColor}
+                    />,
+                    <Bar
+                        dataKey={`roles[${i}].speaker`}
+                        stackId="a"
+                        fill={speakerColor}
+                    />,
+                    <Bar
+                        dataKey={`roles[${i}].none`}
+                        stackId="a"
+                        fill={noneColor}
+                    />,
+                ])}
+            </BarChart>
+        </ResponsiveContainer>
     );
 };
 
