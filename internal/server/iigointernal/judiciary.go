@@ -186,35 +186,10 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 	pardons := j.clientJudge.GetPardonedIslands(j.localSanctionCache)
 	pardonsValid, newSanctionMap, communications := implementPardons(j.localSanctionCache, pardons, shared.TeamIDs)
 	if pardonsValid {
-		for _, communicationList := range communications {
-			for _, v := range communicationList {
-				broadcastToAllIslands(j.JudgeID, v)
-			}
-		}
+		broadcastPardonCommunications(j.JudgeID, communications)
 	}
 	j.localSanctionCache = newSanctionMap
-	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
-	for _, sanctionList := range j.localSanctionCache {
-		for _, sanction := range sanctionList {
-			stringName := getTierSanctionMap()[sanction.SanctionTier]
-			ruleMat := rules.RulesInPlay[stringName]
-			sanctionVal := evaluateSanction(ruleMat, map[rules.VariableFieldName]rules.VariableValuePair{
-				rules.IslandReportedResources: {
-					VariableName: rules.IslandReportedResources,
-					Values:       []float64{float64(reportedIslandResources[sanction.ClientID])},
-				},
-				rules.ConstSanctionAmount: {
-					VariableName: rules.ConstSanctionAmount,
-					Values:       []float64{0},
-				},
-				rules.TurnsLeftOnSanction: {
-					VariableName: rules.TurnsLeftOnSanction,
-					Values:       []float64{float64(sanction.TurnsLeft)},
-				},
-			})
-			totalSanctionPerAgent[sanction.ClientID] += sanctionVal
-		}
-	}
+	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources)
 	SanctionAmountMapExport = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
 		communicateWithIslands(j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
@@ -257,6 +232,40 @@ func (j *judiciary) clearHistoryCache() {
 }
 
 // Helper functions //
+
+func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.Resources) map[shared.ClientID]shared.Resources {
+	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
+	for _, sanctionList := range localSanctionCache {
+		for _, sanction := range sanctionList {
+			ruleName := getTierSanctionMap()[sanction.SanctionTier]
+			ruleMat := rules.RulesInPlay[ruleName]
+			sanctionVal := evaluateSanction(ruleMat, map[rules.VariableFieldName]rules.VariableValuePair{
+				rules.IslandReportedResources: {
+					VariableName: rules.IslandReportedResources,
+					Values:       []float64{float64(reportedIslandResources[sanction.ClientID])},
+				},
+				rules.ConstSanctionAmount: {
+					VariableName: rules.ConstSanctionAmount,
+					Values:       []float64{0},
+				},
+				rules.TurnsLeftOnSanction: {
+					VariableName: rules.TurnsLeftOnSanction,
+					Values:       []float64{float64(sanction.TurnsLeft)},
+				},
+			})
+			totalSanctionPerAgent[sanction.ClientID] += sanctionVal
+		}
+	}
+	return totalSanctionPerAgent
+}
+
+func broadcastPardonCommunications(judgeID shared.ClientID, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	for _, communicationList := range communications {
+		for _, v := range communicationList {
+			broadcastToAllIslands(judgeID, v)
+		}
+	}
+}
 
 func decrementSanctionTime(sanctions map[int][]roles.Sanction) (updatedSanctions map[int][]roles.Sanction) {
 	for k, v := range sanctions {
