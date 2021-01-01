@@ -26,7 +26,7 @@ const FlagForm = (props: FlagFormProps) => {
             placement="top"
             overlay={
               <Tooltip id={flag.Name}>
-                {flag.Usage}
+                {flag.Usage} (Type: {flag.Type}, Default: {flag.DefValue})
               </Tooltip>
             }
           >
