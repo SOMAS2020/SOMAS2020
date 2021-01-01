@@ -396,7 +396,6 @@ func TestPickUpRulesByVariable(t *testing.T) {
 // TestCheckPardons checks whether checkPardons is able to correctly identify pardons issued on sanctions that
 // don't exist, and then subtracts these pardoned sanctions from the sanctionCache
 func TestImplementPardons(t *testing.T) {
-	TeamIDs := [...]shared.ClientID{shared.Team1, shared.Team2, shared.Team3, shared.Team4, shared.Team5, shared.Team6}
 	cases := []struct {
 		name          string
 		sanctionCache map[int][]roles.Sanction
@@ -422,7 +421,7 @@ func TestImplementPardons(t *testing.T) {
 				},
 			},
 			expValidity: true,
-			expComms:    generateEmptyCommunicationsMap(TeamIDs),
+			expComms:    generateEmptyCommunicationsMap(shared.TeamIDs),
 			expFinCache: map[int][]roles.Sanction{
 				1: {
 					{
@@ -605,7 +604,7 @@ func TestImplementPardons(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			val, finalCache, comms := implementPardons(tc.sanctionCache, tc.pardons, TeamIDs)
+			val, finalCache, comms := implementPardons(tc.sanctionCache, tc.pardons, shared.TeamIDs)
 			if val != tc.expValidity {
 				t.Errorf("Expected validity %v got %v", tc.expValidity, val)
 			} else if !reflect.DeepEqual(comms, tc.expComms) {
