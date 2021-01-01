@@ -152,7 +152,7 @@ func (j *judiciary) updateSanctionScore() {
 
 // scoreIslandTransgressions uses the client provided ruleViolationSeverity map to score island transgressions
 func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID][]string) {
-	for islandId, rulesBroken := range transgressions {
+	for islandID, rulesBroken := range transgressions {
 		totalIslandTurnScore := roles.IIGOSanctionScore(0)
 		for _, ruleBroken := range rulesBroken {
 			if score, ok := j.ruleViolationSeverity[ruleBroken]; ok {
@@ -161,7 +161,7 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 				totalIslandTurnScore += roles.IIGOSanctionScore(1)
 			}
 		}
-		j.sanctionRecord[islandId] += totalIslandTurnScore
+		j.sanctionRecord[islandID] += totalIslandTurnScore
 	}
 }
 
