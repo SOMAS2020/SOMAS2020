@@ -49,7 +49,7 @@ func (e *Election) CloseBallot() shared.ClientID {
 	return result
 }
 
-func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]int, []float32) {
+func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]int, []float64, float64) {
 	votesLayoutElect := make(map[int][]int)
 	votesSliceSquare := totalVotes
 	candidatesNumber := len(candidateList)
@@ -125,22 +125,66 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 			finalScore[i] += v[i]
 		}
 	}
-	//variance is needed when two or more candidates have equal votes. 
-	variance := make([]float32, candidatesNumber)
+	//variance is needed when two or more candidates have equal votes.
+	variance := make([]float64, candidatesNumber)
 	for _, v := range preferenceMap {
 		for i := 0; i < candidatesNumber; i++ {
-			variance[i] += (float32(v[i]) - float32(finalScore[i])/float32(candidatesNumber)) *
-				(float32(v[i]) - float32(finalScore[i])/float32(candidatesNumber))
+			vi := float64(v[i])
+			fSi := float64(finalScore[i])
+			cN := float64(candidatesNumber)
+			variance[i] += (vi - fSi/cN) * (vi - fSi/cN)
 		}
 	}
 
-	return finalScore, variance
+	var totalScore float64 = 0
+	for i := 0; i < len(finalScore); i++ {
+		totalScore += float64(finalScore[i])
+	}
+
+	return finalScore, variance, totalScore
+}
+
+func findMaxScore(scoreList []int, variance []float64) (int, int) {
+	maxScore := 0
+	maxScoreIndex := 0
+	for i := 0; i < len(scoreList); i++ {
+		if scoreList[i] > maxScore {
+			maxScore = scoreList[i]
+			maxScoreIndex = i
+		}
+		if scoreList[i] == maxScore {
+			if variance[i] > variance[maxScoreIndex] {
+				maxScoreIndex = i
+			}
+		}
+	}
+	return maxScore, maxScoreIndex
+}
+
+func findMinScore(scoreList []int, variance []float64) (int, int) {
+	minScore := 0
+	for i := 0; i < len(scoreList); i++ {
+		minScore += scoreList[i]
+	}
+	minScoreIndex := 0
+	for i := 0; i < len(scoreList); i++ {
+		if scoreList[i] < minScore {
+			minScore = scoreList[i]
+			minScoreIndex = i
+		}
+		if scoreList[i] == minScore {
+			if variance[i] < variance[minScoreIndex] {
+				minScoreIndex = i
+			}
+		}
+	}
+	return minScore, minScoreIndex
 }
 
 func (e *Election) bordaCountResult() shared.ClientID {
 	// Implement Borda count winner selection method
 	candidatesNumber := len(e.candidateList)
-	finalScore, variance := e.scoreCalculator(e.votes, e.candidateList)
+	finalScore, variance, _ := e.scoreCalculator(e.votes, e.candidateList)
 
 	maxScore := 0
 	var winnerIndex int
@@ -156,8 +200,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 			}
 		}
 	}
-	var winner shared.ClientID
-	winner = e.candidateList[winnerIndex]
+	winner := e.candidateList[winnerIndex]
 
 	return winner
 }
@@ -165,52 +208,24 @@ func (e *Election) bordaCountResult() shared.ClientID {
 func (e *Election) runOffResult(clientMap map[shared.ClientID]baseclient.Client) shared.ClientID {
 	var winner shared.ClientID
 	//Round one
-	finalScore, variance := e.scoreCalculator(e.votes, e.candidateList)
-	candidatesNumber := len(e.candidateList)
+	scoreList, variance, totalScore := e.scoreCalculator(e.votes, e.candidateList)
 	rOneCandidateList := e.candidateList
 	voterNumber := len(e.voterList)
 
-	var totalScore float32 = 0
-	for i := 0; i < candidatesNumber; i++ {
-		totalScore += float32(finalScore[i])
-	}
 	halfTotalScore := 0.5 * totalScore
-	maxScoreIndex := 0
-	maxScore := 0
-	var maxVariance float32 = 0
 
-	for i := 0; i < candidatesNumber; i++ {
-		if finalScore[i] > maxScore {
-			maxScore = finalScore[i]
-			maxScoreIndex = i
-		}
-		if finalScore[i] == maxScore {
-			if variance[i] > maxVariance {
-				maxScoreIndex = i
-			}
-		}
-	}
+	maxScore, maxScoreIndex := findMaxScore(scoreList, variance)
 
-	if float32(maxScore) > halfTotalScore {
+	if float64(maxScore) > halfTotalScore {
 		winner = rOneCandidateList[maxScoreIndex]
 	} else {
 		//Round two
-		competitorScore := 0
-		competitorIndex := 0
 		remainNumber := 0
 		changeNumber := 0
-		finalScore[maxScoreIndex] = 0
-		for i := 0; i < candidatesNumber; i++ {
-			if finalScore[i] > competitorScore {
-				competitorScore = finalScore[i]
-				competitorIndex = i
-			}
-			if finalScore[i] == maxScore {
-				if variance[i] > maxVariance {
-					competitorIndex = i
-				}
-			}
-		}
+		scoreList[maxScoreIndex] = 0
+
+		_, competitorIndex := findMaxScore(scoreList, variance)
+
 		rTwoCandidateList := []shared.ClientID{rOneCandidateList[maxScoreIndex], rOneCandidateList[competitorIndex]}
 
 		var rTwoVotes [][]shared.ClientID
@@ -239,50 +254,22 @@ func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.
 	candidateNumber := len(e.candidateList)
 	candidateList := e.candidateList
 	totalVotes := e.votes
-	maxScore := 0
-	maxScoreIndex := 0
-	var totalScore float32 = 0
-	var halfTotalScore float32 = 0
+	var halfTotalScore float64 = 0
 
 	for {
-		scoreList, variance := e.scoreCalculator(totalVotes, candidateList)
+		scoreList, variance, totalScore := e.scoreCalculator(totalVotes, candidateList)
 
-		for i := 0; i < candidateNumber; i++ {
-			totalScore += float32(scoreList[i])
-		}
 		halfTotalScore = 0.5 * totalScore
 
-		for i := 0; i < candidateNumber; i++ {
-			if scoreList[i] > maxScore {
-				maxScore = scoreList[i]
-				maxScoreIndex = i
-			}
-			if scoreList[i] == maxScore {
-				if variance[i] > variance[maxScoreIndex] {
-					maxScoreIndex = i
-				}
-			}
-		}
-		//keep eliminating the least popular one untill the most popular one has more than half of the total score. 
-		if float32(maxScore) > halfTotalScore {
+		maxScore, maxScoreIndex := findMaxScore(scoreList, variance)
+
+		//keep eliminating the least popular one untill the most popular one has more than half of the total score.
+		if float64(maxScore) > halfTotalScore {
 			winner = candidateList[maxScoreIndex]
 			break
 		}
 
-		minScore := int(totalScore)
-		minScoreIndex := 0
-
-		for i := 0; i < len(candidateList); i++ {
-			if scoreList[i] < minScore {
-				minScore = scoreList[i]
-				minScoreIndex = i
-			}
-			if scoreList[i] == minScore {
-				if variance[i] < variance[minScoreIndex] {
-					minScoreIndex = i
-				}
-			}
-		}
+		_, minScoreIndex := findMinScore(scoreList, variance)
 
 		//Eliminate the least popular candidate
 		if minScoreIndex == 0 {
@@ -300,17 +287,12 @@ func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.
 		}
 		totalVotes = totalVotes[(len(totalVotes) - len(e.voterList)):]
 
-		//Re initialize parameters
-		maxScore = 0
-		maxScoreIndex = 0
-		totalScore = 0
-		halfTotalScore = 0
 	}
 	return winner
 }
 
+//Election method only considering the number of times the candidate appears on the preference list.
 func (e *Election) approvalResult() shared.ClientID {
-	var winner shared.ClientID
 	candidateList := e.candidateList
 	scoreList := make([]int, len(candidateList))
 	//If there are more than two candidates has the highest score, then the winner will be randomly chosen.
@@ -331,7 +313,7 @@ func (e *Election) approvalResult() shared.ClientID {
 			maxScoreIndex = i
 		}
 	}
-	winner = candidateList[maxScoreIndex]
+	winner := candidateList[maxScoreIndex]
 	return winner
 }
 
