@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -9,10 +11,7 @@ import (
 func (s *SOMASServer) runIITO() error {
 	s.logf("start runIITO")
 	defer s.logf("finish runIITO")
-	err := s.runGiftSession()
-	if err != nil {
-		return err
-	}
+	s.gameState.IITOTransactions = s.runGiftSession()
 	// TODO:- IITO team
 	return nil
 }
@@ -20,87 +19,226 @@ func (s *SOMASServer) runIITO() error {
 func (s *SOMASServer) runIITOEndOfTurn() error {
 	s.logf("start runIITOEndOfTurn")
 	defer s.logf("finish runIITOEndOfTurn")
-	// TODO:- IITO team
+	s.executeTransactions(s.gameState.IITOTransactions)
 	return nil
 }
 
-func (s *SOMASServer) runGiftSession() error {
+func (s *SOMASServer) runGiftSession() map[shared.ClientID]shared.GiftResponseDict {
 	s.logf("start runGiftSession")
 	defer s.logf("finish runGiftSession")
 
-	giftRequestDict := s.getGiftRequests()
-	giftOffersDict, err := s.getGiftOffers(giftRequestDict)
-	if err != nil {
-		return err
-	}
-	giftHistoryDict, err := s.getGiftAcceptance(giftOffersDict)
-	if err != nil {
-		return err
-	}
-	err = s.distributeGiftHistory(giftHistoryDict)
-	if err != nil {
-		return err
-	}
-	// Process actions
-	for key, value := range giftHistoryDict {
-		s.logf("Gifts from %s: %v\n", key, value)
-	}
-	return nil
-}
+	requests := s.getGiftRequests()
+	offers := s.getGiftOffers(requests)
+	responses := s.getGiftResponses(offers)
 
-func (s *SOMASServer) getGiftRequests() shared.GiftDict {
-	giftRequestDict := shared.GiftDict{}
-	for id, client := range s.clientMap {
-		giftRequestDict[id] = client.RequestGift()
-	}
-	return giftRequestDict
-}
-func (s *SOMASServer) getGiftOffers(giftRequestDict shared.GiftDict) (map[shared.ClientID]shared.GiftDict, error) {
-	giftOfferDict := map[shared.ClientID]shared.GiftDict{}
-	var err error
-	for id, client := range s.clientMap {
-		giftOfferDict[id], err = client.OfferGifts(giftRequestDict)
-		if err != nil {
-			return giftOfferDict, err
-		}
-	}
-	return giftOfferDict, nil
-}
-func (s *SOMASServer) getGiftAcceptance(giftOffersDict map[shared.ClientID]shared.GiftDict) (map[shared.ClientID]shared.GiftInfoDict, error) {
-	acceptedGifts := map[shared.ClientID]shared.GiftInfoDict{}
-	var err error
-
-	receivedByClientDict := make(map[shared.ClientID]shared.GiftDict)
-
-	//puts all the gifts received by a certain client accesible by the id of that client
-	for idsend := range giftOffersDict {
-		for idto := range giftOffersDict {
-			if idsend == idto {
-				continue
+	// Clean all rejected / ignored responses so the remaining are only the transactions
+	transactions := s.distributeGiftHistory(responses)
+	for key := range transactions {
+		for fromTeam, response := range transactions[key] {
+			s.logf("Gifts to %v from %v: %v\n", fromTeam, key, response.AcceptedAmount)
+			if response.Reason != shared.Accept {
+				delete(transactions[key], fromTeam)
 			}
-			if receivedByClientDict[idsend] == nil {
-				receivedByClientDict[idsend] = make(shared.GiftDict)
-			}
-			receivedByClientDict[idsend][idto] = giftOffersDict[idto][idsend]
 		}
 	}
 
-	for id, client := range s.clientMap {
-		acceptedGifts[id], err = client.AcceptGifts(receivedByClientDict[id])
-		if err != nil {
-			return acceptedGifts, err
-		}
-	}
-	return acceptedGifts, nil
+	return transactions
 }
 
-func (s *SOMASServer) distributeGiftHistory(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error {
-	//Process acceptedGifts
-	for _, client := range s.clientMap {
-		err := client.UpdateGiftInfo(acceptedGifts)
-		if err != nil {
-			return err
+func (s *SOMASServer) sanitiseTeamGiftRequests(requests shared.GiftRequestDict, thisTeam shared.ClientID) shared.GiftRequestDict {
+	for team, request := range requests {
+		if s.gameState.ClientInfos[team].LifeStatus == shared.Dead || team == thisTeam || request == 0 {
+			delete(requests, team)
+			s.logf("Team %v violated request conventions. To team %v, requested %v", thisTeam, team, request)
 		}
 	}
-	return nil
+	return requests
+}
+
+// GetGiftRequests collects a map of gift requests from an individual client, for all clients, in a map
+func (s *SOMASServer) getGiftRequests() map[shared.ClientID]shared.GiftRequestDict {
+	totalRequests := map[shared.ClientID]shared.GiftRequestDict{}
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		totalRequests[id] = s.sanitiseTeamGiftRequests(s.clientMap[id].GetGiftRequests(), id)
+
+		if len(totalRequests[id]) == 0 {
+			delete(totalRequests, id)
+		}
+	}
+	return totalRequests
+}
+
+func offersKnapsackSolver(capacity shared.GiftOffer, offers shared.GiftOfferDict) (shared.GiftOffer, []shared.ClientID) {
+	// Base case
+	if len(offers) == 1 {
+		for team, offer := range offers {
+			if offer <= capacity {
+				return offer, []shared.ClientID{team}
+			}
+			return 0, []shared.ClientID{}
+		}
+	}
+
+	bestOffer := shared.GiftOffer(0)
+	bestCombination := []shared.ClientID{}
+
+	for team, offer := range offers {
+		currentOffer := shared.GiftOffer(0)
+		var currentCombi []shared.ClientID
+
+		lessThisOffer := shared.GiftOfferDict{}
+		for team, offer := range offers {
+			lessThisOffer[team] = offer
+		}
+		delete(lessThisOffer, team)
+
+		// You might need this if you're debugging <3
+		// fmt.Printf("Looping with: %v \n", lessThisOffer)
+
+		if offer <= capacity {
+			// Pack and find optimal of remaining capacity
+			optimalWithThisOffer, remainingCombination := offersKnapsackSolver(capacity-offer, lessThisOffer)
+			currentOffer += (offer + optimalWithThisOffer)
+			currentCombi = append(remainingCombination, team)
+
+		} else {
+			// Find optimal of remaining capacity
+			optimalWithoutThisOffer, remainingCombination := offersKnapsackSolver(capacity, lessThisOffer)
+			currentOffer += optimalWithoutThisOffer
+			currentCombi = remainingCombination
+		}
+
+		if currentOffer > bestOffer {
+			bestOffer = currentOffer
+			bestCombination = currentCombi
+		}
+	}
+
+	return bestOffer, bestCombination
+}
+
+func (s *SOMASServer) sanitiseTeamGiftOffers(offers shared.GiftOfferDict, thisTeam shared.ClientID) shared.GiftOfferDict {
+	totalOffers := shared.GiftOffer(0)
+	for team, offer := range offers {
+		totalOffers += offer
+		if s.gameState.ClientInfos[team].LifeStatus == shared.Dead || team == thisTeam || offer == 0 {
+			delete(offers, team)
+			s.logf("Team %v made an invalid offer", thisTeam)
+		}
+	}
+
+	// Find the optimal combination of offers if the sum of their offers exceeds their capacity.
+	totalResources := shared.GiftOffer(s.gameState.ClientInfos[thisTeam].Resources)
+	if totalOffers > totalResources {
+		s.logf("Total offerings exceed total resources for team %v", thisTeam)
+		// Yay, a knapsack problem!
+		_, bestCombination := offersKnapsackSolver(totalResources, offers)
+		newOffers := shared.GiftOfferDict{}
+		for _, team := range bestCombination {
+			newOffers[team] = offers[team]
+		}
+		offers = newOffers
+	}
+
+	return offers
+}
+
+// getGiftOffers collects all responses from clients to their requests in a map
+func (s *SOMASServer) getGiftOffers(totalRequests map[shared.ClientID]shared.GiftRequestDict) map[shared.ClientID]shared.GiftOfferDict {
+	totalOffers := map[shared.ClientID]shared.GiftOfferDict{}
+	for _, thisTeam := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		// Gather all the requests made to this team
+		requestsToThisTeam := shared.GiftRequestDict{}
+		for fromTeam, indivRequests := range totalRequests {
+			if request, ok := indivRequests[thisTeam]; ok {
+				requestsToThisTeam[fromTeam] = request
+			}
+		}
+
+		offers := s.sanitiseTeamGiftOffers(s.clientMap[thisTeam].GetGiftOffers(requestsToThisTeam), thisTeam)
+		if len(offers) > 0 {
+			totalOffers[thisTeam] = offers
+		}
+	}
+	return totalOffers
+}
+
+func (s *SOMASServer) sanitiseTeamGiftResponses(responses shared.GiftResponseDict, offers shared.GiftOfferDict, thisTeam shared.ClientID) shared.GiftResponseDict {
+	for team, response := range responses {
+		// If the reason isn't "Accept", the accepted amount should be 0. Otherwise,
+		// cap each response so that the an island can't accept more than it was offered.
+		if response.Reason != shared.Accept {
+			response.AcceptedAmount = 0
+			s.logf("Team %v had a malformed response. Accepted: %v, Reason: %v, Offered: %v ", thisTeam, response.AcceptedAmount, response.Reason, offers[team])
+		} else if response.AcceptedAmount > shared.Resources(offers[team]) {
+			response.AcceptedAmount = shared.Resources(offers[team])
+			s.logf("Team %v tried to accept more than it was offered. Accepted: %v, Offered: %v ", thisTeam, response.AcceptedAmount, offers[team])
+		}
+		responses[team] = response
+
+		// Can't respond to an offer that was not given.
+		if _, ok := offers[team]; !ok {
+			delete(responses, team)
+			s.logf("Team %v tried to accept a non-existent offer. Accepted: %v, Offered: %v ", thisTeam, response.AcceptedAmount, team)
+		}
+	}
+	// Pad the responses so that each offer is responded to, even if ignored.
+	for offerFrom := range offers {
+		if _, ok := responses[offerFrom]; !ok {
+			responses[offerFrom] = shared.GiftResponse{AcceptedAmount: 0.0, Reason: shared.Ignored}
+		}
+	}
+	return responses
+}
+
+func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.GiftOfferDict) map[shared.ClientID]shared.GiftResponseDict {
+	totalResponses := map[shared.ClientID]shared.GiftResponseDict{}
+
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		offersToThisTeam := shared.GiftOfferDict{}
+		for fromTeam, indivOffers := range totalOffers {
+			if offer, ok := indivOffers[id]; ok {
+				offersToThisTeam[fromTeam] = offer
+			}
+		}
+		response := s.sanitiseTeamGiftResponses(s.clientMap[id].GetGiftResponses(offersToThisTeam), offersToThisTeam, id)
+		if len(response) > 0 {
+			totalResponses[id] = response
+		}
+	}
+	return totalResponses
+}
+
+// distributeGiftHistory collates all responses to a single client and calls that client to receive its responses.
+func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]shared.GiftResponseDict) map[shared.ClientID]shared.GiftResponseDict {
+	responsesToClients := map[shared.ClientID]shared.GiftResponseDict{}
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		responsesToThisTeam := shared.GiftResponseDict{}
+		for fromTeam, indivResponses := range totalResponses {
+			if response, ok := indivResponses[id]; ok {
+				responsesToThisTeam[fromTeam] = response
+			}
+		}
+		responsesToClients[id] = responsesToThisTeam
+		s.clientMap[id].UpdateGiftInfo(responsesToThisTeam)
+	}
+	return responsesToClients
+}
+
+// executeTransactions runs all the accepted responses from the gift session.
+// TODO: UNTESTED
+func (s *SOMASServer) executeTransactions(transactions map[shared.ClientID]shared.GiftResponseDict) {
+	for fromTeam, responses := range transactions {
+		for toTeam, indivResponse := range responses {
+			transactionMsg := fmt.Sprintf("Team %v received gift from %v: %v", toTeam, fromTeam, indivResponse.AcceptedAmount)
+			errTake := s.takeResources(fromTeam, indivResponse.AcceptedAmount, "TAKE: "+transactionMsg)
+			if errTake != nil {
+				s.logf("Error deducting amount: %v", errTake)
+			} else {
+				s.giveResources(toTeam, indivResponse.AcceptedAmount, "GIVE: "+transactionMsg)
+				s.clientMap[toTeam].ReceivedGift(indivResponse.AcceptedAmount, fromTeam)
+				s.clientMap[fromTeam].SentGift(indivResponse.AcceptedAmount, toTeam)
+			}
+		}
+	}
 }

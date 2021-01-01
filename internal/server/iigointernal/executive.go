@@ -3,7 +3,6 @@ package iigointernal
 import (
 	"fmt"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -12,15 +11,16 @@ import (
 )
 
 type executive struct {
-	ID               shared.ClientID
-	clientPresident  roles.President
-	budget           shared.Resources
-	speakerSalary    shared.Resources
-	RulesProposals   []string
-	ResourceRequests map[shared.ClientID]shared.Resources
+	ID                  shared.ClientID
+	clientPresident     roles.President
+	budget              shared.Resources
+	speakerSalary       shared.Resources
+	RulesProposals      []string
+	ResourceRequests    map[shared.ClientID]shared.Resources
+	speakerTurnsInPower int
 }
 
-// loadClientJudge checks client pointer is good and if not panics
+// loadClientPresident checks client pointer is good and if not panics
 func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
 	if clientPresidentPointer == nil {
 		panic(fmt.Sprintf("Client '%v' has loaded a nil president pointer", e.ID))
@@ -89,15 +89,16 @@ func (e *executive) requestAllocationRequest() {
 	}
 	AllocationAmountMapExport = allocRequests
 	e.setAllocationRequest(allocRequests)
-
 }
 
 // replyAllocationRequest broadcasts the allocation of resources decided by the president
 // to all islands alive
-func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
+func (e *executive) replyAllocationRequest(commonPool shared.Resources) bool {
 	e.budget -= serviceCharge
 	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
+	allocationsMade := false
 	if requestsEvaluated {
+		allocationsMade = true
 		for _, island := range getIslandAlive() {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
@@ -105,16 +106,27 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
 		}
 	}
+	return allocationsMade
 }
 
-// appointNextSpeaker returns the island id of the island appointed to be speaker in the next turn.
-func (e *executive) appointNextSpeaker(clientIDs []shared.ClientID) shared.ClientID {
-	e.budget -= serviceCharge
+// appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
+func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
-	election.ProposeElection(baseclient.Speaker, voting.Plurality)
-	election.OpenBallot(clientIDs)
-	election.Vote(iigoClients)
-	return election.CloseBallot()
+	var nextSpeaker shared.ClientID
+	electionsettings := e.clientPresident.CallSpeakerElection(monitoring, e.speakerTurnsInPower, allIslands)
+	if electionsettings.HoldElection {
+		// TODO: deduct the cost of holding an election
+		election.ProposeElection(shared.Speaker, electionsettings.VotingMethod)
+		election.OpenBallot(electionsettings.IslandsToVote)
+		election.Vote(iigoClients)
+		e.speakerTurnsInPower = 0
+		nextSpeaker = election.CloseBallot()
+		nextSpeaker = e.clientPresident.DecideNextSpeaker(nextSpeaker)
+	} else {
+		e.speakerTurnsInPower++
+		nextSpeaker = currentSpeaker
+	}
+	return nextSpeaker
 }
 
 // withdrawSpeakerSalary withdraws the salary for speaker from the common pool.

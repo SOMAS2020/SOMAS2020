@@ -28,6 +28,27 @@ After running, the `output` directory will contain the output of the program.
 ### Visualisation Website
 See [`website/README.md`](website/README.md)
 
+### WebAssembly Build
+
+Scripts provided to compile the program into WebAssembly for the website.
+
+#### If you have `node`
+```bash
+node ./website/scripts/buildWasm.js
+```
+
+#### Otherwise
+
+On Linux/maxOS,
+```bash
+./build_wasm.sh
+```
+
+On Windows,
+```bash
+build_cmd.cmd
+```
+
 ## Testing
 ```bash
 go test ./...

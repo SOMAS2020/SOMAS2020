@@ -1,29 +1,25 @@
+// +build !js
+
 // Package main is the main entrypoint of the program.
 package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"runtime"
+	"time"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/SOMAS2020/SOMAS2020/pkg/fileutils"
 	"github.com/SOMAS2020/SOMAS2020/pkg/gitinfo"
 	"github.com/SOMAS2020/SOMAS2020/pkg/logger"
 )
-
-// output represents what is output into the output.json file
-type output struct {
-	GameStates []gamestate.GameState
-	Config     config.Config
-	GitInfo    gitinfo.GitInfo
-}
 
 const outputJSONFileName = "output.json"
 const outputLogFileName = "log.txt"
@@ -58,6 +54,8 @@ func initLogger() {
 }
 
 func main() {
+	timeStart := time.Now()
+	flag.Parse()
 	gameConfig := parseConfig()
 	s := server.NewSOMASServer(gameConfig)
 	if gameStates, err := s.EntryPoint(); err != nil {
@@ -70,11 +68,19 @@ func main() {
 			fmt.Printf("===== START OF TURN %v (END OF TURN %v) =====\n", st.Turn, st.Turn-1)
 			fmt.Printf("%#v\n", st)
 		}
-
+		timeEnd := time.Now()
 		outputJSON(output{
 			GameStates: gameStates,
 			Config:     gameConfig,
 			GitInfo:    getGitInfo(),
+			RunInfo: runInfo{
+				TimeStart:       timeStart,
+				TimeEnd:         timeEnd,
+				DurationSeconds: timeEnd.Sub(timeStart).Seconds(),
+				Version:         runtime.Version(),
+				GOOS:            runtime.GOOS,
+				GOARCH:          runtime.GOARCH,
+			},
 		})
 	}
 }
