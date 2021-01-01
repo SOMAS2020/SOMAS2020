@@ -8,6 +8,7 @@ import (
 type Election struct {
 	roleToElect   shared.Role
 	votingMethod  shared.ElectionVotingMethod
+	candidateList []shared.ClientID
 	islandsToVote []shared.ClientID
 	votes         [][]shared.ClientID
 }
@@ -25,8 +26,8 @@ func (e *Election) OpenBallot(clientIDs []shared.ClientID) {
 
 // Vote gets votes from eligible islands.
 func (e *Election) Vote(clientMap map[shared.ClientID]baseclient.Client) {
-	for _, island := range e.islandsToVote {
-		e.votes = append(e.votes, clientMap[island].GetVoteForElection(e.roleToElect))
+	for i := 0; i < len(e.voterList); i++ {
+		e.votes = append(e.votes, clientMap[e.voterList[i]].VoteForElection(e.roleToElect, e.candidateList))
 	}
 }
 
@@ -46,12 +47,10 @@ func (e *Election) CloseBallot() shared.ClientID {
 	return result
 }
 
-func (e *Election) bordaCountResult() shared.ClientID {
-	// Implement Borda count winner selection method
-	//(may need to modify if methods design is changed)
-	var votesLayoutElect map[int][]int
-	votesSliceSquare := e.votes
-	candidatesNumber := len(e.islandsToVote)
+func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]int, []float32) {
+	votesLayoutElect := make(map[int][]int)
+	votesSliceSquare := totalVotes
+	candidatesNumber := len(candidateList)
 	islandsNumber := len(votesSliceSquare)
 
 	//Initialize votesLayoutMap
@@ -65,7 +64,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 		scoreInit := candidatesNumber + 1
 		for j := 0; j < candidatesNumber; j++ {
 			for k := 0; k < candidatesNumber; k++ {
-				if votesSliceSquare[i][j] == e.islandsToVote[k] {
+				if votesSliceSquare[i][j] == e.candidateList[k] {
 					votesLayoutElect[i+1][k] = scoreInit
 					scoreInit--
 				}
@@ -121,22 +120,215 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	finalScore := make([]int, candidatesNumber)
 	for _, v := range preferenceMap {
 		for i := 0; i < candidatesNumber; i++ {
-			finalScore[i] = finalScore[i] + v[i]
+			finalScore[i] += v[i]
+		}
+	}
+	variance := make([]float32, candidatesNumber)
+	for _, v := range preferenceMap {
+		for i := 0; i < candidatesNumber; i++ {
+			variance[i] += (float32(v[i]) - float32(finalScore[i])/float32(candidatesNumber)) *
+				(float32(v[i]) - float32(finalScore[i])/float32(candidatesNumber))
 		}
 	}
 
-	maxscore := 0
+	return finalScore, variance
+}
+
+func (e *Election) bordaCountResult() shared.ClientID {
+	// Implement Borda count winner selection method
+	candidatesNumber := len(e.candidateList)
+	finalScore, variance := e.scoreCalculator(e.votes, e.candidateList)
+
+	maxScore := 0
 	var winnerIndex int
 	winnerIndex = 0
 	for i := 0; i < candidatesNumber; i++ {
-		if maxscore < finalScore[i] {
-			maxscore = finalScore[i]
+		if maxScore < finalScore[i] {
+			maxScore = finalScore[i]
 			winnerIndex = i
+		}
+		if maxScore == finalScore[i] {
+			if variance[winnerIndex] < variance[i] {
+				winnerIndex = i
+			}
 		}
 	}
 	var winner shared.ClientID
-	winner = e.islandsToVote[winnerIndex]
+	winner = e.candidateList[winnerIndex]
 
+	return winner
+}
+
+func (e *Election) runOffResult(clientMap map[shared.ClientID]baseclient.Client) shared.ClientID {
+	var winner shared.ClientID
+	//Round one
+	finalScore, variance := e.scoreCalculator(e.votes, e.candidateList)
+	candidatesNumber := len(e.candidateList)
+	rOneCandidateList := e.candidateList
+	voterNumber := len(e.voterList)
+
+	var totalScore float32 = 0
+	for i := 0; i < candidatesNumber; i++ {
+		totalScore += float32(finalScore[i])
+	}
+	halfTotalScore := 0.5 * totalScore
+	maxScoreIndex := 0
+	maxScore := 0
+	var maxVariance float32 = 0
+
+	for i := 0; i < candidatesNumber; i++ {
+		if finalScore[i] > maxScore {
+			maxScore = finalScore[i]
+			maxScoreIndex = i
+		}
+		if finalScore[i] == maxScore {
+			if variance[i] > maxVariance {
+				maxScoreIndex = i
+			}
+		}
+	}
+
+	if float32(maxScore) > halfTotalScore {
+		winner = rOneCandidateList[maxScoreIndex]
+	} else {
+		//Round two
+		competitorScore := 0
+		competitorIndex := 0
+		remainNumber := 0
+		changeNumber := 0
+		finalScore[maxScoreIndex] = 0
+		for i := 0; i < candidatesNumber; i++ {
+			if finalScore[i] > competitorScore {
+				competitorScore = finalScore[i]
+				competitorIndex = i
+			}
+			if finalScore[i] == maxScore {
+				if variance[i] > maxVariance {
+					competitorIndex = i
+				}
+			}
+		}
+		rTwoCandidateList := []shared.ClientID{rOneCandidateList[maxScoreIndex], rOneCandidateList[competitorIndex]}
+
+		var rTwoVotes [][]shared.ClientID
+		for i := 0; i < voterNumber; i++ {
+			rTwoVotes = append(rTwoVotes, clientMap[e.voterList[i]].VoteForElection(e.roleToElect, rTwoCandidateList))
+		}
+		for i := 0; i < voterNumber; i++ {
+			if rTwoVotes[i][0] == rOneCandidateList[maxScoreIndex] {
+				remainNumber++
+			}
+			if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
+				changeNumber++
+			}
+		}
+		if changeNumber > remainNumber {
+			winner = rOneCandidateList[competitorIndex]
+		} else {
+			winner = rOneCandidateList[maxScoreIndex]
+		}
+	}
+	return winner
+}
+
+func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.Client) shared.ClientID {
+	var winner shared.ClientID
+	candidateNumber := len(e.candidateList)
+	candidateList := e.candidateList
+	totalVotes := e.votes
+	maxScore := 0
+	maxScoreIndex := 0
+	var totalScore float32 = 0
+	var halfTotalScore float32 = 0
+
+	for {
+		scoreList, variance := e.scoreCalculator(totalVotes, candidateList)
+
+		for i := 0; i < candidateNumber; i++ {
+			totalScore += float32(scoreList[i])
+		}
+		halfTotalScore = 0.5 * totalScore
+
+		for i := 0; i < candidateNumber; i++ {
+			if scoreList[i] > maxScore {
+				maxScore = scoreList[i]
+				maxScoreIndex = i
+			}
+			if scoreList[i] == maxScore {
+				if variance[i] > variance[maxScoreIndex] {
+					maxScoreIndex = i
+				}
+			}
+		}
+
+		if float32(maxScore) > halfTotalScore {
+			winner = candidateList[maxScoreIndex]
+			break
+		}
+
+		minScore := int(totalScore)
+		minScoreIndex := 0
+
+		for i := 0; i < len(candidateList); i++ {
+			if scoreList[i] < minScore {
+				minScore = scoreList[i]
+				minScoreIndex = i
+			}
+			if scoreList[i] == minScore {
+				if variance[i] < variance[minScoreIndex] {
+					minScoreIndex = i
+				}
+			}
+		}
+
+		//Eliminate the least popular candidate
+		if minScoreIndex == 0 {
+			candidateList = candidateList[minScoreIndex+1:]
+		} else if minScoreIndex == candidateNumber-1 {
+			candidateList = candidateList[:minScoreIndex]
+		} else {
+			candidateList = append(candidateList[:minScoreIndex], candidateList[minScoreIndex+1:]...)
+		}
+		candidateNumber--
+
+		//New round voting status update
+		for i := 1; i < len(e.voterList); i++ {
+			totalVotes = append(totalVotes, clientMap[e.voterList[i]].VoteForElection(e.roleToElect, candidateList))
+		}
+		totalVotes = totalVotes[(len(totalVotes) - len(e.voterList)):]
+
+		//Re initialize parameters
+		maxScore = 0
+		maxScoreIndex = 0
+		totalScore = 0
+		halfTotalScore = 0
+	}
+	return winner
+}
+
+func (e *Election) approvalResult() shared.ClientID {
+	var winner shared.ClientID
+	candidateList := e.candidateList
+	scoreList := make([]int, len(candidateList))
+	//TODO implement approval voting method.
+	for i := 0; i < len(e.votes); i++ {
+		for j := 0; j < len(e.votes[i]); j++ {
+			for p := 0; p < len(candidateList); p++ {
+				if candidateList[p] == e.votes[i][j] {
+					scoreList[p] += 1
+				}
+			}
+		}
+	}
+	maxScore := 0
+	maxScoreIndex := 0
+	for i := 0; i < len(candidateList); i++ {
+		if scoreList[i] > maxScore {
+			maxScore = scoreList[i]
+			maxScoreIndex = i
+		}
+	}
+	winner = candidateList[maxScoreIndex]
 	return winner
 }
 
