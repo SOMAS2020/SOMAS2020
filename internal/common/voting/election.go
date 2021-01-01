@@ -9,7 +9,7 @@ type Election struct {
 	roleToElect   shared.Role
 	votingMethod  shared.ElectionVotingMethod
 	candidateList []shared.ClientID
-	islandsToVote []shared.ClientID
+	voterList     []shared.ClientID
 	votes         [][]shared.ClientID
 }
 
