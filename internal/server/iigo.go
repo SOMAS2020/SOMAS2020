@@ -39,21 +39,21 @@ func (s *SOMASServer) runIIGOTax() error {
 		clientTaxErr := s.takeResources(clientID, tax, "tax")
 		var taxPaid shared.Resources
 		var sanctionPaid shared.Resources
-		if clientTaxErr == nil {
+		if clientTaxErr != nil {
+			s.logf("Error getting tax from %v: %v", clientID, clientTaxErr)
+			taxPaid = 0
+		} else {
 			s.gameState.CommonPool += tax
 			s.clientMap[clientID].TaxTaken(tax)
 			taxPaid = tax
-		} else {
-			s.logf("Error getting tax from %v: %v", clientID, clientTaxErr)
-			taxPaid = 0
 		}
 		clientSanctionErr := s.takeResources(clientID, sanction, "sanction")
-		if clientSanctionErr == nil {
-			s.gameState.CommonPool += sanction
-			sanctionPaid = sanction
-		} else {
+		if clientSanctionErr != nil {
 			s.logf("Error getting sanctions from %v: %v ", clientID, clientSanctionErr)
 			sanctionPaid = 0
+		} else {
+			s.gameState.CommonPool += sanction
+			sanctionPaid = sanction
 		}
 		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
