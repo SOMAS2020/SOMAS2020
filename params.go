@@ -140,7 +140,7 @@ var (
 	)
 	disasterGlobalProb = flag.Float64(
 		"disasterGlobalProb",
-		0.95,
+		0.1,
 		"Bernoulli 'p' param. Chance of a disaster occurring.",
 	)
 	disasterSpatialPDFType = flag.Int(
@@ -160,7 +160,7 @@ var (
 	)
 	disasterCommonpoolThreshold = flag.Float64(
 		"disasterCommonpoolThreshold",
-		10,
+		50,
 		"Common pool threshold value for disaster to be mitigated",
 	)
 )
