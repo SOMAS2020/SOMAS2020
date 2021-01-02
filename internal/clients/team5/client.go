@@ -11,7 +11,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = shared.Team1
+const id = shared.Team5
 
 // ForageOutcome is how much we put in to a foraging trip and how much we got
 // back

@@ -11,12 +11,12 @@ var (
 	//config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
-		100,
+		10,
 		"The maximum number of 1-indexed seasons to run the game.",
 	)
 	maxTurns = flag.Uint(
 		"maxTurns",
-		100,
+		5,
 		"The maximum numbers of 1-indexed turns to run the game.",
 	)
 	initialResources = flag.Float64(
