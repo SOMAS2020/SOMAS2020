@@ -35,6 +35,7 @@ type judiciary struct {
 func (j *judiciary) loadSanctionConfig() {
 	j.sanctionThresholds = softMergeSanctionThresholds(j.clientJudge.GetSanctionThresholds())
 	j.ruleViolationSeverity = j.clientJudge.GetRuleViolationSeverity()
+	j.broadcastSanctionConfig()
 }
 
 func (j *judiciary) broadcastSanctionConfig() {
