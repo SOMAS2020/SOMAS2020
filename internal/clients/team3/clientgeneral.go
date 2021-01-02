@@ -112,14 +112,18 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 	}
 }
 
-func (c *client) updateCriticalThreshold(isInCriticalState bool, reportedResource shared.Resources) {
+//updateCriticalThreshold updates our predicted value of what is the resources threshold of critical state
+// it uses estimated resources to find these bound. isIncriticalState is a boolean to indicate if the island
+// is in the critical state and the estimated resources is our estimated resources of the island i.e.
+// trust-adjusted resources.
+func (c *client) updateCriticalThreshold(isInCriticalState bool, estimatedResource shared.Resources) {
 	if !isInCriticalState {
-		if reportedResource < c.criticalStatePrediction.upperBound {
-			c.criticalStatePrediction.upperBound = reportedResource
+		if estimatedResource < c.criticalStatePrediction.upperBound {
+			c.criticalStatePrediction.upperBound = estimatedResource
 		}
 	} else {
-		if reportedResource > c.criticalStatePrediction.lowerBound {
-			c.criticalStatePrediction.lowerBound = reportedResource
+		if estimatedResource > c.criticalStatePrediction.lowerBound {
+			c.criticalStatePrediction.lowerBound = estimatedResource
 		}
 	}
 }

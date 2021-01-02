@@ -36,7 +36,7 @@ type client struct {
 	presidentPerformance map[shared.ClientID]int
 
 	// ## Game state & History ##
-	criticalStatePrediction critcalStatePrediction
+	criticalStatePrediction criticalStatePrediction
 
 	// unused or replaced by getter functions
 	// currentIteration iterationInfo
@@ -61,7 +61,7 @@ type client struct {
 	params islandParams
 }
 
-type critcalStatePrediction struct {
+type criticalStatePrediction struct {
 	upperBound shared.Resources
 	lowerBound shared.Resources
 }
