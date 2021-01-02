@@ -1,5 +1,5 @@
 import React from "react";
-import { Brush, ResponsiveContainer, LineChart, Line, YAxis, XAxis, CartesianGrid, Tooltip, Legend, Surface, Symbols, ReferenceLine } from '../../../../node_modules/recharts';
+import { Brush, ResponsiveContainer, LineChart, Line, YAxis, XAxis, CartesianGrid, Tooltip, Legend, Surface, Symbols, ReferenceLine } from 'recharts';
 import outputJSON from '../../../output/output.json';
 import _ from "../../../../node_modules/lodash";
 
@@ -142,6 +142,5 @@ class LineRechartComponent extends React.Component<{}, any> {
 
 
 export default LineRechartComponent;
-
 
 
