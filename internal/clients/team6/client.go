@@ -52,7 +52,7 @@ func init() {
 // ########################
 
 // increases the friendship level with some other islands
-func (c *client) RaiseFriendshipLevel(clientID shared.ClientID) {
+func (c *client) raiseFriendshipLevel(clientID shared.ClientID) {
 	currFriendship := c.config.friendship[clientID]
 
 	if currFriendship == MAX_FRIENDSHIP {
@@ -63,7 +63,7 @@ func (c *client) RaiseFriendshipLevel(clientID shared.ClientID) {
 }
 
 // decreases the friendship level with some other islands
-func (c *client) LowerFriendshipLevel(clientID shared.ClientID) {
+func (c *client) lowerFriendshipLevel(clientID shared.ClientID) {
 	currFriendship := c.config.friendship[clientID]
 
 	if currFriendship == MIN_FRIENDSHIP {
