@@ -40,7 +40,7 @@ func registerDemoRule() {
 type RawRuleSpecification struct {
 	Name    string
 	ReqVar  []VariableFieldName
-	V       []float64
+	Values  []float64
 	Aux     []float64
 	Mutable bool
 }
@@ -53,7 +53,7 @@ func registerRulesByMass() {
 				NumberOfIslandsAlive,
 				NumberOfBallotsCast,
 			},
-			V:       []float64{1, -1, 0},
+			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
 			Mutable: false,
 		},
@@ -63,7 +63,7 @@ func registerRulesByMass() {
 				AllocationRequestsMade,
 				AllocationMade,
 			},
-			V:       []float64{1, -1, 0},
+			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
 			Mutable: false,
 		},
@@ -72,7 +72,7 @@ func registerRulesByMass() {
 			ReqVar: []VariableFieldName{
 				JudgeInspectionPerformed,
 			},
-			V:       []float64{1, -1},
+			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
 		},
@@ -82,7 +82,7 @@ func registerRulesByMass() {
 				IslandTaxContribution,
 				ExpectedTaxContribution,
 			},
-			V:       []float64{1, -1, 0},
+			Values:  []float64{1, -1, 0},
 			Aux:     []float64{2},
 			Mutable: false,
 		},
@@ -92,7 +92,7 @@ func registerRulesByMass() {
 				IslandAllocation,
 				ExpectedAllocation,
 			},
-			V:       []float64{1, -1, 0},
+			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
 			Mutable: false,
 		},
@@ -102,7 +102,7 @@ func registerRulesByMass() {
 				RuleSelected,
 				VoteCalled,
 			},
-			V:       []float64{1, -1, 0},
+			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
 			Mutable: false,
 		},
@@ -113,7 +113,7 @@ func registerRulesByMass() {
 				ConstSanctionAmount,
 				TurnsLeftOnSanction,
 			},
-			V:       []float64{0, 0, 1, 0, 0, 0, 0, 0},
+			Values:  []float64{0, 0, 1, 0, 0, 0, 0, 0},
 			Aux:     []float64{1, 4},
 			Mutable: true,
 		},
@@ -124,7 +124,7 @@ func registerRulesByMass() {
 				ConstSanctionAmount,
 				TurnsLeftOnSanction,
 			},
-			V:       []float64{0, 0, 1, 0, 0.1, 1, 0, 0},
+			Values:  []float64{0, 0, 1, 0, 0.1, 1, 0, 0},
 			Aux:     []float64{1, 4},
 			Mutable: true,
 		},
@@ -135,7 +135,7 @@ func registerRulesByMass() {
 				ConstSanctionAmount,
 				TurnsLeftOnSanction,
 			},
-			V:       []float64{0, 0, 1, 0, 0.3, 1, 0, 0},
+			Values:  []float64{0, 0, 1, 0, 0.3, 1, 0, 0},
 			Aux:     []float64{1, 4},
 			Mutable: true,
 		},
@@ -146,7 +146,7 @@ func registerRulesByMass() {
 				ConstSanctionAmount,
 				TurnsLeftOnSanction,
 			},
-			V:       []float64{0, 0, 1, 0, 0.5, 1, 0, 0},
+			Values:  []float64{0, 0, 1, 0, 0.5, 1, 0, 0},
 			Aux:     []float64{1, 4},
 			Mutable: true,
 		},
@@ -157,7 +157,7 @@ func registerRulesByMass() {
 				ConstSanctionAmount,
 				TurnsLeftOnSanction,
 			},
-			V:       []float64{0, 0, 1, 0, 0.8, 1, 0, 0},
+			Values:  []float64{0, 0, 1, 0, 0.8, 1, 0, 0},
 			Aux:     []float64{1, 4},
 			Mutable: true,
 		},
@@ -167,7 +167,7 @@ func registerRulesByMass() {
 				SanctionPaid,
 				SanctionExpected,
 			},
-			V:       []float64{1, -1, 0},
+			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
 			Mutable: true,
 		},
@@ -175,11 +175,11 @@ func registerRulesByMass() {
 
 	for _, rs := range ruleSpecs {
 		rowLength := len(rs.ReqVar) + 1
-		if len(rs.V)%rowLength != 0 {
+		if len(rs.Values)%rowLength != 0 {
 			panic(fmt.Sprintf("Rule '%v' was registered without correct matrix dimensions", rs.Name))
 		}
-		nrows := len(rs.V) / rowLength
-		CoreMatrix := mat.NewDense(nrows, rowLength, rs.V)
+		nrows := len(rs.Values) / rowLength
+		CoreMatrix := mat.NewDense(nrows, rowLength, rs.Values)
 		AuxiliaryVector := mat.NewVecDense(nrows, rs.Aux)
 		_, ruleError := RegisterNewRule(rs.Name, rs.ReqVar, *CoreMatrix, *AuxiliaryVector, rs.Mutable)
 		if ruleError != nil {
@@ -191,11 +191,11 @@ func registerRulesByMass() {
 // CompileRuleCase allows an agent to quickly build a RuleMatrix using the RawRuleSpecification
 func CompileRuleCase(spec RawRuleSpecification) (RuleMatrix, bool) {
 	rowLength := len(spec.ReqVar) + 1
-	if len(spec.V)%rowLength != 0 {
+	if len(spec.Values)%rowLength != 0 {
 		return RuleMatrix{}, false
 	}
-	nrows := len(spec.V) / rowLength
-	CoreMatrix := mat.NewDense(nrows, rowLength, spec.V)
+	nrows := len(spec.Values) / rowLength
+	CoreMatrix := mat.NewDense(nrows, rowLength, spec.Values)
 	AuxiliaryVector := mat.NewVecDense(nrows, spec.Aux)
 	finalRuleMatrix := RuleMatrix{
 		RuleName:          spec.Name,

@@ -68,7 +68,7 @@ func generateArbitrarySanctionMatrix(ruleName string, currentResourcesFactor flo
 			rules.ConstSanctionAmount,
 			rules.TurnsLeftOnSanction,
 		},
-		V:       coreVect,
+		Values:  coreVect,
 		Aux:     auxVect,
 		Mutable: false,
 	})
