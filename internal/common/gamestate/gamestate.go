@@ -27,7 +27,7 @@ type GameState struct {
 	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
 
 	// IIGO History
-	IIGOHistory []shared.Accountability
+	IIGOHistory map[uint][]shared.Accountability
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
@@ -79,10 +79,12 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 	return ret
 }
 
-func copyIIGOHistory(iigoHistory []shared.Accountability) []shared.Accountability {
-	ret := make([]shared.Accountability, len(iigoHistory))
-	copy(ret, iigoHistory)
-	return ret
+func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]shared.Accountability {
+	targetMap := make(map[uint][]shared.Accountability)
+	for key, value := range iigoHistory {
+		targetMap[key] = value
+	}
+	return targetMap
 }
 
 func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) map[shared.ForageType][]foraging.ForagingReport {
