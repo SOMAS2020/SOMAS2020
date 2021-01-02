@@ -4,15 +4,15 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
 // Config configures our island's initial state
 type Config struct {
-	friendshipWith FriendshipWith
+	friendship Friendship
 }
 
-var clientConfigInfo = Config{
-	friendshipWith: FriendshipWith{
-		shared.Team1: neutral,
-		shared.Team2: neutral,
-		shared.Team3: neutral,
-		shared.Team4: neutral,
-		shared.Team5: neutral,
+var configInfo = Config{
+	friendship: Friendship{
+		shared.Team1: 50,
+		shared.Team2: 50,
+		shared.Team3: 50,
+		shared.Team4: 50,
+		shared.Team5: 50,
 	},
 }
