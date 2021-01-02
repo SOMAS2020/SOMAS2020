@@ -233,6 +233,7 @@ func (j *judiciary) clearHistoryCache() {
 
 // Helper functions //
 
+// runEvaluationRulesOnSanctions uses the custom sanction evaluator calculate how much each island should be paying in sanctions
 func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.Resources) map[shared.ClientID]shared.Resources {
 	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
 	for _, sanctionList := range localSanctionCache {
