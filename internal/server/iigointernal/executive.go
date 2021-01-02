@@ -164,10 +164,18 @@ func (e *executive) requestRuleProposal() {
 	e.budget -= serviceCharge
 	var ruleProposals []string
 	for _, island := range getIslandAlive() {
-		ruleProposals = append(ruleProposals, iigoClients[shared.ClientID(int(island))].RuleProposal())
+		proposedRule := iigoClients[shared.ClientID(int(island))].RuleProposal()
+		if checkRuleIsValid(proposedRule, rules.AvailableRules) {
+			ruleProposals = append(ruleProposals, proposedRule)
+		}
 	}
 
 	e.setRuleProposals(ruleProposals)
+}
+
+func checkRuleIsValid(ruleName string, rulesCache map[string]rules.RuleMatrix) bool {
+	_, valid := rulesCache[ruleName]
+	return valid
 }
 
 func getIslandAlive() []float64 {
