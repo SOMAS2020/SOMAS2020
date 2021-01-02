@@ -2,9 +2,9 @@ package shared
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
+	"github.com/pkg/errors"
 )
 
 // ResourceDistributionStrategy characterises the different ways in which resources can be distributed
@@ -47,12 +47,11 @@ func (rd ResourceDistributionStrategy) MarshalJSON() ([]byte, error) {
 }
 
 // ParseResourceDistributionStrategy gets the ResourceDistributionStrategy based on an iota index
-func ParseResourceDistributionStrategy(x int) ResourceDistributionStrategy {
+func ParseResourceDistributionStrategy(x int) (ResourceDistributionStrategy, error) {
 	if x >= 0 && ResourceDistributionStrategy(x) < _resourceDistrEnd {
-		return ResourceDistributionStrategy(x)
+		return ResourceDistributionStrategy(x), nil
 	}
-	log.Printf("Unknown ResourceDistribution Strategy specified: '%v'\nUse --help. Defaulting to %v", x, EqualSplit)
-	return EqualSplit
+	return EqualSplit, errors.Errorf("Unknown ResourceDistribution Strategy specified: '%v'.", x)
 }
 
 // HelpResourceDistributionStrategy returns a help string for ResourceDistributionStrategy
