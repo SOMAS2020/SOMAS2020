@@ -1,8 +1,9 @@
 import React from 'react'
 import { Modal } from 'react-bootstrap'
-
-import loadingSVG from './Loading.svg'
+import logo from '../../assets/logo/logo512.png';
 import { useLoadingState } from '../../contexts/loadingState'
+
+import styles from './Loading.module.css'
 
 const Loading = () => {
   const [loadingState] = useLoadingState()
@@ -14,7 +15,7 @@ const Loading = () => {
       aria-labelledby="contained-modal-title-vcenter"
       centered
       show={loading}
-      onHide={() => {}}
+      onHide={() => { }}
       style={{ textAlign: `center`, margin: `auto` }}
     >
       <Modal.Header>
@@ -23,8 +24,7 @@ const Loading = () => {
        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {/* TODO:- Fix Freezing issue--might need web worker? */}
-        <img src={loadingSVG} alt="loading" className="loader" />
+        <img src={logo} className={styles.appLogo} alt="logo" />
         <p style={{ padding: 10, fontSize: '1.2rem' }}>{loadingText ? loadingText : `Tomato sauce was sold in the 1800's as medicine.`}</p>
       </Modal.Body>
     </Modal>

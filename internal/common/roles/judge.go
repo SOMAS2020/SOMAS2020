@@ -41,9 +41,10 @@ const (
 type Judge interface {
 	PayPresident(presidentSalary shared.Resources) (shared.Resources, bool)
 	InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]EvaluationReturn, bool)
-	CallPresidentElection(int, []shared.ClientID) shared.ElectionSettings
+	CallPresidentElection(shared.MonitorResult, int, []shared.ClientID) shared.ElectionSettings
 	DecideNextPresident(shared.ClientID) shared.ClientID
 	GetRuleViolationSeverity() map[string]IIGOSanctionScore
 	GetSanctionThresholds() map[IIGOSanctionTier]IIGOSanctionScore
 	GetPardonedIslands(currentSanctions map[int][]Sanction) map[int][]bool
+	HistoricalRetributionEnabled() bool
 }

@@ -75,6 +75,14 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{0},
 	},
 	{
+		VariableName: RuleSelected,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: VoteCalled,
+		Values:       []float64{0},
+	},
+	{
 		VariableName: IslandReportedResources,
 		Values:       []float64{0},
 	},
@@ -92,6 +100,18 @@ var StaticVariables = []VariableValuePair{
 	},
 	{
 		VariableName: SanctionExpected,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: AllocationRequestsMade,
+		Values:       []float64{1},
+	},
+	{
+		VariableName: AllocationMade,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: JudgeInspectionPerformed,
 		Values:       []float64{0},
 	},
 }

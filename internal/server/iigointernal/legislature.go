@@ -3,7 +3,6 @@ package iigointernal
 import (
 	"fmt"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -68,15 +67,15 @@ func (l *legislature) setRuleToVote(r string) {
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (l *legislature) setVotingResult(clientIDs []shared.ClientID) {
+func (l *legislature) setVotingResult(clientIDs []shared.ClientID) bool {
 
 	ruleID, participatingIslands, voteDecided := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
 	if !voteDecided {
-		return
+		return false
 	}
 	l.ballotBox = l.RunVote(ruleID, participatingIslands)
 	l.votingResult = l.ballotBox.CountVotesMajority()
-
+	return true
 }
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.
@@ -170,13 +169,13 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 }
 
 // appointNextJudge returns the island ID of the island appointed to be Judge in the next turn
-func (l *legislature) appointNextJudge(currentJudge shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
+func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJudge shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextJudge shared.ClientID
-	electionsettings := l.clientSpeaker.CallJudgeElection(l.judgeTurnsInPower, allIslands)
+	electionsettings := l.clientSpeaker.CallJudgeElection(monitoring, l.judgeTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		// TODO: deduct the cost of holding an election
-		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
+		election.ProposeElection(shared.Judge, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
 		l.judgeTurnsInPower = 0

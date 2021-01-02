@@ -21,7 +21,7 @@ type Client interface {
 	Logf(format string, a ...interface{})
 
 	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(roleToElect Role) []shared.ClientID
+	GetVoteForElection(roleToElect shared.Role) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
@@ -54,6 +54,11 @@ type Client interface {
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
 
+	//IIGO: COMPULSORY
+	MonitorIIGORole(shared.Role) bool
+	DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
+
+	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SentGift(sent shared.Resources, to shared.ClientID)
 	ReceivedGift(received shared.Resources, from shared.ClientID)
 }
@@ -123,7 +128,8 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 }
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
-func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
+// COMPULSORY: use opinion formation to decide a rank for islands for the role
+func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
 	// Done ;)
 	// Get all alive islands
 	aliveClients := rules.VariableMap[rules.IslandsAlive]
@@ -148,4 +154,18 @@ func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[share
 // GetCommunications is used for testing communications
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
 	return &c.Communications
+}
+
+//MonitorIIGORole decides whether to perform monitoring on a role
+//COMPULOSRY: must be implemented
+func (c *BaseClient) MonitorIIGORole(roleName shared.Role) bool {
+	return true
+}
+
+//DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
+//COMPULSORY: must be implemented
+func (c *BaseClient) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
+	resultToShare = monitoringResult
+	announce = true
+	return
 }

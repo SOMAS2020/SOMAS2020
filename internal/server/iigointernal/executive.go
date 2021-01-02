@@ -3,7 +3,6 @@ package iigointernal
 import (
 	"fmt"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -90,15 +89,16 @@ func (e *executive) requestAllocationRequest() {
 	}
 	AllocationAmountMapExport = allocRequests
 	e.setAllocationRequest(allocRequests)
-
 }
 
 // replyAllocationRequest broadcasts the allocation of resources decided by the president
 // to all islands alive
-func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
+func (e *executive) replyAllocationRequest(commonPool shared.Resources) bool {
 	e.budget -= serviceCharge
 	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
+	allocationsMade := false
 	if requestsEvaluated {
+		allocationsMade = true
 		for _, island := range getIslandAlive() {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
@@ -106,16 +106,17 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) {
 			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
 		}
 	}
+	return allocationsMade
 }
 
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
-func (e *executive) appointNextSpeaker(currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
+func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextSpeaker shared.ClientID
-	electionsettings := e.clientPresident.CallSpeakerElection(e.speakerTurnsInPower, allIslands)
+	electionsettings := e.clientPresident.CallSpeakerElection(monitoring, e.speakerTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		// TODO: deduct the cost of holding an election
-		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
+		election.ProposeElection(shared.Speaker, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
 		e.speakerTurnsInPower = 0
