@@ -112,6 +112,18 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 	}
 }
 
+func (c *client) updateCriticalThreshold(isInCriticalState bool, reportedResource shared.Resources) {
+	if !isInCriticalState {
+		if reportedResource < c.criticalStatePrediction.upperBound {
+			c.criticalStatePrediction.upperBound = reportedResource
+		}
+	} else {
+		if reportedResource > c.criticalStatePrediction.lowerBound {
+			c.criticalStatePrediction.lowerBound = reportedResource
+		}
+	}
+}
+
 /*
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
