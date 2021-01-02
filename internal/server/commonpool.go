@@ -9,7 +9,7 @@ func (s *SOMASServer) islandDistribute(resource shared.Resources, islandID share
 	ci := s.gameState.ClientInfos[islandID]
 	ci.Resources = ci.Resources + resource
 	s.gameState.ClientInfos[islandID] = ci
-	s.gameState.Environment.CommonPool.Resources -= resource
+	s.gameState.CommonPool -= resource
 }
 
 //islandDeplete depletes island's resource based on the severity of the storm
@@ -25,5 +25,5 @@ func (s *SOMASServer) islandContribute(resource shared.Resources, islandID share
 	ci := s.gameState.ClientInfos[islandID]
 	ci.Resources = ci.Resources - resource
 	s.gameState.ClientInfos[islandID] = ci
-	s.gameState.Environment.CommonPool.Resources += shared.Resources(resource)
+	s.gameState.CommonPool += shared.Resources(resource)
 }

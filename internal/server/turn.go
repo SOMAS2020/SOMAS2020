@@ -126,7 +126,7 @@ func (s *SOMASServer) notifyClientsOfDisaster() {
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		effects := s.gameState.Environment.ComputeDisasterEffects() // gets effects of most recent disaster
+		effects := s.gameState.Environment.ComputeDisasterEffects(s.gameState.CommonPool, s.gameConfig.CommonPoolConfig) // gets effects of most recent disaster
 		c.DisasterNotification(s.gameState.Environment.LastDisasterReport, effects)
 	}
 }

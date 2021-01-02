@@ -3,6 +3,7 @@ package disasters
 import (
 	"math"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
 )
@@ -45,7 +46,6 @@ type Environment struct {
 	Geography          ArchipelagoGeography
 	DisasterParams     disasterParameters
 	LastDisasterReport DisasterReport
-	CommonPool         Commonpool
 }
 
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
@@ -66,9 +66,7 @@ func (e Environment) SampleForDisaster() Environment {
 	return e                  // return same env back but with updated disaster report
 }
 
-// ComputeDisasterEffects returns the individual (absolute) effects and proportional effect (compared to total damage on each island)
-// This method uses the latest disaster report stored in environment
-func (e Environment) ComputeDisasterEffects() DisasterEffects {
+func (e Environment) computeUnmitigatedDisasterEffects() DisasterEffects {
 	individualEffect := map[shared.ClientID]shared.Magnitude{}
 	proportionalEffect := map[shared.ClientID]shared.Magnitude{}
 	totalEffect := 0.0
@@ -83,11 +81,20 @@ func (e Environment) ComputeDisasterEffects() DisasterEffects {
 	for _, island := range e.Geography.Islands {
 		proportionalEffect[island.ID] = individualEffect[island.ID] / totalEffect
 	}
-	updatedProportionalEffect := e.DisasterMitigate(individualEffect, proportionalEffect)
+	return DisasterEffects{Absolute: individualEffect, Proportional: proportionalEffect} // ommit CP mitigated effect here - not relevant
+}
+
+// ComputeDisasterEffects returns the individual (absolute) effects and proportional effect (compared to total damage on each island)
+// This method uses the latest disaster report stored in environment
+func (e Environment) ComputeDisasterEffects(cpResources shared.Resources, cpConf config.CommonPoolConfig) DisasterEffects {
+
+	unmitigatedEffects := e.computeUnmitigatedDisasterEffects()
+
+	updatedProportionalEffect := e.DisasterMitigate(cpResources, unmitigatedEffects, cpConf)
 	mitigatedDamage := map[shared.ClientID]shared.Magnitude{}
 	for islandID := range updatedProportionalEffect {
-		mitigatedDamage[islandID] = individualEffect[islandID]*1000 - updatedProportionalEffect[islandID]
+		mitigatedDamage[islandID] = unmitigatedEffects.Absolute[islandID]*1000 - updatedProportionalEffect[islandID]
 	}
 
-	return DisasterEffects{Absolute: individualEffect, Proportional: proportionalEffect, CommonPoolMitigated: mitigatedDamage}
+	return DisasterEffects{Absolute: unmitigatedEffects.Absolute, Proportional: unmitigatedEffects.Proportional, CommonPoolMitigated: mitigatedDamage}
 }

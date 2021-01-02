@@ -8,10 +8,10 @@ func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 	defer s.logf("finish probeDisaster")
 
 	e := s.gameState.Environment
-	e.SampleForDisaster()                 // update disaster
-	effects := e.ComputeDisasterEffects() // get disaster effects - absolute, proportional and CP-mitigated
+	e.SampleForDisaster()                                                                      // update disaster
+	effects := e.ComputeDisasterEffects(s.gameState.CommonPool, s.gameConfig.CommonPoolConfig) // get disaster effects - absolute, proportional and CP-mitigated
 
-	disasterReport := e.DisplayReport() // displays disaster info and effects
+	disasterReport := e.DisplayReport(s.gameState.CommonPool, s.gameConfig.CommonPoolConfig) // displays disaster info and effects
 	s.logf(disasterReport)
 	s.islandDeplete(effects.CommonPoolMitigated) //island's resource will be depleted by disaster only when disaster happens and cp cannot fully mitigate
 

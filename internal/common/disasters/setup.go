@@ -19,11 +19,10 @@ func InitEnvironment(islandIDs []shared.ClientID, envConf config.DisasterConfig,
 		spatialPDF:      envConf.SpatialPDFType,
 		magnitudeLambda: envConf.MagnitudeLambda,
 	}
-	cp := Commonpool{Resources: cpConf.Resources, Threshold: cpConf.Threshold}
 
 	for i, id := range islandIDs {
 		island := IslandLocationInfo{id, float64(i), float64(0)} // begin with equidistant points on x axis
 		ag.Islands[id] = island
 	}
-	return Environment{Geography: ag, DisasterParams: dp, LastDisasterReport: DisasterReport{}, CommonPool: cp}
+	return Environment{Geography: ag, DisasterParams: dp, LastDisasterReport: DisasterReport{}}
 }

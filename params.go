@@ -140,7 +140,7 @@ var (
 	)
 	disasterGlobalProb = flag.Float64(
 		"disasterGlobalProb",
-		0.9,
+		0.1,
 		"Bernoulli 'p' param. Chance of a disaster occurring.",
 	)
 	disasterSpatialPDFType = flag.Int(
@@ -152,11 +152,6 @@ var (
 		"disasterMagnitudeLambda",
 		1,
 		"Exponential rate param for disaster magnitude",
-	)
-	commonPoolResources = flag.Float64(
-		"commonPoolResources",
-		100,
-		"Initial cp resources",
 	)
 	commonPoolThreshold = flag.Float64(
 		"commonPoolThreshold",
@@ -203,7 +198,6 @@ func parseConfig() config.Config {
 		MagnitudeLambda: *disasterMagnitudeLambda,
 	}
 	cpConf := config.CommonPoolConfig{
-		Resources: shared.Resources(*commonPoolResources),
 		Threshold: shared.Resources(*commonPoolThreshold),
 	}
 	return config.Config{

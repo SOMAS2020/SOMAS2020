@@ -1,12 +1,9 @@
 package disasters
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
-
-type Commonpool struct {
-	Resources, Threshold shared.Resources
-}
 
 // DisasterMitigate mitigates the disaster's damage using CP before it hits the island
 // 	+ If cp have enough resource to fully mitigate the disaster, island's personal resources won't be affected
@@ -17,19 +14,19 @@ type Commonpool struct {
 //	+ If threshold T is met, which mean islands have prepared well before the disaster hit, the damage that disaster have on cp and islands will be half
 //	+ If not, cp and islands will feel the full effect of disaster
 //	+ For now, each 1 effect of disaster is equivalent to 1000 resource
-func (e Environment) DisasterMitigate(individualEffect map[shared.ClientID]float64, proportionalEffect map[shared.ClientID]float64) map[shared.ClientID]float64 { //input is the porportional effect of each island
+func (e Environment) DisasterMitigate(cpResources shared.Resources, effects DisasterEffects, cpConf config.CommonPoolConfig) map[shared.ClientID]float64 { //input is the porportional effect of each island
 	// compute total effect of disaster on 6 islands
 	totalEffect := 0.0
-	updatedIndividualEffect := map[shared.ClientID]float64{}
+	updatedIndividualEffects := map[shared.ClientID]float64{}
 
-	for _, effect := range individualEffect {
+	for _, effect := range effects.Absolute {
 		totalEffect = totalEffect + effect
 	}
 
 	// compute cp power towards disaster
 	var newMagnitude float64
-	tempResource := float64(e.CommonPool.Resources)
-	if e.CommonPool.Resources >= e.CommonPool.Threshold { //exceeds cp threshold
+	tempResource := float64(cpResources)
+	if cpResources >= cpConf.Threshold { //exceeds cp threshold
 		newMagnitude = (totalEffect / 2) * 1000 // better prep means less effect
 	} else {
 		newMagnitude = totalEffect * 1000 // no prep so goodluck
@@ -38,16 +35,15 @@ func (e Environment) DisasterMitigate(individualEffect map[shared.ClientID]float
 	//compute remaining effect for each island
 	if newMagnitude <= tempResource { // Case when cp can fully mitigate disaster
 		tempResource = tempResource - newMagnitude
-		for islandID := range individualEffect {
-			updatedIndividualEffect[islandID] = 0 // 0 means fully mitigated
+		for islandID := range effects.Absolute {
+			updatedIndividualEffects[islandID] = 0 // 0 means fully mitigated
 		}
 	} else { // Case when damage is too high, cp cannot fully mitigate
 		leftOverEffect := newMagnitude - tempResource // damage that has to be mitigated by islands
 		tempResource = 0                              // nothing remains in the cp
-		for islandID, effect := range proportionalEffect {
-			updatedIndividualEffect[islandID] = leftOverEffect * effect //leftover damage for each island is computed proportionally with respect to the damage on 6 islands
+		for islandID, effect := range effects.Proportional {
+			updatedIndividualEffects[islandID] = leftOverEffect * effect //leftover damage for each island is computed proportionally with respect to the damage on 6 islands
 		}
 	}
-	e.CommonPool.Resources = shared.Resources(tempResource)
-	return updatedIndividualEffect
+	return updatedIndividualEffects
 }
