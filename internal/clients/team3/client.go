@@ -20,7 +20,7 @@ type client struct {
 
 	acceptedGifts        map[shared.ClientID]int
 	requestedGiftAmounts map[shared.ClientID]int
-	// receivedResponses // todo
+	receivedResponses    []shared.GiftResponse
 
 	// ## Trust ##
 
@@ -51,7 +51,8 @@ type client struct {
 	numTimeCaught   uint
 	compliance      float64
 
-	// allVotes [rule][shared.ClientID] TODO
+	// allVotes stores the votes of each island for/against each rule
+	allVotes map[string]map[shared.ClientID]bool
 
 	// params is list of island wide function parameters
 	params islandParams
