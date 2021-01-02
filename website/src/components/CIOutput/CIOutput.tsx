@@ -7,7 +7,7 @@ import Artifacts from '../Artifacts/Artifacts'
 const processedOutputLog = outputLog.join(`\n`)
 
 const CIOutput = () => {
-  return <div>
+  return <div style={{ paddingTop: 24 }}>
     <h1>CI Output</h1>
     <h3 style={{ marginTop: 24 }}>Artifacts</h3>
     <Artifacts output={outputJSON} logs={processedOutputLog} />

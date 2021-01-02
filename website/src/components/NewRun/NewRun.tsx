@@ -121,7 +121,7 @@ const NewRun = () => {
     setFlags(fs)
   }
 
-  return <div>
+  return <div style={{ paddingTop: 24 }}>
     <h1>New Run</h1>
 
     {
@@ -141,7 +141,7 @@ const NewRun = () => {
     }
     {
       runError &&
-      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible style={{ maxWidth: `90vw`, margin: `auto`, marginTop: 24 }}>
+      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible className="custom-alert">
         <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
         <p>{runError}</p>
       </Alert>
