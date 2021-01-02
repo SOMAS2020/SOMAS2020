@@ -37,9 +37,6 @@ type Config struct {
 
 	// Wrapped disaster config
 	DisasterConfig DisasterConfig
-
-	// Wrapped commonpool config
-	CommonPoolConfig CommonPoolConfig
 }
 
 // DeerHuntConfig is a subset of foraging config
@@ -70,15 +67,12 @@ type FishingConfig struct {
 
 // DisasterConfig captures disaster-specific config
 type DisasterConfig struct {
-	XMin, XMax, YMin, YMax shared.Coordinate     // [min, max] x,y bounds of archipelago (bounds for possible disaster)
-	GlobalProb             float64               // Bernoulli 'p' param. Chance of a disaster occurring
-	SpatialPDFType         shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
-	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
-}
-
-// CommonPoolConfig defines cp-specific config
-type CommonPoolConfig struct {
-	Resources, Threshold shared.Resources
+	XMin, XMax, YMin, YMax      shared.Coordinate     // [min, max] x,y bounds of archipelago (bounds for possible disaster)
+	GlobalProb                  float64               // Bernoulli 'p' param. Chance of a disaster occurring
+	SpatialPDFType              shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
+	MagnitudeLambda             float64               // Exponential rate param for disaster magnitude
+	MagnitudeResourceMultiplier float64               // multiplier to map disaster magnitude to CP resource deductions
+	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
 }
 
 // ForagingConfig captures foraging-specific config

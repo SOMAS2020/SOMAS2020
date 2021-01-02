@@ -86,11 +86,11 @@ func (e Environment) computeUnmitigatedDisasterEffects() DisasterEffects {
 
 // ComputeDisasterEffects returns the individual (absolute) effects and proportional effect (compared to total damage on each island)
 // This method uses the latest disaster report stored in environment
-func (e Environment) ComputeDisasterEffects(cpResources shared.Resources, cpConf config.CommonPoolConfig) DisasterEffects {
+func (e Environment) ComputeDisasterEffects(cpResources shared.Resources, dConf config.DisasterConfig) DisasterEffects {
 
 	unmitigatedEffects := e.computeUnmitigatedDisasterEffects()
 
-	updatedProportionalEffect := e.DisasterMitigate(cpResources, unmitigatedEffects, cpConf)
+	updatedProportionalEffect := e.DisasterMitigate(cpResources, unmitigatedEffects, dConf)
 	mitigatedDamage := map[shared.ClientID]shared.Magnitude{}
 	for islandID := range updatedProportionalEffect {
 		mitigatedDamage[islandID] = unmitigatedEffects.Absolute[islandID]*1000 - updatedProportionalEffect[islandID]

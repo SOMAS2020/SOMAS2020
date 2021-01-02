@@ -19,9 +19,8 @@ func TestSamplingOfCertainties(t *testing.T) {
 		SpatialPDFType:  shared.Uniform,
 		MagnitudeLambda: 1.0,
 	}
-	cpConf := config.CommonPoolConfig{}
 
-	env := InitEnvironment(clientIDs, disasterConf, cpConf)
+	env := InitEnvironment(clientIDs, disasterConf)
 	env.DisasterParams.globalProb = 0
 	updatedEnv := env.SampleForDisaster()
 	if updatedEnv.LastDisasterReport.Magnitude > 0.0 {

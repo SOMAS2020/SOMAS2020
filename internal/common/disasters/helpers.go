@@ -33,7 +33,7 @@ func (report DisasterReport) Display() string {
 
 // DisplayReport is a string format method to viz a disaster report and its effect,
 // as well as how the disaster is been mitigated by the common pool
-func (env Environment) DisplayReport(cpResources shared.Resources, cpConf config.CommonPoolConfig) string {
+func (env Environment) DisplayReport(cpResources shared.Resources, dConf config.DisasterConfig) string {
 	disasterReport := env.LastDisasterReport
 	if env.LastDisasterReport.Magnitude == 0 {
 		return "No disaster reported. No disaster effects."
@@ -41,7 +41,7 @@ func (env Environment) DisplayReport(cpResources shared.Resources, cpConf config
 	var sb strings.Builder
 	sb.WriteString(disasterReport.Display())
 
-	effects := env.ComputeDisasterEffects(cpResources, cpConf)
+	effects := env.ComputeDisasterEffects(cpResources, dConf)
 
 	// display absolute effects for each island
 	sb.WriteString("\n------------------------ Disaster Effects ------------------------\n")

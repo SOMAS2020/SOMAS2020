@@ -43,8 +43,6 @@ var deerConf = config.DeerHuntConfig{
 	ExponentialRate:    1.0,
 }
 
-var cpConf = config.CommonPoolConfig{} // define if necessary but generally not required here
-
 func TestForagingCallsForageUpdate(t *testing.T) {
 	cases := []shared.ForageType{
 		shared.DeerForageType,
@@ -88,7 +86,7 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 							shared.FishForageType: make([]foraging.ForagingReport, 0),
 						},
 						DeerPopulation: foraging.CreateDeerPopulationModel(deerConf),
-						Environment:    disasters.InitEnvironment(clientIDs, envConf, cpConf),
+						Environment:    disasters.InitEnvironment(clientIDs, envConf),
 					},
 					clientMap: clientMap,
 				}

@@ -153,8 +153,13 @@ var (
 		1,
 		"Exponential rate param for disaster magnitude",
 	)
-	commonPoolThreshold = flag.Float64(
-		"commonPoolThreshold",
+	disasterMagnitudeResourceMultiplier = flag.Float64(
+		"disasterMagnitudeResourceMultiplier",
+		1000,
+		"Multiplier to map disaster magnitude to CP resource deductions",
+	)
+	disasterCommonpoolThreshold = flag.Float64(
+		"disasterCommonpoolThreshold",
 		10,
 		"Common pool threshold value for disaster to be mitigated",
 	)
@@ -189,16 +194,15 @@ func parseConfig() config.Config {
 		FishingConfig:  fishingConf,
 	}
 	disasterConf := config.DisasterConfig{
-		XMin:            *disasterXMin,
-		XMax:            *disasterXMax, // chosen quite arbitrarily for now
-		YMin:            *disasterYMin,
-		YMax:            *disasterYMax,
-		GlobalProb:      *disasterGlobalProb,
-		SpatialPDFType:  shared.ParseSpatialPDFType(*disasterSpatialPDFType),
-		MagnitudeLambda: *disasterMagnitudeLambda,
-	}
-	cpConf := config.CommonPoolConfig{
-		Threshold: shared.Resources(*commonPoolThreshold),
+		XMin:                        *disasterXMin,
+		XMax:                        *disasterXMax, // chosen quite arbitrarily for now
+		YMin:                        *disasterYMin,
+		YMax:                        *disasterYMax,
+		GlobalProb:                  *disasterGlobalProb,
+		SpatialPDFType:              shared.ParseSpatialPDFType(*disasterSpatialPDFType),
+		MagnitudeLambda:             *disasterMagnitudeLambda,
+		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
+		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
 	}
 	return config.Config{
 		MaxSeasons:                  *maxSeasons,
@@ -210,6 +214,5 @@ func parseConfig() config.Config {
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
-		CommonPoolConfig:            cpConf,
 	}
 }
