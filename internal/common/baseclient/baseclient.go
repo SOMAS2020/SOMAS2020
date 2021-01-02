@@ -53,6 +53,7 @@ type Client interface {
 	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
+	DecideGiftAmount(shared.ClientID, shared.Resources) shared.Resources
 
 	//IIGO: COMPULSORY
 	MonitorIIGORole(shared.Role) bool
