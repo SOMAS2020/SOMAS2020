@@ -6,24 +6,19 @@ import (
 )
 
 type president struct {
+	// Base implementation
 	*baseclient.BasePresident
+	// Our client
+	c *client
 }
 
 func (p *president) PaySpeaker(salary shared.Resources) (shared.Resources, bool) {
-	return shared.Resources(0), false
+	// Use the base implementation
+	return p.BasePresident.PaySpeaker(salary)
 }
-func (p *president) SetTaxationAmount(map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
-	return nil, false
-}
-func (p *president) EvaluateAllocationRequests(map[shared.ClientID]shared.Resources, shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
-	return nil, false
-}
-func (p *president) PickRuleToVote([]string) (string, bool) {
-	return "", false
-}
-func (p *president) CallSpeakerElection(int, []shared.ClientID) shared.ElectionSettings {
-	return shared.ElectionSettings{}
-}
-func (p *president) DecideNextSpeaker(shared.ClientID) shared.ClientID {
+
+func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
+	// p.c.Logf("choosing speaker")
+	// Naively choose group 0
 	return shared.ClientID(0)
 }

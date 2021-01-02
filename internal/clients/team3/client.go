@@ -3,7 +3,6 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -56,8 +55,6 @@ type client struct {
 
 	// params is list of island wide function parameters
 	params islandParams
-
-	presidentObj president
 }
 
 type islandParams struct {
@@ -76,12 +73,4 @@ type islandParams struct {
 	friendliness                float64
 	anger                       float64
 	aggression                  float64
-}
-
-func (c *client) DemoEvaluation() {
-	evalResult, err := rules.BasicBooleanRuleEvaluator("Kinda Complicated Rule")
-	if err != nil {
-		panic(err.Error())
-	}
-	c.Logf("Rule Eval: %t", evalResult)
 }
