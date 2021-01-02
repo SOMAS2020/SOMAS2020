@@ -20,17 +20,17 @@ const standardise = (allRoles: ProcessedRoleData): ProcessedRoleData => {
     });
 };
 
-export const getProcessedRoleData = (): ProcessedRoleData => {
-    if (outputJSON.GameStates.length === 0) return [];
+export const processRoleData = (data: typeof outputJSON) => {
+    if (data.GameStates.length === 0) return [];
 
     let allRoles: ProcessedRoleData = [];
 
-    for (var id in outputJSON.GameStates[0].ClientInfos)
+    for (var id in data.GameStates[0].ClientInfos)
         allRoles.push(new ProcessedRoleElement(id));
 
     if (allRoles.length === 0) return [];
 
-    allRoles = outputJSON.GameStates.reduce(
+    allRoles = data.GameStates.reduce(
         (allRolesNew, gameState) =>
             allRolesNew.map((allRolesElem) => {
                 if (allRolesElem.name === gameState.PresidentID) {
@@ -49,3 +49,6 @@ export const getProcessedRoleData = (): ProcessedRoleData => {
 
     return standardise(allRoles);
 };
+
+export const getProcessedCIRoleData = (): ProcessedRoleData =>
+    processRoleData(outputJSON);

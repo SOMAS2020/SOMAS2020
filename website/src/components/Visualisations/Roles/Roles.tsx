@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Roles.module.css";
 import {
     BarChart,
@@ -10,12 +10,8 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { TurnsInRoles, ProcessedRoleData } from "./Util/RoleTypes";
-import { getProcessedRoleData } from "./Util/ProcessedRoleData";
-
-const presidentColor = "#00bbf9";
-const judgeColor = "#fee440";
-const speakerColor = "#f15bb5";
-const noneColor = "#b2bec3";
+import { getProcessedCIRoleData, processRoleData } from "./Util/ProcessedRoleData";
+import { loadLocalOutput } from "../../NewRun/utils";
 
 type CustomTooltipProps = {
     active: boolean;
@@ -24,33 +20,36 @@ type CustomTooltipProps = {
     data: ProcessedRoleData;
 };
 
-const getTurnsInRoles = (
-    data: ProcessedRoleData,
-    name: string
-): TurnsInRoles => {
-    const roles = data.find((d) => d.name === name)?.roles;
-    if (roles) {
-        const turnsAsPresident = roles.reduce((acc, a) => acc + a.president, 0);
-        const turnsAsJudge = roles.reduce((acc, a) => acc + a.judge, 0);
-        const turnsAsSpeaker = roles.reduce((acc, a) => acc + a.speaker, 0);
-        const turnsAsNone = roles.reduce((acc, a) => acc + a.none, 0);
-        return new TurnsInRoles(
-            turnsAsPresident,
-            turnsAsJudge,
-            turnsAsSpeaker,
-            turnsAsNone
-        );
-    } else {
-        console.log(`[VIS ROLE] Could not find ${name} in data...`);
-        return new TurnsInRoles();
-    }
-};
+const CustomTooltip = ({
+    active,
+    payload,
+    label,
+    data,
+}: CustomTooltipProps) => {
+    const getTurnsInRoles = (name: string): TurnsInRoles => {
+        const roles = data.find((d) => d.name === name)?.roles;
+        if (roles) {
+            const turnsAsPresident = roles.reduce(
+                (acc, a) => acc + a.president,
+                0
+            );
+            const turnsAsJudge = roles.reduce((acc, a) => acc + a.judge, 0);
+            const turnsAsSpeaker = roles.reduce((acc, a) => acc + a.speaker, 0);
+            const turnsAsNone = roles.reduce((acc, a) => acc + a.none, 0);
+            return new TurnsInRoles(
+                turnsAsPresident,
+                turnsAsJudge,
+                turnsAsSpeaker,
+                turnsAsNone
+            );
+        } else {
+            console.log(`[VIS ROLE] Could not find ${name} in data...`);
+            return new TurnsInRoles();
+        }
+    };
 
-const CustomTooltip = (
-    { active, payload, label, data }: CustomTooltipProps
-) => {
     if (active) {
-        const turnsInRoles = getTurnsInRoles(data, label);
+        const turnsInRoles = getTurnsInRoles(label);
         const turns =
             turnsInRoles.president +
             turnsInRoles.judge +
@@ -84,7 +83,25 @@ const CustomTooltip = (
 };
 
 const Roles = () => {
-    const data = getProcessedRoleData();
+    const presidentColor = "#00bbf9";
+    const judgeColor = "#fee440";
+    const speakerColor = "#f15bb5";
+    const noneColor = "#b2bec3";
+
+    const [data, setData] = useState<ProcessedRoleData>(
+        getProcessedCIRoleData()
+    );
+
+    useEffect(() => {
+        onDidMount();
+    }, []);
+
+    const onDidMount = async () => {
+        const localOutput = await loadLocalOutput();
+        if (localOutput) {
+            setData(processRoleData(localOutput.output));
+        }
+    };
 
     return (
         <div className={styles.root}>
@@ -94,7 +111,7 @@ const Roles = () => {
                     <XAxis type="number" />
                     <Tooltip
                         content={(props: CustomTooltipProps) =>
-                            CustomTooltip({...props, data})
+                            CustomTooltip({ ...props, data })
                         }
                     />
                     <Legend
