@@ -89,7 +89,7 @@ const Roles = (props: { output: OutputJSONType }) => {
             <ResponsiveContainer height={460} width="100%">
                 <BarChart data={data} layout="vertical" margin={{ bottom: 30 }}>
                     <YAxis type="category" dataKey="name" />
-                    <XAxis type="number" />
+                    <XAxis type="number" domain={[0, 'dataMax']} />
                     <Tooltip
                         content={(props: CustomTooltipProps) =>
                             CustomTooltip({ ...props, data })
