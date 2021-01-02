@@ -55,7 +55,7 @@ func (j *mockJudge) HistoricalRetributionEnabled() bool {
 }
 
 // CallPresidentElection is called by the judiciary to decide on power-transfer
-func (j *mockJudge) CallPresidentElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (j *mockJudge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	return j.callPresidentElection
 }
 
