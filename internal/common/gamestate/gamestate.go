@@ -82,9 +82,15 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]shared.Accountability {
 	targetMap := make(map[uint][]shared.Accountability)
 	for key, value := range iigoHistory {
-		targetMap[key] = value
+		targetMap[key] = copySingleIIGOEntry(value)
 	}
 	return targetMap
+}
+
+func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability {
+	ret := make([]shared.Accountability, len(input))
+	copy(ret, input)
+	return ret
 }
 
 func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) map[shared.ForageType][]foraging.ForagingReport {
