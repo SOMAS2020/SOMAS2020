@@ -13,32 +13,111 @@ import (
 
 const id = shared.Team5
 
+// Wealth defines how much money we have
+type Wealth int
+
 // ForageOutcome records the ROI on a foraging session
 type ForageOutcome struct {
-	turn    uint
-	input   shared.Resources
-	utility shared.Resources
+	turn   uint
+	input  shared.Resources
+	output shared.Resources
 }
 
 // ForageHistory stores history of foraging outcomes
 type ForageHistory map[shared.ForageType][]ForageOutcome
 
-type InternalState int
+type clientConfig struct {
+	// Initial non planned foraging
+	InitialForageTurns uint
 
+	// Skip forage for x amount of returns if theres no return > 1* multiplier
+	SkipForage uint
+
+	// If resources go above this limit we are balling with money
+	JBThreshold shared.Resources
+
+	// Middle class:  Middle < Jeff bezos
+	MiddleThreshold shared.Resources
+
+	// Poor: Imperial student < Middle
+	ImperialThreshold shared.Resources
+}
+
+// Client is the island number
+type client struct {
+	*baseclient.BaseClient
+
+	forageHistory ForageHistory // Stores our previous foraging data
+
+	taxAmount shared.Resources
+
+	// allocation is the president's response to your last common pool resource request
+	allocation shared.Resources
+
+	config clientConfig
+}
+
+// Classes we are in
 const (
-	Normal InternalState = iota
-	Anxious
-	Desperate
+	Dying           Wealth = iota // Sets values = 0
+	ImperialStudent               // iota sets the folloing values =1
+	MiddleClass                   // = 2
+	JeffBezos                     // = 3
 )
 
-func (st InternalState) String() string {
-	strings := [...]string{"Normal", "Anxious", "Desperate"}
+// NewClient get the base client
+func NewClient(clientID shared.ClientID) baseclient.Client {
+	return &client{
+		BaseClient:    baseclient.NewClient(clientID),
+		forageHistory: ForageHistory{},
+		taxAmount:     0,
+		allocation:    0,
+		config: clientConfig{
+			InitialForageTurns: 10,
+			// SkipForage:         5,
+
+			JBThreshold:       1000.0,
+			MiddleThreshold:   60.0,
+			ImperialThreshold: 30.0,
+		},
+	}
+}
+
+//================================================================
+/*  Wealth class */
+//================================================================
+
+func (c client) wealth() Wealth {
+	cData := c.gameState().ClientInfo
+	switch {
+	case cData.LifeStatus == shared.Critical:
+		c.Logf("Critical") // Debugging
+		return Dying
+	case cData.Resources > c.config.ImperialThreshold && cData.Resources < c.config.MiddleThreshold:
+		c.Logf("Student") // Debugging
+		return ImperialStudent
+	case cData.Resources > c.config.JBThreshold:
+		c.Logf("Threshold %f", c.config.JBThreshold) // Debugging
+		c.Logf("Resources %f", cData.Resources)      // Debugging
+		return JeffBezos
+	default:
+		c.Logf("Middle class") // Debugging
+		return MiddleClass
+	}
+
+}
+
+func (st Wealth) String() string {
+	strings := [...]string{"Dying", "ImperialStudent", "MiddleClass", "JeffBezos"}
 	if st >= 0 && int(st) < len(strings) {
 		return strings[st]
 	}
 	return fmt.Sprintf("Unkown internal state '%v'", int(st))
 }
 
+//================================================================
+/*  Init */
+//================================================================
 func init() {
 	baseclient.RegisterClient(
 		id,
@@ -49,199 +128,101 @@ func init() {
 	)
 }
 
-type clientConfig struct {
-	// At the start of the game forage randomly for this many turns. If true,
-	// pay some initial tax to help get the first IIGO running
-	randomForageTurns uint
-
-	// If resources go below this limit, go into "desperation" mode
-	anxietyThreshold shared.Resources
-
-	// If true, ignore requests for taxes
-	evadeTaxes bool
-
-	// If true, pay some initial tax to help get the first IIGO running
-	kickstartTaxPercent shared.Resources
-
-	// desperateStealAmount is the amount the agent will steal from the commonPool
-	desperateStealAmount shared.Resources
-}
-
-// client is Pittunia
-type client struct {
-	*baseclient.BaseClient
-
-	forageHistory ForageHistory
-	taxAmount     shared.Resources
-
-	// allocation is the president's response to your last common pool resource request
-	allocation shared.Resources
-
-	config clientConfig
-}
-
-func NewClient(clientID shared.ClientID) baseclient.Client {
-	return &client{
-		BaseClient:    baseclient.NewClient(clientID),
-		forageHistory: ForageHistory{},
-		taxAmount:     0,
-		allocation:    0,
-		config: clientConfig{
-			randomForageTurns:    5,
-			anxietyThreshold:     20,
-			desperateStealAmount: 30,
-			evadeTaxes:           false,
-			kickstartTaxPercent:  0.25,
-		},
-	}
-}
-
-func (c client) internalState() InternalState {
-	ci := c.gameState().ClientInfo
-	switch {
-	case ci.LifeStatus == shared.Critical:
-		return Desperate
-	case ci.Resources < c.config.anxietyThreshold:
-		return Anxious
-	default:
-		return Normal
-	}
-}
-
 func (c *client) StartOfTurn() {
-	c.Logf("Emotional state: %v", c.internalState())
+	c.Logf("Wealth: %v", c.wealth())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
 
-	for clientID, status := range c.gameState().ClientLifeStatuses {
+	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
 			return
 		}
 	}
-	c.Logf("I'm all alone :c")
 
 }
 
-/********************/
-/***  Desperation   */
-/********************/
-
-func (c *client) desperateForage() shared.ForageDecision {
-	forageDecision := shared.ForageDecision{
-		Type:         shared.FishForageType,
-		Contribution: c.gameState().ClientInfo.Resources,
-	}
-	c.Logf("[Forage][Decision]: Desperate | Decision %v", forageDecision)
-	return forageDecision
-}
-
-func (c *client) CommonPoolResourceRequest() shared.Resources {
-	switch c.internalState() {
-	case Anxious:
-		c.Logf("Common pool request: 20")
-		return 20
-	default:
-		return 0
+/*
+================================================================
+	FORAGING
+		DecideForage() (shared.ForageDecision, error)
+		ForageUpdate(shared.ForageDecision, shared.Resources)
+================================================================
+IntialForage() Gamble the first attempt to try to get rich (born rich)
+If we fail we are in middle class and have a 50% chance to go up fast(Deer) or slow (Fish)
+If we lose again then we are in the Imperial class and we just fish to try to get back to middle class
+*/
+func (c *client) DecideForage() (shared.ForageDecision, error) {
+	if c.forageHistorySize() < c.config.InitialForageTurns { // Start with initial foraging turns
+		return c.InitialForage(), nil
+	} else if c.wealth() == Dying { // If dying go to last hope
+		return c.lasthopeF(), nil
+	} else {
+		return c.normalForage(), nil // Else normally forage
 	}
 }
 
-func (c *client) RequestAllocation() shared.Resources {
-	var allocation shared.Resources
-
-	if c.internalState() == Desperate {
-		allocation = c.config.desperateStealAmount
-	} else if c.allocation != 0 {
-		allocation = c.allocation
-		c.allocation = 0
-	}
-
-	if allocation != 0 {
-		c.Logf("Taking %v from common pool", allocation)
-	}
-	return allocation
-}
-
-/********************/
-/***  Messages      */
-/********************/
-
-func (c *client) ReceiveCommunication(
-	sender shared.ClientID,
-	data map[shared.CommunicationFieldName]shared.CommunicationContent,
-) {
-	for field, content := range data {
-		switch field {
-		case shared.TaxAmount:
-			// if !__isPresident__(sender) {
-			// }
-			c.taxAmount = shared.Resources(content.IntegerData)
-		case shared.AllocationAmount:
-			// if !__isPresident__(sender) {
-			// }
-			c.allocation = shared.Resources(content.IntegerData)
-		}
-	}
-}
-
-func (c *client) GetTaxContribution() shared.Resources {
-	if c.config.evadeTaxes {
-		return 0
-	}
-	if c.gameState().Turn == 1 {
-		// Put in some initial resources to get IIGO to run
-		return c.config.kickstartTaxPercent * c.gameState().ClientInfo.Resources
-	}
-	return c.taxAmount
-}
-
-/********************/
-/***    Foraging    */
-/********************/
-
-func (c *client) randomForage() shared.ForageDecision {
-	// Up to 10% of our current resources
-	forageContribution := shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources
+func (c *client) InitialForage() shared.ForageDecision {
+	// Default contribution amount is a random amount between 0 -> 20%
+	forageContribution := shared.Resources(0.2*rand.Float64()) * c.gameState().ClientInfo.Resources
 
 	var forageType shared.ForageType
-	if rand.Float64() < 0.5 {
+
+	switch {
+	case c.wealth() == JeffBezos: // JB then we have so much might as well gamble 50% of it
+		forageContribution = shared.Resources(0.5*rand.Float64()) * c.gameState().ClientInfo.Resources
 		forageType = shared.DeerForageType
-	} else {
+
+	case c.wealth() == ImperialStudent: // Imperial student
 		forageType = shared.FishForageType
+	case c.wealth() == Dying: // Dying
+		c.lasthopeF()
+	default: // Midle class
+		if rand.Float64() < 0.50 {
+			forageType = shared.DeerForageType
+		} else {
+			forageType = shared.FishForageType
+		}
 	}
 
-	c.Logf("[Forage][Decision]:Random")
-	// TODO Add fish foraging when it's done
+	c.Logf("[Forage][Decision]:Initial")
+
 	return shared.ForageDecision{
 		Type:         forageType,
 		Contribution: forageContribution,
 	}
 }
 
-func (c *client) normalForage() shared.ForageDecision {
-	// Find the forageType with the best average returns
-	bestForageType := shared.ForageType(-1)
-	bestROI := 0.0
+// bestForagingType indicates the best foraging method
+func bestHistoryForaging(forageHistory ForageHistory) shared.ForageType {
+	bestForagingMethod := shared.ForageType(-1)
+	bestReturn := 0.0
 
-	// TODO: We could also do this in one go. So just repeat the exact decision
-	// that gave the best ROI, instead of picking forageType based on its
-	// average ROI
-
-	for forageType, outcomes := range c.forageHistory {
-		ROIsum := 0.0
-		for _, outcome := range outcomes {
-			if outcome.input != 0 {
-				ROIsum += float64(outcome.utility/outcome.input) - 1
-			}
+	for forageType, outcomes := range forageHistory { // For each foraging type
+		totalReturn := 0.0
+		for _, returns := range outcomes {
+			totalReturn += float64(returns.output / returns.input) // cumlative sum of the outputs over the inputs (multiplier)
 		}
 
-		averageROI := ROIsum / float64(len(outcomes))
+		totalReturn = totalReturn / float64(len(outcomes))
 
-		if averageROI > bestROI {
-			bestROI = averageROI
-			bestForageType = forageType
+		if bestReturn < totalReturn { // Finds the method with the highest multiplier
+			bestReturn = totalReturn
+			bestForagingMethod = forageType
 		}
 	}
 
-	// Not foraging is best
+	if bestReturn < 1 {
+		bestForagingMethod = shared.ForageType(-1)
+	}
+
+	return bestForagingMethod
+}
+
+//normalForage is based on the method that previously gave the best multiplier return
+func (c *client) normalForage() shared.ForageDecision {
+	// Find the forageType with the best average multiplier
+	bestForageType := bestHistoryForaging(c.forageHistory)
+
+	// If theres no return with multiplier greater than 1 then dont go foraging
 	if bestForageType == shared.ForageType(-1) {
 		return shared.ForageDecision{
 			Type:         shared.FishForageType,
@@ -252,65 +233,151 @@ func (c *client) normalForage() shared.ForageDecision {
 	// Find the value of resources that gave us the best return and add some
 	// noise to it. Cap to 20% of our stockpile
 	pastOutcomes := c.forageHistory[bestForageType]
-	bestValue := shared.Resources(0)
-	bestValueROI := shared.Resources(0)
-	for _, outcome := range pastOutcomes {
-		if outcome.utility-outcome.input < 10 {
+	bestInput := shared.Resources(0)
+	bestRoI := shared.Resources(0)
+
+	// For all returns find the best return on investment ((output/input) -1 )
+	for _, returns := range pastOutcomes { // Look at the returns of the previous
+		if returns.output-returns.input < 10 { // less than 10 profit then continue
 			continue
 		}
-		if outcome.input != 0 {
-			ROI := (outcome.utility / outcome.input) - 1
-			if ROI > bestValueROI {
-				bestValue = outcome.input
-				bestValueROI = ROI
+		if returns.input != 0 { // if returns are not 0
+			ROI := (returns.output / returns.input) - 1 // Find the input that gave the best return on investment
+			if ROI > bestRoI {                          // If the return on investment is better than previous
+				bestInput = returns.input // the best value input would be the one that returned the best return on investment
+				bestRoI = ROI             // assign best return on investment to be the best value ROI
 			}
 		}
 	}
-	bestValue = shared.Resources(math.Min(
-		float64(bestValue),
+
+	// Pick a the minimum value between the best value and 20%
+	bestInput = shared.Resources(math.Min(
+		float64(bestInput),
 		float64(0.2*c.gameState().ClientInfo.Resources)),
 	)
-	bestValue += shared.Resources(math.Min(
+	// Add a random amount to the bestInput (max 5%)
+	bestInput += shared.Resources(math.Min(
 		rand.Float64(),
-		float64(0.01*c.gameState().ClientInfo.Resources),
-	))
+		float64(0.05*c.gameState().ClientInfo.Resources)),
+	)
 
+	// Now return the foraging decision
 	forageDecision := shared.ForageDecision{
 		Type:         bestForageType,
-		Contribution: bestValue,
+		Contribution: bestInput,
 	}
+
+	// Log the results
 	c.Logf(
 		"[Forage][Decision]: Decision %v | Expected ROI %v",
-		forageDecision, bestROI)
+		forageDecision, bestRoI)
 
 	return forageDecision
 }
 
-func (c *client) DecideForage() (shared.ForageDecision, error) {
-	if c.forageHistorySize() < c.config.randomForageTurns {
-		return c.randomForage(), nil
-	} else if c.internalState() == Desperate {
-		return c.desperateForage(), nil
-	} else {
-		return c.normalForage(), nil
-	}
-}
-
-func (c *client) ForageUpdate(forageDecision shared.ForageDecision, utility shared.Resources) {
+// updateForageHistory : Update the foraging history
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output shared.Resources) {
 	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{
-		input:   forageDecision.Contribution,
-		utility: utility,
-		turn:    c.gameState().Turn,
+		input:  forageDecision.Contribution,
+		output: output,
+		turn:   c.gameState().Turn,
 	})
 
 	c.Logf(
 		"[Forage][Update]: ForageType %v | Profit %v | Contribution %v | Actual ROI %v",
 		forageDecision.Type,
-		utility-forageDecision.Contribution,
+		output-forageDecision.Contribution,
 		forageDecision.Contribution,
-		(utility/forageDecision.Contribution)-1,
+		(output/forageDecision.Contribution)-1,
 	)
 }
+
+/*  Dying MODE, RISK IT ALL and ask for gifts
+lasthopeF put everything in foraging for Deer */
+func (c *client) lasthopeF() shared.ForageDecision {
+	forageDecision := shared.ForageDecision{
+		Type:         shared.DeerForageType,
+		Contribution: 0.95 * c.gameState().ClientInfo.Resources,
+	}
+	c.Logf("[Forage][Decision]: Desperate | Decision %v", forageDecision)
+	return forageDecision
+}
+
+func (c *client) CommonPoolResourceRequest() shared.Resources {
+	switch c.wealth() {
+	case Dying:
+		c.Logf("Common pool request: 20")
+		return 20
+	default:
+		return 0
+	}
+}
+
+// func (c *client) RequestAllocation() shared.Resources {
+// 	var allocation shared.Resources
+
+// 	if c.wealth() == Dying {
+// 		allocation = c.config.desperateStealAmount
+// 	} else if c.allocation != 0 {
+// 		allocation = c.allocation
+// 		c.allocation = 0
+// 	}
+
+// 	if allocation != 0 {
+// 		c.Logf("Taking %v from common pool", allocation)
+// 	}
+// 	return allocation
+// }
+
+//=============================================================
+//=======GIFTS=================================================
+//=============================================================
+
+/*
+	GetGiftRequests() shared.GiftRequestDict
+	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
+	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
+	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
+*/
+// func (c* client) GetGiftRequests
+
+// // GiftAccceptance
+// func (c *client) GiftAcceptance() shared.GiftResponse {
+// 	type AmountofResources int
+// 	type AccReason int
+// 	if c.wealth() == JeffBezos {
+// 		c.Logf("I don't need any gifts you peasants")
+// 	} else if c.wealth() == MiddleClass {
+// 		c.Logf("We only accept Gifts from Team 1, 2, 4, 6")
+// 	} else if c.wealth() == ImperialStudent {
+// 		c.Logf("We accept Gifts from everyone")
+// 	} else {
+// 		c.Logf("We accept Gifts from everyone")
+// 	}
+
+// 	GiftResponse := shared.GiftResponse{
+// 		AcceptedAmount: AmountofResources,
+// 		Reason:         AccReason,
+// 	}
+// 	return GiftResponse
+// }
+
+// /*Gift Requests*/
+// func (c *client) GiftRequests() shared.GiftRequest {
+// 	var giftrequest shared.GiftRequest
+
+// 	if c.wealth() == JeffBezos {
+// 		c.Logf("I don't need any gifts you peasants")
+// 	} else if c.wealth() == MiddleClass {
+// 		c.Logf("We only accept Gifts from Team 1, 2, 4, 6")
+// 	} else if c.wealth() == ImperialStudent {
+// 		c.Logf("We accept Gifts from everyone")
+// 	} else {
+// 		c.Logf("We accept Gifts from everyone")
+// 	}
+
+// 	return giftrequest
+// }
 
 /********************/
 /***    IIFO        */
@@ -337,7 +404,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 					Type:         forageType,
 					Contribution: outcome.input,
 				}
-				lastRevenue = outcome.utility
+				lastRevenue = outcome.output
 			}
 		}
 	}
@@ -362,23 +429,20 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 			append(
 				c.forageHistory[forageInfo.DecisionMade.Type],
 				ForageOutcome{
-					input:   forageInfo.DecisionMade.Contribution,
-					utility: forageInfo.ResourceObtained,
+					input:  forageInfo.DecisionMade.Contribution,
+					output: forageInfo.ResourceObtained,
 				},
 			)
 	}
 }
 
-/********************/
-/***    Helpers     */
-/********************/
-
+/*Foraging History*/
 func (c *client) forageHistorySize() uint {
 	length := uint(0)
 	for _, lst := range c.forageHistory {
 		length += uint(len(lst))
 	}
-	return length
+	return length // Return how many turns of foraging we have been on depending on the History
 }
 
 func (c *client) gameState() gamestate.ClientGameState {
