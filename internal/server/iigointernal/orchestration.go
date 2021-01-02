@@ -10,11 +10,11 @@ import (
 )
 
 type IIGOServer struct {
-	iigoLogging func(format string, a ...interface{})
+	IIGOLogging func(format string, a ...interface{})
 }
 
 func (i IIGOServer) logf(format string, a ...interface{}) {
-	i.iigoLogging(format, a)
+	i.IIGOLogging(format, a)
 }
 
 const serviceCharge = shared.Resources(10)
@@ -66,6 +66,8 @@ var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(i IIGOServer, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
+
+	i.IIGOLogging("\n\n\n iigo has begun begun what is happeniiiiing \n\n\n")
 
 	var monitoring = monitor{
 		speakerID:         g.SpeakerID,

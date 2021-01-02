@@ -87,7 +87,7 @@ func createSOMASServer(
 	}
 
 	server.iigoServer = iigointernal.IIGOServer{
-		iigoLogging: server.logf,
+		IIGOLogging: server.logf,
 	}
 
 	return server
