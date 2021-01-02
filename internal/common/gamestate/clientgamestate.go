@@ -18,4 +18,9 @@ type ClientGameState struct {
 
 	// CommonPool
 	CommonPool shared.Resources
+
+	// Islands holding IIGO roles
+	SpeakerID   shared.ClientID
+	JudgeID     shared.ClientID
+	PresidentID shared.ClientID
 }
