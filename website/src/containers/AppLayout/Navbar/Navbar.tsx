@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Navbar, Nav } from "react-bootstrap";
-import { Link } from "react-router-dom";
 import { LinkContainer } from "react-router-bootstrap";
 import {
   cioutput,
@@ -32,18 +31,17 @@ const AppNavbar = () => {
         onToggle={() => setNavExpanded(!navExpanded)}
         expanded={navExpanded}
       >
-        <Link to="/" className={styles.enlargeOnHover}>
-          <Navbar.Brand className={styles.enlargeOnHover}>
-            <img
-              alt=""
-              src={logo}
-              width="30"
-              height="30"
-              className="d-inline-block align-top"
-            />{" "}
+        {/* lhl2617: DO NOT WRAP BRAND WITH Link AS IT BREAKS OTHER COMPONENTS */}
+        <Navbar.Brand href="/" className={styles.enlargeOnHover}>
+          <img
+            alt=""
+            src={logo}
+            width="30"
+            height="30"
+            className="d-inline-block align-top"
+          />{" "}
             SOMAS 2020
-          </Navbar.Brand>
-        </Link>
+        </Navbar.Brand>
 
         <a
           rel="noopener noreferrer"
