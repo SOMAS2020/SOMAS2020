@@ -88,18 +88,20 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			kickstartTaxPercent:            0.25,
 			forageContributionCapPercent:   0.2,
 			forageContributionNoisePercent: 0.01,
-			forageDecider:                  defaultForageDecider,
+			forageDecider: func(c client) (shared.ForageDecision, shared.Resources) {
+				if c.forageHistorySize() < c.config.randomForageTurns {
+					c.Logf("[Forage decision]: random")
+					return randomDecider(c)
+				} else if c.emotionalState() == Desperate {
+					c.Logf("[Forage decision]: desperate")
+					return desperateDecider(c)
+				} else {
+					decision, expect := regressionDecider(c)
+					c.Logf("[Forage decision]: regression (%v)", decision)
+					return decision, expect
+				}
+			},
 		},
-	}
-}
-
-func defaultForageDecider(c client) (shared.ForageDecision, shared.Resources) {
-	if c.forageHistorySize() < c.config.randomForageTurns {
-		return randomDecider(c)
-	} else if c.emotionalState() == Desperate {
-		return desperateDecider(c)
-	} else {
-		return regressionDecider(c)
 	}
 }
 
@@ -135,7 +137,11 @@ func (c *client) StartOfTurn() {
 func (c *client) forageHistorySize() uint {
 	length := uint(0)
 	for _, lst := range c.forageHistory {
-		length += uint(len(lst))
+		for _, outcome := range lst {
+			if outcome.participant == c.GetID() {
+				length++
+			}
+		}
 	}
 	return length
 }

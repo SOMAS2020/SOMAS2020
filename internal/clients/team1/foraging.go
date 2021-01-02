@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/shared" 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
 	"github.com/sajari/regression"
 )
@@ -41,7 +41,7 @@ type forageDecider = func(client) (shared.ForageDecision, shared.Resources)
 
 func randomDecider(c client) (shared.ForageDecision, shared.Resources) {
 	// Up to 10% of our current resources
-	forageContribution := shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources
+	forageContribution := shared.Resources(0.2*rand.Float64()) * c.gameState().ClientInfo.Resources
 
 	var forageType shared.ForageType
 	if rand.Float64() < 0.5 {
@@ -52,7 +52,7 @@ func randomDecider(c client) (shared.ForageDecision, shared.Resources) {
 
 	c.Logf("[Forage][Decision]: Random")
 	// TODO Add fish foraging when it's done
-	return shared.ForageDecision {
+	return shared.ForageDecision{
 		Type:         forageType,
 		Contribution: forageContribution,
 	}, shared.Resources(-1)
@@ -95,7 +95,7 @@ func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
 	expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
 
 	return shared.ForageDecision{
-		Type: forageType,
+		Type:         forageType,
 		Contribution: contribution,
 	}, shared.Resources(expectedRewardF)
 }
@@ -122,11 +122,15 @@ func (c *client) regressionOptimalContribution(r regression.Regression) shared.R
 	}
 
 	// Curves down, mo money is not always mo money
-	return shared.Resources(-r.Coeff(1) / 2*r.Coeff(2))
+	return shared.Resources(-r.Coeff(1) / 2 * r.Coeff(2))
 }
 
 func desperateDecider(c client) (shared.ForageDecision, shared.Resources) {
 	forageType := bestROIForageType(c.forageHistory)
+	if forageType == shared.ForageType(-1) {
+		forageType = shared.FishForageType
+	}
+
 	contribution := c.gameState().ClientInfo.Resources
 
 	r := outcomeRegression(c.forageHistory[forageType])
@@ -139,11 +143,9 @@ func desperateDecider(c client) (shared.ForageDecision, shared.Resources) {
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	if (c.config.forageDecider == nil) {
-		panic("function is nil")
-	}
 	decision, expectedReward := c.config.forageDecider(*c)
 	c.expectedForageReward = expectedReward
+
 	return decision, nil
 }
 
@@ -152,14 +154,16 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 		contribution: forageDecision.Contribution,
 		revenue:      revenue,
 		turn:         c.gameState().Turn,
+		participant:  c.GetID(),
 	})
 
 	c.Logf(
-		"[Forage result]: %v(%v) | Expected reward: %v | Reward: %v",
+		"[Forage result]: %v(%05.3f) | Expectation: %+05.3f | Reward: %+05.3f | Error: %.0f%%",
 		forageDecision.Type,
 		forageDecision.Contribution,
 		c.expectedForageReward,
 		revenue,
+		((c.expectedForageReward - revenue) / revenue) * 100,
 	)
 }
 
