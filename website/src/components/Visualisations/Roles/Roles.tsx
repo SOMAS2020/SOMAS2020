@@ -87,9 +87,9 @@ const Roles = (props: { output: OutputJSONType }) => {
         <div className={styles.root}>
             <p className={styles.text}>Role Visualisation</p>
             <ResponsiveContainer height={460} width="100%">
-                <BarChart data={data} layout="vertical" margin={{ bottom: 30 }}>
+                <BarChart data={data} layout="vertical">
                     <YAxis type="category" dataKey="name" />
-                    <XAxis type="number" domain={[0, 'dataMax']} />
+                    <XAxis type="number" domain={[0, "dataMax"]} />
                     <Tooltip
                         content={(props: CustomTooltipProps) =>
                             CustomTooltip({ ...props, data })
@@ -136,6 +136,7 @@ const Roles = (props: { output: OutputJSONType }) => {
                     ])}
                 </BarChart>
             </ResponsiveContainer>
+            <p className={styles.graphLabel}>Turns</p>
         </div>
     );
 };
