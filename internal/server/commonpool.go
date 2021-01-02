@@ -1,6 +1,8 @@
 package server
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -15,7 +17,7 @@ func (s *SOMASServer) islandDistribute(resource shared.Resources, islandID share
 //islandDeplete depletes island's resource based on the severity of the storm
 func (s *SOMASServer) islandDeplete(porportionalEffect map[shared.ClientID]float64) {
 	for id, ci := range s.gameState.ClientInfos {
-		ci.Resources = shared.Resources(float64(ci.Resources) - porportionalEffect[id])
+		ci.Resources = shared.Resources(math.Max(float64(ci.Resources)-porportionalEffect[id], 0)) // min resources = 0
 		s.gameState.ClientInfos[id] = ci
 	}
 }
