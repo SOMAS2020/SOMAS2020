@@ -13,6 +13,7 @@ import IITO from './IITO/IITO'
 import IIGO from './IIGO/IIGO'
 import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
+import FourOhFour from "../FourOhFour/FourOhFour";
 
 const Visualisations = () => {
   const [output, setOutput] = useState<OutputJSONType | undefined>(undefined)
@@ -131,6 +132,7 @@ const Visualisations = () => {
             <Route path={iifovisualisation} exact component={() => <IIFO output={output} />} />
             <Route path={rolesvisualisation} exact component={() => <Roles output={output} />} />
             <Route path={resourcesvisualisation} exact component={() => <Resources output={output} />} />
+            <Route component={FourOhFour}/>
           </Switch>
           :
           <>
