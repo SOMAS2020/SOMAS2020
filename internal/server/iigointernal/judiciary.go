@@ -248,7 +248,7 @@ func createBroadcastsForSanctionThresholds(thresholds map[roles.IIGOSanctionTier
 		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
 			shared.IIGOSanctionTier: {
 				T:           shared.CommunicationInt,
-				IntegerData: int(tier) + 1,
+				IntegerData: int(tier),
 			},
 			shared.IIGOSanctionScore: {
 				T:           shared.CommunicationInt,
