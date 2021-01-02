@@ -19,8 +19,23 @@ func (c *client) getIslandsAlive() int {
 	lifeStatuses = currentState.ClientLifeStatuses
 	for _, statusInfo := range lifeStatuses {
 		if statusInfo == shared.Alive {
-			aliveCount += 1
+			aliveCount++
 		}
 	}
 	return aliveCount
+}
+
+// getAverage returns the average of the list
+func getAverage(lst []float64) float64 {
+
+	if len(lst) == 0 {
+		return 0.0
+	}
+
+	total := 0.0
+	for _, val := range lst {
+		total += val
+	}
+
+	return (float64(total) / float64(len(lst)))
 }

@@ -48,6 +48,70 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Initialise variables
 }
 
+// updatetrustMapAgg adds the amount to the aggregate trust map list for given client
+func (c *client) updatetrustMapAgg(ClientID shared.ClientID, amount float64) {
+	c.trustMapAgg[ClientID] = append(c.trustMapAgg[ClientID], amount)
+}
+
+// updatetheirtrustMapAgg adds the amount to the their aggregate trust map list for given client
+func (c *client) updatetheirtrustMapAgg(ClientID shared.ClientID, amount float64) {
+	c.theirTrustMapAgg[ClientID] = append(c.theirTrustMapAgg[ClientID], amount)
+}
+
+// inittrustMapAgg initialises the trustMapAgg to empty list values ready for each turn
+func (c *client) inittrustMapAgg() {
+	c.trustMapAgg = map[shared.ClientID][]float64{
+		0: []float64{},
+		1: []float64{},
+		3: []float64{},
+		4: []float64{},
+		5: []float64{},
+	}
+}
+
+// inittheirtrustMapAgg initialises the theirTrustMapAgg to empty list values ready for each turn
+func (c *client) inittheirtrustMapAgg() {
+	c.theirTrustMapAgg = map[shared.ClientID][]float64{
+		0: []float64{},
+		1: []float64{},
+		3: []float64{},
+		4: []float64{},
+		5: []float64{},
+	}
+}
+
+// updateTrustScore obtains average of all accumulated trust changes
+// and updates the trustScore global map with new values
+// ensuring that the values do not drop below 0 or exceed 100
+func (c *client) updateTrustScore(trustMapAgg map[shared.ClientID][]float64) {
+	for client, val := range trustMapAgg {
+		avgScore := getAverage(val)
+		if c.trustScore[client]+avgScore > 100.0 {
+			avgScore = 100.0 - c.trustScore[client]
+		}
+		if c.trustScore[client]+avgScore < 0.0 {
+			avgScore = 0.0 - c.trustScore[client]
+		}
+		c.trustScore[client] += avgScore
+	}
+}
+
+// updateTheirTrustScore obtains average of all accumulated trust changes
+// and updates the trustScore global map with new values
+// ensuring that the values do not drop below 0 or exceed 100
+func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]float64) {
+	for client, val := range theirTrustMapAgg {
+		avgScore := getAverage(val)
+		if c.theirTrustScore[client]+avgScore > 100.0 {
+			avgScore = 100.0 - c.theirTrustScore[client]
+		}
+		if c.theirTrustScore[client]+avgScore < 0.0 {
+			avgScore = 0.0 - c.theirTrustScore[client]
+		}
+		c.theirTrustScore[client] += avgScore
+	}
+}
+
 /*
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
@@ -58,10 +122,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	getCompliance
 
 	updateCriticalThreshold
-
-	updateTrustScore
-	updateTheirTrustScore
-	decayTrust (may not be needed)
 
 	evalPresidentPerformance
 	evalSpeakerPerformance
