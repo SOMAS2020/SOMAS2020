@@ -12,6 +12,7 @@ import {
 import { TurnsInRoles, ProcessedRoleData } from "./Util/RoleTypes";
 import { processRoleData } from "./Util/ProcessedRoleData";
 import { OutputJSONType } from "../../../consts/types";
+import _ from "lodash";
 
 type CustomTooltipProps = {
     active: boolean;
@@ -83,10 +84,12 @@ const CustomTooltip = ({
 };
 
 const Roles = (props: { output: OutputJSONType }) => {
-    const presidentColor = "#00bbf9";
-    const judgeColor = "#fee440";
-    const speakerColor = "#f15bb5";
-    const noneColor = "#b2bec3";
+    const colors = {
+        president: "#00bbf9",
+        judge:"#fee440",
+        speaker: "#f15bb5",
+        none: "#b2bec3",
+    };
 
     const data = processRoleData(props.output);
 
@@ -109,49 +112,37 @@ const Roles = (props: { output: OutputJSONType }) => {
                                 value: "President",
                                 type: "square",
                                 id: "ID01",
-                                color: presidentColor,
+                                color: colors.president,
                             },
                             {
                                 value: "Judge",
                                 type: "square",
                                 id: "ID02",
-                                color: judgeColor,
+                                color: colors.judge,
                             },
                             {
                                 value: "Speaker",
                                 type: "square",
                                 id: "ID03",
-                                color: speakerColor,
+                                color: colors.speaker,
                             },
                             {
                                 value: "None",
                                 type: "square",
                                 id: "ID04",
-                                color: noneColor,
+                                color: colors.none,
                             },
                         ]}
                     />
-                    {data[0].roles.map((_, i) => [
-                        <Bar
-                            dataKey={`roles[${i}].president`}
-                            stackId="a"
-                            fill={presidentColor}
-                        />,
-                        <Bar
-                            dataKey={`roles[${i}].judge`}
-                            stackId="a"
-                            fill={judgeColor}
-                        />,
-                        <Bar
-                            dataKey={`roles[${i}].speaker`}
-                            stackId="a"
-                            fill={speakerColor}
-                        />,
-                        <Bar
-                            dataKey={`roles[${i}].none`}
-                            stackId="a"
-                            fill={noneColor}
-                        />,
+                    {data[0].roles.map((a, i) => [
+                        _.toPairs(colors).map(([role, color]) =>
+                            <Bar
+                                dataKey={`roles[${i}].${role}`}
+                                stackId="a"
+                                fill={color}
+                                key={`${i}${role}`}
+                            />
+                        )
                     ])}
                 </BarChart>
             </ResponsiveContainer>
