@@ -54,7 +54,7 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 			variablePairs := entry.Pairs
 			var rulesAffected []string
 			for _, variable := range variablePairs {
-				valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, ruleStore)
+				valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, ruleStore, rules.VariableMap)
 				if foundRules {
 					rulesAffected = append(rulesAffected, valuesToBeAdded...)
 				}
