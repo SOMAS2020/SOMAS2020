@@ -24,9 +24,10 @@ type client struct {
 
 	// ## Trust ##
 
-	theirTrustScore map[shared.ClientID]float64
-	trustScore      map[shared.ClientID]float64
-	trustMapAgg     map[shared.ClientID][]float64
+	theirTrustScore  map[shared.ClientID]float64
+	trustScore       map[shared.ClientID]float64
+	trustMapAgg      map[shared.ClientID][]float64
+	theirTrustMapAgg map[shared.ClientID][]float64
 
 	// ## Role performance ##
 
