@@ -4,6 +4,7 @@ import { Alert, Button, Row, Col, OverlayTrigger, Tooltip, Form } from 'react-bo
 import { useLoadingState, initialLoadingState } from "../../contexts/loadingState"
 import Artifacts from '../Artifacts/Artifacts'
 import { clearLocalOutput, loadFlags, loadLocalOutput, runGameHelper, setFlagHelper, clearLocalFlags } from './utils'
+import VisualiseButton from "../VisualiseButton/VisualiseButton"
 
 
 type FlagFormProps = {
@@ -155,6 +156,9 @@ const NewRun = () => {
 
         <h3 style={{ marginTop: 24 }}>Artifacts</h3>
         <Artifacts output={output.output} logs={output.logs} />
+
+        <h3 style={{ marginTop: 24 }}>Visualise</h3>
+        <VisualiseButton output={output.output} />
       </div>
     }
   </div>
