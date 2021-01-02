@@ -35,6 +35,10 @@ func findDistanceToHyperplane(w mat.VecDense, b float64, x mat.VecDense) float64
 	return v / scaling
 }
 
+func applyDynamic(dyn dynamic, location mat.VecDense) float64 {
+	return mat.Dot(&dyn.w, &location) + dyn.b
+}
+
 // calculateDistanceVecVec calculates the euclidean distance between two vectors
 func calculateDistanceVecVec(a mat.VecDense, b mat.VecDense) (float64, error) {
 	if checkDimensions(a, b) {

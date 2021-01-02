@@ -56,6 +56,8 @@ type client struct {
 
 	// params is list of island wide function parameters
 	params islandParams
+
+	locationService locator
 }
 
 type islandParams struct {
@@ -74,4 +76,5 @@ type islandParams struct {
 	friendliness                float64
 	anger                       float64
 	aggression                  float64
+	laziness                    float64
 }

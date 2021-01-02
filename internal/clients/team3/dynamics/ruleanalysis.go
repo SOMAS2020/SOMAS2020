@@ -8,8 +8,29 @@ import (
 	"math"
 )
 
+func GetDistanceToSubspace(dynamics []dynamic, location mat.VecDense) float64 {
+	if len(dynamics) == 0 {
+		return 0.0
+	}
+	var distances []float64
+	satisfied := true
+	for _, dyn := range dynamics {
+		satisfied = satisfied && satisfy(applyDynamic(dyn, location), dyn.aux)
+	}
+	if satisfied {
+		return -1
+	}
+	for _, v := range dynamics {
+		distances = append(distances, findDistanceToHyperplane(v.w, v.b, location))
+	}
+	if distances != nil {
+		return distances[getSmallest(distances)]
+	}
+	return 0.0
+}
+
 // findClosestApproachInSubspace works out the closest point in the rule subspace to the current location
-func findClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dynamic, location mat.VecDense) mat.VecDense {
+func FindClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dynamic, location mat.VecDense) mat.VecDense {
 	if len(dynamics) == 0 {
 		return location
 	}
@@ -26,7 +47,7 @@ func findClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dy
 	} else {
 		xSlice := dynamics[:indexOfSmall]
 		ySlice := dynamics[indexOfSmall+1:]
-		return findClosestApproachInSubspace(matrixOfRules, append(xSlice, ySlice...), location)
+		return FindClosestApproachInSubspace(matrixOfRules, append(xSlice, ySlice...), location)
 	}
 }
 
@@ -45,7 +66,7 @@ func calculateClosestApproach(constraint dynamic, location mat.VecDense) mat.Vec
 }
 
 // buildSelectedDynamics depending on list of indexes, this function will build dynamics
-func buildSelectedDynamics(matrixOfRules rules.RuleMatrix, auxiliaryVector mat.VecDense, selectedRules []int) []dynamic {
+func BuildSelectedDynamics(matrixOfRules rules.RuleMatrix, auxiliaryVector mat.VecDense, selectedRules []int) []dynamic {
 	matrixVal := matrixOfRules.ApplicableMatrix
 	nRows, _ := matrixVal.Dims()
 	var returnDynamics []dynamic
@@ -59,7 +80,7 @@ func buildSelectedDynamics(matrixOfRules rules.RuleMatrix, auxiliaryVector mat.V
 }
 
 // buildAllDynamics takes an entire rule matrix and returns all dynamics from it
-func buildAllDynamics(matrixOfRules rules.RuleMatrix, auxiliaryVector mat.VecDense) []dynamic {
+func BuildAllDynamics(matrixOfRules rules.RuleMatrix, auxiliaryVector mat.VecDense) []dynamic {
 	matrixVal := matrixOfRules.ApplicableMatrix
 	nRows, _ := matrixVal.Dims()
 	var returnDynamics []dynamic
@@ -83,7 +104,7 @@ func constructSingleDynamic(ruleRow mat.VecDense, auxCode float64) dynamic {
 }
 
 // findMinimumRequirements takes in addresses of deficient variables and calculates the minimum values required at those entries to satisfy the rule
-func findMinimumRequirements(deficients []int, aux mat.VecDense) []float64 {
+func FindMinimumRequirements(deficients []int, aux mat.VecDense) []float64 {
 	var outputMins []float64
 	for _, v := range deficients {
 		switch interpret := aux.AtVec(v); interpret {
@@ -103,7 +124,7 @@ func findMinimumRequirements(deficients []int, aux mat.VecDense) []float64 {
 }
 
 // identifyDeficiencies checks result of rule evaluation and finds entries of result vector that do not comply
-func identifyDeficiencies(b mat.VecDense, aux mat.VecDense) ([]int, error) {
+func IdentifyDeficiencies(b mat.VecDense, aux mat.VecDense) ([]int, error) {
 	if checkDimensions(b, aux) {
 		nRows, _ := b.Dims()
 		var outputData []int
