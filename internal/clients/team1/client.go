@@ -217,8 +217,9 @@ func (c *client) randomForage() shared.ForageDecision {
 	}
 }
 
-func (c *client) normalForage() shared.ForageDecision {
-	// Find the forageType with the best average returns
+// bestROIForageType finds the ForageType that has the best average ROI. If all
+// forageTypes have negative returns then it returns shared.ForageType(-1)
+func bestROIForageType(forageHistory ForageHistory) shared.ForageType {
 	bestForageType := shared.ForageType(-1)
 	bestROI := 0.0
 
@@ -226,7 +227,7 @@ func (c *client) normalForage() shared.ForageDecision {
 	// that gave the best ROI, instead of picking forageType based on its
 	// average ROI
 
-	for forageType, outcomes := range c.forageHistory {
+	for forageType, outcomes := range forageHistory {
 		ROIsum := 0.0
 		for _, outcome := range outcomes {
 			if outcome.contribution != 0 {
@@ -242,7 +243,12 @@ func (c *client) normalForage() shared.ForageDecision {
 		}
 	}
 
-	// Not foraging is best
+	return bestForageType
+}
+
+func (c *client) normalForage() shared.ForageDecision {
+	bestForageType := bestROIForageType(c.forageHistory)
+
 	if bestForageType == shared.ForageType(-1) {
 		return shared.ForageDecision{
 			Type:         shared.FishForageType,
@@ -282,7 +288,7 @@ func (c *client) normalForage() shared.ForageDecision {
 	}
 	c.Logf(
 		"[Forage][Decision]: Decision %v | Expected ROI %v",
-		forageDecision, bestROI)
+		forageDecision, bestValueROI)
 
 	return forageDecision
 }
