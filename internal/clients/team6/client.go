@@ -3,13 +3,14 @@ package team6
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 const (
-	id            = shared.Team6
-	minFriendship = 0
-	maxFriendship = 100
+	id             = shared.Team6
+	MIN_FRIENDSHIP = 0
+	MAX_FRIENDSHIP = 100
 )
 
 // GiftsReceivedHistory is what gifts we have received from other islands
@@ -20,6 +21,11 @@ type GiftsOfferedHistory map[shared.ClientID]shared.Resources
 
 // Friendship indicates friendship level with other islands
 type Friendship map[shared.ClientID]uint
+
+// Config configures our island's initial state
+type Config struct {
+	friendship Friendship
+}
 
 type client struct {
 	*baseclient.BaseClient
@@ -38,6 +44,10 @@ func init() {
 }
 
 // ########################
+// ######  General  #######
+// ########################
+
+// ########################
 // ###### Friendship ######
 // ########################
 
@@ -45,7 +55,7 @@ func init() {
 func (c *client) RaiseFriendshipLevel(clientID shared.ClientID) {
 	currFriendship := c.config.friendship[clientID]
 
-	if currFriendship == maxFriendship {
+	if currFriendship == MAX_FRIENDSHIP {
 		return
 	}
 
@@ -56,7 +66,7 @@ func (c *client) RaiseFriendshipLevel(clientID shared.ClientID) {
 func (c *client) LowerFriendshipLevel(clientID shared.ClientID) {
 	currFriendship := c.config.friendship[clientID]
 
-	if currFriendship == maxFriendship {
+	if currFriendship == MIN_FRIENDSHIP {
 		return
 	}
 
@@ -112,6 +122,18 @@ func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo)
 // ########################
 // ######    IIGO    ######
 // ########################
+
+func (c *client) GetClientPresidentPointer() roles.President {
+	return &president{client: c}
+}
+
+func (c *client) GetClientJudgePointer() roles.Judge {
+	return &judge{client: c}
+}
+
+func (c *client) GetClientSpeakerPointer() roles.Speaker {
+	return &speaker{client: c}
+}
 
 /*
 ------ TODO: COMPULSORY ------
