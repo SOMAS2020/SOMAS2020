@@ -26,7 +26,7 @@ type GameState struct {
 	// Foraging History
 	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
 
-	// IIGO History
+	// IIGO History: indexed by turn
 	IIGOHistory map[uint][]shared.Accountability
 
 	// IITO Transactions
