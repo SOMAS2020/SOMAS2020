@@ -10,7 +10,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"github.com/pkg/errors"
 )
 
@@ -32,7 +31,7 @@ type SOMASServer struct {
 	// not contain pointers to other clients!
 	clientMap map[shared.ClientID]baseclient.Client
 
-	iigoServer iigointernal.IIGOServer
+	//iigoServer iigointernal.IIGOServer
 }
 
 // NewSOMASServer returns an instance of the main server we use.
@@ -86,9 +85,9 @@ func createSOMASServer(
 		})
 	}
 
-	server.iigoServer = iigointernal.IIGOServer{
-		IIGOLogging: server.logf,
-	}
+	//server.iigoServer = iigointernal.IIGOServer{
+	//	IIGOLogging: server.logf,
+	//}
 
 	return server
 }
