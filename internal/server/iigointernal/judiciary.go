@@ -87,8 +87,8 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 	j.budget -= serviceCharge
 	finalResults := getBaseEvalResults(shared.TeamIDs)
 	if j.clientJudge.HistoricalRetributionEnabled() {
-		for _, v := range j.localHistoryCache {
-			res, rsuccess := j.clientJudge.InspectHistory(v)
+		for turnsAgo, v := range j.localHistoryCache {
+			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)
 			if rsuccess {
 				for key, accounts := range res {
 					curr := finalResults[key]
@@ -100,7 +100,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 		}
 		j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
 	}
-	tempResults, success := j.clientJudge.InspectHistory(iigoHistory)
+	tempResults, success := j.clientJudge.InspectHistory(iigoHistory, 0)
 	finalResults = mergeEvaluationReturn(tempResults, finalResults)
 	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
 	j.cycleHistoryCache(entryForHistoryCache)

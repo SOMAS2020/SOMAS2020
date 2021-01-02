@@ -28,7 +28,7 @@ func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resou
 }
 
 // InspectHistory is the base implementation of evaluating islands choices the last turn.
-func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
+func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
