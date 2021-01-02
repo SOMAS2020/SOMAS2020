@@ -307,7 +307,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{
 		contribution: forageDecision.Contribution,
 		revenue:      revenue,
-		turn: 		  c.gameState().Turn,
+		turn:         c.gameState().Turn,
 	})
 
 	c.Logf(
@@ -341,7 +341,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 			if int(outcome.turn) > lastDecisionTurn {
 				lastDecisionTurn = int(outcome.turn)
 				lastDecision = shared.ForageDecision{
-					Type: forageType,
+					Type:         forageType,
 					Contribution: outcome.contribution,
 				}
 				lastRevenue = outcome.revenue
@@ -354,9 +354,9 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	}
 
 	forageInfo := shared.ForageShareInfo{
-		ShareTo: shareTo,
+		ShareTo:          shareTo,
 		ResourceObtained: lastRevenue,
-		DecisionMade: lastDecision,
+		DecisionMade:     lastDecision,
 	}
 
 	c.Logf("Sharing forage info: %v", forageInfo)
