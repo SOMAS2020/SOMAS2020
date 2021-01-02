@@ -89,15 +89,25 @@ func roiDecider(c client) (shared.ForageDecision, shared.Resources) {
 }
 
 func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
-	forageType := bestROIForageType(c.forageHistory)
-	r := outcomeRegression(c.forageHistory[forageType])
-	contribution := c.regressionOptimalContribution(r)
-	expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
+	bestReward := shared.Resources(0)
+	var decision shared.ForageDecision
 
-	return shared.ForageDecision{
-		Type:         forageType,
-		Contribution: contribution,
-	}, shared.Resources(expectedRewardF)
+	for forageType, _ := range c.forageHistory {
+		r := outcomeRegression(c.forageHistory[forageType])
+		contribution := c.regressionOptimalContribution(r)
+		expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
+		expectedReward := shared.Resources(expectedRewardF)
+
+		if expectedReward > bestReward {
+			bestReward = expectedReward
+			decision = shared.ForageDecision{
+				Type:         forageType,
+				Contribution: contribution,
+			}
+		}
+	}
+
+	return decision, bestReward
 }
 
 func outcomeRegression(history []ForageOutcome) regression.Regression {
@@ -163,7 +173,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 		forageDecision.Contribution,
 		c.expectedForageReward,
 		revenue,
-		((c.expectedForageReward - revenue) / revenue) * 100,
+		((c.expectedForageReward-revenue)/revenue)*100,
 	)
 }
 
