@@ -263,7 +263,7 @@ func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.
 
 		maxScore, maxScoreIndex := findMaxScore(scoreList, variance)
 
-		//keep eliminating the least popular one untill the most popular one has more than half of the total score.
+		//Keep eliminating the least popular one until the most popular one has more than half of the total score.
 		if float64(maxScore) > halfTotalScore {
 			winner = candidateList[maxScoreIndex]
 			break
