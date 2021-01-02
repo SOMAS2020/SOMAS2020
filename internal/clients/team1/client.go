@@ -78,6 +78,14 @@ type clientConfig struct {
 
 	// desperateStealAmount is the amount the agent will steal from the commonPool
 	desperateStealAmount shared.Resources
+
+	// forageContributionCapPercent is the maximum percent of current resources we
+	// will use for foraging
+	forageContributionCapPercent float64
+
+	// desperateStealAmount is the max randomness we will add to our foraging
+	// amount as a percentage of current resources
+	forageContributionNoisePercent float64
 }
 
 // client is Lucy.
@@ -100,11 +108,13 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		taxAmount:     0,
 		allocation:    0,
 		config: clientConfig{
-			randomForageTurns:    5,
-			anxietyThreshold:     20,
-			desperateStealAmount: 30,
-			evadeTaxes:           false,
-			kickstartTaxPercent:  0.25,
+			randomForageTurns:              5,
+			anxietyThreshold:               20,
+			desperateStealAmount:           30,
+			evadeTaxes:                     false,
+			kickstartTaxPercent:            0.25,
+			forageContributionCapPercent:   0.2,
+			forageContributionNoisePercent: 0.01,
 		},
 	}
 }
@@ -280,12 +290,12 @@ func (c *client) normalForage() shared.ForageDecision {
 	// Cap to 20% of resources
 	contribution = shared.Resources(math.Min(
 		float64(contribution),
-		float64(0.2*c.gameState().ClientInfo.Resources)),
-	)
+		c.config.forageContributionCapPercent*float64(c.gameState().ClientInfo.Resources),
+	))
 	// Add some noise
 	contribution += shared.Resources(math.Min(
 		rand.Float64(),
-		float64(0.01*c.gameState().ClientInfo.Resources),
+		c.config.forageContributionNoisePercent*float64(c.gameState().ClientInfo.Resources),
 	))
 
 	forageDecision := shared.ForageDecision{
