@@ -1,10 +1,11 @@
 package iigointernal
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"reflect"
 	"testing"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 func TestEvaluateSanction(t *testing.T) {
