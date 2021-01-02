@@ -27,9 +27,9 @@ func TestElection(t *testing.T) {
 		clientMap[ele.voterList[i]] = &c
 	}
 
-	winner := ele.bordaCountResult()
-	winner = ele.runOffResult(clientMap)
-	winner = ele.instantRunoffResult(clientMap)
-	winner = ele.approvalResult()
+	ele.bordaCountResult()
+	ele.runOffResult(clientMap)
+	ele.instantRunoffResult(clientMap)
+	ele.approvalResult()
 
 }
