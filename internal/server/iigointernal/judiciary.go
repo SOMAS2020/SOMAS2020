@@ -182,6 +182,7 @@ func (j *judiciary) applySanctions() {
 			TurnsLeft:    sanctionLength,
 		}
 		currentSanctions = append(currentSanctions, sanctionEntry)
+		broadcastToAllIslands(j.JudgeID, createBroadcastForSanction(islandID, islandSanctionTier))
 	}
 	j.localSanctionCache[0] = currentSanctions
 }
@@ -241,6 +242,19 @@ func (j *judiciary) clearHistoryCache() {
 func broadcastGeneric(judgeID shared.ClientID, itemsForbroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	for _, item := range itemsForbroadcast {
 		broadcastToAllIslands(judgeID, item)
+	}
+}
+
+func createBroadcastForSanction(clientID shared.ClientID, sanctionTier roles.IIGOSanctionTier) map[shared.CommunicationFieldName]shared.CommunicationContent {
+	return map[shared.CommunicationFieldName]shared.CommunicationContent{
+		shared.SanctionClientID: {
+			T:           shared.CommunicationInt,
+			IntegerData: int(clientID),
+		},
+		shared.IIGOSanctionTier: {
+			T:           shared.CommunicationInt,
+			IntegerData: int(sanctionTier),
+		},
 	}
 }
 
