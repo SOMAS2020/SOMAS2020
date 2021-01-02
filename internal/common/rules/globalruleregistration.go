@@ -36,6 +36,7 @@ func registerDemoRule() {
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 }
 
+// RawRuleSpecification allows a user to use the CompileRuleCase function to build a rule matrix
 type RawRuleSpecification struct {
 	Name    string
 	ReqVar  []VariableFieldName
@@ -187,10 +188,11 @@ func registerRulesByMass() {
 	}
 }
 
-func CompileRuleCase(spec RawRuleSpecification) RuleMatrix {
+// CompileRuleCase allows an agent to quickly build a RuleMatrix using the RawRuleSpecification
+func CompileRuleCase(spec RawRuleSpecification) (RuleMatrix, bool) {
 	rowLength := len(spec.ReqVar) + 1
 	if len(spec.V)%rowLength != 0 {
-		panic(fmt.Sprintf("Rule '%v' was registered without correct matrix dimensions", spec.Name))
+		return RuleMatrix{}, false
 	}
 	nrows := len(spec.V) / rowLength
 	CoreMatrix := mat.NewDense(nrows, rowLength, spec.V)
@@ -202,5 +204,5 @@ func CompileRuleCase(spec RawRuleSpecification) RuleMatrix {
 		AuxiliaryVector:   *AuxiliaryVector,
 		Mutable:           spec.Mutable,
 	}
-	return finalRuleMatrix
+	return finalRuleMatrix, true
 }

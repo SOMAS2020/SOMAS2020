@@ -60,7 +60,7 @@ func generateAndLoadDummyLocalVarCache(islandReportedResources float64, constSan
 func generateArbitrarySanctionMatrix(ruleName string, currentResourcesFactor float64, constant float64) rules.RuleMatrix {
 	coreVect := []float64{0, 0, 1, 0, currentResourcesFactor, constant, 0, 0}
 	auxVect := []float64{1, 4}
-	return rules.CompileRuleCase(rules.RawRuleSpecification{
+	rulesMat, _ := rules.CompileRuleCase(rules.RawRuleSpecification{
 		Name: ruleName,
 		ReqVar: []rules.VariableFieldName{
 			rules.IslandReportedResources,
@@ -71,4 +71,5 @@ func generateArbitrarySanctionMatrix(ruleName string, currentResourcesFactor flo
 		Aux:     auxVect,
 		Mutable: false,
 	})
+	return rulesMat
 }
