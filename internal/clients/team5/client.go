@@ -13,30 +13,30 @@ import (
 
 const id = shared.Team5
 
-// ForageOutcome is how much we put in to a foraging trip and how much we got
-// back
+// ForageOutcome records the ROI on a foraging session
 type ForageOutcome struct {
-	turn         uint
-	contribution shared.Resources
-	revenue      shared.Resources
+	turn    uint
+	input   shared.Resources
+	utility shared.Resources
 }
 
+// ForageHistory stores history of foraging outcomes
 type ForageHistory map[shared.ForageType][]ForageOutcome
 
-type EmotionalState int
+type InternalState int
 
 const (
-	Normal EmotionalState = iota
+	Normal InternalState = iota
 	Anxious
 	Desperate
 )
 
-func (st EmotionalState) String() string {
+func (st InternalState) String() string {
 	strings := [...]string{"Normal", "Anxious", "Desperate"}
 	if st >= 0 && int(st) < len(strings) {
 		return strings[st]
 	}
-	return fmt.Sprintf("UNKNOWN ForageType '%v'", int(st))
+	return fmt.Sprintf("Unkown internal state '%v'", int(st))
 }
 
 func init() {
@@ -67,7 +67,7 @@ type clientConfig struct {
 	desperateStealAmount shared.Resources
 }
 
-// client is Lucy.
+// client is Pittunia
 type client struct {
 	*baseclient.BaseClient
 
@@ -96,7 +96,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	}
 }
 
-func (c client) emotionalState() EmotionalState {
+func (c client) internalState() InternalState {
 	ci := c.gameState().ClientInfo
 	switch {
 	case ci.LifeStatus == shared.Critical:
@@ -109,7 +109,7 @@ func (c client) emotionalState() EmotionalState {
 }
 
 func (c *client) StartOfTurn() {
-	c.Logf("Emotional state: %v", c.emotionalState())
+	c.Logf("Emotional state: %v", c.internalState())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
 
 	for clientID, status := range c.gameState().ClientLifeStatuses {
@@ -135,7 +135,7 @@ func (c *client) desperateForage() shared.ForageDecision {
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	switch c.emotionalState() {
+	switch c.internalState() {
 	case Anxious:
 		c.Logf("Common pool request: 20")
 		return 20
@@ -147,7 +147,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 func (c *client) RequestAllocation() shared.Resources {
 	var allocation shared.Resources
 
-	if c.emotionalState() == Desperate {
+	if c.internalState() == Desperate {
 		allocation = c.config.desperateStealAmount
 	} else if c.allocation != 0 {
 		allocation = c.allocation
@@ -228,8 +228,8 @@ func (c *client) normalForage() shared.ForageDecision {
 	for forageType, outcomes := range c.forageHistory {
 		ROIsum := 0.0
 		for _, outcome := range outcomes {
-			if outcome.contribution != 0 {
-				ROIsum += float64(outcome.revenue/outcome.contribution) - 1
+			if outcome.input != 0 {
+				ROIsum += float64(outcome.utility/outcome.input) - 1
 			}
 		}
 
@@ -255,13 +255,13 @@ func (c *client) normalForage() shared.ForageDecision {
 	bestValue := shared.Resources(0)
 	bestValueROI := shared.Resources(0)
 	for _, outcome := range pastOutcomes {
-		if outcome.revenue-outcome.contribution < 10 {
+		if outcome.utility-outcome.input < 10 {
 			continue
 		}
-		if outcome.contribution != 0 {
-			ROI := (outcome.revenue / outcome.contribution) - 1
+		if outcome.input != 0 {
+			ROI := (outcome.utility / outcome.input) - 1
 			if ROI > bestValueROI {
-				bestValue = outcome.contribution
+				bestValue = outcome.input
 				bestValueROI = ROI
 			}
 		}
@@ -289,26 +289,26 @@ func (c *client) normalForage() shared.ForageDecision {
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if c.forageHistorySize() < c.config.randomForageTurns {
 		return c.randomForage(), nil
-	} else if c.emotionalState() == Desperate {
+	} else if c.internalState() == Desperate {
 		return c.desperateForage(), nil
 	} else {
 		return c.normalForage(), nil
 	}
 }
 
-func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shared.Resources) {
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, utility shared.Resources) {
 	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{
-		contribution: forageDecision.Contribution,
-		revenue:      revenue,
-		turn:         c.gameState().Turn,
+		input:   forageDecision.Contribution,
+		utility: utility,
+		turn:    c.gameState().Turn,
 	})
 
 	c.Logf(
 		"[Forage][Update]: ForageType %v | Profit %v | Contribution %v | Actual ROI %v",
 		forageDecision.Type,
-		revenue-forageDecision.Contribution,
+		utility-forageDecision.Contribution,
 		forageDecision.Contribution,
-		(revenue/forageDecision.Contribution)-1,
+		(utility/forageDecision.Contribution)-1,
 	)
 }
 
@@ -335,9 +335,9 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 				lastDecisionTurn = int(outcome.turn)
 				lastDecision = shared.ForageDecision{
 					Type:         forageType,
-					Contribution: outcome.contribution,
+					Contribution: outcome.input,
 				}
-				lastRevenue = outcome.revenue
+				lastRevenue = outcome.utility
 			}
 		}
 	}
@@ -362,8 +362,8 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 			append(
 				c.forageHistory[forageInfo.DecisionMade.Type],
 				ForageOutcome{
-					contribution: forageInfo.DecisionMade.Contribution,
-					revenue:      forageInfo.ResourceObtained,
+					input:   forageInfo.DecisionMade.Contribution,
+					utility: forageInfo.ResourceObtained,
 				},
 			)
 	}
