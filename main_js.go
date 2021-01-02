@@ -68,6 +68,7 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 		GameStates: gameStates,
 		Config:     gameConfig,
 		// no git info
+		AuxInfo: getAuxInfo(),
 		RunInfo: runInfo{
 			TimeStart:       timeStart,
 			TimeEnd:         timeEnd,
