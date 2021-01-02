@@ -12,6 +12,10 @@ const VisualiseButton = (props: { output: OutputJSONType }) => {
 
   const handleClick = async () => {
     setLoading({ loading: true, loadingText: `I can show you the world` })
+    
+    // sleep for 100ms for stability
+    await new Promise(r => setTimeout(r, 100));
+    
     const { output } = props
     await storeLocalVisOutput(output)
     history.push(visualisations)
