@@ -34,22 +34,45 @@ func (s *SOMASServer) runIIGOTax() error {
 	defer s.logf("finish runIIGOTax")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
+		var taxPaid shared.Resources
+		var sanctionPaid shared.Resources
 		tax := v.GetTaxContribution()
-		err := s.takeResources(clientID, tax, "tax")
-		if err == nil {
+		sanction := v.GetSanctionPayment()
+		clientTaxErr := s.takeResources(clientID, tax, "tax")
+		if clientTaxErr != nil {
+			s.logf("Error getting tax from %v: %v", clientID, clientTaxErr)
+			taxPaid = 0
+		} else {
 			s.gameState.CommonPool += tax
 			s.clientMap[clientID].TaxTaken(tax)
+			taxPaid = tax
+		}
+		clientSanctionErr := s.takeResources(clientID, sanction, "sanction")
+		if clientSanctionErr != nil {
+			s.logf("Error getting sanctions from %v: %v ", clientID, clientSanctionErr)
+			sanctionPaid = 0
 		} else {
-			s.logf("Error getting tax from %v: %v", clientID, err)
+			s.gameState.CommonPool += sanction
+			sanctionPaid = sanction
 		}
 		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,
-				Values:       []float64{float64(tax)},
+				Values:       []float64{float64(taxPaid)},
 			},
 			{
 				VariableName: rules.ExpectedTaxContribution,
 				Values:       []float64{float64(iigointernal.TaxAmountMapExport[clientID])},
+			},
+		})
+		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
+			{
+				VariableName: rules.SanctionPaid,
+				Values:       []float64{float64(sanctionPaid)},
+			},
+			{
+				VariableName: rules.SanctionExpected,
+				Values:       []float64{float64(iigointernal.SanctionAmountMapExport[clientID])},
 			},
 		})
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styles from "./Roles.module.css";
 import {
     BarChart,
@@ -10,8 +10,8 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { TurnsInRoles, ProcessedRoleData } from "./Util/RoleTypes";
-import { getProcessedCIRoleData, processRoleData } from "./Util/ProcessedRoleData";
-import { loadLocalOutput } from "../../NewRun/utils";
+import { processRoleData } from "./Util/ProcessedRoleData";
+import { OutputJSONType } from "../../../consts/types";
 
 type CustomTooltipProps = {
     active: boolean;
@@ -82,26 +82,13 @@ const CustomTooltip = ({
     return null;
 };
 
-const Roles = () => {
+const Roles = (props: { output: OutputJSONType }) => {
     const presidentColor = "#00bbf9";
     const judgeColor = "#fee440";
     const speakerColor = "#f15bb5";
     const noneColor = "#b2bec3";
 
-    const [data, setData] = useState<ProcessedRoleData>(
-        getProcessedCIRoleData()
-    );
-
-    useEffect(() => {
-        onDidMount();
-    }, []);
-
-    const onDidMount = async () => {
-        const localOutput = await loadLocalOutput();
-        if (localOutput) {
-            setData(processRoleData(localOutput.output));
-        }
-    };
+    const data = processRoleData(props.output);
 
     return (
         <div className={styles.root}>

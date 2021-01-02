@@ -49,6 +49,3 @@ export const processRoleData = (data: typeof outputJSON) => {
 
     return standardise(allRoles);
 };
-
-export const getProcessedCIRoleData = (): ProcessedRoleData =>
-    processRoleData(outputJSON);
