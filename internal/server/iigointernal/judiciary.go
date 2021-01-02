@@ -260,6 +260,23 @@ func createBroadcastsForSanctionThresholds(thresholds map[roles.IIGOSanctionTier
 	return outputBroadcast
 }
 
+func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSanctionScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
+	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
+	for tier, score := range penalties {
+		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
+			shared.IIGOSanctionTier: {
+				T:           shared.CommunicationString,
+				IntegerData: int(tier),
+			},
+			shared.IIGOSanctionScore: {
+				T:           shared.CommunicationInt,
+				IntegerData: int(score),
+			},
+		})
+	}
+	return outputBroadcast
+}
+
 // runEvaluationRulesOnSanctions uses the custom sanction evaluator calculate how much each island should be paying in sanctions
 func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.Resources, rulesCache map[string]rules.RuleMatrix) map[shared.ClientID]shared.Resources {
 	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
