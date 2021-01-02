@@ -54,7 +54,7 @@ func createSOMASServer(
 	}
 
 	forageHistory := map[shared.ForageType][]foraging.ForagingReport{}
-	for _, t := range shared.AllForageTypes {
+	for _, t := range shared.AllForageTypes() {
 		forageHistory[t] = make([]foraging.ForagingReport, 0)
 	}
 
@@ -69,6 +69,10 @@ func createSOMASServer(
 			DeerPopulation:  foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig),
 			ForagingHistory: forageHistory,
 			IIGOHistory:     []shared.Accountability{},
+			SpeakerID:       shared.Team1,
+			JudgeID:         shared.Team2,
+			PresidentID:     shared.Team3,
+			CommonPool:      gameConfig.InitialCommonPool,
 		},
 	}
 

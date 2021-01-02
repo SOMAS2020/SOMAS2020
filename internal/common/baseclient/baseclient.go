@@ -6,11 +6,9 @@ import (
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -23,7 +21,7 @@ type Client interface {
 	Logf(format string, a ...interface{})
 
 	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(roleToElect Role) []shared.ClientID
+	GetVoteForElection(roleToElect shared.Role) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
@@ -45,20 +43,24 @@ type Client interface {
 	DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
 
 	//IIFO: OPTIONAL
-	MakePrediction() (shared.PredictionInfo, error)
-	ReceivePredictions(receivedPredictions shared.PredictionInfoDict) error
+	MakeDisasterPrediction() shared.DisasterPredictionInfo
+	ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict)
 	MakeForageInfo() shared.ForageShareInfo
 	ReceiveForageInfo([]shared.ForageShareInfo)
 
 	//IITO: COMPULSORY
-	RequestGift() uint
-	OfferGifts(giftRequestDict shared.GiftDict) (shared.GiftDict, error)
-	AcceptGifts(receivedGiftDict shared.GiftDict) (shared.GiftInfoDict, error)
-	UpdateGiftInfo(acceptedGifts map[shared.ClientID]shared.GiftInfoDict) error
+	GetGiftRequests() shared.GiftRequestDict
+	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
+	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
+	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
+
+	//IIGO: COMPULSORY
+	MonitorIIGORole(shared.Role) bool
+	DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
-	SendGift(receivingClient shared.ClientID, amount int) error
-	ReceiveGift(sendingClient shared.ClientID, amount int) error
+	SentGift(sent shared.Resources, to shared.ClientID)
+	ReceivedGift(received shared.Resources, from shared.ClientID)
 }
 
 // ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate
@@ -80,7 +82,7 @@ func NewClient(id shared.ClientID) *BaseClient {
 type BaseClient struct {
 	id shared.ClientID
 
-	predictionInfo shared.PredictionInfo
+	predictionInfo shared.DisasterPredictionInfo
 
 	// exported variables are accessible by the client implementations
 	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
@@ -119,38 +121,6 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 	log.Printf("[%v]: %v", c.id, fmt.Sprintf(format, a...))
 }
 
-// Role provides enumerated type for IIGO roles (President, Speaker and Judge)
-type Role int
-
-const (
-	President Role = iota
-	Speaker
-	Judge
-)
-
-func (r Role) String() string {
-	strs := [...]string{"President", "Speaker", "Judge"}
-	if r >= 0 && int(r) < len(strs) {
-		return strs[r]
-	}
-	return fmt.Sprintf("UNKNOWN Role '%v'", int(r))
-}
-
-// GoString implements GoStringer
-func (r Role) GoString() string {
-	return r.String()
-}
-
-// MarshalText implements TextMarshaler
-func (r Role) MarshalText() ([]byte, error) {
-	return miscutils.MarshalTextForString(r.String())
-}
-
-// MarshalJSON implements RawMessage
-func (r Role) MarshalJSON() ([]byte, error) {
-	return miscutils.MarshalJSONForString(r.String())
-}
-
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 	// TODO implement decision on voting that considers the rule
@@ -158,7 +128,8 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 }
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
-func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
+// COMPULSORY: use opinion formation to decide a rank for islands for the role
+func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
 	// Done ;)
 	// Get all alive islands
 	aliveClients := rules.VariableMap[rules.IslandsAlive]
@@ -183,4 +154,18 @@ func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[share
 // GetCommunications is used for testing communications
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
 	return &c.Communications
+}
+
+//MonitorIIGORole decides whether to perform monitoring on a role
+//COMPULOSRY: must be implemented
+func (c *BaseClient) MonitorIIGORole(roleName shared.Role) bool {
+	return true
+}
+
+//DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
+//COMPULSORY: must be implemented
+func (c *BaseClient) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
+	resultToShare = monitoringResult
+	announce = true
+	return
 }

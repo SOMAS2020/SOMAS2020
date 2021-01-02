@@ -9,13 +9,29 @@ import (
 type BaseJudge struct {
 }
 
+// GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
+// If a rule is not named here, the default sanction value added is 1
+// OPTIONAL: override to set custom sanction severities for specific rules
+func (j *BaseJudge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
+	return map[string]roles.IIGOSanctionScore{}
+}
+
+// GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
+// For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
+// OPTIONAL: override to set custom sanction thresholds
+func (j *BaseJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{}
+}
+
 // PayPresident pays the President a salary.
+// OPTIONAL: override to pay the President less than the full amount.
 func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
 	return presidentSalary, true
 }
 
 // inspectHistoryInternal is the base implementation of InspectHistory.
+// OPTIONAL: override if you want to evaluate the history log differently.
 func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
 	for _, entry := range iigoHistory {
@@ -23,7 +39,7 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
@@ -52,40 +68,39 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 	return outputMap, true
 }
 
-// DeclareSpeakerPerformance checks how well the speaker did their job.
-func (j *BaseJudge) DeclareSpeakerPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
-	// TODO: Implement opinion based Speaker performance declaration.
-	return inspectBallot, conductedRole
+// GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
+// COMPULSORY: decide which islands, if any, to forgive
+func (j *BaseJudge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
+	return map[int][]bool{}
 }
 
-// DeclarePresidentPerformance checks how well the president did their job.
-func (j *BaseJudge) DeclarePresidentPerformance(inspectBallot bool, conductedRole bool) (result bool, didRole bool) {
-	// TODO: Implement opinion based President performance declaration.
-	return inspectBallot, conductedRole
+// HistoricalRetributionEnabled allows you to punish more than the previous turns transgressions
+// OPTIONAL: override if you want to punish historical transgressions
+func (j *BaseJudge) HistoricalRetributionEnabled() bool {
+	return false
 }
 
-// PickUpRulesByVariable returns a list of rule_id's which are affected by certain variables.
-func PickUpRulesByVariable(variableName rules.VariableFieldName, ruleStore map[string]rules.RuleMatrix) ([]string, bool) {
-	var Rules []string
-	if _, ok := rules.VariableMap[variableName]; ok {
-		for k, v := range ruleStore {
-			_, found := searchForVariableInArray(variableName, v.RequiredVariables)
-			if !found {
-				Rules = append(Rules, k)
-			}
-		}
-		return Rules, true
-	} else {
-		// fmt.Sprintf("Variable name '%v' was not found in the variable cache", variableName)
-		return []string{}, false
+// CallPresidentElection is called by the judiciary to decide on power-transfer
+// COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
+func (j *BaseJudge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	// example implementation calls an election if monitoring was performed and the result was negative
+	// or if the number of turnsInPower exceeds 3
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Plurality,
+		IslandsToVote: allIslands,
+		HoldElection:  false,
 	}
+	if monitoring.Performed && !monitoring.Result {
+		electionsettings.HoldElection = true
+	}
+	if turnsInPower >= 2 {
+		electionsettings.HoldElection = true
+	}
+	return electionsettings
 }
 
-func searchForVariableInArray(val rules.VariableFieldName, array []rules.VariableFieldName) (int, bool) {
-	for i, v := range array {
-		if v == val {
-			return i, true
-		}
-	}
-	return -1, false
+// DecideNextPresident returns the ID of chosen next President
+// OPTIONAL: override to manipulate the result of the election
+func (j *BaseJudge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
+	return winner
 }

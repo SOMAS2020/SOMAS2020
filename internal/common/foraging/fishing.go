@@ -49,7 +49,7 @@ func (f FishingExpedition) Fish(fConf config.FishingConfig) ForagingReport {
 	nFishFromInput := utilityTier(input, fConf.MaxFishPerHunt, fConf.IncrementalInputDecay)
 	returns := []shared.Resources{} // store return for each potential fish we could catch
 
-	for i := uint(1); i < nFishFromInput; i++ {
+	for i := uint(0); i < nFishFromInput; i++ {
 		utility := fishingReturn(f.params) * shared.Resources(fConf.ResourceMultiplier) // scale return by resource multiplier
 		returns = append(returns, utility)
 	}

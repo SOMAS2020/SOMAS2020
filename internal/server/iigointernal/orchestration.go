@@ -14,14 +14,12 @@ const serviceCharge = shared.Resources(10)
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
 var judicialBranch = judiciary{
-	JudgeID:           0,
-	budget:            0,
-	presidentSalary:   0,
-	BallotID:          0,
-	ResAllocID:        0,
-	speakerID:         0,
-	presidentID:       0,
-	EvaluationResults: nil,
+	JudgeID:            0,
+	budget:             0,
+	presidentSalary:    0,
+	EvaluationResults:  nil,
+	localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
+	localHistoryCache:  defaultInitLocalHistoryCache(historyCacheDepth),
 }
 
 // featureSpeaker is an instantiation of the Speaker interface
@@ -44,15 +42,6 @@ var executiveBranch = executive{
 	ResourceRequests: nil,
 }
 
-// SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
-var SpeakerIDGlobal shared.ClientID = 0
-
-// JudgeIDGlobal is the single source of truth for judge ID (MVP)
-var JudgeIDGlobal shared.ClientID = 1
-
-// PresidentIDGlobal is the single source of truth for president ID (MVP)
-var PresidentIDGlobal shared.ClientID = 2
-
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
@@ -70,19 +59,25 @@ var iigoClients map[shared.ClientID]baseclient.Client
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
 
+	var monitoring = monitor{
+		speakerID:         g.SpeakerID,
+		presidentID:       g.PresidentID,
+		judgeID:           g.JudgeID,
+		internalIIGOCache: []shared.Accountability{},
+	}
 	iigoClients = *clientMap
 
 	// Initialise IDs
-	judicialBranch.JudgeID = JudgeIDGlobal
-	legislativeBranch.SpeakerID = SpeakerIDGlobal
-	executiveBranch.ID = PresidentIDGlobal
+	judicialBranch.JudgeID = g.JudgeID
+	legislativeBranch.SpeakerID = g.SpeakerID
+	executiveBranch.ID = g.PresidentID
 
 	// Set judgePointer
-	judgePointer = iigoClients[JudgeIDGlobal].GetClientJudgePointer()
+	judgePointer = iigoClients[g.JudgeID].GetClientJudgePointer()
 	// Set speakerPointer
-	speakerPointer = iigoClients[SpeakerIDGlobal].GetClientSpeakerPointer()
+	speakerPointer = iigoClients[g.SpeakerID].GetClientSpeakerPointer()
 	// Set presidentPointer
-	presidentPointer = iigoClients[PresidentIDGlobal].GetClientPresidentPointer()
+	presidentPointer = iigoClients[g.PresidentID].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
 	judicialBranch.loadClientJudge(judgePointer)
@@ -113,8 +108,14 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	legislativeBranch.sendJudgeSalary(&judicialBranch)
 	executiveBranch.sendSpeakerSalary(&legislativeBranch)
 
-	// 1 Judge actions - inspect history
+	// 1 Judge action - inspect history
 	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
+
+	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
+	valuesToCache := [][]float64{{boolToFloat(historyInspected)}}
+	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
+
+	judgeMonitored := monitoring.monitorRole(iigoClients[g.PresidentID])
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.Resources{}
@@ -125,30 +126,33 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 	executiveBranch.broadcastTaxation(resourceReports)
 	executiveBranch.requestAllocationRequest()
-	executiveBranch.replyAllocationRequest(g.CommonPool)
+	allocationsMade := executiveBranch.replyAllocationRequest(g.CommonPool)
 	executiveBranch.requestRuleProposal()
 	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
 
+	variablesToCache = []rules.VariableFieldName{rules.AllocationMade}
+	valuesToCache = [][]float64{{boolToFloat(allocationsMade)}}
+	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
+
+	presidentMonitored := monitoring.monitorRole(iigoClients[g.SpeakerID])
+
 	// 3 Speaker actions
-	if ruleSelected {
-		legislativeBranch.setRuleToVote(ruleToVote)
-		legislativeBranch.setVotingResult(aliveClientIds)
-		legislativeBranch.announceVotingResult()
-	}
+	legislativeBranch.setRuleToVote(ruleToVote)
+	voteCalled := legislativeBranch.setVotingResult(aliveClientIds)
+	legislativeBranch.announceVotingResult()
 
-	// 4 Declare performance (Judge) (in future all the iigointernal)
-	if historyInspected {
-		judicialBranch.declarePresidentPerformanceWrapped()
+	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
+	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
+	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
-		judicialBranch.declareSpeakerPerformanceWrapped()
-	}
+	speakerMonitored := monitoring.monitorRole(iigoClients[g.JudgeID])
 
 	// Get new Judge ID
-	JudgeIDGlobal = legislativeBranch.appointNextJudge(aliveClientIds)
+	g.JudgeID = legislativeBranch.appointNextJudge(judgeMonitored, g.JudgeID, aliveClientIds)
 	// Get new Speaker ID
-	SpeakerIDGlobal = executiveBranch.appointNextSpeaker(aliveClientIds)
+	g.SpeakerID = executiveBranch.appointNextSpeaker(speakerMonitored, g.SpeakerID, aliveClientIds)
 	// Get new President ID
-	PresidentIDGlobal = judicialBranch.appointNextPresident(aliveClientIds)
+	g.PresidentID = judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
 
 	return true, "IIGO Run Successful"
 }

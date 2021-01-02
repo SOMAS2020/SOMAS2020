@@ -29,6 +29,13 @@ type GameState struct {
 	// IIGO History
 	IIGOHistory []shared.Accountability
 
+	// IITO Transactions
+	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
+	// Orchestration
+	SpeakerID   shared.ClientID
+	JudgeID     shared.ClientID
+	PresidentID shared.ClientID
+
 	// [INFRA] add more details regarding state of game here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
 }
@@ -56,6 +63,7 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		Turn:               g.Turn,
 		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
+		CommonPool:         g.CommonPool,
 	}
 }
 

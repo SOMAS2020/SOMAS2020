@@ -13,7 +13,7 @@ type testFuncPair struct {
 	label string
 }
 
-var testPairs = []testFuncPair{
+var testPairs = [...]testFuncPair{
 	{
 		y:     func(t float64) float64 { return 2 * t },
 		dydt:  func(t, y float64) float64 { return 2 },

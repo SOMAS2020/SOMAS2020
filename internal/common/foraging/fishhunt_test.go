@@ -5,6 +5,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -44,7 +45,16 @@ func TestFishUtilityTier(t *testing.T) {
 // Checks if total fish input is correct
 func TestTotalFishInput(t *testing.T) {
 	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
-	huntF, _ := CreateFishingExpedition(huntParticipants)
+
+	fishingConfig := config.FishingConfig{
+		MaxFishPerHunt:        6,
+		IncrementalInputDecay: 0.8,
+		Mean:                  0.8,
+		Variance:              0.2,
+		ResourceMultiplier:    1,
+	}
+
+	huntF, _ := CreateFishingExpedition(huntParticipants, fishingConfig)
 	ans := huntF.TotalInput()
 	if ans != 1.9 {
 		t.Errorf("TotalInput() = %.2f; want 1.9", ans)

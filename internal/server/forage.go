@@ -147,10 +147,10 @@ func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]s
 
 			if totalContributions > 0.0 {
 				switch r.distrStrategy {
-				case shared.EqualSplit:
-					participantReturn = huntReport.TotalUtility / shared.Resources(huntReport.NumberParticipants) // this casting is a bit lazy
 				case shared.InputProportionalSplit:
 					participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
+				case shared.EqualSplit, shared.RankProportionalSplit: // RankProportional is just same as equal split for now
+					participantReturn = huntReport.TotalUtility / shared.Resources(huntReport.NumberParticipants) // this casting is a bit lazy
 				}
 			}
 		}
@@ -169,7 +169,7 @@ func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]sha
 
 	fConf := s.gameConfig.ForagingConfig.FishingConfig
 
-	huntF, err := foraging.CreateFishingExpedition(contributions)
+	huntF, err := foraging.CreateFishingExpedition(contributions, fConf)
 	if err != nil {
 		return errors.Errorf("Error running fish hunt: %v", err)
 	}
@@ -187,16 +187,6 @@ func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]sha
 	s.logf("Fishing expedition report: %v", fishingReport.Display())
 
 	return nil
-}
-
-func (s *SOMASServer) runDummyHunt() error {
-	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
-	return s.runDeerHunt(huntParticipants)
-}
-
-func (s *SOMASServer) runDummyFishingExpedition() error {
-	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // just to test for now
-	return s.runFishingExpedition(huntParticipants)
 }
 
 // updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt

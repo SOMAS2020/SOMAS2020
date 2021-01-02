@@ -31,7 +31,7 @@ func (d DeerHunt) Hunt(dhConf config.DeerHuntConfig) ForagingReport {
 	nDeerFromInput := utilityTier(input, dhConf.MaxDeerPerHunt, dhConf.IncrementalInputDecay)
 	returns := []shared.Resources{}
 
-	for i := uint(1); i < nDeerFromInput; i++ {
+	for i := uint(0); i < nDeerFromInput; i++ {
 		utility := deerReturn(d.params) * shared.Resources(dhConf.ResourceMultiplier) // scale return by resource multiplier
 		returns = append(returns, utility)
 	}

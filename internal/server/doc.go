@@ -10,7 +10,7 @@ until the end of the game.
 The current structure of the turn is as follows:
 
 	runTurn
-		startOfTurnUpdate
+		startOfTurn
 		runOrgs
 			runIIGO
 			runIIFO
@@ -20,6 +20,7 @@ The current structure of the turn is as follows:
 				runIIGOEndOfTurn
 				runIIFOEndOfTurn
 				runIITOEndOfTurn
+			runForage
 			probeDisaster
 			incrementTurnAndSeason
 			deductCostOfLiving

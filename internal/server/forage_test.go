@@ -28,14 +28,26 @@ func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, re
 	c.gotForageDecision = forageDecision
 }
 
+var envConf = config.DisasterConfig{
+	XMax:            10,
+	YMax:            10,
+	GlobalProb:      0.1,
+	SpatialPDFType:  shared.Uniform,
+	MagnitudeLambda: 1.0,
+}
+
+var deerConf = config.DeerHuntConfig{
+	MaxDeerPerHunt:     4,
+	BernoulliProb:      0.95,
+	ResourceMultiplier: 1,
+	ExponentialRate:    1.0,
+}
+
 func TestForagingCallsForageUpdate(t *testing.T) {
 	cases := []shared.ForageType{
 		shared.DeerForageType,
 		shared.FishForageType,
 	}
-
-	deerConfig := config.GameConfig().ForagingConfig.DeerHuntConfig // can add custom config here if desired
-	envConfig := config.GameConfig().DisasterConfig
 
 	contribs := []shared.Resources{0.0, 1.0, 8.0} // test zero resource contribution first off
 
@@ -73,8 +85,8 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 							shared.DeerForageType: make([]foraging.ForagingReport, 0),
 							shared.FishForageType: make([]foraging.ForagingReport, 0),
 						},
-						DeerPopulation: foraging.CreateDeerPopulationModel(deerConfig),
-						Environment:    disasters.InitEnvironment(clientIDs, envConfig),
+						DeerPopulation: foraging.CreateDeerPopulationModel(deerConf),
+						Environment:    disasters.InitEnvironment(clientIDs, envConf),
 					},
 					clientMap: clientMap,
 				}
