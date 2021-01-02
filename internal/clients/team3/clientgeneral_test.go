@@ -3,6 +3,7 @@ package team3
 // General client functions testing
 
 import (
+	"math"
 	"reflect"
 	"testing"
 
@@ -231,3 +232,58 @@ func TestUpdateCriticalThreshold(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateCompliance(t *testing.T) {
+	cases := []struct {
+		name        string
+		ourClient   client
+		expectedVal float64
+	}{
+		{
+			name: "Just caught!",
+			ourClient: client{
+				timeSinceCaught: 0,
+				numTimeCaught:   100,
+				compliance:      0.2,
+				params: islandParams{
+					recidivism:      1.0,
+					complianceLevel: 0.1,
+				},
+			},
+			expectedVal: 1.0,
+		},
+		{
+			name: "Compliance decay - non-compliant agent",
+			ourClient: client{
+				timeSinceCaught: 1,
+				numTimeCaught:   1,
+				compliance:      1.0,
+				params: islandParams{
+					recidivism:      1.0,
+					complianceLevel: 0.0,
+				},
+			},
+			expectedVal: math.Exp(-0.5),
+		},
+		{
+			name: "Compliance decay - fully-compliant agent",
+			ourClient: client{
+				timeSinceCaught: 1,
+				numTimeCaught:   10,
+				compliance:      1.0,
+				params: islandParams{
+					recidivism:      1.0,
+					complianceLevel: 1.0,
+				},
+			},
+			expectedVal: 1.0,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.ourClient.updateCompliance()
+			if tc.ourClient.compliance != tc.expectedVal {
+				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, tc.ourClient.compliance)
+			}
+		})
+	}
