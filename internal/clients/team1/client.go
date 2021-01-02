@@ -17,6 +17,7 @@ const id = shared.Team1
 // back
 type ForageOutcome struct {
 	turn         uint
+	participant  shared.ClientID
 	contribution shared.Resources
 	revenue      shared.Resources
 }
@@ -362,8 +363,10 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 			append(
 				c.forageHistory[forageInfo.DecisionMade.Type],
 				ForageOutcome{
+					participant:  forageInfo.SharedFrom,
 					contribution: forageInfo.DecisionMade.Contribution,
 					revenue:      forageInfo.ResourceObtained,
+					turn:         c.gameState().Turn - 1,
 				},
 			)
 	}
