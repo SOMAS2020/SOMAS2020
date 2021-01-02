@@ -9,6 +9,11 @@ func (s *SOMASServer) islandDeplete(porportionalEffect map[shared.ClientID]float
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID := range clientMap {
 		deduction := shared.Resources(porportionalEffect[clientID]) // min resources = 0
-		s.takeResources(clientID, deduction, "disaster damage")
+		if deduction > 0 {                                          // don't create pointless call if no deduction applicable
+			err := s.takeResources(clientID, deduction, "disaster damage")
+			if err != nil {
+				s.logf("Error taking resources from %v for disaster damage: %v", clientID, err)
+			}
+		}
 	}
 }
