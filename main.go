@@ -77,6 +77,7 @@ func main() {
 			GameStates: gameStates,
 			Config:     gameConfig,
 			GitInfo:    getGitInfo(),
+			AuxInfo:    getAuxInfo(),
 			RunInfo: runInfo{
 				TimeStart:       timeStart,
 				TimeEnd:         timeEnd,
