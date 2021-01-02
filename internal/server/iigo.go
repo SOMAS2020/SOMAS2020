@@ -34,11 +34,11 @@ func (s *SOMASServer) runIIGOTax() error {
 	defer s.logf("finish runIIGOTax")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
+		var taxPaid shared.Resources
+		var sanctionPaid shared.Resources
 		tax := v.GetTaxContribution()
 		sanction := v.GetSanctionPayment()
 		clientTaxErr := s.takeResources(clientID, tax, "tax")
-		var taxPaid shared.Resources
-		var sanctionPaid shared.Resources
 		if clientTaxErr != nil {
 			s.logf("Error getting tax from %v: %v", clientID, clientTaxErr)
 			taxPaid = 0
