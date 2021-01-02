@@ -71,6 +71,8 @@ const (
 	SanctionAmount
 	RoleMonitored
 	MonitoringResult
+	IIGOSanctionTier
+	IIGOSanctionScore
 )
 
 func (c CommunicationFieldName) String() string {
