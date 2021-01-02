@@ -48,7 +48,7 @@ var TaxAmountMapExport map[shared.ClientID]shared.Resources
 // AllocationAmountMapExport is a local allocation map for checking of rules
 var AllocationAmountMapExport map[shared.ClientID]shared.Resources
 
-// SanctionAmountMapExport
+// SanctionAmountMapExport is a local sanction map for sanctions
 var SanctionAmountMapExport map[shared.ClientID]shared.Resources
 
 // Pointers allow clients to customise implementations of mutable functions
