@@ -105,6 +105,7 @@ const Roles = () => {
 
     return (
         <div className={styles.root}>
+            <p className={styles.text}>Role Visualisation</p>
             <ResponsiveContainer height={460} width="100%">
                 <BarChart data={data} layout="vertical" margin={{ bottom: 30 }}>
                     <YAxis type="category" dataKey="name" />
@@ -115,6 +116,7 @@ const Roles = () => {
                         }
                     />
                     <Legend
+                        verticalAlign="top"
                         payload={[
                             {
                                 value: "President",
@@ -166,7 +168,6 @@ const Roles = () => {
                     ])}
                 </BarChart>
             </ResponsiveContainer>
-            <p className={styles.text}>Role Visualisation</p>
         </div>
     );
 };
