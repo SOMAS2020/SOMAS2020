@@ -37,6 +37,7 @@ func sourceAndAppendAllValues(reqVar []rules.VariableFieldName, localVarCache ma
 	for _, v := range reqVar {
 		outputArray = append(outputArray, localVarCache[v].Values...)
 	}
+	outputArray = append(outputArray, 1.0)
 	return outputArray
 }
 
