@@ -501,6 +501,41 @@ func TestApplySanctions(t *testing.T) {
 
 /// Unit tests ///
 
+func TestCreateBroadcastsForSanctionThresholds(t *testing.T) {
+	cases := []struct {
+		name                   string
+		sanctionThresholds     map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+		expectedCommunications []map[shared.CommunicationFieldName]shared.CommunicationContent
+	}{
+		{
+			name: "Sanction thresholds test",
+			sanctionThresholds: map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
+				roles.SanctionTier1: 1,
+			},
+			expectedCommunications: []map[shared.CommunicationFieldName]shared.CommunicationContent{
+				{
+					shared.IIGOSanctionTier: {
+						T:           shared.CommunicationInt,
+						IntegerData: 0,
+					},
+					shared.IIGOSanctionScore: {
+						T:           shared.CommunicationInt,
+						IntegerData: 1,
+					},
+				},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := createBroadcastsForSanctionThresholds(tc.sanctionThresholds)
+			if !reflect.DeepEqual(tc.expectedCommunications, res) {
+				t.Errorf("Expected %v got %v", tc.expectedCommunications, res)
+			}
+		})
+	}
+}
+
 // TestRunEvaluationRulesOnSanctions checks whether the runEvaluationsRulesOnSanctions is able to correctly use the
 // sanction evaluator to calculate how much each island should be paying in sanctions
 func TestRunEvaluationRulesOnSanctions(t *testing.T) {
