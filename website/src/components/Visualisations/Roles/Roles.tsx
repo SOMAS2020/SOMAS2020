@@ -60,22 +60,12 @@ const CustomTooltip = ({
         return (
             <div className={styles.customTooltip}>
                 <p className={styles.label}>{label}</p>
-                <p className={styles.content}>
-                    Turns as President: {turnsInRoles.president} (
-                    {((turnsInRoles.president * 100) / turns).toFixed(1)}%)
-                </p>
-                <p className={styles.content}>
-                    Turns as Judge: {turnsInRoles.judge} (
-                    {((turnsInRoles.judge * 100) / turns).toFixed(1)}%)
-                </p>
-                <p className={styles.content}>
-                    Turns as Speaker: {turnsInRoles.speaker} (
-                    {((turnsInRoles.speaker * 100) / turns).toFixed(1)}%)
-                </p>
-                <p className={styles.content}>
-                    Turns without power: {turnsInRoles.none} (
-                    {((turnsInRoles.none * 100) / turns).toFixed(1)}%)
-                </p>
+                {turnsInRoles.toPairs().map(([role, turnsInRole]) => (
+                    <p className={styles.content} key={role}>
+                        Turns as {role}: {turnsInRole} (
+                        {((turnsInRole * 100) / turns).toFixed(1)}%)
+                    </p>
+                ))}
             </div>
         );
     }
@@ -86,7 +76,7 @@ const CustomTooltip = ({
 const Roles = (props: { output: OutputJSONType }) => {
     const colors = {
         president: "#00bbf9",
-        judge:"#fee440",
+        judge: "#fee440",
         speaker: "#f15bb5",
         none: "#b2bec3",
     };
@@ -135,14 +125,14 @@ const Roles = (props: { output: OutputJSONType }) => {
                         ]}
                     />
                     {data[0].roles.map((a, i) => [
-                        _.toPairs(colors).map(([role, color]) =>
+                        _.toPairs(colors).map(([role, color]) => (
                             <Bar
                                 dataKey={`roles[${i}].${role}`}
                                 stackId="a"
                                 fill={color}
                                 key={`${i}${role}`}
                             />
-                        )
+                        )),
                     ])}
                 </BarChart>
             </ResponsiveContainer>

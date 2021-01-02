@@ -76,6 +76,15 @@ export class TurnsInRoles {
             }
         }
     }
+
+    toPairs(): [string, number][] {
+        return [
+            ["President", this.president],
+            ["Judge", this.judge],
+            ["Speaker", this.speaker],
+            ["None", this.none],
+        ];
+    }
 }
 
 export class ProcessedRoleElement {
