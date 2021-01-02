@@ -1,16 +1,11 @@
 import React, { useState } from "react";
-import { Navbar, Nav, NavDropdown } from "react-bootstrap";
+import { Navbar, Nav } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { LinkContainer } from "react-router-bootstrap";
 import {
   cioutput,
   newrun,
-  gamevisualisation,
-  iigovisualisation,
-  iitovisualisation,
-  iifovisualisation,
-  resourcesvisualisation,
-  rolesvisualisation,
+  visualisations,
 } from "../../../consts/paths";
 import outputJSONData from "../../../output/output.json";
 
@@ -25,13 +20,7 @@ const AppNavbar = () => {
     <LinkContainer to={link} onClick={closeNav}>
       <Nav.Link className="lightbluelink">{text}</Nav.Link>
     </LinkContainer>
-  );
-
-  const getNavDropdownLink = (text: string, link: string) => (
-    <LinkContainer to={link} onClick={closeNav}>
-      <NavDropdown.Item className="lightbluelink">{text}</NavDropdown.Item>
-    </LinkContainer>
-  );
+  )
 
   return (
     <>
@@ -71,14 +60,7 @@ const AppNavbar = () => {
           <Nav>
             {getNavLink("New Run", newrun)}
             {getNavLink("CI Output", cioutput)}
-            <NavDropdown title="Visualisations" id="collabsible-nav-dropdown">
-              {getNavDropdownLink("Game", gamevisualisation)}
-              {getNavDropdownLink("IIGO", iigovisualisation)}
-              {getNavDropdownLink("IITO", iitovisualisation)}
-              {getNavDropdownLink("IIFO", iifovisualisation)}
-              {getNavDropdownLink("Resources", resourcesvisualisation)}
-              {getNavDropdownLink("Roles", rolesvisualisation)}
-            </NavDropdown>
+            {getNavLink("Visualisations", visualisations)}
           </Nav>
         </Navbar.Collapse>
       </Navbar>
