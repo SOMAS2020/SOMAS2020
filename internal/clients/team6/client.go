@@ -6,26 +6,25 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = shared.Team6
-
 const (
-	hostile Friendship = iota
-	neutral
-	friendly
+	id            = shared.Team6
+	minFriendship = 0
+	maxFriendship = 100
 )
 
-// GiftReceivedHistory is what gifts that we have received from which islands
-type GiftReceivedHistory map[shared.ClientID]shared.GiftOffer
+// GiftsReceivedHistory is what gifts we have received from other islands
+type GiftsReceivedHistory map[shared.ClientID]shared.Resources
 
-// Friendship indicates friendship level
-type Friendship int
+// GiftsOfferedHistory is what gifts we have offered to other islands
+type GiftsOfferedHistory map[shared.ClientID]shared.Resources
 
-// FriendshipWith indicates level with other islands
-type FriendshipWith map[shared.ClientID]Friendship
+// Friendship indicates friendship level with other islands
+type Friendship map[shared.ClientID]uint
 
-// Config configures our island's initial state
-type Config struct {
-	friendshipWith FriendshipWith
+type client struct {
+	*baseclient.BaseClient
+
+	config Config
 }
 
 func init() {
@@ -33,37 +32,99 @@ func init() {
 		id,
 		&client{
 			BaseClient: baseclient.NewClient(id),
-			configInfo: clientConfigInfo,
+			config:     configInfo,
 		},
 	)
 }
 
-type client struct {
-	*baseclient.BaseClient
-
-	configInfo Config
-}
+// ########################
+// ###### Friendship ######
+// ########################
 
 // increases the friendship level with some other islands
 func (c *client) RaiseFriendshipLevel(clientID shared.ClientID) {
-	currFriendship := c.configInfo.friendshipWith[clientID]
+	currFriendship := c.config.friendship[clientID]
 
-	switch {
-	case currFriendship == hostile:
-		c.configInfo.friendshipWith[clientID] = neutral
-	case currFriendship == neutral:
-		c.configInfo.friendshipWith[clientID] = friendly
+	if currFriendship == maxFriendship {
+		return
 	}
+
+	c.config.friendship[clientID]++
 }
 
 // decreases the friendship level with some other islands
 func (c *client) LowerFriendshipLevel(clientID shared.ClientID) {
-	currFriendship := c.configInfo.friendshipWith[clientID]
+	currFriendship := c.config.friendship[clientID]
 
-	switch {
-	case currFriendship == friendly:
-		c.configInfo.friendshipWith[clientID] = neutral
-	case currFriendship == neutral:
-		c.configInfo.friendshipWith[clientID] = hostile
+	if currFriendship == maxFriendship {
+		return
 	}
+
+	c.config.friendship[clientID]--
 }
+
+// ########################
+// ######  Foraging  ######
+// ########################
+
+/*
+------ TODO: COMPULSORY ------
+func (c *client) DecideForage() (shared.ForageDecision, error)
+
+func (c *client) ForageUpdate(shared.ForageDecision, shared.Resources)
+*/
+
+// ########################
+// ######    IITO    ######
+// ########################
+
+/*
+------ TODO: COMPULSORY ------
+func (c *client) GetGiftRequests() shared.GiftRequestDict
+
+func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
+
+func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
+
+func (c *client) UpdateGiftInfo(ReceivedResponses shared.GiftResponseDict)
+
+func (c *client) SentGift(sent shared.Resources, to shared.ClientID)
+
+func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID)
+*/
+
+// ########################
+// ######    IIFO    ######
+// ########################
+
+/*
+------ TODO: COMPULSORY ------
+func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo
+
+func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict)
+
+------ TODO: OPTIONAL ------
+func (c *client) MakeForageInfo() shared.ForageShareInfo
+
+func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo)
+*/
+
+// ########################
+// ######    IIGO    ######
+// ########################
+
+/*
+------ TODO: COMPULSORY ------
+func (c *client) MonitorIIGORole(shared.Role) bool
+
+func (c *client) DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
+*/
+
+// ########################
+// ######  Disaster  ######
+// ########################
+
+/*
+------ TODO: OPTIONAL ------
+func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
+*/
