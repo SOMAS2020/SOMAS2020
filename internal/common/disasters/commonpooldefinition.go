@@ -16,7 +16,7 @@ import (
 func (e Environment) MitigateDisaster(cpResources shared.Resources, effects DisasterEffects, dConf config.DisasterConfig) map[shared.ClientID]shared.Magnitude {
 	// compute total effect of disaster on 6 islands
 	totalEffect := 0.0
-	updatedIndividualEffects := map[shared.ClientID]float64{}
+	updatedIndividualEffects := map[shared.ClientID]shared.Magnitude{}
 
 	for _, effect := range effects.Absolute {
 		totalEffect = totalEffect + effect
@@ -36,8 +36,8 @@ func (e Environment) MitigateDisaster(cpResources shared.Resources, effects Disa
 		}
 	} else { // Case when damage is too high, cp cannot fully mitigate
 		leftOverEffect := adjMagnitude - float64(cpResources) // damage that has to be mitigated by islands
-		for islandID, effect := range effects.Proportional {
-			updatedIndividualEffects[islandID] = leftOverEffect * effect //leftover damage for each island is computed proportionally with respect to the damage on 6 islands
+		for islandID, prop := range effects.Proportional {
+			updatedIndividualEffects[islandID] = leftOverEffect * prop //leftover damage for each island is computed proportionally with respect to the damage on 6 islands
 		}
 	}
 	return updatedIndividualEffects

@@ -49,7 +49,7 @@ func (env Environment) DisplayReport(cpResources shared.Resources, dConf config.
 	for islandID, absEffect := range effects.Absolute {
 		island := env.Geography.Islands[islandID]
 		sb.WriteString(fmt.Sprintf(
-			"island ID: %d, \txy co-ords: (%.2f, %.2f), \tabsolute damage: %.2f \n",
+			"%v: \txy co-ords: (%.2f, %.2f), \tabsolute damage: %.2f \n",
 			islandID, island.X, island.Y, absEffect*dConf.MagnitudeResourceMultiplier))
 	}
 
