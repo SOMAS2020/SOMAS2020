@@ -40,6 +40,7 @@ func (j *judiciary) loadSanctionConfig() {
 
 func (j *judiciary) broadcastSanctionConfig() {
 	broadcastGeneric(j.JudgeID, createBroadcastsForSanctionThresholds(j.sanctionThresholds))
+	broadcastGeneric(j.JudgeID, createBroadcastsForRuleViolationPenalties(j.ruleViolationSeverity))
 }
 
 // loadClientJudge checks client pointer is good and if not panics
@@ -250,6 +251,23 @@ func createBroadcastsForSanctionThresholds(thresholds map[roles.IIGOSanctionTier
 			shared.IIGOSanctionTier: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(tier),
+			},
+			shared.IIGOSanctionScore: {
+				T:           shared.CommunicationInt,
+				IntegerData: int(score),
+			},
+		})
+	}
+	return outputBroadcast
+}
+
+func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSanctionScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
+	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
+	for ruleName, score := range penalties {
+		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
+			shared.IIGOSanctionTier: {
+				T:        shared.CommunicationString,
+				TextData: ruleName,
 			},
 			shared.IIGOSanctionScore: {
 				T:           shared.CommunicationInt,
