@@ -21,7 +21,7 @@ type Client interface {
 	Logf(format string, a ...interface{})
 
 	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(roleToElect Role) []shared.ClientID
+	GetVoteForElection(roleToElect shared.Role) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
@@ -33,6 +33,7 @@ type Client interface {
 	GetClientSpeakerPointer() roles.Speaker
 	TaxTaken(shared.Resources)
 	GetTaxContribution() shared.Resources
+	GetSanctionPayment() shared.Resources
 	RequestAllocation() shared.Resources
 
 	//Foraging
@@ -53,9 +54,11 @@ type Client interface {
 	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
+	DecideGiftAmount(shared.ClientID, shared.Resources) shared.Resources
 
 	//IIGO: COMPULSORY
-	MonitorIIGORole(Role) bool
+	MonitorIIGORole(shared.Role) bool
+	DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
 
 	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SentGift(sent shared.Resources, to shared.ClientID)
@@ -127,7 +130,8 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 }
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
-func (c *BaseClient) GetVoteForElection(roleToElect Role) []shared.ClientID {
+// COMPULSORY: use opinion formation to decide a rank for islands for the role
+func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
 	// Done ;)
 	// Get all alive islands
 	aliveClients := rules.VariableMap[rules.IslandsAlive]
@@ -156,6 +160,14 @@ func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.Commu
 
 //MonitorIIGORole decides whether to perform monitoring on a role
 //COMPULOSRY: must be implemented
-func (c *BaseClient) MonitorIIGORole(roleName Role) bool {
+func (c *BaseClient) MonitorIIGORole(roleName shared.Role) bool {
 	return true
+}
+
+//DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
+//COMPULSORY: must be implemented
+func (c *BaseClient) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
+	resultToShare = monitoringResult
+	announce = true
+	return
 }

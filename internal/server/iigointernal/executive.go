@@ -3,7 +3,6 @@ package iigointernal
 import (
 	"fmt"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -111,13 +110,13 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) bool {
 }
 
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
-func (e *executive) appointNextSpeaker(currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
+func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
 	var election voting.Election
 	var nextSpeaker shared.ClientID
-	electionsettings := e.clientPresident.CallSpeakerElection(e.speakerTurnsInPower, allIslands)
+	electionsettings := e.clientPresident.CallSpeakerElection(monitoring, e.speakerTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
 		// TODO: deduct the cost of holding an election
-		election.ProposeElection(baseclient.President, electionsettings.VotingMethod)
+		election.ProposeElection(shared.Speaker, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
 		e.speakerTurnsInPower = 0
@@ -162,12 +161,20 @@ func (e *executive) reset(val string) {
 //requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() {
 	e.budget -= serviceCharge
-	var rules []string
+	var ruleProposals []string
 	for _, island := range getIslandAlive() {
-		rules = append(rules, iigoClients[shared.ClientID(int(island))].RuleProposal())
+		proposedRule := iigoClients[shared.ClientID(int(island))].RuleProposal()
+		if checkRuleIsValid(proposedRule, rules.AvailableRules) {
+			ruleProposals = append(ruleProposals, proposedRule)
+		}
 	}
 
-	e.setRuleProposals(rules)
+	e.setRuleProposals(ruleProposals)
+}
+
+func checkRuleIsValid(ruleName string, rulesCache map[string]rules.RuleMatrix) bool {
+	_, valid := rulesCache[ruleName]
+	return valid
 }
 
 func getIslandAlive() []float64 {
