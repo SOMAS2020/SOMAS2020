@@ -56,7 +56,11 @@ func initLogger() {
 func main() {
 	timeStart := time.Now()
 	flag.Parse()
-	gameConfig := parseConfig()
+	gameConfig, err := parseConfig()
+	if err != nil {
+		log.Printf("Flag parse error: %v\nUse --help.", err)
+		os.Exit(1)
+	}
 	s := server.NewSOMASServer(gameConfig)
 	if gameStates, err := s.EntryPoint(); err != nil {
 		log.Printf("Run failed with: %+v", err)
