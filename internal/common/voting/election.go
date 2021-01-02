@@ -282,7 +282,7 @@ func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.
 		candidateNumber--
 
 		//New round voting status update
-		for i := 1; i < len(e.voterList); i++ {
+		for i := 0; i < len(e.voterList); i++ {
 			totalVotes = append(totalVotes, clientMap[e.voterList[i]].VoteForElection(e.roleToElect, candidateList))
 		}
 		totalVotes = totalVotes[(len(totalVotes) - len(e.voterList)):]
