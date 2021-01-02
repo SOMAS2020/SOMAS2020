@@ -14,6 +14,9 @@ const (
 	CommunicationInt CommunicationContentType = iota
 	CommunicationString
 	CommunicationBool
+	CommunicationResources
+	CommunicationIIGORule
+	CommunicationIIGOVar
 )
 
 func (c CommunicationContentType) String() string {
@@ -21,6 +24,9 @@ func (c CommunicationContentType) String() string {
 		"CommunicationInt",
 		"CommunicationString",
 		"CommunicationBool",
+		"CommunicationResources",
+		"CommunicationIIGORule",
+		"CommunicationIIGOVar",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]
@@ -45,10 +51,13 @@ func (c CommunicationContentType) MarshalJSON() ([]byte, error) {
 
 // CommunicationContent is a general datastructure used for communications
 type CommunicationContent struct {
-	T           CommunicationContentType
-	IntegerData int
-	TextData    string
-	BooleanData bool
+	T             CommunicationContentType
+	IntegerData   int
+	TextData      string
+	BooleanData   bool
+	ResourcesData Resources
+	IIGORuleData  rules.RuleMatrix
+	IIGOVarData   rules.VariableValuePair
 }
 
 type CommunicationFieldName int
@@ -64,7 +73,11 @@ const (
 	RuleName
 	RuleVoteResult
 	TaxAmount
+	TaxRule
+	TaxVariable
 	AllocationAmount
+	AllocationRule
+	AllocationVariable
 )
 
 func (c CommunicationFieldName) String() string {
@@ -79,7 +92,11 @@ func (c CommunicationFieldName) String() string {
 		"RuleName",
 		"RuleVoteResult",
 		"TaxAmount",
+		"TaxRule",
+		"TaxVariable",
 		"AllocationAmount",
+		"AllocationRule",
+		"AllocationVariable",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]

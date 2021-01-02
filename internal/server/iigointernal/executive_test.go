@@ -6,6 +6,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -762,6 +763,163 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 					tc.name, returned, commonPool, presidentBudget,
 					tc.expectedReturn, tc.expectedCommonPool, tc.expectedPresidentBudget)
 			}
+		})
+	}
+}
+
+func TestBroadcastTaxation(t *testing.T) {
+	cases := []struct {
+		name          string
+		bPresident    executive // base
+		commonPool    shared.Resources
+		clientReports map[shared.ClientID]shared.ResourcesReport
+	}{
+		{
+			name: "Simple test",
+			bPresident: executive{
+				PresidentID:     5,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientReports: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {ReportedAmount: 30, Reported: true},
+				shared.Team2: {ReportedAmount: 9, Reported: true},
+				shared.Team3: {ReportedAmount: 15, Reported: true},
+				shared.Team4: {ReportedAmount: 20, Reported: true},
+				shared.Team5: {ReportedAmount: 25, Reported: true},
+				shared.Team6: {ReportedAmount: 40, Reported: true},
+			},
+			commonPool: 150,
+		},
+		{
+			name: "Some non-reports test",
+			bPresident: executive{
+				PresidentID:     4,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientReports: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {ReportedAmount: 30, Reported: true},
+				shared.Team2: {Reported: false},
+				shared.Team3: {ReportedAmount: 15, Reported: true},
+				shared.Team4: {Reported: false},
+				shared.Team5: {ReportedAmount: 25, Reported: true},
+				shared.Team6: {Reported: false},
+			},
+			commonPool: 150,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			fakeClientMap := map[shared.ClientID]baseclient.Client{}
+			fakeGameState := gamestate.GameState{
+				CommonPool: tc.commonPool,
+				IIGORolesBudget: map[string]shared.Resources{
+					"president": 10,
+					"speaker":   10,
+					"judge":     10,
+				},
+			}
+
+			aliveID := []shared.ClientID{}
+
+			for clientID := range tc.clientReports {
+				aliveID = append(aliveID, clientID)
+				fakeClientMap[clientID] = baseclient.NewClient(clientID)
+			}
+
+			setIIGOClients(&fakeClientMap)
+			tc.bPresident.setGameState(&fakeGameState)
+
+			tc.bPresident.broadcastTaxation(tc.clientReports, aliveID)
+
+			for clientID, resources := range tc.clientReports {
+				communicationsGot := *(fakeClientMap[clientID]).GetCommunications()
+				presidentCommunication := communicationsGot[tc.bPresident.PresidentID][0]
+
+				taxAmount := presidentCommunication[shared.TaxAmount]
+				taxRule := presidentCommunication[shared.TaxRule]
+				taxVariable := presidentCommunication[shared.TaxVariable]
+
+				if taxRule.T != shared.CommunicationIIGORule {
+					t.Errorf("Taxation failed for client %v. Rule type is %v", clientID, taxRule.T)
+				}
+
+				if taxAmount.T != shared.CommunicationResources {
+					t.Errorf("Taxation failed for client %v. Amount type is %v", clientID, taxAmount.T)
+				}
+
+				if taxVariable.T != shared.CommunicationIIGOVar {
+					t.Errorf("Taxation failed for client %v. Tax Variable type is %v", clientID, taxVariable.T)
+				}
+
+				if reflect.DeepEqual(taxRule.IIGORuleData, rules.RuleMatrix{}) {
+					t.Errorf("Taxation failed for client %v. Rule entry is empty. Got communication : %v", clientID, communicationsGot)
+				}
+
+				if reflect.DeepEqual(taxVariable.IIGOVarData, rules.VariableValuePair{}) {
+					t.Errorf("Taxation failed for client %v. Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
+				}
+
+				var expectedTax float64
+				if resources.Reported {
+					expectedTax = 0.1 * float64(resources.ReportedAmount)
+				} else {
+					expectedTax = 15
+				}
+
+				if float64(taxAmount.ResourcesData) != expectedTax {
+					t.Errorf("Taxation failed for client %v. Expected tax: %v, evaluated tax: %v", clientID, expectedTax, taxAmount.ResourcesData)
+				}
+
+				// Evaluate Rule
+				rule := taxRule.IIGORuleData
+				rules.AvailableRules[rule.RuleName] = rule
+
+				gotVar := taxVariable.IIGOVarData
+				if gotVar.VariableName != rules.ExpectedTaxContribution {
+					t.Errorf("Taxation failed for client %v. Tax variable has wrong name %v", clientID, gotVar.VariableName)
+				}
+
+				rules.UpdateVariable(gotVar.VariableName, gotVar)
+
+				// Check that the rule evaluates to false with unmatched value of TaxContribution
+				// Note! This check only works if reported resources are different between 2 consecutive clients
+				// This is due to global rule evaluation instead of a local one
+				eval, err := rules.BasicBooleanRuleEvaluator(rule.RuleName)
+
+				if err != nil {
+					t.Error(err)
+				}
+
+				if eval {
+					t.Errorf("Taxation failed for client %v. Rule evaluated to true without TaxContribution update", clientID)
+				}
+
+				// t.Logf("CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.IslandTaxContribution])
+
+				// Update the TaxContribuition to match the received amount
+				rules.UpdateVariable(rules.IslandTaxContribution,
+					rules.VariableValuePair{
+						VariableName: rules.IslandTaxContribution, Values: []float64{float64(taxAmount.ResourcesData)},
+					},
+				)
+
+				// t.Logf("After CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.IslandTaxContribution])
+
+				eval, err = rules.BasicBooleanRuleEvaluator(rule.RuleName)
+
+				if err != nil {
+					t.Error(err)
+				}
+
+				if !eval {
+					t.Errorf("Taxation failed for client %v. Rule evaluated to false after TaxContribution update", clientID)
+				}
+
+				// t.Logf("CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.ExpectedTaxContribution])
+			}
+
 		})
 	}
 }

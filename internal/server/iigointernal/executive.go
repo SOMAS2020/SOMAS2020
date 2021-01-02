@@ -6,9 +6,11 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 	"github.com/pkg/errors"
+	"gonum.org/v1/gonum/mat"
 )
 
 type executive struct {
@@ -20,6 +22,13 @@ type executive struct {
 	ResourceRequests    map[shared.ClientID]shared.Resources
 	speakerTurnsInPower int
 }
+
+type conversionType int
+
+const (
+	tax conversionType = iota
+	allocation
+)
 
 // loadClientPresident checks client pointer is good and if not panics
 func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
@@ -79,19 +88,26 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 	taxMapReturn := e.getTaxMap(islandsResources)
+
 	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {
 		if !e.incurServiceCharge(actionCost.BroadcastTaxationActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 		}
-		for islandID, resourceAmount := range taxMapReturn.ResourceMap {
+		for islandID, amount := range taxMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
-				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(resourceAmount)}
 				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-				data[shared.TaxAmount] = d
+
+				expectedVariable, taxRule := convertAmount(amount, tax)
+
+				data[shared.TaxAmount] = shared.CommunicationContent{T: shared.CommunicationResources, ResourcesData: amount}
+				data[shared.TaxRule] = shared.CommunicationContent{T: shared.CommunicationIIGORule, IIGORuleData: taxRule}
+				data[shared.TaxVariable] = shared.CommunicationContent{T: shared.CommunicationIIGOVar, IIGOVarData: expectedVariable}
+
 				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -217,4 +233,43 @@ func (e *executive) incurServiceCharge(cost shared.Resources) bool {
 		e.gameState.IIGORolesBudget["president"] -= cost
 	}
 	return ok
+}
+
+func convertAmount(amount shared.Resources, amountType conversionType) (rules.VariableValuePair, rules.RuleMatrix) {
+	var reqVar rules.VariableFieldName
+	var sentVar rules.VariableFieldName
+
+	if amountType == tax {
+		reqVar, sentVar = rules.IslandTaxContribution, rules.ExpectedTaxContribution
+	} else if amountType == allocation {
+		reqVar, sentVar = rules.IslandAllocation, rules.ExpectedAllocation
+	}
+
+	ruleVariables := []rules.VariableFieldName{reqVar, sentVar}
+
+	print(ruleVariables)
+
+	v := []float64{1, -1, 0}
+	aux := []float64{0}
+
+	rowLength := len(ruleVariables) + 1
+	nrows := len(v) / rowLength
+
+	CoreMatrix := mat.NewDense(nrows, rowLength, v)
+	AuxiliaryVector := mat.NewVecDense(nrows, aux)
+
+	retRule := rules.RuleMatrix{
+		RuleName:          fmt.Sprintf("%s = %.2f", sentVar, amount),
+		RequiredVariables: ruleVariables,
+		ApplicableMatrix:  *CoreMatrix,
+		AuxiliaryVector:   *AuxiliaryVector,
+		Mutable:           false,
+	}
+
+	retVar := rules.VariableValuePair{
+		VariableName: sentVar,
+		Values:       []float64{float64(amount)},
+	}
+
+	return retVar, retRule
 }
