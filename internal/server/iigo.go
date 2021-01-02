@@ -42,6 +42,14 @@ func (s *SOMASServer) runIIGOTax() error {
 		} else {
 			s.logf("Error getting tax from %v: %v", clientID, err)
 		}
+		cpContrib := v.GetCommonPoolContribution()
+		err = s.takeResources(clientID, cpContrib, "common pool contribution for disaster mitigation")
+
+		if err == nil {
+			s.gameState.CommonPool += cpContrib
+		} else {
+			s.logf("Error getting CP contribution from %v: %v", clientID, err)
+		}
 		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,

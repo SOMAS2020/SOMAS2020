@@ -53,6 +53,13 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	return 0
 }
 
+// GetCommonPoolContribution requests a client resource contribution towards the common pool.
+// This is used for disaster mitigation in the event of a disaster.
+// OPTIONAL: Use this method to contribue towards CP
+func (c *BaseClient) GetCommonPoolContribution() shared.Resources {
+	return 0
+}
+
 // RequestAllocation FIXME: Add documentation. What does this function do?
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
