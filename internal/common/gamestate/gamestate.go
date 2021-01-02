@@ -31,6 +31,7 @@ type GameState struct {
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
+
 	// Orchestration
 	SpeakerID   shared.ClientID
 	JudgeID     shared.ClientID
@@ -65,6 +66,9 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
 		CommonPool:         g.CommonPool,
+		SpeakerID:          g.SpeakerID,
+		JudgeID:            g.JudgeID,
+		PresidentID:        g.PresidentID,
 	}
 }
 
