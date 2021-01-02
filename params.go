@@ -155,89 +155,89 @@ var (
 	)
 
 	// config.IIGOConfig - Executive branch
-	getRuleForSpeakerActionCost = flag.Float64(
-		"getRuleForSpeakerActionCost",
+	iigoGetRuleForSpeakerActionCost = flag.Float64(
+		"iigoGetRuleForSpeakerActionCost",
 		10,
 		"IIGO action cost for getRuleForSpeaker action",
 	)
-	broadcastTaxationActionCost = flag.Float64(
-		"broadcastTaxationActionCost",
+	iigoBroadcastTaxationActionCost = flag.Float64(
+		"iigoBroadcastTaxationActionCost",
 		10,
 		"IIGO action cost for broadcastTaxation action",
 	)
-	replyAllocationRequestsActionCost = flag.Float64(
-		"replyAllocationRequestsActionCost",
+	iigoReplyAllocationRequestsActionCost = flag.Float64(
+		"iigoReplyAllocationRequestsActionCost",
 		10,
 		"IIGO action cost for replyAllocationRequests action",
 	)
-	requestAllocationRequestActionCost = flag.Float64(
-		"requestAllocationRequestActionCost",
+	iigoRequestAllocationRequestActionCost = flag.Float64(
+		"iigoRequestAllocationRequestActionCost",
 		10,
 		"IIGO action cost for requestAllocationRequest action",
 	)
-	requestRuleProposalActionCost = flag.Float64(
-		"requestRuleProposalActionCost",
+	iigoRequestRuleProposalActionCost = flag.Float64(
+		"iigoRequestRuleProposalActionCost",
 		10,
 		"IIGO action cost for requestRuleProposal action",
 	)
-	appointNextSpeakerActionCost = flag.Float64(
-		"appointNextSpeakerActionCost",
+	iigoAppointNextSpeakerActionCost = flag.Float64(
+		"iigoAppointNextSpeakerActionCost",
 		10,
 		"IIGO action cost for appointNextSpeaker action",
 	)
 
 	// config.IIGOConfig - Judiciary branch
-	inspectHistoryActionCost = flag.Float64(
-		"inspectHistoryActionCost",
+	iigoInspectHistoryActionCost = flag.Float64(
+		"iigoInspectHistoryActionCost",
 		10,
 		"IIGO action cost for inspectHistory",
 	)
 
-	inspectBallotActionCost = flag.Float64(
-		"inspectBallotActionCost",
+	iigoInspectBallotActionCost = flag.Float64(
+		"iigoInspectBallotActionCost",
 		10,
 		"IIGO action cost for inspectBallot",
 	)
 
-	inspectAllocationActionCost = flag.Float64(
-		"inspectAllocationActionCost",
+	iigoInspectAllocationActionCost = flag.Float64(
+		"iigoInspectAllocationActionCost",
 		10,
 		"IIGO action cost for inspectAllocation",
 	)
 
-	appointNextPresidentActionCost = flag.Float64(
-		"appointNextPresidentActionCost",
+	iigoAppointNextPresidentActionCost = flag.Float64(
+		"iigoAppointNextPresidentActionCost",
 		10,
 		"IIGO action cost for appointNextPresident",
 	)
 
 	// config.IIGOConfig - Legislative branch
-	setVotingResultActionCost = flag.Float64(
-		"setVotingResultActionCost",
+	iigoSetVotingResultActionCost = flag.Float64(
+		"iigoSetVotingResultActionCost",
 		10,
 		"IIGO action cost for setVotingResult",
 	)
 
-	setRuleToVoteActionCost = flag.Float64(
-		"setRuleToVoteActionCost",
+	iigoSetRuleToVoteActionCost = flag.Float64(
+		"iigoSetRuleToVoteActionCost",
 		10,
 		"IIGO action cost for setRuleToVote action",
 	)
 
-	announceVotingResultActionCost = flag.Float64(
-		"announceVotingResultActionCost",
+	iigoAnnounceVotingResultActionCost = flag.Float64(
+		"iigoAnnounceVotingResultActionCost",
 		10,
 		"IIGO action cost for announceVotingResult action",
 	)
 
-	updateRulesActionCost = flag.Float64(
-		"updateRulesActionCost",
+	iigoUpdateRulesActionCost = flag.Float64(
+		"iigoUpdateRulesActionCost",
 		10,
 		"IIGO action cost for updateRules action",
 	)
 
-	appointNextJudgeActionCost = flag.Float64(
-		"appointNextJudgeActionCost",
+	iigoAppointNextJudgeActionCost = flag.Float64(
+		"iigoAppointNextJudgeActionCost",
 		10,
 		"IIGO action cost for appointNextJudge action",
 	)
@@ -284,23 +284,23 @@ func parseConfig() config.Config {
 	iigoConf := config.IIGOConfig{
 
 		// Executive branch
-		GetRuleForSpeakerActionCost:        shared.Resources(*getRuleForSpeakerActionCost),
-		BroadcastTaxationActionCost:        shared.Resources(*broadcastTaxationActionCost),
-		ReplyAllocationRequestsActionCost:  shared.Resources(*replyAllocationRequestsActionCost),
-		RequestAllocationRequestActionCost: shared.Resources(*requestAllocationRequestActionCost),
-		RequestRuleProposalActionCost:      shared.Resources(*requestRuleProposalActionCost),
-		AppointNextSpeakerActionCost:       shared.Resources(*appointNextSpeakerActionCost),
+		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
+		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),
+		ReplyAllocationRequestsActionCost:  shared.Resources(*iigoReplyAllocationRequestsActionCost),
+		RequestAllocationRequestActionCost: shared.Resources(*iigoRequestAllocationRequestActionCost),
+		RequestRuleProposalActionCost:      shared.Resources(*iigoRequestRuleProposalActionCost),
+		AppointNextSpeakerActionCost:       shared.Resources(*iigoAppointNextSpeakerActionCost),
 		// Judiciary branch
-		InspectHistoryActionCost:       shared.Resources(*inspectHistoryActionCost),
-		InspectBallotActionCost:        shared.Resources(*inspectBallotActionCost),
-		InspectAllocationActionCost:    shared.Resources(*inspectAllocationActionCost),
-		AppointNextPresidentActionCost: shared.Resources(*appointNextPresidentActionCost),
+		InspectHistoryActionCost:       shared.Resources(*iigoInspectHistoryActionCost),
+		InspectBallotActionCost:        shared.Resources(*iigoInspectBallotActionCost),
+		InspectAllocationActionCost:    shared.Resources(*iigoInspectAllocationActionCost),
+		AppointNextPresidentActionCost: shared.Resources(*iigoAppointNextPresidentActionCost),
 		// Legislative branch
-		SetVotingResultActionCost:      shared.Resources(*setVotingResultActionCost),
-		SetRuleToVoteActionCost:        shared.Resources(*setRuleToVoteActionCost),
-		AnnounceVotingResultActionCost: shared.Resources(*announceVotingResultActionCost),
-		UpdateRulesActionCost:          shared.Resources(*updateRulesActionCost),
-		AppointNextJudgeActionCost:     shared.Resources(*appointNextJudgeActionCost),
+		SetVotingResultActionCost:      shared.Resources(*iigoSetVotingResultActionCost),
+		SetRuleToVoteActionCost:        shared.Resources(*iigoSetRuleToVoteActionCost),
+		AnnounceVotingResultActionCost: shared.Resources(*iigoAnnounceVotingResultActionCost),
+		UpdateRulesActionCost:          shared.Resources(*iigoUpdateRulesActionCost),
+		AppointNextJudgeActionCost:     shared.Resources(*iigoAppointNextJudgeActionCost),
 	}
 
 	return config.Config{
