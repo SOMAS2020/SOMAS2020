@@ -44,7 +44,7 @@ func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
 func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 	for id, resourceLeft := range islandsResources {
-		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * rand.Float64())
+		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * (rand.Float64() * 0.1 + 0.1))
 	}
 	return taxAmountMap, true
 }
