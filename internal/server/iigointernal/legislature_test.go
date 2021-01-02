@@ -16,10 +16,10 @@ func TestRuleVotedIn(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
-		IIGORolesBudget: map[string]shared.Resources{
-			"president": 10,
-			"speaker":   10,
-			"judge":     10,
+		IIGORolesBudget: map[int]shared.Resources{
+			shared.President: 10,
+			shared.Speaker:   10,
+			shared.Judge:     10,
 		},
 	}
 	s := legislature{
@@ -78,10 +78,10 @@ func TestRuleVotedOut(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
-		IIGORolesBudget: map[string]shared.Resources{
-			"president": 10,
-			"speaker":   10,
-			"judge":     10,
+		IIGORolesBudget: map[int]shared.Resources{
+			shared.President: 10,
+			shared.Speaker:   10,
+			shared.Judge:     10,
 		},
 	}
 	s := legislature{
@@ -162,10 +162,10 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 				SpeakerID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 10,
-						"speaker":   100,
-						"judge":     10,
+					IIGORolesBudget: map[int]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   100,
+						shared.Judge:     10,
 					},
 				},
 			},
@@ -180,10 +180,10 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 				SpeakerID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 10,
-						"speaker":   10,
-						"judge":     10,
+					IIGORolesBudget: map[int]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
 					},
 				},
 			},
@@ -198,10 +198,10 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 				SpeakerID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 40,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 10,
-						"speaker":   10,
-						"judge":     10,
+					IIGORolesBudget: map[int]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
 					},
 				},
 			},
@@ -216,7 +216,7 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			returned := tc.bSpeaker.incurServiceCharge(tc.input)
 			commonPool := tc.bSpeaker.gameState.CommonPool
-			presidentBudget := tc.bSpeaker.gameState.IIGORolesBudget["speaker"]
+			presidentBudget := tc.bSpeaker.gameState.IIGORolesBudget[shared.Speaker]
 			if returned != tc.expectedReturn ||
 				commonPool != tc.expectedCommonPool ||
 				presidentBudget != tc.expectedSpeakerBudget {

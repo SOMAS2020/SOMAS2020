@@ -214,7 +214,7 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 func (e *executive) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, e.gameState)
 	if ok {
-		e.gameState.IIGORolesBudget["president"] -= cost
+		e.gameState.IIGORolesBudget[shared.President] -= cost
 	}
 	return ok
 }

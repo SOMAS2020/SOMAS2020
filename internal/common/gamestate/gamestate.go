@@ -30,7 +30,7 @@ type GameState struct {
 	IIGOHistory []shared.Accountability
 
 	// IIGO roles budget (initialised in orchestration.go)
-	IIGORolesBudget map[string]shared.Resources
+	IIGORolesBudget map[int]shared.Resources
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
 	// Orchestration
@@ -78,8 +78,8 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 	return ret
 }
 
-func copyRolesBudget(m map[string]shared.Resources) map[string]shared.Resources {
-	ret := make(map[string]shared.Resources, len(m))
+func copyRolesBudget(m map[int]shared.Resources) map[int]shared.Resources {
+	ret := make(map[int]shared.Resources, len(m))
 	for k, v := range m {
 		ret[k] = v
 	}

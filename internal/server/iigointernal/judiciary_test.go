@@ -326,10 +326,10 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 				JudgeID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 10,
-						"speaker":   10,
-						"judge":     100,
+					IIGORolesBudget: map[int]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     100,
 					},
 				},
 			},
@@ -344,10 +344,10 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 				JudgeID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 10,
-						"speaker":   10,
-						"judge":     10,
+					IIGORolesBudget: map[int]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
 					},
 				},
 			},
@@ -362,10 +362,10 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 				JudgeID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 40,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 10,
-						"speaker":   10,
-						"judge":     10,
+					IIGORolesBudget: map[int]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
 					},
 				},
 			},
@@ -380,7 +380,7 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			returned := tc.bJudge.incurServiceCharge(tc.input)
 			commonPool := tc.bJudge.gameState.CommonPool
-			judgeBudget := tc.bJudge.gameState.IIGORolesBudget["judge"]
+			judgeBudget := tc.bJudge.gameState.IIGORolesBudget[shared.Judge]
 			if returned != tc.expectedReturn ||
 				commonPool != tc.expectedCommonPool ||
 				judgeBudget != tc.expectedJudgeBudget {

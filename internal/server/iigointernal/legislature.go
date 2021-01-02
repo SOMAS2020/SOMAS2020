@@ -210,7 +210,7 @@ func (l *legislature) appointNextJudge(currentJudge shared.ClientID, allIslands 
 func (l *legislature) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, l.gameState)
 	if ok {
-		l.gameState.IIGORolesBudget["speaker"] -= cost
+		l.gameState.IIGORolesBudget[shared.Speaker] -= cost
 	}
 	return ok
 }

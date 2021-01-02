@@ -64,9 +64,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// Increments the budget by a constant 100
 	// TODO:- the constant should be retrieved from the rules
-	g.IIGORolesBudget["president"] += 100
-	g.IIGORolesBudget["judge"] += 100
-	g.IIGORolesBudget["speaker"] += 100
+	g.IIGORolesBudget[shared.President] += 100
+	g.IIGORolesBudget[shared.Judge] += 100
+	g.IIGORolesBudget[shared.Speaker] += 100
 
 	// Pass in gamestate -
 	// So that we don't have to pass gamestate as arguments in every function in roles

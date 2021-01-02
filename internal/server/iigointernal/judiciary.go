@@ -104,7 +104,7 @@ func (j *judiciary) appointNextPresident(currentPresident shared.ClientID, allIs
 func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, j.gameState)
 	if ok {
-		j.gameState.IIGORolesBudget["judge"] -= cost
+		j.gameState.IIGORolesBudget[shared.Judge] -= cost
 	}
 	return ok
 }
