@@ -28,19 +28,18 @@ where the maximum number of deer that can be hunted in a single hunt is 4. Notic
 Assuming $\Delta=0.8$ for the MVP 
 $$ Increments\ of\ catching\ n\ deer's=
 \left( \begin{array}{ll@{}}
-n=0 -> \Delta^0 = 1 \\
-n=1 -> \Delta^1 = 0.8^1 \\
-n=2 -> \Delta^2 = 0.8^2 = 0.64 \\
-n=2 -> \Delta^3 = 0.8^3 = 0.512 \\
-n=4 -> \Delta^4 = 0.8^4 = 0.4096\\ 
+n=0: \Delta^0 = 1 \\
+n=1: \Delta^1 = 0.8^1 \\
+n=2: \Delta^2 = 0.8^2 = 0.64 \\
+n=2: \Delta^3 = 0.8^3 = 0.512 \\
+n=4: \Delta^4 = 0.8^4 = 0.4096\\ 
 \end{array} \right) $$
 The minimum amount of resources needed to hunt $n$ deer can be calculated as the cumulative cost, represented by 
 $$ 
 \sum_{n=0}^{n} \Delta^{n} = \Delta^{0} + \Delta^{1} + \Delta^{2} + \Delta^{3} + \Delta^{4} + ....
 $$
-Where $n$, the number of deer's you can hunt, is determined by the amount of resources inputted into the system 
+Where $n$, the number of deers you can hunt, is determined by the amount of resources input to the system 
 
 #### ToDo
 
-- fishing
 - link deer population (governed by a predefined differential equation and historical consumption) with Bernoulli param `p` in deer return RV.

@@ -6,17 +6,24 @@ import (
 )
 
 // InitEnvironment initialises environment according to definitions
-func InitEnvironment(islandIDs []shared.ClientID) Environment {
-	envConf := config.GameConfig().DisasterConfig
-	cpConf := config.GameConfig().CommonPoolConfig
-	
-	cp := Commonpool{Resource: cpConf.Resource, Threshold: cpConf.Threshold}
-	ag := ArchipelagoGeography{Islands: map[shared.ClientID]IslandLocationInfo{}, XMin: envConf.XMin, XMax: envConf.XMax, YMin: envConf.YMin, YMax: envConf.YMin}
-	dp := disasterParameters{globalProb: envConf.GlobalProb, spatialPDF: envConf.SpatialPDFType, magnitudeLambda: envConf.MagnitudeLambda}
+func InitEnvironment(islandIDs []shared.ClientID, envConf config.DisasterConfig, cpConf config.CommonPoolConfig) Environment {
+	ag := ArchipelagoGeography{
+		Islands: map[shared.ClientID]IslandLocationInfo{},
+		XMin:    envConf.XMin,
+		XMax:    envConf.XMax,
+		YMin:    envConf.YMin,
+		YMax:    envConf.YMax,
+	}
+	dp := disasterParameters{
+		globalProb:      envConf.GlobalProb,
+		spatialPDF:      envConf.SpatialPDFType,
+		magnitudeLambda: envConf.MagnitudeLambda,
+	}
+	cp := Commonpool{Resources: cpConf.Resources, Threshold: cpConf.Threshold}
 
 	for i, id := range islandIDs {
 		island := IslandLocationInfo{id, float64(i), float64(0)} // begin with equidistant points on x axis
 		ag.Islands[id] = island
 	}
-	return Environment{Geography: ag, DisasterParams: dp, LastDisasterReport: DisasterReport{}, CommonPool: cp} // returning a pointer so that other methods can modify returned Environment instance
+	return Environment{Geography: ag, DisasterParams: dp, LastDisasterReport: DisasterReport{}, CommonPool: cp}
 }

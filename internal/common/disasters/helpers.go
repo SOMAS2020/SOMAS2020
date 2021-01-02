@@ -30,39 +30,32 @@ func (report DisasterReport) Display() string {
 	return fmt.Sprintf("ALERT: Disaster of magnitude %.3f recorded at co-ordinates (%.2f, %.2f)\n", report.Magnitude, report.X, report.Y)
 }
 
-// DisplayReport is a string format method to viz a disaster report and its effect
-// DisplayReport also visualize how the disaster has been mitigated by the common pool
-func (env Environment) DisplayReport() (string, map[shared.ClientID]float64) {
-	disasterReport := env.LastDisasterReport.Display()
+// DisplayReport is a string format method to viz a disaster report and its effect,
+// as well as how the disaster is been mitigated by the common pool
+func (env Environment) DisplayReport() string {
+	disasterReport := env.LastDisasterReport
 	if env.LastDisasterReport.Magnitude == 0 {
-		return disasterReport, nil // just return default no disaster message. Not necessary to report affected islands.
+		return "No disaster reported. No disaster effects."
 	}
 	var sb strings.Builder
-	sb.WriteString(disasterReport)
+	sb.WriteString(disasterReport.Display())
+
+	effects := env.ComputeDisasterEffects()
+
+	// display absolute effects for each island
 	sb.WriteString("\n------------------------ Disaster Effects ------------------------\n")
 
-	proportionalEffect := map[shared.ClientID]float64{}
-	individualEffect := map[shared.ClientID]float64{}
-	individualEffect, proportionalEffect = env.DisasterEffects()
-
-	for islandID, effect := range individualEffect {
-	
+	for islandID, absEffect := range effects.Absolute {
 		island := env.Geography.Islands[islandID]
-		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f \tActual damage: %.2f \n", islandID, island.X, island.Y, effect, individualEffect[islandID]*1000))
+		sb.WriteString(fmt.Sprintf(
+			"island ID: %d, \txy co-ords: (%.2f, %.2f), \tabsolute damage: %.2f \n",
+			islandID, island.X, island.Y, absEffect*1000))
 	}
 
-	updatedProportionalEffect := map[shared.ClientID]float64{}
-	updatedProportionalEffect = env.DisasterMitigate(individualEffect, proportionalEffect)
-	damageDifference := map[shared.ClientID]float64{}
-	for islandID, _ := range updatedProportionalEffect {
-		damageDifference[islandID] = individualEffect[islandID] * 1000 - updatedProportionalEffect[islandID]
+	// display propotional effects relative to other islands and effects after CP mitigation
+	sb.WriteString("\n------------------------ Disaster Effects after CP Mitigation ------------------------\n")
+	for islandID, propEffect := range effects.Proportional {
+		sb.WriteString(fmt.Sprintf("%v: proportional damage: %.2f, \t damage after common pool mitigation: %.2f \n", islandID, propEffect, effects.CommonPoolMitigated[islandID]))
 	}
-
-	sb.WriteString("\n------------------------ Updated Disaster Effects ------------------------\n")
-	for islandID, effect := range individualEffect {
-		island := env.Geography.Islands[islandID]
-		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f, ", islandID, island.X, island.Y, effect, ))
-		sb.WriteString(fmt.Sprintf("\tUpdated damage: %.2f, \t Common pool mitigated: %.2f \n", updatedProportionalEffect[islandID], damageDifference[islandID]))	
-	}
-	return sb.String(), updatedProportionalEffect
+	return sb.String()
 }

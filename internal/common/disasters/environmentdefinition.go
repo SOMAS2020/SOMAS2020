@@ -33,12 +33,19 @@ type DisasterReport struct {
 	X, Y      shared.Coordinate
 }
 
+// DisasterEffects encapsulates various types of effects on each island after a disaster. These include
+// the absolute magnitude felt, the proportional mag. relative to that of other islands and the proportional
+// magnitude felt after applying common pool mitigation
+type DisasterEffects struct {
+	Absolute, Proportional, CommonPoolMitigated map[shared.ClientID]shared.Magnitude
+}
+
 // Environment holds the state of the enivornment
 type Environment struct {
 	Geography          ArchipelagoGeography
 	DisasterParams     disasterParameters
 	LastDisasterReport DisasterReport
-	CommonPool		   Commonpool
+	CommonPool         Commonpool
 }
 
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
@@ -59,23 +66,28 @@ func (e Environment) SampleForDisaster() Environment {
 	return e                  // return same env back but with updated disaster report
 }
 
-// DisasterEffects returns the individual effects and proportional effect (compared to total damage on 6 island) 
-// 		of the most recent DisasterReport held in the environment state
-func (e Environment) DisasterEffects() (map[shared.ClientID]shared.Magnitude, map[shared.ClientID]shared.Magnitude) {
+// ComputeDisasterEffects returns the individual (absolute) effects and proportional effect (compared to total damage on each island)
+// This method uses the latest disaster report stored in environment
+func (e Environment) ComputeDisasterEffects() DisasterEffects {
 	individualEffect := map[shared.ClientID]shared.Magnitude{}
 	proportionalEffect := map[shared.ClientID]shared.Magnitude{}
-	totalEffect := 0.0 
+	totalEffect := 0.0
 
 	epiX, epiY := e.LastDisasterReport.X, e.LastDisasterReport.Y // epicentre of the disaster (peak mag)
 	for _, island := range e.Geography.Islands {
 		effect := e.LastDisasterReport.Magnitude / math.Hypot(island.X-epiX, island.Y-epiY) // effect on island i is inverse prop. to square of distance to epicentre
-		individualEffect[island.ID] = math.Min(effect, e.LastDisasterReport.Magnitude)                   // to prevent divide by zero -> inf
+		individualEffect[island.ID] = math.Min(effect, e.LastDisasterReport.Magnitude)      // to prevent divide by zero -> inf
 		totalEffect = totalEffect + individualEffect[island.ID]
 	}
 
 	for _, island := range e.Geography.Islands {
-		proportionalEffect[island.ID] =  individualEffect[island.ID] / totalEffect
+		proportionalEffect[island.ID] = individualEffect[island.ID] / totalEffect
+	}
+	updatedProportionalEffect := e.DisasterMitigate(individualEffect, proportionalEffect)
+	mitigatedDamage := map[shared.ClientID]shared.Magnitude{}
+	for islandID := range updatedProportionalEffect {
+		mitigatedDamage[islandID] = individualEffect[islandID]*1000 - updatedProportionalEffect[islandID]
 	}
 
-	return individualEffect, proportionalEffect
+	return DisasterEffects{Absolute: individualEffect, Proportional: proportionalEffect, CommonPoolMitigated: mitigatedDamage}
 }

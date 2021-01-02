@@ -6,59 +6,47 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/pkg/errors"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
+
+const serviceCharge = shared.Resources(10)
 
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
-var featureJudge = BaseJudge{
-	Id:                0,
-	budget:            0,
-	presidentSalary:   0,
-	BallotID:          0,
-	ResAllocID:        0,
-	speakerID:         0,
-	presidentID:       0,
-	EvaluationResults: nil,
+var judicialBranch = judiciary{
+	JudgeID:            0,
+	budget:             0,
+	presidentSalary:    0,
+	EvaluationResults:  nil,
+	localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
+	localHistoryCache:  defaultInitLocalHistoryCache(historyCacheDepth),
 }
 
 // featureSpeaker is an instantiation of the Speaker interface
 // with both the baseSpeaker features and a reference to client speakers
-var featureSpeaker = baseSpeaker{
-	Id:          0,
-	budget:      0,
-	judgeSalary: 0,
-	RuleToVote:  "",
+var legislativeBranch = legislature{
+	SpeakerID:    0,
+	budget:       0,
+	judgeSalary:  0,
+	ruleToVote:   "",
+	ballotBox:    voting.BallotBox{},
+	votingResult: false,
 }
 
 // featurePresident is an instantiation of the President interface
 // with both the basePresident features and a reference to client presidents
-var featurePresident = basePresident{
-	Id:               0,
+var executiveBranch = executive{
+	ID:               0,
 	budget:           0,
 	speakerSalary:    0,
 	ResourceRequests: nil,
 }
 
-// GetFeaturedRoles returns featured versions of the roles
-func GetFeaturedRoles() (roles.Judge, roles.Speaker, roles.President) {
-	return &featureJudge, &featureSpeaker, &featurePresident
-}
-
-// SpeakerIDGlobal is the single source of truth for speaker ID (MVP)
-var SpeakerIDGlobal = 0
-
-// JudgeIDGlobal is the single source of truth for judge ID (MVP)
-var JudgeIDGlobal = 0
-
-// PresidentIDGlobal is the single source of truth for president ID (MVP)
-var PresidentIDGlobal = 0
-
 // TaxAmountMapExport is a local tax amount cache for checking of rules
-var TaxAmountMapExport map[int]int
+var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
 // AllocationAmountMapExport is a local allocation map for checking of rules
-var AllocationAmountMapExport map[int]int
+var AllocationAmountMapExport map[shared.ClientID]shared.Resources
 
 // Pointers allow clients to customise implementations of mutable functions
 var judgePointer roles.Judge = nil
@@ -68,87 +56,108 @@ var presidentPointer roles.President = nil
 // iigoClients holds pointers to all the clients
 var iigoClients map[shared.ClientID]baseclient.Client
 
-var iigoRoleStates gamestate.IIGOBaseRoles
-
 // RunIIGO runs all iigo function in sequence
-func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) error {
+func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
 
-	// TODO: Get Client pointers from gamestate https://imgur.com/a/HjVZIkh
+	var monitoring = monitor{
+		speakerID:         g.SpeakerID,
+		presidentID:       g.PresidentID,
+		judgeID:           g.JudgeID,
+		internalIIGOCache: []shared.Accountability{},
+	}
 	iigoClients = *clientMap
-	iigoRoleStates = g.IIGOInfo
 
 	// Initialise IDs
-	featureJudge.Id = JudgeIDGlobal
-	featureSpeaker.Id = SpeakerIDGlobal
-	featurePresident.Id = PresidentIDGlobal
+	judicialBranch.JudgeID = g.JudgeID
+	legislativeBranch.SpeakerID = g.SpeakerID
+	executiveBranch.ID = g.PresidentID
+
+	// Set judgePointer
+	judgePointer = iigoClients[g.JudgeID].GetClientJudgePointer()
+	// Set speakerPointer
+	speakerPointer = iigoClients[g.SpeakerID].GetClientSpeakerPointer()
+	// Set presidentPointer
+	presidentPointer = iigoClients[g.PresidentID].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
-	featureJudge.clientJudge = judgePointer
-	featurePresident.clientPresident = presidentPointer
-	featureSpeaker.clientSpeaker = speakerPointer
+	judicialBranch.loadClientJudge(judgePointer)
+	executiveBranch.loadClientPresident(presidentPointer)
+	legislativeBranch.loadClientSpeaker(speakerPointer)
 
 	// Withdraw the salaries
-	errWithdrawPresident := featureJudge.withdrawPresidentSalary(g)
-	errWithdrawJudge := featureSpeaker.withdrawJudgeSalary(g)
-	errWithdrawSpeaker := featurePresident.withdrawSpeakerSalary(g)
+	presidentWithdrawSuccess := judicialBranch.withdrawPresidentSalary(g)
+	judgeWithdrawSuccess := legislativeBranch.withdrawJudgeSalary(g)
+	speakerWithdrawSuccess := executiveBranch.withdrawSpeakerSalary(g)
 
 	// Handle the lack of resources
-	if errWithdrawPresident != nil {
-		return errors.Errorf("Could not run IIGO since President has no resoruces to spend")
+	if !presidentWithdrawSuccess {
+		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
+		return false, "Could not run IIGO since President has no resources to spend"
 	}
-	if errWithdrawJudge != nil {
-		return errors.Errorf("Could not run IIGO since Judge has no resoruces to spend")
+	if !judgeWithdrawSuccess {
+		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
+		return false, "Could not run IIGO since Judge has no resources to spend"
 	}
-	if errWithdrawSpeaker != nil {
-		return errors.Errorf("Could not run IIGO since Speaker has no resoruces to spend")
+	if !speakerWithdrawSuccess {
+		returnWithdrawnSalariesToCommonPool(g, &executiveBranch, &legislativeBranch, &judicialBranch)
+		return false, "Could not run IIGO since Speaker has no resources to spend"
 	}
 
 	// Pay salaries into budgets
-	featureJudge.sendPresidentSalary()
-	featureSpeaker.sendJudgeSalary()
-	featurePresident.sendSpeakerSalary()
+	judicialBranch.sendPresidentSalary(&executiveBranch)
+	legislativeBranch.sendJudgeSalary(&judicialBranch)
+	executiveBranch.sendSpeakerSalary(&legislativeBranch)
 
-	// 1 Judge actions - inspect history
-	_, judgeInspectingHistoryError := featureJudge.InspectHistory()
+	// 1 Judge action - inspect history
+	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
+
+	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
+	valuesToCache := [][]float64{{boolToFloat(historyInspected)}}
+	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
+
+	judgeMonitored := monitoring.monitorRole(iigoClients[g.PresidentID])
 
 	// 2 President actions
-	resourceReports := map[int]int{}
+	resourceReports := map[shared.ClientID]shared.Resources{}
 	var aliveClientIds []shared.ClientID
-	for _, v := range rules.VariableMap["islands_alive"].Values {
+	for _, v := range rules.VariableMap[rules.IslandsAlive].Values {
 		aliveClientIds = append(aliveClientIds, shared.ClientID(int(v)))
-		resourceReports[int(v)] = iigoClients[shared.ClientID(int(v))].ResourceReport()
+		resourceReports[shared.ClientID(int(v))] = iigoClients[shared.ClientID(int(v))].ResourceReport()
 	}
-	featurePresident.broadcastTaxation(resourceReports)
-	featurePresident.requestAllocationRequest()
-	featurePresident.replyAllocationRequest(g.CommonPool)
-	featurePresident.requestRuleProposal()
-	ruleToVote := featurePresident.getRuleForSpeaker()
+	executiveBranch.broadcastTaxation(resourceReports)
+	executiveBranch.requestAllocationRequest()
+	allocationsMade := executiveBranch.replyAllocationRequest(g.CommonPool)
+	executiveBranch.requestRuleProposal()
+	ruleToVote, ruleSelected := executiveBranch.getRuleForSpeaker()
+
+	variablesToCache = []rules.VariableFieldName{rules.AllocationMade}
+	valuesToCache = [][]float64{{boolToFloat(allocationsMade)}}
+	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
+
+	presidentMonitored := monitoring.monitorRole(iigoClients[g.SpeakerID])
 
 	// 3 Speaker actions
-	featureSpeaker.setRuleToVote(ruleToVote)
-	featureSpeaker.setVotingResult(iigoClients)
-	_ = featureSpeaker.announceVotingResult()
+	legislativeBranch.setRuleToVote(ruleToVote)
+	voteCalled := legislativeBranch.setVotingResult(aliveClientIds)
+	legislativeBranch.announceVotingResult()
 
-	// 4 Declare performance (Judge) (in future all the iigointernal)
-	if judgeInspectingHistoryError != nil {
-		featureJudge.declarePresidentPerformanceWrapped()
+	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
+	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
+	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
-		featureJudge.declareSpeakerPerformanceWrapped()
-	}
+	speakerMonitored := monitoring.monitorRole(iigoClients[g.JudgeID])
 
 	// Get new Judge ID
-	JudgeIDGlobal = featureSpeaker.appointNextJudge(aliveClientIds)
+	g.JudgeID = legislativeBranch.appointNextJudge(judgeMonitored, g.JudgeID, aliveClientIds)
 	// Get new Speaker ID
-	SpeakerIDGlobal = featurePresident.appointNextSpeaker(aliveClientIds)
+	g.SpeakerID = executiveBranch.appointNextSpeaker(speakerMonitored, g.SpeakerID, aliveClientIds)
 	// Get new President ID
-	PresidentIDGlobal = featureJudge.appointNextPresident(aliveClientIds)
+	g.PresidentID = judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
 
-	// Set judgePointer
-	judgePointer = iigoClients[shared.ClientID(JudgeIDGlobal)].GetClientJudgePointer()
-	// Set speakerPointer
-	speakerPointer = iigoClients[shared.ClientID(SpeakerIDGlobal)].GetClientSpeakerPointer()
-	// Set presidentPointer
-	presidentPointer = iigoClients[shared.ClientID(PresidentIDGlobal)].GetClientPresidentPointer()
+	return true, "IIGO Run Successful"
+}
 
-	return nil
+func returnWithdrawnSalariesToCommonPool(state *gamestate.GameState, executiveBranch *executive, legislativeBranch *legislature, judicialBranch *judiciary) {
+	returnVal := executiveBranch.returnSpeakerSalary() + legislativeBranch.returnJudgeSalary() + judicialBranch.returnPresidentSalary()
+	depositIntoCommonPool(returnVal, state)
 }

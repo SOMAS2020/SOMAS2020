@@ -1,8 +1,6 @@
 package foraging
 
 import (
-	"math"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
@@ -10,8 +8,8 @@ import (
 
 // FishingExpedition The teams that are involved and the resources they put in.
 type FishingExpedition struct {
-	ParticipantContributions map[shared.ClientID]float64
-	Params                   fishingParams
+	ParticipantContributions map[shared.ClientID]shared.Resources
+	params                   fishingParams
 }
 
 // fishingParams : Defines the parameters for the normal distibution for the fishing returns
@@ -20,45 +18,40 @@ type fishingParams struct {
 	Sigma float64
 }
 
-// TotalInput provides a sum of the total inputs
-func (f FishingExpedition) TotalInput() float64 {
-	i := 0.0                                       // Sum of the inputs INIT
-	for _, x := range f.ParticipantContributions { // Check for every particpant ("_" ignore the index)
-		i += x // Sum the values within each index
-	}
-	return i //return
+// FishingReport holds information about the result of a fishing expedition
+type FishingReport struct {
+	InputResources   shared.Resources
+	NumberFishermen  uint
+	NumberFishCaught uint
+	TotalUtility     shared.Resources
+	FishWeights      []float64
 }
 
-func fishUtilityTier(input float64, maxFishPerHunt uint, decay float64) uint {
-	sum := 0.0                                  // Sum = cumulative sum of the tier values
-	for i := uint(0); i < maxFishPerHunt; i++ { // Checks the value of the input in comparision to the minimum needed for each tier
-		sum += math.Pow(decay, float64(i+1)) // incrementING sum of tier values
-		if input < sum {                     // Check condition that the input is less than the sum of  tier values
-			return i // if so return the tier we are located in
-		}
-	}
-	return maxFishPerHunt
+// TotalInput provides a sum of the total inputs
+// TotalInput simply sums the total group resource input of hunt participants
+func (f FishingExpedition) TotalInput() shared.Resources {
+	return getTotalInput(f.ParticipantContributions)
 }
 
 // fishingReturn is the normal distibtuion
-func fishingReturn(params fishingParams) float64 {
+func fishingReturn(params fishingParams) shared.Resources {
 	F := distuv.Normal{
 		Mu:    params.Mu,    // mean of the normal dist
 		Sigma: params.Sigma, // Var of the normal dist
 	}
-	return F.Rand()
+	return shared.Resources(F.Rand())
 }
 
 // Fish computes the return from a fishing expedition
-func (f FishingExpedition) Fish() float64 {
-	fConf := config.GameConfig().ForagingConfig.FishingConfig
+func (f FishingExpedition) Fish(fConf config.FishingConfig) ForagingReport {
 	input := f.TotalInput()
-	decay := fConf.IncrementalInputDecay
-	maxFish := fConf.MaxFishPerHunt
-	nFishFromInput := fishUtilityTier(input, maxFish, decay) // get max number of fish allowed for given resource input
-	utility := 0.0
-	for i := uint(1); i < nFishFromInput; i++ {
-		utility += fishingReturn(f.Params)
+	// get max number of deer allowed for given resource input
+	nFishFromInput := utilityTier(input, fConf.MaxFishPerHunt, fConf.IncrementalInputDecay)
+	returns := []shared.Resources{} // store return for each potential fish we could catch
+
+	for i := uint(0); i < nFishFromInput; i++ {
+		utility := fishingReturn(f.params) * shared.Resources(fConf.ResourceMultiplier) // scale return by resource multiplier
+		returns = append(returns, utility)
 	}
-	return utility
+	return compileForagingReport(shared.FishForageType, f.ParticipantContributions, returns)
 }

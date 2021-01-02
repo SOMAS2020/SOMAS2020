@@ -9,9 +9,9 @@ import (
 const id = shared.Team1
 
 func init() {
-	baseclient.RegisterClient(id, &client{Client: baseclient.NewClient(id)})
+	baseclient.RegisterClient(id, &client{BaseClient: baseclient.NewClient(id)})
 }
 
 type client struct {
-	baseclient.Client
+	*baseclient.BaseClient
 }

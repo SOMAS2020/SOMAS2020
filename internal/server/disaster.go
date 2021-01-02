@@ -6,11 +6,14 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 	s.logf("start probeDisaster")
 	defer s.logf("finish probeDisaster")
-	
-	e := s.gameState.Environment.SampleForDisaster()
-	disasterReport, leftover_damage := s.gameState.Environment.DisplayReport()
+
+	e := s.gameState.Environment
+	e.SampleForDisaster()                 // update disaster
+	effects := e.ComputeDisasterEffects() // get disaster effects - absolute, proportional and CP-mitigated
+
+	disasterReport := e.DisplayReport() // displays disaster info and effects
 	s.logf(disasterReport)
-	s.islandDeplete(leftover_damage)				//island will be further depleted by disaster only when disaster happens and cp does not have enough resource
+	s.islandDeplete(effects.CommonPoolMitigated) //island's resource will be depleted by disaster only when disaster happens and cp cannot fully mitigate
 
 	return e, nil
 }

@@ -21,10 +21,3 @@ func CompareTestErrors(want error, got error, t *testing.T) {
 		}
 	}
 }
-
-// CompareTestIntegers is used to check wheter an expected int value is equal to what was got
-func CompareTestIntegers(want int, got int, t *testing.T) {
-	if want != got {
-		t.Errorf("Wanted integer '%v' got '%v'", want, got)
-	}
-}

@@ -5,6 +5,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -15,26 +16,25 @@ func TestFishUtilityTier(t *testing.T) {
 	maxFish := 6
 
 	var tests = []struct {
-		inputF float64 // cumulative resource input from hunt participants
-		wantF  int     // output tier
+		inputF shared.Resources // cumulative resource input from hunt participants
+		wantF  int              // output tier
 	}{
 		// Tiers and coressponding thresholds and cumlative cost
-		// Tiers		 			0		1		2		3			4		5			6
-		// Thresholds 				0.0		0.8		0.64	0.512		0.4096	0.32768		0.262144
-		// Cumlative cost 			0.0		0.8		1.44	1.952		2.3616	2.68928		2.951424
+		// Tiers		 			0		1		2		3			4
+		// Cumulative cost 			0.0		1.0		1.8		2.44 		2.952		...
+		// Incremental cost			0.0		1.0		0.8		0.64		0.512
 		{0.0, 0},
-		{0.1, 0},
-		{0.99, 1},
-		{1.52, 2},
-		{2.1, 3},
-		{2.42, 4},
-		{2.9, 5},
+		{0.99, 0},
+		{1.52, 1},
+		{2.1, 2},
+		{2.45, 3},
+		{2.99, 4},
 		{1000.0, 6},
 	}
 	for _, tt := range tests {
 		testname := fmt.Sprintf("%.3f", tt.inputF)
 		t.Run(testname, func(t *testing.T) {
-			ans := fishUtilityTier(tt.inputF, uint(maxFish), decayFish)
+			ans := utilityTier(tt.inputF, uint(maxFish), decayFish)
 			if ans != uint(tt.wantF) {
 				t.Errorf("got %d, want %d", ans, tt.wantF)
 			}
@@ -44,8 +44,17 @@ func TestFishUtilityTier(t *testing.T) {
 
 // Checks if total fish input is correct
 func TestTotalFishInput(t *testing.T) {
-	huntParticipants := map[shared.ClientID]float64{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
-	huntF, _ := CreateFishingExpedition(huntParticipants)
+	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
+
+	fishingConfig := config.FishingConfig{
+		MaxFishPerHunt:        6,
+		IncrementalInputDecay: 0.8,
+		Mean:                  0.8,
+		Variance:              0.2,
+		ResourceMultiplier:    1,
+	}
+
+	huntF, _ := CreateFishingExpedition(huntParticipants, fishingConfig)
 	ans := huntF.TotalInput()
 	if ans != 1.9 {
 		t.Errorf("TotalInput() = %.2f; want 1.9", ans)
@@ -57,10 +66,10 @@ func TestFishReturn(t *testing.T) {
 	avReturn := 0.0
 	for i := 1; i <= 1000; i++ { // calculate empirical mean return over 1000 trials
 		d := fishingReturn(params)
-		avReturn = (avReturn*(float64(i)-1) + d) / float64(i)
+		avReturn = (avReturn*(float64(i)-1) + float64(d)) / float64(i)
 	}
-	expectedReturn := params.Mu                      // theoretical mean based on defined expectation
-	if math.Abs(1-expectedReturn/avReturn) > 0.012 { // The mean deviation from the theoretical mean with 99.7% confidence
+	expectedReturn := params.Mu                                 // theoretical mean based on defined expectation
+	if math.Abs(float64(1.0-expectedReturn/avReturn)) > 0.012 { // The mean deviation from the theoretical mean with 99.7% confidence
 		// (needs to be 3standard deviations out to return error)
 		t.Errorf("Empirical mean return deviated from theoretical for > 1.2 percent: got %.5f, want %.5f", avReturn, expectedReturn)
 	}

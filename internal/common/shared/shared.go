@@ -58,3 +58,7 @@ func (c ClientID) MarshalText() ([]byte, error) {
 func (c ClientID) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
+
+// Resources represents amounts of resources.
+// Used for foraging inputs and utility outputs (returns)
+type Resources float64
