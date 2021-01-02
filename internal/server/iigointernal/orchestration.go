@@ -9,6 +9,14 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
+type IIGOServer struct {
+	iigoLogging func(format string, a ...interface{})
+}
+
+func (i IIGOServer) logf(format string, a ...interface{}) {
+	i.iigoLogging(format, a)
+}
+
 const serviceCharge = shared.Resources(10)
 
 // featureJudge is an instantiation of the Judge interface
@@ -57,7 +65,7 @@ var presidentPointer roles.President = nil
 var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
-func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
+func RunIIGO(i IIGOServer, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client) (IIGOSuccessful bool, StatusDescription string) {
 
 	var monitoring = monitor{
 		speakerID:         g.SpeakerID,

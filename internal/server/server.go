@@ -10,6 +10,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"github.com/pkg/errors"
 )
 
@@ -30,6 +31,8 @@ type SOMASServer struct {
 	// We don't store this in gameState--gameState is shared to clients and should
 	// not contain pointers to other clients!
 	clientMap map[shared.ClientID]baseclient.Client
+
+	iigoServer iigointernal.IIGOServer
 }
 
 // NewSOMASServer returns an instance of the main server we use.
@@ -81,6 +84,10 @@ func createSOMASServer(
 			clientID: client.GetID(),
 			server:   server,
 		})
+	}
+
+	server.iigoServer = iigointernal.IIGOServer{
+		iigoLogging: server.logf,
 	}
 
 	return server
