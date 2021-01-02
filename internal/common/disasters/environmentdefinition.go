@@ -90,7 +90,7 @@ func (e Environment) ComputeDisasterEffects(cpResources shared.Resources, dConf 
 
 	unmitigatedEffects := e.computeUnmitigatedDisasterEffects()
 
-	updatedProportionalEffect := e.DisasterMitigate(cpResources, unmitigatedEffects, dConf)
+	updatedProportionalEffect := e.MitigateDisaster(cpResources, unmitigatedEffects, dConf)
 	mitigatedDamage := map[shared.ClientID]shared.Magnitude{}
 	for islandID := range updatedProportionalEffect {
 		mitigatedDamage[islandID] = unmitigatedEffects.Absolute[islandID]*dConf.MagnitudeResourceMultiplier - updatedProportionalEffect[islandID]

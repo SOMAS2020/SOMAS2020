@@ -5,7 +5,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// DisasterMitigate mitigates the disaster's damage using CP before it hits the island
+// MitigateDisaster mitigates the disaster's damage using CP before it hits the island
 // 	+ If cp have enough resource to fully mitigate the disaster, island's personal resources won't be affected
 //	+ Else, island will be affected with leftover damaged. Each island receives proportional helps from cp with respect to the total damage on 6 islands
 //	+ EX: if island 1 gets hit the most then cp will help island 1 more than the rest
@@ -13,7 +13,7 @@ import (
 //	+ If threshold T is met, which mean islands have prepared well before the disaster hit, the damage that disaster have on cp and islands will be half
 //	+ If not, cp and islands will feel the full effect of disaster
 //	+ For now, each 1 effect of disaster is equivalent to DisasterConfig.MagnitudeResourceMulitplier resources
-func (e Environment) DisasterMitigate(cpResources shared.Resources, effects DisasterEffects, dConf config.DisasterConfig) map[shared.ClientID]shared.Magnitude {
+func (e Environment) MitigateDisaster(cpResources shared.Resources, effects DisasterEffects, dConf config.DisasterConfig) map[shared.ClientID]shared.Magnitude {
 	// compute total effect of disaster on 6 islands
 	totalEffect := 0.0
 	updatedIndividualEffects := map[shared.ClientID]float64{}
