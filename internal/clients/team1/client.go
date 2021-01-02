@@ -12,29 +12,6 @@ import (
 
 const id = shared.Team1
 
-// ForageOutcome is how much we put in to a foraging trip and how much we got
-// back
-type ForageOutcome struct {
-	turn         uint
-	participant  shared.ClientID
-	contribution shared.Resources
-	revenue      shared.Resources
-}
-
-func (o ForageOutcome) ROI() float64 {
-	if o.contribution == 0 {
-		return 0
-	}
-
-	return float64((o.revenue / o.contribution) - 1)
-}
-
-func (o ForageOutcome) profit() shared.Resources {
-	return o.revenue - o.contribution
-}
-
-type ForageHistory map[shared.ForageType][]ForageOutcome
-
 type EmotionalState int
 
 const (
@@ -52,13 +29,7 @@ func (st EmotionalState) String() string {
 }
 
 func init() {
-	baseclient.RegisterClient(
-		id,
-		&client{
-			BaseClient:    baseclient.NewClient(id),
-			forageHistory: ForageHistory{},
-		},
-	)
+	baseclient.RegisterClient(id, NewClient(id))
 }
 
 type clientConfig struct {
@@ -85,14 +56,17 @@ type clientConfig struct {
 	// desperateStealAmount is the max randomness we will add to our foraging
 	// amount as a percentage of current resources
 	forageContributionNoisePercent float64
+
+	forageDecider forageDecider
 }
 
 // client is Lucy.
 type client struct {
 	*baseclient.BaseClient
 
-	forageHistory ForageHistory
-	taxAmount     shared.Resources
+	forageHistory        ForageHistory
+	expectedForageReward shared.Resources
+	taxAmount            shared.Resources
 
 	// allocation is the president's response to your last common pool resource request
 	allocation shared.Resources
@@ -114,7 +88,18 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			kickstartTaxPercent:            0.25,
 			forageContributionCapPercent:   0.2,
 			forageContributionNoisePercent: 0.01,
+			forageDecider:                  defaultForageDecider,
 		},
+	}
+}
+
+func defaultForageDecider(c client) (shared.ForageDecision, shared.Resources) {
+	if c.forageHistorySize() < c.config.randomForageTurns {
+		return randomDecider(c)
+	} else if c.emotionalState() == Desperate {
+		return desperateDecider(c)
+	} else {
+		return regressionDecider(c)
 	}
 }
 

@@ -9,24 +9,37 @@ import (
 	"github.com/sajari/regression"
 )
 
-/********************/
-/***  Desperation   */
-/********************/
-
-func (c *client) desperateForage() shared.ForageDecision {
-	forageDecision := shared.ForageDecision{
-		Type:         bestROIForageType(c.forageHistory),
-		Contribution: c.gameState().ClientInfo.Resources,
-	}
-	c.Logf("[Forage][Decision]: Desperate | Decision %v", forageDecision)
-	return forageDecision
+// ForageOutcome is how much we put in to a foraging trip and how much we got
+// back
+type ForageOutcome struct {
+	turn         uint
+	participant  shared.ClientID
+	contribution shared.Resources
+	revenue      shared.Resources
 }
+
+func (o ForageOutcome) ROI() float64 {
+	if o.contribution == 0 {
+		return 0
+	}
+
+	return float64((o.revenue / o.contribution) - 1)
+}
+
+func (o ForageOutcome) profit() shared.Resources {
+	return o.revenue - o.contribution
+}
+
+type ForageHistory map[shared.ForageType][]ForageOutcome
 
 /********************/
 /***    Foraging    */
 /********************/
 
-func (c *client) randomForage() shared.ForageDecision {
+// A forageDecider gives a ForageDecision as well as the expected reward if that decision is taken
+type forageDecider = func(client) (shared.ForageDecision, shared.Resources)
+
+func randomDecider(c client) (shared.ForageDecision, shared.Resources) {
 	// Up to 10% of our current resources
 	forageContribution := shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources
 
@@ -37,13 +50,122 @@ func (c *client) randomForage() shared.ForageDecision {
 		forageType = shared.FishForageType
 	}
 
-	c.Logf("[Forage][Decision]:Random")
+	c.Logf("[Forage][Decision]: Random")
 	// TODO Add fish foraging when it's done
-	return shared.ForageDecision{
+	return shared.ForageDecision {
 		Type:         forageType,
 		Contribution: forageContribution,
-	}
+	}, shared.Resources(-1)
 }
+
+func roiDecider(c client) (shared.ForageDecision, shared.Resources) {
+	forageType := bestROIForageType(c.forageHistory)
+	if forageType == shared.ForageType(-1) {
+		// Here we have found that the best idea is to not forage
+		return shared.ForageDecision{
+			Type:         shared.FishForageType,
+			Contribution: 0,
+		}, 0
+	}
+	expectedOutcome := bestROIOutcome(c.forageHistory[forageType])
+
+	contribution := expectedOutcome.contribution
+	// Cap to 20% of resources
+	contribution = shared.Resources(math.Min(
+		float64(contribution),
+		c.config.forageContributionCapPercent*float64(c.gameState().ClientInfo.Resources),
+	))
+	// Add some noise
+	contribution += shared.Resources(math.Min(
+		rand.Float64(),
+		c.config.forageContributionNoisePercent*float64(c.gameState().ClientInfo.Resources),
+	))
+
+	forageDecision := shared.ForageDecision{
+		Type:         forageType,
+		Contribution: contribution,
+	}
+	return forageDecision, expectedOutcome.revenue
+}
+
+func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
+	forageType := bestROIForageType(c.forageHistory)
+	r := outcomeRegression(c.forageHistory[forageType])
+	contribution := c.regressionOptimalContribution(r)
+	expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
+
+	return shared.ForageDecision{
+		Type: forageType,
+		Contribution: contribution,
+	}, shared.Resources(expectedRewardF)
+}
+
+func outcomeRegression(history []ForageOutcome) regression.Regression {
+	r := new(regression.Regression)
+	r.SetObserved("Team1 reward")
+	r.SetVar(0, "Team1 contribution")
+
+	for _, outcome := range history {
+		r.Train(regression.DataPoint(float64(outcome.revenue), []float64{float64(outcome.contribution)}))
+	}
+
+	r.AddCross(regression.PowCross(0, 2))
+	r.Run()
+
+	return *r
+}
+
+func (c *client) regressionOptimalContribution(r regression.Regression) shared.Resources {
+	if r.Coeff(2) > 0 {
+		// Curves up, mo money is mo money
+		return 0.4 * c.gameState().ClientInfo.Resources
+	}
+
+	// Curves down, mo money is not always mo money
+	return shared.Resources(-r.Coeff(1) / 2*r.Coeff(2))
+}
+
+func desperateDecider(c client) (shared.ForageDecision, shared.Resources) {
+	forageType := bestROIForageType(c.forageHistory)
+	contribution := c.gameState().ClientInfo.Resources
+
+	r := outcomeRegression(c.forageHistory[forageType])
+	expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
+
+	return shared.ForageDecision{
+		Type:         forageType,
+		Contribution: contribution,
+	}, shared.Resources(expectedRewardF)
+}
+
+func (c *client) DecideForage() (shared.ForageDecision, error) {
+	if (c.config.forageDecider == nil) {
+		panic("function is nil")
+	}
+	decision, expectedReward := c.config.forageDecider(*c)
+	c.expectedForageReward = expectedReward
+	return decision, nil
+}
+
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shared.Resources) {
+	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{
+		contribution: forageDecision.Contribution,
+		revenue:      revenue,
+		turn:         c.gameState().Turn,
+	})
+
+	c.Logf(
+		"[Forage result]: %v(%v) | Expected reward: %v | Reward: %v",
+		forageDecision.Type,
+		forageDecision.Contribution,
+		c.expectedForageReward,
+		revenue,
+	)
+}
+
+/************************/
+/***  Forage Helpers  ***/
+/************************/
 
 // bestROIForageType finds the ForageType that has the best average ROI. If all
 // forageTypes have negative returns then it returns shared.ForageType(-1)
@@ -79,89 +201,4 @@ func bestROIOutcome(history []ForageOutcome) ForageOutcome {
 		}
 	}
 	return bestOutcome
-}
-
-func outcomeRegression(history []ForageOutcome) regression.Regression {
-	r := new(regression.Regression)
-	r.SetObserved("Team1 reward")
-	r.SetVar(0, "Team1 contribution")
-
-	for _, outcome := range history {
-		r.Train(regression.DataPoint(float64(outcome.revenue), []float64{float64(outcome.contribution)}))
-	}
-
-	r.AddCross(regression.PowCross(0, 2))
-	r.Run()
-
-	return *r
-}
-
-func (c *client) regressionOptimalContribution(r regression.Regression) shared.Resources {
-	if r.Coeff(2) > 0 {
-		// Curves up, mo money is mo money
-		return 0.4 * c.gameState().ClientInfo.Resources
-	}
-
-	// Curves down, mo money is not always mo money
-	return shared.Resources(-r.Coeff(1) / 2*r.Coeff(2))
-}
-
-func (c *client) normalForage() shared.ForageDecision {
-	forageType := bestROIForageType(c.forageHistory)
-	if forageType == shared.ForageType(-1) {
-		// Here we have found that the best idea is to not forage
-		return shared.ForageDecision{
-			Type:         shared.FishForageType,
-			Contribution: 0,
-		}
-	}
-	expectedOutcome := bestROIOutcome(c.forageHistory[forageType])
-
-	contribution := expectedOutcome.contribution
-	// Cap to 20% of resources
-	contribution = shared.Resources(math.Min(
-		float64(contribution),
-		c.config.forageContributionCapPercent*float64(c.gameState().ClientInfo.Resources),
-	))
-	// Add some noise
-	contribution += shared.Resources(math.Min(
-		rand.Float64(),
-		c.config.forageContributionNoisePercent*float64(c.gameState().ClientInfo.Resources),
-	))
-
-	forageDecision := shared.ForageDecision{
-		Type:         forageType,
-		Contribution: contribution,
-	}
-	c.Logf(
-		"[Forage][Decision]: Decision %v | Expected ROI %v",
-		forageDecision, expectedOutcome.ROI())
-
-	return forageDecision
-}
-
-func (c *client) DecideForage() (shared.ForageDecision, error) {
-	if c.forageHistorySize() < c.config.randomForageTurns {
-		return c.randomForage(), nil
-	} else if c.emotionalState() == Desperate {
-		return c.desperateForage(), nil
-	} else {
-		return c.normalForage(), nil
-	}
-}
-
-func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shared.Resources) {
-	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{
-		contribution: forageDecision.Contribution,
-		revenue:      revenue,
-		turn:         c.gameState().Turn,
-	})
-
-	c.Logf(
-		"[Forage][Update]: ForageType %v | Profit %v | Contribution %v | Actual ROI %v",
-		forageDecision.Type,
-		revenue-forageDecision.Contribution,
-		forageDecision.Contribution,
-		(revenue/forageDecision.Contribution)-1,
-	)
 }
