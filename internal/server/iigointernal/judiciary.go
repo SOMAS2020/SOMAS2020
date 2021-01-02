@@ -188,7 +188,7 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 		broadcastPardonCommunications(j.JudgeID, communications)
 	}
 	j.localSanctionCache = newSanctionMap
-	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources)
+	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay)
 	SanctionAmountMapExport = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
 		communicateWithIslands(j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
@@ -233,12 +233,12 @@ func (j *judiciary) clearHistoryCache() {
 // Helper functions //
 
 // runEvaluationRulesOnSanctions uses the custom sanction evaluator calculate how much each island should be paying in sanctions
-func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.Resources) map[shared.ClientID]shared.Resources {
+func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.Resources, rulesCache map[string]rules.RuleMatrix) map[shared.ClientID]shared.Resources {
 	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
 	for _, sanctionList := range localSanctionCache {
 		for _, sanction := range sanctionList {
 			ruleName := getTierSanctionMap()[sanction.SanctionTier]
-			ruleMat := rules.RulesInPlay[ruleName]
+			ruleMat := rulesCache[ruleName]
 			sanctionVal := evaluateSanction(ruleMat, map[rules.VariableFieldName]rules.VariableValuePair{
 				rules.IslandReportedResources: {
 					VariableName: rules.IslandReportedResources,

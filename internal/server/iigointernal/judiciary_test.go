@@ -501,6 +501,160 @@ func TestApplySanctions(t *testing.T) {
 
 /// Unit tests ///
 
+// TestRunEvaluationRulesOnSanctions checks whether the runEvaluationsRulesOnSanctions is able to correctly use the
+// sanction evaluator to calculate how much each island should be paying in sanctions
+func TestRunEvaluationRulesOnSanctions(t *testing.T) {
+	cases := []struct {
+		name                    string
+		localSanctionCache      map[int][]roles.Sanction
+		reportedIslandResources map[shared.ClientID]shared.Resources
+		rulesCache              map[string]rules.RuleMatrix
+		expectedSanctions       map[shared.ClientID]shared.Resources
+	}{
+		{
+			name:               "Basic evaluations: no sanction",
+			localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
+			reportedIslandResources: map[shared.ClientID]shared.Resources{
+				shared.Team1: 50,
+			},
+			rulesCache:        generateRuleStore(),
+			expectedSanctions: map[shared.ClientID]shared.Resources{},
+		},
+		{
+			name: "Basic evaluations: singleSanction",
+			localSanctionCache: augmentBasicSanctionCache(0, []roles.Sanction{
+				{
+					ClientID:     shared.Team1,
+					SanctionTier: roles.SanctionTier1,
+					TurnsLeft:    2,
+				},
+			}),
+			reportedIslandResources: map[shared.ClientID]shared.Resources{
+				shared.Team1: 50,
+			},
+			rulesCache: generateRuleStore(),
+			expectedSanctions: map[shared.ClientID]shared.Resources{
+				shared.Team1: 0,
+			},
+		},
+		{
+			name: "Basic evaluations: multiple sanction",
+			localSanctionCache: augmentBasicSanctionCache(0, []roles.Sanction{
+				{
+					ClientID:     shared.Team1,
+					SanctionTier: roles.SanctionTier2,
+					TurnsLeft:    2,
+				},
+				{
+					ClientID:     shared.Team3,
+					SanctionTier: roles.SanctionTier3,
+					TurnsLeft:    2,
+				},
+			}),
+			reportedIslandResources: map[shared.ClientID]shared.Resources{
+				shared.Team1: 50,
+				shared.Team3: 100,
+			},
+			rulesCache: generateRuleStore(),
+			expectedSanctions: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team3: 30,
+			},
+		},
+		{
+			name: "Evaluations: multiple sanction with timeout",
+			localSanctionCache: augmentBasicSanctionCache(0, []roles.Sanction{
+				{
+					ClientID:     shared.Team1,
+					SanctionTier: roles.SanctionTier2,
+					TurnsLeft:    2,
+				},
+				{
+					ClientID:     shared.Team3,
+					SanctionTier: roles.SanctionTier3,
+					TurnsLeft:    2,
+				},
+				{
+					ClientID:     shared.Team4,
+					SanctionTier: roles.SanctionTier3,
+					TurnsLeft:    0,
+				},
+			}),
+			reportedIslandResources: map[shared.ClientID]shared.Resources{
+				shared.Team1: 50,
+				shared.Team3: 100,
+				shared.Team4: 150,
+			},
+			rulesCache: generateRuleStore(),
+			expectedSanctions: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team3: 30,
+				shared.Team4: 0,
+			},
+		},
+		{
+			name: "Evaluations: complex case",
+			localSanctionCache: augmentBasicSanctionCache(1, []roles.Sanction{
+				{
+					ClientID:     shared.Team1,
+					SanctionTier: roles.SanctionTier2,
+					TurnsLeft:    2,
+				},
+				{
+					ClientID:     shared.Team2,
+					SanctionTier: roles.SanctionTier2,
+					TurnsLeft:    2,
+				},
+				{
+					ClientID:     shared.Team3,
+					SanctionTier: roles.SanctionTier3,
+					TurnsLeft:    2,
+				},
+				{
+					ClientID:     shared.Team4,
+					SanctionTier: roles.SanctionTier4,
+					TurnsLeft:    0,
+				},
+				{
+					ClientID:     shared.Team5,
+					SanctionTier: roles.SanctionTier5,
+					TurnsLeft:    3,
+				},
+				{
+					ClientID:     shared.Team6,
+					SanctionTier: roles.SanctionTier1,
+					TurnsLeft:    0,
+				},
+			}),
+			reportedIslandResources: map[shared.ClientID]shared.Resources{
+				shared.Team1: 50,
+				shared.Team2: 50,
+				shared.Team3: 100,
+				shared.Team4: 150,
+				shared.Team5: 20,
+				shared.Team6: 100,
+			},
+			rulesCache: generateRuleStore(),
+			expectedSanctions: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 5,
+				shared.Team3: 30,
+				shared.Team4: 0,
+				shared.Team5: 16,
+				shared.Team6: 0,
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := runEvaluationRulesOnSanctions(tc.localSanctionCache, tc.reportedIslandResources, tc.rulesCache)
+			if !reflect.DeepEqual(res, tc.expectedSanctions) {
+				t.Errorf("Expected %v got %v", tc.expectedSanctions, res)
+			}
+		})
+	}
+}
+
 // TestDecrementSanctionTime checks whether the decrementSanctionTime function is able to reduce the time
 // on the given sanctions by one time step.
 func TestDecrementSanctionTime(t *testing.T) {
@@ -1568,4 +1722,10 @@ func checkListOfSanctionEquals(list1 []roles.Sanction, list2 []roles.Sanction) b
 		map2[val] = 0
 	}
 	return reflect.DeepEqual(map1, map2)
+}
+
+func augmentBasicSanctionCache(time int, additionalSanctions []roles.Sanction) map[int][]roles.Sanction {
+	basicCache := defaultInitLocalSanctionCache(sanctionCacheDepth)
+	basicCache[time] = append(basicCache[time], additionalSanctions...)
+	return basicCache
 }
