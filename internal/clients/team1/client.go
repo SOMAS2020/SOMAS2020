@@ -22,6 +22,18 @@ type ForageOutcome struct {
 	revenue      shared.Resources
 }
 
+func (o ForageOutcome) ROI() float64 {
+	if o.contribution == 0 {
+		return 0
+	}
+
+	return float64((o.revenue / o.contribution) - 1)
+}
+
+func (o ForageOutcome) profit() shared.Resources {
+	return o.revenue - o.contribution
+}
+
 type ForageHistory map[shared.ForageType][]ForageOutcome
 
 type EmotionalState int
@@ -223,15 +235,11 @@ func bestROIForageType(forageHistory ForageHistory) shared.ForageType {
 	bestForageType := shared.ForageType(-1)
 	bestROI := 0.0
 
-	// TODO: We could also do this in one go. So just repeat the exact decision
-	// that gave the best ROI, instead of picking forageType based on its
-	// average ROI
-
 	for forageType, outcomes := range forageHistory {
 		ROIsum := 0.0
 		for _, outcome := range outcomes {
 			if outcome.contribution != 0 {
-				ROIsum += float64(outcome.revenue/outcome.contribution) - 1
+				ROIsum += outcome.ROI()
 			}
 		}
 
@@ -246,49 +254,47 @@ func bestROIForageType(forageHistory ForageHistory) shared.ForageType {
 	return bestForageType
 }
 
-func (c *client) normalForage() shared.ForageDecision {
-	bestForageType := bestROIForageType(c.forageHistory)
+func bestROIOutcome(history []ForageOutcome) ForageOutcome {
+	bestOutcome := ForageOutcome{}
 
-	if bestForageType == shared.ForageType(-1) {
+	for _, outcome := range history {
+		if outcome.profit() >= 10 && outcome.contribution != 0 && outcome.ROI() > bestOutcome.ROI() {
+			bestOutcome = outcome
+		}
+	}
+	return bestOutcome
+}
+
+func (c *client) normalForage() shared.ForageDecision {
+	forageType := bestROIForageType(c.forageHistory)
+	if forageType == shared.ForageType(-1) {
+		// Here we have found that the best idea is to not forage
 		return shared.ForageDecision{
 			Type:         shared.FishForageType,
 			Contribution: 0,
 		}
 	}
+	expectedOutcome := bestROIOutcome(c.forageHistory[forageType])
 
-	// Find the value of resources that gave us the best return and add some
-	// noise to it. Cap to 20% of our stockpile
-	pastOutcomes := c.forageHistory[bestForageType]
-	bestValue := shared.Resources(0)
-	bestValueROI := shared.Resources(0)
-	for _, outcome := range pastOutcomes {
-		if outcome.revenue-outcome.contribution < 10 {
-			continue
-		}
-		if outcome.contribution != 0 {
-			ROI := (outcome.revenue / outcome.contribution) - 1
-			if ROI > bestValueROI {
-				bestValue = outcome.contribution
-				bestValueROI = ROI
-			}
-		}
-	}
-	bestValue = shared.Resources(math.Min(
-		float64(bestValue),
+	contribution := expectedOutcome.contribution
+	// Cap to 20% of resources
+	contribution = shared.Resources(math.Min(
+		float64(contribution),
 		float64(0.2*c.gameState().ClientInfo.Resources)),
 	)
-	bestValue += shared.Resources(math.Min(
+	// Add some noise
+	contribution += shared.Resources(math.Min(
 		rand.Float64(),
 		float64(0.01*c.gameState().ClientInfo.Resources),
 	))
 
 	forageDecision := shared.ForageDecision{
-		Type:         bestForageType,
-		Contribution: bestValue,
+		Type:         forageType,
+		Contribution: contribution,
 	}
 	c.Logf(
 		"[Forage][Decision]: Decision %v | Expected ROI %v",
-		forageDecision, bestValueROI)
+		forageDecision, expectedOutcome.ROI())
 
 	return forageDecision
 }
