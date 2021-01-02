@@ -21,22 +21,12 @@ func (s *SOMASServer) runIIGO() error {
 }
 
 func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) {
-	if _, ok := s.gameState.IIGOHistory[s.gameState.Turn]; ok {
-		s.gameState.IIGOHistory[s.gameState.Turn] = append(s.gameState.IIGOHistory[s.gameState.Turn],
-			shared.Accountability{
-				ClientID: clientID,
-				Pairs:    pairs,
-			},
-		)
-	} else {
-		s.gameState.IIGOHistory[s.gameState.Turn] = []shared.Accountability{
-			{
-				ClientID: clientID,
-				Pairs:    pairs,
-			},
-		}
-	}
-
+	s.gameState.IIGOHistory[s.gameState.Turn] = append(s.gameState.IIGOHistory[s.gameState.Turn],
+		shared.Accountability{
+			ClientID: clientID,
+			Pairs:    pairs,
+		},
+	)
 }
 
 func (s *SOMASServer) runIIGOTax() error {
