@@ -37,6 +37,7 @@ type client struct {
 	presidentPerformance map[shared.ClientID]int
 
 	// ## Game state & History ##
+	criticalStatePrediction criticalStatePrediction
 
 	// unused or replaced by getter functions
 	// currentIteration iterationInfo
@@ -61,6 +62,11 @@ type client struct {
 	params islandParams
 	// iigoInfo caches information regarding iigo in the current turn
 	iigoInfo iigoCommunicationInfo
+}
+
+type criticalStatePrediction struct {
+	upperBound shared.Resources
+	lowerBound shared.Resources
 }
 
 type islandParams struct {
