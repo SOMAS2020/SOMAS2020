@@ -17,6 +17,7 @@ const (
 	CommunicationResources
 	CommunicationIIGORule
 	CommunicationIIGOVar
+	CommunicationIIGORole
 )
 
 func (c CommunicationContentType) String() string {
@@ -27,6 +28,7 @@ func (c CommunicationContentType) String() string {
 		"CommunicationResources",
 		"CommunicationIIGORule",
 		"CommunicationIIGOVar",
+		"CommunicationIIGORole",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]
@@ -58,17 +60,16 @@ type CommunicationContent struct {
 	ResourcesData Resources
 	IIGORuleData  rules.RuleMatrix
 	IIGOVarData   rules.VariableValuePair
+	IIGORoleData  Role
 }
 
 type CommunicationFieldName int
 
 const (
 	BallotID CommunicationFieldName = iota
-	PresidentAllocationCheck
 	SpeakerID
 	RoleConducted
 	ResAllocID
-	SpeakerBallotCheck
 	PresidentID
 	RuleName
 	RuleVoteResult
@@ -78,16 +79,21 @@ const (
 	AllocationAmount
 	AllocationRule
 	AllocationVariable
+	PardonClientID
+	PardonTier
+	SanctionAmount
+	RoleMonitored
+	MonitoringResult
+	IIGOSanctionTier
+	IIGOSanctionScore
 )
 
 func (c CommunicationFieldName) String() string {
 	strs := [...]string{
 		"BallotID",
-		"PresidentAllocationCheck",
 		"SpeakerID",
 		"RoleConducted",
 		"ResAllocID",
-		"SpeakerBallotCheck",
 		"PresidentID",
 		"RuleName",
 		"RuleVoteResult",
@@ -97,6 +103,13 @@ func (c CommunicationFieldName) String() string {
 		"AllocationAmount",
 		"AllocationRule",
 		"AllocationVariable",
+		"PardonClientID",
+		"PardonTier",
+		"SanctionAmount",
+		"RoleMonitored",
+		"MonitoringResult",
+		"IIGOSanctionTier",
+		"IIGOSanctionScore",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]

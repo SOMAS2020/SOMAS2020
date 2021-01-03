@@ -9,6 +9,6 @@ type President interface {
 	SetTaxationAmount(map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent
 	EvaluateAllocationRequests(map[shared.ClientID]shared.Resources, shared.Resources) shared.PresidentReturnContent
 	PickRuleToVote([]string) shared.PresidentReturnContent
-	CallSpeakerElection(int, []shared.ClientID) shared.ElectionSettings
+	CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings
 	DecideNextSpeaker(shared.ClientID) shared.ClientID
 }

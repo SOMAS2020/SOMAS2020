@@ -59,3 +59,10 @@ func Contains(islandIDSlice []shared.ClientID, islandID shared.ClientID) bool {
 	}
 	return false
 }
+
+func boolToFloat(input bool) float64 {
+	if input {
+		return 1
+	}
+	return 0
+}

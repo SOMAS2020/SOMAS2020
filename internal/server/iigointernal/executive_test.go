@@ -360,10 +360,10 @@ func TestGetTaxMap(t *testing.T) {
 func TestGetRuleForSpeaker(t *testing.T) {
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
-		IIGORolesBudget: map[string]shared.Resources{
-			"president": 10,
-			"speaker":   10,
-			"judge":     10,
+		IIGORolesBudget: map[shared.Role]shared.Resources{
+			shared.President: 10,
+			shared.Speaker:   10,
+			shared.Judge:     10,
 		},
 	}
 	cases := []struct {
@@ -652,10 +652,10 @@ func TestReplyAllocationRequest(t *testing.T) {
 			fakeClientMap := map[shared.ClientID]baseclient.Client{}
 			fakeGameState := gamestate.GameState{
 				CommonPool: tc.commonPool,
-				IIGORolesBudget: map[string]shared.Resources{
-					"president": 10,
-					"speaker":   10,
-					"judge":     10,
+				IIGORolesBudget: map[shared.Role]shared.Resources{
+					shared.President: 10,
+					shared.Speaker:   10,
+					shared.Judge:     10,
 				},
 			}
 
@@ -669,7 +669,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			setIIGOClients(&fakeClientMap)
 			tc.bPresident.setGameState(&fakeGameState)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
-			tc.bPresident.replyAllocationRequest(tc.commonPool, aliveID)
+			tc.bPresident.replyAllocationRequest(tc.commonPool)
 
 			for clientID, expectedAllocation := range tc.expected {
 				communicationsGot := *(fakeClientMap[clientID]).GetCommunications()
@@ -771,10 +771,10 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 100,
-						"speaker":   10,
-						"judge":     10,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 100,
+						shared.Speaker:   10,
+						shared.Judge:     10,
 					},
 				},
 			},
@@ -789,10 +789,10 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 10,
-						"speaker":   10,
-						"judge":     10,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
 					},
 				},
 			},
@@ -807,10 +807,10 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 40,
-					IIGORolesBudget: map[string]shared.Resources{
-						"president": 10,
-						"speaker":   10,
-						"judge":     10,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
 					},
 				},
 			},
@@ -825,7 +825,7 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			returned := tc.bPresident.incurServiceCharge(tc.input)
 			commonPool := tc.bPresident.gameState.CommonPool
-			presidentBudget := tc.bPresident.gameState.IIGORolesBudget["president"]
+			presidentBudget := tc.bPresident.gameState.IIGORolesBudget[shared.President]
 			if returned != tc.expectedReturn ||
 				commonPool != tc.expectedCommonPool ||
 				presidentBudget != tc.expectedPresidentBudget {

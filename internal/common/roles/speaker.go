@@ -9,6 +9,6 @@ type Speaker interface {
 	DecideAgenda(string) shared.SpeakerReturnContent
 	DecideVote(string, []shared.ClientID) shared.SpeakerReturnContent
 	DecideAnnouncement(string, bool) shared.SpeakerReturnContent
-	CallJudgeElection(int, []shared.ClientID) shared.ElectionSettings
+	CallJudgeElection(shared.MonitorResult, int, []shared.ClientID) shared.ElectionSettings
 	DecideNextJudge(shared.ClientID) shared.ClientID
 }
