@@ -58,6 +58,8 @@ type client struct {
 
 	// params is list of island wide function parameters
 	params islandParams
+
+	iigoInfo iigoCommunicationInfo
 }
 
 type islandParams struct {
@@ -76,4 +78,24 @@ type islandParams struct {
 	friendliness                float64
 	anger                       float64
 	aggression                  float64
+}
+
+type iigoCommunicationInfo struct {
+	// ourRole stores our current role in the IIGO
+	ourRole *shared.Role
+	// commonPoolAllocation gives resources allocated by president from requests
+	commonPoolAllocation shared.Resources
+	// taxationAmount gives tax amount decided by president
+	taxationAmount shared.Resources
+	// ruleVotingResults is a map of rules and the result of the vote for it
+	// true -> yes, false -> no
+	ruleVotingResults map[string]bool
+	// ruleVotingResultAnnounced stores whether a specific rule vote was announced
+	ruleVotingResultAnnounced map[string]bool
+	// monitoringOutcomes stores the outcome of the monitoring of an island.
+	// key is the role being monitored.
+	// true -> correct performance, false -> incorrect performance.
+	monitoringOutcomes map[shared.Role]bool
+	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
+	monitoringDeclared map[shared.Role]bool
 }
