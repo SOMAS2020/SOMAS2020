@@ -72,9 +72,21 @@ type ForageInfo struct {
 	ResourcesObtained shared.Resources
 }
 
+type GiftInfo struct {
+	requested shared.GiftRequest
+	gifted    shared.GiftOffer
+	reason    shared.AcceptReason
+}
+
+type GiftExchange struct {
+	IslandRequest map[uint]GiftInfo
+	OurRequest    map[uint]GiftInfo
+}
+
 type OpinionHist map[shared.ClientID]Opinion
 type PredictionsHist map[shared.ClientID][]shared.DisasterPrediction
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo
+type GiftHist map[shared.ClientID]GiftExchange
 
 func init() {
 	baseclient.RegisterClient(
@@ -99,6 +111,7 @@ type client struct {
 	opinionHist         OpinionHist
 	predictionsHist     PredictionsHist
 	foragingReturnsHist ForagingReturnsHist
+	giftHist            GiftHist
 }
 
 //NewClient After declaring the struct we have to actually make an object for the client
@@ -129,10 +142,6 @@ func (c *client) islandEmpathyLevel() EmpathyLevel {
 	}
 }
 
-//func (c *client) StartTurn() shared.Resources {
-//
-//}
-
 func criticalStatus(c *client) bool {
 	clientInfo := c.gameState().ClientInfo
 	if clientInfo.LifeStatus == shared.Critical { //not sure about shared.Critical
@@ -142,7 +151,6 @@ func criticalStatus(c *client) bool {
 }
 
 //TODO: maybe change if else statements to switch case
-
 //determines how much to request from the pool
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	clientInfo := c.gameState().ClientInfo
@@ -311,159 +319,3 @@ func (c *client) determine_fair(turn uint) float64 { //can make more sophisticat
 	}
 	return 0
 }
-
-/////////////////////////////////////// TRUST /////////////////////////////////////////////
-
-// Calculates the confidence we have in an island based on our past experience with them
-// Depending on the situation we need to judge, we look at a different history
-// The values in the histories should be updated in retrospect
-func (c *client) confidence(situation Situation, otherIsland shared.ClientID) int {
-	islandHist := c.opinionHist[otherIsland].Histories
-	situationHist := islandHist[situation]
-	sum := 0
-	for i := 0; i < len(situationHist); i++ {
-		sum += (situationHist[i])
-	}
-
-	average := sum / (len(situationHist))
-
-	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
-	islandSituationPerf.exp = average
-	c.opinionHist[otherIsland].Performances[situation] = islandSituationPerf
-
-	return average
-
-}
-
-// Updates the HISTORY of an island in the required situation by comparing the expected
-// performance with the reality
-// Should be called after an action (with an island) has occurred
-func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.ClientID) {
-	islandHist := c.opinionHist[otherIsland].Histories
-	situationHist := islandHist[situation]
-
-	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
-	situationExp := islandSituationPerf.exp
-	situationReal := islandSituationPerf.real
-	confidenceFactor := 5 // Factor by which the confidence increases/decreases, can be changed
-
-	var updatedHist []int
-	if situationExp > situationReal { // We expected more
-		diff := situationExp - situationReal
-		updatedHist = append(situationHist, situationExp-diff*confidenceFactor)
-	} else if situationExp < situationReal {
-		diff := situationReal - situationExp
-		updatedHist = append(situationHist, situationExp+diff*confidenceFactor)
-	} else {
-		updatedHist = append(situationHist, situationExp)
-	}
-
-	c.opinionHist[otherIsland].Histories[situation] = updatedHist
-}
-
-// The implementation of this function (if needed) depends on where (and how) the confidence
-// function is called in the first place
-// func (c *client) confidenceReality(situation string, otherIsland shared.ClientID) {
-
-// }
-
-//func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
-//Situation
-func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
-	//Situation
-	// Long term vs short term importance
-	// how much they have gifted in general
-	// their transparency, ethical behaviour as an island (have they shared their foraging predictions, their cp intended contributions, etc)
-	// their empathy level
-	// how they acted during a role
-	// performance (how well they are doing)
-	return 0
-}
-
-/////////////////////////////////////// DISASTER /////////////////////////////////////////////
-
-// ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,
-// that they have been granted access to see
-func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
-	for island, prediction := range receivedPredictions {
-		updatedHist := append(c.predictionsHist[island], prediction.PredictionMade)
-		c.predictionsHist[island] = updatedHist
-	}
-}
-
-/////////////////////////////////////// FORAGING /////////////////////////////////////////////
-
-// ReceiveForageInfo lets clients know what other clients have obtained from their most recent foraging attempt.
-// Most recent foraging attempt includes information about: foraging DecisionMade and ResourceObtained as well
-// as where this information came from.
-// OPTIONAL.
-func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
-	// Return on Investment
-
-	for _, val := range neighbourForaging {
-		decisionMade := val.DecisionMade
-		resourcesObtained := val.ResourceObtained
-
-		newResult := ForageInfo{
-			DecisionMade:      decisionMade,
-			ResourcesObtained: resourcesObtained,
-		}
-		hist := append(c.foragingReturnsHist[val.SharedFrom], newResult)
-		c.foragingReturnsHist[val.SharedFrom] = hist
-	}
-}
-
-/////////////////////////////////////// GIFTS /////////////////////////////////////////////
-
-// GetGiftRequests allows clients to signalize that they want a gift
-// This information is fed to OfferGifts of all other clients.
-func (c *client) GetGiftRequests() shared.GiftRequestDict {
-	requests := shared.GiftRequestDict{}
-
-	// You can fetch the clients which are alive like this:
-	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if status == shared.Critical {
-			requests[team] = shared.GiftRequest(100.0)
-		} else {
-			requests[team] = shared.GiftRequest(0.0)
-		}
-	}
-	return requests
-}
-
-// func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
-// 	offers := shared.GiftOfferDict{}
-
-// 	// You can fetch the clients which are alive like this:
-// 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-// 		if status == shared.Critical {
-// 			offers[team] = shared.GiftOffer(100.0)
-// 		} else {
-// 			offers[team] = shared.GiftOffer(0.0)
-// 		}
-// 	}
-// 	return offers
-// }
-// }
-// func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict {
-// 	return
-// }
-// func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
-// 	return
-// }
-// func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
-// 	return
-// }
-// func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
-// 	return
-// }
-//return 0   //uncomment
-//}              //uncomment
-//return 0   //uncomment
-//}              //uncomment
-//return 0   //uncomment
-//}              //uncomment
-//return 0   //uncomment
-//}              //uncomment
-//return 0   //uncomment
-//}              //uncomment
