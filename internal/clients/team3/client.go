@@ -76,4 +76,5 @@ type islandParams struct {
 	friendliness                float64
 	anger                       float64
 	aggression                  float64
+	sensitivity                 float64
 }

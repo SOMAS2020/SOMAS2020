@@ -119,6 +119,32 @@ func (c *client) evalJudgePerformance() {
 	// } else {
 	// 	evalOfJudge -= c.trustScore[c.ServerReadHandle.GetGameState().SpeakerID]
 	// }
+func (c *client) evalPresidentPerformance() {
+	evalOfPresident := float64(c.presidentPerformance[c.ServerReadHandle.GetGameState().PresidentID])
+	if judgeEvalOfPresident == 1 {
+		evalOfPresident += c.trustScore[c.ServerReadHandle.GetGameState().JudgeID]
+	}
+	if judgeEvalOfPresident == 0 {
+		evalOfPresident -= c.trustScore[c.ServerReadHandle.GetGameState().JudgeID]
+	}
+
+	// // Allocation of ressources
+	// evalOfSpeaker += (allocationReceived - allocationRequested) * sensitivity
+
+	// // Speaker election
+	// if ourVote == voteResult:
+	// 	evalOfPresident += sensitivity
+	// else:
+	// evalOfPresident -= sensitivity
+
+	// // Rules picked
+	// if ourRule == rulePicked:
+	// 	evalOfPresident += sensitivity
+	// else:
+	// 	evalOfPresident -= sensitivity
+
+	// // Taxation
+	// evalOfSpeaker += (taxationAmount - idealTaxationAmount) * sensitivity
 }
 
 /*
