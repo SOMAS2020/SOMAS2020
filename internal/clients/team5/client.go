@@ -2,10 +2,6 @@
 package team5
 
 import (
-	//"fmt"
-	//"math"
-	//"math/rand"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -45,22 +41,6 @@ type client struct {
 	config 				clientConfig
 }
 
-// func NewClient(clientID shared.ClientID) baseclient.Client {
-// 	return &client{
-// 		BaseClient:    baseclient.NewClient(clientID),
-// 		forageHistory: ForageHistory{},
-// 		cpRequestHistory: CPRequestHistory{},
-// 		cpAllocationHistory: CPAllocationHistory{},
-// 		taxAmount:     0,
-// 		allocation:    0,
-// 		config: clientConfig{
-// 			randomForageTurns: 5,      // Richness Thresholds      
-// 			JBThreshold:       100,      
-// 			MiddleThreshold:   60,     
-// 			ImperialThreshold: 30,	
-// 		},
-// 	}
-// }
 
 func (c client) wealth() WealthTier {  
 	c_data := c.gameState().ClientInfo  
