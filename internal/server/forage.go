@@ -102,6 +102,7 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	hunt, err := foraging.CreateDeerHunt(
 		contributions,
 		dhConf,
+		s.logf,
 	)
 	if err != nil {
 		return errors.Errorf("Error running deer hunt: %v", err)

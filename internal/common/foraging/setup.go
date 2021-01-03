@@ -7,12 +7,12 @@ import (
 )
 
 // CreateDeerHunt receives hunt participants and their contributions and returns a DeerHunt
-func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.Resources, dhConf config.DeerHuntConfig) (DeerHunt, error) {
+func CreateDeerHunt(teamResourceInputs map[shared.ClientID]shared.Resources, dhConf config.DeerHuntConfig, logger shared.Logger) (DeerHunt, error) {
 	if len(teamResourceInputs) == 0 {
 		return DeerHunt{}, errors.Errorf("No deer hunt resource contributions specified!")
 	}
 	params := deerHuntParams{p: dhConf.BernoulliProb, lam: dhConf.ExponentialRate}
-	return DeerHunt{ParticipantContributions: teamResourceInputs, params: params}, nil // returning error too for future use
+	return DeerHunt{ParticipantContributions: teamResourceInputs, params: params, logger: logger}, nil // returning error too for future use
 }
 
 // CreateFishingExpedition sees the participants and their contributions and returns the value of FishHunt
