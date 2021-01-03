@@ -35,6 +35,10 @@ type client struct {
 	speakerPerformance   map[shared.ClientID]int
 	presidentPerformance map[shared.ClientID]int
 
+	// ## IIGO ##
+	ruleVotedOn    string
+	ourVoteForRule bool
+
 	// ## Game state & History ##
 
 	// unused or replaced by getter functions

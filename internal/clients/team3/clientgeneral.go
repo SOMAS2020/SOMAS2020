@@ -126,7 +126,7 @@ func (c *client) evalJudgePerformance() {
 	// Use the president's evaluation of the judge to determine how well the judge performed
 	var presidentEvalOfJudge bool
 
-	if monitoringDeclared[PresidentID] == true {
+	if monitoringDeclared[JudgeID] == true {
 		presidentEvalOfJudge = monitoringOutcomes[JudgeID] * c.params.sensitivity
 	}
 
@@ -141,7 +141,7 @@ func (c *client) evalPresidentPerformance() {
 	JudgeID := c.ServerReadHandle.GetGameState().JudgeID
 	SpeakerID := c.ServerReadHandle.GetGameState().SpeakerID
 	PresidentID := c.ServerReadHandle.GetGameState().PresidentID
-	evalOfPresident := float64(c.judgePerformance[JudgeID])
+	evalOfPresident := float64(c.presidentPerformance[PresidentID])
 
 	// If the president didn't evaluate the judge, the president didn't do a good job
 	if c.iigoCommunicationInfo.monitoringDeclared[JudgeID] == false {
@@ -151,7 +151,7 @@ func (c *client) evalPresidentPerformance() {
 	// Use the speaker's evaluation of the president to determine how well the president performed
 	var speakerEvalofPresident bool
 
-	if monitoringDeclared[SpeakerID] == true {
+	if monitoringDeclared[PresidentID] == true {
 		speakerEvalofPresident = c.iigoCommunicationInfo.monitoringOutcomes[PresidentID] * c.params.sensitivity
 	}
 
@@ -161,23 +161,47 @@ func (c *client) evalPresidentPerformance() {
 		evalOfPresident -= c.trustScore[SpeakerID] * c.params.sensitivity
 	}
 
-	evalOfPresident += (c.iigoCommunicationInfo.commonPoolAllocation - c.iigoCommunicationInfo.commonPoolAllocationRequest) * sensitivity
+	evalOfPresident += (c.iigoCommunicationInfo.commonPoolAllocation - CommonPoolResourceRequest()) * c.params.sensitivity
+
+	if PickRuleToVote() == c.ruleVotedOn {
+		evalOfPresident += c.params.sensitivity
+	} else {
+		evalOfPresident -= c.params.sensitivity
+	}
+
+	evalOfPresident += (SetTaxationAmount() - c.iigoCommunicationInfo.taxationAmount) * c.params.sensitivity
 }
 
-// // Speaker election
-// if ourVote == voteResult:
-// 	evalOfPresident += sensitivity
-// else:
-// evalOfPresident -= sensitivity
+func (c *client) evalSpeakerPerformance() {
+	JudgeID := c.ServerReadHandle.GetGameState().JudgeID
+	SpeakerID := c.ServerReadHandle.GetGameState().SpeakerID
+	PresidentID := c.ServerReadHandle.GetGameState().PresidentID
+	evalOfSpeaker := float64(c.speakerPerformance[SpeakerID])
 
-// // Rules picked
-// if ourRule == rulePicked:
-// 	evalOfPresident += sensitivity
-// else:
-// 	evalOfPresident -= sensitivity
+	// If the speaker didn't evaluate the president, the speaker didn't do a good job
+	if c.iigoCommunicationInfo.monitoringDeclared[PresidentID] == false {
+		evalOfSpeaker -= c.trustScore[SpeakerID] * c.params.sensitivity
+	}
 
-// // Taxation
-// evalOfSpeaker += (taxationAmount - idealTaxationAmount) * sensitivity
+	// Use the judge's evaluation of the speaker to determine how well the speaker performed
+	var judgeEvalofSpeaker bool
+
+	if monitoringDeclared[SpeakerID] == true {
+		judgeEvalofSpeaker = c.iigoCommunicationInfo.monitoringOutcomes[SpeakerID] * c.params.sensitivity
+	}
+
+	if judgeEvalofSpeaker == true {
+		evalOfSpeaker += c.trustScore[JudgeID] * c.params.sensitivity
+	} else {
+		evalOfSpeaker -= c.trustScore[JudgeID] * c.params.sensitivity
+	}
+
+	if c.ourVoteForRule != ruleVotingResults[c.ruleVotedOn] {
+		evalOfSpeaker += c.params.sensitivity
+	} else {
+		evalOfSpeaker -= c.params.sensitivity
+	}
+}
 
 /*
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
