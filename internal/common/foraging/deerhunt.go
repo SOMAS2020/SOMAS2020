@@ -66,6 +66,10 @@ func (d DeerHunt) getPopulationLinkedProbability(dhConf config.DeerHuntConfig, p
 	thetaCritical := dhConf.ThetaCritical
 	thetaMax := dhConf.ThetaMax
 	p := float64(population) / float64(dhConf.MaxDeerPerHunt)
+
+	if pMax == pCritical { // catch the special case where max deer per hunt = max population. You've got params wrong if you're here though :)
+		return thetaCritical * float64(p) // same as f1. Avoid calculating alpha
+	}
 	alpha := (thetaMax - thetaCritical) / (pMax - float64(pCritical))
 
 	f1 := func(p float64) float64 { return thetaCritical * float64(p) }
