@@ -17,13 +17,11 @@ func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 }
 
 // probeDisaster checks if a disaster occurs this turn
-func (s *SOMASServer) applyDisasterEffects() error {
+func (s *SOMASServer) applyDisasterEffects() {
 	s.logf("start applyDisasterEffects")
 	defer s.logf("finish applyDisasterEffects")
 
 	e := s.gameState.Environment
 	effects := e.ComputeDisasterEffects(s.gameState.CommonPool, s.gameConfig.DisasterConfig) // get disaster effects - absolute, proportional and CP-mitigated
 	s.islandDeplete(effects.CommonPoolMitigated)                                             //island's resource will be depleted by disaster only when disaster happens and cp cannot fully mitigate
-
-	return nil
 }
