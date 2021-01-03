@@ -140,8 +140,8 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 	}
 
 	var totalScore float64 = 0
-	for i := 0; i < len(finalScore); i++ {
-		totalScore += float64(finalScore[i])
+	for _, v := range finalScore {
+		totalScore += float64(v)
 	}
 
 	return finalScore, variance, totalScore
