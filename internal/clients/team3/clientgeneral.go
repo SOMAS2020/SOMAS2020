@@ -113,12 +113,31 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 }
 
 func (c *client) evalJudgePerformance() {
-	evalOfJudge := float64(c.judgePerformance[c.ServerReadHandle.GetGameState().JudgeID])
-	// if speakerEvalOfJudge == 1 {
-	// 	evalOfJudge += c.trustScore[c.ServerReadHandle.GetGameState().SpeakerID]
-	// } else {
-	// 	evalOfJudge -= c.trustScore[c.ServerReadHandle.GetGameState().SpeakerID]
-	// }
+	JudgeID := c.ServerReadHandle.GetGameState().JudgeID
+	SpeakerID := c.ServerReadHandle.GetGameState().SpeakerID
+	PresidentID := c.ServerReadHandle.GetGameState().PresidentID
+	evalOfJudge := float64(c.judgePerformance[JudgeID])
+
+	// If the judge didn't evaluate the speaker, the judge didn't do a good job
+	if monitoringDeclared[SpeakerID] == false {
+		evalOfJudge -= c.trustScore[JudgeID] * c.params.sensitivity
+	}
+
+	// Use the president's evaluation of the judge to determine how well the judge performed
+	var presidentEvalOFJudge bool
+
+	if monitoringDeclared[PresidentID] == true {
+		presidentEvalOFJudge = monitoringOutcomes[JudgeID] * c.params.sensitivity
+	}
+
+	if presidentEvalOfJudge == true {
+		evalOfJudge += c.trustScore[PresidentID] * c.params.sensitivity
+	} else {
+		evalOfJudge -= c.trustScore[PresidentID] * c.params.sensitivity
+	}
+
+}
+
 func (c *client) evalPresidentPerformance() {
 	evalOfPresident := float64(c.presidentPerformance[c.ServerReadHandle.GetGameState().PresidentID])
 	if judgeEvalOfPresident == 1 {
