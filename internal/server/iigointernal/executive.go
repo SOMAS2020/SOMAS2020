@@ -235,22 +235,23 @@ func (e *executive) incurServiceCharge(cost shared.Resources) bool {
 	return ok
 }
 
+// convertAmount takes the amount of tax/allocation and converts it into appropriate variable and rule ready to be sent to the client
 func convertAmount(amount shared.Resources, amountType conversionType) (rules.VariableValuePair, rules.RuleMatrix) {
 	var reqVar rules.VariableFieldName
 	var sentVar rules.VariableFieldName
-
+	var ruleVariables []rules.VariableFieldName
 	if amountType == tax {
 		reqVar, sentVar = rules.IslandTaxContribution, rules.ExpectedTaxContribution
+		// Rule in form IslandTaxContribution - ExpectedTaxContribution >= 0
+		ruleVariables = []rules.VariableFieldName{reqVar, sentVar}
 	} else if amountType == allocation {
 		reqVar, sentVar = rules.IslandAllocation, rules.ExpectedAllocation
+		// Rule in form ExpectedAllocation - IslandAllocation >= 0
+		ruleVariables = []rules.VariableFieldName{sentVar, reqVar}
 	}
 
-	ruleVariables := []rules.VariableFieldName{reqVar, sentVar}
-
-	print(ruleVariables)
-
 	v := []float64{1, -1, 0}
-	aux := []float64{0}
+	aux := []float64{2}
 
 	rowLength := len(ruleVariables) + 1
 	nrows := len(v) / rowLength

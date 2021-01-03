@@ -883,9 +883,13 @@ func TestBroadcastTaxation(t *testing.T) {
 
 				rules.UpdateVariable(gotVar.VariableName, gotVar)
 
-				// Check that the rule evaluates to false with unmatched value of TaxContribution
-				// Note! This check only works if reported resources are different between 2 consecutive clients
-				// This is due to global rule evaluation instead of a local one
+				// Update the TaxContribuition to 0
+				rules.UpdateVariable(rules.IslandTaxContribution,
+					rules.VariableValuePair{
+						VariableName: rules.IslandTaxContribution, Values: []float64{0},
+					},
+				)
+
 				eval, err := rules.BasicBooleanRuleEvaluator(rule.RuleName)
 
 				if err != nil {
