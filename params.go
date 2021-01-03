@@ -138,6 +138,7 @@ var (
 		int(shared.EqualSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
+
 	// config.DisasterConfig
 	disasterXMin = flag.Float64(
 		"disasterXMin",
@@ -183,6 +184,94 @@ var (
 		"disasterCommonpoolThreshold",
 		50,
 		"Common pool threshold value for disaster to be mitigated",
+	)
+
+	// config.IIGOConfig - Executive branch
+	iigoGetRuleForSpeakerActionCost = flag.Float64(
+		"iigoGetRuleForSpeakerActionCost",
+		10,
+		"IIGO action cost for getRuleForSpeaker action",
+	)
+	iigoBroadcastTaxationActionCost = flag.Float64(
+		"iigoBroadcastTaxationActionCost",
+		10,
+		"IIGO action cost for broadcastTaxation action",
+	)
+	iigoReplyAllocationRequestsActionCost = flag.Float64(
+		"iigoReplyAllocationRequestsActionCost",
+		10,
+		"IIGO action cost for replyAllocationRequests action",
+	)
+	iigoRequestAllocationRequestActionCost = flag.Float64(
+		"iigoRequestAllocationRequestActionCost",
+		10,
+		"IIGO action cost for requestAllocationRequest action",
+	)
+	iigoRequestRuleProposalActionCost = flag.Float64(
+		"iigoRequestRuleProposalActionCost",
+		10,
+		"IIGO action cost for requestRuleProposal action",
+	)
+	iigoAppointNextSpeakerActionCost = flag.Float64(
+		"iigoAppointNextSpeakerActionCost",
+		10,
+		"IIGO action cost for appointNextSpeaker action",
+	)
+
+	// config.IIGOConfig - Judiciary branch
+	iigoInspectHistoryActionCost = flag.Float64(
+		"iigoInspectHistoryActionCost",
+		10,
+		"IIGO action cost for inspectHistory",
+	)
+
+	iigoInspectBallotActionCost = flag.Float64(
+		"iigoInspectBallotActionCost",
+		10,
+		"IIGO action cost for inspectBallot",
+	)
+
+	iigoInspectAllocationActionCost = flag.Float64(
+		"iigoInspectAllocationActionCost",
+		10,
+		"IIGO action cost for inspectAllocation",
+	)
+
+	iigoAppointNextPresidentActionCost = flag.Float64(
+		"iigoAppointNextPresidentActionCost",
+		10,
+		"IIGO action cost for appointNextPresident",
+	)
+
+	// config.IIGOConfig - Legislative branch
+	iigoSetVotingResultActionCost = flag.Float64(
+		"iigoSetVotingResultActionCost",
+		10,
+		"IIGO action cost for setVotingResult",
+	)
+
+	iigoSetRuleToVoteActionCost = flag.Float64(
+		"iigoSetRuleToVoteActionCost",
+		10,
+		"IIGO action cost for setRuleToVote action",
+	)
+
+	iigoAnnounceVotingResultActionCost = flag.Float64(
+		"iigoAnnounceVotingResultActionCost",
+		10,
+		"IIGO action cost for announceVotingResult action",
+	)
+
+	iigoUpdateRulesActionCost = flag.Float64(
+		"iigoUpdateRulesActionCost",
+		10,
+		"IIGO action cost for updateRules action",
+	)
+
+	iigoAppointNextJudgeActionCost = flag.Float64(
+		"iigoAppointNextJudgeActionCost",
+		10,
+		"IIGO action cost for appointNextJudge action",
 	)
 )
 
@@ -252,6 +341,29 @@ func parseConfig() (config.Config, error) {
 		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
 		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
 	}
+
+	iigoConf := config.IIGOConfig{
+
+		// Executive branch
+		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
+		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),
+		ReplyAllocationRequestsActionCost:  shared.Resources(*iigoReplyAllocationRequestsActionCost),
+		RequestAllocationRequestActionCost: shared.Resources(*iigoRequestAllocationRequestActionCost),
+		RequestRuleProposalActionCost:      shared.Resources(*iigoRequestRuleProposalActionCost),
+		AppointNextSpeakerActionCost:       shared.Resources(*iigoAppointNextSpeakerActionCost),
+		// Judiciary branch
+		InspectHistoryActionCost:       shared.Resources(*iigoInspectHistoryActionCost),
+		InspectBallotActionCost:        shared.Resources(*iigoInspectBallotActionCost),
+		InspectAllocationActionCost:    shared.Resources(*iigoInspectAllocationActionCost),
+		AppointNextPresidentActionCost: shared.Resources(*iigoAppointNextPresidentActionCost),
+		// Legislative branch
+		SetVotingResultActionCost:      shared.Resources(*iigoSetVotingResultActionCost),
+		SetRuleToVoteActionCost:        shared.Resources(*iigoSetRuleToVoteActionCost),
+		AnnounceVotingResultActionCost: shared.Resources(*iigoAnnounceVotingResultActionCost),
+		UpdateRulesActionCost:          shared.Resources(*iigoUpdateRulesActionCost),
+		AppointNextJudgeActionCost:     shared.Resources(*iigoAppointNextJudgeActionCost),
+	}
+
 	return config.Config{
 		MaxSeasons:                  *maxSeasons,
 		MaxTurns:                    *maxTurns,
@@ -262,5 +374,6 @@ func parseConfig() (config.Config, error) {
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
+		IIGOConfig:                  iigoConf,
 	}, nil
 }

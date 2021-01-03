@@ -68,10 +68,15 @@ func createSOMASServer(
 			Environment:     disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
 			ForagingHistory: forageHistory,
 			IIGOHistory:     map[uint][]shared.Accountability{},
-			SpeakerID:       shared.Team1,
-			JudgeID:         shared.Team2,
-			PresidentID:     shared.Team3,
-			CommonPool:      gameConfig.InitialCommonPool,
+			IIGORolesBudget: map[shared.Role]shared.Resources{
+				shared.President: 0,
+				shared.Judge:     0,
+				shared.Speaker:   0,
+			},
+			SpeakerID:   shared.Team1,
+			JudgeID:     shared.Team2,
+			PresidentID: shared.Team3,
+			CommonPool:  gameConfig.InitialCommonPool,
 		},
 	}
 	server.gameState.DeerPopulation = foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig, server.logf)
