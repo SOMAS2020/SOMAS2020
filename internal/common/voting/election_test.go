@@ -46,8 +46,7 @@ func (e *Election) bordaCountTest() ([]int, shared.ClientID) {
 		if maxScore < scoreList[i] {
 			maxScore = scoreList[i]
 			winnerIndex = i
-		}
-		if maxScore == scoreList[i] {
+		} else if maxScore == scoreList[i] {
 			if variance[winnerIndex] < variance[i] {
 				winnerIndex = i
 			}
@@ -92,8 +91,7 @@ func (e *Election) runOffTest(clientMap map[shared.ClientID]baseclient.Client) (
 		for i := 0; i < voterNumber; i++ {
 			if rTwoVotes[i][0] == rOneCandidateList[maxScoreIndex] {
 				remainNumber++
-			}
-			if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
+			} else if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
 				changeNumber++
 			}
 		}
