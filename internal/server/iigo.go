@@ -21,7 +21,7 @@ func (s *SOMASServer) runIIGO() error {
 }
 
 func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) {
-	s.gameState.IIGOHistory = append(s.gameState.IIGOHistory,
+	s.gameState.IIGOHistory[s.gameState.Turn] = append(s.gameState.IIGOHistory[s.gameState.Turn],
 		shared.Accountability{
 			ClientID: clientID,
 			Pairs:    pairs,

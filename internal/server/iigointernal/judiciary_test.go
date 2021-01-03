@@ -539,6 +539,41 @@ func TestCreateBroadcastsForSanctionThresholds(t *testing.T) {
 	}
 }
 
+func TestCreateBroadcastsForRuleViolationPenalties(t *testing.T) {
+	cases := []struct {
+		name                   string
+		violationPenalties     map[string]roles.IIGOSanctionScore
+		expectedCommunications []map[shared.CommunicationFieldName]shared.CommunicationContent
+	}{
+		{
+			name: "Sanction thresholds test",
+			violationPenalties: map[string]roles.IIGOSanctionScore{
+				"inspect_allocation_rule": 50,
+			},
+			expectedCommunications: []map[shared.CommunicationFieldName]shared.CommunicationContent{
+				{
+					shared.IIGOSanctionTier: {
+						T:        shared.CommunicationString,
+						TextData: "inspect_allocation_rule",
+					},
+					shared.IIGOSanctionScore: {
+						T:           shared.CommunicationInt,
+						IntegerData: int(50),
+					},
+				},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := createBroadcastsForRuleViolationPenalties(tc.violationPenalties)
+			if !reflect.DeepEqual(tc.expectedCommunications, res) {
+				t.Errorf("Expected %v got %v", tc.expectedCommunications, res)
+			}
+		})
+	}
+}
+
 // TestRunEvaluationRulesOnSanctions checks whether the runEvaluationsRulesOnSanctions is able to correctly use the
 // sanction evaluator to calculate how much each island should be paying in sanctions
 func TestRunEvaluationRulesOnSanctions(t *testing.T) {
