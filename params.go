@@ -51,7 +51,7 @@ var (
 	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
-		"Max possible number of deer on a single hunt (regardless of number of participants).",
+		"Max possible number of deer on a single hunt (regardless of number of participants). ** should be strictly less than max deer population.",
 	)
 	foragingDeerIncrementalInputDecay = flag.Float64(
 		"foragingDeerIncrementalInputDecay",
@@ -96,7 +96,7 @@ var (
 	foragingDeerMaxPopulation = flag.Uint(
 		"foragingDeerMaxPopulation",
 		12,
-		"Max possible deer population.",
+		"Max possible deer population. ** Should be strictly greater than max deer per hunt.",
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",
@@ -194,6 +194,14 @@ func parseConfig() (config.Config, error) {
 		return config.Config{}, errors.Errorf("Error parsing foragingDeerDistributionStrategy: %v", err)
 	}
 
+	parsedDeerMaxPerHunt, parseDeerMaxPopulation, err := shared.ParseDeerPopulationParams(
+		*foragingDeerMaxPerHunt,
+		*foragingDeerMaxPopulation,
+	)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingDeerMaxPerHunt and/or foragingDeerMaxPopulation: %v", err)
+	}
+
 	parsedForagingFishingDistributionStrategy, err := shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy)
 	if err != nil {
 		return config.Config{}, errors.Errorf("Error parsing foragingFishingDistributionStrategy: %v", err)
@@ -206,7 +214,7 @@ func parseConfig() (config.Config, error) {
 
 	deerConf := config.DeerHuntConfig{
 		//Deer parameters
-		MaxDeerPerHunt:        *foragingDeerMaxPerHunt,
+		MaxDeerPerHunt:        parsedDeerMaxPerHunt,
 		IncrementalInputDecay: *foragingDeerIncrementalInputDecay,
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
@@ -216,7 +224,7 @@ func parseConfig() (config.Config, error) {
 		ThetaCritical:         *foragingDeerThetaCritical,
 		ThetaMax:              *foragingDeerThetaMax,
 
-		MaxDeerPopulation:     *foragingDeerMaxPopulation,
+		MaxDeerPopulation:     parseDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
 	}
 	fishingConf := config.FishingConfig{
