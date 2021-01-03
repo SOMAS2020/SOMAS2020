@@ -44,6 +44,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c *client) StartOfTurn() {
 	// c.Logf("Start of turn!")
 	// TODO add any functions and vairable changes here
+	c.updateCompliance()
 	c.resetIIGOInfo()
 }
 
