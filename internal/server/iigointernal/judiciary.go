@@ -41,6 +41,11 @@ func (j *judiciary) loadSanctionConfig() {
 	j.broadcastSanctionConfig()
 }
 
+func (j *judiciary) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
+	j.gameState = gameState
+	j.gameConf = gameConf
+}
+
 func (j *judiciary) broadcastSanctionConfig() {
 	broadcastGeneric(j.JudgeID, createBroadcastsForSanctionThresholds(j.sanctionThresholds))
 	broadcastGeneric(j.JudgeID, createBroadcastsForRuleViolationPenalties(j.ruleViolationSeverity))

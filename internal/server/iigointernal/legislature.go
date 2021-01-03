@@ -32,6 +32,11 @@ func (l *legislature) loadClientSpeaker(clientSpeakerPointer roles.Speaker) {
 	l.clientSpeaker = clientSpeakerPointer
 }
 
+func (l *legislature) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
+	l.gameState = gameState
+	l.gameConf = gameConf
+}
+
 // sendJudgeSalary conduct the transaction based on amount from client implementation
 func (l *legislature) sendJudgeSalary() error {
 	if l.clientSpeaker != nil {

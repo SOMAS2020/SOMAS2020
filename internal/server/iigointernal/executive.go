@@ -31,6 +31,11 @@ func (e *executive) loadClientPresident(clientPresidentPointer roles.President) 
 	e.clientPresident = clientPresidentPointer
 }
 
+func (e *executive) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
+	e.gameState = gameState
+	e.gameConf = gameConf
+}
+
 // returnSpeakerSalary returns the salary to the common pool.
 func (e *executive) returnSpeakerSalary() shared.Resources {
 	x := e.speakerSalary
