@@ -12,6 +12,8 @@ import (
 	"log"
 	"os"
 	"path"
+	"runtime"
+	"time"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
 	"github.com/SOMAS2020/SOMAS2020/pkg/fileutils"
@@ -52,8 +54,13 @@ func initLogger() {
 }
 
 func main() {
+	timeStart := time.Now()
 	flag.Parse()
-	gameConfig := parseConfig()
+	gameConfig, err := parseConfig()
+	if err != nil {
+		log.Printf("Flag parse error: %v\nUse --help.", err)
+		os.Exit(1)
+	}
 	s := server.NewSOMASServer(gameConfig)
 	if gameStates, err := s.EntryPoint(); err != nil {
 		log.Printf("Run failed with: %+v", err)
@@ -65,11 +72,19 @@ func main() {
 			fmt.Printf("===== START OF TURN %v (END OF TURN %v) =====\n", st.Turn, st.Turn-1)
 			fmt.Printf("%#v\n", st)
 		}
-
+		timeEnd := time.Now()
 		outputJSON(output{
 			GameStates: gameStates,
 			Config:     gameConfig,
 			GitInfo:    getGitInfo(),
+			RunInfo: runInfo{
+				TimeStart:       timeStart,
+				TimeEnd:         timeEnd,
+				DurationSeconds: timeEnd.Sub(timeStart).Seconds(),
+				Version:         runtime.Version(),
+				GOOS:            runtime.GOOS,
+				GOARCH:          runtime.GOARCH,
+			},
 		})
 	}
 }
