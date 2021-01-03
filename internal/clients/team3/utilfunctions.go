@@ -39,3 +39,16 @@ func getAverage(lst []float64) float64 {
 
 	return (float64(total) / float64(len(lst)))
 }
+
+// getIslandsAlive retrives number of islands still alive
+func (c *client) isClientStatusCritical(ClientID shared.ClientID) bool {
+	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
+
+	currentState := c.BaseClient.ServerReadHandle.GetGameState()
+	lifeStatuses = currentState.ClientLifeStatuses
+
+	if lifeStatuses[ClientID] == shared.Critical {
+		return true
+	}
+	return false
+}
