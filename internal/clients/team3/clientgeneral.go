@@ -112,6 +112,34 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 	}
 }
 
+func (c *client) evalPresidentPerformance() {
+	evalOfPresident := float64(c.presidentPerformance[c.ServerReadHandle.GetGameState().PresidentID])
+	if judgeEvalOfPresident == 1 {
+		evalOfPresident += c.trustScore[c.ServerReadHandle.GetGameState().JudgeID]
+	}
+	if judgeEvalOfPresident == 0 {
+		evalOfPresident -= c.trustScore[c.ServerReadHandle.GetGameState().JudgeID]
+	}
+
+	// // Allocation of ressources
+	// evalOfSpeaker += (allocationReceived - allocationRequested) * sensitivity
+
+	// // Speaker election
+	// if ourVote == voteResult:
+	// 	evalOfPresident += sensitivity
+	// else:
+	// evalOfPresident -= sensitivity
+
+	// // Rules picked
+	// if ourRule == rulePicked:
+	// 	evalOfPresident += sensitivity
+	// else:
+	// 	evalOfPresident -= sensitivity
+
+	// // Taxation
+	// evalOfSpeaker += (taxationAmount - idealTaxationAmount) * sensitivity
+}
+
 /*
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
