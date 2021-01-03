@@ -3,6 +3,7 @@ package iigointernal
 import (
 	"fmt"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -20,6 +21,7 @@ const sanctionLength = 2
 
 type judiciary struct {
 	gameState             *gamestate.GameState
+	gameConf              *config.IIGOConfig
 	JudgeID               shared.ClientID
 	presidentSalary       shared.Resources
 	evaluationResults     map[shared.ClientID]roles.EvaluationReturn
@@ -73,7 +75,7 @@ func (j *judiciary) sendPresidentSalary() error {
 // inspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	if !CheckEnoughInCommonPool(actionCost.InspectHistoryActionCost, j.gameState) {
+	if !CheckEnoughInCommonPool(j.gameConf.InspectHistoryActionCost, j.gameState) {
 		return nil, false
 	}
 	finalResults := getBaseEvalResults(shared.TeamIDs)
@@ -81,7 +83,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 		for turnsAgo, v := range j.localHistoryCache {
 			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)
 			if rsuccess {
-				if !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
+				if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
 					return nil, false
 				}
 				for key, accounts := range res {
@@ -118,7 +120,7 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 	var nextPresident shared.ClientID
 	electionsettings := j.clientJudge.CallPresidentElection(monitoring, j.presidentTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
-		if !j.incurServiceCharge(actionCost.InspectHistoryActionCost) {
+		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
 			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 		}
 		election.ProposeElection(shared.President, electionsettings.VotingMethod)

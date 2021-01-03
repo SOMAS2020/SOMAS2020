@@ -3,6 +3,7 @@ package iigointernal
 import (
 	"fmt"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -13,6 +14,7 @@ import (
 
 type legislature struct {
 	gameState         *gamestate.GameState
+	gameConf          *config.IIGOConfig
 	SpeakerID         shared.ClientID
 	judgeSalary       shared.Resources
 	ruleToVote        string
@@ -50,13 +52,13 @@ func (l *legislature) sendJudgeSalary() error {
 
 // Receive a rule to call a vote on
 func (l *legislature) setRuleToVote(r string) error {
-	if !CheckEnoughInCommonPool(actionCost.SetRuleToVoteActionCost, l.gameState) {
+	if !CheckEnoughInCommonPool(l.gameConf.SetRuleToVoteActionCost, l.gameState) {
 		return errors.Errorf("Insufficient Budget in common Pool: setRuleToVote")
 	}
 
 	agendaReturn := l.clientSpeaker.DecideAgenda(r)
 	if agendaReturn.ActionTaken && agendaReturn.ContentType == shared.SpeakerAgenda {
-		if !l.incurServiceCharge(actionCost.SetRuleToVoteActionCost) {
+		if !l.incurServiceCharge(l.gameConf.SetRuleToVoteActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: setRuleToVote")
 		}
 		l.ruleToVote = agendaReturn.RuleID
@@ -67,13 +69,13 @@ func (l *legislature) setRuleToVote(r string) error {
 //Asks islands to vote on a rule
 //Called by orchestration
 func (l *legislature) setVotingResult(clientIDs []shared.ClientID) error {
-	if !CheckEnoughInCommonPool(actionCost.SetVotingResultActionCost, l.gameState) {
+	if !CheckEnoughInCommonPool(l.gameConf.SetVotingResultActionCost, l.gameState) {
 		return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
 	}
 
 	returnVote := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
 	if returnVote.ActionTaken && returnVote.ContentType == shared.SpeakerVote {
-		if !l.incurServiceCharge(actionCost.SetVotingResultActionCost) {
+		if !l.incurServiceCharge(l.gameConf.SetVotingResultActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
 		}
 		l.ballotBox = l.RunVote(returnVote.RuleID, returnVote.ParticipatingIslands)
@@ -111,7 +113,7 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
 func (l *legislature) announceVotingResult() error {
-	if !CheckEnoughInCommonPool(actionCost.AnnounceVotingResultActionCost, l.gameState) {
+	if !CheckEnoughInCommonPool(l.gameConf.AnnounceVotingResultActionCost, l.gameState) {
 		return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
 	}
 
@@ -119,7 +121,7 @@ func (l *legislature) announceVotingResult() error {
 
 	if returnAnouncement.ActionTaken && returnAnouncement.ContentType == shared.SpeakerAnnouncement {
 		//Deduct action cost
-		if !l.incurServiceCharge(actionCost.AnnounceVotingResultActionCost) {
+		if !l.incurServiceCharge(l.gameConf.AnnounceVotingResultActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
 		}
 
@@ -157,7 +159,7 @@ func (l *legislature) reset() {
 
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
-	if !l.incurServiceCharge(actionCost.UpdateRulesActionCost) {
+	if !l.incurServiceCharge(l.gameConf.UpdateRulesActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: updateRules")
 	}
 	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
@@ -190,7 +192,7 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 	var nextJudge shared.ClientID
 	electionsettings := l.clientSpeaker.CallJudgeElection(monitoring, l.judgeTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
-		if !l.incurServiceCharge(actionCost.AppointNextJudgeActionCost) {
+		if !l.incurServiceCharge(l.gameConf.AppointNextJudgeActionCost) {
 			return l.gameState.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
 		}
 		election.ProposeElection(shared.Judge, electionsettings.VotingMethod)

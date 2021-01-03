@@ -10,13 +10,11 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-// Single source of truth for all action
-var actionCost config.IIGOConfig
-
 // featureJudge is an instantiation of the Judge interface
 // with both the Base Judge features and a reference to client judges
 var judicialBranch = judiciary{
 	gameState:          nil,
+	gameConf:           nil,
 	JudgeID:            0,
 	presidentSalary:    0,
 	evaluationResults:  nil,
@@ -28,6 +26,7 @@ var judicialBranch = judiciary{
 // with both the baseSpeaker features and a reference to client speakers
 var legislativeBranch = legislature{
 	gameState:    nil,
+	gameConf:     nil,
 	SpeakerID:    0,
 	judgeSalary:  0,
 	ruleToVote:   "",
@@ -39,6 +38,7 @@ var legislativeBranch = legislature{
 // with both the basePresident features and a reference to client presidents
 var executiveBranch = executive{
 	gameState:        nil,
+	gameConf:         nil,
 	PresidentID:      0,
 	speakerSalary:    0,
 	ResourceRequests: nil,
@@ -64,8 +64,6 @@ var iigoClients map[shared.ClientID]baseclient.Client
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
 
-	actionCost = gameConf.IIGOConfig
-
 	var monitoring = monitor{
 		speakerID:         g.SpeakerID,
 		presidentID:       g.PresidentID,
@@ -85,6 +83,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	judicialBranch.gameState = g
 	legislativeBranch.gameState = g
 	executiveBranch.gameState = g
+
+	judicialBranch.gameConf = &gameConf.IIGOConfig
+	legislativeBranch.gameConf = &gameConf.IIGOConfig
+	executiveBranch.gameConf = &gameConf.IIGOConfig
 
 	// Initialise IDs
 	judicialBranch.JudgeID = g.JudgeID
@@ -108,7 +110,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	errorJudicial := judicialBranch.sendPresidentSalary()
 	errorLegislative := legislativeBranch.sendJudgeSalary()
 	errorExecutive := executiveBranch.sendSpeakerSalary()
-	// Throw error
+	// Return false only after attempting to pay all roles their salary
 	if errorJudicial != nil || errorLegislative != nil || errorExecutive != nil {
 		return false, "Cannot pay IIGO salary"
 	}
@@ -199,6 +201,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// TODO:- at the moment, these are action (and cost resources) but should they?
 	var appointJudgeError, appointSpeakerError, appointPresidentError error
 	// Get new Judge ID
+	actionCost := gameConf.IIGOConfig
 	costOfElection := actionCost.AppointNextSpeakerActionCost + actionCost.AppointNextJudgeActionCost + actionCost.AppointNextPresidentActionCost
 	if !CheckEnoughInCommonPool(costOfElection, g) {
 		return false, "Insufficient budget to run IIGO elections"
