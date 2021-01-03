@@ -174,25 +174,23 @@ func BasicLinkedRuleEvaluator(ruleName string) (bool, error) {
 		link := rm.Link
 		if !link.Linked {
 			return BasicBooleanRuleEvaluator(ruleName)
-		} else {
-			if link.LinkType == ParentFailAutoRulePass {
-				childRule := link.LinkedRule
-				parentPass, parentErr := BasicBooleanRuleEvaluator(ruleName)
-				if parentErr != nil {
-					return false, errors.Errorf("Parent Rule errored out wiht : %v", parentErr)
-				}
-				if !parentPass {
-					return true, nil
-				}
-				childPass, childErr := BasicBooleanRuleEvaluator(childRule)
-				if childErr != nil {
-					return false, errors.Errorf("Parent Rule errored out wiht : %v", childErr)
-				}
-				return childPass, nil
-			} else {
-				return false, errors.Errorf("Unrecognised rule linking %v", link.LinkType)
-			}
 		}
+		if link.LinkType == ParentFailAutoRulePass {
+			childRule := link.LinkedRule
+			parentPass, parentErr := BasicBooleanRuleEvaluator(ruleName)
+			if parentErr != nil {
+				return false, errors.Errorf("Parent Rule errored out with : %v", parentErr)
+			}
+			if !parentPass {
+				return true, nil
+			}
+			childPass, childErr := BasicBooleanRuleEvaluator(childRule)
+			if childErr != nil {
+				return false, errors.Errorf("Parent Rule errored out with : %v", childErr)
+			}
+			return childPass, nil
+		}
+		return false, errors.Errorf("Unrecognised rule linking %v", link.LinkType)
 	}
 	return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 }
