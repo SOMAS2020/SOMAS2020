@@ -6,7 +6,7 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-func ruleMul(variableFormalVect mat.VecDense, ApplicableMatrix mat.Dense) *mat.VecDense {
+func RuleMul(variableFormalVect mat.VecDense, ApplicableMatrix mat.Dense) *mat.VecDense {
 	nRows, _ := ApplicableMatrix.Dims()
 
 	actual := make([]float64, nRows)
@@ -19,7 +19,7 @@ func ruleMul(variableFormalVect mat.VecDense, ApplicableMatrix mat.Dense) *mat.V
 
 }
 
-func genResult(aux mat.VecDense, c *mat.VecDense) ([]bool, error) {
+func GenResult(aux mat.VecDense, c *mat.VecDense) ([]bool, error) {
 	var resultVect []bool
 	nRows, _ := c.Dims()
 
@@ -44,7 +44,7 @@ func genResult(aux mat.VecDense, c *mat.VecDense) ([]bool, error) {
 
 }
 
-func genRealResult(aux mat.VecDense, c *mat.VecDense) ([]bool, float64, error) {
+func GenRealResult(aux mat.VecDense, c *mat.VecDense) ([]bool, float64, error) {
 	var resultVect []bool
 	nRows, _ := c.Dims()
 
@@ -72,7 +72,7 @@ func genRealResult(aux mat.VecDense, c *mat.VecDense) ([]bool, float64, error) {
 	return resultVect, outputVal, nil
 }
 
-func checkForFalse(resultVect []bool) bool {
+func CheckForFalse(resultVect []bool) bool {
 
 	for _, v := range resultVect {
 		if !v {
@@ -86,16 +86,16 @@ func checkForFalse(resultVect []bool) bool {
 
 // BasicBooleanRuleEvaluator implements a basic version of the Matrix rule evaluator, provides single boolean output (and error if present)
 func BasicBooleanRuleEvaluator(matrixRule rules.RuleMatrix, currentVals mat.VecDense) (bool, error) {
-	resultVect := ruleMul(currentVals, matrixRule.ApplicableMatrix)
-	resultsBool, _ := genResult(matrixRule.AuxiliaryVector, resultVect)
-	return checkForFalse(resultsBool), nil
+	resultVect := RuleMul(currentVals, matrixRule.ApplicableMatrix)
+	resultsBool, _ := GenResult(matrixRule.AuxiliaryVector, resultVect)
+	return CheckForFalse(resultsBool), nil
 }
 
 // BasicRealValuedRuleEvaluator implements real valued rule evaluation in the same form as the boolean one
 func BasicRealValuedRuleEvaluator(matrixRule rules.RuleMatrix, currentVals mat.VecDense) (bool, float64, error) {
-	resultVect := ruleMul(currentVals, matrixRule.ApplicableMatrix)
-	resultsBool, _, _ := genRealResult(matrixRule.AuxiliaryVector, resultVect)
-	return checkForFalse(resultsBool), 0.0, nil
+	resultVect := RuleMul(currentVals, matrixRule.ApplicableMatrix)
+	resultsBool, _, _ := GenRealResult(matrixRule.AuxiliaryVector, resultVect)
+	return CheckForFalse(resultsBool), 0.0, nil
 }
 
 func RuleEvaluation(matrixRule rules.RuleMatrix, currentVals mat.VecDense) bool {

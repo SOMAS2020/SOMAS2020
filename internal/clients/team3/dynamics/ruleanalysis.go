@@ -29,8 +29,52 @@ func GetDistanceToSubspace(dynamics []dynamic, location mat.VecDense) float64 {
 	return 0.0
 }
 
+type Input struct {
+	Name             rules.VariableFieldName
+	ClientAdjustable bool
+	Value            []float64
+}
+
+func FindClosestApproach(ruleMatrix rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) (namedOutputs map[rules.VariableFieldName]Input) {
+	// Get raw data for processing
+	droppedInputs := dropAllInputStructs(namedInputs)
+	// Evaluate the rule on this data
+	results, success := evaluateSingle(ruleMatrix, droppedInputs)
+	if success {
+		// Find any results in the vector that indicate a failure condition
+		deficient, err := IdentifyDeficiencies(results, ruleMatrix.AuxiliaryVector)
+		if len(deficient) == 0 {
+			// If none are given, the submitted position is good, return
+			return namedInputs
+		}
+		if err == nil {
+			// Build selected dynamic structures
+			selectedDynamics := BuildSelectedDynamics(ruleMatrix, ruleMatrix.AuxiliaryVector, deficient)
+			// We now need to add the dynamics implied by the present inputs (things we can't change)
+			// First work out which inputs these are
+			immutables := fetchImmutableInputs(namedInputs)
+			// Collapse map to list
+			allInputs := collapseInputsMap(namedInputs)
+			// Work out dimensions of w
+			fullSize := calculateFullSpaceSize(allInputs)
+			// Select the immutable inputs
+			immutableInputs := selectInputs(namedInputs, immutables)
+			// Calculate all the extra dynamics
+			extraDynamics, success2 := constructAllImmutableDynamics(immutableInputs, ruleMatrix, fullSize)
+			if success2 {
+				// Append the restrictions to the dynamics
+				selectedDynamics = append(selectedDynamics, extraDynamics...)
+			}
+			// We are ready to use the findClosestApproach internal function
+			bestPosition := findClosestApproachInSubspace(ruleMatrix, selectedDynamics, *decodeValues(ruleMatrix, droppedInputs))
+			return laceOutputs(bestPosition, ruleMatrix, droppedInputs, namedInputs)
+		}
+	}
+	return map[rules.VariableFieldName]Input{}
+}
+
 // findClosestApproachInSubspace works out the closest point in the rule subspace to the current location
-func FindClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dynamic, location mat.VecDense) mat.VecDense {
+func findClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dynamic, location mat.VecDense) mat.VecDense {
 	if len(dynamics) == 0 {
 		return location
 	}
@@ -47,7 +91,7 @@ func FindClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dy
 	} else {
 		xSlice := dynamics[:indexOfSmall]
 		ySlice := dynamics[indexOfSmall+1:]
-		return FindClosestApproachInSubspace(matrixOfRules, append(xSlice, ySlice...), location)
+		return findClosestApproachInSubspace(matrixOfRules, append(xSlice, ySlice...), location)
 	}
 }
 
@@ -121,6 +165,144 @@ func FindMinimumRequirements(deficients []int, aux mat.VecDense) []float64 {
 		}
 	}
 	return outputMins
+}
+
+func laceOutputs(vector mat.VecDense, ruleMat rules.RuleMatrix, droppedInputs map[rules.VariableFieldName][]float64, original map[rules.VariableFieldName]Input) (namedOutputs map[rules.VariableFieldName]Input) {
+	outputs := make(map[rules.VariableFieldName]Input)
+	mark := 0
+	for _, name := range ruleMat.RequiredVariables {
+		input := droppedInputs[name]
+		output := []float64{}
+		for i := 0; i < len(input); i++ {
+			output = append(output, vector.AtVec(mark+i))
+		}
+		mark = len(input)
+		inp := Input{
+			Name:             name,
+			ClientAdjustable: original[name].ClientAdjustable,
+			Value:            output,
+		}
+		outputs[name] = inp
+	}
+	return outputs
+}
+
+func selectInputs(data map[rules.VariableFieldName]Input, needed []rules.VariableFieldName) []Input {
+	outputs := []Input{}
+	for _, name := range needed {
+		outputs = append(outputs, data[name])
+	}
+	return outputs
+}
+
+func collapseInputsMap(data map[rules.VariableFieldName]Input) []Input {
+	inputs := []Input{}
+	for _, val := range data {
+		inputs = append(inputs, val)
+	}
+	return inputs
+}
+
+func calculateFullSpaceSize(inputs []Input) int {
+	size := 0
+	for _, input := range inputs {
+		size += len(input.Value)
+	}
+	return size
+}
+
+func constructAllImmutableDynamics(immutables []Input, ruleMat rules.RuleMatrix, fullSize int) ([]dynamic, bool) {
+	success := true
+	allDynamics := []dynamic{}
+	for _, immutable := range immutables {
+		dyn, succ := constructImmutableDynamic(immutable, ruleMat.RequiredVariables, fullSize)
+		success = success && succ
+		allDynamics = append(allDynamics, dyn)
+	}
+	return allDynamics, success
+}
+
+func constructImmutableDynamic(immutable Input, reqVar []rules.VariableFieldName, fullSize int) (dynamic, bool) {
+	index := getIndexOfVar(immutable.Name, reqVar)
+	if index != -1 {
+		newDynamic := dynamic{
+			aux: 0,
+		}
+		deltaVect := []float64{}
+		for i := 0; i < fullSize; i++ {
+			deltaVect = append(deltaVect, 0)
+		}
+		for i := 0; i < len(immutable.Value); i++ {
+			deltaVect[i+index] = 0.0
+		}
+		w := mat.NewVecDense(len(deltaVect), deltaVect)
+		b := sumBValues(immutable.Value)
+		newDynamic.w = *w
+		newDynamic.b = b
+		return newDynamic, true
+	}
+	return dynamic{}, false
+}
+
+func sumBValues(values []float64) float64 {
+	val := 0.0
+	for _, v := range values {
+		val += v
+	}
+	return -1 * val
+}
+
+func getIndexOfVar(name rules.VariableFieldName, reqVar []rules.VariableFieldName) int {
+	for index, v := range reqVar {
+		if v == name {
+			return index
+		}
+	}
+	return -1
+}
+
+func fetchImmutableInputs(namedInputs map[rules.VariableFieldName]Input) []rules.VariableFieldName {
+	immutables := []rules.VariableFieldName{}
+	for name, input := range namedInputs {
+		if !input.ClientAdjustable {
+			immutables = append(immutables, name)
+		}
+	}
+	return immutables
+}
+
+func dropAllInputStructs(inputs map[rules.VariableFieldName]Input) map[rules.VariableFieldName][]float64 {
+	outputMap := make(map[rules.VariableFieldName][]float64)
+	for key, val := range inputs {
+		outputMap[key] = dropInputStruct(val)
+	}
+	return outputMap
+}
+
+func dropInputStruct(input Input) []float64 {
+	return input.Value
+}
+
+func decodeValues(rm rules.RuleMatrix, values map[rules.VariableFieldName][]float64) *mat.VecDense {
+	var finalVariableVect []float64
+	for _, varName := range rm.RequiredVariables {
+		if value, ok := values[varName]; ok {
+			finalVariableVect = append(finalVariableVect, value...)
+		} else {
+			return nil
+		}
+	}
+	varVect := mat.NewVecDense(len(finalVariableVect), finalVariableVect)
+	return varVect
+}
+
+func evaluateSingle(rm rules.RuleMatrix, values map[rules.VariableFieldName][]float64) (outputVec mat.VecDense, success bool) {
+	varVect := decodeValues(rm, values)
+	if varVect != nil {
+		results := ruleevaluation.RuleMul(*varVect, rm.ApplicableMatrix)
+		return *results, true
+	}
+	return mat.VecDense{}, false
 }
 
 // identifyDeficiencies checks result of rule evaluation and finds entries of result vector that do not comply
