@@ -41,6 +41,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c *client) StartOfTurn() {
 	// c.Logf("Start of turn!")
 	// TODO add any functions and vairable changes here
+	c.resetIIGOInfo()
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
@@ -113,8 +114,6 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 }
 
 /*
-	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
-	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 	DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
 
 	updateCompliance
