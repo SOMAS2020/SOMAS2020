@@ -21,7 +21,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if c.forageHistorySize() < c.config.InitialForageTurns { // Start with initial foraging turns
 		return c.InitialForage(), nil
 	} else if c.wealth() == Dying { // If dying go to last hope
-		return c.lasthopeF(), nil
+		return c.lastHopeForage(), nil
 	} else {
 		return c.normalForage(), nil // Else normally forage
 	}
@@ -41,7 +41,7 @@ func (c *client) InitialForage() shared.ForageDecision {
 	case c.wealth() == ImperialStudent: // Imperial student
 		forageType = shared.FishForageType
 	case c.wealth() == Dying: // Dying
-		c.lasthopeF()
+		c.lastHopeForage()
 	default: // Midle class
 		if rand.Float64() < 0.50 {
 			forageType = shared.DeerForageType
@@ -160,8 +160,8 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output share
 }
 
 /*  Dying MODE, RISK IT ALL and ask for gifts
-lasthopeF put everything in foraging for Deer */
-func (c *client) lasthopeF() shared.ForageDecision {
+lastHopeForage put everything in foraging for Deer */
+func (c *client) lastHopeForage() shared.ForageDecision {
 	forageDecision := shared.ForageDecision{
 		Type:         shared.DeerForageType,
 		Contribution: 0.95 * c.gameState().ClientInfo.Resources,
