@@ -67,7 +67,6 @@ func registerNewRealValuedRule(t *testing.T) {
 }
 
 func registerNewLinkedRule(t *testing.T) {
-	registerTestRule(AvailableRules)
 	name := "Linked test rule"
 	reqVar := []VariableFieldName{
 		NumberOfIslandsContributingToCommonPool,
