@@ -37,10 +37,9 @@ var envConf = config.DisasterConfig{
 }
 
 var deerConf = config.DeerHuntConfig{
-	MaxDeerPerHunt:     4,
-	BernoulliProb:      0.95,
-	ResourceMultiplier: 1,
-	ExponentialRate:    1.0,
+	MaxDeerPerHunt:  4,
+	BernoulliProb:   0.95,
+	ExponentialRate: 1.0,
 }
 
 func TestForagingCallsForageUpdate(t *testing.T) {
