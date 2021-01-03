@@ -153,8 +153,7 @@ func findMaxScore(scoreList []int, variance []float64) (int, int) {
 		if scoreList[i] > maxScore {
 			maxScore = scoreList[i]
 			maxScoreIndex = i
-		}
-		if scoreList[i] == maxScore {
+		} else if scoreList[i] == maxScore {
 			if variance[i] > variance[maxScoreIndex] {
 				maxScoreIndex = i
 			}
@@ -173,8 +172,7 @@ func findMinScore(scoreList []int, variance []float64) (int, int) {
 		if scoreList[i] < minScore {
 			minScore = scoreList[i]
 			minScoreIndex = i
-		}
-		if scoreList[i] == minScore {
+		} else if scoreList[i] == minScore {
 			if variance[i] < variance[minScoreIndex] {
 				minScoreIndex = i
 			}
@@ -195,8 +193,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 		if maxScore < finalScore[i] {
 			maxScore = finalScore[i]
 			winnerIndex = i
-		}
-		if maxScore == finalScore[i] {
+		} else if maxScore == finalScore[i] {
 			if variance[winnerIndex] < variance[i] {
 				winnerIndex = i
 			}
@@ -237,8 +234,7 @@ func (e *Election) runOffResult(clientMap map[shared.ClientID]baseclient.Client)
 		for i := 0; i < voterNumber; i++ {
 			if rTwoVotes[i][0] == rOneCandidateList[maxScoreIndex] {
 				remainNumber++
-			}
-			if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
+			} else if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
 				changeNumber++
 			}
 		}
