@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -426,7 +427,10 @@ func TestGetRuleForSpeaker(t *testing.T) {
 	wantPresidentReturnType := shared.PresidentRuleProposal
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
+			fakeGameConfig := config.IIGOConfig{
+				GetRuleForSpeakerActionCost: 1,
+			}
+			tc.bPresident.setGameConfig(&fakeGameConfig)
 			got, _ := tc.bPresident.getRuleForSpeaker()
 
 			if got.ContentType != wantPresidentReturnType {
@@ -658,6 +662,9 @@ func TestReplyAllocationRequest(t *testing.T) {
 					shared.Judge:     10,
 				},
 			}
+			fakeGameConfig := config.IIGOConfig{
+				ReplyAllocationRequestsActionCost: 1,
+			}
 
 			aliveID := []shared.ClientID{}
 
@@ -668,6 +675,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 
 			setIIGOClients(&fakeClientMap)
 			tc.bPresident.setGameState(&fakeGameState)
+			tc.bPresident.setGameConfig(&fakeGameConfig)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
 			tc.bPresident.replyAllocationRequest(tc.commonPool)
 
@@ -847,7 +855,7 @@ func TestBroadcastTaxation(t *testing.T) {
 		{
 			name: "Simple test",
 			bPresident: executive{
-				PresidentID:     5,
+				PresidentID:     shared.Team4,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			clientReports: map[shared.ClientID]shared.ResourcesReport{
@@ -863,7 +871,7 @@ func TestBroadcastTaxation(t *testing.T) {
 		{
 			name: "Some non-reports test",
 			bPresident: executive{
-				PresidentID:     4,
+				PresidentID:     shared.Team1,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			clientReports: map[shared.ClientID]shared.ResourcesReport{
@@ -884,11 +892,14 @@ func TestBroadcastTaxation(t *testing.T) {
 			fakeClientMap := map[shared.ClientID]baseclient.Client{}
 			fakeGameState := gamestate.GameState{
 				CommonPool: tc.commonPool,
-				IIGORolesBudget: map[string]shared.Resources{
-					"president": 10,
-					"speaker":   10,
-					"judge":     10,
+				IIGORolesBudget: map[shared.Role]shared.Resources{
+					shared.President: 10,
+					shared.Speaker:   10,
+					shared.Judge:     10,
 				},
+			}
+			fakeGameConfig := config.IIGOConfig{
+				ReplyAllocationRequestsActionCost: 1,
 			}
 
 			aliveID := []shared.ClientID{}
@@ -900,6 +911,7 @@ func TestBroadcastTaxation(t *testing.T) {
 
 			setIIGOClients(&fakeClientMap)
 			tc.bPresident.setGameState(&fakeGameState)
+			tc.bPresident.setGameConfig(&fakeGameConfig)
 
 			tc.bPresident.broadcastTaxation(tc.clientReports, aliveID)
 
