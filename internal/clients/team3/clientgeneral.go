@@ -112,6 +112,15 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 	}
 }
 
+func (c *client) evalJudgePerformance() {
+	evalOfJudge := float64(c.judgePerformance[c.ServerReadHandle.GetGameState().JudgeID])
+	// if speakerEvalOfJudge == 1 {
+	// 	evalOfJudge += c.trustScore[c.ServerReadHandle.GetGameState().SpeakerID]
+	// } else {
+	// 	evalOfJudge -= c.trustScore[c.ServerReadHandle.GetGameState().SpeakerID]
+	// }
+}
+
 /*
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
