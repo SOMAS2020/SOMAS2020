@@ -159,11 +159,16 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources, aliveIsl
 		if !e.incurServiceCharge(actionCost.ReplyAllocationRequestsActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
-		for islandID, resourceAmount := range allocationMapReturn.ResourceMap {
+		for islandID, amount := range allocationMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
-				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(resourceAmount)}
 				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-				data[shared.AllocationAmount] = d
+
+				expectedVariable, allocationRule := convertAmount(amount, allocation)
+
+				data[shared.AllocationAmount] = shared.CommunicationContent{T: shared.CommunicationResources, ResourcesData: amount}
+				data[shared.AllocationRule] = shared.CommunicationContent{T: shared.CommunicationIIGORule, IIGORuleData: allocationRule}
+				data[shared.AllocationVariable] = shared.CommunicationContent{T: shared.CommunicationIIGOVar, IIGOVarData: expectedVariable}
+
 				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 			}
 		}
