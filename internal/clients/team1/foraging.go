@@ -90,7 +90,7 @@ func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
 	var decision shared.ForageDecision
 
 	for forageType, _ := range c.forageHistory {
-		r := outcomeRegression(c.forageHistory[forageType], c.gameState().Turn)
+		r := outcomeRegression(c.forageHistory[forageType])
 		contribution := c.regressionOptimalContribution(r)
 		if contribution > c.gameState().ClientInfo.Resources {
 			contribution = c.gameState().ClientInfo.Resources
@@ -110,7 +110,7 @@ func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
 	return decision, bestReward
 }
 
-func outcomeRegression(history []ForageOutcome, turn uint) regression.Regression {
+func outcomeRegression(history []ForageOutcome) regression.Regression {
 	r := new(regression.Regression)
 	r.SetObserved("Team1 reward")
 	r.SetVar(0, "Team1 contribution")
@@ -145,7 +145,7 @@ func desperateDecider(c client) (shared.ForageDecision, shared.Resources) {
 
 	contribution := c.gameState().ClientInfo.Resources
 
-	r := outcomeRegression(c.forageHistory[forageType], c.gameState().Turn)
+	r := outcomeRegression(c.forageHistory[forageType])
 	expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
 
 	return shared.ForageDecision{
