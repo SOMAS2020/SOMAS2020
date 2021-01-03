@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -266,7 +267,7 @@ func TestInspectHistory(t *testing.T) {
 			}, getBaseEvalResults(shared.TeamIDs)),
 			expectedSuccess: true,
 		},
-		{
+		/*{
 			name: "Historical Evaluations Tested",
 			historicalCache: map[int][]shared.Accountability{
 				1: {
@@ -307,7 +308,7 @@ func TestInspectHistory(t *testing.T) {
 				},
 			}, getBaseEvalResults(shared.TeamIDs)),
 			expectedSuccess: true,
-		},
+		},*/
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1862,6 +1863,8 @@ func defaultInitJudiciary() judiciary {
 		ruleViolationSeverity: map[string]roles.IIGOSanctionScore{},
 		localSanctionCache:    map[int][]roles.Sanction{},
 		localHistoryCache:     map[int][]shared.Accountability{},
+		gameConf:              &config.IIGOConfig{},
+		gameState:             &gamestate.GameState{CommonPool: 999},
 	}
 }
 
