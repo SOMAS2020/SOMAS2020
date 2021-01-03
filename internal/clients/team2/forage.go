@@ -10,24 +10,35 @@ import (
 type ForagingResults struct {
 	Hunters int //no. teams that we know (they have shared the info with us)
 	Fishers int
-	Result  shared.Resources //total fron all the teams we know
+	Result  shared.Resources //total from all the teams we know
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	ft := int(math.Round(rand.Float64())) // implement the normal distribution which shifts closer to hunt or fish
-	var Threshold float64=decideThreshold()
-	//base threshold - when we know nothing
-	//a threshold when we know stuff
+	     // implement a normal distribution which shifts closer to hunt or fish
+	var Threshold float64 = decideThreshold(c) //number from 0 to 1
 
 	if rand.Float64() > Threshold { //we fish when above the threshold
 		ft := 1
-	} else {                       // we hunt when below the threshold
+	} else { // we hunt when below the threshold
 		ft := 0
 	}
 	return shared.ForageDecision{
 		Type:         shared.ForageType(ft),
 		Contribution: shared.Resources(20), //contribute fixed amount for now
 	}, nil
+}
+
+//Decide amount of resources to put into foraging
+func (c *client) DecideForageAmount(foragingDecisionThreshold) shared.Resources {
+	ourResources := c.gameState().ClientInfo.Resources // we have given to the pool already by this point in the turn
+	if criticalStatus(c) {
+		return 0
+	}
+	if ourResources < internalThreshold(c) && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
+		return (ourResources - determineThreshold(c)) / 2 //tune divisor
+	}
+	resourcesForForaging := (ourResources - internalThreshold)
+	return resourcesForForaging
 }
 
 // ReceiveForageInfo lets clients know what other clients have obtained from their most recent foraging attempt.
@@ -50,4 +61,28 @@ func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 	}
 }
 
-func (c *client) decideThreshold() () {
+//being the only agent to hunt is desirable, most desirable outcome is us and one other agent hunting
+func decideThreshold(c *client) float64 { //will move the threshold, higher value means more likely to hunt
+	if Otheragentinfo(c)==1{    //in the case when one other person only is hunting  
+		return 0.95 
+	}
+	else if Otheragentinfo(c)>1{   //if no one is likely to hunt then we do default probability
+		return 0.1 + (Otheragentinfo(c) * 0.15) //default hunt probability is 10%, the less people hunting the more likely we do it
+	}else{
+		return 0.1  //when no one is likely to hunt we have a default 10% chance of hunting just in the off chance another person hunts
+	}
+}
+
+//EXTRA FUNCTIONALITY: the map agentHistory can give a probability based off of how agents act in specific circumstances not just the agents themselves 
+func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
+	//Have no idea where to find the shared foraging info, somewhere in IITO?
+	//need to use previous information about each agent to see if they will change their forage after announcing
+	var HuntNum float64
+	var agentHistory [ClientId]float64   //this map will store the probability that each agent will hunt
+	for i:=0; i< ; i++ {	//update agentHistory by looping through all the agents and  
+
+	}
+	return HuntNum
+
+	return 0
+}

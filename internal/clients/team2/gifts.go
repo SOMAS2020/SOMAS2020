@@ -1,6 +1,7 @@
 package team2
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -10,12 +11,35 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	turn := c.gameState().Turn
 	requests := shared.GiftRequestDict{}
 
-	// You can fetch the clients which are alive like this:
-	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if status == shared.Critical {
-			requests[team] = shared.GiftRequest(100.0)
-		} else {
-			requests[team] = shared.GiftRequest(0.0)
+	// check our critical and threshold - if either is off - request
+	ourAgentCritical := status == shared.Critical
+	requestAmount := internalThreshold(c) - c.gameState().ClientInfo.Resources
+
+	// who we request to: using trust + whether or not they are critical
+	
+	
+	if ourAgentCritical || requestAmount > 0 {
+		// how much we request depends on: how much is in common pool + how much we have
+		// ask for difference between threshold and what we currently have? 
+		// can split that amount amongst the number of people we want to ask for help from
+		// but not linearly - e.g. might not be 50/50
+		// assume that smaller requests are more likely to be approved
+		// notice if an agent is accepting large requests and abuse it - could use confidence
+
+		
+		// Split up the goal request amount between islands to maximise likelihood of receiving gift
+		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+			
+			
+
+			if isCritical  {
+				// the amount that we request should be related to how much we need/want
+				// low requests are more likely to be approved so it may be better to make more *small* requests
+	
+				requests[team] = shared.GiftRequest(100.0)
+			} else {
+				requests[team] = shared.GiftRequest(0.0)
+			}
 		}
 	}
 
@@ -35,6 +59,18 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 	turn := c.gameState().Turn
+
+	// if we are critical do not offer gifts-> there should be a way to see which other islands are critical
+	// if we are not critical and another island is critical offer gift
+	// do not offer more than proportion of total resources we have
+// unless another team is critical.
+func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
+	offers := shared.GiftOfferDict{}
+	turn := c.gameState().Turn
+
+	// if we are critical do not offer gifts-> there should be a way to see which other islands are critical
+	// if we are not critical and another island is critical offer gift
+	// do not offer more than proportion of total resources we have
 
 	// You can fetch the clients which are alive like this:
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
@@ -95,7 +131,7 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 			gifted:    shared.GiftOffer(response.AcceptedAmount),
 			reason:    shared.AcceptReason(response.AcceptedAmount),
 		}
-		c.giftHist[island].OurRequest[turn] = newGiftRequest
+		c.giftHist[island].IslandRequest[turn] = newGiftRequest
 	}
 }
 

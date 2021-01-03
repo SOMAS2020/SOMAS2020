@@ -24,6 +24,7 @@ const id = shared.Team2
 
 func (c *client) StartOfTurn() {
 	CommonPoolUpdate(c, c.commonPoolHistory) //add the common pool level
+	ourResourcesHistoryUpdate(c, c.resourceLevelHistory)
 }
 
 func CommonPoolUpdate(c *client, commonPoolHistory CommonPoolHistory) {
@@ -32,6 +33,14 @@ func CommonPoolUpdate(c *client, commonPoolHistory CommonPoolHistory) {
 }
 
 type CommonPoolHistory map[uint]float64
+
+type ResourcesLevelHistory map[uint]shared.Resources
+
+//Records our resources level each turn
+func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHistory) {
+	var currentLevel = c.gameState().ClientInfo.Resources
+	c.resourceLevelHistory[c.gameState().Turn] = currentLevel
+}
 
 // Type for Empathy level assigned to each other team
 type EmpathyLevel int
@@ -106,12 +115,13 @@ type client struct {
 	// should this have a * in front?
 	*baseclient.BaseClient
 
-	islandEmpathies     IslandEmpathies
-	commonPoolHistory   CommonPoolHistory
-	opinionHist         OpinionHist
-	predictionsHist     PredictionsHist
-	foragingReturnsHist ForagingReturnsHist
-	giftHist            GiftHist
+	islandEmpathies      IslandEmpathies
+	commonPoolHistory    CommonPoolHistory
+	resourceLevelHistory ResourcesLevelHistory
+	opinionHist          OpinionHist
+	predictionsHist      PredictionsHist
+	foragingReturnsHist  ForagingReturnsHist
+	giftHist             GiftHist
 }
 
 //NewClient After declaring the struct we have to actually make an object for the client
@@ -209,18 +219,46 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 //internalThreshold determines our internal threshold for survival, allocationrec is the output of the function AverageCommonPool which determines which role we will be
 func internalThreshold(c *client) shared.Resources {
-	var initialThreshold shared.Resources = 30 //TODO: Fix a number ourselves when we don't know threshold, else find out how to access this
+	var gameThreshold shared.Resources = determineThreshold(c) //TODO: Fix a number ourselves when we don't know threshold, else find out how to access this
 	var allocationrec = AverageCommonPoolDilemma(c)
 	var disasterEffectOnUs float64 = 3            //TODO: call function from Hamish's part to get map clientID: effect
 	var disasterPredictionConfidence float64 = 50 //TODO: call function from Hamish's oart to get this confidence level
 	var turnsLeftUntilDisaster uint = 3           //TODO: call function from Hamish's oart to get number of turns
 	if disasterEffectOnUs > 4 {
-		return (initialThreshold + allocationrec) * shared.Resources(disasterPredictionConfidence/10) //TODO: tune divisor
+		return (gameThreshold + allocationrec) * shared.Resources(disasterPredictionConfidence/10) //TODO: tune divisor
 	}
 	if turnsLeftUntilDisaster < 3 {
 		return 3
 	}
-	return initialThreshold + allocationrec
+	return gameThreshold + allocationrec
+}
+
+func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
+
+func checkForDisaster(c *client) bool {
+	return false
+}
+
+//Finds the game threshold if this information is available or works it out based on history of turns
+func determineThreshold(c *client) shared.Resources {
+	var ourResources = c.gameState().ClientInfo.Resources
+	var turn = c.gameState().Turn
+	var season = c.gameState().Season
+	var disasterBasedAdjustment shared.Resources
+	if turn == 1 {
+		return 40 //TODO: tune initial threshold guess when we start playing
+	}
+	if season == 1 { //make average donation to be the threshold
+		//check common pool level
+	}
+	if checkForDisaster(c) {
+		if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] {
+			//no resources left
+		}
+		//if there was a disaster, see if our pool decreased (by x resources?) - if it did, increase threshold, else decrease threshold (try to get these to converge by choosing x well?)
+	}
+	//go with average of what everyone else puts into pool in previous turn
+	return 20 //temp
 }
 
 //determineTaxreturns how much tax we have to pay
