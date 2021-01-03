@@ -73,6 +73,10 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 					clientIDs = append(clientIDs, k)
 				}
 
+				dummyLogger := func(format string, a ...interface{}) {
+					t.Logf("[FORAGING]: %v", fmt.Sprintf(format, a...))
+				}
+
 				s := SOMASServer{
 					gameState: gamestate.GameState{
 						ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
@@ -85,7 +89,7 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 							shared.DeerForageType: make([]foraging.ForagingReport, 0),
 							shared.FishForageType: make([]foraging.ForagingReport, 0),
 						},
-						DeerPopulation: foraging.CreateDeerPopulationModel(deerConf),
+						DeerPopulation: foraging.CreateDeerPopulationModel(deerConf, dummyLogger),
 						Environment:    disasters.InitEnvironment(clientIDs, envConf),
 					},
 					clientMap: clientMap,
