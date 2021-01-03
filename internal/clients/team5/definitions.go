@@ -3,9 +3,12 @@ package team5
 import (
 	"fmt"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
+
+const id = shared.Team5
 
 // WealthTier defines how much money we have
 type WealthTier int
@@ -35,6 +38,20 @@ type clientConfig struct {
 
 	// Poor: Imperial student < Middle
 	ImperialThreshold shared.Resources
+}
+
+// Client is the island number
+type client struct {
+	*baseclient.BaseClient
+
+	forageHistory ForageHistory // Stores our previous foraging data
+
+	taxAmount shared.Resources
+
+	// allocation is the president's response to your last common pool resource request
+	allocation shared.Resources
+
+	config clientConfig
 }
 
 // Possible wealth classes
