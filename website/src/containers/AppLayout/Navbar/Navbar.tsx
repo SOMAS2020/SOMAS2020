@@ -32,7 +32,7 @@ const AppNavbar = () => {
         expanded={navExpanded}
       >
         {/* lhl2617: DO NOT WRAP BRAND WITH Link AS IT BREAKS OTHER COMPONENTS */}
-        <Navbar.Brand href="/" className={styles.enlargeOnHover}>
+        <Navbar.Brand href={process.env.PUBLIC_URL} className={styles.enlargeOnHover}>
           <img
             alt=""
             src={logo}

@@ -28,6 +28,12 @@ func AllForageTypes() []ForageType {
 	return ts
 }
 
+// IsValidForageType checks that a provided type is valid. This can be used to validate foraging
+// decisions, amongst other thigns.
+func IsValidForageType(ft ForageType) bool {
+	return ft < _endForageType && ft >= 0
+}
+
 func (ft ForageType) String() string {
 	strings := [...]string{"DeerForageType", "FishForageType"}
 	if ft >= 0 && int(ft) < len(strings) {
