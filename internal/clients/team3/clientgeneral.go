@@ -150,11 +150,13 @@ func (c *client) evalJudgePerformance() {
 	evalOfJudge += c.params.sensitivity * float64((2 - ourRankingChosen))
 
 	// Did the judge sanction us?
-	sanctionAmount = c.iigoInfo.sanctions.ourSanction
+	sanctionAmount := c.iigoInfo.sanctions.ourSanction
 	evalOfJudge -= float64(sanctionAmount) * c.params.sensitivity
 
 }
 
+// Internal function that evaluates the performance of the president for the purposes of opinion formation.
+// This is called AFTER IIGO FINISHES.
 func (c *client) evalPresidentPerformance() {
 	previousSpeakerID := c.iigoInfo.startOfTurnSpeakerID
 	previousPresidentID := c.iigoInfo.startOfTurnPresidentID
@@ -200,6 +202,8 @@ func (c *client) evalPresidentPerformance() {
 	evalOfPresident += c.params.sensitivity * float64((2 - ourRankingChosen))
 }
 
+// Internal function that evaluates the performance of the speaker for the purposes of opinion formation.
+// This is called AFTER IIGO FINISHES.
 func (c *client) evalSpeakerPerformance() {
 	previousJudgeID := c.iigoInfo.startOfTurnJudgeID
 	previousSpeakerID := c.iigoInfo.startOfTurnJudgeID

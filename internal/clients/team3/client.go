@@ -3,6 +3,7 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -62,7 +63,7 @@ type client struct {
 
 	// params is list of island wide function parameters
 	params islandParams
-
+	// iigoInfo caches information regarding iigo in the current turn
 	iigoInfo iigoCommunicationInfo
 }
 
@@ -107,4 +108,18 @@ type iigoCommunicationInfo struct {
 	startOfTurnPresidentID shared.ClientID
 	startOfTurnJudgeID     shared.ClientID
 	startOfTurnSpeakerID   shared.ClientID
+
+	// Struct containing sanction information
+	sanctions sanctionInfo
+}
+
+type sanctionInfo struct {
+	// tierInfo provides tiers and sanction score required to get to that tier
+	tierInfo map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+	// rulePenalties provides sanction score given for breaking each rule
+	rulePenalties map[string]roles.IIGOSanctionScore
+	// islandSanctions stores sanction tier of each island (but not score)
+	islandSanctions map[shared.ClientID]roles.IIGOSanctionTier
+	// ourSanction is the sanction score for our island
+	ourSanction roles.IIGOSanctionScore
 }
