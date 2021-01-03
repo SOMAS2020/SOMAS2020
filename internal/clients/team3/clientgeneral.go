@@ -115,19 +115,18 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 
 func (c *client) evalJudgePerformance() {
 	JudgeID := c.ServerReadHandle.GetGameState().JudgeID
-	SpeakerID := c.ServerReadHandle.GetGameState().SpeakerID
 	PresidentID := c.ServerReadHandle.GetGameState().PresidentID
 	evalOfJudge := float64(c.judgePerformance[JudgeID])
 
 	// If the judge didn't evaluate the speaker, the judge didn't do a good job
-	if monitoringDeclared[SpeakerID] == false {
+	if c.iigoInfo.monitoringDeclared[shared.Speaker] == false {
 		evalOfJudge -= c.trustScore[JudgeID] * c.params.sensitivity
 	}
 
 	// Use the president's evaluation of the judge to determine how well the judge performed
-	var presidentEvalOFJudge bool
-	if monitoringDeclared[PresidentID] == true {
-		presidentEvalOFJudge = monitoringOutcomes[JudgeID]
+	var presidentEvalOfJudge bool
+	if c.iigoInfo.monitoringDeclared[shared.President] == true {
+		presidentEvalOfJudge = c.iigoInfo.monitoringOutcomes[shared.Judge]
 	}
 	if presidentEvalOfJudge == true {
 		evalOfJudge += c.trustScore[PresidentID] * c.params.sensitivity
@@ -136,6 +135,16 @@ func (c *client) evalJudgePerformance() {
 	}
 
 	// Did the judge support our vote for president?
+	ourVoteForPresident := c.GetVoteForElection(shared.President)
+	var ourRankingChosen int
+	for index, islandID := range ourVoteForPresident {
+		if islandID == PresidentID {
+			ourRankingChosen := index
+		}
+	}
+	// If our third choice was voted in (ourRankingChosen == 2), no effect on Judge Performance.
+	// Anything better/worse than third is rewarded/penalized proportionally.
+	evalOfJudge += c.params.sensitivity * float64((2 - ourRankingChosen))
 
 	// Did the judge sanction us?
 
