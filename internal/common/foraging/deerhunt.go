@@ -4,7 +4,6 @@ package foraging
 
 import (
 	"fmt"
-	"log"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -21,6 +20,7 @@ type deerHuntParams struct {
 type DeerHunt struct {
 	ParticipantContributions map[shared.ClientID]shared.Resources
 	params                   deerHuntParams
+	logger                   shared.Logger
 }
 
 // TotalInput simply sums the total group resource input of hunt participants
@@ -86,5 +86,5 @@ func (d DeerHunt) getPopulationLinkedProbability(dhConf config.DeerHuntConfig, p
 
 // Logf is a this type's custom logger
 func (d DeerHunt) Logf(format string, a ...interface{}) {
-	log.Printf("[SERVER][DEERHUNT]: %v", fmt.Sprintf(format, a...))
+	d.logger("[DEERHUNT]: %v", fmt.Sprintf(format, a...))
 }

@@ -1,6 +1,8 @@
 package foraging
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
@@ -10,6 +12,7 @@ import (
 type FishingExpedition struct {
 	ParticipantContributions map[shared.ClientID]shared.Resources
 	params                   fishingParams
+	logger                   shared.Logger
 }
 
 // fishingParams : Defines the parameters for the normal distibution for the fishing returns
@@ -54,4 +57,9 @@ func (f FishingExpedition) Fish(fConf config.FishingConfig) ForagingReport {
 		returns = append(returns, utility)
 	}
 	return compileForagingReport(shared.FishForageType, f.ParticipantContributions, returns)
+}
+
+// Logf is a this type's custom logger
+func (f FishingExpedition) Logf(format string, a ...interface{}) {
+	f.logger("[FISHINGEXPEDITION]: %v", fmt.Sprintf(format, a...))
 }
