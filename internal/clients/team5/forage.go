@@ -45,11 +45,11 @@ If we lose again then we are in the Imperial class and we just fish to try to ge
 func (c *client) InitialForage() shared.ForageDecision {
 	var forageType shared.ForageType
 
-	// Default contribution amount is a random amount between 0 -> 10%
+	// Default contribution amount is a random amount between 1% -> 5%
 	forageContribution := shared.Resources(0.01 + rand.Float64()*(0.05 - 0.01))* c.gameState().ClientInfo.Resources
 
 	switch {
-	case c.wealth() == JeffBezos: // JB then we have so much might as well gamble 20% of it
+	case c.wealth() == JeffBezos: // JB then we have so much might as well gamble 10%->25% of it
 		forageContribution = shared.Resources(0.025 + rand.Float64()*(0.10 - 0.025))* c.gameState().ClientInfo.Resources
 		forageType = shared.DeerForageType
 	case c.wealth() == ImperialStudent: // Imperial student (Need to save money so dont spent a lot)
