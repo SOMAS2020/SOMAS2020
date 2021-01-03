@@ -12,12 +12,12 @@ var (
 	//config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
-		100,
+		10,
 		"The maximum number of 1-indexed seasons to run the game.",
 	)
 	maxTurns = flag.Uint(
 		"maxTurns",
-		100,
+		10,
 		"The maximum numbers of 1-indexed turns to run the game.",
 	)
 	initialResources = flag.Float64(
@@ -85,7 +85,7 @@ var (
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",
-		0.4,
+		0.2,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
 	foragingFishMaxPerHunt = flag.Uint(
@@ -154,6 +154,16 @@ var (
 		1,
 		"Exponential rate param for disaster magnitude",
 	)
+	disasterMagnitudeResourceMultiplier = flag.Float64(
+		"disasterMagnitudeResourceMultiplier",
+		500,
+		"Multiplier to map disaster magnitude to CP resource deductions",
+	)
+	disasterCommonpoolThreshold = flag.Float64(
+		"disasterCommonpoolThreshold",
+		50,
+		"Common pool threshold value for disaster to be mitigated",
+	)
 )
 
 func parseConfig() (config.Config, error) {
@@ -200,13 +210,15 @@ func parseConfig() (config.Config, error) {
 		FishingConfig:  fishingConf,
 	}
 	disasterConf := config.DisasterConfig{
-		XMin:            *disasterXMin,
-		XMax:            *disasterXMax, // chosen quite arbitrarily for now
-		YMin:            *disasterYMin,
-		YMax:            *disasterYMax,
-		GlobalProb:      *disasterGlobalProb,
-		SpatialPDFType:  parsedDisasterSpatialPDFType,
-		MagnitudeLambda: *disasterMagnitudeLambda,
+		XMin:                        *disasterXMin,
+		XMax:                        *disasterXMax,
+		YMin:                        *disasterYMin,
+		YMax:                        *disasterYMax,
+		GlobalProb:                  *disasterGlobalProb,
+		SpatialPDFType:              parsedDisasterSpatialPDFType,
+		MagnitudeLambda:             *disasterMagnitudeLambda,
+		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
+		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
 	}
 	return config.Config{
 		MaxSeasons:                  *maxSeasons,
