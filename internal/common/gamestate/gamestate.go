@@ -44,7 +44,6 @@ type GameState struct {
 // Copy returns a deep copy of the GameState.
 func (g GameState) Copy() GameState {
 	ret := g
-	ret.CommonPool = g.CommonPool
 	ret.ClientInfos = copyClientInfos(g.ClientInfos)
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
