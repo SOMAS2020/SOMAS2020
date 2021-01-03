@@ -51,7 +51,7 @@ var (
 	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
-		"Max possible number of deer on a single hunt (regardless of number of participants).",
+		"Max possible number of deer on a single hunt (regardless of number of participants). ** should be strictly less than max deer population.",
 	)
 	foragingDeerIncrementalInputDecay = flag.Float64(
 		"foragingDeerIncrementalInputDecay",
@@ -96,7 +96,7 @@ var (
 	foragingDeerMaxPopulation = flag.Uint(
 		"foragingDeerMaxPopulation",
 		12,
-		"Max possible deer population.",
+		"Max possible deer population. ** Should be strictly greater than max deer per hunt.",
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",
