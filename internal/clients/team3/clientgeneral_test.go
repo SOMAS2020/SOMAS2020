@@ -287,3 +287,4 @@ func TestUpdateCompliance(t *testing.T) {
 			}
 		})
 	}
+}
