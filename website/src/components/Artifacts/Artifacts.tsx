@@ -46,14 +46,16 @@ const Artifacts = (props: Props) => {
   return <div style={{ textAlign: `left`, padding: `0 3vw` }} className={styles.root}>
     <Table striped bordered hover>
       <thead>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Download</th>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Download</th>
+        </tr>
       </thead>
       <tbody>
         {
-          items.map(item =>
-            <tr>
+          items.map((item, idx) =>
+            <tr id={idx.toString()}>
               <td>
                 <span className={styles.code}>{item.fileName}</span>
               </td>

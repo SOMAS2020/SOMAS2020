@@ -5,18 +5,19 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 )
 
 var (
 	//config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
-		100,
+		10,
 		"The maximum number of 1-indexed seasons to run the game.",
 	)
 	maxTurns = flag.Uint(
 		"maxTurns",
-		100,
+		10,
 		"The maximum numbers of 1-indexed turns to run the game.",
 	)
 	initialResources = flag.Float64(
@@ -84,7 +85,7 @@ var (
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",
-		0.4,
+		0.2,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
 	foragingFishMaxPerHunt = flag.Uint(
@@ -153,10 +154,35 @@ var (
 		1,
 		"Exponential rate param for disaster magnitude",
 	)
+	disasterMagnitudeResourceMultiplier = flag.Float64(
+		"disasterMagnitudeResourceMultiplier",
+		500,
+		"Multiplier to map disaster magnitude to CP resource deductions",
+	)
+	disasterCommonpoolThreshold = flag.Float64(
+		"disasterCommonpoolThreshold",
+		50,
+		"Common pool threshold value for disaster to be mitigated",
+	)
 )
 
-func parseConfig() config.Config {
+func parseConfig() (config.Config, error) {
 	flag.Parse()
+
+	parsedForagingDeerDistributionStrategy, err := shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingDeerDistributionStrategy: %v", err)
+	}
+
+	parsedForagingFishingDistributionStrategy, err := shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingFishingDistributionStrategy: %v", err)
+	}
+
+	parsedDisasterSpatialPDFType, err := shared.ParseSpatialPDFType(*disasterSpatialPDFType)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing disasterSpatialPDFType: %v", err)
+	}
 
 	deerConf := config.DeerHuntConfig{
 		//Deer parameters
@@ -165,7 +191,7 @@ func parseConfig() config.Config {
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
 		ResourceMultiplier:    *foragingDeerResourceMultiplier,
-		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy),
+		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
 
 		MaxDeerPopulation:     *foragingDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
@@ -177,20 +203,22 @@ func parseConfig() config.Config {
 		Mean:                  *foragingFishingMean,
 		Variance:              *foragingFishingVariance,
 		ResourceMultiplier:    *foragingFishingResourceMultiplier,
-		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy),
+		DistributionStrategy:  parsedForagingFishingDistributionStrategy,
 	}
 	foragingConf := config.ForagingConfig{
 		DeerHuntConfig: deerConf,
 		FishingConfig:  fishingConf,
 	}
 	disasterConf := config.DisasterConfig{
-		XMin:            *disasterXMin,
-		XMax:            *disasterXMax, // chosen quite arbitrarily for now
-		YMin:            *disasterYMin,
-		YMax:            *disasterYMax,
-		GlobalProb:      *disasterGlobalProb,
-		SpatialPDFType:  shared.ParseSpatialPDFType(*disasterSpatialPDFType),
-		MagnitudeLambda: *disasterMagnitudeLambda,
+		XMin:                        *disasterXMin,
+		XMax:                        *disasterXMax,
+		YMin:                        *disasterYMin,
+		YMax:                        *disasterYMax,
+		GlobalProb:                  *disasterGlobalProb,
+		SpatialPDFType:              parsedDisasterSpatialPDFType,
+		MagnitudeLambda:             *disasterMagnitudeLambda,
+		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
+		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
 	}
 	return config.Config{
 		MaxSeasons:                  *maxSeasons,
@@ -202,5 +230,5 @@ func parseConfig() config.Config {
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
-	}
+	}, nil
 }

@@ -33,6 +33,7 @@ type Client interface {
 	GetClientSpeakerPointer() roles.Speaker
 	TaxTaken(shared.Resources)
 	GetTaxContribution() shared.Resources
+	GetSanctionPayment() shared.Resources
 	RequestAllocation() shared.Resources
 
 	//Foraging
@@ -40,7 +41,7 @@ type Client interface {
 	ForageUpdate(shared.ForageDecision, shared.Resources)
 
 	//Disasters
-	DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
+	DisasterNotification(disasters.DisasterReport, disasters.DisasterEffects)
 
 	//IIFO: OPTIONAL
 	MakeDisasterPrediction() shared.DisasterPredictionInfo
@@ -53,6 +54,7 @@ type Client interface {
 	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
+	DecideGiftAmount(shared.ClientID, shared.Resources) shared.Resources
 
 	//IIGO: COMPULSORY
 	MonitorIIGORole(shared.Role) bool

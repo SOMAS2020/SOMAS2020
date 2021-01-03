@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react"
-import { runGame, getFlagsFormats, RunGameReturnType, Flag } from "../../wasmAPI"
+import { RunGameReturnType, Flag } from "../../wasmAPI"
 import { Alert, Button, Row, Col, OverlayTrigger, Tooltip, Form } from 'react-bootstrap'
 import { useLoadingState, initialLoadingState } from "../../contexts/loadingState"
 import Artifacts from '../Artifacts/Artifacts'
+import { clearLocalOutput, loadFlags, loadLocalOutput, runGameHelper, setFlagHelper, clearLocalFlags } from './utils'
+import VisualiseButton from "../VisualiseButton/VisualiseButton"
 
 
-type flagFormProps = {
+type FlagFormProps = {
   flag: Flag,
   setFlag: (val: string) => Promise<void>,
   disabled: boolean,
 }
 
-const FlagForm = (props: flagFormProps) => {
+const FlagForm = (props: FlagFormProps) => {
   const { flag, setFlag, disabled } = props
 
   const handleChange = async (event: React.ChangeEvent<any>) => {
@@ -25,7 +27,7 @@ const FlagForm = (props: flagFormProps) => {
             placement="top"
             overlay={
               <Tooltip id={flag.Name}>
-                {flag.Usage}
+                {flag.Usage} (Type: {flag.Type}, Default: {flag.DefValue})
               </Tooltip>
             }
           >
@@ -45,17 +47,22 @@ const NewRun = () => {
   const [flags, setFlags] = useState<Map<string, Flag> | undefined>(undefined)
 
   useEffect(() => {
-    loadFlags()
+    onDidMount()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const loadFlags = async () => {
+  const onDidMount = async () => {
     setLoading({ loading: true, loadingText: `We're finding the archipelago...` })
     try {
-      const goFlags = await getFlagsFormats()
-      let fs: Map<string, Flag> = new Map()
-      goFlags.forEach(f => { fs.set(f.Name, { ...f, Value: f.DefValue }) })
+      const fs = await loadFlags()
       setFlags(fs)
+
+      const localOutput = await loadLocalOutput()
+      if (localOutput) {
+        setOutput(localOutput)
+      }
+
+      setRunError(undefined)
     }
     catch (err) {
       setRunError(err.message)
@@ -64,22 +71,19 @@ const NewRun = () => {
   }
 
   const setFlag = async (flagName: string, val: string) => {
-    if (!flags) {
-      // should not happen
-      throw new Error(`Flags not loaded`)
+    try {
+      const newFlags = await setFlagHelper(flags, flagName, val)
+      setFlags(newFlags)
+      setRunError(undefined)
     }
-    const currFlag = flags.get(flagName)
-
-    if (!currFlag) {
-      throw new Error(`Unknown flag name ${flagName}`)
+    catch (err) {
+      setRunError(err.message)
     }
-    const newCurrFlag = { ...currFlag, Value: val }
-
-    setFlags(new Map(flags.set(flagName, newCurrFlag)))
   }
 
   const reset = async () => {
     setOutput(undefined)
+    clearLocalOutput()
   }
 
   const run = async () => {
@@ -92,9 +96,9 @@ const NewRun = () => {
       if (!flags) {
         throw new Error(`Flags unset!`)
       }
-      const flagArr = Array.from(flags, ([_, value]) => value)
-      const res = await runGame(flagArr)
+      const res = await runGameHelper(flags)
       setOutput(res)
+      setRunError(undefined)
     }
     catch (err) {
       setRunError(err.message)
@@ -106,13 +110,19 @@ const NewRun = () => {
     let ret: JSX.Element[] = []
     fs.forEach((f, n) => {
       ret.push(
-        <FlagForm setFlag={(val) => setFlag(n, val)} flag={f} disabled={output !== undefined} />
+        <FlagForm key={n} setFlag={(val) => setFlag(n, val)} flag={f} disabled={output !== undefined} />
       )
     })
     return ret
   }
 
-  return <div>
+  const resetFlags = async () => {
+    const fs = await loadFlags(false)
+    clearLocalFlags()
+    setFlags(fs)
+  }
+
+  return <div style={{ paddingTop: 24 }}>
     <h1>New Run</h1>
 
     {
@@ -124,7 +134,7 @@ const NewRun = () => {
     {
       flags &&
       <div>
-        <Button variant="danger" size="lg" onClick={loadFlags} disabled={output !== undefined} style={{ marginTop: 24 }}>Reset Flags</Button>
+        <Button variant="danger" size="lg" onClick={resetFlags} disabled={output !== undefined} style={{ marginTop: 24 }}>Reset Flags</Button>
         <Row style={{ marginLeft: `5vw`, marginRight: `5vw`, marginTop: 48, marginBottom: 48 }}>
           {getFlagForms(flags)}
         </Row>
@@ -132,7 +142,7 @@ const NewRun = () => {
     }
     {
       runError &&
-      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible style={{ maxWidth: `90vw`, margin: `auto`, marginTop: 24 }}>
+      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible className="custom-alert">
         <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
         <p>{runError}</p>
       </Alert>
@@ -146,6 +156,9 @@ const NewRun = () => {
 
         <h3 style={{ marginTop: 24 }}>Artifacts</h3>
         <Artifacts output={output.output} logs={output.logs} />
+
+        <h3 style={{ marginTop: 24 }}>Visualise</h3>
+        <VisualiseButton output={output.output} />
       </div>
     }
   </div>
