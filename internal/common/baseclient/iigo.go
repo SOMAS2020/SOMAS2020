@@ -47,7 +47,7 @@ func (c *BaseClient) TaxTaken(shared.Resources) {
 	// Just an update. Ignore
 }
 
-// GetTaxContribution FIXME: Add documentation. What does this function do?
+// GetTaxContribution gives value of how much the island wants to pay in taxes
 func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// TODO: Implement common pool contribution greater than or equal to tax.
 	return 0
@@ -57,6 +57,11 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 // This is used for disaster mitigation in the event of a disaster.
 // OPTIONAL: Use this method to contribue towards CP
 func (c *BaseClient) GetCommonPoolContribution() shared.Resources {
+	return 0
+}
+
+// GetSanctionPayment gives the value of how much the island is paying in sanctions
+func (c *BaseClient) GetSanctionPayment() shared.Resources {
 	return 0
 }
 
