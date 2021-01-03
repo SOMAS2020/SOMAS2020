@@ -52,8 +52,8 @@ func TestTotalFishInput(t *testing.T) {
 		Mean:                  0.8,
 		Variance:              0.2,
 	}
-
-	huntF, _ := CreateFishingExpedition(huntParticipants, fishingConfig)
+	dummyLogger := shared.Logger(nil)
+	huntF, _ := CreateFishingExpedition(huntParticipants, fishingConfig, dummyLogger)
 	ans := huntF.TotalInput()
 	if ans != 1.9 {
 		t.Errorf("TotalInput() = %.2f; want 1.9", ans)

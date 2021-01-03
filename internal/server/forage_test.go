@@ -85,7 +85,7 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 							shared.DeerForageType: make([]foraging.ForagingReport, 0),
 							shared.FishForageType: make([]foraging.ForagingReport, 0),
 						},
-						DeerPopulation: foraging.CreateDeerPopulationModel(deerConf),
+						DeerPopulation: foraging.CreateDeerPopulationModel(deerConf, shared.Logger(nil)),
 						Environment:    disasters.InitEnvironment(clientIDs, envConf),
 					},
 					clientMap: clientMap,
