@@ -41,6 +41,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c *client) StartOfTurn() {
 	// c.Logf("Start of turn!")
 	// TODO add any functions and vairable changes here
+	c.resetIIGOInfo()
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
@@ -114,27 +115,39 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 
 func (c *client) evalJudgePerformance() {
 	JudgeID := c.ServerReadHandle.GetGameState().JudgeID
-	SpeakerID := c.ServerReadHandle.GetGameState().SpeakerID
 	PresidentID := c.ServerReadHandle.GetGameState().PresidentID
 	evalOfJudge := float64(c.judgePerformance[JudgeID])
 
 	// If the judge didn't evaluate the speaker, the judge didn't do a good job
-	if monitoringDeclared[SpeakerID] == false {
+	if c.iigoInfo.monitoringDeclared[shared.Speaker] == false {
 		evalOfJudge -= c.trustScore[JudgeID] * c.params.sensitivity
 	}
 
 	// Use the president's evaluation of the judge to determine how well the judge performed
 	var presidentEvalOfJudge bool
-
-	if monitoringDeclared[JudgeID] == true {
-		presidentEvalOfJudge = monitoringOutcomes[JudgeID] * c.params.sensitivity
+	if c.iigoInfo.monitoringDeclared[shared.Judge] == true {
+		presidentEvalOfJudge = c.iigoInfo.monitoringOutcomes[shared.Judge]
 	}
-
 	if presidentEvalOfJudge == true {
 		evalOfJudge += c.trustScore[PresidentID] * c.params.sensitivity
 	} else {
 		evalOfJudge -= c.trustScore[PresidentID] * c.params.sensitivity
 	}
+
+	// Did the judge support our vote for president?
+	ourVoteForPresident := c.GetVoteForElection(shared.President)
+	var ourRankingChosen int
+	for index, islandID := range ourVoteForPresident {
+		if islandID == PresidentID {
+			ourRankingChosen := index
+		}
+	}
+	// If our third choice was voted in (ourRankingChosen == 2), no effect on Judge Performance.
+	// Anything better/worse than third is rewarded/penalized proportionally.
+	evalOfJudge += c.params.sensitivity * float64((2 - ourRankingChosen))
+
+	// Did the judge sanction us?
+
 }
 
 func (c *client) evalPresidentPerformance() {
@@ -204,8 +217,6 @@ func (c *client) evalSpeakerPerformance() {
 }
 
 /*
-	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
-	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 	DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
 
 	updateCompliance
