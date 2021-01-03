@@ -37,7 +37,8 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability) (map[shared.
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
+			// TODO: fix this PickUpRulesByVariable last argument to return a map
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, variablePairs)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
@@ -75,23 +76,38 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability) (map[shared.
 	return outMap, true
 }
 
-func (j *judge) CallPresidentElection(turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	// example implementation calls an election if monitoring was performed and the result was negative
+	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Plurality,
 		IslandsToVote: allIslands,
-		HoldElection:  true,
+		HoldElection:  false,
+	}
+	if monitoring.Performed && !monitoring.Result {
+		electionsettings.HoldElection = true
+	}
+	// TODO: think if we want to change strategy here
+	if turnsInPower >= 2 {
+		electionsettings.HoldElection = true
 	}
 	return electionsettings
-	// return j.BaseJudge.CallPresidentElection(turnsInPower, allIslands)
 }
 
 func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
-	// Naively choose group 0
-	return shared.ClientID(0)
+	if j.c.trustScore[winner] < 70 {
+		// we can change this to be mailicious everytime
+		for island := range j.c.trustScore {
+			if j.c.trustScore[island] > j.c.trustScore[winner] {
+				winner = island
+			}
+		}
+	}
+	return winner
 }
 
 func (j *judge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
-	return j.BaseJudge.GetRuleViolationSeverity()
+	return map[string]roles.IIGOSanctionScore{}
 }
 
 func (j *judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
@@ -103,5 +119,5 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) ma
 }
 
 func (j *judge) HistoricalRetributionEnabled() bool {
-	return j.BaseJudge.HistoricalRetributionEnabled()
+	return true
 }
