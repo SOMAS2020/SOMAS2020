@@ -56,6 +56,22 @@ func (c *client) resetIIGOInfo() {
 	c.iigoInfo.ruleVotingResultAnnounced = make(map[string]bool)
 	c.iigoInfo.monitoringOutcomes = make(map[shared.Role]bool)
 	c.iigoInfo.monitoringDeclared = make(map[shared.Role]bool)
+	c.iigoInfo.startOfTurnJudgeID = c.ServerReadHandle.GetGameState().JudgeID
+	c.iigoInfo.startOfTurnPresidentID = c.ServerReadHandle.GetGameState().PresidentID
+	c.iigoInfo.startOfTurnSpeakerID = c.ServerReadHandle.GetGameState().SpeakerID
+}
+
+func (c *client) getOurRole() string {
+	if c.iigoInfo.startOfTurnJudgeID == shared.ClientID(3) {
+		return "Judge"
+	}
+	if c.iigoInfo.startOfTurnPresidentID == shared.ClientID(3) {
+		return "President"
+	}
+	if c.iigoInfo.startOfTurnSpeakerID == shared.ClientID(3) {
+		return "Speaker"
+	}
+	return "None"
 }
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client.

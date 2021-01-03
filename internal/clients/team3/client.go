@@ -103,4 +103,8 @@ type iigoCommunicationInfo struct {
 	monitoringOutcomes map[shared.Role]bool
 	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
 	monitoringDeclared map[shared.Role]bool
+	//Role IDs at the start of the turn
+	startOfTurnPresidentID shared.ClientID
+	startOfTurnJudgeID     shared.ClientID
+	startOfTurnSpeakerID   shared.ClientID
 }
