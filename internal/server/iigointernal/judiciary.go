@@ -35,6 +35,12 @@ type judiciary struct {
 func (j *judiciary) loadSanctionConfig() {
 	j.sanctionThresholds = softMergeSanctionThresholds(j.clientJudge.GetSanctionThresholds())
 	j.ruleViolationSeverity = j.clientJudge.GetRuleViolationSeverity()
+	j.broadcastSanctionConfig()
+}
+
+func (j *judiciary) broadcastSanctionConfig() {
+	broadcastGeneric(j.JudgeID, createBroadcastsForSanctionThresholds(j.sanctionThresholds))
+	broadcastGeneric(j.JudgeID, createBroadcastsForRuleViolationPenalties(j.ruleViolationSeverity))
 }
 
 // loadClientJudge checks client pointer is good and if not panics
@@ -231,6 +237,46 @@ func (j *judiciary) clearHistoryCache() {
 }
 
 // Helper functions //
+
+func broadcastGeneric(judgeID shared.ClientID, itemsForbroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	for _, item := range itemsForbroadcast {
+		broadcastToAllIslands(judgeID, item)
+	}
+}
+
+func createBroadcastsForSanctionThresholds(thresholds map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
+	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
+	for tier, score := range thresholds {
+		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
+			shared.IIGOSanctionTier: {
+				T:           shared.CommunicationInt,
+				IntegerData: int(tier),
+			},
+			shared.IIGOSanctionScore: {
+				T:           shared.CommunicationInt,
+				IntegerData: int(score),
+			},
+		})
+	}
+	return outputBroadcast
+}
+
+func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSanctionScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
+	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
+	for ruleName, score := range penalties {
+		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
+			shared.IIGOSanctionTier: {
+				T:        shared.CommunicationString,
+				TextData: ruleName,
+			},
+			shared.IIGOSanctionScore: {
+				T:           shared.CommunicationInt,
+				IntegerData: int(score),
+			},
+		})
+	}
+	return outputBroadcast
+}
 
 // runEvaluationRulesOnSanctions uses the custom sanction evaluator calculate how much each island should be paying in sanctions
 func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.Resources, rulesCache map[string]rules.RuleMatrix) map[shared.ClientID]shared.Resources {
