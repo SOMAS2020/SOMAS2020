@@ -67,6 +67,7 @@ type client struct {
 	forageHistory        ForageHistory
 	expectedForageReward shared.Resources
 	taxAmount            shared.Resources
+	opinionTeams         []opinionOnTeams
 
 	// allocation is the president's response to your last common pool resource request
 	allocation shared.Resources
