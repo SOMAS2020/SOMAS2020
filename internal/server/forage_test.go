@@ -37,16 +37,16 @@ var envConf = config.DisasterConfig{
 }
 
 var deerConf = config.DeerHuntConfig{
-	MaxDeerPerHunt:     4,
-	BernoulliProb:      0.95,
-	ResourceMultiplier: 1,
-	ExponentialRate:    1.0,
+	MaxDeerPerHunt:  4,
+	BernoulliProb:   0.95,
+	ExponentialRate: 1.0,
 }
 
 func TestForagingCallsForageUpdate(t *testing.T) {
 	cases := []shared.ForageType{
 		shared.DeerForageType,
 		shared.FishForageType,
+		shared.ForageType(-1), // test extraneous forage type
 	}
 
 	contribs := []shared.Resources{0.0, 1.0, 8.0} // test zero resource contribution first off
@@ -90,13 +90,12 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 					},
 					clientMap: clientMap,
 				}
-
 				err := s.runForage()
 
 				if err != nil {
 					t.Errorf("runForage error: %v", err)
 				}
-				if contrib > 0 {
+				if contrib > 0 && shared.IsValidForageType(tc) { // only check cases where these checks are applicable
 					if !client.forageUpdateCalled {
 						t.Errorf("ForageUpdate was not called")
 					}

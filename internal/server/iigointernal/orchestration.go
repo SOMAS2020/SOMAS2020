@@ -112,7 +112,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.sendSpeakerSalary(&legislativeBranch)
 
 	// 1 Judge action - inspect history
-	_, historyInspected := judicialBranch.inspectHistory(g.IIGOHistory)
+	historyInspected := true
+	if g.Turn > 0 {
+		_, historyInspected = judicialBranch.inspectHistory(g.IIGOHistory[g.Turn-1])
+	}
 
 	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
 	valuesToCache := [][]float64{{boolToFloat(historyInspected)}}
