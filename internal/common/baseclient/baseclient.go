@@ -131,8 +131,6 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
 // COMPULSORY: use opinion formation to decide a rank for islands for the role
 func (c *BaseClient) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
-	// Done ;)
-	// Get all alive islands
 	candidates := map[int]shared.ClientID{}
 	for i := 0; i < len(candidateList); i++ {
 		candidates[i] = candidateList[i]
