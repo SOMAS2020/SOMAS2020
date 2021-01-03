@@ -101,16 +101,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.loadClientPresident(presidentPointer)
 	legislativeBranch.loadClientSpeaker(speakerPointer)
 
-	// Pay salaries into budgets
-
-	errorJudicial := judicialBranch.sendPresidentSalary()
-	errorLegislative := legislativeBranch.sendJudgeSalary()
-	errorExecutive := executiveBranch.sendSpeakerSalary()
-	// Return false only after attempting to pay all roles their salary
-	if errorJudicial != nil || errorLegislative != nil || errorExecutive != nil {
-		return false, "Cannot pay IIGO salary"
-	}
-
 	// 1 Judge action - inspect history
 	historyInspected := true
 	if g.Turn > 0 {
@@ -170,24 +160,23 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// 3 Speaker actions
 
 	//TODO:- shouldn't updateRules be called here?
-	//TODO: Check if outer if statement is needed
 	var voteCalled bool = false
-	if ruleToVoteReturn.ActionTaken && ruleToVoteReturn.ContentType == shared.PresidentRuleProposal {
-		insufficientBudget := legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRule)
-		if insufficientBudget != nil {
-			return false, "Common pool resources insufficient for legislativeBranch setRuleToVote"
-		}
-		insufficientBudget = legislativeBranch.setVotingResult(aliveClientIds)
-		if insufficientBudget != nil {
-			return false, "Common pool resources insufficient for legislativeBranch setVotingResult"
-		}
-		insufficientBudget = legislativeBranch.announceVotingResult()
-		if insufficientBudget != nil {
-			return false, "Common pool resources insufficient for legislativeBranch announceVotingResult"
-		}
-		voteCalled = true
+
+	insufficientBudget := legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRule)
+	if insufficientBudget != nil {
+		return false, "Common pool resources insufficient for legislativeBranch setRuleToVote"
+	}
+	insufficientBudget = legislativeBranch.setVotingResult(aliveClientIds)
+	if insufficientBudget != nil {
+		return false, "Common pool resources insufficient for legislativeBranch setVotingResult"
+	}
+	insufficientBudget = legislativeBranch.announceVotingResult()
+	if insufficientBudget != nil {
+		return false, "Common pool resources insufficient for legislativeBranch announceVotingResult"
 	}
 
+	//TODO: this assumes speaker always calls the vote, but they may choose not to in setVotingResult()
+	voteCalled = true
 	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
 	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
@@ -215,6 +204,15 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
 	if appointPresidentError != nil {
 		return false, "President was not apointed by the Judge. Insufficient budget"
+	}
+
+	// Pay salaries into budgets
+	errorJudicial := judicialBranch.sendPresidentSalary()
+	errorLegislative := legislativeBranch.sendJudgeSalary()
+	errorExecutive := executiveBranch.sendSpeakerSalary()
+	// Return false only after attempting to pay all roles their salary
+	if errorJudicial != nil || errorLegislative != nil || errorExecutive != nil {
+		return false, "Cannot pay IIGO salary"
 	}
 
 	return true, "IIGO Run Successful"
