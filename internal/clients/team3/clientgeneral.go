@@ -125,16 +125,18 @@ func (c *client) evalJudgePerformance() {
 
 	// Use the president's evaluation of the judge to determine how well the judge performed
 	var presidentEvalOFJudge bool
-
 	if monitoringDeclared[PresidentID] == true {
-		presidentEvalOFJudge = monitoringOutcomes[JudgeID] * c.params.sensitivity
+		presidentEvalOFJudge = monitoringOutcomes[JudgeID]
 	}
-
 	if presidentEvalOfJudge == true {
 		evalOfJudge += c.trustScore[PresidentID] * c.params.sensitivity
 	} else {
 		evalOfJudge -= c.trustScore[PresidentID] * c.params.sensitivity
 	}
+
+	// Did the judge support our vote for president?
+
+	// Did the judge sanction us?
 
 }
 
