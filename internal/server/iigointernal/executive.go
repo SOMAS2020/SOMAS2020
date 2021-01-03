@@ -120,7 +120,7 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
 		e.speakerTurnsInPower = 0
-		nextSpeaker = election.CloseBallot()
+		nextSpeaker = election.CloseBallot(iigoClients)
 		nextSpeaker = e.clientPresident.DecideNextSpeaker(nextSpeaker)
 	} else {
 		e.speakerTurnsInPower++

@@ -179,7 +179,7 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
 		l.judgeTurnsInPower = 0
-		nextJudge = election.CloseBallot()
+		nextJudge = election.CloseBallot(iigoClients)
 		nextJudge = l.clientSpeaker.DecideNextJudge(nextJudge)
 	} else {
 		l.judgeTurnsInPower++

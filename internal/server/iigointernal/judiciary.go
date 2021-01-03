@@ -134,7 +134,7 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
 		j.presidentTurnsInPower = 0
-		nextPresident = election.CloseBallot()
+		nextPresident = election.CloseBallot(iigoClients)
 		nextPresident = j.clientJudge.DecideNextPresident(nextPresident)
 	} else {
 		j.presidentTurnsInPower++
