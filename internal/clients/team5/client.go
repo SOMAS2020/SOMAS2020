@@ -48,10 +48,10 @@ type client struct {
 func (c client) wealth() WealthTier {
 	cData := c.gameState().ClientInfo
 	switch {
-	case cData.LifeStatus == shared.Critical: // We dying 
+	case cData.LifeStatus == shared.Critical: // We dying
 		return Dying
 	case cData.Resources > c.config.ImperialThreshold && cData.Resources < c.config.MiddleThreshold:
-		return ImperialStudent // Poor 
+		return ImperialStudent // Poor
 	case cData.Resources > c.config.JBThreshold:
 		// c.Logf("[Team 5][Wealth:%v][Class:%v]", cData.Resources,c.config.JBThreshold)      // Debugging
 		return JeffBezos // Rich
@@ -76,7 +76,7 @@ func init() {
 			config: clientConfig{
 				InitialForageTurns: 10,
 				SkipForage:         5,
-	
+
 				JBThreshold:       100.0,
 				MiddleThreshold:   60.0,
 				ImperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
@@ -86,7 +86,7 @@ func init() {
 }
 
 func (c *client) StartOfTurn() {
-	c.Logf("[Debug] - [Class: %v] [Money In the Bank: %v]", c.wealth(),c.gameState().ClientInfo.Resources)
+	c.Logf("[Debug] - [Class: %v] [Money In the Bank: %v]", c.wealth(), c.gameState().ClientInfo.Resources)
 	// c.Logf("[The Pitts]: %v", c.gameState().ClientInfo.Resources)
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
@@ -140,7 +140,6 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	return forageInfo
 }
 
-
 func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	for _, forageInfo := range forageInfos {
 		c.forageHistory[forageInfo.DecisionMade.Type] =
@@ -163,7 +162,7 @@ func (c *client) forageHistorySize() uint {
 	return length // Return how many turns of foraging we have been on depending on the History
 }
 
-// gameState() gets the data from the server about our island 
+// gameState() gets the data from the server about our island
 func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
 }
