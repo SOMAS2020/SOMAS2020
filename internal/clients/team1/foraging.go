@@ -42,7 +42,6 @@ type forageDecider = func(client) (shared.ForageDecision, shared.Resources)
 func randomDecider(c client) (shared.ForageDecision, shared.Resources) {
 	// Up to 10% of our current resources
 	forageContribution := shared.Resources(0.2*rand.Float64()) * c.gameState().ClientInfo.Resources
-
 	var forageType shared.ForageType
 	if rand.Float64() < 0.5 {
 		forageType = shared.DeerForageType
@@ -50,8 +49,6 @@ func randomDecider(c client) (shared.ForageDecision, shared.Resources) {
 		forageType = shared.FishForageType
 	}
 
-	c.Logf("[Forage][Decision]: Random")
-	// TODO Add fish foraging when it's done
 	return shared.ForageDecision{
 		Type:         forageType,
 		Contribution: forageContribution,
@@ -95,6 +92,9 @@ func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
 	for forageType, _ := range c.forageHistory {
 		r := outcomeRegression(c.forageHistory[forageType], c.gameState().Turn)
 		contribution := c.regressionOptimalContribution(r)
+		if contribution > c.gameState().ClientInfo.Resources {
+			contribution = c.gameState().ClientInfo.Resources
+		}
 		expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
 		expectedReward := shared.Resources(expectedRewardF)
 
@@ -116,9 +116,6 @@ func outcomeRegression(history []ForageOutcome, turn uint) regression.Regression
 	r.SetVar(0, "Team1 contribution")
 
 	for _, outcome := range history {
-		if outcome.turn < turn - 5 {
-			continue
-		}
 		r.Train(regression.DataPoint(float64(outcome.revenue), []float64{float64(outcome.contribution)}))
 	}
 
@@ -135,13 +132,15 @@ func (c *client) regressionOptimalContribution(r regression.Regression) shared.R
 	}
 
 	// Curves down, mo money is not always mo money
-	return shared.Resources(-r.Coeff(1) / 2 * r.Coeff(2))
+	// c.Logf("%v x^2 + %v x + %v", r.Coeff(2), r.Coeff(1), r.Coeff(0))
+	// c.Logf("%v / %v = %v ", -r.Coeff(1), 2*r.Coeff(2), shared.Resources(-r.Coeff(1)/(2*r.Coeff(2))))
+	return shared.Resources(-r.Coeff(1) / (2 * r.Coeff(2)))
 }
 
 func desperateDecider(c client) (shared.ForageDecision, shared.Resources) {
 	forageType := bestROIForageType(c.forageHistory)
 	if forageType == shared.ForageType(-1) {
-		forageType = shared.FishForageType
+		forageType = shared.DeerForageType
 	}
 
 	contribution := c.gameState().ClientInfo.Resources
