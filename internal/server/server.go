@@ -11,6 +11,8 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team1"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -34,8 +36,15 @@ type SOMASServer struct {
 
 // NewSOMASServer returns an instance of the main server we use.
 func NewSOMASServer(gameConfig config.Config) Server {
+	clients := map[shared.ClientID]baseclient.Client{}
+	for _, id := range shared.TeamIDs[:2] {
+		clients[id] = team1.NewClient(id)
+	}
+	for _, id := range shared.TeamIDs[2:] {
+		clients[id] = baseclient.RegisteredClients[id]
+	}
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(
-		baseclient.RegisteredClients,
+		clients,
 		gameConfig.InitialResources,
 	)
 	return createSOMASServer(clientInfos, clientMap, gameConfig)
