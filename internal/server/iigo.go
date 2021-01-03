@@ -29,7 +29,7 @@ func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []ru
 	)
 }
 
-func (s *SOMASServer) runIIGOTaxCommonPool() error {
+func (s *SOMASServer) runIIGOTax() error {
 	s.logf("start runIIGOTaxCommonPool")
 	defer s.logf("finish runIIGOTaxCommonPool")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
@@ -55,14 +55,7 @@ func (s *SOMASServer) runIIGOTaxCommonPool() error {
 			s.gameState.CommonPool += sanction
 			sanctionPaid = sanction
 		}
-		cpContrib := v.GetCommonPoolContribution()
-		cpErr := s.takeResources(clientID, cpContrib, "common pool contribution for disaster mitigation")
 
-		if cpErr == nil {
-			s.gameState.CommonPool += cpContrib
-		} else {
-			s.logf("Error getting CP contribution from %v: %v", clientID, cpErr)
-		}
 		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,

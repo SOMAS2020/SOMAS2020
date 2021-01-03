@@ -33,7 +33,6 @@ type Client interface {
 	GetClientSpeakerPointer() roles.Speaker
 	TaxTaken(shared.Resources)
 	GetTaxContribution() shared.Resources
-	GetCommonPoolContribution() shared.Resources
 	GetSanctionPayment() shared.Resources
 	RequestAllocation() shared.Resources
 
