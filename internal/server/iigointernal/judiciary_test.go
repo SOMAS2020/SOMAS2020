@@ -267,7 +267,7 @@ func TestInspectHistory(t *testing.T) {
 			}, getBaseEvalResults(shared.TeamIDs)),
 			expectedSuccess: true,
 		},
-		/*{
+		{
 			name: "Historical Evaluations Tested",
 			historicalCache: map[int][]shared.Accountability{
 				1: {
@@ -308,7 +308,7 @@ func TestInspectHistory(t *testing.T) {
 				},
 			}, getBaseEvalResults(shared.TeamIDs)),
 			expectedSuccess: true,
-		},*/
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1864,7 +1864,14 @@ func defaultInitJudiciary() judiciary {
 		localSanctionCache:    map[int][]roles.Sanction{},
 		localHistoryCache:     map[int][]shared.Accountability{},
 		gameConf:              &config.IIGOConfig{},
-		gameState:             &gamestate.GameState{CommonPool: 999},
+		gameState: &gamestate.GameState{
+			CommonPool: 999,
+			IIGORolesBudget: map[shared.Role]shared.Resources{
+				shared.President: 100,
+				shared.Speaker:   10,
+				shared.Judge:     10,
+			},
+		},
 	}
 }
 
