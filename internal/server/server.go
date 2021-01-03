@@ -66,7 +66,6 @@ func createSOMASServer(
 			Turn:            1,
 			ClientInfos:     clientInfos,
 			Environment:     disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
-			DeerPopulation:  foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig),
 			ForagingHistory: forageHistory,
 			IIGOHistory:     map[uint][]shared.Accountability{},
 			IIGORolesBudget: map[shared.Role]shared.Resources{
@@ -80,6 +79,7 @@ func createSOMASServer(
 			CommonPool:  gameConfig.InitialCommonPool,
 		},
 	}
+	server.gameState.DeerPopulation = foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig, server.logf)
 
 	for _, client := range clientMap {
 		client.Initialise(ServerForClient{
