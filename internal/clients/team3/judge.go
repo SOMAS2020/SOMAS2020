@@ -14,9 +14,12 @@ type judge struct {
 	c *client
 }
 
-// Override functions here, see president.go for examples
+// PayPresident pays the president's salary
 func (j *judge) PayPresident(salary shared.Resources) (shared.Resources, bool) {
 	j.c.params.salaryThreshold = 150 //parameter that we need to define
+
+	// If our island is in a critical state, then we will deduct part of the salary
+	// defined by the salaryThreshold to at least meet our required threshold for survival.
 	if j.c.ServerReadHandle.GetGameState().ClientLifeStatuses[shared.Team3] == shared.Critical {
 		take := j.c.params.salaryThreshold - j.c.localPool
 		salary -= shared.Resources(take)
@@ -24,10 +27,14 @@ func (j *judge) PayPresident(salary shared.Resources) (shared.Resources, bool) {
 	return salary, true
 }
 
+// InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outMap := map[shared.ClientID]roles.EvaluationReturn{}
+
+	// If we do not have sufficient budget to conduct the inspection,
+	// then we will return an empty map with true evaluations.
 	if j.c.localPool < config.IIGOConfig.InspectHistoryActionCost {
-		//	dummy evaluation map
+		// dummy evaluation map
 		for _, entry := range iigoHistory {
 			outMap[entry.ClientID] = roles.EvaluationReturn{
 				Rules:       []rules.RuleMatrix{},
@@ -36,6 +43,8 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		}
 		return outMap, true
 	}
+
+	// Else, carry out inspectHistory as base implementation.
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
@@ -57,6 +66,9 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 				Evaluations: []bool{},
 			}
 		}
+
+		// If the island's trustScore is above 80, then return true for all rule evaluations
+		// without actually evaluating if the island(s) adhered to any rules.
 		if j.c.trustScore[clientID] > 80 {
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
@@ -65,6 +77,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			}
 			outMap[clientID] = tempReturn
 		} else {
+			// All other islands will be evaluated fairly using base implementation.
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
 				evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
@@ -80,14 +93,16 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 	return outMap, true
 }
 
+// CallPresidentElection sets the election settings for the next president election
 func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
-	// example implementation calls an election if monitoring was performed and the result was negative
-	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Plurality,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
+
+	// Base implementation calls an election if monitoring was performed and the result was negative
+	// or if the number of turnsInPower exceeds 3
 	if monitoring.Performed && !monitoring.Result {
 		electionsettings.HoldElection = true
 	}
@@ -98,7 +113,10 @@ func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 	return electionsettings
 }
 
+// DecideNextPresident declares who the next president will be
 func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
+	// If the election winner's trust score is high, we will declare them as the next President.
+	// If not, we will replace it with the island who's trust score is the highest.
 	if j.c.trustScore[winner] < 70 {
 		// we can change this to be mailicious everytime
 		for island := range j.c.trustScore {
@@ -110,18 +128,26 @@ func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	return winner
 }
 
+// GetRuleViolationSeverity returns a custom map of named rules and
+// how severe the sanction should be for transgressing them
+// If a rule is not named here, the default sanction value added is 1
 func (j *judge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
 	return map[string]roles.IIGOSanctionScore{}
 }
 
+// GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
+// For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
 func (j *judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
 	return j.BaseJudge.GetSanctionThresholds()
 }
 
+// GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
+// COMPULSORY: decide which islands, if any, to forgive
 func (j *judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
 	return j.BaseJudge.GetPardonedIslands(currentSanctions)
 }
 
+// HistoricalRetributionEnabled enables historical retribution of inspection (automatically set to 3 turns ago)
 func (j *judge) HistoricalRetributionEnabled() bool {
 	return true
 }
