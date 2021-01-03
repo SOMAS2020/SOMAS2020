@@ -68,19 +68,34 @@ var (
 		1,
 		"`lambda` param in W variable (see foraging README). Controls distribution of deer sizes.",
 	)
-	foragingDeerResourceMultiplier = flag.Float64(
-		"foragingDeerResourceMultiplier",
-		1,
-		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
+	foragingDeerInputScaler = flag.Float64(
+		"foragingDeerInputScaler",
+		12,
+		"scalar value that adjusts deer input resources to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingDeerOutputScaler = flag.Float64(
+		"foragingDeerOutputScaler",
+		18,
+		"scalar value that adjusts deer returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerDistributionStrategy = flag.Int(
 		"foragingDeerDistributionStrategy",
 		int(shared.InputProportionalSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
+	foragingDeerThetaCritical = flag.Float64(
+		"foragingDeerThetaCritical",
+		0.8,
+		"Bernoulli prob of catching deer when population ratio = running population/max deer per hunt = 1",
+	)
+	foragingDeerThetaMax = flag.Float64(
+		"foragingDeerThetaMax",
+		0.95,
+		"Bernoulli prob of catching deer when population is at carrying capacity (max population)",
+	)
 	foragingDeerMaxPopulation = flag.Uint(
 		"foragingDeerMaxPopulation",
-		8,
+		12,
 		"Max possible deer population.",
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
@@ -108,9 +123,14 @@ var (
 		0.2,
 		"Determines variance of normal distribution of fishing return (see foraging README)",
 	)
-	foragingFishingResourceMultiplier = flag.Float64(
-		"foragingFishingResourceMultiplier",
-		1,
+	foragingFishingInputScaler = flag.Float64(
+		"foragingFishingInputScaler",
+		10,
+		"scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingFishingOutputScaler = flag.Float64(
+		"foragingFishingOutputScaler",
+		12,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(
@@ -180,8 +200,11 @@ func parseConfig() (config.Config, error) {
 		IncrementalInputDecay: *foragingDeerIncrementalInputDecay,
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
-		ResourceMultiplier:    *foragingDeerResourceMultiplier,
+		InputScaler:           *foragingDeerInputScaler,
+		OutputScaler:          *foragingDeerOutputScaler,
 		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
+		ThetaCritical:         *foragingDeerThetaCritical,
+		ThetaMax:              *foragingDeerThetaMax,
 
 		MaxDeerPopulation:     *foragingDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
@@ -192,7 +215,8 @@ func parseConfig() (config.Config, error) {
 		IncrementalInputDecay: *foragingFishingIncrementalInputDecay,
 		Mean:                  *foragingFishingMean,
 		Variance:              *foragingFishingVariance,
-		ResourceMultiplier:    *foragingFishingResourceMultiplier,
+		InputScaler:           *foragingFishingInputScaler,
+		OutputScaler:          *foragingFishingOutputScaler,
 		DistributionStrategy:  parsedForagingFishingDistributionStrategy,
 	}
 	foragingConf := config.ForagingConfig{
