@@ -78,16 +78,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	g.IIGORolesBudget[shared.Judge] += 100
 	g.IIGORolesBudget[shared.Speaker] += 100
 
-	// Pass in gamestate -
+	// Pass in gamestate and IIGO configs
 	// So that we don't have to pass gamestate as arguments in every function in roles
-	judicialBranch.gameState = g
-	legislativeBranch.gameState = g
+	judicialBranch.syncWithGame(g, &gameConf.IIGOConfig)
+	legislativeBranch.syncWithGame(g, &gameConf.IIGOConfig)
 	executiveBranch.syncWithGame(g, &gameConf.IIGOConfig)
-	//.gameState = g
-
-	judicialBranch.gameConf = &gameConf.IIGOConfig
-	legislativeBranch.gameConf = &gameConf.IIGOConfig
-	executiveBranch.gameConf = &gameConf.IIGOConfig
 
 	// Initialise IDs
 	judicialBranch.JudgeID = g.JudgeID
