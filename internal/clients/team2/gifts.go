@@ -144,21 +144,21 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 	responses := shared.GiftResponseDict{}
 	turn := c.gameState().Turn
 
+	// sanctions could be a reason to deny a gift offer
 	for client, offer := range receivedOffers {
 		responses[client] = shared.GiftResponse{
 			AcceptedAmount: shared.Resources(offer),
 			Reason:         shared.Accept,
 		}
-	}
-
-	for island, response := range responses {
 		newGiftRequest := GiftInfo{
+			// it could potentially crash if we receive a gift we didn't ask for... this entry would be a null pointer
 			requested: c.giftHist[island].OurRequest[turn].requested,
 			gifted:    shared.GiftOffer(response.AcceptedAmount),
 			reason:    shared.AcceptReason(response.AcceptedAmount),
 		}
 		c.giftHist[island].OurRequest[turn] = newGiftRequest
 	}
+
 	return responses
 }
 
@@ -196,3 +196,5 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 
 }
+
+// decideGiftAmount ->
