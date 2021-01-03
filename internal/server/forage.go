@@ -34,17 +34,22 @@ func (s *SOMASServer) runForage() error {
 	}
 
 	for id, decision := range foragingParticipants {
-		forageGroup := forageGroups[decision.Type]
-		err := s.takeResources(id, decision.Contribution, forageGroup.takeResourceReason)
-		if err == nil {
-			if decision.Contribution > 0.0 {
-				(*forageGroup.partyContributions)[id] = decision.Contribution
-			} else {
-				s.logf("%v did not contribute resources and will not participate in this foraging round.", id)
-			}
-			// assign contribution to client ID within appropriate forage group
+
+		if !shared.IsValidForageType(decision.Type) {
+			s.logf("%v client selected invalid forag type in foraging decision: ", decision.Type)
 		} else {
-			s.logf("%v did not have enough resources to participate in foraging", id)
+			forageGroup := forageGroups[decision.Type]
+			err := s.takeResources(id, decision.Contribution, forageGroup.takeResourceReason)
+
+			if err == nil {
+				if decision.Contribution > 0.0 {
+					(*forageGroup.partyContributions)[id] = decision.Contribution // assign contribution to client ID within appropriate forage group
+				} else {
+					s.logf("%v did not contribute resources and will not participate in this foraging round.", id)
+				}
+			} else {
+				s.logf("%v did not have enough resources to participate in foraging", id)
+			}
 		}
 	}
 
