@@ -10,13 +10,23 @@ import (
 /*
 ================================================================
 	FORAGING
+================================================================
+	Foraging Functions:
 		DecideForage() (shared.ForageDecision, error)
 		ForageUpdate(shared.ForageDecision, shared.Resources)
+
+	IIFO Foraging Functions:
+		MakeForageInfo() shared.ForageShareInfo
+		ReceiveForageInfo([]shared.ForageShareInfo)
 ================================================================
-IntialForage() Gamble the first attempt to try to get rich (born rich)
-If we fail we are in middle class and have a 50% chance to go up fast(Deer) or slow (Fish)
-If we lose again then we are in the Imperial class and we just fish to try to get back to middle class
+	TBA
+	- Share foraging information with others
+	- Look at others foraging information to determine out persuit
+	
+================================================================
 */
+
+// DecideForage helps us pick the forage (First X turns are the initial setup / data gathering phases)
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if c.forageHistorySize() < c.config.InitialForageTurns { // Start with initial foraging turns
 		return c.InitialForage(), nil
@@ -27,22 +37,26 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	}
 }
 
+/*
+IntialForage() Gamble the first attempt to try to get rich (born rich)
+If we fail we are in middle class and have a 50% chance to go up fast(Deer) or slow (Fish)
+If we lose again then we are in the Imperial class and we just fish to try to get back to middle class
+*/
 func (c *client) InitialForage() shared.ForageDecision {
-	// Default contribution amount is a random amount between 0 -> 20%
-	forageContribution := shared.Resources(0.2*rand.Float64()) * c.gameState().ClientInfo.Resources
-
 	var forageType shared.ForageType
 
-	switch {
-	case c.wealth() == JeffBezos: // JB then we have so much might as well gamble 50% of it
-		forageContribution = shared.Resources(0.5*rand.Float64()) * c.gameState().ClientInfo.Resources
-		forageType = shared.DeerForageType
+	// Default contribution amount is a random amount between 0 -> 10%
+	forageContribution := shared.Resources(0.01 + rand.Float64()*(0.05 - 0.01))* c.gameState().ClientInfo.Resources
 
-	case c.wealth() == ImperialStudent: // Imperial student
+	switch {
+	case c.wealth() == JeffBezos: // JB then we have so much might as well gamble 20% of it
+		forageContribution = shared.Resources(0.025 + rand.Float64()*(0.10 - 0.025))* c.gameState().ClientInfo.Resources
+		forageType = shared.DeerForageType
+	case c.wealth() == ImperialStudent: // Imperial student (Need to save money so dont spent a lot)
 		forageType = shared.FishForageType
-	case c.wealth() == Dying: // Dying
+	case c.wealth() == Dying: // Dying (Its all or nothing now )
 		c.lastHopeForage()
-	default: // Midle class
+	default: // Midle class (lets see where the coin takes us)
 		if rand.Float64() < 0.50 {
 			forageType = shared.DeerForageType
 		} else {
@@ -50,7 +64,7 @@ func (c *client) InitialForage() shared.ForageDecision {
 		}
 	}
 
-	c.Logf("[Forage][Decision]:Initial")
+	c.Logf("[Debug] - [Initial Forage]:[%v][%v]",forageType,forageContribution)
 
 	return shared.ForageDecision{
 		Type:         forageType,
@@ -134,11 +148,9 @@ func (c *client) normalForage() shared.ForageDecision {
 		Contribution: bestInput,
 	}
 
-	// Log the results
 	c.Logf(
-		"[Forage][Decision]: Decision %v | Expected ROI %v",
-		forageDecision, bestRoI)
-
+		"[Debug] - [Normal Forage]:[%v][%v][Expected Return %v]",
+		bestForageType,bestInput,bestRoI)
 	return forageDecision
 }
 

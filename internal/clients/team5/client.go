@@ -23,23 +23,23 @@ type client struct {
 	config clientConfig
 }
 
-// NewClient get the base client
-func NewClient(clientID shared.ClientID) baseclient.Client {
-	return &client{
-		BaseClient:    baseclient.NewClient(clientID),
-		forageHistory: ForageHistory{},
-		taxAmount:     0,
-		allocation:    0,
-		config: clientConfig{
-			InitialForageTurns: 10,
-			// SkipForage:         5,
+//  Old config
+// func NewClient(clientID shared.ClientID) baseclient.Client {
+// 	return &client{
+// 		BaseClient:    baseclient.NewClient(clientID),
+// 		forageHistory: ForageHistory{},
+// 		taxAmount:     0,
+// 		allocation:    0,
+// 		config: clientConfig{
+// 			InitialForageTurns: 10,
+// 			SkipForage:         5,
 
-			JBThreshold:       1000.0,
-			MiddleThreshold:   60.0,
-			ImperialThreshold: 30.0, // surely should be - 100e6?
-		},
-	}
-}
+// 			JBThreshold:       1000.0,
+// 			MiddleThreshold:   60.0,
+// 			ImperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
+// 		},
+// 	}
+// }
 
 //================================================================
 /*  Wealth class */
@@ -48,19 +48,15 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c client) wealth() WealthTier {
 	cData := c.gameState().ClientInfo
 	switch {
-	case cData.LifeStatus == shared.Critical:
-		c.Logf("Critical") // Debugging
+	case cData.LifeStatus == shared.Critical: // We dying 
 		return Dying
 	case cData.Resources > c.config.ImperialThreshold && cData.Resources < c.config.MiddleThreshold:
-		c.Logf("Student") // Debugging
-		return ImperialStudent
+		return ImperialStudent // Poor 
 	case cData.Resources > c.config.JBThreshold:
-		c.Logf("Threshold %f", c.config.JBThreshold) // Debugging
-		c.Logf("Resources %f", cData.Resources)      // Debugging
-		return JeffBezos
+		// c.Logf("[Team 5][Wealth:%v][Class:%v]", cData.Resources,c.config.JBThreshold)      // Debugging
+		return JeffBezos // Rich
 	default:
-		c.Logf("Middle class") // Debugging
-		return MiddleClass
+		return MiddleClass // Middle class
 	}
 }
 
@@ -71,16 +67,27 @@ func init() {
 	baseclient.RegisterClient(
 		id,
 		&client{
+			// BaseClient:    baseclient.NewClient(id),
+			// forageHistory: ForageHistory{},
 			BaseClient:    baseclient.NewClient(id),
 			forageHistory: ForageHistory{},
+			taxAmount:     0,
+			allocation:    0,
+			config: clientConfig{
+				InitialForageTurns: 10,
+				SkipForage:         5,
+	
+				JBThreshold:       100.0,
+				MiddleThreshold:   60.0,
+				ImperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
+			},
 		},
 	)
 }
 
 func (c *client) StartOfTurn() {
-	c.Logf("Wealth: %v", c.wealth())
-	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
-
+	c.Logf("[Debug] - [Class: %v] [Money In the Bank: %v]", c.wealth(),c.gameState().ClientInfo.Resources)
+	// c.Logf("[The Pitts]: %v", c.gameState().ClientInfo.Resources)
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
 			return
@@ -88,32 +95,6 @@ func (c *client) StartOfTurn() {
 	}
 
 }
-
-func (c *client) CommonPoolResourceRequest() shared.Resources {
-	switch c.wealth() {
-	case Dying:
-		c.Logf("Common pool request: 20")
-		return 20
-	default:
-		return 0
-	}
-}
-
-// func (c *client) RequestAllocation() shared.Resources {
-// 	var allocation shared.Resources
-
-// 	if c.wealth() == Dying {
-// 		allocation = c.config.desperateStealAmount
-// 	} else if c.allocation != 0 {
-// 		allocation = c.allocation
-// 		c.allocation = 0
-// 	}
-
-// 	if allocation != 0 {
-// 		c.Logf("Taking %v from common pool", allocation)
-// 	}
-// 	return allocation
-// }
 
 /********************/
 /***    IIFO        */
@@ -159,6 +140,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	return forageInfo
 }
 
+
 func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	for _, forageInfo := range forageInfos {
 		c.forageHistory[forageInfo.DecisionMade.Type] =
@@ -172,7 +154,7 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	}
 }
 
-/*Foraging History*/
+// forageHistorySize gets the size of our history to tell us how many rounds we have foraged
 func (c *client) forageHistorySize() uint {
 	length := uint(0)
 	for _, lst := range c.forageHistory {
@@ -181,6 +163,7 @@ func (c *client) forageHistorySize() uint {
 	return length // Return how many turns of foraging we have been on depending on the History
 }
 
+// gameState() gets the data from the server about our island 
 func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
 }
