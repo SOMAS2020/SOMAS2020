@@ -79,7 +79,7 @@ func (s *SOMASServer) endOfTurn() error {
 		return errors.Errorf("IITO EndOfTurn error: %v", err)
 	}
 
-	if err := s.runIIGOTax(); err != nil {
+	if err := s.runIIGOTaxCommonPool(); err != nil {
 		return errors.Errorf("Failed to put taxes into common pool at end of turn: %v", err)
 	}
 
@@ -91,11 +91,12 @@ func (s *SOMASServer) endOfTurn() error {
 	s.gameState.Environment = updatedEnv
 	// increment turn & season if needed
 	disasterHappened := updatedEnv.LastDisasterReport.Magnitude > 0
-	s.incrementTurnAndSeason(disasterHappened)
 
 	if disasterHappened {
+		s.applyDisasterEffects()    // compute effects taking into account CP and deduct resources accordingly
 		s.notifyClientsOfDisaster() // sends disaster report and effects to all non-dead clients
 	}
+	s.incrementTurnAndSeason(disasterHappened)
 
 	// deduct cost of living
 	s.deductCostOfLiving(s.gameConfig.CostOfLiving)
@@ -126,7 +127,7 @@ func (s *SOMASServer) notifyClientsOfDisaster() {
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		effects := s.gameState.Environment.DisasterEffects() // gets effects of most recent disaster
+		effects := s.gameState.Environment.ComputeDisasterEffects(s.gameState.CommonPool, s.gameConfig.DisasterConfig) // gets effects of most recent disaster
 		c.DisasterNotification(s.gameState.Environment.LastDisasterReport, effects)
 	}
 }

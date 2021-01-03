@@ -78,7 +78,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 
 			JBThreshold:       1000.0,
 			MiddleThreshold:   60.0,
-			ImperialThreshold: 30.0,
+			ImperialThreshold: 30.0, // surely should be - 100e6?
 		},
 	}
 }
@@ -112,7 +112,7 @@ func (st Wealth) String() string {
 	if st >= 0 && int(st) < len(strings) {
 		return strings[st]
 	}
-	return fmt.Sprintf("Unkown internal state '%v'", int(st))
+	return fmt.Sprintf("Unkown wealth state '%v'", int(st))
 }
 
 //================================================================

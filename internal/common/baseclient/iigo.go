@@ -53,6 +53,13 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	return 0
 }
 
+// GetCommonPoolContribution requests a client resource contribution towards the common pool.
+// This is used for disaster mitigation in the event of a disaster.
+// OPTIONAL: Use this method to contribue towards CP
+func (c *BaseClient) GetCommonPoolContribution() shared.Resources {
+	return 0
+}
+
 // GetSanctionPayment gives the value of how much the island is paying in sanctions
 func (c *BaseClient) GetSanctionPayment() shared.Resources {
 	return 0
