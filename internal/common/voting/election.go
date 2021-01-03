@@ -1,6 +1,7 @@
 package voting
 
 import (
+	"math"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -134,7 +135,7 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 			vi := float64(v[i])
 			fSi := float64(finalScore[i])
 			cN := float64(candidatesNumber)
-			variance[i] += (vi - fSi/cN) * (vi - fSi/cN)
+			variance[i] += math.Pow((vi - fSi/cN), 2)
 		}
 	}
 
