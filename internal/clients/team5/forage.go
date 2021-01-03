@@ -175,7 +175,7 @@ func (c *client) lastHopeForage() shared.ForageDecision {
 		Type:         shared.DeerForageType,
 		Contribution: 0.95 * c.gameState().ClientInfo.Resources,
 	}
-	c.Logf("[Debug] - [Forage][LastHopeForage]: Decision %v | Amount %v",
+	c.Logf("[Debug] - [Forage][LastHopeForage - just let me die PLEASE]: Decision %v | Amount %v",
 		forageDecision, forageDecision.Contribution)
 	return forageDecision
 }
