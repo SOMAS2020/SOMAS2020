@@ -168,6 +168,7 @@ func BasicRealValuedRuleEvaluator(ruleName string) (bool, float64, error) {
 	return false, 0, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
 }
 
+// BasicLinkedRuleEvaluator evaluates linked rules using the above two evaluators
 func BasicLinkedRuleEvaluator(ruleName string) (bool, error) {
 	if rm, ok := AvailableRules[ruleName]; ok {
 		link := rm.Link
@@ -188,6 +189,8 @@ func BasicLinkedRuleEvaluator(ruleName string) (bool, error) {
 					return false, errors.Errorf("Parent Rule errored out wiht : %v", childErr)
 				}
 				return childPass, nil
+			} else {
+				return false, errors.Errorf("Unrecognised rule linking %v", link.LinkType)
 			}
 		}
 	}
