@@ -1,5 +1,5 @@
 ## Foraging
-
+*note*: GH doesn't support LaTeX in MD file previews. View this file locally in VSCode or similar to see the maths.
 ### Deer Hunts 🦌
 
 #### Utility for a single deer
