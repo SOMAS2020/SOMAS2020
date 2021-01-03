@@ -108,9 +108,9 @@ func TestLoadSanctionConfig(t *testing.T) {
 	}
 }
 
+// TODO - Outdated Test? Presidents salary should not be deducted from the budget
 // TestSendPresidentSalary checks whether judiciary can correctly send salaries to the executive branch
-/*
-func TestSendPresidentSalary(t *testing.T) {
+/*func TestSendPresidentSalary(t *testing.T) {
 	cases := []struct {
 		name              string
 		defaultPresSalary shared.Resources
