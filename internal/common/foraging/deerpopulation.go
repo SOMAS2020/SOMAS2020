@@ -2,9 +2,9 @@ package foraging
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/simulation"
 )
 
@@ -14,15 +14,16 @@ type DeerPopulationModel struct {
 	Population float64                      // current number of deer in env
 	T          float64                      // temporal parameter. Time, turn or whatever other incarnation
 	deState    func(float64) (t, y float64) // holds internal state of DE and allows to call next solution step
+	logger     shared.Logger
 }
 
 // Logf is a this type's custom logger
 func (dp DeerPopulationModel) Logf(format string, a ...interface{}) {
-	log.Printf("[SERVER]: DeerPop [t=%.1f]: %v", dp.T, fmt.Sprintf(format, a...))
+	dp.logger("[DEERPOPULATION]: %v", fmt.Sprintf(format, a...))
 }
 
 // CreateBasicDeerPopulationModel returns a basic population model based on dP/dt = k(N-y) model. k = growth coeff., N = max deer (constants).
-func createBasicDeerPopulationModel(dhConf config.DeerHuntConfig) DeerPopulationModel {
+func createBasicDeerPopulationModel(dhConf config.DeerHuntConfig, logger shared.Logger) DeerPopulationModel {
 	maxDeer := dhConf.MaxDeerPopulation
 	deerPopulationGrowth := func(t, y float64) float64 {
 		return dhConf.DeerGrowthCoefficient * (float64(maxDeer) - y) // DE of form dy/dt = k(N-y) where k, N are constants
@@ -31,6 +32,7 @@ func createBasicDeerPopulationModel(dhConf config.DeerHuntConfig) DeerPopulation
 		deProblem:  simulation.ODEProblem{YPrime: deerPopulationGrowth, Y0: float64(maxDeer), T0: 0, DtStep: 0.1},
 		Population: float64(maxDeer),
 		T:          .0,
+		logger:     logger,
 	}
 	dp.deState = dp.deProblem.StepDeltaY() // initialise DE state
 	return dp
