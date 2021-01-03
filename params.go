@@ -51,7 +51,7 @@ var (
 	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
-		"Max possible number of deer on a single hunt (regardless of number of participants).",
+		"Max possible number of deer on a single hunt (regardless of number of participants). ** should be strictly less than max deer population.",
 	)
 	foragingDeerIncrementalInputDecay = flag.Float64(
 		"foragingDeerIncrementalInputDecay",
@@ -68,20 +68,35 @@ var (
 		1,
 		"`lambda` param in W variable (see foraging README). Controls distribution of deer sizes.",
 	)
-	foragingDeerResourceMultiplier = flag.Float64(
-		"foragingDeerResourceMultiplier",
-		1,
-		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
+	foragingDeerInputScaler = flag.Float64(
+		"foragingDeerInputScaler",
+		12,
+		"scalar value that adjusts deer input resources to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingDeerOutputScaler = flag.Float64(
+		"foragingDeerOutputScaler",
+		18,
+		"scalar value that adjusts deer returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerDistributionStrategy = flag.Int(
 		"foragingDeerDistributionStrategy",
 		int(shared.InputProportionalSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
+	foragingDeerThetaCritical = flag.Float64(
+		"foragingDeerThetaCritical",
+		0.8,
+		"Bernoulli prob of catching deer when population ratio = running population/max deer per hunt = 1",
+	)
+	foragingDeerThetaMax = flag.Float64(
+		"foragingDeerThetaMax",
+		0.95,
+		"Bernoulli prob of catching deer when population is at carrying capacity (max population)",
+	)
 	foragingDeerMaxPopulation = flag.Uint(
 		"foragingDeerMaxPopulation",
 		12,
-		"Max possible deer population.",
+		"Max possible deer population. ** Should be strictly greater than max deer per hunt.",
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",
@@ -108,9 +123,14 @@ var (
 		0.2,
 		"Determines variance of normal distribution of fishing return (see foraging README)",
 	)
-	foragingFishingResourceMultiplier = flag.Float64(
-		"foragingFishingResourceMultiplier",
-		1,
+	foragingFishingInputScaler = flag.Float64(
+		"foragingFishingInputScaler",
+		10,
+		"scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingFishingOutputScaler = flag.Float64(
+		"foragingFishingOutputScaler",
+		12,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(
@@ -174,6 +194,14 @@ func parseConfig() (config.Config, error) {
 		return config.Config{}, errors.Errorf("Error parsing foragingDeerDistributionStrategy: %v", err)
 	}
 
+	parsedDeerMaxPerHunt, parseDeerMaxPopulation, err := shared.ParseDeerPopulationParams(
+		*foragingDeerMaxPerHunt,
+		*foragingDeerMaxPopulation,
+	)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingDeerMaxPerHunt and/or foragingDeerMaxPopulation: %v", err)
+	}
+
 	parsedForagingFishingDistributionStrategy, err := shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy)
 	if err != nil {
 		return config.Config{}, errors.Errorf("Error parsing foragingFishingDistributionStrategy: %v", err)
@@ -186,14 +214,17 @@ func parseConfig() (config.Config, error) {
 
 	deerConf := config.DeerHuntConfig{
 		//Deer parameters
-		MaxDeerPerHunt:        *foragingDeerMaxPerHunt,
+		MaxDeerPerHunt:        parsedDeerMaxPerHunt,
 		IncrementalInputDecay: *foragingDeerIncrementalInputDecay,
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
-		ResourceMultiplier:    *foragingDeerResourceMultiplier,
+		InputScaler:           *foragingDeerInputScaler,
+		OutputScaler:          *foragingDeerOutputScaler,
 		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
+		ThetaCritical:         *foragingDeerThetaCritical,
+		ThetaMax:              *foragingDeerThetaMax,
 
-		MaxDeerPopulation:     *foragingDeerMaxPopulation,
+		MaxDeerPopulation:     parseDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
 	}
 	fishingConf := config.FishingConfig{
@@ -202,7 +233,8 @@ func parseConfig() (config.Config, error) {
 		IncrementalInputDecay: *foragingFishingIncrementalInputDecay,
 		Mean:                  *foragingFishingMean,
 		Variance:              *foragingFishingVariance,
-		ResourceMultiplier:    *foragingFishingResourceMultiplier,
+		InputScaler:           *foragingFishingInputScaler,
+		OutputScaler:          *foragingFishingOutputScaler,
 		DistributionStrategy:  parsedForagingFishingDistributionStrategy,
 	}
 	foragingConf := config.ForagingConfig{
