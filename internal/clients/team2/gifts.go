@@ -2,13 +2,13 @@ package team2
 
 import (
 	"sort"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 )
 
 type IslandTrust struct {
 	island shared.ClientID
-	trust int
+	trust  int
 }
 
 // Override functions to sort a list
@@ -26,33 +26,30 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	ourAgentCritical := status == shared.Critical
 	requestAmount := internalThreshold(c) - c.gameState().ClientInfo.Resources
 
-	// who we request to: using trust + whether or not they are critical
-
 	// confidence[island] * requestAmount until -> target
-	
 	if ourAgentCritical || requestAmount > 0 {
 		target := 1.5 * requestAmount
 		var trustRank []IslandTrust
-		
+
 		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 
 			// get our confidence in the team
 			if status != shared.Critical {
-				islandConf := IslandTrust {
+				islandConf := IslandTrust{
 					island: team,
-					trust: c.confidence("GiftWeRequest", team)
+					trust:  c.confidence("GiftWeRequest", team),
 				}
 				trustRank = append(confidences, islandConf)
 			}
-			
+
 		}
-		
+
 		// keep a ranked list of the teams
 		sort.Sort(trustRank)
-		
-		// request confidence (0-1)*amountNeeded to consecutive islands in rank 
+
+		// request confidence (0-1)*amountNeeded to consecutive islands in rank
 		// until amountRequested = (factor eg 1.5) * amountNeeded (to accommodate for some islands not giving us a gift)
-		while(target > 0) {
+		for i := 0; i < len(trustRank); i++ {
 			requestAmount := trustRank[0].trust * target
 			requestedTo := trustRank[0].island
 			requests[requestedTo] = shared.GiftRequest(requestAmount)
@@ -62,12 +59,15 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 				requested: requestAmount,
 			}
 			c.giftHist[requestedTo].OurRequest[turn] = newGiftRequest
-			
+
 			target -= requestAmount
-			trustRank = trustRank[1:]
+
+			if target <= 0 {
+				return requests
+			}
 		}
 	}
-	
+
 	return requests
 }
 
@@ -82,14 +82,29 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	// if we are critical do not offer gifts-> there should be a way to see which other islands are critical
 	// if we are not critical and another island is critical offer gift
 	// do not offer more than proportion of total resources we have
+	ourAgentCritical := status == shared.Critical
 
-	// You can fetch the clients which are alive like this:
-	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if status == shared.Critical {
-			offers[team] = shared.GiftOffer(100.0)
-		} else {
-			offers[team] = shared.GiftOffer(0.0)
+	// prioritize giving gifts to islands we trust (for now confidence)
+
+	// Give no more than half of amount before we reach threshold
+	maxToGive := (c.gameState().ClientInfo.Resources - internalThreshold(c)) / 2
+
+	var trustRank []IslandTrust
+
+	for team, reqAmount := range receivedRequests {
+		// max would be 200
+		// c.confidence("ReceivedRequests", team) should reflect the status of an island and int,float64 requests hist
+		// c.confidence("GiftWeRequest", team) should reflect how they respond to our requests
+		// if ourAgentCritical || maxToGive <= 0 {
+		// 	offers[team] = shared.GiftOffer(0.0)
+		// } else {
+		confidenceMetric := c.confidence("ReceivedRequests", team) + c.confidence("GiftWeRequest", team)
+		islandConf := IslandTrust{
+			island: team,
+			trust:  confidenceMetric,
 		}
+		trustRank = append(confidences, islandConf)
+		// }
 	}
 
 	for island, offeredAmount := range offers {
@@ -163,4 +178,3 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 
 }
-d
