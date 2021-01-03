@@ -171,7 +171,7 @@ func (c *client) evalPresidentPerformance() {
 		evalOfPresident -= c.trustScore[SpeakerID] * c.params.sensitivity
 	}
 
-	evalOfPresident += (c.iigoInfo.commonPoolAllocation - CommonPoolResourceRequest()) * c.params.sensitivity
+	evalOfPresident += (c.iigoInfo.commonPoolAllocation - c.CommonPoolResourceRequest()) * c.params.sensitivity
 
 	if PickRuleToVote() == c.ruleVotedOn {
 		evalOfPresident += c.params.sensitivity
