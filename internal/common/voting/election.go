@@ -34,17 +34,19 @@ func (e *Election) Vote(clientMap map[shared.ClientID]baseclient.Client) {
 }
 
 // CloseBallot counts the votes received and returns the result.
-func (e *Election) CloseBallot() shared.ClientID {
+func (e *Election) CloseBallot(clientMap map[shared.ClientID]baseclient.Client) shared.ClientID {
 
 	var result shared.ClientID
 
 	switch e.votingMethod {
 	case shared.BordaCount:
 		result = e.bordaCountResult()
-	case shared.Plurality:
-		result = e.pluralityResult()
-	case shared.Majority:
-		result = e.majorityResult()
+	case shared.Runoff:
+		result = e.runOffResult(clientMap)
+	case shared.InstantRunoff:
+		result = e.instantRunoffResult(clientMap)
+	case shared.Approval:
+		result = e.approvalResult()
 	}
 	return result
 }
