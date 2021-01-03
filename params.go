@@ -17,7 +17,7 @@ var (
 	)
 	maxTurns = flag.Uint(
 		"maxTurns",
-		5,
+		8,
 		"The maximum numbers of 1-indexed turns to run the game.",
 	)
 	initialResources = flag.Float64(
@@ -80,7 +80,7 @@ var (
 	)
 	foragingDeerMaxPopulation = flag.Uint(
 		"foragingDeerMaxPopulation",
-		12,
+		8,
 		"Max possible deer population.",
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(

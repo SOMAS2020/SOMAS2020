@@ -16,9 +16,7 @@ type DeerPopulationModel struct {
 	deState    func(float64) (t, y float64) // holds internal state of DE and allows to call next solution step
 }
 
-// Logf is the client's logger that prepends logs with your ID. This makes
-// it easier to read logs. DO NOT use other loggers that will mess logs up!
-// BASE: Do not overwrite in team client.
+// Logf is a this type's custom logger
 func (dp DeerPopulationModel) Logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: DeerPop [t=%.1f]: %v", dp.T, fmt.Sprintf(format, a...))
 }

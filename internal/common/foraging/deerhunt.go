@@ -3,6 +3,8 @@ package foraging
 // see https://colab.research.google.com/drive/1g1tiX27Ds7FGjj4_WjFB3OLj8Fat_Ur5?usp=sharing for experiments + simulations
 
 import (
+	"fmt"
+	"log"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -34,7 +36,7 @@ func (d DeerHunt) Hunt(dhConf config.DeerHuntConfig, deerPopulation uint) Foragi
 	returns := []shared.Resources{}
 
 	for i := uint(0); i < nDeerFromInput; i++ {
-		d.params.p = getPopulationLinkedProbability(dhConf, deerPopulation)
+		d.params.p = d.getPopulationLinkedProbability(dhConf, deerPopulation)
 		utility := deerReturn(d.params) * shared.Resources(dhConf.ResourceMultiplier) // scale return by resource multiplier
 		returns = append(returns, utility)
 		if utility > 0 { // a deer was caught and so should be removed from population
@@ -56,19 +58,26 @@ func deerReturn(params deerHuntParams) shared.Resources {
 	return shared.Resources(D.Rand() * (1 + W.Rand()))
 }
 
-func getPopulationLinkedProbability(dhConf config.DeerHuntConfig, population uint) float64 {
-	pCritical := uint(1) // TODO: move to config
-	pMax := dhConf.MaxDeerPopulation / dhConf.MaxDeerPerHunt
+func (d DeerHunt) getPopulationLinkedProbability(dhConf config.DeerHuntConfig, population uint) float64 {
+	pCritical := 1.0 // TODO: move to config
+	pMax := float64(dhConf.MaxDeerPopulation) / float64(dhConf.MaxDeerPerHunt)
 	thetaCritical := 0.85 // TODO: move to config
 	thetaMax := 0.95      // TODO: move to config
-	p := population / dhConf.MaxDeerPerHunt
-	alpha := (thetaMax - thetaCritical) / float64((pMax - pCritical))
+	p := float64(population) / float64(dhConf.MaxDeerPerHunt)
+	alpha := (thetaMax - thetaCritical) / (pMax - float64(pCritical))
 
-	f1 := func(p uint) float64 { return thetaCritical * float64(p) }
-	f2 := func(p uint) float64 { return alpha*float64((p-pCritical)) + thetaCritical }
+	f1 := func(p float64) float64 { return thetaCritical * float64(p) }
+	f2 := func(p float64) float64 { return alpha*float64((p-pCritical)) + thetaCritical }
 
 	if p < pCritical {
-		return f1(p)
+		theta := f1(p)
+		d.Logf("Deer population ratio below critical level: P(t)=%v, p=%v, p_crit=%v, theta=%.2f", population, p, pCritical, theta)
+		return theta
 	}
 	return f2(p)
+}
+
+// Logf is a this type's custom logger
+func (d DeerHunt) Logf(format string, a ...interface{}) {
+	log.Printf("[SERVER][DeerHunt]: %v", fmt.Sprintf(format, a...))
 }
