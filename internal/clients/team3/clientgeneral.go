@@ -151,7 +151,7 @@ func (c *client) updateCompliance() {
 // the compliance at a specific time in the game. If the compliance is
 // 1, we expect this method to always return False.
 func (c *client) shouldICheat() bool {
-	var should_i_cheat = rand.Float64() < c.compliance
+	var should_i_cheat = rand.Float64() > c.compliance
 	return should_i_cheat
 }
 
