@@ -70,7 +70,6 @@ func (e *Election) runOffTest(clientMap map[shared.ClientID]baseclient.Client) (
 	halfTotalScore := 0.5 * totalScore
 
 	maxScore, maxScoreIndex := findMaxScore(scoreList, variance)
-	fmt.Println(maxScore, maxScoreIndex, totalScore)
 
 	if float64(maxScore) > halfTotalScore {
 		winner = rOneCandidateList[maxScoreIndex]
@@ -85,12 +84,11 @@ func (e *Election) runOffTest(clientMap map[shared.ClientID]baseclient.Client) (
 		rTwoCandidateList := []shared.ClientID{rOneCandidateList[maxScoreIndex], rOneCandidateList[competitorIndex]}
 		roundCandidateMap[2] = rTwoCandidateList
 
-		fmt.Println(rTwoCandidateList)
 		var rTwoVotes [][]shared.ClientID
 		for i := 0; i < voterNumber; i++ {
 			rTwoVotes = append(rTwoVotes, clientMap[e.voterList[i]].VoteForElection(e.roleToElect, rTwoCandidateList))
 		}
-		fmt.Println(rTwoVotes)
+
 		for i := 0; i < voterNumber; i++ {
 			if rTwoVotes[i][0] == rOneCandidateList[maxScoreIndex] {
 				remainNumber++
