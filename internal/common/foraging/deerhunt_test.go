@@ -48,7 +48,7 @@ func TestTotalInput(t *testing.T) {
 		DeerGrowthCoefficient: 0.4,
 	}
 	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
-	dummyLogger := shared.Logger(nil)
+	dummyLogger := shared.Logger{}
 	hunt, _ := CreateDeerHunt(huntParticipants, fConf, dummyLogger)
 	ans := hunt.TotalInput()
 	if ans != 1.9 {

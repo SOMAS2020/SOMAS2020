@@ -55,7 +55,9 @@ func (c ClientID) MarshalJSON() ([]byte, error) {
 }
 
 // Logger type for convenience in other definitions
-type Logger func(format string, a ...interface{})
+type Logger struct {
+	LogF func(format string, a ...interface{})
+}
 
 // Resources represents amounts of resources.
 // Used for foraging inputs and utility outputs (returns)
