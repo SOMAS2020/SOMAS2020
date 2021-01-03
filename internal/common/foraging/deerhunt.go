@@ -86,5 +86,5 @@ func (d DeerHunt) getPopulationLinkedProbability(dhConf config.DeerHuntConfig, p
 
 // Logf is a this type's custom logger
 func (d DeerHunt) Logf(format string, a ...interface{}) {
-	d.logger.LogF("[DEERHUNT]: %v", fmt.Sprintf(format, a...))
+	d.logger("[DEERHUNT]: %v", fmt.Sprintf(format, a...))
 }
