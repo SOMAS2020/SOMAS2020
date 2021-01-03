@@ -49,7 +49,7 @@ func TestTotalInput(t *testing.T) {
 	}
 	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
 	dummyLogger := func(format string, a ...interface{}) {
-		fmt.Sprintf("[DEERHUNT]: %v", fmt.Sprintf(format, a...))
+		t.Logf("[DEERHUNT]: %v", fmt.Sprintf(format, a...))
 	}
 	hunt, _ := CreateDeerHunt(huntParticipants, fConf, dummyLogger)
 	ans := hunt.TotalInput()

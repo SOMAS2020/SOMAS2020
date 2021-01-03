@@ -74,7 +74,7 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 				}
 
 				dummyLogger := func(format string, a ...interface{}) {
-					fmt.Sprintf("[FORAGING]: %v", fmt.Sprintf(format, a...))
+					t.Logf("[FORAGING]: %v", fmt.Sprintf(format, a...))
 				}
 
 				s := SOMASServer{

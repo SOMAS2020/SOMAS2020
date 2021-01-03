@@ -53,7 +53,7 @@ func TestTotalFishInput(t *testing.T) {
 		Variance:              0.2,
 	}
 	dummyLogger := func(format string, a ...interface{}) {
-		fmt.Sprintf("[FISHING]: %v", fmt.Sprintf(format, a...))
+		t.Logf("[FISHING]: %v", fmt.Sprintf(format, a...))
 	}
 	huntF, _ := CreateFishingExpedition(huntParticipants, fishingConfig, dummyLogger)
 	ans := huntF.TotalInput()
