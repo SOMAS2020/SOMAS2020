@@ -1,10 +1,6 @@
 package team1
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared" 
-
-/********************/
-/***  Messages      */
-/********************/
+import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
 func (c *client) ReceiveCommunication(
 	sender shared.ClientID,
