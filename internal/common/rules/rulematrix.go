@@ -8,6 +8,8 @@ import (
 type LinkTypeOption int
 
 const (
+	// ParentFailAutoRulePass allows for NOT(Parent Passes) || Parent and Child pass
+	// Useful for cases where if a condition isn't met we don't want to evaluate a rule
 	ParentFailAutoRulePass LinkTypeOption = iota
 	NoLink
 )
