@@ -107,7 +107,7 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 		return errors.Errorf("Error running deer hunt: %v", err)
 	}
 
-	huntReport := hunt.Hunt(dhConf)
+	huntReport := hunt.Hunt(dhConf, uint(s.gameState.DeerPopulation.Population))
 	huntReport.Turn = s.gameState.Turn // update report's Turn with actual turn value
 	// update foraging history
 	if s.gameState.ForagingHistory[shared.DeerForageType] == nil {
@@ -196,5 +196,6 @@ func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]sha
 
 // updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt
 func (s *SOMASServer) updateDeerPopulation(consumption uint) {
-	s.gameState.DeerPopulation.Simulate([]int{int(consumption)}) // updates pop. according to DE definition
+	updatedModel := s.gameState.DeerPopulation.Simulate([]int{int(consumption)}) // updates pop. according to DE definition
+	s.gameState.DeerPopulation = updatedModel
 }

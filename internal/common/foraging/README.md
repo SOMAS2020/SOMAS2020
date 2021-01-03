@@ -26,7 +26,7 @@ $$
 where the maximum number of deer that can be hunted in a single hunt is 4. Notice that the expected return for $n$ deer is simply $n$ times the return of a single deer (i.i.d. assumption). *However*, the incremental input resources required to hunt $n$ deer decreases as $n$ increases. That is, it costs less (per deer) to hunt more deer, this is to incentivise collaboration. This dynamic is incorporated using a variable $\Delta$ (decay = gameConf.ForagingConfig.IncrementalInputDecay) which is the rate of decrease as the number of deer's being hunted ,$n$, increases. For each additional deer the additional cost need to hunt it is calculated by $\Delta^n$ thus decreasing if the $\Delta < 1$ and increasing if $\Delta > 1$. 
 
 Assuming $\Delta=0.8$ for the MVP 
-$$ Increments\ of\ catching\ n\ deer's=
+$$ \text{Increments\ of\ catching\ n\ deer}=
 \left( \begin{array}{ll@{}}
 n=0: \Delta^0 = 1 \\
 n=1: \Delta^1 = 0.8^1 \\
@@ -38,8 +38,26 @@ The minimum amount of resources needed to hunt $n$ deer can be calculated as the
 $$ 
 \sum_{n=0}^{n} \Delta^{n} = \Delta^{0} + \Delta^{1} + \Delta^{2} + \Delta^{3} + \Delta^{4} + ....
 $$
-Where $n$, the number of deers you can hunt, is determined by the amount of resources input to the system 
+Where $n$, the number of deer you can hunt, is determined by the amount of resources input to the system.
 
-#### ToDo
+### Dynamics between deer population and likelihood of catching a deer
 
-- link deer population (governed by a predefined differential equation and historical consumption) with Bernoulli param `p` in deer return RV.
+We need to devise a mapping between the instantaneous deer population $P(t)$ and the binary probability of catching a deer $\theta$ (regardless of its size). Clearly, $P(t) \propto \theta$ - more deer leads to a larger chance of catching a deer. The task remains to mathematically characterise this relationship. 
+
+Consider 
+- $p \in [0, p_{max}]$ - deer population ratio: ratio of running population $P(t)$ to max deer per hunt. $p_{max} \in \mathbb{N}$ is the maximum ratio. For example, if max deer per hunt is 4 and carrying capacity is 12 (max population), then $p_{max} = \frac{12}{4} = 3$.  
+- $\theta \in [0, \theta_{max}], \; \theta_{max} \leq 1 $ - binary prob. of catching a deer
+- $p_c$ - critical population ratio. Will usually equal 1 (the case where the current deer population = max number of deer per hunt). Below this, we are guaranteed to catch less deer than max number per hunt.
+- $\theta_c$ - critical probability value. This is the proability of catching a deer when $p=p_c$
+
+Now, we need to define a function $f = \theta(p)$ that maps $\theta$ to $p$ such that the probability of catching a deer is linked to the population. Consider
+
+$f=\begin{cases} 
+      f_1 = \theta_c p & p \in [0; p_c] \\
+      f_2 = \alpha(p-p_c) + \theta_c & p \in [p_c; p_{max}]
+\end{cases}$
+where $\alpha = \frac{\theta_{max}\; - \; \theta_c}{p_{max} \; - \; p_c}$
+
+This mapping function is plotted below:
+
+![alt text](assets/deer_pop_prob.png "Deer Population vs Prob. of Catching Deer")
