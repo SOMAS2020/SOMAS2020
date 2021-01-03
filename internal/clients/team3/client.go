@@ -98,23 +98,36 @@ type sanctionInfo struct {
 	ourSanction roles.IIGOSanctionScore
 }
 
+type ruleVoteInfo struct {
+	// ourVote needs to be updated accordingly
+	ourVote         bool
+	resultAnnounced bool
+	// true -> yes, false -> no
+	result bool
+}
+
 type iigoCommunicationInfo struct {
+	// Retrieved fully from communications
+
 	// commonPoolAllocation gives resources allocated by president from requests
 	commonPoolAllocation shared.Resources
 	// taxationAmount gives tax amount decided by president
 	taxationAmount shared.Resources
-	// ruleVotingResults is a map of rules and the result of the vote for it
-	// true -> yes, false -> no
-	ruleVotingResults map[string]bool
-	// ruleVotingResultAnnounced stores whether a specific rule vote was announced
-	ruleVotingResultAnnounced map[string]bool
 	// monitoringOutcomes stores the outcome of the monitoring of an island.
 	// key is the role being monitored.
 	// true -> correct performance, false -> incorrect performance.
 	monitoringOutcomes map[shared.Role]bool
 	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
 	monitoringDeclared map[shared.Role]bool
-
 	// Struct containing sanction information
 	sanctions sanctionInfo
+
+	// Below need to be at least partially updated by our functions
+
+	// ruleVotingResults is a map of rules and the corresponding info
+	ruleVotingResults map[string]*ruleVoteInfo
+	// ourRequest stores how much we requested from commonpool
+	ourRequest shared.Resources
+	// ourDeclaredResources stores how much we said we had to the president
+	ourDeclaredResources shared.Resources
 }
