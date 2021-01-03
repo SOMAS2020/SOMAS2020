@@ -155,6 +155,15 @@ func (c *client) shouldICheat() bool {
 	return should_i_cheat
 }
 
+// checkIfCaught, checks if the island has been caught during the last turn
+// If it has been caught, it returns True, otherwise False.
+func (c *client) checkIfCaught() bool {
+	if c.iigoInfo.sanctions.ourSanction > c.last_sanctions {
+		return true
+	}
+	return false
+}
+
 /*
 	DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
 	updateCompliance
