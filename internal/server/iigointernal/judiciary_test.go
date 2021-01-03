@@ -549,7 +549,7 @@ func TestCreateBroadcastsForRuleViolationPenalties(t *testing.T) {
 			},
 			expectedCommunications: []map[shared.CommunicationFieldName]shared.CommunicationContent{
 				{
-					shared.IIGOSanctionTier: {
+					shared.RuleName: {
 						T:        shared.CommunicationString,
 						TextData: "inspect_allocation_rule",
 					},

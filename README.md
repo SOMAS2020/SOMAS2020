@@ -4,6 +4,7 @@ Main repository for SOMAS2020 Coursework.
 
 - [Setup & Rules](./docs/SETUP.md)
 - [Infra Info](./docs/INFRA.md)
+- [Simulation Execution Order](./docs/EXECUTION_ORDER.md)
 
 ## Running code
 ```bash
