@@ -1,9 +1,10 @@
 import React from 'react';
 import logo from '../../../assets/logo/logo512.png';
 import styles from './Game.module.css';
+import { OutputJSONType } from "../../../consts/types";
 // import SampleVis from '../visualisation/SampleVis';
 
-const Game = () => {
+const Game = (props: { output: OutputJSONType }) => {
   return (
     <div>
       <img src={logo} className={styles.appLogo} alt="logo" />

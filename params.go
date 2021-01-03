@@ -5,6 +5,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -155,8 +156,23 @@ var (
 	)
 )
 
-func parseConfig() config.Config {
+func parseConfig() (config.Config, error) {
 	flag.Parse()
+
+	parsedForagingDeerDistributionStrategy, err := shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingDeerDistributionStrategy: %v", err)
+	}
+
+	parsedForagingFishingDistributionStrategy, err := shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingFishingDistributionStrategy: %v", err)
+	}
+
+	parsedDisasterSpatialPDFType, err := shared.ParseSpatialPDFType(*disasterSpatialPDFType)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing disasterSpatialPDFType: %v", err)
+	}
 
 	deerConf := config.DeerHuntConfig{
 		//Deer parameters
@@ -165,7 +181,7 @@ func parseConfig() config.Config {
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
 		ResourceMultiplier:    *foragingDeerResourceMultiplier,
-		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy),
+		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
 
 		MaxDeerPopulation:     *foragingDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
@@ -177,7 +193,7 @@ func parseConfig() config.Config {
 		Mean:                  *foragingFishingMean,
 		Variance:              *foragingFishingVariance,
 		ResourceMultiplier:    *foragingFishingResourceMultiplier,
-		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy),
+		DistributionStrategy:  parsedForagingFishingDistributionStrategy,
 	}
 	foragingConf := config.ForagingConfig{
 		DeerHuntConfig: deerConf,
@@ -189,7 +205,7 @@ func parseConfig() config.Config {
 		YMin:            *disasterYMin,
 		YMax:            *disasterYMax,
 		GlobalProb:      *disasterGlobalProb,
-		SpatialPDFType:  shared.ParseSpatialPDFType(*disasterSpatialPDFType),
+		SpatialPDFType:  parsedDisasterSpatialPDFType,
 		MagnitudeLambda: *disasterMagnitudeLambda,
 	}
 	return config.Config{
@@ -202,5 +218,5 @@ func parseConfig() config.Config {
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
-	}
+	}, nil
 }
