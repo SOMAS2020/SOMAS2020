@@ -124,10 +124,10 @@ func (c *client) evalJudgePerformance() {
 	}
 
 	// Use the president's evaluation of the judge to determine how well the judge performed
-	var presidentEvalOFJudge bool
+	var presidentEvalOfJudge bool
 
 	if monitoringDeclared[PresidentID] == true {
-		presidentEvalOFJudge = monitoringOutcomes[JudgeID] * c.params.sensitivity
+		presidentEvalOfJudge = monitoringOutcomes[JudgeID] * c.params.sensitivity
 	}
 
 	if presidentEvalOfJudge == true {
@@ -135,36 +135,49 @@ func (c *client) evalJudgePerformance() {
 	} else {
 		evalOfJudge -= c.trustScore[PresidentID] * c.params.sensitivity
 	}
-
 }
 
 func (c *client) evalPresidentPerformance() {
-	evalOfPresident := float64(c.presidentPerformance[c.ServerReadHandle.GetGameState().PresidentID])
-	if judgeEvalOfPresident == 1 {
-		evalOfPresident += c.trustScore[c.ServerReadHandle.GetGameState().JudgeID]
+	JudgeID := c.ServerReadHandle.GetGameState().JudgeID
+	SpeakerID := c.ServerReadHandle.GetGameState().SpeakerID
+	PresidentID := c.ServerReadHandle.GetGameState().PresidentID
+	evalOfPresident := float64(c.judgePerformance[JudgeID])
+
+	// If the president didn't evaluate the judge, the president didn't do a good job
+	if c.iigoCommunicationInfo.monitoringDeclared[JudgeID] == false {
+		evalOfPresident -= c.trustScore[PresidentID] * c.params.sensitivity
 	}
-	if judgeEvalOfPresident == 0 {
-		evalOfPresident -= c.trustScore[c.ServerReadHandle.GetGameState().JudgeID]
+
+	// Use the speaker's evaluation of the president to determine how well the president performed
+	var speakerEvalofPresident bool
+
+	if monitoringDeclared[SpeakerID] == true {
+		speakerEvalofPresident = c.iigoCommunicationInfo.monitoringOutcomes[PresidentID] * c.params.sensitivity
 	}
 
-	// // Allocation of ressources
-	// evalOfSpeaker += (allocationReceived - allocationRequested) * sensitivity
+	if speakerEvalofPresident == true {
+		evalOfPresident += c.trustScore[SpeakerID] * c.params.sensitivity
+	} else {
+		evalOfPresident -= c.trustScore[SpeakerID] * c.params.sensitivity
+	}
 
-	// // Speaker election
-	// if ourVote == voteResult:
-	// 	evalOfPresident += sensitivity
-	// else:
-	// evalOfPresident -= sensitivity
-
-	// // Rules picked
-	// if ourRule == rulePicked:
-	// 	evalOfPresident += sensitivity
-	// else:
-	// 	evalOfPresident -= sensitivity
-
-	// // Taxation
-	// evalOfSpeaker += (taxationAmount - idealTaxationAmount) * sensitivity
+	evalOfPresident += (c.iigoCommunicationInfo.commonPoolAllocation - c.iigoCommunicationInfo.commonPoolAllocationRequest) * sensitivity
 }
+
+// // Speaker election
+// if ourVote == voteResult:
+// 	evalOfPresident += sensitivity
+// else:
+// evalOfPresident -= sensitivity
+
+// // Rules picked
+// if ourRule == rulePicked:
+// 	evalOfPresident += sensitivity
+// else:
+// 	evalOfPresident -= sensitivity
+
+// // Taxation
+// evalOfSpeaker += (taxationAmount - idealTaxationAmount) * sensitivity
 
 /*
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
