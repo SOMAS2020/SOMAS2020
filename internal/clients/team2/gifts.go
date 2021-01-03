@@ -50,8 +50,8 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 		// request confidence (0-1)*amountNeeded to consecutive islands in rank
 		// until amountRequested = (factor eg 1.5) * amountNeeded (to accommodate for some islands not giving us a gift)
 		for i := 0; i < len(trustRank); i++ {
-			requestAmount := trustRank[0].trust * target
-			requestedTo := trustRank[0].island
+			requestAmount := trustRank[i].trust * target
+			requestedTo := trustRank[i].island
 			requests[requestedTo] = shared.GiftRequest(requestAmount)
 
 			// to keep track in our history
@@ -90,29 +90,47 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	maxToGive := (c.gameState().ClientInfo.Resources - internalThreshold(c)) / 2
 
 	var trustRank []IslandTrust
-
-	for team, reqAmount := range receivedRequests {
-		// max would be 200
-		// c.confidence("ReceivedRequests", team) should reflect the status of an island and int,float64 requests hist
-		// c.confidence("GiftWeRequest", team) should reflect how they respond to our requests
-		// if ourAgentCritical || maxToGive <= 0 {
-		// 	offers[team] = shared.GiftOffer(0.0)
-		// } else {
-		confidenceMetric := c.confidence("ReceivedRequests", team) + c.confidence("GiftWeRequest", team)
-		islandConf := IslandTrust{
-			island: team,
-			trust:  confidenceMetric,
+	if ourAgentCritical || maxToGive <= 0 {
+		for team, reqAmount := range receivedRequests {
+			// max would be 200
+			// c.confidence("ReceivedRequests", team) should reflect the status of an island and int,float64 requests hist
+			// c.confidence("GiftWeRequest", team) should reflect how they respond to our requests
+			confidenceMetric := c.confidence("ReceivedRequests", team) + c.confidence("GiftWeRequest", team)
+			if confidenceMetric > 100 || shared.Critical {
+				islandConf := IslandTrust{
+					island: team,
+					trust:  confidenceMetric,
+				}
+				trustRank = append(confidences, islandConf)
+			}
 		}
-		trustRank = append(confidences, islandConf)
-		// }
-	}
 
-	for island, offeredAmount := range offers {
-		newGiftRequest := GiftInfo{
-			requested: receivedRequests[island],
-			gifted:    offeredAmount,
+		sort.Sort(trustRank)
+
+		for i := 0; i < len(trustRank); i++ {
+			offeredTo := trustRank[i].island
+			offeredAmount := receivedRequests[offeredTo]
+
+			if offeredAmount >= maxToGive {
+				offeredAmount = maxToGive
+				maxToGive = 0
+			}
+
+			offers[offeredTo] = shared.GiftOffer(offeredAmount)
+
+			// to keep track in our history
+			newGiftRequest := GiftInfo{
+				requested: receivedRequests[offeredTo],
+				gifted:    shared.GiftOffer(offeredAmount),
+			}
+			c.giftHist[offeredTo].IslandRequest[turn] = newGiftRequest
+
+			maxToGive -= offeredAmount
+
+			if maxToGive <= 0 {
+				return offers
+			}
 		}
-		c.giftHist[island].IslandRequest[turn] = newGiftRequest
 	}
 
 	return offers
