@@ -60,7 +60,7 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 //func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
 //Situation
 func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
-	//Situation
+	// Situation
 	// Long term vs short term importance
 	// how much they have gifted in general
 	// their transparency, ethical behaviour as an island (have they shared their foraging predictions, their cp intended contributions, etc)

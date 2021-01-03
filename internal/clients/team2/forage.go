@@ -73,14 +73,18 @@ func decideThreshold(c *client) float64 { //will move the threshold, higher valu
 	}
 }
 
-//EXTRA FUNCTIONALITY: the map agentHistory can give a probability based off of how agents act in specific circumstances not just the agents themselves 
+//EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves 
 func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
 	//Have no idea where to find the shared foraging info, somewhere in IITO?
-	//need to use previous information about each agent to see if they will change their forage after announcing
-	var HuntNum float64
-	var agentHistory [ClientId]float64   //this map will store the probability that each agent will hunt
-	for i:=0; i< ; i++ {	//update agentHistory by looping through all the agents and  
-
+	var HuntNum float64 = 0
+	if c.gameState().Turn==1{
+		var agentHistory [ClientId]float64   //this map will store the sum of the decisions made by this agent e.g. 3 turns and a sum of 3 means they hunted every round
+	}
+	for i:=0; i< ; i++ {	//update agentHistory by looping through all the agents and adding their most recent decisions and then find their average hunt/fish
+		[ClientId]agentHistory + //whatever the agent declares 0,1
+		if [ClientId]agentHistory/c.gameState().Turn>0.5{  //if an agent on average picks hunt more than 50% of the time we assume they will pick hunt
+			Huntnum++
+		}
 	}
 	return HuntNum
 

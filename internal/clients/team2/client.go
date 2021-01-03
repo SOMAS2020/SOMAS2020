@@ -62,13 +62,16 @@ type ExpectationReality struct {
 
 type Situation string
 
+// us -> others: GiftRequest + GiftGiven
+// others -> us: ReceivedGiftRequest + ReceivedGift
+
 const (
 	President   Situation = "President"
 	Judge       Situation = "Judge"
 	Speaker     Situation = "Speaker"
 	Foraging    Situation = "Foraging"
-	GiftRequest Situation = "GiftRequest"
-	GiftGiven   Situation = "GiftGiven"
+	GiftWeRequest Situation = "GiftWeRequest"
+	ReceivedRequests   Situation = "GiftGiven"
 )
 
 type Opinion struct {
@@ -222,8 +225,8 @@ func internalThreshold(c *client) shared.Resources {
 	var gameThreshold shared.Resources = determineThreshold(c) //TODO: Fix a number ourselves when we don't know threshold, else find out how to access this
 	var allocationrec = AverageCommonPoolDilemma(c)
 	var disasterEffectOnUs float64 = 3            //TODO: call function from Hamish's part to get map clientID: effect
-	var disasterPredictionConfidence float64 = 50 //TODO: call function from Hamish's oart to get this confidence level
-	var turnsLeftUntilDisaster uint = 3           //TODO: call function from Hamish's oart to get number of turns
+	var disasterPredictionConfidence float64 = 50 //TODO: call function from Hamish's part to get this confidence level
+	var turnsLeftUntilDisaster uint = 3           //TODO: call function from Hamish's part to get number of turns
 	if disasterEffectOnUs > 4 {
 		return (gameThreshold + allocationrec) * shared.Resources(disasterPredictionConfidence/10) //TODO: tune divisor
 	}
@@ -235,8 +238,9 @@ func internalThreshold(c *client) shared.Resources {
 
 func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
 
+//Checks if there was a disaster in the previous turn
 func checkForDisaster(c *client) bool {
-	return false
+	return false //TODO: make this work
 }
 
 //Finds the game threshold if this information is available or works it out based on history of turns
@@ -245,19 +249,113 @@ func determineThreshold(c *client) shared.Resources {
 	var turn = c.gameState().Turn
 	var season = c.gameState().Season
 	var disasterBasedAdjustment shared.Resources
+	var nextPredictedDisasterMag = 5 //TODO: Get this from Hamish's part
+	var prevDisasterMag = 5 //TODO: Find this value
 	if turn == 1 {
-		return 40 //TODO: tune initial threshold guess when we start playing
+		return ourResources / 4 //TODO: tune initial threshold guess when we start playing
 	}
-	if season == 1 { //make average donation to be the threshold
-		//check common pool level
+	var baseThreshold = c.resourceLevelHistory[1]/4
+	if season == 1 { //keep threshold from first turn
+		return baseThreshold
+	}
+	if checkForDisaster(c) {
+		if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] { //no resources taken by disaster
+			if disasterBasedAdjustment > 5 {
+				disasterBasedAdjustment -= 5
+			}	
+		}
+		//disaster took our resources
+		disasterBasedAdjustment += 5
+	}
+	//change factor by if next mag > or < prev mag
+	return baseThreshold * (nextnextPredictedDisasterMag / prevDisasterMag) + disasterBasedAdjustment
+}
+
+//determineTaxreturns how much tax we have to pay
+func determineTax(c *client) shared.Resources {
+	return shared.Resources(shared.TaxAmount) //TODO: not sure if this is correct tax amount to use
+}
+
+//checkOthersCrit checks if anyone else is critical
+func checkOthersCrit(c *client) bool {
+	for clientID, status := range c.gameState().ClientLifeStatuses {
+		if status == shared.Critical && clientID != c.GetID() {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *client) gameState() gamestate.ClientGameState {
+	return c.BaseClient.ServerReadHandle.GetGameState()
+}
+
+//this function determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers etc
+//it only needs the current resource level and the current turn as inputs
+//the output will be an integer which is a recommendation on how much to add to the pool, with this recommendation there will be a weighting of how important it is we contribute that exact amount
+//this will be a part of other decision making functions which will have their own weights
+
+//tunable parameters:
+//how much to give the pool on our first turn: default_strat
+//after how many rounds of struggling pool to intervene and become altruist: intervene
+//the number of turns at the beginning we cannot free ride: no_freeride
+//the factor in which the common pool increases by to decide if we should free ride: freeride
+ 		return averageDonationLastTurn
 	}
 	if checkForDisaster(c) {
 		if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] {
-			//no resources left
+			//no resources taken by disaster
+			disasterBasedAdjustment -= 5
 		}
-		//if there was a disaster, see if our pool decreased (by x resources?) - if it did, increase threshold, else decrease threshold (try to get these to converge by choosing x well?)
+		//disaster took our resources
+		disasterBasedAdjustment += 5
 	}
-	//go with average of what everyone else puts into pool in previous turn
+	//go with average of what everyone else puts into pool in previous turn +- adjustment from previous disaster
+
+	return 20 //temp
+}
+
+//determineTaxreturns how much tax we have to pay
+func determineTax(c *client) shared.Resources {
+	return shared.Resources(shared.TaxAmount) //TODO: not sure if this is correct tax amount to use
+}
+
+//checkOthersCrit checks if anyone else is critical
+func checkOthersCrit(c *client) bool {
+	for clientID, status := range c.gameState().ClientLifeStatuses {
+		if status == shared.Critical && clientID != c.GetID() {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *client) gameState() gamestate.ClientGameState {
+	return c.BaseClient.ServerReadHandle.GetGameState()
+}
+
+//this function determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers etc
+//it only needs the current resource level and the current turn as inputs
+//the output will be an integer which is a recommendation on how much to add to the pool, with this recommendation there will be a weighting of how important it is we contribute that exact amount
+//this will be a part of other decision making functions which will have their own weights
+
+//tunable parameters:
+//how much to give the pool on our first turn: default_strat
+//after how many rounds of struggling pool to intervene and become altruist: intervene
+//the number of turns at the beginning we cannot free ride: no_freeride
+//the factor in which the common pool increases by to decide if we should free ride: freeride
+//the factor which we multiply the fair_sharer average by: tune_average
+	}
+	if checkForDisaster(c) {
+		if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] {
+			//no resources taken by disaster
+			disasterBasedAdjustment -= 5
+		}
+		//disaster took our resources
+		disasterBasedAdjustment += 5
+	}
+	//go with average of what everyone else puts into pool in previous turn +- ajustment firom previous disaster
+
 	return 20 //temp
 }
 
