@@ -40,7 +40,7 @@ type client struct {
 	// unused or replaced by getter functions
 	// currentIteration iterationInfo
 	// islandsAlive uint
-	// localPool int
+	localPool int
 
 	// declaredResources is a map of all declared island resources
 	declaredResources map[shared.ClientID]shared.Resources
