@@ -5,9 +5,9 @@
   "private": true,
   "dependencies": {
     "d3": "^6.3.1",
+    "localforage": "^1.9.0",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.0",
-    "react-code-blocks": "^0.0.8",
     "react-dom": "^17.0.1",
     "react-router-bootstrap": "^0.25.0",
     "react-router-dom": "^5.2.0",
@@ -15,10 +15,11 @@
     "web-vitals": "^0.2.4"
   },
   "scripts": {
-    "copyoutput": "node src/scripts/copyOutput.js",
-    "prestart": "yarn copyoutput",
+    "copyoutput": "node scripts/copyOutput.js",
+    "buildwasm": "node scripts/buildWasm.js",
+    "prestart": "yarn copyoutput && yarn buildwasm",
     "start": "react-scripts start",
-    "prebuild": "yarn copyoutput",
+    "prebuild": "yarn copyoutput && yarn buildwasm",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -46,6 +47,7 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
+    "@types/d3": "^6.2.0",
     "@types/jest": "^26.0.15",
     "@types/node": "^12.0.0",
     "@types/react": "^16.9.53",

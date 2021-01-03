@@ -359,7 +359,7 @@ func TestGetTaxMap(t *testing.T) {
 func TestGetRuleForSpeaker(t *testing.T) {
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
-		IIGORolesBudget: map[int]shared.Resources{
+		IIGORolesBudget: map[shared.Role]shared.Resources{
 			shared.President: 10,
 			shared.Speaker:   10,
 			shared.Judge:     10,
@@ -651,7 +651,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			fakeClientMap := map[shared.ClientID]baseclient.Client{}
 			fakeGameState := gamestate.GameState{
 				CommonPool: tc.commonPool,
-				IIGORolesBudget: map[int]shared.Resources{
+				IIGORolesBudget: map[shared.Role]shared.Resources{
 					shared.President: 10,
 					shared.Speaker:   10,
 					shared.Judge:     10,
@@ -668,7 +668,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			setIIGOClients(&fakeClientMap)
 			tc.bPresident.setGameState(&fakeGameState)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
-			tc.bPresident.replyAllocationRequest(tc.commonPool, aliveID)
+			tc.bPresident.replyAllocationRequest(tc.commonPool)
 
 			for clientID, expectedAllocation := range tc.expected {
 				communicationGot := *(fakeClientMap[clientID]).GetCommunications()
@@ -700,7 +700,7 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[int]shared.Resources{
+					IIGORolesBudget: map[shared.Role]shared.Resources{
 						shared.President: 100,
 						shared.Speaker:   10,
 						shared.Judge:     10,
@@ -718,7 +718,7 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[int]shared.Resources{
+					IIGORolesBudget: map[shared.Role]shared.Resources{
 						shared.President: 10,
 						shared.Speaker:   10,
 						shared.Judge:     10,
@@ -736,7 +736,7 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 				PresidentID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 40,
-					IIGORolesBudget: map[int]shared.Resources{
+					IIGORolesBudget: map[shared.Role]shared.Resources{
 						shared.President: 10,
 						shared.Speaker:   10,
 						shared.Judge:     10,

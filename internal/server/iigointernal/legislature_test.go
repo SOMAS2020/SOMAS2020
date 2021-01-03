@@ -16,7 +16,7 @@ func TestRuleVotedIn(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
-		IIGORolesBudget: map[int]shared.Resources{
+		IIGORolesBudget: map[shared.Role]shared.Resources{
 			shared.President: 10,
 			shared.Speaker:   10,
 			shared.Judge:     10,
@@ -78,7 +78,7 @@ func TestRuleVotedOut(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
-		IIGORolesBudget: map[int]shared.Resources{
+		IIGORolesBudget: map[shared.Role]shared.Resources{
 			shared.President: 10,
 			shared.Speaker:   10,
 			shared.Judge:     10,
@@ -162,7 +162,7 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 				SpeakerID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[int]shared.Resources{
+					IIGORolesBudget: map[shared.Role]shared.Resources{
 						shared.President: 10,
 						shared.Speaker:   100,
 						shared.Judge:     10,
@@ -180,7 +180,7 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 				SpeakerID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
-					IIGORolesBudget: map[int]shared.Resources{
+					IIGORolesBudget: map[shared.Role]shared.Resources{
 						shared.President: 10,
 						shared.Speaker:   10,
 						shared.Judge:     10,
@@ -198,7 +198,7 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 				SpeakerID: shared.Team1,
 				gameState: &gamestate.GameState{
 					CommonPool: 40,
-					IIGORolesBudget: map[int]shared.Resources{
+					IIGORolesBudget: map[shared.Role]shared.Resources{
 						shared.President: 10,
 						shared.Speaker:   10,
 						shared.Judge:     10,

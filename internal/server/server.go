@@ -69,7 +69,7 @@ func createSOMASServer(
 			DeerPopulation:  foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig),
 			ForagingHistory: forageHistory,
 			IIGOHistory:     []shared.Accountability{},
-			IIGORolesBudget: map[int]shared.Resources{
+			IIGORolesBudget: map[shared.Role]shared.Resources{
 				shared.President: 0,
 				shared.Judge:     0,
 				shared.Speaker:   0,

@@ -11,29 +11,24 @@ import (
 // ClientID is an enum for client IDs
 type ClientID int
 
+// TeamIDs
 const (
-	// Team1 ID
 	Team1 ClientID = iota
-	// Team2 ID
 	Team2
-	// Team3 ID
 	Team3
-	// Team4 ID
 	Team4
-	// Team5 ID
 	Team5
-	// Team6 ID
 	Team6
 )
 
-const (
+/*const (
 	// President Role
 	President int = iota
 	// Speaker Role
 	Speaker
 	// Judge Role
 	Judge
-)
+)*/
 
 // SortClientByID implements sort.Interface for []ClientID
 type SortClientByID []ClientID
