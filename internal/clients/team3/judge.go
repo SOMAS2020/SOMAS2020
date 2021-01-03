@@ -16,11 +16,15 @@ type judge struct {
 
 // Override functions here, see president.go for examples
 func (j *judge) PayPresident(salary shared.Resources) (shared.Resources, bool) {
-	// Use the base implementation
-	return j.BaseJudge.PayPresident(salary)
+	j.c.params.salaryThreshold = 150 //parameter that we need to define
+	if j.c.ServerReadHandle.GetGameState().ClientLifeStatuses[shared.Team3] == shared.Critical {
+		take := j.c.params.salaryThreshold - j.c.localPool
+		salary -= shared.Resources(take)
+	}
+	return salary, true
 }
 
-func (j *judge) InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
+func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outMap := map[shared.ClientID]roles.EvaluationReturn{}
 	if j.c.localPool < config.IIGOConfig.InspectHistoryActionCost {
 		//	dummy evaluation map
