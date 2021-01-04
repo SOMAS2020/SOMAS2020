@@ -38,6 +38,8 @@ func (c *client) StartOfTurn() {
 	}
 	c.updateCompliance()
 	c.resetIIGOInfo()
+	gameState := c.ServerReadHandle.GetGameState()
+	c.Logf("Our Status: %+v\n", gameState.ClientInfo)
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
@@ -163,6 +165,15 @@ func (c *client) shouldICheat() bool {
 // If it has been caught, it returns True, otherwise False.
 func (c *client) checkIfCaught() bool {
 	return c.iigoInfo.sanctions.ourSanction > c.last_sanctions
+// ResourceReport overides the basic method to mis-report when we have a low compliance score
+func (c *client) ResourceReport() shared.Resources {
+	resource := c.BaseClient.ServerReadHandle.GetGameState().ClientInfo.Resources
+	if c.areWeCritical() || !c.shouldICheat() {
+		return resource
+	} else {
+		skewed_resource := resource / shared.Resources(c.params.resourcesSkew)
+		return skewed_resource
+	}
 }
 
 /*
