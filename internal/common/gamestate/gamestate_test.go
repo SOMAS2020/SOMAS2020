@@ -39,7 +39,11 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				CriticalConsecutiveTurnsCounter: 2,
 			},
 		},
-
+		IIGORolesBudget: map[shared.Role]shared.Resources{
+			shared.Judge:     shared.Resources(10),
+			shared.President: shared.Resources(30),
+			shared.Speaker:   shared.Resources(40),
+		},
 		CommonPool: 20,
 	}
 
@@ -60,6 +64,7 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				ClientLifeStatuses: lifeStatuses,
 				CommonPool:         gameState.CommonPool,
 				IslandLocations:    gameState.Environment.Geography.Islands,
+				IIGORolesBudget:    gameState.IIGORolesBudget,
 			}
 
 			gotClientGS := gameState.GetClientGameStateCopy(tc)

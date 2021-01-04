@@ -8,7 +8,7 @@ func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 	defer s.logf("finish probeDisaster")
 
 	e := s.gameState.Environment
-	e = e.SampleForDisaster() // update env instance with sampled disaster info
+	e = e.SampleForDisaster(s.gameConfig.DisasterConfig, s.gameState.Turn) // update env instance with sampled disaster info
 
 	disasterReport := e.DisplayReport(s.gameState.CommonPool, s.gameConfig.DisasterConfig) // displays disaster info and effects
 	s.logf(disasterReport)
