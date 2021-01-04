@@ -31,15 +31,33 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 // COMPULSORY, you need to implement this method
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
-
-	// You can fetch the clients which are alive like this:
-	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if status == shared.Critical {
-			requests[team] = shared.GiftRequest(100.0)
-		} else {
-			requests[team] = shared.GiftRequest(0.0)
+	switch {
+	case c.gameState().ClientInfo.LifeStatus == shared.Critical:
+		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+			if status == shared.Critical {
+				requests[team] = shared.GiftRequest(0.0)
+			} else {
+				requests[team] = shared.GiftRequest(c.config.DyingGiftRequest)
+			}
+		}
+	case c.wealth() == ImperialStudent: // Poor
+		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+			if status == shared.Critical {
+				requests[team] = shared.GiftRequest(0.0)
+			} else {
+				requests[team] = shared.GiftRequest(c.config.ImperialGiftRequest)
+			}
+		}
+	default:
+		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+			if status == shared.Critical {
+				requests[team] = shared.GiftRequest(0.0)
+			} else {
+				requests[team] = shared.GiftRequest(c.config.MiddleGiftRequest)
+			}
 		}
 	}
+	c.Logf("Team 5 is requesting %v", requests)
 	return requests
 }
 
@@ -49,13 +67,21 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 // unless another team is critical.
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
-
-	// You can fetch the clients which are alive like this:
-	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if status == shared.Critical {
-			offers[team] = shared.GiftOffer(100.0)
-		} else {
-			offers[team] = shared.GiftOffer(0.0)
+	if c.wealth() >= 2 { // Middle class and JB
+		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+			if status == shared.Critical {
+				offers[team] = shared.GiftOffer(3.0)
+			} else {
+				offers[team] = shared.GiftOffer(1.0) // can we abuse the fact that they look at the amount of gifts?
+			}
+		}
+	} else {
+		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+			if status == shared.Critical {
+				offers[team] = shared.GiftOffer(1.5)
+			} else {
+				offers[team] = shared.GiftOffer(0.5) // can we abuse the fact that they look at the amount of gifts?
+			}
 		}
 	}
 	return offers
@@ -79,8 +105,18 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 // from the gift session. It is up to you to complete the transactions with the methods
 // that you will implement yourself below. This allows for opinion formation.
 // COMPULSORY, you need to implement this method
-func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
-}
+// func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
+// 	turn := c.gameState().Turn
+
+// 	for island, response := range receivedResponses {
+// 		newGiftRequest := GiftInfo{
+// 			requested: c.giftHistory[island].IslandRequest[turn].requested,
+// 			gifted:    shared.GiftOffer(response.AcceptedAmount),
+// 			reason:    shared.AcceptReason(response.AcceptedAmount),
+// 		}
+// 		c.giftHistory[island].IslandRequest[turn] = newGiftRequest
+// 	}
+// }
 
 // SentGift is executed at the end of each turn and notifies clients that
 // their gift was successfully sent, along with the offer details.
@@ -102,42 +138,19 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 // they want to fulfill a gift offer they have made.
 // COMPULSORY, you need to implement this method
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	return giftOffer
-}
-
-// GiftAccceptance
-func (c *client) giftAcceptance() shared.GiftResponse {
-
-	if c.wealth() == JeffBezos {
-		c.Logf("I don't need any gifts you peasants")
-	} else if c.wealth() == MiddleClass {
-		c.Logf("We only accept Gifts from Team 1, 2, 4, 6")
-	} else if c.wealth() == ImperialStudent {
-		c.Logf("We accept Gifts from everyone")
-	} else {
-		c.Logf("We accept Gifts from everyone")
+	if c.resourceHistory[c.gameState().Turn-1] < c.ServerReadHandle.GetGameState().ClientInfo.Resources {
+		if c.wealth() >= 2 { //Middle class and JB, fulfill all offers
+			return giftOffer
+		} else if c.wealth() == 1 { //When Imperial Student fulfill all offers but divide Team 3's by 3
+			if toTeam == 2 {
+				return (giftOffer / 3)
+			} else {
+				return giftOffer
+			}
+		} else { //Reject all offers
+			return 0
+		}
+	} else { //Reject all offers
+		return 0
 	}
-
-	GiftResponse := shared.GiftResponse{
-		AcceptedAmount: 0,
-		Reason:         shared.DeclineDontLikeYou,
-	}
-	return GiftResponse
-}
-
-/*Gift Requests*/
-func (c *client) giftRequests() shared.GiftRequest {
-	var giftrequest shared.GiftRequest
-
-	if c.wealth() == JeffBezos {
-		c.Logf("I don't need any gifts you peasants")
-	} else if c.wealth() == MiddleClass {
-		c.Logf("We only accept Gifts from Team 1, 2, 4, 6")
-	} else if c.wealth() == ImperialStudent {
-		c.Logf("We accept Gifts from everyone")
-	} else {
-		c.Logf("We accept Gifts from everyone")
-	}
-
-	return giftrequest
 }

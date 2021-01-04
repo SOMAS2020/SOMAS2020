@@ -13,6 +13,12 @@ const id = shared.Team5
 // WealthTier defines how much money we have
 type WealthTier int
 
+//================ Resource History =========================================
+
+type ResourceHistory map[uint]shared.Resources
+
+//================ Foraging =========================================
+
 // ForageOutcome records the ROI on a foraging session
 type ForageOutcome struct {
 	turn   uint
@@ -23,6 +29,41 @@ type ForageOutcome struct {
 // ForageHistory stores history of foraging outcomes
 type ForageHistory map[shared.ForageType][]ForageOutcome
 
+//================ Gifts ===========================================
+type GiftOutcome struct {
+	occasions uint
+	amount    shared.Resources
+}
+
+// GiftRequest contains the details of a gift request from an island to another
+type GiftRequest shared.Resources
+
+// GiftRequestDict contains the details of an island's gift requests to everyone else.
+type GiftRequestDict map[shared.ClientID]GiftRequest
+
+type GiftInfo struct {
+	requested shared.GiftRequest
+	gifted    shared.GiftOffer
+	reason    shared.AcceptReason
+}
+
+type GiftExchange struct {
+	IslandRequest map[uint]GiftInfo
+	OurRequest    map[uint]GiftInfo
+}
+
+type GiftHistory map[shared.ClientID]GiftExchange
+
+type AcceptReason int
+
+type GiftResponse struct {
+	AcceptedAmount shared.Resources
+	Reason         AcceptReason
+}
+
+//================================================================
+/*  Client information */
+//================================================================
 type clientConfig struct {
 	// Initial non planned foraging
 	InitialForageTurns uint
@@ -38,13 +79,27 @@ type clientConfig struct {
 
 	// Poor: Imperial student < Middle
 	ImperialThreshold shared.Resources
+
+	// How much to request when we are dying
+	DyingGiftRequest shared.Resources
+
+	// How much to request when we are at Imperial
+	ImperialGiftRequest shared.Resources
+
+	// How much to request when we are dying
+	MiddleGiftRequest shared.Resources
 }
 
 // Client is the island number
 type client struct {
 	*baseclient.BaseClient
 
+	resourceHistory ResourceHistory
+
 	forageHistory ForageHistory // Stores our previous foraging data
+	// giftHistory   GiftHistory
+
+	giftHistory GiftHistory
 
 	taxAmount shared.Resources
 
@@ -60,6 +115,17 @@ const (
 	ImperialStudent                   // iota sets the folloing values =1
 	MiddleClass                       // = 2
 	JeffBezos                         // = 3
+)
+
+const (
+	// Accept ...
+	Accept AcceptReason = iota
+	// DeclineDontNeed ...
+	DeclineDontNeed
+	// DeclineDontLikeYou ...
+	DeclineDontLikeYou
+	// Ignored ...
+	Ignored
 )
 
 func (wt WealthTier) String() string {
