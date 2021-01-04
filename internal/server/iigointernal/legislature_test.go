@@ -4,7 +4,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
 )
 
@@ -12,7 +15,18 @@ var ruleMatrixExample rules.RuleMatrix
 
 func TestRuleVotedIn(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
-	s := legislature{}
+	fakeGameState := gamestate.GameState{
+		CommonPool: 400,
+		IIGORolesBudget: map[shared.Role]shared.Resources{
+			shared.President: 10,
+			shared.Speaker:   10,
+			shared.Judge:     10,
+		},
+	}
+	s := legislature{
+		gameState: &fakeGameState,
+		gameConf:  &config.IIGOConfig{},
+	}
 	cases := []struct {
 		name          string
 		rule          string
@@ -64,7 +78,18 @@ func TestRuleVotedIn(t *testing.T) {
 
 func TestRuleVotedOut(t *testing.T) {
 	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
-	s := legislature{}
+	fakeGameState := gamestate.GameState{
+		CommonPool: 400,
+		IIGORolesBudget: map[shared.Role]shared.Resources{
+			shared.President: 10,
+			shared.Speaker:   10,
+			shared.Judge:     10,
+		},
+	}
+	s := legislature{
+		gameState: &fakeGameState,
+		gameConf:  &config.IIGOConfig{},
+	}
 	cases := []struct {
 		name          string
 		rule          string
@@ -123,4 +148,85 @@ func generateRulesTestStores() (map[string]rules.RuleMatrix, map[string]rules.Ru
 			"Kinda Test Rule 2": ruleMatrixExample,
 		}
 
+}
+
+func TestSpeakerIncureServiceCharge(t *testing.T) {
+	cases := []struct {
+		name                  string
+		bSpeaker              legislature // base
+		input                 shared.Resources
+		expectedReturn        bool
+		expectedCommonPool    shared.Resources
+		expectedSpeakerBudget shared.Resources
+	}{
+		{
+			name: "Excess pay",
+			bSpeaker: legislature{
+				SpeakerID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 400,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   100,
+						shared.Judge:     10,
+					},
+				},
+			},
+			input:                 50,
+			expectedReturn:        true,
+			expectedCommonPool:    350,
+			expectedSpeakerBudget: 50,
+		},
+		{
+			name: "Negative Budget",
+			bSpeaker: legislature{
+				SpeakerID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 400,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
+					},
+				},
+			},
+			input:                 50,
+			expectedReturn:        true,
+			expectedCommonPool:    350,
+			expectedSpeakerBudget: -40,
+		},
+		{
+			name: "Limited common pool",
+			bSpeaker: legislature{
+				SpeakerID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 40,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
+					},
+				},
+			},
+			input:                 50,
+			expectedReturn:        false,
+			expectedCommonPool:    40,
+			expectedSpeakerBudget: 10,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			returned := tc.bSpeaker.incurServiceCharge(tc.input)
+			commonPool := tc.bSpeaker.gameState.CommonPool
+			presidentBudget := tc.bSpeaker.gameState.IIGORolesBudget[shared.Speaker]
+			if returned != tc.expectedReturn ||
+				commonPool != tc.expectedCommonPool ||
+				presidentBudget != tc.expectedSpeakerBudget {
+				t.Errorf("%v - Failed. Got '%v, %v, %v', but expected '%v, %v, %v'",
+					tc.name, returned, commonPool, presidentBudget,
+					tc.expectedReturn, tc.expectedCommonPool, tc.expectedSpeakerBudget)
+			}
+		})
+	}
 }
