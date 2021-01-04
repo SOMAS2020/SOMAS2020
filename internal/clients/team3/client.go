@@ -101,13 +101,9 @@ type ruleVoteInfo struct {
 }
 
 type iigoCommunicationInfo struct {
-<<<<<<< HEAD
 	// ourRole stores our current role in the IIGO
 	ourRole *shared.Role
-=======
 	// Retrieved fully from communications
-
->>>>>>> origin/agent-strategy-biden
 	// commonPoolAllocation gives resources allocated by president from requests
 	commonPoolAllocation shared.Resources
 	// taxationAmount gives tax amount decided by president
@@ -118,14 +114,11 @@ type iigoCommunicationInfo struct {
 	monitoringOutcomes map[shared.Role]bool
 	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
 	monitoringDeclared map[shared.Role]bool
-<<<<<<< HEAD
 	//Role IDs at the start of the turn
 	startOfTurnPresidentID shared.ClientID
 	startOfTurnJudgeID     shared.ClientID
 	startOfTurnSpeakerID   shared.ClientID
 
-=======
->>>>>>> origin/agent-strategy-biden
 	// Struct containing sanction information
 	sanctions sanctionInfo
 

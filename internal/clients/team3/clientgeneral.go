@@ -117,7 +117,6 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 	}
 }
 
-<<<<<<< HEAD
 // Internal function that evaluates the performance of the judge for the purposes of opinion formation.
 // This is called AFTER IIGO FINISHES.
 func (c *client) evalJudgePerformance() {
@@ -250,7 +249,8 @@ func (c *client) evalSpeakerPerformance() {
 	// If our third choice was voted in (ourRankingChosen == 2), no effect on President Performance.
 	// Anything better/worse than third is rewarded/penalized proportionally.
 	evalOfSpeaker += c.params.sensitivity * float64((2 - ourRankingChosen))
-=======
+}
+
 //updateCriticalThreshold updates our predicted value of what is the resources threshold of critical state
 // it uses estimated resources to find these bound. isIncriticalState is a boolean to indicate if the island
 // is in the critical state and the estimated resources is our estimated resources of the island i.e.
@@ -287,7 +287,6 @@ func (c *client) updateCompliance() {
 func (c *client) shouldICheat() bool {
 	var should_i_cheat = rand.Float64() > c.compliance
 	return should_i_cheat
->>>>>>> origin/agent-strategy-biden
 }
 
 /*
