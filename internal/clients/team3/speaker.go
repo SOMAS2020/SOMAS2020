@@ -29,3 +29,10 @@ func (s *speaker) DecideVote(ruleID string, aliveClients []shared.ClientID) (str
 	}
 	return ruleID, chosenClients, true
 }
+
+func (s *speaker) DecideAnnouncement(ruleID string, result bool) (string, bool, bool) {
+	if s.c.shouldICheat() {
+		result = s.c.GetVoteForRule(ruleID)
+	}
+	return ruleID, result, true
+}
