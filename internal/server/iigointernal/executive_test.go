@@ -359,6 +359,7 @@ func TestGetTaxMap(t *testing.T) {
 }
 
 func TestGetRuleForSpeaker(t *testing.T) {
+
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
 		IIGORolesBudget: map[shared.Role]shared.Resources{
@@ -379,6 +380,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				RulesProposals:  []string{},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
 			expected: []string{""},
 		},
@@ -389,6 +391,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				RulesProposals:  []string{"test"},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
 			expected: []string{"test"},
 		},
@@ -399,6 +402,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
@@ -409,6 +413,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
@@ -419,6 +424,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
 			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
 		},
@@ -581,6 +587,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			bPresident: executive{
 				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
+				gameConf:        &config.IIGOConfig{},
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 5,
@@ -605,6 +612,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			bPresident: executive{
 				PresidentID:     1,
 				clientPresident: &baseclient.BasePresident{},
+				gameConf:        &config.IIGOConfig{},
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 5,
@@ -629,6 +637,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			bPresident: executive{
 				PresidentID:     3,
 				clientPresident: &baseclient.BasePresident{},
+				gameConf:        &config.IIGOConfig{},
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 0,

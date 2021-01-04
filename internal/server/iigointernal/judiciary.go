@@ -271,7 +271,7 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSa
 	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
 	for ruleName, score := range penalties {
 		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
-			shared.IIGOSanctionTier: {
+			shared.RuleName: {
 				T:        shared.CommunicationString,
 				TextData: ruleName,
 			},

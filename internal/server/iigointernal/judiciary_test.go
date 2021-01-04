@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -107,9 +108,9 @@ func TestLoadSanctionConfig(t *testing.T) {
 	}
 }
 
+// TODO - Outdated Test? Presidents salary should not be deducted from the budget
 // TestSendPresidentSalary checks whether judiciary can correctly send salaries to the executive branch
-/*
-func TestSendPresidentSalary(t *testing.T) {
+/*func TestSendPresidentSalary(t *testing.T) {
 	cases := []struct {
 		name              string
 		defaultPresSalary shared.Resources
@@ -552,7 +553,7 @@ func TestCreateBroadcastsForRuleViolationPenalties(t *testing.T) {
 			},
 			expectedCommunications: []map[shared.CommunicationFieldName]shared.CommunicationContent{
 				{
-					shared.IIGOSanctionTier: {
+					shared.RuleName: {
 						T:        shared.CommunicationString,
 						TextData: "inspect_allocation_rule",
 					},
@@ -1862,6 +1863,15 @@ func defaultInitJudiciary() judiciary {
 		ruleViolationSeverity: map[string]roles.IIGOSanctionScore{},
 		localSanctionCache:    map[int][]roles.Sanction{},
 		localHistoryCache:     map[int][]shared.Accountability{},
+		gameConf:              &config.IIGOConfig{},
+		gameState: &gamestate.GameState{
+			CommonPool: 999,
+			IIGORolesBudget: map[shared.Role]shared.Resources{
+				shared.President: 100,
+				shared.Speaker:   10,
+				shared.Judge:     10,
+			},
+		},
 	}
 }
 

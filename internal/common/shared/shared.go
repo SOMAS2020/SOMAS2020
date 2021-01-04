@@ -21,15 +21,6 @@ const (
 	Team6
 )
 
-/*const (
-	// President Role
-	President int = iota
-	// Speaker Role
-	Speaker
-	// Judge Role
-	Judge
-)*/
-
 // SortClientByID implements sort.Interface for []ClientID
 type SortClientByID []ClientID
 
@@ -62,6 +53,9 @@ func (c ClientID) MarshalText() ([]byte, error) {
 func (c ClientID) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
+
+// Logger type for convenience in other definitions
+type Logger func(format string, a ...interface{})
 
 // Resources represents amounts of resources.
 // Used for foraging inputs and utility outputs (returns)
