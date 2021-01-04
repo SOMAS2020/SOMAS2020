@@ -41,6 +41,7 @@ type client struct {
 	ourVoteForRule bool
 
 	// ## Game state & History ##
+	criticalStatePrediction criticalStatePrediction
 
 	// unused or replaced by getter functions
 	// currentIteration iterationInfo
@@ -67,6 +68,11 @@ type client struct {
 	iigoInfo iigoCommunicationInfo
 }
 
+type criticalStatePrediction struct {
+	upperBound shared.Resources
+	lowerBound shared.Resources
+}
+
 type islandParams struct {
 	giftingThreshold            int
 	equity                      float64
@@ -86,31 +92,51 @@ type islandParams struct {
 	sensitivity                 float64
 }
 
+type ruleVoteInfo struct {
+	// ourVote needs to be updated accordingly
+	ourVote         bool
+	resultAnnounced bool
+	// true -> yes, false -> no
+	result bool
+}
+
 type iigoCommunicationInfo struct {
+<<<<<<< HEAD
 	// ourRole stores our current role in the IIGO
 	ourRole *shared.Role
+=======
+	// Retrieved fully from communications
+
+>>>>>>> origin/agent-strategy-biden
 	// commonPoolAllocation gives resources allocated by president from requests
 	commonPoolAllocation shared.Resources
 	// taxationAmount gives tax amount decided by president
 	taxationAmount shared.Resources
-	// ruleVotingResults is a map of rules and the result of the vote for it
-	// true -> yes, false -> no
-	ruleVotingResults map[string]bool
-	// ruleVotingResultAnnounced stores whether a specific rule vote was announced
-	ruleVotingResultAnnounced map[string]bool
 	// monitoringOutcomes stores the outcome of the monitoring of an island.
 	// key is the role being monitored.
 	// true -> correct performance, false -> incorrect performance.
 	monitoringOutcomes map[shared.Role]bool
 	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
 	monitoringDeclared map[shared.Role]bool
+<<<<<<< HEAD
 	//Role IDs at the start of the turn
 	startOfTurnPresidentID shared.ClientID
 	startOfTurnJudgeID     shared.ClientID
 	startOfTurnSpeakerID   shared.ClientID
 
+=======
+>>>>>>> origin/agent-strategy-biden
 	// Struct containing sanction information
 	sanctions sanctionInfo
+
+	// Below need to be at least partially updated by our functions
+
+	// ruleVotingResults is a map of rules and the corresponding info
+	ruleVotingResults map[string]*ruleVoteInfo
+	// ourRequest stores how much we requested from commonpool
+	ourRequest shared.Resources
+	// ourDeclaredResources stores how much we said we had to the president
+	ourDeclaredResources shared.Resources
 }
 
 type sanctionInfo struct {

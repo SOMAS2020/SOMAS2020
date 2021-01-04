@@ -52,8 +52,7 @@ func (c *client) resetIIGOInfo() {
 	c.iigoInfo.ourRole = nil
 	c.iigoInfo.commonPoolAllocation = 0
 	c.iigoInfo.taxationAmount = 0
-	c.iigoInfo.ruleVotingResults = make(map[string]bool)
-	c.iigoInfo.ruleVotingResultAnnounced = make(map[string]bool)
+	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
 	c.iigoInfo.monitoringOutcomes = make(map[shared.Role]bool)
 	c.iigoInfo.monitoringDeclared = make(map[shared.Role]bool)
 	c.iigoInfo.startOfTurnJudgeID = c.ServerReadHandle.GetGameState().JudgeID
@@ -87,11 +86,15 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			c.iigoInfo.commonPoolAllocation = shared.Resources(content.IntegerData)
 		case shared.RuleName:
 			currentRuleID := content.TextData
-			c.iigoInfo.ruleVotingResultAnnounced[currentRuleID] = true
-			c.iigoInfo.ruleVotingResults[currentRuleID] = data[shared.RuleVoteResult].BooleanData
+			if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
+				c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
+				c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
+			} else {
+				c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
+			}
 		case shared.RoleMonitored:
-			c.iigoInfo.monitoringDeclared[content.IIGORole] = true
-			c.iigoInfo.monitoringOutcomes[content.IIGORole] = data[shared.MonitoringResult].BooleanData
+			c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
+			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
 		}
 	}
 }
