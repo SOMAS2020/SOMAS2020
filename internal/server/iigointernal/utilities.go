@@ -70,6 +70,13 @@ func boolToFloat(input bool) float64 {
 	return 0
 }
 
+type conversionType int
+
+const (
+	tax conversionType = iota
+	allocation
+)
+
 // convertAmount takes the amount of tax/allocation and converts it into appropriate variable and rule ready to be sent to the client
 func convertAmount(amount shared.Resources, amountType conversionType) (rules.VariableValuePair, rules.RuleMatrix) {
 	var reqVar rules.VariableFieldName

@@ -23,13 +23,6 @@ type executive struct {
 	speakerTurnsInPower int
 }
 
-type conversionType int
-
-const (
-	tax conversionType = iota
-	allocation
-)
-
 // loadClientPresident checks client pointer is good and if not panics
 func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
 	if clientPresidentPointer == nil {
