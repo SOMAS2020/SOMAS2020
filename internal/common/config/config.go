@@ -80,6 +80,7 @@ type DisasterConfig struct {
 	MagnitudeLambda             float64               // Exponential rate param for disaster magnitude
 	MagnitudeResourceMultiplier float64               // multiplier to map disaster magnitude to CP resource deductions
 	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
+	CommonpoolThresholdVisible  bool                  // whether CommonpoolThreshold is visible to clients
 }
 
 type IIGOConfig struct {
@@ -95,6 +96,10 @@ type IIGOConfig struct {
 	InspectBallotActionCost        shared.Resources
 	InspectAllocationActionCost    shared.Resources
 	AppointNextPresidentActionCost shared.Resources
+	SanctionCacheDepth             int
+	HistoryCacheDepth              int
+	AssumedResourcesNoReport       shared.Resources
+	SanctionLength                 int
 	// Legislative branch
 	SetVotingResultActionCost      shared.Resources
 	SetRuleToVoteActionCost        shared.Resources
