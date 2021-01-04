@@ -79,7 +79,7 @@ func (s *SOMASServer) endOfTurn() error {
 		return errors.Errorf("IITO EndOfTurn error: %v", err)
 	}
 
-	if err := s.runIIGOTaxCommonPool(); err != nil {
+	if err := s.runIIGOTax(); err != nil {
 		return errors.Errorf("Failed to put taxes into common pool at end of turn: %v", err)
 	}
 
