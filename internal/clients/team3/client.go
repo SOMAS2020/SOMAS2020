@@ -69,7 +69,7 @@ type client struct {
 	// iigoInfo caches information regarding iigo in the current turn
 	iigoInfo iigoCommunicationInfo
 	// last sanction score cache to determine wheter or not we have been caugth in the last turn
-	last_sanctions roles.IIGOSanctionScore
+	lastSanction roles.IIGOSanctionScore
 }
 
 type criticalStatePrediction struct {
