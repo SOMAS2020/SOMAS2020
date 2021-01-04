@@ -305,26 +305,29 @@ func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, 
 	for _, sanctionList := range localSanctionCache {
 		for _, sanction := range sanctionList {
 			ruleName := getTierSanctionMap()[sanction.SanctionTier]
-			ruleMat := rulesCache[ruleName]
-			resources := shared.Resources(maxNoReport)
-			if reportedIslandResources[sanction.ClientID].Reported {
-				resources = reportedIslandResources[sanction.ClientID].ReportedAmount
+			if ruleMat, ok := rulesCache[ruleName]; ok {
+				resources := shared.Resources(maxNoReport)
+				if reportedIslandResources[sanction.ClientID].Reported {
+					resources = reportedIslandResources[sanction.ClientID].ReportedAmount
+				}
+				sanctionVal := evaluateSanction(ruleMat, map[rules.VariableFieldName]rules.VariableValuePair{
+					rules.IslandReportedResources: {
+						VariableName: rules.IslandReportedResources,
+						Values:       []float64{float64(resources)},
+					},
+					rules.ConstSanctionAmount: {
+						VariableName: rules.ConstSanctionAmount,
+						Values:       []float64{0},
+					},
+					rules.TurnsLeftOnSanction: {
+						VariableName: rules.TurnsLeftOnSanction,
+						Values:       []float64{float64(sanction.TurnsLeft)},
+					},
+				})
+				totalSanctionPerAgent[sanction.ClientID] += sanctionVal
+			} else {
+				// When logger pr is available, pass it through here
 			}
-			sanctionVal := evaluateSanction(ruleMat, map[rules.VariableFieldName]rules.VariableValuePair{
-				rules.IslandReportedResources: {
-					VariableName: rules.IslandReportedResources,
-					Values:       []float64{float64(resources)},
-				},
-				rules.ConstSanctionAmount: {
-					VariableName: rules.ConstSanctionAmount,
-					Values:       []float64{0},
-				},
-				rules.TurnsLeftOnSanction: {
-					VariableName: rules.TurnsLeftOnSanction,
-					Values:       []float64{float64(sanction.TurnsLeft)},
-				},
-			})
-			totalSanctionPerAgent[sanction.ClientID] += sanctionVal
 		}
 	}
 	return totalSanctionPerAgent
