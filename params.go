@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	//config.Config
+	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
 		10,
@@ -48,6 +48,8 @@ var (
 		3,
 		"The maximum consecutive turns an island can be in the critical state.",
 	)
+
+	// config.ForagingConfig.DeerHuntConfig
 	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
@@ -103,6 +105,8 @@ var (
 		0.2,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
+
+	// config.ForagingConfig.FishingConfig
 	foragingFishMaxPerHunt = flag.Uint(
 		"foragingMaxFishPerHunt",
 		6,
@@ -189,6 +193,11 @@ var (
 		"disasterStochasticPeriod",
 		false,
 		"If true, period between disasters becomes random. If false, it will be consistent (deterministic)",
+	)
+	disasterCommonpoolThresholdVisible = flag.Bool(
+		"disasterCommonpoolThresholdVisible",
+		false,
+		"Whether disasterCommonpoolThreshold is visible to agents",
 	)
 
 	// config.IIGOConfig - Executive branch
@@ -341,7 +350,6 @@ func parseConfig() (config.Config, error) {
 		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
 		ThetaCritical:         *foragingDeerThetaCritical,
 		ThetaMax:              *foragingDeerThetaMax,
-
 		MaxDeerPopulation:     parseDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
 	}
@@ -370,10 +378,10 @@ func parseConfig() (config.Config, error) {
 		StochasticPeriod:            *disasterPeriodStochastic,
 		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
 		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
+		CommonpoolThresholdVisible:  *disasterCommonpoolThresholdVisible,
 	}
 
 	iigoConf := config.IIGOConfig{
-
 		// Executive branch
 		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
 		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),

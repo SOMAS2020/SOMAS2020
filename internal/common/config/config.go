@@ -81,6 +81,7 @@ type DisasterConfig struct {
 	MagnitudeResourceMultiplier float64               // multiplier to map disaster magnitude to CP resource deductions
 	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
 	StochasticPeriod            bool                  // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
+	CommonpoolThresholdVisible  bool                  // whether CommonpoolThreshold is visible to clients
 }
 
 type IIGOConfig struct {
