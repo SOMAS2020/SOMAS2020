@@ -1,6 +1,8 @@
 package team2
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -68,6 +70,85 @@ func GetMinMax(minOrMax bool, coordinate1 shared.Coordinate, coordinate2 shared.
 		return coordinate1
 	}
 	return coordinate2
+}
+
+// MakeDisasterPrediction is used to provide our island's prediction on the next disaster
+func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
+	// Get the location prediction
+	locationPrediction := GetLocationPrediction(c)
+
+	// Get the time until next disaster prediction
+	timeRemainingPrediction := GetTimeRemainingPrediction(c)
+
+	// Get the magnitude prediction
+	magnitudePrediction := GetMagnitudePrediction(c)
+
+	// Get the overall confidence in these predictions
+	confidencePrediction := GetConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
+
+	// Get trusted islands NOTE: CURRENTLY JUST ALL ISLANDS
+	trustedislands := GetTrustedIslands()
+
+	// Put everything together and return the whole prediction we have made and teams to share with
+	disasterPrediction := shared.DisasterPrediction{
+		CoordinateX: locationPrediction.X,
+		CoordinateY: locationPrediction.Y,
+		Magnitude:   magnitudePrediction,
+		TimeLeft:    timeRemainingPrediction,
+		Confidence:  confidencePrediction,
+	}
+	disasterPredictionInfo := shared.DisasterPredictionInfo{
+		PredictionMade: disasterPrediction,
+		TeamsOfferedTo: trustedislands,
+	}
+	return disasterPredictionInfo
+}
+
+// GetLocationPrediction provides a prediction about the location of the next disaster.
+// The prediction is always the the centre of the archipelago
+func GetLocationPrediction(c *client) CartesianCoordinates {
+	archipelagoGeography := c.gamestate().Environment.Geography
+	archipelagoCentre := CartesianCoordinates{
+		X: archipelagoGeography.Xmin + (archipelagoGeography.Xmax-archipelagoGeography.Xmin)/2,
+		Y: archipelagoGeography.Ymin + (archipelagoGeography.Ymax-archipelagoGeography.Ymin)/2,
+	}
+	return archipelagoCentre
+}
+
+// GetTimeRemainingPrediction provides a prediction about the time remaining until the next disaster.
+// The prediction is 1/sample mean of the Bernoulli RV, minus the turns since the last disaster
+func GetTimeRemainingPrediction(c *client) int {
+	totalTurns := float64(c.gameState().Turn)
+	totalDisasters := float64(len(c.disasterHistory))
+	timeBetweenDisasters := math.Round(totalTurns / totalDisasters)
+	timeRemaining := timeBetweenDisasters - (totalTurns - c.disasterHistory[len(c.disasterHistory)-1].Turn)
+	return int(timeRemaining)
+}
+
+// GetMagnitudePrediction provides a prediction about the magnitude of the next disaster.
+// The prediction is the sample mean of the past magnitudes of disasters
+func GetMagnitudePrediction(c *client) shared.Magnitude {
+	totalTurns := float64(c.gameState().Turn)
+	totalMagnitudes := 0.0
+	for _, disasterReport := range c.disasterHistory {
+		totalMagnitudes += disasterReport.Report.Magnitude
+	}
+	return totalMagnitudes / totalTurns
+}
+
+// GetConfidencePrediction provides an overall confidence in our prediction.
+// The confidence is the average of those from the timeRemaining and Magnitude predictions.
+func GetConfidencePrediction(confidenceTimeRemaining shared.PredictionConfidence, confidenceMagnitude shared.PredictionConfidence) shared.PredictionConfidence {
+	return (confidenceTimeRemaining + confidenceMagnitude) / 2
+}
+
+// GetTrustedIslands returns a slice of the islands we want to share our prediction with.
+// NOTE: CURRENTLY THIS JUST RETURNS ALL ISLANDS.
+func GetTrustedIslands() []shared.ClientID {
+	trustedIslands := make([]shared.ClientID, len(RegisteredClients))
+	for index, id := range shared.TeamIDs {
+		trustedIslands[index] = id
+	}
 }
 
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,

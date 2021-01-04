@@ -3,6 +3,7 @@ package team2
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -71,10 +72,16 @@ type GiftExchange struct {
 	OurRequest    map[uint]GiftInfo
 }
 
+type DisasterOccurence struct {
+	Turn   float64
+	Report disasters.DisasterReport
+}
+
 type OpinionHist map[shared.ClientID]Opinion
 type PredictionsHist map[shared.ClientID][]shared.DisasterPrediction
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo
 type GiftHist map[shared.ClientID]GiftExchange
+type DisasterHistory map[int]DisasterOccurence
 
 func init() {
 	baseclient.RegisterClient(
@@ -101,6 +108,7 @@ type client struct {
 	predictionsHist      PredictionsHist
 	foragingReturnsHist  ForagingReturnsHist
 	giftHist             GiftHist
+	disasterHistory      DisasterHistory
 }
 
 //NewClient After declaring the struct we have to actually make an object for the client
@@ -140,7 +148,12 @@ func criticalStatus(c *client) bool {
 }
 
 //TODO: how does this work?
-//func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
+func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
+	c.disasterHistory[len(c.disasterHistory)] = DisasterOccurence{
+		Turn:   float64(c.gameState().Turn),
+		Report: report,
+	}
+}
 
 //checkOthersCrit checks if anyone else is critical
 func checkOthersCrit(c *client) bool {
