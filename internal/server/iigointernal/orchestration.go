@@ -4,7 +4,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
@@ -24,11 +23,6 @@ var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
-
-	// Pointers allow clients to customise implementations of mutable functions
-	var judgePointer roles.Judge = nil
-	var speakerPointer roles.Speaker = nil
-	var presidentPointer roles.President = nil
 
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
@@ -94,11 +88,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.PresidentID = g.PresidentID
 
 	// Set judgePointer
-	judgePointer = iigoClients[g.JudgeID].GetClientJudgePointer()
+	judgePointer := iigoClients[g.JudgeID].GetClientJudgePointer()
 	// Set speakerPointer
-	speakerPointer = iigoClients[g.SpeakerID].GetClientSpeakerPointer()
+	speakerPointer := iigoClients[g.SpeakerID].GetClientSpeakerPointer()
 	// Set presidentPointer
-	presidentPointer = iigoClients[g.PresidentID].GetClientPresidentPointer()
+	presidentPointer := iigoClients[g.PresidentID].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
 	judicialBranch.loadClientJudge(judgePointer)
