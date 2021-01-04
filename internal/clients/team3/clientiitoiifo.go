@@ -1,6 +1,10 @@
 package team3
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"math"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 /*
 	//IIFO: OPTIONAL
@@ -20,6 +24,48 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientID)
 
 */
+
+// GetGiftOffers allows clients to make offers in response to gift requests by other clients.
+// It can offer multiple partial gifts.
+// Strategy: We cover the risk that we lose money from the islands that we don’t trust with
+// what we get from the islands that we do trust. Also, we don't request any gifts from critical islands.
+func (c *client) GetGiftRequests() shared.GiftRequestDict {
+	var totalRequestAmt float64
+
+	// can change these parameters
+	c.params.giftInflationPercentage = 0.2
+	c.params.localPoolThreshold = 150
+	c.params.trustParameter = 0.8
+	c.params.giftConstantAdjustor = 10
+
+	requests := shared.GiftRequestDict{}
+
+	resourcesNeeded := c.params.localPoolThreshold - c.localPool
+	if resourcesNeeded > 0 {
+		resourcesNeeded *= (1 + c.params.giftInflationPercentage)
+		totalRequestAmt = resourcesNeeded
+	} else {
+		totalRequestAmt = c.params.giftInflationPercentage * c.params.localPoolThreshold
+	}
+
+	avgRequestAmt := totalRequestAmt / float64(c.getIslandsAlive()-c.getIslandsCritical())
+
+	for island, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+		if status == shared.Critical {
+			requests[island] = shared.GiftRequest(0.0)
+		} else {
+			var requestAmt float64
+			if c.trustScore[island] >= 50 {
+				requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.trustParameter) * float64(c.params.giftConstantAdjustor)
+			} else {
+				requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], -c.params.trustParameter) * float64(c.params.giftConstantAdjustor)
+			}
+			requests[island] = shared.GiftRequest(requestAmt)
+		}
+	}
+
+	return requests
+}
 
 // GetGiftResponses returns the result of our island accepting/rejecting offered amounts.
 // Strategy: we accept all amounts except if the offering island(s) is/are critical, then we
@@ -60,5 +106,3 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 		}
 	}
 }
-
-// Branch commit

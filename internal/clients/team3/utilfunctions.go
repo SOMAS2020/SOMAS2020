@@ -25,6 +25,21 @@ func (c *client) getIslandsAlive() int {
 	return aliveCount
 }
 
+// getIslandsCritical retrives number of islands that are critical
+func (c *client) getIslandsCritical() int {
+	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
+	var criticalCount int
+
+	currentState := c.BaseClient.ServerReadHandle.GetGameState()
+	lifeStatuses = currentState.ClientLifeStatuses
+	for _, statusInfo := range lifeStatuses {
+		if statusInfo == shared.Critical {
+			criticalCount++
+		}
+	}
+	return criticalCount
+}
+
 // getAverage returns the average of the list
 func getAverage(lst []float64) float64 {
 

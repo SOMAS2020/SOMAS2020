@@ -77,4 +77,8 @@ type islandParams struct {
 	anger                       float64
 	aggression                  float64
 	salaryThreshold             float64
+	localPoolThreshold          float64
+	giftInflationPercentage     float64
+	giftConstantAdjustor        int
+	trustParameter              float64
 }
