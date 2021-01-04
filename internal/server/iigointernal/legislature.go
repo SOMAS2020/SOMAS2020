@@ -95,7 +95,7 @@ func (l *legislature) setVotingResult(clientIDs []shared.ClientID) error {
 //Passing in empty ruleID or empty clientIDs results in no vote occurring
 func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.ClientID) voting.BallotBox {
 
-	if ruleMatrixIsEmpty(ruleMatrix) || len(clientIDs) == 0 {
+	if ruleMatrix.RuleMatrixIsEmpty() || len(clientIDs) == 0 {
 		return voting.BallotBox{}
 	}
 
@@ -113,18 +113,6 @@ func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.Cl
 	//TODO: log of clientIDs vs islandsAllowedToVote
 	//TODO: log of ruleMatrix vs s.RuleToVote
 	return ruleVote.GetBallotBox()
-}
-
-func ruleMatrixIsEmpty(ruleMatrix rules.RuleMatrix) bool { //MIKETODO: make sure ApplicableMatrix and AuxiliaryVector are empty too
-	if ruleMatrix.RuleName == "" &&
-		len(ruleMatrix.RequiredVariables) == 0 &&
-		// ruleMatrix.ApplicableMatrix == (mat.Dense{}) &&
-		// ruleMatrix.AuxiliaryVector == (mat.VecDense{}) &&
-		ruleMatrix.Mutable == false {
-		return true
-	} else {
-		return false
-	}
 }
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)

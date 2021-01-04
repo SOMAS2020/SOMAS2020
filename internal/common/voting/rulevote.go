@@ -33,22 +33,10 @@ func (v *RuleVote) SetVotingIslands(clientIDs []shared.ClientID) {
 // GatherBallots is called by baseSpeaker to get votes from clients.
 func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client) {
 	//Gather N ballots from islands
-	if ruleMatrixIsNotEmpty(v.ruleToVote) && len(v.islandsToVote) > 0 {
+	if !v.ruleToVote.RuleMatrixIsEmpty() && len(v.islandsToVote) > 0 {
 		for _, island := range v.islandsToVote {
 			v.ballots = append(v.ballots, clientMap[island].GetVoteForRule(v.ruleToVote))
 		}
-	}
-}
-
-func ruleMatrixIsNotEmpty(ruleMatrix rules.RuleMatrix) bool { //MIKETODO: make sure ApplicableMatrix and AuxiliaryVector are empty too
-	if ruleMatrix.RuleName == "" &&
-		len(ruleMatrix.RequiredVariables) == 0 &&
-		// ruleMatrix.ApplicableMatrix == (mat.Dense{}) &&
-		// ruleMatrix.AuxiliaryVector == (mat.VecDense{}) &&
-		ruleMatrix.Mutable == false {
-		return false
-	} else {
-		return true
 	}
 }
 
