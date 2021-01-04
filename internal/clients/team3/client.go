@@ -10,7 +10,8 @@ import (
 const id = shared.Team3
 
 func init() {
-	ourClient := &client{BaseClient: baseclient.NewClient(id)}
+	ourClient := &client{BaseClient: baseclient.NewClient(id),
+		params: getislandParams()}
 
 	baseclient.RegisterClient(id, ourClient)
 }
@@ -70,14 +71,14 @@ type criticalStatePrediction struct {
 }
 
 type islandParams struct {
-	giftingThreshold            int
+	giftingThreshold            shared.Resources
 	equity                      float64
 	complianceLevel             float64
 	resourcesSkew               float64
 	saveCriticalIsland          bool
 	escapeCritcaIsland          bool
 	selfishness                 float64
-	minimumRequest              int
+	minimumRequest              shared.Resources
 	disasterPredictionWeighting float64
 	DesiredRuleSet              []string
 	recidivism                  float64
