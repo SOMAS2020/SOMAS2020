@@ -262,8 +262,7 @@ func (s *SOMASServer) runIntendedContributionSession() {
 func (s *SOMASServer) getIntendedContribution() shared.IntendedContributionDict {
 	islandPredictionsDict := shared.IntendedContributionDict{}
 	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
-		c := s.clientMap[id]
-		islandPredictionsDict[id] = c.ShareIntendedContribution()
+		islandPredictionsDict[id] = s.clientMap[id].ShareIntendedContribution()
 	}
 	return islandPredictionsDict
 }
