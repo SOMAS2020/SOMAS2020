@@ -74,10 +74,10 @@ func internalThreshold(c *client) shared.Resources {
 	var disasterEffectOnUs float64 = 3            //TODO: call function from Hamish's part to get map clientID: effect
 	var disasterPredictionConfidence float64 = 50 //TODO: call function from Hamish's part to get this confidence level
 	var turnsLeftUntilDisaster uint = 3           //TODO: call function from Hamish's part to get number of turns
-	if disasterEffectOnUs > 4 {
-		return (gameThreshold + allocationrec) * shared.Resources(disasterPredictionConfidence/10) //TODO: tune divisor
+	if disasterEffectOnUs > 4 {                   //tune
+		return (gameThreshold + allocationrec) * shared.Resources(disasterPredictionConfidence/10) //tune
 	}
-	if turnsLeftUntilDisaster < 3 {
+	if turnsLeftUntilDisaster < 3 { //tune
 		return 3
 	}
 	return gameThreshold + allocationrec
