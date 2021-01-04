@@ -12,12 +12,11 @@ func (s *SOMASServer) islandDeplete(cpMitigatedEffect map[shared.ClientID]float6
 		if deduction > 0 {                                         // don't create pointless call if no deduction applicable
 			ci := s.gameState.ClientInfos[clientID]
 			if ci.Resources < deduction {
-				s.logf("[DISASTER]: %v reduced to 0 resources due to disaster damage", clientID)
 				ci.Resources = 0
 			} else {
-				s.logf("[DISASTER]: %v reduced by %v resources due to disaster damage", clientID, deduction)
 				ci.Resources -= deduction
 			}
+			s.logf("[DISASTER]: %v reduced to %v resources due to disaster damage of %v", clientID, ci.Resources, deduction)
 		}
 	}
 }
