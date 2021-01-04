@@ -1,8 +1,6 @@
 package team1
+
 import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-/********************/
-/***    IIFO        */
-/********************/
 
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	var shareTo []shared.ClientID

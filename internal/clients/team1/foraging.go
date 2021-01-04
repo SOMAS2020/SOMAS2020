@@ -32,10 +32,6 @@ func (o ForageOutcome) profit() shared.Resources {
 
 type ForageHistory map[shared.ForageType][]ForageOutcome
 
-/********************/
-/***    Foraging    */
-/********************/
-
 // A forageDecider gives a ForageDecision as well as the expected reward if that decision is taken
 type forageDecider = func(client) (shared.ForageDecision, shared.Resources)
 

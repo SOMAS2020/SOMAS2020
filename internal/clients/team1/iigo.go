@@ -23,10 +23,6 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 }
 
-/********************/
-/***  Desperation   */
-/********************/
-
 func (c *client) RequestAllocation() shared.Resources {
 	var allocation shared.Resources
 
