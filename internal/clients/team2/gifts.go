@@ -40,7 +40,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			if status != shared.ClientLifeStatus(2) {
 				islandConf := IslandTrust{
 					island: team,
-					trust:  c.confidence("GiftWeRequest", team),
+					trust:  c.confidence("Gifts", team),
 				}
 				trustRank = append(trustRank, islandConf)
 			}
@@ -99,9 +99,9 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			// max would be 200
 			// c.confidence("ReceivedRequests", team) should reflect the status of an island and int,float64 requests hist
 			// c.confidence("GiftWeRequest", team) should reflect how they respond to our requests
-			confidenceMetric := c.confidence("ReceivedRequests", team) + c.confidence("GiftWeRequest", team)
+			confidenceMetric := c.confidence("Gifts", team)
 			otherTeamCritical := c.gameState().ClientLifeStatuses[team] == shared.Critical
-			if confidenceMetric > 100 || otherTeamCritical {
+			if confidenceMetric > 50 || otherTeamCritical {
 				islandConf := IslandTrust{
 					island: team,
 					trust:  confidenceMetric,
@@ -197,6 +197,8 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 		gifted:    shared.GiftOffer(sent),
 	}
 	c.giftHist[to].IslandRequest[turn] = newGiftRequest
+	// because received gift is called first we call this here
+	c.updateGiftConfidence(to)
 }
 
 // // ReceivedGift is executed at the end of each turn and notifies clients that
@@ -210,6 +212,7 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 		gifted:    shared.GiftOffer(received),
 	}
 	c.giftHist[from].OurRequest[turn] = newGiftRequest
+
 }
 
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {

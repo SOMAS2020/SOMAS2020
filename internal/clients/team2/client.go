@@ -36,12 +36,11 @@ type Situation string
 // others -> us: GiftWeRequest
 
 const (
-	President        Situation = "President"
-	Judge            Situation = "Judge"
-	Speaker          Situation = "Speaker"
-	Foraging         Situation = "Foraging"
-	GiftWeRequest    Situation = "GiftWeRequest"
-	ReceivedRequests Situation = "GiftGiven"
+	President     Situation = "President"
+	Judge         Situation = "Judge"
+	Speaker       Situation = "Speaker"
+	Foraging      Situation = "Foraging"
+	GiftWeRequest Situation = "Gifts"
 )
 
 type Opinion struct {
@@ -145,4 +144,25 @@ func checkOthersCrit(c *client) bool {
 
 func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
+}
+
+// Initialise initialises the base client.
+// OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
+// You will need it to access the game state through its GetGameStateMethod.
+func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
+	c.ServerReadHandle = serverReadHandle
+	// loop through each island (there might not be 6)
+	for clientID, _ := range c.gameState().ClientLifeStatuses {
+		// set the confidence to 50 and initialise any other stuff
+		var Histories map[Situation][]int
+		Histories["President"] = append(Histories["President"], 50)
+		Histories["Speaker"] = append(Histories["Speaker"], 50)
+		Histories["Judge"] = append(Histories["Judge"], 50)
+		Histories["Foraging"] = append(Histories["Foraging"], 50)
+		Histories["Gifts"] = append(Histories["Gifts"], 50)
+
+		c.opinionHist[clientID] = Opinion{
+			Histories: Histories,
+		}
+	}
 }
