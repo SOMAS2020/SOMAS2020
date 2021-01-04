@@ -11,18 +11,13 @@ import (
 // ClientID is an enum for client IDs
 type ClientID int
 
+// TeamIDs
 const (
-	// Team1 ID
 	Team1 ClientID = iota
-	// Team2 ID
 	Team2
-	// Team3 ID
 	Team3
-	// Team4 ID
 	Team4
-	// Team5 ID
 	Team5
-	// Team6 ID
 	Team6
 )
 
@@ -58,6 +53,9 @@ func (c ClientID) MarshalText() ([]byte, error) {
 func (c ClientID) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
+
+// Logger type for convenience in other definitions
+type Logger func(format string, a ...interface{})
 
 // Resources represents amounts of resources.
 // Used for foraging inputs and utility outputs (returns)
