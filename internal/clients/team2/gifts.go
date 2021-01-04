@@ -37,7 +37,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 			// get our confidence in the team
 			// TODO: this should be whether or not that team is critical not us
-			if status != shared.Critical {
+			if status != shared.ClientLifeStatus(2) {
 				islandConf := IslandTrust{
 					island: team,
 					trust:  c.confidence("GiftWeRequest", team),
@@ -52,8 +52,9 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 		// request confidence (0-1)*amountNeeded to consecutive islands in rank
 		// until amountRequested = (factor eg 1.5) * amountNeeded (to accommodate for some islands not giving us a gift)
+		targetFulfilled := target
 		for i := 0; i < len(trustRank); i++ {
-			requestAmount := shared.Resources(trustRank[i].trust) * target
+			requestAmount := shared.Resources(trustRank[i].trust) / 100 * target
 			requestedTo := trustRank[i].island
 			requests[requestedTo] = shared.GiftRequest(requestAmount)
 
@@ -63,9 +64,9 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			}
 			c.giftHist[requestedTo].OurRequest[turn] = newGiftRequest
 
-			target -= requestAmount
+			targetFulfilled -= requestAmount
 
-			if target <= 0 {
+			if targetFulfilled <= 0 {
 				return requests
 			}
 		}
