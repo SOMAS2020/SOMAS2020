@@ -52,19 +52,28 @@ func (c *BaseClient) TaxTaken(shared.Resources) {
 
 // GetTaxContribution gives value of how much the island wants to pay in taxes
 func (c *BaseClient) GetTaxContribution() shared.Resources {
-	// TODO: Implement common pool contribution greater than or equal to tax.
+	// If no new communication was received and there is no rule governing taxation, it will still recieve last valid tax
 	gameState := c.ServerReadHandle.GetGameState()
 	presidentCommunications := c.Communications[gameState.PresidentID]
 	var latestTax map[shared.CommunicationFieldName]shared.CommunicationContent
+
+	foundTax := false
 	for i := range presidentCommunications {
 		msg := presidentCommunications[len(presidentCommunications)-1-i]
 		if isTaxMsg(msg) {
 			latestTax = msg
+			foundTax = true
 			break
 		}
 	}
 
-	return latestTax[shared.TaxAmount].ResourcesData
+	if foundTax {
+		// gotVariable := latestTax[shared.TaxVariable].IIGOVarData
+		// gotRule := latestTax[shared.TaxRule].IIGORuleData
+		return latestTax[shared.TaxAmount].ResourcesData
+	}
+
+	return 0 //default if no tax message was found
 }
 
 // GetSanctionPayment gives the value of how much the island is paying in sanctions
