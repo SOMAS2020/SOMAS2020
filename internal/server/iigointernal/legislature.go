@@ -116,8 +116,13 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 	valuesToCache := [][]float64{{float64(len(clientIDs))}}
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
-	variablesToCache = []rules.VariableFieldName{rules.SpeakerRuleProposal, rules.PresidentRuleProposal}
-	valuesToCache = [][]float64{{float64(len(ruleID))}, {float64(len(l.ruleToVote))}}
+	rulesEqual := false
+	if ruleID == l.ruleToVote {
+		rulesEqual = true
+	}
+
+	variablesToCache = []rules.VariableFieldName{rules.SpeakerProposedPresidentRule}
+	valuesToCache = [][]float64{{boolToFloat(rulesEqual)}}
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
 	return ruleVote.GetBallotBox()

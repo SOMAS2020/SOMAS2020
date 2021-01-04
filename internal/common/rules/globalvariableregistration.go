@@ -123,11 +123,7 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{0},
 	},
 	{
-		VariableName: SpeakerRuleProposal,
-		Values:       []float64{0},
-	},
-	{
-		VariableName: PresidentRuleProposal,
+		VariableName: SpeakerProposedPresidentRule,
 		Values:       []float64{0},
 	},
 }
