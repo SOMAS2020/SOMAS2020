@@ -11,3 +11,5 @@ package team3
 	DecideForage() (shared.ForageDecision, error)
 	ForageUpdate(shared.ForageDecision, shared.Resources)
 */
+
+
