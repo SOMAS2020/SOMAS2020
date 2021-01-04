@@ -27,34 +27,42 @@ import (
 */
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	// c.Logf("became speaker")
-	return &speaker{c: c}
+	c.clientPrint("became speaker")
+	return &c.ourSpeaker
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	// c.Logf("became judge")
-	return &judge{c: c}
+	c.clientPrint("became judge")
+	return &c.ourJudge
 }
 
 func (c *client) GetClientPresidentPointer() roles.President {
-	// c.Logf("became president")
-	return &president{c: c}
+	c.clientPrint("became president")
+	return &c.ourPresident
 }
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
 func (c *client) resetIIGOInfo() {
 	c.iigoInfo.commonPoolAllocation = 0
 	c.iigoInfo.taxationAmount = 0
-	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
 	c.iigoInfo.monitoringOutcomes = make(map[shared.Role]bool)
 	c.iigoInfo.monitoringDeclared = make(map[shared.Role]bool)
+	c.iigoInfo.sanctions = &sanctionInfo{
+		tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
+		rulePenalties:   make(map[string]roles.IIGOSanctionScore),
+		islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
+		ourSanction:     roles.IIGOSanctionScore(0),
+	}
+	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
+	c.iigoInfo.ourRequest = 0
+	c.iigoInfo.ourDeclaredResources = 0
 }
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client.
 // This function is overridden to receive information and update local info accordingly.
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
-
+	// TODO parse sanction info
 	for contentType, content := range data {
 		switch contentType {
 		case shared.TaxAmount:

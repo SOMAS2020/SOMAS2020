@@ -8,15 +8,19 @@ import (
 )
 
 const id = shared.Team3
+const printTeam3Logs = false
 
 func init() {
-	ourClient := &client{BaseClient: baseclient.NewClient(id)}
-
+	ourClient := NewClient(id)
 	baseclient.RegisterClient(id, ourClient)
 }
 
 type client struct {
 	*baseclient.BaseClient
+	ourSpeaker   speaker
+	ourJudge     judge
+	ourPresident president
+
 	// ## Gifting ##
 
 	acceptedGifts        map[shared.ClientID]int
@@ -72,14 +76,14 @@ type criticalStatePrediction struct {
 }
 
 type islandParams struct {
-	giftingThreshold            int
+	giftingThreshold            shared.Resources
 	equity                      float64
 	complianceLevel             float64
 	resourcesSkew               float64
 	saveCriticalIsland          bool
 	escapeCritcaIsland          bool
 	selfishness                 float64
-	minimumRequest              int
+	minimumRequest              shared.Resources
 	disasterPredictionWeighting float64
 	DesiredRuleSet              []string
 	recidivism                  float64
@@ -122,7 +126,7 @@ type iigoCommunicationInfo struct {
 	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
 	monitoringDeclared map[shared.Role]bool
 	// Struct containing sanction information
-	sanctions sanctionInfo
+	sanctions *sanctionInfo
 
 	// Below need to be at least partially updated by our functions
 
