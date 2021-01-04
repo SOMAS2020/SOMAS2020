@@ -1,6 +1,9 @@
 package gamestate
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 // ClientGameState contains game state only for a specific client.
 type ClientGameState struct {
@@ -18,6 +21,9 @@ type ClientGameState struct {
 
 	// CommonPool
 	CommonPool shared.Resources
+
+	// Island Locations
+	IslandLocations map[shared.ClientID]disasters.IslandLocationInfo
 
 	// Islands holding IIGO roles
 	SpeakerID   shared.ClientID
