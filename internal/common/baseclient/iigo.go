@@ -46,10 +46,6 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return &BaseSpeaker{}
 }
 
-func (c *BaseClient) TaxTaken(shared.Resources) {
-	// Just an update. Ignore
-}
-
 // GetTaxContribution gives value of how much the island wants to pay in taxes
 func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// TODO: Implement common pool contribution greater than or equal to tax.
