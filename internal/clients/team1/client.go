@@ -105,8 +105,8 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 					c.Logf("[Forage decision]: desperate")
 					return desperateDecider(c)
 				} else {
-					decision, expect := regressionDecider(c)
-					c.Logf("[Forage decision]: regression (%v)", decision)
+					decision, expect := flipDecider(c)
+					c.Logf("[Forage decision]: flip (%v)", decision)
 					return decision, expect
 				}
 			},

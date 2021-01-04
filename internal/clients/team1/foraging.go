@@ -85,7 +85,7 @@ func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
 	bestReward := shared.Resources(0)
 	var decision shared.ForageDecision
 
-	for forageType, _ := range c.forageHistory {
+	for forageType := range c.forageHistory {
 		r := outcomeRegression(c.forageHistory[forageType])
 		contribution := c.regressionOptimalContribution(r)
 		if contribution > c.gameState().ClientInfo.Resources {
@@ -104,6 +104,49 @@ func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
 	}
 
 	return decision, bestReward
+}
+
+const flipScale = 0.3
+
+// flipDecider does the opposite of what the mass did the previous turn. It
+// forages deer, with an amount inversely proportional to the sum of contributed
+// resources
+func flipDecider(c client) (shared.ForageDecision, shared.Resources) {
+	deerHistory := c.forageHistory[shared.DeerForageType]
+	totalContributionLastTurn := shared.Resources(0)
+	totalHuntersLastTurn := 0
+	totalRevenueLastTurn := shared.Resources(0)
+	for _, outcome := range deerHistory {
+		if outcome.turn == c.gameState().Turn-1 {
+			totalContributionLastTurn += outcome.contribution
+			totalRevenueLastTurn += outcome.revenue
+			totalHuntersLastTurn += 1
+		}
+	}
+
+	if totalContributionLastTurn == shared.Resources(0) {
+		// Big contribution
+		contribution := 0.3 * c.gameState().ClientInfo.Resources
+		return shared.ForageDecision{
+			Contribution: 0.3 * c.gameState().ClientInfo.Resources,
+			Type:         shared.DeerForageType,
+		}, 1.2 * contribution // arbitrarily expect a 20% ROI
+	}
+
+	// Proxy for population
+	totalROI := totalRevenueLastTurn / totalContributionLastTurn
+	averageContribution := totalContributionLastTurn / shared.Resources(totalHuntersLastTurn)
+
+	contribution := flipScale * totalROI * averageContribution
+	contribution = shared.Resources(math.Min(
+		float64(0.2 * c.gameState().ClientInfo.Resources),
+		float64(contribution),
+	))
+
+	return shared.ForageDecision{
+		Contribution: contribution,
+		Type:         shared.DeerForageType,
+	}, contribution * totalROI
 }
 
 func outcomeRegression(history []ForageOutcome) regression.Regression {
