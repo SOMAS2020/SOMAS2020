@@ -67,7 +67,7 @@ func (e *executive) setGameState(g *gamestate.GameState) {
 func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 	if !CheckEnoughInCommonPool(e.gameConf.GetRuleForSpeakerActionCost, e.gameState) {
 		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRule: "", ActionTaken: false},
-			errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+			errors.Errorf("Insufficient Budget in common Pool: getRuleForSpeaker")
 	}
 
 	returnRule := e.clientPresident.PickRuleToVote(e.RulesProposals)
