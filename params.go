@@ -160,10 +160,10 @@ var (
 		10,
 		"Max y bound of archipelago (bounds for possible disaster).",
 	)
-	disasterGlobalProb = flag.Float64(
-		"disasterGlobalProb",
-		0.1,
-		"Bernoulli 'p' param. Chance of a disaster occurring.",
+	disasterPeriod = flag.Int(
+		"disasterPeriod",
+		15,
+		"Period T between disasters in deterministic case and E[T] in stochastic case.",
 	)
 	disasterSpatialPDFType = flag.Int(
 		"disasterSpatialPDFType",
@@ -184,6 +184,11 @@ var (
 		"disasterCommonpoolThreshold",
 		50,
 		"Common pool threshold value for disaster to be mitigated",
+	)
+	disasterPeriodStochastic = flag.Bool(
+		"disasterStochasticPeriod",
+		false,
+		"If true, period between disasters becomes random. If false, it will be consistent (deterministic)",
 	)
 
 	// config.IIGOConfig - Executive branch
@@ -335,9 +340,10 @@ func parseConfig() (config.Config, error) {
 		XMax:                        *disasterXMax,
 		YMin:                        *disasterYMin,
 		YMax:                        *disasterYMax,
-		GlobalProb:                  *disasterGlobalProb,
+		Period:                      *disasterPeriod,
 		SpatialPDFType:              parsedDisasterSpatialPDFType,
 		MagnitudeLambda:             *disasterMagnitudeLambda,
+		StochasticPeriod:            *disasterPeriodStochastic,
 		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
 		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
 	}
