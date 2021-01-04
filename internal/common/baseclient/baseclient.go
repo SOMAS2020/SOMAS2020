@@ -155,12 +155,16 @@ func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.Client
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
 // COMPULSORY: please override to save incoming communication relevant to your agent strategy
 func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	c.InspectCommunication(data)
 	c.Communications[sender] = append(c.Communications[sender], data)
 }
 
 // InspectCommunication is a function which scans over Receive communications for any data
 // that might be used to update the LocalVariableCache
 func (c *BaseClient) InspectCommunication(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	if c.LocalVariableCache == nil {
+		return
+	}
 	for fieldName, dataPoint := range data {
 		switch fieldName {
 		case shared.TaxAmount:
