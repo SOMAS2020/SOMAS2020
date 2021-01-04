@@ -3,6 +3,7 @@ package team6
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -46,11 +47,105 @@ func init() {
 }
 
 // ########################
-// ######  General  #######
+// ######  Foraging  ######
 // ########################
 
+// ------ TODO: COMPULSORY ------
+func (c *client) DecideForage() (shared.ForageDecision, error) {
+	return c.BaseClient.DecideForage()
+}
+
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, resources shared.Resources) {
+	c.BaseClient.ForageUpdate(forageDecision, resources)
+}
+
 // ########################
-// ###### Friendship ######
+// ######    IITO    ######
+// ########################
+
+// ------ TODO: COMPULSORY ------
+func (c *client) GetGiftRequests() shared.GiftRequestDict {
+	return c.BaseClient.GetGiftRequests()
+}
+
+func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
+	return c.BaseClient.GetGiftOffers(receivedRequests)
+}
+
+func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict {
+	return c.BaseClient.GetGiftResponses(receivedOffers)
+}
+
+func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
+
+}
+
+func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
+
+}
+
+func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
+
+}
+
+// ########################
+// ######    IIFO    ######
+// ########################
+
+// ------ TODO: COMPULSORY ------
+func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
+	return c.BaseClient.MakeDisasterPrediction()
+}
+
+func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
+	c.BaseClient.ReceiveDisasterPredictions(receivedPredictions)
+}
+
+// ------ TODO: OPTIONAL ------
+func (c *client) MakeForageInfo() shared.ForageShareInfo {
+	return c.BaseClient.MakeForageInfo()
+}
+
+func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
+	c.BaseClient.ReceiveForageInfo(neighbourForaging)
+}
+
+// ########################
+// ######    IIGO    ######
+// ########################
+
+func (c *client) GetClientPresidentPointer() roles.President {
+	return &president{client: c}
+}
+
+func (c *client) GetClientJudgePointer() roles.Judge {
+	return &judge{client: c}
+}
+
+func (c *client) GetClientSpeakerPointer() roles.Speaker {
+	return &speaker{client: c}
+}
+
+// ------ TODO: COMPULSORY ------
+func (c *client) MonitorIIGORole(roleName shared.Role) bool {
+	return c.BaseClient.MonitorIIGORole(roleName)
+}
+
+func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
+	return c.BaseClient.DecideIIGOMonitoringAnnouncement(monitoringResult)
+}
+
+// ########################
+// ######  Disaster  ######
+// ########################
+
+//------ TODO: OPTIONAL ------
+func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disasters.DisasterEffects) {
+	c.BaseClient.DisasterNotification(dR, effects)
+}
+
+// ########################
+// ######   Utils   #######
 // ########################
 
 // increases the friendship level with some other islands
@@ -74,81 +169,3 @@ func (c *client) lowerFriendshipLevel(clientID shared.ClientID) {
 
 	c.config.friendship[clientID]--
 }
-
-// ########################
-// ######  Foraging  ######
-// ########################
-
-/*
------- TODO: COMPULSORY ------
-func (c *client) DecideForage() (shared.ForageDecision, error)
-
-func (c *client) ForageUpdate(shared.ForageDecision, shared.Resources)
-*/
-
-// ########################
-// ######    IITO    ######
-// ########################
-
-/*
------- TODO: COMPULSORY ------
-func (c *client) GetGiftRequests() shared.GiftRequestDict
-
-func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
-
-func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
-
-func (c *client) UpdateGiftInfo(ReceivedResponses shared.GiftResponseDict)
-
-func (c *client) SentGift(sent shared.Resources, to shared.ClientID)
-
-func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID)
-*/
-
-// ########################
-// ######    IIFO    ######
-// ########################
-
-/*
------- TODO: COMPULSORY ------
-func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo
-
-func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict)
-
------- TODO: OPTIONAL ------
-func (c *client) MakeForageInfo() shared.ForageShareInfo
-
-func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo)
-*/
-
-// ########################
-// ######    IIGO    ######
-// ########################
-
-func (c *client) GetClientPresidentPointer() roles.President {
-	return &president{client: c}
-}
-
-func (c *client) GetClientJudgePointer() roles.Judge {
-	return &judge{client: c}
-}
-
-func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	return &speaker{client: c}
-}
-
-/*
------- TODO: COMPULSORY ------
-func (c *client) MonitorIIGORole(shared.Role) bool
-
-func (c *client) DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
-*/
-
-// ########################
-// ######  Disaster  ######
-// ########################
-
-/*
------- TODO: OPTIONAL ------
-func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
-*/
