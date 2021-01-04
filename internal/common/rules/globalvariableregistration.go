@@ -114,4 +114,20 @@ var StaticVariables = []VariableValuePair{
 		VariableName: JudgeInspectionPerformed,
 		Values:       []float64{0},
 	},
+	{
+		VariableName: MonitorRoleAnnounce,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleDecideToMonitor,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleEvalResult,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleEvalResultDecide,
+		Values:       []float64{0},
+	},
 }

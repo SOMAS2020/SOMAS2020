@@ -188,6 +188,28 @@ func registerRulesByMass() {
 			Mutable: true,
 			Linked:  false,
 		},
+		{
+			Name: "iigo_monitor_rule_permission_1",
+			ReqVar: []VariableFieldName{
+				MonitorRoleDecideToMonitor,
+				MonitorRoleAnnounce,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "iigo_monitor_rule_permission_2",
+			ReqVar: []VariableFieldName{
+				MonitorRoleEvalResult,
+				MonitorRoleEvalResultDecide,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
 	}
 
 	for _, rs := range ruleSpecs {
