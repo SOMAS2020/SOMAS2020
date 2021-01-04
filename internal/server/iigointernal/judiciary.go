@@ -15,6 +15,7 @@ import (
 // to be moved to paramters
 const sanctionCacheDepth = 3
 const historyCacheDepth = 3
+const maxNoReport = 500
 
 // to be changed
 const sanctionLength = 2
@@ -194,7 +195,7 @@ func (j *judiciary) applySanctions() {
 }
 
 // sanctionEvaluate allows the clients to effectively pardon islands, levy and communicate sanctions
-func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID]shared.Resources) {
+func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID]shared.ResourcesReport) {
 	pardons := j.clientJudge.GetPardonedIslands(j.localSanctionCache)
 	pardonsValid, newSanctionMap, communications := implementPardons(j.localSanctionCache, pardons, shared.TeamIDs)
 	if pardonsValid {
@@ -299,16 +300,20 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSa
 }
 
 // runEvaluationRulesOnSanctions uses the custom sanction evaluator calculate how much each island should be paying in sanctions
-func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.Resources, rulesCache map[string]rules.RuleMatrix) map[shared.ClientID]shared.Resources {
+func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.ResourcesReport, rulesCache map[string]rules.RuleMatrix) map[shared.ClientID]shared.Resources {
 	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
 	for _, sanctionList := range localSanctionCache {
 		for _, sanction := range sanctionList {
 			ruleName := getTierSanctionMap()[sanction.SanctionTier]
 			ruleMat := rulesCache[ruleName]
+			resources := shared.Resources(maxNoReport)
+			if reportedIslandResources[sanction.ClientID].Reported {
+				resources = reportedIslandResources[sanction.ClientID].ReportedAmount
+			}
 			sanctionVal := evaluateSanction(ruleMat, map[rules.VariableFieldName]rules.VariableValuePair{
 				rules.IslandReportedResources: {
 					VariableName: rules.IslandReportedResources,
-					Values:       []float64{float64(reportedIslandResources[sanction.ClientID])},
+					Values:       []float64{float64(resources)},
 				},
 				rules.ConstSanctionAmount: {
 					VariableName: rules.ConstSanctionAmount,
