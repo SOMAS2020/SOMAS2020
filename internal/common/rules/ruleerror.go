@@ -22,6 +22,7 @@ const (
 	VariableCacheDidNotHaveAllRequiredVariables
 	VariableVectDimsDoNotMatchRuleMatrix
 	AuxVectorCodeOutOfRange
+	ChildRuleNotFound
 )
 
 func (r RuleErrorType) String() string {
@@ -36,6 +37,7 @@ func (r RuleErrorType) String() string {
 		"VariableCacheDidNotHaveAllRequiredVariables",
 		"VariableVectDimsDoNotMatchRuleMatrix",
 		"AuxVectorCOdeOutOfRange",
+		"ChildRuleNotFound",
 	}
 
 	if r >= 0 && int(r) < len(strs) {

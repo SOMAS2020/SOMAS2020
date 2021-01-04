@@ -103,6 +103,16 @@ func checkForFalse(resultVect []bool) bool {
 
 }
 
+func checkForCode4(auxVect mat.VecDense) bool {
+	nRows, _ := auxVect.Dims()
+	for i := 0; i < nRows; i++ {
+		if auxVect.AtVec(i) == 4.0 {
+			return true
+		}
+	}
+	return false
+}
+
 // basicBooleanRuleEvaluator implements a basic version of the Matrix rule evaluator, provides single boolean output (and error if present)
 func basicBooleanRuleEvaluator(rule RuleMatrix, variableCache map[VariableFieldName]VariableValuePair) (bool, error) {
 
@@ -197,24 +207,62 @@ func basicLinkedRuleEvaluator(rule RuleMatrix, childRule RuleMatrix, variableCac
 	return false, errors.Errorf("Unrecognised rule linking %v", link.LinkType)
 }
 
-// EvaluationReturn provides a wrapped for the results of a rule evaluation
-type EvaluationReturn struct {
+// RuleEvaluationReturn provides a wrapped for the results of a rule evaluation
+type RuleEvaluationReturn struct {
 	RulePasses    bool
 	IsRealOutput  bool
 	RealOutputVal float64
 	EvalError     error
 }
 
-func EvaluateRule(ruleName string) EvaluationReturn {
+func EvaluateRule(ruleName string) RuleEvaluationReturn {
 	return EvaluateRuleFromCaches(ruleName, AvailableRules, VariableMap)
 }
 
-func EvaluateRuleFromCaches(ruleName string, rulesCache map[string]RuleMatrix, variableCache map[VariableFieldName]VariableValuePair) EvaluationReturn {
+func EvaluateRuleFromCaches(ruleName string, rulesCache map[string]RuleMatrix, variableCache map[VariableFieldName]VariableValuePair) RuleEvaluationReturn {
 	if rule, ok := rulesCache[ruleName]; ok {
 		if checkAllVariablesAvailable(rule.RequiredVariables, variableCache) {
-
+			auxVect := rule.AuxiliaryVector
+			linked := rule.Link.Linked
+			if linked {
+				if childRule, isInCache := rulesCache[rule.Link.LinkedRule]; isInCache {
+					eval, err := basicLinkedRuleEvaluator(rule, childRule, variableCache)
+					return RuleEvaluationReturn{
+						RulePasses:    eval,
+						IsRealOutput:  false,
+						RealOutputVal: 0,
+						EvalError:     err,
+					}
+				}
+				return RuleEvaluationReturn{
+					RulePasses:    false,
+					IsRealOutput:  false,
+					RealOutputVal: 0,
+					EvalError:     &RuleError{
+						ErrorType: ChildRuleNotFound,
+						Err:       errors.Errorf("Child rule was not found in cache"),
+					},
+				}
+			}
+			isRealValued := checkForCode4(auxVect)
+			if isRealValued {
+				eval, res, err := basicRealValuedRuleEvaluator(rule, variableCache)
+				return RuleEvaluationReturn{
+					RulePasses: eval,
+					IsRealOutput: true,
+					RealOutputVal: res,
+					EvalError: err,
+				}
+			}
+			eval, err := basicBooleanRuleEvaluator(rule, variableCache)
+			return RuleEvaluationReturn{
+				RulePasses:    eval,
+				IsRealOutput:  false,
+				RealOutputVal: 0,
+				EvalError:     err,
+			}
 		}
-		return EvaluationReturn{
+		return RuleEvaluationReturn{
 			RulePasses:    false,
 			IsRealOutput:  false,
 			RealOutputVal: 0,
@@ -224,7 +272,7 @@ func EvaluateRuleFromCaches(ruleName string, rulesCache map[string]RuleMatrix, v
 			},
 		}
 	}
-	return EvaluationReturn{
+	return RuleEvaluationReturn{
 		RulePasses:    false,
 		IsRealOutput:  false,
 		RealOutputVal: 0,
