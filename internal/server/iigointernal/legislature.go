@@ -166,13 +166,6 @@ func generateVotingResultMessage(ruleID string, result bool) map[shared.Communic
 	return returnMap
 }
 
-//reset resets internal variables for safety
-func (l *legislature) reset() {
-	l.ruleToVote = ""
-	l.ballotBox = voting.BallotBox{}
-	l.votingResult = false
-}
-
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 	if !l.incurServiceCharge(l.gameConf.UpdateRulesActionCost) {

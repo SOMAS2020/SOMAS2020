@@ -186,14 +186,6 @@ func (e *executive) sendSpeakerSalary() error {
 	return errors.Errorf("Cannot perform sendSpeakerSalary")
 }
 
-func (e *executive) reset() {
-	e.PresidentID = 0
-	e.clientPresident = nil
-	e.ResourceRequests = map[shared.ClientID]shared.Resources{}
-	e.RulesProposals = []string{}
-	e.speakerSalary = 0
-}
-
 // Helper functions:
 func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
 	return e.clientPresident.SetTaxationAmount(islandsResources)

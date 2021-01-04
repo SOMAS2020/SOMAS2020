@@ -10,40 +10,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-// featureJudge is an instantiation of the Judge interface
-// with both the Base Judge features and a reference to client judges
-var judicialBranch = judiciary{
-	gameState:          nil,
-	gameConf:           nil,
-	JudgeID:            0,
-	presidentSalary:    0,
-	evaluationResults:  nil,
-	localSanctionCache: defaultInitLocalSanctionCache(3),
-	localHistoryCache:  defaultInitLocalHistoryCache(3),
-}
-
-// featureSpeaker is an instantiation of the Speaker interface
-// with both the baseSpeaker features and a reference to client speakers
-var legislativeBranch = legislature{
-	gameState:    nil,
-	gameConf:     nil,
-	SpeakerID:    0,
-	judgeSalary:  0,
-	ruleToVote:   "",
-	ballotBox:    voting.BallotBox{},
-	votingResult: false,
-}
-
-// featurePresident is an instantiation of the President interface
-// with both the basePresident features and a reference to client presidents
-var executiveBranch = executive{
-	gameState:        nil,
-	gameConf:         nil,
-	PresidentID:      0,
-	speakerSalary:    0,
-	ResourceRequests: nil,
-}
-
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
@@ -63,6 +29,40 @@ var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
+
+	// featureJudge is an instantiation of the Judge interface
+	// with both the Base Judge features and a reference to client judges
+	var judicialBranch = judiciary{
+		gameState:          nil,
+		gameConf:           nil,
+		JudgeID:            0,
+		presidentSalary:    0,
+		evaluationResults:  nil,
+		localSanctionCache: defaultInitLocalSanctionCache(3),
+		localHistoryCache:  defaultInitLocalHistoryCache(3),
+	}
+
+	// featureSpeaker is an instantiation of the Speaker interface
+	// with both the baseSpeaker features and a reference to client speakers
+	var legislativeBranch = legislature{
+		gameState:    nil,
+		gameConf:     nil,
+		SpeakerID:    0,
+		judgeSalary:  0,
+		ruleToVote:   "",
+		ballotBox:    voting.BallotBox{},
+		votingResult: false,
+	}
+
+	// featurePresident is an instantiation of the President interface
+	// with both the basePresident features and a reference to client presidents
+	var executiveBranch = executive{
+		gameState:        nil,
+		gameConf:         nil,
+		PresidentID:      0,
+		speakerSalary:    0,
+		ResourceRequests: nil,
+	}
 
 	var monitoring = monitor{
 		speakerID:         g.SpeakerID,
@@ -218,9 +218,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	if appointPresidentError != nil {
 		return false, "President was not apointed by the Judge. Insufficient budget"
 	}
-
-	legislativeBranch.reset()
-	executiveBranch.reset()
 
 	// Pay salaries into budgets
 	errorJudicial := judicialBranch.sendPresidentSalary()
