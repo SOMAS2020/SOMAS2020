@@ -89,10 +89,12 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 	// Store the offers we gave into giftHistory
 	for team := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+
 		newGiftRequest := giftInfo{ // 	For each client create a new gift info
 			gifted: offers[team], // Store how much we offered
 		}
-		c.giftHistory[team].OurRequest[c.gameState().Turn] = newGiftRequest
+
+		c.giftHistory[team] = giftExchange{OurRequest: map[uint]giftInfo{c.gameState().Turn: newGiftRequest}}
 	}
 
 	c.Logf("[Debug] GetGiftResponse: %v", c.giftHistory[shared.Team3].OurRequest[c.gameState().Turn])

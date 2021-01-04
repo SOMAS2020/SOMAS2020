@@ -20,7 +20,7 @@ func init() {
 			cpAllocationHistory: cPAllocationHistory{},
 			forageHistory:       forageHistory{},
 			resourceHistory:     resourceHistory{},
-			giftHistory:         giftHistory{},
+			giftHistory:         map[shared.ClientID]giftExchange{},
 
 			taxAmount:  0,
 			allocation: 0,
