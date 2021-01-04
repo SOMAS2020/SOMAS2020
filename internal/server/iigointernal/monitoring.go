@@ -61,7 +61,7 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 				rules.UpdateVariable(variable.VariableName, variable)
 			}
 			for _, rule := range rulesAffected {
-				evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
+				evaluation, err := rules.basicBooleanRuleEvaluator(rule)
 				if err == nil {
 					performedRoleCorrectly = evaluation && performedRoleCorrectly
 				}

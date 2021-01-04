@@ -18,7 +18,7 @@ type client struct {
 }
 
 func (c *client) DemoEvaluation() {
-	evalResult, err := rules.BasicBooleanRuleEvaluator("Kinda Complicated Rule")
+	evalResult, err := rules.basicBooleanRuleEvaluator("Kinda Complicated Rule")
 	if err != nil {
 		panic(err.Error())
 	}

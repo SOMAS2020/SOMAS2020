@@ -8,7 +8,7 @@ import (
 
 // TestBasicRuleEvaluatorPositive Checks whether rule we expect to evaluate as true actually evaluates as such
 func TestBasicRuleEvaluatorPositive(t *testing.T) {
-	result, err := BasicBooleanRuleEvaluator("Kinda Complicated Rule")
+	result, err := basicBooleanRuleEvaluator("Kinda Complicated Rule")
 	if !result {
 		t.Errorf("Rule evaluation came as false, when it was expected to be true, potential error with value '%v'", err)
 	}
@@ -17,7 +17,7 @@ func TestBasicRuleEvaluatorPositive(t *testing.T) {
 // TestBasicRuleEvaluatorNegative Checks whether rule we expect to evaluate as false actually evaluates as such
 func TestBasicRuleEvaluatorNegative(t *testing.T) {
 	registerTestRule(AvailableRules)
-	result, err := BasicBooleanRuleEvaluator("Kinda Test Rule")
+	result, err := basicBooleanRuleEvaluator("Kinda Test Rule")
 	if result || err != nil {
 		t.Errorf("Rule evaluation came as true, when it was expected to be false, potential error with value '%v'", err)
 	}
@@ -25,7 +25,7 @@ func TestBasicRuleEvaluatorNegative(t *testing.T) {
 
 func TestBasicRealValuedRuleEvaluator(t *testing.T) {
 	registerNewRealValuedRule(t)
-	result, value, _ := BasicRealValuedRuleEvaluator("Real Test rule")
+	result, value, _ := basicRealValuedRuleEvaluator("Real Test rule")
 	if !result && value != 2.0 {
 		t.Errorf("Real values rule evaluation error, expected true got '%v', value expected '2' got '%v'", result, value)
 	}
@@ -33,7 +33,7 @@ func TestBasicRealValuedRuleEvaluator(t *testing.T) {
 
 func TestBasicLinkedRuleEvaluator(t *testing.T) {
 	registerNewLinkedRule(t)
-	result, err := BasicLinkedRuleEvaluator("Linked test rule")
+	result, err := basicLinkedRuleEvaluator("Linked test rule")
 	if err != nil {
 		t.Errorf("Linked rule evaluation error: %v", err)
 	}
