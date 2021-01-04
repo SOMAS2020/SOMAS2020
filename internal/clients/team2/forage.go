@@ -1,7 +1,6 @@
 package team2
 
 import (
-	"math"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -14,7 +13,7 @@ type ForagingResults struct {
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	     // implement a normal distribution which shifts closer to hunt or fish
+	// implement a normal distribution which shifts closer to hunt or fish
 	var Threshold float64 = decideThreshold(c) //number from 0 to 1
 
 	if rand.Float64() > Threshold { //we fish when above the threshold
@@ -63,40 +62,40 @@ func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 
 //being the only agent to hunt is desirable, most desirable outcome is us and one other agent hunting
 func decideThreshold(c *client) float64 { //will move the threshold, higher value means more likely to hunt
-	if Otheragentinfo(c)==1{    //in the case when one other person only is hunting  
-		return 0.95 
-	}else if Otheragentinfo(c)>1{   //if no one is likely to hunt then we do default probability
-		return 0.1 + (Otheragentinfo(c) * 0.15) //default hunt probability is 10%, the less people hunting the more likely we do it
-	}else{
-		return 0.1  //when no one is likely to hunt we have a default 10% chance of hunting just in the off chance another person hunts
+	if Otheragentinfo(c) == 1 { //in the case when one other person only is hunting
+		return 0.95
+	} else if Otheragentinfo(c) > 1 {
+		return 0.95 - (Otheragentinfo(c) * 0.15) //default hunt probability is 10%, the less people hunting the more likely we do it
+	} else {
+		return 0.1 //when no one is likely to hunt we have a default 10% chance of hunting just in the off chance another person hunts
 	}
 }
 
-//EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves 
+//TODO: LINE 83 foragingReturnHist how to access a clients foraging decision?
+//TODO: LINE 82 rather than 6 it needs to figure out how many alive agents there are, make a function which outputs no. of alive agents
+//EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
 func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
-	//Have no idea where to find the shared foraging info, somewhere in IITO?
 	var HuntNum float64 = 0
-	if c.gameState().Turn==1{
-		var agentHistory [ClientId]float64   //this map will store the sum of the decisions made by this agent e.g. 3 turns and a sum of 3 means they hunted every round
+	if c.gameState().Turn == 1 {
+		var agentHistory [int]float64 //this map will store the probability an agent will hunt
 	}
-	for i:=0; i<  ; i++ {	//update agentHistory by looping through all the agents and adding their most recent decisions and then find their average hunt/fish
-		//c.foragingReturnHist to call the foraging IIFO info
-		[ClientId]agentHistory + //whatever the agent declares 0,1
-		if [ClientId]agentHistory/c.gameState().Turn>0.5{  //if an agent on average picks hunt more than 50% of the time we assume they will pick hunt
+	for i := 0; i < 6; i++ { //update agentHistory by looping through all the agents and adding their most recent decisions and then find their average hunt/fish
+		agentHistory[i] = (agentHistory[i] + float64(c.foragingReturnHist[i])) / 2 //whatever the agent declares 0,1
+		if agentHistory[i] > 0.5 {                                                 //if an agent on average picks hunt more than 50% of the time we assume they will pick hunt
 			Huntnum++
 		}
 	}
 	return HuntNum
-
 	return 0
 }
 
+//TODO: This function needs to be changed according to Eirik, I have no idea why
 func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
-	// Return on Investment
+	// updates our foragingReturnsHist with the decisions everyone made
 	roi := map[shared.ClientID]shared.Resources{}
 	for _, val := range neighbourForaging {
-		c.foragingReturnsHist[val.SharedFrom].append(shared.ForageInfo{	DecisionMade : val.DecisionMade,                 //this needs to change
-																		ResourcesObtained : val.ResourcesObtained})
+		c.foragingReturnsHist[val.SharedFrom].append(shared.ForageInfo{DecisionMade: val.DecisionMade,
+			ResourcesObtained: val.ResourcesObtained})
 
 		if val.DecisionMade.Type == shared.DeerForageType {
 			roi[val.SharedFrom] = val.ResourceObtained / shared.Resources(val.DecisionMade.Contribution) * 100
