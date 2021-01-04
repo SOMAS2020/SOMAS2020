@@ -51,7 +51,6 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return &BaseSpeaker{}
 }
 
-// BASE
 func (c *BaseClient) TaxTaken(shared.Resources) {
 	// Just an update. Ignore
 }
