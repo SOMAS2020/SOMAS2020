@@ -44,8 +44,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c *client) StartOfTurn() {
 	// c.Logf("Start of turn!")
 	// TODO add any functions and vairable changes here
-	var caught = c.checkIfCaught()
-	if caught {
+	if c.checkIfCaught() {
 		c.timeSinceCaught = 0
 	}
 	c.updateCompliance()
@@ -162,10 +161,7 @@ func (c *client) shouldICheat() bool {
 // checkIfCaught, checks if the island has been caught during the last turn
 // If it has been caught, it returns True, otherwise False.
 func (c *client) checkIfCaught() bool {
-	if c.iigoInfo.sanctions.ourSanction > c.last_sanctions {
-		return true
-	}
-	return false
+	return c.iigoInfo.sanctions.ourSanction > c.last_sanctions
 }
 
 /*
