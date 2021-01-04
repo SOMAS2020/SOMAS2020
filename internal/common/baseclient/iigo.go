@@ -13,7 +13,9 @@ func (c *BaseClient) CommonPoolResourceRequest() shared.Resources {
 	return 20
 }
 
-// ResourceReport is an island's self-report of its own resources.
+// ResourceReport is an island's self-report of its own resources. This is called by
+// the President to help work out how many resources to allocate each island.
+// OPTIONAL : as is, this function will always report island resources accurately
 func (c *BaseClient) ResourceReport() shared.ResourcesReport {
 	return shared.ResourcesReport{
 		ReportedAmount: c.ServerReadHandle.GetGameState().ClientInfo.Resources,
@@ -32,16 +34,19 @@ func (c *BaseClient) RuleProposal() string {
 }
 
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role
+// COMPULSORY: ovverride to return a pointer to your own President object
 func (c *BaseClient) GetClientPresidentPointer() roles.President {
 	return &BasePresident{}
 }
 
 // GetClientJudgePointer is called by IIGO to get the client's implementation of the Judge Role
+// COMPULSORY: ovverride to return a pointer to your own Judge object
 func (c *BaseClient) GetClientJudgePointer() roles.Judge {
 	return &BaseJudge{}
 }
 
 // GetClientSpeakerPointer is called by IIGO to get the client's implementation of the Speaker Role
+// COMPULSORY: ovverride to return a pointer to your own Speaker object
 func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return &BaseSpeaker{}
 }
@@ -51,6 +56,8 @@ func (c *BaseClient) TaxTaken(shared.Resources) {
 }
 
 // GetTaxContribution gives value of how much the island wants to pay in taxes
+// The tax is the minimum contribution, you can pay more if you want to
+// COMPULSORY
 func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// If no new communication was received and there is no rule governing taxation, it will still recieve last valid tax
 	clientGameState := c.ServerReadHandle.GetGameState()
@@ -74,12 +81,17 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	return 0 //default if no tax message was found
 }
 
-// GetSanctionPayment gives the value of how much the island is paying in sanctions
+// GetSanctionPayment is called at the end of turn to pay any sanctions that have been
+// imposed on the island, it is up to the island if they choose to pay the sanction or not.
+// COMPULSORY
 func (c *BaseClient) GetSanctionPayment() shared.Resources {
 	return 0
 }
 
-// RequestAllocation FIXME: Add documentation. What does this function do?
+// RequestAllocation is called at the end of the turn to request resources from the
+// common pool. If there are enough resources in the common pool, the server will
+// update your island's pool with the resources you requested.
+// COMPULSORY
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
 	clientGameState := c.ServerReadHandle.GetGameState()
