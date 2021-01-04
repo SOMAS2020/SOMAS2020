@@ -56,10 +56,6 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 	return &BaseSpeaker{}
 }
 
-func (c *BaseClient) TaxTaken(shared.Resources) {
-	// Just an update. Ignore
-}
-
 // GetTaxContribution gives value of how much the island wants to pay in taxes
 // The tax is the minimum contribution, you can pay more if you want to
 // COMPULSORY
