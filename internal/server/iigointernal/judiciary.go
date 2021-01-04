@@ -25,6 +25,7 @@ type judiciary struct {
 	ruleViolationSeverity map[string]roles.IIGOSanctionScore
 	localSanctionCache    map[int][]roles.Sanction
 	localHistoryCache     map[int][]shared.Accountability
+	monitoring            *monitor
 }
 
 // Loads ruleViolationSeverity and sanction thresholds

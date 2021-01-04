@@ -118,6 +118,39 @@ func registerRulesByMass() {
 			Linked:  false,
 		},
 		{
+			Name: "vote_result_rule",
+			ReqVar: []VariableFieldName{
+				VoteResultAnnounced,
+				VoteCalled,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "islands_allowed_to_vote_rule",
+			ReqVar: []VariableFieldName{
+				IslandsAlive,
+				IslandsAllowedToVote,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "rule_to_vote_on_rule",
+			ReqVar: []VariableFieldName{
+
+				SpeakerProposedPresidentRule,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
 			Name: "iigo_economic_sanction_1",
 			ReqVar: []VariableFieldName{
 				IslandReportedResources,
@@ -208,6 +241,26 @@ func registerRulesByMass() {
 			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
 			Mutable: true,
+		},
+		{
+			Name: "island_must_report_private_resource",
+			ReqVar: []VariableFieldName{
+				HasIslandReportPrivateResources,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "island_must_report_actual_private_resource",
+			ReqVar: []VariableFieldName{
+				IslandActualPrivateResources,
+				IslandReportedPrivateResources,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
 			Linked:  false,
 		},
 	}

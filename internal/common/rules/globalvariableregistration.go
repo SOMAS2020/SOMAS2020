@@ -129,5 +129,32 @@ var StaticVariables = []VariableValuePair{
 	{
 		VariableName: MonitorRoleEvalResultDecide,
 		Values:       []float64{0},
+	{
+		VariableName: VoteResultAnnounced,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandsAllowedToVote,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: SpeakerProposedPresidentRule,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: PresidentRuleProposal,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: HasIslandReportPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandActualPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandReportedPrivateResources,
+		Values:       []float64{0},
 	},
 }
