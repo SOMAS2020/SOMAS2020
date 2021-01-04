@@ -178,7 +178,9 @@ func (c *BaseClient) InspectCommunication(data map[shared.CommunicationFieldName
 				VariableName: rules.SanctionExpected,
 				Values:       []float64{float64(dataPoint.IntegerData)},
 			}
-			// TODO: Extend according to new rules added by Team 4
+		// TODO: Extend according to new rules added by Team 4
+		default:
+			c.Logf("Communication variable doesn't have associated val %v", fieldName)
 		}
 
 	}
