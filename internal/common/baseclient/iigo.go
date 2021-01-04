@@ -116,8 +116,6 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 	}
 
 	if newAllocationDecision.AllocationDecided {
-		// gotVariable := newAllocationDecision.ExpectedAllocation
-		// gotRule := newAllocationDecision.AllocationRule
 		clientAllocation := float64(newAllocationDecision.AllocationAmount)
 
 		expectedVariable := newAllocationDecision.ExpectedAllocation

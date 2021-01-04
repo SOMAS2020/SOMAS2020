@@ -61,7 +61,7 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 	if !CheckEnoughInCommonPool(e.gameConf.GetRuleForSpeakerActionCost, e.gameState) {
 		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRule: "", ActionTaken: false},
-			errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+			errors.Errorf("Insufficient Budget in common Pool: getRuleForSpeaker")
 	}
 
 	returnRule := e.clientPresident.PickRuleToVote(e.RulesProposals)
@@ -135,6 +135,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
 		allocationsMade = true
+		AllocationAmountMapExport = returnContent.ResourceMap
 		for islandID, amount := range returnContent.ResourceMap {
 			e.sendAllocation(islandID, amount)
 		}
@@ -202,7 +203,7 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 //requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() error {
 	if !e.incurServiceCharge(e.gameConf.RequestRuleProposalActionCost) {
-		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+		return errors.Errorf("Insufficient Budget in common Pool: requestRuleProposal")
 	}
 
 	var ruleProposals []string
