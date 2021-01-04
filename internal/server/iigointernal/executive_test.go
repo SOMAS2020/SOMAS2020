@@ -139,8 +139,8 @@ func TestPickRuleToVote(t *testing.T) {
 			want:  true,
 		},
 		{
-			name:  "Empty string",
-			input: []rules.RuleMatrix{{RuleName: ""}},
+			name:  "Empty rule",
+			input: []rules.RuleMatrix{{}},
 			reply: "",
 			want:  true,
 		},
@@ -177,7 +177,7 @@ func TestPickRuleToVote(t *testing.T) {
 					// if got.ProposedRuleMatrix != "" { //MIKETODO
 					// 	t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
 					if !got.ProposedRuleMatrix.RuleMatrixIsEmpty() { //
-						t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
+						t.Errorf("%v - Failed. Returned '%v', but expectd an empty ruleMatrix", tc.name, got.ProposedRuleMatrix)
 					}
 				} else if !checkIfInList(got.ProposedRuleMatrix, tc.input) {
 					t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRuleMatrix, tc.input)
@@ -446,7 +446,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				// if got.ProposedRuleMatrix != "" {//MIKETODO
 				// 	t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
 				if !got.ProposedRuleMatrix.RuleMatrixIsEmpty() { //
-					t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
+					t.Errorf("%v - Failed. Returned '%v', but expectd an empty ruleMatrix", tc.name, got.ProposedRuleMatrix)
 				}
 			} else if !checkIfInList(got.ProposedRuleMatrix, tc.expected) {
 				t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRuleMatrix, tc.expected)
