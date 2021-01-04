@@ -24,7 +24,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 	// check our critical and threshold - if either is off - request
 	ourAgentCritical := status == shared.Critical
-	requestAmount := internalThreshold(c) - c.gameState().ClientInfo.Resources
+	requestAmount := determineAllocation(c) * 0.6
 
 	// confidence[island] * requestAmount until -> target
 	if ourAgentCritical || requestAmount > 0 {
@@ -139,7 +139,6 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 // GetGiftResponses allows clients to accept gifts offered by other clients.
 // It also needs to provide a reasoning should it not accept the full amount.
 // COMPULSORY, you need to implement this method
-
 func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict {
 	responses := shared.GiftResponseDict{}
 	turn := c.gameState().Turn
@@ -169,6 +168,9 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	turn := c.gameState().Turn
 
+	// we should update our opinion of something if they reject a gift
+	// instead for now, we base our decisions/opinions on actions not words
+	// so we disregard what people say they will do and only store what they actually do
 	for island, response := range receivedResponses {
 		newGiftRequest := GiftInfo{
 			requested: c.giftHist[island].IslandRequest[turn].requested,
@@ -197,4 +199,8 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 
 }
 
-// decideGiftAmount ->
+func (c *client) DecideGiftAmount(shared.ClientID, shared.Resources) shared.Resources {
+	// Give no more than half of amount before we reach threshold
+	maxToGive := (c.gameState().ClientInfo.Resources - internalThreshold(c)) / 2
+
+}
