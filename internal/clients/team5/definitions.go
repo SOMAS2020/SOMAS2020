@@ -106,6 +106,9 @@ type clientConfig struct {
 type client struct {
 	*baseclient.BaseClient
 
+	// Roles
+	team5President president
+
 	// History
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
