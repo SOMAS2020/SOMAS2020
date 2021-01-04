@@ -137,5 +137,5 @@ func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 
 // GetGameConfig returns ClientConfig which is a subset of the entire Config that is visible to clients.
 func (s ServerForClient) GetGameConfig() config.ClientConfig {
-	return config.ClientConfig{}
+	return s.server.gameConfig.GetClientConfig()
 }

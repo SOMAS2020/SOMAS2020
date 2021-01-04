@@ -184,10 +184,20 @@ var (
 		500,
 		"Multiplier to map disaster magnitude to CP resource deductions",
 	)
+	disasterMagnitudeResourceMultiplierVisible = flag.Bool(
+		"disasterMagnitudeResourceMultiplierVisible",
+		false,
+		"Whether disasterMagnitudeResourceMultiplierVisible is visible to agents",
+	)
 	disasterCommonpoolThreshold = flag.Float64(
 		"disasterCommonpoolThreshold",
 		50,
 		"Common pool threshold value for disaster to be mitigated",
+	)
+	disasterCommonpoolThresholdVisible = flag.Bool(
+		"disasterCommonpoolThresholdVisible",
+		false,
+		"Whether disasterCommonpoolThreshold is visible to agents",
 	)
 
 	// config.IIGOConfig - Executive branch
@@ -340,7 +350,6 @@ func parseConfig() (config.Config, error) {
 		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
 		ThetaCritical:         *foragingDeerThetaCritical,
 		ThetaMax:              *foragingDeerThetaMax,
-
 		MaxDeerPopulation:     parseDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
 	}
@@ -359,15 +368,17 @@ func parseConfig() (config.Config, error) {
 		FishingConfig:  fishingConf,
 	}
 	disasterConf := config.DisasterConfig{
-		XMin:                        *disasterXMin,
-		XMax:                        *disasterXMax,
-		YMin:                        *disasterYMin,
-		YMax:                        *disasterYMax,
-		GlobalProb:                  *disasterGlobalProb,
-		SpatialPDFType:              parsedDisasterSpatialPDFType,
-		MagnitudeLambda:             *disasterMagnitudeLambda,
-		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
-		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
+		XMin:                               *disasterXMin,
+		XMax:                               *disasterXMax,
+		YMin:                               *disasterYMin,
+		YMax:                               *disasterYMax,
+		GlobalProb:                         *disasterGlobalProb,
+		SpatialPDFType:                     parsedDisasterSpatialPDFType,
+		MagnitudeLambda:                    *disasterMagnitudeLambda,
+		MagnitudeResourceMultiplier:        *disasterMagnitudeResourceMultiplier,
+		MagnitudeResourceMultiplierVisible: *disasterMagnitudeResourceMultiplierVisible,
+		CommonpoolThreshold:                shared.Resources(*disasterCommonpoolThreshold),
+		CommonpoolThresholdVisible:         *disasterCommonpoolThresholdVisible,
 	}
 
 	iigoConf := config.IIGOConfig{
