@@ -40,8 +40,8 @@ const (
 // Judge is the decision interface for the judiciary branch of IIGO
 type Judge interface {
 	PayPresident(presidentSalary shared.Resources) (shared.Resources, bool)
-	InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]EvaluationReturn, bool)
-	CallPresidentElection(int, []shared.ClientID) shared.ElectionSettings
+	InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]EvaluationReturn, bool)
+	CallPresidentElection(shared.MonitorResult, int, []shared.ClientID) shared.ElectionSettings
 	DecideNextPresident(shared.ClientID) shared.ClientID
 	GetRuleViolationSeverity() map[string]IIGOSanctionScore
 	GetSanctionThresholds() map[IIGOSanctionTier]IIGOSanctionScore

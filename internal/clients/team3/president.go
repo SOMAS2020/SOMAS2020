@@ -20,5 +20,5 @@ func (p *president) PaySpeaker(salary shared.Resources) (shared.Resources, bool)
 func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	// p.c.Logf("choosing speaker")
 	// Naively choose group 0
-	return shared.ClientID(0)
+	return mostTrusted(p.c.trustMapAgg)
 }

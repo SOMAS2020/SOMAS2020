@@ -6,7 +6,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	// "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-	// "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 /*
@@ -30,17 +30,60 @@ import (
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
 	// c.Logf("became speaker")
-	return &speaker{c: c}
+	return &c.ourSpeaker
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
 	// c.Logf("became judge")
-	return &judge{c: c}
+	return &c.ourJudge
 }
 
 func (c *client) GetClientPresidentPointer() roles.President {
 	// c.Logf("became president")
-	return &president{c: c}
+	return &c.ourPresident
+}
+
+//resetIIGOInfo clears the island's information regarding IIGO at start of turn
+func (c *client) resetIIGOInfo() {
+	c.iigoInfo.commonPoolAllocation = 0
+	c.iigoInfo.taxationAmount = 0
+	c.iigoInfo.monitoringOutcomes = make(map[shared.Role]bool)
+	c.iigoInfo.monitoringDeclared = make(map[shared.Role]bool)
+	c.iigoInfo.sanctions = &sanctionInfo{
+		tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
+		rulePenalties:   make(map[string]roles.IIGOSanctionScore),
+		islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
+		ourSanction:     roles.IIGOSanctionScore(0),
+	}
+	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
+	c.iigoInfo.ourRequest = 0
+	c.iigoInfo.ourDeclaredResources = 0
+}
+
+// ReceiveCommunication is a function called by IIGO to pass the communication sent to the client.
+// This function is overridden to receive information and update local info accordingly.
+func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	c.Communications[sender] = append(c.Communications[sender], data)
+	// TODO parse sanction info
+	for contentType, content := range data {
+		switch contentType {
+		case shared.TaxAmount:
+			c.iigoInfo.taxationAmount = shared.Resources(content.IntegerData)
+		case shared.AllocationAmount:
+			c.iigoInfo.commonPoolAllocation = shared.Resources(content.IntegerData)
+		case shared.RuleName:
+			currentRuleID := content.TextData
+			if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
+				c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
+				c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
+			} else {
+				c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
+			}
+		case shared.RoleMonitored:
+			c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
+			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
+		}
+	}
 }
 
 func (c *client) RuleProposal() string {

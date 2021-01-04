@@ -26,11 +26,12 @@ type GameState struct {
 	// Foraging History
 	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
 
-	// IIGO History
-	IIGOHistory []shared.Accountability
+	// IIGO History: indexed by turn
+	IIGOHistory map[uint][]shared.Accountability
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
+
 	// Orchestration
 	SpeakerID   shared.ClientID
 	JudgeID     shared.ClientID
@@ -64,6 +65,9 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
 		CommonPool:         g.CommonPool,
+		SpeakerID:          g.SpeakerID,
+		JudgeID:            g.JudgeID,
+		PresidentID:        g.PresidentID,
 	}
 }
 
@@ -75,9 +79,17 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 	return ret
 }
 
-func copyIIGOHistory(iigoHistory []shared.Accountability) []shared.Accountability {
-	ret := make([]shared.Accountability, len(iigoHistory))
-	copy(ret, iigoHistory)
+func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]shared.Accountability {
+	targetMap := make(map[uint][]shared.Accountability)
+	for key, value := range iigoHistory {
+		targetMap[key] = copySingleIIGOEntry(value)
+	}
+	return targetMap
+}
+
+func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability {
+	ret := make([]shared.Accountability, len(input))
+	copy(ret, input)
 	return ret
 }
 
