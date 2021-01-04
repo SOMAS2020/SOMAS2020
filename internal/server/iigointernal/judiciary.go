@@ -325,9 +325,7 @@ func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, 
 					},
 				})
 				totalSanctionPerAgent[sanction.ClientID] += sanctionVal
-			} else {
-				// When logger pr is available, pass it through here
-			}
+			} // When logger PR is available, pass through here and log the missing sanction
 		}
 	}
 	return totalSanctionPerAgent
