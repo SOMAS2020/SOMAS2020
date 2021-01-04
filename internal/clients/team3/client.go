@@ -50,7 +50,8 @@ type client struct {
 	// declaredResources is a map of all declared island resources
 	declaredResources map[shared.ClientID]shared.Resources
 	//disasterPredictions gives a list of predictions by island for each turn
-	disasterPredictions       []map[shared.ClientID]shared.DisasterPrediction
+	disasterPredictions []map[shared.ClientID]shared.DisasterPrediction
+	// Final disaster prediction obtained by our prediction and other islands' prediction weighted by trust and confidence
 	globalDisasterPredictions []shared.DisasterPrediction
 	pastDisastersList         baseclient.PastDisastersList
 

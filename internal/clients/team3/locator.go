@@ -23,14 +23,14 @@ type locator struct {
 	islandParamsCache islandParams
 	gameState         gamestate.ClientGameState
 	locationStrategy  metaStrategy
-	trustScore        map[shared.ClientID]uint
+	trustScore        map[shared.ClientID]float64
 }
 
 func (l *locator) syncGameState(newState gamestate.ClientGameState) {
 	l.gameState = newState
 }
 
-func (l *locator) syncTrustScore(newTrustScore map[shared.ClientID]uint) {
+func (l *locator) syncTrustScore(newTrustScore map[shared.ClientID]float64) {
 	l.trustScore = newTrustScore
 }
 

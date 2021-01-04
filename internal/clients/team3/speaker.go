@@ -27,6 +27,13 @@ func (s *speaker) DecideVote(ruleID string, aliveClients []shared.ClientID) (str
 			chosenClients = append(chosenClients, islandID)
 		}
 	}
+	if s.c.shouldICheat() {
+		for _, islandID := range aliveClients {
+			if s.c.trustScore[islandID] > 0.5 {
+				chosenClients = append(chosenClients, islandID)
+			}
+		}
+	}
 	return ruleID, chosenClients, true
 }
 
