@@ -73,9 +73,8 @@ type ServerReadHandle interface {
 // NewClient produces a new client with the BaseClient already implemented.
 func NewClient(id shared.ClientID) *BaseClient {
 	return &BaseClient{
-		id:               id,
-		Communications:   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{},
-		LocalVariableMap: map[rules.VariableFieldName]rules.VariableValuePair{},
+		id:             id,
+		Communications: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{},
 	}
 }
 
@@ -90,7 +89,6 @@ type BaseClient struct {
 	// exported variables are accessible by the client implementations
 	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 	ServerReadHandle ServerReadHandle
-	LocalVariableMap map[rules.VariableFieldName]rules.VariableValuePair
 }
 
 // Echo prints a message to show that the client exists
