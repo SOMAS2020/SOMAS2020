@@ -43,18 +43,6 @@ type forageHistory map[shared.ForageType][]forageOutcome
 
 //================ Gifts ===========================================
 
-//giftOutcome defines the gifts
-type giftOutcome struct {
-	occasions uint
-	amount    shared.Resources
-}
-
-// // GiftRequest contains the details of a gift request from an island to another
-// type GiftRequest shared.Resources
-
-// // GiftRequestDict contains the details of an island's gift requests to everyone else.
-// type GiftRequestDict map[shared.ClientID]GiftRequest
-
 // giftResponse is a struct of the response and reason
 type giftResponse struct {
 	AcceptedAmount shared.Resources
@@ -68,13 +56,14 @@ type giftInfo struct {
 	reason    shared.AcceptReason
 }
 
-//giftExchange Looks at the exchanges our island has made (Gifts)
+//giftExchange Looks at how much they requested and we request
 type giftExchange struct {
-	IslandRequest map[uint]giftInfo
-	OurRequest    map[uint]giftInfo
+	// 							uint = turn
+	TheirRequest map[uint]giftInfo
+	OurRequest   map[uint]giftInfo
 }
 
-//giftHistory is the history of our gifts
+//	giftHistory is the history of our gifts according to which island sent it
 type giftHistory map[shared.ClientID]giftExchange
 
 // Client Information */
@@ -114,9 +103,10 @@ type client struct {
 	// History
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
-	giftHistory         giftHistory
 	cpRequestHistory    cPRequestHistory
 	cpAllocationHistory cPAllocationHistory
+
+	giftHistory giftHistory
 
 	taxAmount shared.Resources
 

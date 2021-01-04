@@ -157,7 +157,7 @@ func (c *client) normalForage() shared.ForageDecision {
 			(c.config.NormalForagePercentage-c.config.MinimumForagePercentage)) *
 		c.gameState().ClientInfo.Resources
 
-	// No good returns all our history had RoI < 0
+	// No good returns all our history had RoI < 0 , Skip one turn
 	//=============================================================================
 	if bestForagingMethod == shared.ForageType(-1) && c.config.SkipForage > 0 {
 		c.Logf("[Debug] - Skipping Foraging %v", c.config.SkipForage)

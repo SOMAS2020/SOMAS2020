@@ -21,8 +21,9 @@ func init() {
 			forageHistory:       forageHistory{},
 			resourceHistory:     resourceHistory{},
 			giftHistory:         giftHistory{},
-			taxAmount:           0,
-			allocation:          0,
+
+			taxAmount:  0,
+			allocation: 0,
 			config: clientConfig{
 				//Variables for Intial forage
 				InitialForageTurns:      3,
