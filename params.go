@@ -278,6 +278,30 @@ var (
 		10,
 		"IIGO action cost for appointNextJudge action",
 	)
+
+	iigoSanctionCacheDepth = flag.Int(
+		"iigoSanctionCacheDepth",
+		3,
+		"Turn depth of sanctions to be applied or pardoned",
+	)
+
+	iigoHistoryCacheDepth = flag.Int(
+		"iigoHistoryCacheDepth",
+		3,
+		"Turn depth of history cache for events to be evaluated",
+	)
+
+	iigoAssumedResourcesNoReport = flag.Int(
+		"iigoAssumedResourcesNoReport",
+		500,
+		"If an island doesn't report usaged this value is assumed for sanction calculations",
+	)
+
+	iigoSanctionLength = flag.Int(
+		"iigoSanctionLength",
+		2,
+		"Sanction length for all sanctions",
+	)
 )
 
 func parseConfig() (config.Config, error) {
@@ -362,6 +386,10 @@ func parseConfig() (config.Config, error) {
 		InspectBallotActionCost:        shared.Resources(*iigoInspectBallotActionCost),
 		InspectAllocationActionCost:    shared.Resources(*iigoInspectAllocationActionCost),
 		AppointNextPresidentActionCost: shared.Resources(*iigoAppointNextPresidentActionCost),
+		SanctionCacheDepth:             *iigoSanctionCacheDepth,
+		HistoryCacheDepth:              *iigoHistoryCacheDepth,
+		AssumedResourcesNoReport:       shared.Resources(*iigoAssumedResourcesNoReport),
+		SanctionLength:                 *iigoSanctionLength,
 		// Legislative branch
 		SetVotingResultActionCost:      shared.Resources(*iigoSetVotingResultActionCost),
 		SetRuleToVoteActionCost:        shared.Resources(*iigoSetRuleToVoteActionCost),

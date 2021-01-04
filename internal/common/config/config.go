@@ -96,6 +96,10 @@ type IIGOConfig struct {
 	InspectBallotActionCost        shared.Resources
 	InspectAllocationActionCost    shared.Resources
 	AppointNextPresidentActionCost shared.Resources
+	SanctionCacheDepth             int
+	HistoryCacheDepth              int
+	AssumedResourcesNoReport       shared.Resources
+	SanctionLength                 int
 	// Legislative branch
 	SetVotingResultActionCost      shared.Resources
 	SetRuleToVoteActionCost        shared.Resources
