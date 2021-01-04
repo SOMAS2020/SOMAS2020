@@ -3,11 +3,13 @@ package iigointernal
 import (
 	"fmt"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
+	"github.com/pkg/errors"
 )
 
 // to be moved to paramters
@@ -18,8 +20,9 @@ const historyCacheDepth = 3
 const sanctionLength = 2
 
 type judiciary struct {
+	gameState             *gamestate.GameState
+	gameConf              *config.IIGOConfig
 	JudgeID               shared.ClientID
-	budget                shared.Resources
 	presidentSalary       shared.Resources
 	evaluationResults     map[shared.ClientID]roles.EvaluationReturn
 	clientJudge           roles.Judge
@@ -38,6 +41,11 @@ func (j *judiciary) loadSanctionConfig() {
 	j.broadcastSanctionConfig()
 }
 
+func (j *judiciary) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
+	j.gameState = gameState
+	j.gameConf = gameConf
+}
+
 func (j *judiciary) broadcastSanctionConfig() {
 	broadcastGeneric(j.JudgeID, createBroadcastsForSanctionThresholds(j.sanctionThresholds))
 	broadcastGeneric(j.JudgeID, createBroadcastsForRuleViolationPenalties(j.ruleViolationSeverity))
@@ -51,50 +59,38 @@ func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
 	j.clientJudge = clientJudgePointer
 }
 
-// returnPresidentSalary returns the salary to the common pool.
-func (j *judiciary) returnPresidentSalary() shared.Resources {
-	x := j.presidentSalary
-	j.presidentSalary = 0
-	return x
-}
-
-// withdrawPresidentSalary withdraws the president's salary from the common pool.
-func (j *judiciary) withdrawPresidentSalary(gameState *gamestate.GameState) bool {
-	var presidentSalary = shared.Resources(rules.VariableMap[rules.PresidentSalary].Values[0])
-	var withdrawAmount, withdrawSuccesful = WithdrawFromCommonPool(presidentSalary, gameState)
-	j.presidentSalary = withdrawAmount
-	return withdrawSuccesful
-}
-
-// sendPresidentSalary sends the president's salary to the president.
-func (j *judiciary) sendPresidentSalary(executiveBranch *executive) {
+// sendPresidentSalary conduct the transaction based on amount from client implementation
+func (j *judiciary) sendPresidentSalary() error {
 	if j.clientJudge != nil {
-		amount, payPresident := j.clientJudge.PayPresident(j.presidentSalary)
-		if payPresident {
-			executiveBranch.budget = amount
-		}
-		return
-	}
-	amount := j.PayPresident()
-	executiveBranch.budget = amount
-}
+		amount, presidentPaid := j.clientJudge.PayPresident(j.presidentSalary)
+		if presidentPaid {
+			// Subtract from common resources po
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, j.gameState)
 
-// PayPresident pays the president salary.
-func (j *judiciary) PayPresident() shared.Resources {
-	hold := j.presidentSalary
-	j.presidentSalary = 0
-	return hold
+			if withdrawSuccess {
+				// Pay into the client private resources pool
+				depositIntoClientPrivatePool(amountWithdraw, j.gameState.PresidentID, j.gameState)
+				return nil
+			}
+		}
+	}
+	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
 
 // inspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	j.budget -= serviceCharge
+	if !CheckEnoughInCommonPool(j.gameConf.InspectHistoryActionCost, j.gameState) {
+		return nil, false
+	}
 	finalResults := getBaseEvalResults(shared.TeamIDs)
 	if j.clientJudge.HistoricalRetributionEnabled() {
 		for turnsAgo, v := range j.localHistoryCache {
 			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)
 			if rsuccess {
+				if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
+					return nil, false
+				}
 				for key, accounts := range res {
 					curr := finalResults[key]
 					curr.Evaluations = append(curr.Evaluations, accounts.Evaluations...)
@@ -124,12 +120,14 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 }
 
 // appointNextPresident returns the island ID of the island appointed to be President in the next turn
-func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, currentPresident shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
+func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, currentPresident shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
 	var nextPresident shared.ClientID
 	electionsettings := j.clientJudge.CallPresidentElection(monitoring, j.presidentTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
-		// TODO: deduct the cost of holding an election
+		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
+			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
+		}
 		election.ProposeElection(shared.President, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
@@ -140,7 +138,15 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		j.presidentTurnsInPower++
 		nextPresident = currentPresident
 	}
-	return nextPresident
+	return nextPresident, nil
+}
+
+func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
+	_, ok := WithdrawFromCommonPool(cost, j.gameState)
+	if ok {
+		j.gameState.IIGORolesBudget[shared.Judge] -= cost
+	}
+	return ok
 }
 
 // updateSanctionScore uses results of InspectHistory to assign sanction scores to clients
@@ -182,6 +188,7 @@ func (j *judiciary) applySanctions() {
 			TurnsLeft:    sanctionLength,
 		}
 		currentSanctions = append(currentSanctions, sanctionEntry)
+		broadcastToAllIslands(j.JudgeID, createBroadcastForSanction(islandID, islandSanctionTier))
 	}
 	j.localSanctionCache[0] = currentSanctions
 }
@@ -244,6 +251,19 @@ func broadcastGeneric(judgeID shared.ClientID, itemsForbroadcast []map[shared.Co
 	}
 }
 
+func createBroadcastForSanction(clientID shared.ClientID, sanctionTier roles.IIGOSanctionTier) map[shared.CommunicationFieldName]shared.CommunicationContent {
+	return map[shared.CommunicationFieldName]shared.CommunicationContent{
+		shared.SanctionClientID: {
+			T:           shared.CommunicationInt,
+			IntegerData: int(clientID),
+		},
+		shared.IIGOSanctionTier: {
+			T:           shared.CommunicationInt,
+			IntegerData: int(sanctionTier),
+		},
+	}
+}
+
 func createBroadcastsForSanctionThresholds(thresholds map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
 	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
 	for tier, score := range thresholds {
@@ -265,7 +285,7 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSa
 	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
 	for ruleName, score := range penalties {
 		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
-			shared.IIGOSanctionTier: {
+			shared.RuleName: {
 				T:        shared.CommunicationString,
 				TextData: ruleName,
 			},
