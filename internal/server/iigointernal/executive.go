@@ -185,7 +185,7 @@ func (e *executive) sendSpeakerSalary() error {
 	return errors.Errorf("Cannot perform sendSpeakerSalary")
 }
 
-func (e *executive) reset(val string) {
+func (e *executive) reset() {
 	e.PresidentID = 0
 	e.clientPresident = nil
 	e.ResourceRequests = map[shared.ClientID]shared.Resources{}

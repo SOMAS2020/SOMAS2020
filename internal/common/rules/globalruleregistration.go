@@ -118,6 +118,17 @@ func registerRulesByMass() {
 			Linked:  false,
 		},
 		{
+			Name: "vote_called_rule",
+			ReqVar: []VariableFieldName{
+				VoteResultAnnounced,
+				VoteCalled,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
 			Name: "iigo_economic_sanction_1",
 			ReqVar: []VariableFieldName{
 				IslandReportedResources,
