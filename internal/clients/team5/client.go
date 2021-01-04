@@ -13,15 +13,15 @@ func init() {
 	baseclient.RegisterClient(
 		id,
 		&client{
-			BaseClient:    baseclient.NewClient(id),
-			cpRequestHistory: CPRequestHistory{},
+			BaseClient:          baseclient.NewClient(id),
+			cpRequestHistory:    CPRequestHistory{},
 			cpAllocationHistory: CPAllocationHistory{},
-			taxAmount:     0,
-			allocation:    0,
-			config: clientConfig {  
-				JBThreshold:       100,      
-				MiddleThreshold:   60,     
-				ImperialThreshold: 30,	
+			taxAmount:           0,
+			allocation:          0,
+			config: clientConfig{
+				JBThreshold:       100,
+				MiddleThreshold:   60,
+				ImperialThreshold: 30,
 			},
 		},
 	)
@@ -30,30 +30,29 @@ func init() {
 type client struct {
 	*baseclient.BaseClient
 
-	cpRequestHistory  	CPRequestHistory
-	cpAllocationHistory	CPAllocationHistory
+	cpRequestHistory    CPRequestHistory
+	cpAllocationHistory CPAllocationHistory
 
-	taxAmount     		shared.Resources
+	taxAmount shared.Resources
 
 	// allocation is the president's response to your last common pool resource request
-	allocation 			shared.Resources
+	allocation shared.Resources
 
-	config 				clientConfig
+	config clientConfig
 }
 
-
-func (c client) wealth() WealthTier {  
-	cData := c.gameState().ClientInfo  
-	switch {  
-		case cData.LifeStatus == shared.Critical:    
-			return Dying  
-		case cData.Resources > c.config.ImperialThreshold && cData.Resources < c.config.MiddleThreshold :    
-			return Imperial_Student  
-		case cData.Resources > c.config.JBThreshold:    
-			return Jeff_Bezos  
-		default:    
-			return Middle_Class  
-		}
+func (c client) wealth() WealthTier {
+	cData := c.gameState().ClientInfo
+	switch {
+	case cData.LifeStatus == shared.Critical:
+		return Dying
+	case cData.Resources > c.config.ImperialThreshold && cData.Resources < c.config.MiddleThreshold:
+		return Imperial_Student
+	case cData.Resources > c.config.JBThreshold:
+		return Jeff_Bezos
+	default:
+		return Middle_Class
+	}
 }
 
 func (c *client) StartOfTurn() {
@@ -88,5 +87,3 @@ func (c *client) ReceiveCommunication(
 		}
 	}
 }
-
-
