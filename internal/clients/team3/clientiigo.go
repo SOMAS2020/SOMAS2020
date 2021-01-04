@@ -87,7 +87,6 @@ func (c *client) resetIIGOInfo() {
 	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
 	c.iigoInfo.ourRequest = 0
 	c.iigoInfo.ourDeclaredResources = 0
-	c.last_sanctions = 0
 }
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client.
