@@ -13,38 +13,38 @@ import (
 //=================================================================
 const id = shared.Team5
 
-//WealthTier is how much money we have
-type WealthTier int
+//wealthTier is how much money we have
+type wealthTier int
 
 //================ Common Pool =========================================
 
-//CPRequestHistory history of CP Requests
-type CPRequestHistory []shared.Resources
+//cPRequestHistory history of CP Requests
+type cPRequestHistory []shared.Resources
 
-//CPAllocationHistory History of allocations
-type CPAllocationHistory []shared.Resources
+//cPAllocationHistory History of allocations
+type cPAllocationHistory []shared.Resources
 
 //================ Resource History =========================================
 
-//ResourceHistory OUR islands resources per turn
-type ResourceHistory map[uint]shared.Resources
+//resourceHistory OUR islands resources per turn
+type resourceHistory map[uint]shared.Resources
 
 //================ Foraging History =========================================
 
-// ForageOutcome records the ROI on a foraging session
-type ForageOutcome struct {
+// forageOutcome records the ROI on a foraging session
+type forageOutcome struct {
 	turn   uint
 	input  shared.Resources
 	output shared.Resources
 }
 
-// ForageHistory stores history of foraging outcomes
-type ForageHistory map[shared.ForageType][]ForageOutcome
+// forageHistory stores history of foraging outcomes
+type forageHistory map[shared.ForageType][]forageOutcome
 
 //================ Gifts ===========================================
 
-//GiftOutcome defines the gifts
-type GiftOutcome struct {
+//giftOutcome defines the gifts
+type giftOutcome struct {
 	occasions uint
 	amount    shared.Resources
 }
@@ -55,57 +55,56 @@ type GiftOutcome struct {
 // // GiftRequestDict contains the details of an island's gift requests to everyone else.
 // type GiftRequestDict map[shared.ClientID]GiftRequest
 
-// AcceptReason (Yes/No)
-type AcceptReason int
-
-// GiftResponse is a struct of the response and reason
-type GiftResponse struct {
+// giftResponse is a struct of the response and reason
+type giftResponse struct {
 	AcceptedAmount shared.Resources
-	Reason         AcceptReason
+	Reason         shared.AcceptReason
 }
 
-// GiftInfo holds information about the gifts
-type GiftInfo struct {
+// giftInfo holds information about the gifts
+type giftInfo struct {
 	requested shared.GiftRequest
 	gifted    shared.GiftOffer
 	reason    shared.AcceptReason
 }
 
-//GiftExchange Looks at the exchanges our island has made (Gifts)
-type GiftExchange struct {
-	IslandRequest map[uint]GiftInfo
-	OurRequest    map[uint]GiftInfo
+//giftExchange Looks at the exchanges our island has made (Gifts)
+type giftExchange struct {
+	IslandRequest map[uint]giftInfo
+	OurRequest    map[uint]giftInfo
 }
 
-//GiftHistory is the history of our gifts
-type GiftHistory map[shared.ClientID]GiftExchange
+//giftHistory is the history of our gifts
+type giftHistory map[shared.ClientID]giftExchange
 
 // Client Information */
 
 type clientConfig struct {
-	// Initial non planned foraging
-	InitialForageTurns uint
 
-	// Skip forage for x amount of returns if theres no return > 1* multiplier
-	SkipForage uint
+	// Initial non planned foraging
+	InitialForageTurns      uint
+	MinimumForagePercentage float64
+	NormalForagePercentage  float64
+	JBForagePercentage      float64
+
+	// Normal foraging
+	NormalRandomIncrease float64
+	MaxForagePercentage  float64
+	SkipForage           uint // Skip for X turns if no positive RoI
 
 	// If resources go above this limit we are balling with money
 	JBThreshold shared.Resources
-
 	// Middle class:  Middle < Jeff bezos
 	MiddleThreshold shared.Resources
-
 	// Poor: Imperial student < Middle
 	ImperialThreshold shared.Resources
 
 	// How much to request when we are dying
-	DyingGiftRequest shared.Resources
-
+	DyingGiftRequestAmount shared.Resources
 	// How much to request when we are at Imperial
-	ImperialGiftRequest shared.Resources
-
+	ImperialGiftRequestAmount shared.Resources
 	// How much to request when we are dying
-	MiddleGiftRequest shared.Resources
+	MiddleGiftRequestAmount shared.Resources
 }
 
 // Client is the island number
@@ -113,11 +112,11 @@ type client struct {
 	*baseclient.BaseClient
 
 	// History
-	resourceHistory     ResourceHistory
-	forageHistory       ForageHistory
-	giftHistory         GiftHistory
-	cpRequestHistory    CPRequestHistory
-	cpAllocationHistory CPAllocationHistory
+	resourceHistory     resourceHistory
+	forageHistory       forageHistory
+	giftHistory         giftHistory
+	cpRequestHistory    cPRequestHistory
+	cpAllocationHistory cPAllocationHistory
 
 	taxAmount shared.Resources
 
@@ -132,15 +131,15 @@ type client struct {
 //=================================================================
 // Wealth Tiers
 const (
-	Dying           WealthTier = iota // Sets values = 0
-	ImperialStudent                   // iota sets the folloing values =1
-	MiddleClass                       // = 2
-	JeffBezos                         // = 3
+	dying           wealthTier = iota // Sets values = 0
+	imperialStudent                   // iota sets the folloing values =1
+	middleClass                       // = 2
+	jeffBezos                         // = 3
 )
 
 const (
 	// Accept ...
-	Accept AcceptReason = iota
+	Accept shared.AcceptReason = iota
 	// DeclineDontNeed ...
 	DeclineDontNeed
 	// DeclineDontLikeYou ...
@@ -153,8 +152,8 @@ const (
 /*	Functions */
 //=================================================================
 //String converts string to number
-func (wt WealthTier) String() string {
-	strings := [...]string{"Dying", "ImperialStudent", "MiddleClass", "JeffBezos"}
+func (wt wealthTier) String() string {
+	strings := [...]string{"dying", "imperialStudent", "middleClass", "jeffBezos"}
 	if wt >= 0 && int(wt) < len(strings) {
 		return strings[wt]
 	}
@@ -162,16 +161,16 @@ func (wt WealthTier) String() string {
 }
 
 // GoString implements GoStringer
-func (wt WealthTier) GoString() string {
+func (wt wealthTier) GoString() string {
 	return wt.String()
 }
 
 // MarshalText implements TextMarshaler
-func (wt WealthTier) MarshalText() ([]byte, error) {
+func (wt wealthTier) MarshalText() ([]byte, error) {
 	return miscutils.MarshalTextForString(wt.String())
 }
 
 // MarshalJSON implements RawMessage
-func (wt WealthTier) MarshalJSON() ([]byte, error) {
+func (wt wealthTier) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(wt.String())
 }
