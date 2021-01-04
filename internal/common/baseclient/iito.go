@@ -78,7 +78,7 @@ func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientI
 	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 }
 
-// ShareIntendedContributionis called on each client to give them the
+// ShareIntendedContribution is called on each client to give them the
 // option of sharing how much they intend to contribute to the common pool. They must also
 // choose what islands they want to share the information with
 func (c *BaseClient) ShareIntendedContribution() shared.IntendedContribution {
