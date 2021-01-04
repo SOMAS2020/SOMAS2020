@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -163,30 +164,36 @@ func (l *legislature) reset() {
 }
 
 // updateRules updates the rules in play according to the result of a vote.
-func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
+func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn bool) error {
 	if !l.incurServiceCharge(l.gameConf.UpdateRulesActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: updateRules")
 	}
-	//TODO: might want to log the errors as normal messages rather than completely ignoring them? But then Speaker needs access to client's logger
-	//notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleName)
-	if ruleVotedIn {
-		// _ = rules.PullRuleIntoPlay(ruleName)
-		err := rules.PullRuleIntoPlay(ruleName)
-		if ruleErr, ok := err.(*rules.RuleError); ok {
-			if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
-				return ruleErr
+	//TODO: might want to log the errors as logging messages too?
+	//notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleMatrix)
+	if _, ok := rules.AvailableRules[ruleMatrix.RuleName]; !ok || reflect.DeepEqual(ruleMatrix, rules.AvailableRules[ruleMatrix.RuleName]) { //if the proposed ruleMatrix has the same content as the rule with the same name in AvailableRules, the proposal is for putting a rule in/out of play.
+		if ruleIsVotedIn {
+			err := rules.PullRuleIntoPlay(ruleMatrix.RuleName)
+			if ruleErr, ok := err.(*rules.RuleError); ok {
+				if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
+					return ruleErr
+				}
 			}
-		}
-	} else {
-		// _ = rules.PullRuleOutOfPlay(ruleName)
-		err := rules.PullRuleOutOfPlay(ruleName)
-		if ruleErr, ok := err.(*rules.RuleError); ok {
-			if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
-				return ruleErr
+		} else {
+			err := rules.PullRuleOutOfPlay(ruleMatrix.RuleName)
+			if ruleErr, ok := err.(*rules.RuleError); ok {
+				if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
+					return ruleErr
+				}
 			}
-		}
 
+		}
+	} else { //if the proposed ruleMatrix has different content to the rule with the same name in AvailableRules, the proposal is for modifying the rule in the rule caches. It doesn't put a rule in/out of play.
+		if ruleIsVotedIn {
+			err := rules.ModifyRule(ruleMatrix.RuleName, ruleMatrix.ApplicableMatrix, ruleMatrix.AuxiliaryVector)
+			return err
+		}
 	}
+
 	return nil
 
 }

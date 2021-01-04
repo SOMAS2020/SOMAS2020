@@ -199,7 +199,7 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 }
 
 //requestRuleProposal asks each island alive for its rule proposal.
-func (e *executive) requestRuleProposal() error {
+func (e *executive) requestRuleProposal() error { //TODO: add checks for if immutable rules are changed(not allowed), if rule variables fields are changed(not allowed)
 	if !e.incurServiceCharge(e.gameConf.RequestRuleProposalActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
