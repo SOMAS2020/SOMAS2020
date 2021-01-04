@@ -370,7 +370,7 @@ func TestComplianceRecommendation(t *testing.T) {
 		{
 			name: "Simple adjust",
 			rule: RuleMatrix{
-				RuleName: "Some rule name",
+				RuleName: "Agrims rule",
 				RequiredVariables: []VariableFieldName{
 					VoteCalled,
 					IslandAllocation,
