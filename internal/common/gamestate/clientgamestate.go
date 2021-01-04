@@ -23,4 +23,7 @@ type ClientGameState struct {
 	SpeakerID   shared.ClientID
 	JudgeID     shared.ClientID
 	PresidentID shared.ClientID
+
+	// IIGO roles budget (initialised in orchestration.go)
+	IIGORolesBudget map[shared.Role]shared.Resources
 }
