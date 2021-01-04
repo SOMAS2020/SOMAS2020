@@ -139,7 +139,7 @@ func flipDecider(c client) (shared.ForageDecision, shared.Resources) {
 
 	contribution := flipScale * totalROI * averageContribution
 	contribution = shared.Resources(math.Min(
-		float64(0.2 * c.gameState().ClientInfo.Resources),
+		float64(0.2*c.gameState().ClientInfo.Resources),
 		float64(contribution),
 	))
 
@@ -147,6 +147,25 @@ func flipDecider(c client) (shared.ForageDecision, shared.Resources) {
 		Contribution: contribution,
 		Type:         shared.DeerForageType,
 	}, contribution * totalROI
+}
+
+func constantDecider(resourcePercent float64, c client) (shared.ForageDecision, shared.Resources) {
+	lastROI := 1.0
+	for _, outcome := range c.forageHistory[shared.DeerForageType] {
+		if outcome.participant == c.GetID() && outcome.turn == c.ServerReadHandle.GetGameState().Turn-1 {
+			lastROI = outcome.ROI()
+			break
+		}
+	}
+
+	contribution := 0.2 * c.gameState().ClientInfo.Resources
+	decision := shared.ForageDecision{
+		Type:         shared.DeerForageType,
+		Contribution: contribution,
+	}
+
+	c.Logf("[Forage decision]: constant (%v)", decision)
+	return decision, shared.Resources(lastROI) * contribution
 }
 
 func outcomeRegression(history []ForageOutcome) regression.Regression {

@@ -104,10 +104,12 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 				} else if c.emotionalState() == Desperate {
 					c.Logf("[Forage decision]: desperate")
 					return desperateDecider(c)
+				} else if len(c.livingClients()) > 1 {
+					c.Logf("[Forage decision]: flip")
+					return flipDecider(c)
 				} else {
-					decision, expect := flipDecider(c)
-					c.Logf("[Forage decision]: flip (%v)", decision)
-					return decision, expect
+					c.Logf("[Forage decision]: constant")
+					return constantDecider(0.2, c)
 				}
 			},
 		},
@@ -170,4 +172,14 @@ func (c *client) forageHistorySize() uint {
 
 func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
+}
+
+func (c *client) livingClients() (livingClients []shared.ClientID) {
+	ids := []shared.ClientID{}
+	for id, livingState := range c.gameState().ClientLifeStatuses {
+		if livingState == shared.Alive {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }
