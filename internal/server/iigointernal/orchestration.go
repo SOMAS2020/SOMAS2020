@@ -190,6 +190,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
 	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+
 	variablesToCache = []rules.VariableFieldName{rules.VoteCalled, rules.VoteResultAnnounced}
 	valuesToCache = [][]float64{{boolToFloat(voteCalled)}, {boolToFloat(resultAnnounced)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)

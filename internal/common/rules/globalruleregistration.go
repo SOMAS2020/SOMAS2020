@@ -218,7 +218,7 @@ func registerRulesByMass() {
 			},
 			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
-			Mutable: true,
+			Mutable: false,
 			Linked:  false,
 		},
 		{
@@ -228,7 +228,18 @@ func registerRulesByMass() {
 			},
 			Values:  []float64{-1, 1},
 			Aux:     []float64{0},
-			Mutable: true,
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "announcement_matches_vote",
+			ReqVar: []VariableFieldName{
+				AnnouncementRuleMatchesVote,
+				AnnouncementResultMatchesVote,
+			},
+			Values:  []float64{0, -1, 1, -1, 0, 1},
+			Aux:     []float64{0, 0},
+			Mutable: false,
 			Linked:  false,
 		},
 	}

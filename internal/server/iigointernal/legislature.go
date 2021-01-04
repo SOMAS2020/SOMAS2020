@@ -142,6 +142,14 @@ func (l *legislature) announceVotingResult() (bool, error) {
 		//Perform announcement
 		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(returnAnouncement.RuleID, returnAnouncement.VotingResult))
 		resultAnnounced = true
+
+		//log rule "must announce what was called"
+		announcementRuleMatchesVote := returnAnouncement.RuleID == l.ruleToVote
+		announcementResultMatchesVote := returnAnouncement.RuleID == l.ruleToVote
+		variablesToCache := []rules.VariableFieldName{rules.AnnouncementRuleMatchesVote, rules.AnnouncementResultMatchesVote}
+		valuesToCache := [][]float64{{boolToFloat(announcementRuleMatchesVote), boolToFloat(announcementResultMatchesVote)}}
+		l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+
 	}
 	return resultAnnounced, nil
 }
