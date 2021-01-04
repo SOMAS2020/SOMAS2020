@@ -79,8 +79,8 @@ func Otheragentinfo(c *client) float64 { //will return a value of how many agent
 	if c.gameState().Turn==1{
 		var agentHistory [ClientId]float64   //this map will store the sum of the decisions made by this agent e.g. 3 turns and a sum of 3 means they hunted every round
 	}
-	for i:=0; i< ; i++ {	//update agentHistory by looping through all the agents and adding their most recent decisions and then find their average hunt/fish
-		//c.foragingReturnHist to call the foraging 
+	for i:=0; i<  ; i++ {	//update agentHistory by looping through all the agents and adding their most recent decisions and then find their average hunt/fish
+		//c.foragingReturnHist to call the foraging IIFO info
 		[ClientId]agentHistory + //whatever the agent declares 0,1
 		if [ClientId]agentHistory/c.gameState().Turn>0.5{  //if an agent on average picks hunt more than 50% of the time we assume they will pick hunt
 			Huntnum++
