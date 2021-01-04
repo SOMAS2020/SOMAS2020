@@ -255,7 +255,6 @@ func (s *SOMASServer) runIntendedContributionSession() {
 	s.logf("start runIntendedContributionSession")
 	defer s.logf("finish runIntendedContributionSession")
 	islandContributionDict := s.getIntendedContribution()
-
 	s.distributeIntendedContributions(islandContributionDict)
 }
 

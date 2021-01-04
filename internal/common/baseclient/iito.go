@@ -81,6 +81,7 @@ func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientI
 // ShareIntendedContribution is called on each client to give them the
 // option of sharing how much they intend to contribute to the common pool. They must also
 // choose what islands they want to share the information with
+// OPTIONAL, you can implement this if you want to partake in the iito session
 func (c *BaseClient) ShareIntendedContribution() shared.IntendedContribution {
 
 	// For MVP, share this prediction with all islands since trust has not yet been implemented
@@ -90,7 +91,7 @@ func (c *BaseClient) ShareIntendedContribution() shared.IntendedContribution {
 	}
 
 	contribution := shared.IntendedContribution{
-		Contribution:   rand.Float64(),
+		Contribution:   shared.Resources(rand.Float64()),
 		TeamsOfferedTo: trustedIslands,
 	}
 

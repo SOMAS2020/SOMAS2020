@@ -43,7 +43,7 @@ func (c *mockClientIITO) ReceiveIntendedContribution(receivedIntendedContributio
 	c.otherIslandContribution = receivedIntendedContribution
 
 }
-func shareIntendedContribution(contribution float64, shareTo []shared.ClientID) shared.IntendedContribution {
+func shareIntendedContribution(contribution shared.Resources, shareTo []shared.ClientID) shared.IntendedContribution {
 	if len(shareTo) > 0 {
 		return shared.IntendedContribution{
 			Contribution:   contribution,
@@ -56,7 +56,7 @@ func shareIntendedContribution(contribution float64, shareTo []shared.ClientID) 
 	}
 }
 
-func receiveIntendedContribution(contribution float64, sharedFrom shared.ClientID) shared.ReceivedIntendedContribution {
+func receiveIntendedContribution(contribution shared.Resources, sharedFrom shared.ClientID) shared.ReceivedIntendedContribution {
 	return shared.ReceivedIntendedContribution{
 		Contribution: contribution,
 		SharedFrom:   sharedFrom,
@@ -360,7 +360,7 @@ func TestDistributeContributions(t *testing.T) {
 		shared.Team3: mockClient[shared.Team3],
 	}
 
-	team1Contribution := float64(1)
+	team1Contribution := shared.Resources(1)
 
 	input := shared.IntendedContributionDict{
 		shared.Team1: shareIntendedContribution(team1Contribution, []shared.ClientID{shared.Team2, shared.Team3}),
