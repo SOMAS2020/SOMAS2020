@@ -142,4 +142,16 @@ var StaticVariables = []VariableValuePair{
 		VariableName: AnnouncementResultMatchesVote,
 		Values:       []float64{0},
 	},
+	{
+		VariableName: PresidentLeftoverBudget,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: SpeakerLeftoverBudget,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: JudgeLeftoverBudget,
+		Values:       []float64{0},
+	},
 }
