@@ -52,8 +52,26 @@ func (c *BaseClient) TaxTaken(shared.Resources) {
 
 // GetTaxContribution gives value of how much the island wants to pay in taxes
 func (c *BaseClient) GetTaxContribution() shared.Resources {
-	// TODO: Implement common pool contribution greater than or equal to tax.
-	return 0
+	// If no new communication was received and there is no rule governing taxation, it will still recieve last valid tax
+	clientGameState := c.ServerReadHandle.GetGameState()
+	presidentCommunications := c.Communications[clientGameState.PresidentID]
+	newTaxDecision := shared.TaxDecision{TaxDecided: false}
+
+	for i := range presidentCommunications {
+		msg := presidentCommunications[len(presidentCommunications)-1-i] // in reverse order
+		if msg[shared.Tax].T == shared.CommunicationTax {
+			newTaxDecision = msg[shared.Tax].TaxDecision
+			break
+		}
+	}
+
+	if newTaxDecision.TaxDecided {
+		// gotVariable := newTaxDecision.ExpectedTax
+		// gotRule := newTaxDecision.TaxRule
+		return newTaxDecision.TaxAmount
+	}
+
+	return 0 //default if no tax message was found
 }
 
 // GetSanctionPayment gives the value of how much the island is paying in sanctions
@@ -64,5 +82,22 @@ func (c *BaseClient) GetSanctionPayment() shared.Resources {
 // RequestAllocation FIXME: Add documentation. What does this function do?
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
-	return 0
+	clientGameState := c.ServerReadHandle.GetGameState()
+	presidentCommunications := c.Communications[clientGameState.PresidentID]
+	newAllocationDecision := shared.AllocationDecision{AllocationDecided: false}
+	for i := range presidentCommunications {
+		msg := presidentCommunications[len(presidentCommunications)-1-i] // in reverse order
+		if msg[shared.Allocation].T == shared.CommunicationAllocation {
+			newAllocationDecision = msg[shared.Allocation].AllocationDecision
+			break
+		}
+	}
+
+	if newAllocationDecision.AllocationDecided {
+		// gotVariable := newAllocationDecision.ExpectedAllocation
+		// gotRule := newAllocationDecision.AllocationRule
+		return newAllocationDecision.AllocationAmount
+	}
+
+	return clientGameState.CommonPool //default if no allocation was made
 }
