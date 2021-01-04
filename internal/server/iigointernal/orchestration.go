@@ -102,9 +102,12 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	legislativeBranch.loadClientSpeaker(speakerPointer)
 
 	// 1 Judge action - inspect history
+	judicialBranch.loadSanctionConfig()
 	historyInspected := true
 	if g.Turn > 0 {
 		_, historyInspected = judicialBranch.inspectHistory(g.IIGOHistory[g.Turn-1])
+		judicialBranch.updateSanctionScore()
+		judicialBranch.applySanctions()
 	}
 
 	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
@@ -121,6 +124,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 			aliveClientIds = append(aliveClientIds, clientID)
 			resourceReports[clientID] = iigoClients[clientID].ResourceReport()
 		}
+	}
+
+	// Judge uses resourceReports
+	if g.Turn > 0 {
+		judicialBranch.sanctionEvaluate(resourceReports)
 	}
 
 	// Throw error if any of the actions returns error

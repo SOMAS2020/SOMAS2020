@@ -614,15 +614,18 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 	cases := []struct {
 		name                    string
 		localSanctionCache      map[int][]roles.Sanction
-		reportedIslandResources map[shared.ClientID]shared.Resources
+		reportedIslandResources map[shared.ClientID]shared.ResourcesReport
 		rulesCache              map[string]rules.RuleMatrix
 		expectedSanctions       map[shared.ClientID]shared.Resources
 	}{
 		{
 			name:               "Basic evaluations: no sanction",
 			localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
-			reportedIslandResources: map[shared.ClientID]shared.Resources{
-				shared.Team1: 50,
+			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {
+					ReportedAmount: 50,
+					Reported:       true,
+				},
 			},
 			rulesCache:        generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{},
@@ -636,8 +639,11 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 					TurnsLeft:    2,
 				},
 			}),
-			reportedIslandResources: map[shared.ClientID]shared.Resources{
-				shared.Team1: 50,
+			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {
+					ReportedAmount: 50,
+					Reported:       true,
+				},
 			},
 			rulesCache: generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{
@@ -658,9 +664,15 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 					TurnsLeft:    2,
 				},
 			}),
-			reportedIslandResources: map[shared.ClientID]shared.Resources{
-				shared.Team1: 50,
-				shared.Team3: 100,
+			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {
+					ReportedAmount: 50,
+					Reported:       true,
+				},
+				shared.Team3: {
+					ReportedAmount: 100,
+					Reported:       true,
+				},
 			},
 			rulesCache: generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{
@@ -687,10 +699,19 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 					TurnsLeft:    0,
 				},
 			}),
-			reportedIslandResources: map[shared.ClientID]shared.Resources{
-				shared.Team1: 50,
-				shared.Team3: 100,
-				shared.Team4: 150,
+			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {
+					Reported:       true,
+					ReportedAmount: 50,
+				},
+				shared.Team3: {
+					ReportedAmount: 100,
+					Reported:       true,
+				},
+				shared.Team4: {
+					ReportedAmount: 150,
+					Reported:       true,
+				},
 			},
 			rulesCache: generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{
@@ -733,13 +754,31 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 					TurnsLeft:    0,
 				},
 			}),
-			reportedIslandResources: map[shared.ClientID]shared.Resources{
-				shared.Team1: 50,
-				shared.Team2: 50,
-				shared.Team3: 100,
-				shared.Team4: 150,
-				shared.Team5: 20,
-				shared.Team6: 100,
+			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {
+					ReportedAmount: 50,
+					Reported:       true,
+				},
+				shared.Team2: {
+					ReportedAmount: 50,
+					Reported:       true,
+				},
+				shared.Team3: {
+					ReportedAmount: 100,
+					Reported:       true,
+				},
+				shared.Team4: {
+					ReportedAmount: 150,
+					Reported:       true,
+				},
+				shared.Team5: {
+					ReportedAmount: 20,
+					Reported:       true,
+				},
+				shared.Team6: {
+					ReportedAmount: 100,
+					Reported:       true,
+				},
 			},
 			rulesCache: generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{
