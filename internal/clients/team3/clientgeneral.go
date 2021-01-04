@@ -24,10 +24,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	ourClient := client{
 		// Initialise variables here
 		BaseClient: baseclient.NewClient(clientID),
-		params: islandParams{
-			// Define parameter values here
-			selfishness: 0.5,
-		},
+		params:     getislandParams(),
 	}
 
 	// Set trust scores
