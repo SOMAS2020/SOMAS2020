@@ -91,7 +91,7 @@ func (c *client) InitialForage() shared.ForageDecision {
 }
 
 // bestForagingType indicates the best foraging method best of RoI (Return on Investment Output/Input - 1)
-func (c *client) bestHistoryForaging(forageHistory ForageHistory) shared.ForageType {
+func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageType {
 	bestForagingMethod := shared.ForageType(-1) // Default is that there is no good method
 	bestReturn := 0.0
 
@@ -229,7 +229,7 @@ func (c *client) lastHopeForage() shared.ForageDecision {
 
 //ForageUpdate Updates the foraging history
 func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output shared.Resources) {
-	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{ // Append new data
+	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], forageOutcome{ // Append new data
 		turn:   c.gameState().Turn,
 		input:  forageDecision.Contribution,
 		output: output,
@@ -253,13 +253,15 @@ func (c *client) forageHistorySize() uint {
 	return length // Return how many turns of foraging we have been on depending on the History
 }
 
+//======================= Part of IIFO ====================================
+
 //RecieveForageInfo get info from other teams
 func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	for _, forageInfo := range forageInfos { // for all foraging information from all islands (ignore the islands)
 		c.forageHistory[forageInfo.DecisionMade.Type] = // all their information (based on method of foraging)
 			append( // add to our history
 				c.forageHistory[forageInfo.DecisionMade.Type], // Type of foraging
-				ForageOutcome{ // Outcome of their foraging
+				forageOutcome{ // Outcome of their foraging
 					turn:   c.gameState().Turn,
 					input:  forageInfo.DecisionMade.Contribution,
 					output: forageInfo.ResourceObtained,
@@ -268,41 +270,39 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	}
 }
 
-//MaleForageInfo Work in progress (ripped from Team 1 )
+//MakeForageInfo
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	var shareTo []shared.ClientID
 
-	for id, status := range c.gameState().ClientLifeStatuses {
-		if status != shared.Dead {
+	for id, status := range c.gameState().ClientLifeStatuses { // Check the clients that are alive
+		if status != shared.Dead { // if they are not dead then append the shareTo,id
 			shareTo = append(shareTo, id)
 		}
 	}
 
-	lastDecisionTurn := -1
-	var lastDecision shared.ForageDecision
-	var lastRevenue shared.Resources
+	lastTurn := c.gameState().Turn - 1 // value of the last turn
+	if lastTurn < 0 {                  // No previous foraging
+		shareTo = []shared.ClientID{}
+	}
 
-	for forageType, outcomes := range c.forageHistory {
+	var contribution shared.ForageDecision
+	var output shared.Resources
+	for forageType, outcomes := range c.forageHistory { //For each type look at the outcome
 		for _, outcome := range outcomes {
-			if int(outcome.turn) > lastDecisionTurn {
-				lastDecisionTurn = int(outcome.turn)
-				lastDecision = shared.ForageDecision{
+			if uint(outcome.turn) == lastTurn { // If the turn is the same as the last turn then return the result
+				output = outcome.output               // output of the outcome
+				contribution = shared.ForageDecision{ // Foraging Decision
 					Type:         forageType,
 					Contribution: outcome.input,
 				}
-				lastRevenue = outcome.output
 			}
 		}
 	}
 
-	if lastDecisionTurn < 0 {
-		shareTo = []shared.ClientID{}
-	}
-
-	forageInfo := shared.ForageShareInfo{
-		ShareTo:          shareTo,
-		ResourceObtained: lastRevenue,
-		DecisionMade:     lastDecision,
+	forageInfo := shared.ForageShareInfo{ // Build the struct
+		DecisionMade:     contribution, // contribution and Resources obtained
+		ResourceObtained: output,       // How much we got back
+		ShareTo:          shareTo,      // []shared.ClientIDs
 	}
 
 	c.Logf("Sharing forage info: %v", forageInfo)

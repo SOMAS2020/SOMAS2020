@@ -16,11 +16,11 @@ func init() {
 			// forageHistory: ForageHistory{},
 
 			BaseClient:          baseclient.NewClient(id),
-			cpRequestHistory:    CPRequestHistory{},
-			cpAllocationHistory: CPAllocationHistory{},
-			forageHistory:       ForageHistory{},
-			resourceHistory:     ResourceHistory{},
-			giftHistory:         GiftHistory{},
+			cpRequestHistory:    cPRequestHistory{},
+			cpAllocationHistory: cPAllocationHistory{},
+			forageHistory:       forageHistory{},
+			resourceHistory:     resourceHistory{},
+			giftHistory:         giftHistory{},
 			taxAmount:           0,
 			allocation:          0,
 			config: clientConfig{
@@ -34,9 +34,9 @@ func init() {
 				//  Dying threshold is 0 < Dying < Imperial
 
 				// Gifts Config
-				DyingGiftRequest:    10,
-				ImperialGiftRequest: 5,
-				MiddleGiftRequest:   2,
+				DyingGiftRequestAmount:    10,
+				ImperialGiftRequestAmount: 5,
+				MiddleGiftRequestAmount:   2,
 			},
 		},
 	)
@@ -45,7 +45,7 @@ func init() {
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
-
+	c.wealth()
 	// Assign the thresholds according to the amount of resouces in the first turn
 	c.config.JBThreshold = c.resourceHistory[1] * 2
 	c.config.MiddleThreshold = c.resourceHistory[1] * 0.95
@@ -70,18 +70,18 @@ func (c *client) StartOfTurn() {
 	Calculates the class of wealth we are in according
 	to thresholds */
 //=================================================================
-func (c client) wealth() WealthTier {
+func (c client) wealth() wealthTier {
 	cData := c.gameState().ClientInfo
 	switch {
 	case cData.LifeStatus == shared.Critical: // We dying
 		return Dying
-	case cData.Resources > c.config.ImperialThreshold && cData.Resources < c.config.MiddleThreshold:
-		return ImperialStudent // Poor
 	case cData.Resources > c.config.JBThreshold:
 		// c.Logf("[Team 5][Wealth:%v][Class:%v]", cData.Resources,c.config.JBThreshold)      // Debugging
 		return JeffBezos // Rich
+	case cData.Resources > c.config.ImperialThreshold && cData.Resources <= c.config.JBThreshold:
+		return MiddleClass // Middle
 	default:
-		return MiddleClass // Middle class
+		return ImperialStudent // Middle class
 	}
 }
 
@@ -90,7 +90,7 @@ func (c client) wealth() WealthTier {
 	Stores the level of resources we have at each turn */
 //=================================================================
 
-func (c *client) updateResourceHistory(resourceHistory ResourceHistory) {
+func (c *client) updateResourceHistory(resourceHistory resourceHistory) {
 	currentResources := c.gameState().ClientInfo.Resources
 	c.resourceHistory[c.gameState().Turn] = currentResources
 	if c.gameState().Turn >= 2 {
