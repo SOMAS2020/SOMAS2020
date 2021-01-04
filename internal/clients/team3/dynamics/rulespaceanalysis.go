@@ -60,8 +60,8 @@ func getSmallestInMap(inputMap map[int]float64) int {
 
 func getDistance(rule rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) float64 {
 	reqMap := sourceRequiredInputs(rule, namedInputs)
-	rawMap := dropAllInputStructs(reqMap)
-	vectData := decodeValues(rule, rawMap)
+	rawMap := DropAllInputStructs(reqMap)
+	vectData := DecodeValues(rule, rawMap)
 	allDynamics := BuildAllDynamics(rule, rule.AuxiliaryVector)
 	return GetDistanceToSubspace(allDynamics, *vectData)
 }

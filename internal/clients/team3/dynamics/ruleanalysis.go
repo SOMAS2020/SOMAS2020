@@ -37,7 +37,7 @@ type Input struct {
 
 func FindClosestApproach(ruleMatrix rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) (namedOutputs map[rules.VariableFieldName]Input) {
 	// Get raw data for processing
-	droppedInputs := dropAllInputStructs(namedInputs)
+	droppedInputs := DropAllInputStructs(namedInputs)
 	// Evaluate the rule on this data
 	results, success := evaluateSingle(ruleMatrix, droppedInputs)
 	if success {
@@ -67,13 +67,13 @@ func FindClosestApproach(ruleMatrix rules.RuleMatrix, namedInputs map[rules.Vari
 			}
 			copyOfSelectedDynamics := copySelectedDynamics(selectedDynamics)
 			// We are ready to use the findClosestApproach internal function
-			bestPosition := findClosestApproachInSubspace(ruleMatrix, selectedDynamics, *decodeValues(ruleMatrix, droppedInputs))
+			bestPosition := findClosestApproachInSubspace(ruleMatrix, selectedDynamics, *DecodeValues(ruleMatrix, droppedInputs))
 			if ruleevaluation.RuleEvaluation(ruleMatrix, bestPosition) {
 				return laceOutputs(bestPosition, ruleMatrix, droppedInputs, namedInputs)
 			}
 			resolved, left, success3 := combineDefiniteApproaches(copyOfSelectedDynamics, fullSize)
 			if success3 {
-				bestPosition = findClosestApproachInSubspace(ruleMatrix, append(left, resolved), *decodeValues(ruleMatrix, droppedInputs))
+				bestPosition = findClosestApproachInSubspace(ruleMatrix, append(left, resolved), *DecodeValues(ruleMatrix, droppedInputs))
 			}
 			return laceOutputs(bestPosition, ruleMatrix, droppedInputs, namedInputs)
 		}
@@ -321,7 +321,7 @@ func fetchImmutableInputs(namedInputs map[rules.VariableFieldName]Input) []rules
 	return immutables
 }
 
-func dropAllInputStructs(inputs map[rules.VariableFieldName]Input) map[rules.VariableFieldName][]float64 {
+func DropAllInputStructs(inputs map[rules.VariableFieldName]Input) map[rules.VariableFieldName][]float64 {
 	outputMap := make(map[rules.VariableFieldName][]float64)
 	for key, val := range inputs {
 		outputMap[key] = dropInputStruct(val)
@@ -333,7 +333,7 @@ func dropInputStruct(input Input) []float64 {
 	return input.Value
 }
 
-func decodeValues(rm rules.RuleMatrix, values map[rules.VariableFieldName][]float64) *mat.VecDense {
+func DecodeValues(rm rules.RuleMatrix, values map[rules.VariableFieldName][]float64) *mat.VecDense {
 	var finalVariableVect []float64
 	for _, varName := range rm.RequiredVariables {
 		if value, ok := values[varName]; ok {
@@ -386,6 +386,24 @@ func IdentifyDeficiencies(b mat.VecDense, aux mat.VecDense) ([]int, error) {
 	} else {
 		return []int{}, errors.Errorf("Vectors '%v' and '%v' do not have the same dimensions", b, aux)
 	}
+}
+
+func CollapseRuleMap(input map[string]rules.RuleMatrix) []rules.RuleMatrix {
+	newInput := []rules.RuleMatrix{}
+	for _, inp := range input {
+		newInput = append(newInput, inp)
+	}
+	return newInput
+}
+
+func RemoveFromMap(input map[string]rules.RuleMatrix, ruleName string) []rules.RuleMatrix {
+	returnList := []rules.RuleMatrix{}
+	for key, val := range input {
+		if key != ruleName {
+			returnList = append(returnList, val)
+		}
+	}
+	return returnList
 }
 
 // satisfy checks whether a condition is met based on result vector value and auxiliary code

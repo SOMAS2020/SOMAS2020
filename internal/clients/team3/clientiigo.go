@@ -46,23 +46,39 @@ func (c *client) GetClientPresidentPointer() roles.President {
 func (c *client) RuleProposal() string {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
+	// Magically will be available
+	coolMap := make(map[string]rules.RuleMatrix)
+	coolmap2 := make(map[rules.VariableFieldName]dynamics.Input)
+
 	// Will fix properly later
 	shortestSoFar := 999999.0
+	longestSoFar := 0.0
 	selectedRule := ""
-	for _, rule := range rules.AvailableRules {
-		idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule)
-		if valid {
-			ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
-			distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
-			if distance != -1 {
-				if shortestSoFar > distance {
-					if _, ok := rules.RulesInPlay[rule.RuleName]; !ok {
-						shortestSoFar = distance
-						selectedRule = rule.RuleName
+	for key, rule := range rules.AvailableRules {
+		if _, ok := rules.RulesInPlay[key]; !ok {
+			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule)
+			if valid {
+				ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
+				distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
+				if distance != -1 {
+					if shortestSoFar > distance {
+						if _, ok := rules.RulesInPlay[rule.RuleName]; !ok {
+							shortestSoFar = distance
+							selectedRule = rule.RuleName
+						}
 					}
 				}
 			}
+		} else {
+			lstRules := dynamics.RemoveFromMap(coolMap, key)
+			dist := dynamics.CalculateDistanceFromRuleSpace(lstRules, coolmap2)
+			if dist > longestSoFar {
+				selectedRule = rule.RuleName
+			}
 		}
+	}
+	if selectedRule == "" {
+		return "inspect_ballot_rule"
 	}
 	return selectedRule
 }
