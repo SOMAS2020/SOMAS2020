@@ -8,9 +8,11 @@ import (
 )
 
 const (
-	id             = shared.Team6
-	MIN_FRIENDSHIP = 0
-	MAX_FRIENDSHIP = 100
+	id = shared.Team6
+	// MinFriendship is the minimum friendship level
+	MinFriendship = 0
+	// MaxFriendship is the maximum friendship level
+	MaxFriendship = 100
 )
 
 // GiftsReceivedHistory is what gifts we have received from other islands
@@ -55,7 +57,7 @@ func init() {
 func (c *client) raiseFriendshipLevel(clientID shared.ClientID) {
 	currFriendship := c.config.friendship[clientID]
 
-	if currFriendship == MAX_FRIENDSHIP {
+	if currFriendship == MaxFriendship {
 		return
 	}
 
@@ -66,7 +68,7 @@ func (c *client) raiseFriendshipLevel(clientID shared.ClientID) {
 func (c *client) lowerFriendshipLevel(clientID shared.ClientID) {
 	currFriendship := c.config.friendship[clientID]
 
-	if currFriendship == MIN_FRIENDSHIP {
+	if currFriendship == MinFriendship {
 		return
 	}
 
