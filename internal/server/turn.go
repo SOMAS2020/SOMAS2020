@@ -80,7 +80,7 @@ func (s *SOMASServer) endOfTurn() error {
 	}
 
 	if err := s.runIIGOTax(); err != nil {
-		return errors.Errorf("Failed to put taxes into common pool at end of turn: %v", err)
+		return errors.Errorf("Failed to put taxes into common pool at en+d of turn: %v", err)
 	}
 
 	// probe for disaster
