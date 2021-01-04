@@ -225,6 +225,7 @@ func (c client) getFriendshipCoeffs() map[shared.ClientID]float64 {
 	return friendshipCoeffs
 }
 
+// gets our personality
 func (c client) getPersonality() Personality {
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 
@@ -234,5 +235,6 @@ func (c client) getPersonality() Personality {
 		return Normal
 	}
 
+	// TODO: more cases to have?
 	return Generous
 }
