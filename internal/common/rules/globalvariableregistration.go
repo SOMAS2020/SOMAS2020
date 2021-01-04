@@ -129,6 +129,7 @@ var StaticVariables = []VariableValuePair{
 	{
 		VariableName: MonitorRoleEvalResultDecide,
 		Values:       []float64{0},
+	},
 	{
 		VariableName: VoteResultAnnounced,
 		Values:       []float64{0},
