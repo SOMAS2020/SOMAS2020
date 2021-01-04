@@ -24,9 +24,16 @@ func init() {
 			taxAmount:           0,
 			allocation:          0,
 			config: clientConfig{
+				//Variables for Intial forage
+				InitialForageTurns:      3,
+				MinimumForagePercentage: 0.01,
+				NormalForagePercentage:  0.05,
+				JBForagePercentage:      0.10, // % of our resources when JB is Normal< X < JB
 
-				InitialForageTurns: 3,
-				SkipForage:         1,
+				// Variables for Normal forage
+				SkipForage:           1,
+				NormalRandomIncrease: 0.05,
+				MaxForagePercentage:  0.20,
 
 				// Threshold for wealth
 				JBThreshold:       100,

@@ -80,10 +80,17 @@ type giftHistory map[shared.ClientID]giftExchange
 // Client Information */
 
 type clientConfig struct {
+
 	// Initial non planned foraging
-	InitialForageTurns uint
-	// Skip forage for x amount of returns if theres no return > 1* multiplier
-	SkipForage uint
+	InitialForageTurns      uint
+	MinimumForagePercentage float64
+	NormalForagePercentage  float64
+	JBForagePercentage      float64
+
+	// Normal foraging
+	NormalRandomIncrease float64
+	MaxForagePercentage  float64
+	SkipForage           uint // Skip for X turns if no positive RoI
 
 	// If resources go above this limit we are balling with money
 	JBThreshold shared.Resources

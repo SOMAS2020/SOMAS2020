@@ -64,14 +64,22 @@ func (c *client) InitialForage() shared.ForageDecision {
 
 	var forageType shared.ForageType
 	// Default contribution amount is a random amount between 1% -> 5% of out wealth
-	forageContribution := shared.Resources(0.01+rand.Float64()*(0.05-0.01)) * c.gameState().ClientInfo.Resources
+	forageContribution := shared.Resources(c.config.MinimumForagePercentage+
+		rand.Float64()*
+			(c.config.NormalForagePercentage-c.config.MinimumForagePercentage)) *
+		c.gameState().ClientInfo.Resources
+
 	switch {
-	case c.wealth() == jeffBezos: // JB then we have so much might as well gamble 5%->10% of it
-		forageContribution = shared.Resources(0.05+rand.Float64()*(0.10-0.05)) * c.gameState().ClientInfo.Resources
+	case c.wealth() == jeffBezos: // Rich
+		// JB then we have so much might as well gamble Normal%->JB% of it
+		forageContribution = shared.Resources(c.config.NormalForagePercentage+
+			rand.Float64()*
+				(c.config.JBForagePercentage-c.config.NormalForagePercentage)) *
+			c.gameState().ClientInfo.Resources
 		forageType = shared.DeerForageType
 	case c.wealth() == imperialStudent: // Imperial student (Need to save money so dont spent a lot)
 		forageType = shared.FishForageType
-	case c.wealth() == dying: // dying (Its all or nothing now )
+	case c.wealth() == dying: // Dying (Its all or nothing now )
 		c.lastHopeForage()
 	default: // Midle class (lets see where the coin takes us)
 		if rand.Float64() < 0.50 { // Coin
@@ -143,6 +151,12 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 func (c *client) normalForage() shared.ForageDecision {
 	bestForagingMethod := c.bestHistoryForaging(c.forageHistory) // Find the best foragine type in based on history
 
+	// Between 1->5%
+	forageContribution := shared.Resources(c.config.MinimumForagePercentage+
+		rand.Float64()*
+			(c.config.NormalForagePercentage-c.config.MinimumForagePercentage)) *
+		c.gameState().ClientInfo.Resources
+
 	// No good returns all our history had RoI < 0
 	//=============================================================================
 	if bestForagingMethod == shared.ForageType(-1) && c.config.SkipForage > 0 {
@@ -158,7 +172,6 @@ func (c *client) normalForage() shared.ForageDecision {
 
 		// Randomly pick type and invest 1->3%
 		var forageMethod shared.ForageType
-		forageContribution := shared.Resources(0.01+rand.Float64()*(0.03-0.01)) * c.gameState().ClientInfo.Resources
 		if rand.Float64() < 0.50 {
 			forageMethod = shared.DeerForageType
 		} else {
@@ -188,16 +201,16 @@ func (c *client) normalForage() shared.ForageDecision {
 		}
 	}
 
-	// Pick the minimum value between the best value and 10% of our resources
+	// Add a random amount 0->5% to the bestInput (max 5%)
+	bestInput += shared.Resources(rand.Float64()*c.config.NormalRandomIncrease) *
+		c.gameState().ClientInfo.Resources
+
+	// Pick the minimum value between the best value and 20% of our resources
 	bestInput = shared.Resources(math.Min(
 		float64(bestInput),
-		float64(0.10*c.gameState().ClientInfo.Resources)),
+		float64(shared.Resources(c.config.MaxForagePercentage)*c.gameState().ClientInfo.Resources)),
 	)
-	// Add a random amount to the bestInput (max 5%)
-	bestInput += shared.Resources(math.Min(
-		rand.Float64(),
-		float64(0.05*c.gameState().ClientInfo.Resources)),
-	)
+
 	// Now return the foraging decision
 	forageDecision := shared.ForageDecision{
 		Type:         bestForagingMethod,
