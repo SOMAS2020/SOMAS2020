@@ -231,6 +231,11 @@ func (l *legislature) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, l.gameState)
 	if ok {
 		l.gameState.IIGORolesBudget[shared.Speaker] -= cost
+		if l.monitoring != nil {
+			variablesToCache := []rules.VariableFieldName{rules.SpeakerLeftoverBudget}
+			valuesToCache := [][]float64{{float64(l.gameState.IIGORolesBudget[shared.Speaker])}}
+			l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+		}
 	}
 	return ok
 }

@@ -149,6 +149,11 @@ func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, j.gameState)
 	if ok {
 		j.gameState.IIGORolesBudget[shared.Judge] -= cost
+		if j.monitoring != nil {
+			variablesToCache := []rules.VariableFieldName{rules.JudgeLeftoverBudget}
+			valuesToCache := [][]float64{{float64(j.gameState.IIGORolesBudget[shared.Judge])}}
+			j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+		}
 	}
 	return ok
 }

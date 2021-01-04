@@ -247,6 +247,11 @@ func (e *executive) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, e.gameState)
 	if ok {
 		e.gameState.IIGORolesBudget[shared.President] -= cost
+		if e.monitoring != nil {
+			variablesToCache := []rules.VariableFieldName{rules.PresidentLeftoverBudget}
+			valuesToCache := [][]float64{{float64(e.gameState.IIGORolesBudget[shared.President])}}
+			e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
+		}
 	}
 	return ok
 }
