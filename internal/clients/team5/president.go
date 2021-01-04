@@ -11,18 +11,21 @@ import (
 
 type president struct {
 	*baseclient.BasePresident
+
 	c *client
 }
 
 //This I'm not 100% certain
 
 func (c *client) GetClientPresidentPointer() roles.President {
-	return &c.team5President
+	c.Logf("Team 5 is now the President, Shalom to all")
+
+	return &c.team5president
 }
 
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
 // COMPULSORY: decide how much each island can take from the common pool.
-func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
+func (pres *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	var requestSum shared.Resources
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
 
@@ -52,7 +55,7 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 // PickRuleToVote chooses a rule proposal from all the proposals
 // COMPULSORY: decide a method for picking a rule to vote on
 //NOT SURE ABOUT THISSSSSSS
-func (p *president) PickRuleToVote(rulesProposals []string) (string, bool) {
+func (pres *president) PickRuleToVote(rulesProposals []string) (string, bool) {
 	if len(rulesProposals) == 0 {
 		// No rules were proposed by the islands
 		return "", false
@@ -65,7 +68,7 @@ func (p *president) PickRuleToVote(rulesProposals []string) (string, bool) {
 // COMPULSORY: decide how much to tax islands, using rules as a guide if you wish.
 
 //Essentially the more the resources the greater the applied tax, as the point of the game is to survive
-func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
+func (pres *president) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	var totalrecleft shared.Resources
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 
@@ -85,10 +88,10 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 
 //For this, whenever we are presidents, the salary of the speaker comes in hand with our own wealth state
 //this is for the sake of everyone paying less, thus having a higher chance of our island to recover
-func (p *president) PaySpeaker(salary shared.Resources) (shared.Resources, bool) {
-	if p.c.wealth() == jeffBezos {
+func (pres *president) PaySpeaker(salary shared.Resources) (shared.Resources, bool) {
+	if pres.c.wealth() == jeffBezos {
 		return salary, true
-	} else if p.c.wealth() == middleClass {
+	} else if pres.c.wealth() == middleClass {
 		salary = salary * 0.8
 		return salary, true
 	} else {
@@ -100,7 +103,7 @@ func (p *president) PaySpeaker(salary shared.Resources) (shared.Resources, bool)
 //TODO: NEED TO LOOK AT THE RULES
 // CallSpeakerElection is called by the executive to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
-func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (pres *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
@@ -121,7 +124,7 @@ func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsIn
 // OPTIONAL: override to manipulate the result of the election
 
 //Spicing things up and randomly choosing the speaker
-func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
+func (pres *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	rand.Seed(time.Now().UnixNano())
 	return shared.ClientID(rand.Intn(5))
 }

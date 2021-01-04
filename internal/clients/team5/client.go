@@ -19,6 +19,7 @@ func init() {
 			forageHistory:       forageHistory{},
 			resourceHistory:     resourceHistory{},
 			giftHistory:         giftHistory{},
+			team5president:      president{},
 			taxAmount:           0,
 			allocation:          0,
 			config: clientConfig{
