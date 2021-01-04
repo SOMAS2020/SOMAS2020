@@ -19,7 +19,7 @@ type client struct {
 	// ## Gifting ##
 
 	acceptedGifts        map[shared.ClientID]int
-	requestedGiftAmounts map[shared.ClientID]shared.Resources
+	requestedGiftAmounts map[shared.ClientID]int
 	receivedResponses    []shared.GiftResponse
 
 	// ## Trust ##
