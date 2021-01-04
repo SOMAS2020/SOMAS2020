@@ -1,46 +1,10 @@
 package baseclient
 
 import (
-	"fmt"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
-
-// Role provides enumerated type for IIGO roles (President, Speaker and Judge)
-type Role int
-
-// Roles
-const (
-	President Role = iota
-	Speaker
-	Judge
-)
-
-func (r Role) String() string {
-	strs := [...]string{"President", "Speaker", "Judge"}
-	if r >= 0 && int(r) < len(strs) {
-		return strs[r]
-	}
-	return fmt.Sprintf("UNKNOWN Role '%v'", int(r))
-}
-
-// GoString implements GoStringer
-func (r Role) GoString() string {
-	return r.String()
-}
-
-// MarshalText implements TextMarshaler
-func (r Role) MarshalText() ([]byte, error) {
-	return miscutils.MarshalTextForString(r.String())
-}
-
-// MarshalJSON implements RawMessage
-func (r Role) MarshalJSON() ([]byte, error) {
-	return miscutils.MarshalJSONForString(r.String())
-}
 
 // CommonPoolResourceRequest is called by the President in IIGO to
 // request an allocation of resources from the common pool.
@@ -50,8 +14,11 @@ func (c *BaseClient) CommonPoolResourceRequest() shared.Resources {
 }
 
 // ResourceReport is an island's self-report of its own resources.
-func (c *BaseClient) ResourceReport() shared.Resources {
-	return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+func (c *BaseClient) ResourceReport() shared.ResourcesReport {
+	return shared.ResourcesReport{
+		ReportedAmount: c.ServerReadHandle.GetGameState().ClientInfo.Resources,
+		Reported:       true,
+	}
 }
 
 // RuleProposal is called by the President in IIGO to propose a
@@ -83,9 +50,14 @@ func (c *BaseClient) TaxTaken(shared.Resources) {
 	// Just an update. Ignore
 }
 
-// GetTaxContribution FIXME: Add documentation. What does this function do?
+// GetTaxContribution gives value of how much the island wants to pay in taxes
 func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// TODO: Implement common pool contribution greater than or equal to tax.
+	return 0
+}
+
+// GetSanctionPayment gives the value of how much the island is paying in sanctions
+func (c *BaseClient) GetSanctionPayment() shared.Resources {
 	return 0
 }
 

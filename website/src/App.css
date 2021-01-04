@@ -1,3 +1,10 @@
 .lightbluelink {
-  color: lightblue
+  color: lightblue;
+}
+
+.custom-alert {
+  max-width: 90vw;
+  margin: auto;
+  margin-top: 24px;
+  margin-bottom: 24px;
 }

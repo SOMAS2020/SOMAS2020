@@ -21,3 +21,5 @@ output
 .vscode
 
 *.wasm
+
+*.idea

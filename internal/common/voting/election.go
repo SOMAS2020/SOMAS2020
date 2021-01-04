@@ -6,14 +6,14 @@ import (
 )
 
 type Election struct {
-	roleToElect   baseclient.Role
+	roleToElect   shared.Role
 	votingMethod  shared.ElectionVotingMethod
 	islandsToVote []shared.ClientID
 	votes         [][]shared.ClientID
 }
 
 // ProposeMotion sets the role to be voted on
-func (e *Election) ProposeElection(role baseclient.Role, method shared.ElectionVotingMethod) {
+func (e *Election) ProposeElection(role shared.Role, method shared.ElectionVotingMethod) {
 	e.roleToElect = role
 	e.votingMethod = method
 }
