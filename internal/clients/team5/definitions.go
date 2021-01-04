@@ -13,16 +13,13 @@ import (
 //=================================================================
 const id = shared.Team5
 
-//wealthTier is how much money we have
-type wealthTier int
-
 //================ Common Pool =========================================
 
-//cPRequestHistory history of CP Requests
-type cPRequestHistory []shared.Resources
+//cpRequestHistory history of CP Requests
+type cpRequestHistory []shared.Resources
 
-//cPAllocationHistory History of allocations
-type cPAllocationHistory []shared.Resources
+//cpAllocationHistory History of allocations
+type cpAllocationHistory []shared.Resources
 
 //================ Resource History =========================================
 
@@ -49,10 +46,8 @@ type giftOutcome struct {
 	amount    shared.Resources
 }
 
-// // GiftRequest contains the details of a gift request from an island to another
 // type GiftRequest shared.Resources
 
-// // GiftRequestDict contains the details of an island's gift requests to everyone else.
 // type GiftRequestDict map[shared.ClientID]GiftRequest
 
 // giftResponse is a struct of the response and reason
@@ -115,8 +110,8 @@ type client struct {
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
 	giftHistory         giftHistory
-	cpRequestHistory    cPRequestHistory
-	cpAllocationHistory cPAllocationHistory
+	cpRequestHistory    cpRequestHistory
+	cpAllocationHistory cpAllocationHistory
 
 	taxAmount shared.Resources
 
@@ -130,11 +125,13 @@ type client struct {
 /*	Constants */
 //=================================================================
 // Wealth Tiers
+type wealthTier int
+
 const (
-	dying           wealthTier = iota // Sets values = 0
-	imperialStudent                   // iota sets the folloing values =1
-	middleClass                       // = 2
-	jeffBezos                         // = 3
+	dying wealthTier = iota
+	imperialStudent
+	middleClass
+	jeffBezos
 )
 
 const (

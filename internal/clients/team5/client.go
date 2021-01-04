@@ -12,12 +12,10 @@ func init() {
 		id,
 		&client{
 			// Old config
-			// BaseClient:    baseclient.NewClient(id),
 			// forageHistory: ForageHistory{},
-
 			BaseClient:          baseclient.NewClient(id),
-			cpRequestHistory:    cPRequestHistory{},
-			cpAllocationHistory: cPAllocationHistory{},
+			cpRequestHistory:    cpRequestHistory{},
+			cpAllocationHistory: cpAllocationHistory{},
 			forageHistory:       forageHistory{},
 			resourceHistory:     resourceHistory{},
 			giftHistory:         giftHistory{},
