@@ -132,18 +132,18 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 			g.IIGOHistory[g.Turn] = append(g.IIGOHistory[g.Turn],
 				shared.Accountability{
 					ClientID: clientID,
-					Pairs: []rules.VariableValuePair {
+					Pairs: []rules.VariableValuePair{
 						{
 							VariableName: rules.HasIslandReportPrivateResources,
-							Values: []float64{boolToFloat(resourceReports[clientID].Reported)},
+							Values:       []float64{boolToFloat(resourceReports[clientID].Reported)},
 						},
 						{
 							VariableName: rules.IslandReportedPrivateResources,
-							Values: []float64{float64(resourceReports[clientID].ReportedAmount)},
+							Values:       []float64{float64(resourceReports[clientID].ReportedAmount)},
 						},
 						{
 							VariableName: rules.IslandActualPrivateResources,
-							Values: []float64{float64(g.ClientInfos[clientID].Resources)},
+							Values:       []float64{float64(g.ClientInfos[clientID].Resources)},
 						},
 					},
 				})
@@ -238,9 +238,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	if appointPresidentError != nil {
 		return false, "President was not apointed by the Judge. Insufficient budget"
 	}
-
-	legislativeBranch.reset()
-	executiveBranch.reset()
 
 	// Pay salaries into budgets
 	errorJudicial := judicialBranch.sendPresidentSalary()
