@@ -1,6 +1,8 @@
 package foraging
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/stat/distuv"
@@ -10,6 +12,7 @@ import (
 type FishingExpedition struct {
 	ParticipantContributions map[shared.ClientID]shared.Resources
 	params                   fishingParams
+	logger                   shared.Logger
 }
 
 // fishingParams : Defines the parameters for the normal distibution for the fishing returns
@@ -46,12 +49,17 @@ func fishingReturn(params fishingParams) shared.Resources {
 func (f FishingExpedition) Fish(fConf config.FishingConfig) ForagingReport {
 	input := f.TotalInput()
 	// get max number of deer allowed for given resource input
-	nFishFromInput := utilityTier(input, fConf.MaxFishPerHunt, fConf.IncrementalInputDecay)
+	nFishFromInput := utilityTier(input, fConf.MaxFishPerHunt, fConf.IncrementalInputDecay, fConf.InputScaler)
 	returns := []shared.Resources{} // store return for each potential fish we could catch
 
 	for i := uint(0); i < nFishFromInput; i++ {
-		utility := fishingReturn(f.params) * shared.Resources(fConf.ResourceMultiplier) // scale return by resource multiplier
+		utility := fishingReturn(f.params) * shared.Resources(fConf.OutputScaler) // scale return by resource multiplier
 		returns = append(returns, utility)
 	}
 	return compileForagingReport(shared.FishForageType, f.ParticipantContributions, returns)
+}
+
+// Logf is a this type's custom logger
+func (f FishingExpedition) Logf(format string, a ...interface{}) {
+	f.logger("[FISHINGEXPEDITION]: %v", fmt.Sprintf(format, a...))
 }

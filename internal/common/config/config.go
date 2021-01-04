@@ -49,8 +49,11 @@ type DeerHuntConfig struct {
 	IncrementalInputDecay float64                             // Determines decay of incremental input cost of hunting more deer
 	BernoulliProb         float64                             // `p` param in D variable (see README). Controls prob of catching a deer or not
 	ExponentialRate       float64                             // `lambda` param in W variable (see README). Controls distribution of deer sizes.
-	ResourceMultiplier    float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	InputScaler           float64                             // scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.
+	OutputScaler          float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
 	DistributionStrategy  shared.ResourceDistributionStrategy // basis on which returns are split amongst hunters
+	ThetaCritical         float64                             // Bernoulli prob of catching deer when running population = max deer per hunt
+	ThetaMax              float64                             // Bernoulli prob of catching deer when running population = carrying capacity (max population)
 
 	// Deer Population
 	MaxDeerPopulation     uint    // Max possible deer population.
@@ -64,7 +67,8 @@ type FishingConfig struct {
 	IncrementalInputDecay float64                             // Determines decay of incremental input cost of catching additional fish
 	Mean                  float64                             // mean of normally distributed fish size
 	Variance              float64                             // variance of normally distributed fish size
-	ResourceMultiplier    float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	InputScaler           float64                             // scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.
+	OutputScaler          float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
 	DistributionStrategy  shared.ResourceDistributionStrategy // basis on which returns are split amongst fishermen
 }
 

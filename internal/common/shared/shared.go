@@ -63,6 +63,9 @@ func (c ClientID) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
 
+// Logger type for convenience in other definitions
+type Logger func(format string, a ...interface{})
+
 // Resources represents amounts of resources.
 // Used for foraging inputs and utility outputs (returns)
 type Resources float64
