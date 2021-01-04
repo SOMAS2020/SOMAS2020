@@ -26,8 +26,18 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		foragingInvestment = math.Max(float64(c.ServerReadHandle.GetGameState().ClientInfo.Resources)-minimumLeftoverResources, 0)
 	}
 
+	// ## When fishing foraging is implemnented ##
+
+	// deerForagingInvestment := p.riskFactor * foragingInvestment
+	// deerForagingInvestment := (1 - p.riskFactor) * foragingInvestment
+
+	// math.Max(deerForagingInvestment, p.minimunInvestment)
+	// math.Max(fishForagingInvestment, p.minimunInvestment)
+
 	return shared.ForageDecision{
 		Type:         shared.DeerForageType,
 		Contribution: shared.Resources(foragingInvestment),
 	}, nil
 }
+
+// Increment p.minimumInvestment when receiving forage update and no deer/fish was caughgt.

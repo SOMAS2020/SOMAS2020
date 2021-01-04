@@ -5,7 +5,6 @@ import (
 	// "github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-	// "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -99,6 +98,8 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
 		}
 	}
+}
+
 func (c *client) RuleProposal() string {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
@@ -121,4 +122,32 @@ func (c *client) RuleProposal() string {
 		}
 	}
 	return selectedRule
+}
+
+func (c *client) GetVoteForRule(ruleName string) bool {
+
+	newRulesInPlay := make(map[string]rules.RuleMatrix)
+
+	for key, value := range rules.RulesInPlay {
+		newRulesInPlay[key] = value
+	}
+
+	if _, ok := rules.RulesInPlay[ruleName]; ok {
+		delete(newRulesInPlay, ruleName)
+	} else {
+		newRulesInPlay[ruleName] = rules.AvailableRules[ruleName]
+	}
+
+	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
+
+	// distancetoRulesInPlay = CalculateDistanceFromRuleSpace(rules.RulesInPlay, position)
+	// distancetoNewRulesInPlay = CalculateDistanceFromRuleSpace(newRulesInPlay, position)
+
+	// if distancetoRulesInPlay < distancetoNewRulesInPlay {
+	// 	return false
+	// } else {
+	// 	return true
+	// }
+
+	return true
 }
