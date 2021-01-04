@@ -416,6 +416,7 @@ func TestApplySanctions(t *testing.T) {
 		sanctionRecord     map[shared.ClientID]roles.IIGOSanctionScore
 		sanctionThresholds map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
 		expectedSanctions  []roles.Sanction
+		sanctionLength     int
 	}{
 		{
 			name: "Basic sanction scenario",
@@ -423,6 +424,7 @@ func TestApplySanctions(t *testing.T) {
 				shared.Team1: 4,
 			},
 			sanctionThresholds: getDefaultSanctionThresholds(),
+			sanctionLength:     2,
 			expectedSanctions: []roles.Sanction{
 				{
 					ClientID:     shared.Team1,
@@ -439,6 +441,7 @@ func TestApplySanctions(t *testing.T) {
 				shared.Team3: 10,
 			},
 			sanctionThresholds: getDefaultSanctionThresholds(),
+			sanctionLength:     2,
 			expectedSanctions: []roles.Sanction{
 				{
 					ClientID:     shared.Team1,
@@ -471,21 +474,22 @@ func TestApplySanctions(t *testing.T) {
 				roles.SanctionTier4: 10,
 				roles.SanctionTier5: 30,
 			},
+			sanctionLength: 5,
 			expectedSanctions: []roles.Sanction{
 				{
 					ClientID:     shared.Team1,
 					SanctionTier: roles.NoSanction,
-					TurnsLeft:    2,
+					TurnsLeft:    5,
 				},
 				{
 					ClientID:     shared.Team2,
 					SanctionTier: roles.SanctionTier1,
-					TurnsLeft:    2,
+					TurnsLeft:    5,
 				},
 				{
 					ClientID:     shared.Team3,
 					SanctionTier: roles.SanctionTier4,
-					TurnsLeft:    2,
+					TurnsLeft:    5,
 				},
 			},
 		},
@@ -495,7 +499,7 @@ func TestApplySanctions(t *testing.T) {
 			judiciaryInst := defaultInitJudiciary()
 			judiciaryInst.sanctionRecord = tc.sanctionRecord
 			judiciaryInst.sanctionThresholds = tc.sanctionThresholds
-			judiciaryInst.gameConf.SanctionLength = 2
+			judiciaryInst.gameConf.SanctionLength = tc.sanctionLength
 			judiciaryInst.applySanctions()
 			if !checkListOfSanctionEquals(tc.expectedSanctions, judiciaryInst.localSanctionCache[0]) {
 				t.Errorf("Expected %v got %v", tc.expectedSanctions, judiciaryInst.localSanctionCache[0])
