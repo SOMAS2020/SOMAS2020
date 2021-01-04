@@ -52,8 +52,10 @@ func TestTotalFishInput(t *testing.T) {
 		Mean:                  0.8,
 		Variance:              0.2,
 	}
-
-	huntF, _ := CreateFishingExpedition(huntParticipants, fishingConfig)
+	dummyLogger := func(format string, a ...interface{}) {
+		t.Logf("[FISHING]: %v", fmt.Sprintf(format, a...))
+	}
+	huntF, _ := CreateFishingExpedition(huntParticipants, fishingConfig, dummyLogger)
 	ans := huntF.TotalInput()
 	if ans != 1.9 {
 		t.Errorf("TotalInput() = %.2f; want 1.9", ans)
