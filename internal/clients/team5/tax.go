@@ -6,7 +6,7 @@ import (
 
 func (c *client) GetTaxContribution() shared.Resources {
 	c.Logf("Current tax amount: %v", c.taxAmount)
-	if c.wealth() == ImperialStudent || c.wealth() == Dying {
+	if c.wealth() == imperialStudent || c.wealth() == dying {
 		return 0
 	}
 	if c.gameState().Turn == 1 {

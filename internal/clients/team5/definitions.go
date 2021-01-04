@@ -82,25 +82,20 @@ type giftHistory map[shared.ClientID]giftExchange
 type clientConfig struct {
 	// Initial non planned foraging
 	InitialForageTurns uint
-
 	// Skip forage for x amount of returns if theres no return > 1* multiplier
 	SkipForage uint
 
 	// If resources go above this limit we are balling with money
 	JBThreshold shared.Resources
-
 	// Middle class:  Middle < Jeff bezos
 	MiddleThreshold shared.Resources
-
 	// Poor: Imperial student < Middle
 	ImperialThreshold shared.Resources
 
 	// How much to request when we are dying
 	DyingGiftRequestAmount shared.Resources
-
 	// How much to request when we are at Imperial
 	ImperialGiftRequestAmount shared.Resources
-
 	// How much to request when we are dying
 	MiddleGiftRequestAmount shared.Resources
 }
@@ -129,10 +124,10 @@ type client struct {
 //=================================================================
 // Wealth Tiers
 const (
-	Dying           wealthTier = iota // Sets values = 0
-	ImperialStudent                   // iota sets the folloing values =1
-	MiddleClass                       // = 2
-	JeffBezos                         // = 3
+	dying           wealthTier = iota // Sets values = 0
+	imperialStudent                   // iota sets the folloing values =1
+	middleClass                       // = 2
+	jeffBezos                         // = 3
 )
 
 const (
@@ -151,7 +146,7 @@ const (
 //=================================================================
 //String converts string to number
 func (wt wealthTier) String() string {
-	strings := [...]string{"Dying", "ImperialStudent", "MiddleClass", "JeffBezos"}
+	strings := [...]string{"dying", "imperialStudent", "middleClass", "jeffBezos"}
 	if wt >= 0 && int(wt) < len(strings) {
 		return strings[wt]
 	}

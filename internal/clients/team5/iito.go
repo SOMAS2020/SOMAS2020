@@ -38,7 +38,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 				requests[team] = shared.GiftRequest(c.config.DyingGiftRequestAmount) // Ask for money cus we dying
 			}
 		}
-	case c.wealth() == ImperialStudent: // We are poor
+	case c.wealth() == imperialStudent: // We are poor
 		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 			if status == shared.Critical {
 				requests[team] = shared.GiftRequest(0.0) // Dont ask from people if they are dying

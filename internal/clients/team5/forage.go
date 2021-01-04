@@ -29,11 +29,10 @@ import (
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if c.forageHistorySize() < c.config.InitialForageTurns { // Start with initial foraging turns (semi - randomized)
 		return c.InitialForage(), nil
-	} else if c.wealth() == Dying { // If dying go to last hope
+	} else if c.wealth() == dying { // If dying go to last hope
 		return c.lastHopeForage(), nil
-	} else {
-		return c.normalForage(), nil // Else forage normally
 	}
+	return c.normalForage(), nil // else forage normally
 }
 
 //================================================================
@@ -67,12 +66,12 @@ func (c *client) InitialForage() shared.ForageDecision {
 	// Default contribution amount is a random amount between 1% -> 5% of out wealth
 	forageContribution := shared.Resources(0.01+rand.Float64()*(0.05-0.01)) * c.gameState().ClientInfo.Resources
 	switch {
-	case c.wealth() == JeffBezos: // JB then we have so much might as well gamble 5%->10% of it
+	case c.wealth() == jeffBezos: // JB then we have so much might as well gamble 5%->10% of it
 		forageContribution = shared.Resources(0.05+rand.Float64()*(0.10-0.05)) * c.gameState().ClientInfo.Resources
 		forageType = shared.DeerForageType
-	case c.wealth() == ImperialStudent: // Imperial student (Need to save money so dont spent a lot)
+	case c.wealth() == imperialStudent: // Imperial student (Need to save money so dont spent a lot)
 		forageType = shared.FishForageType
-	case c.wealth() == Dying: // Dying (Its all or nothing now )
+	case c.wealth() == dying: // dying (Its all or nothing now )
 		c.lastHopeForage()
 	default: // Midle class (lets see where the coin takes us)
 		if rand.Float64() < 0.50 { // Coin
@@ -212,7 +211,7 @@ func (c *client) normalForage() shared.ForageDecision {
 	return forageDecision
 }
 
-/*  Dying MODE, RISK IT ALL, put everything in foraging for Deer */
+/*  dying MODE, RISK IT ALL, put everything in foraging for Deer */
 func (c *client) lastHopeForage() shared.ForageDecision {
 	forageDecision := shared.ForageDecision{
 		Type:         shared.DeerForageType,

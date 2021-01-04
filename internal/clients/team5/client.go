@@ -24,6 +24,7 @@ func init() {
 			taxAmount:           0,
 			allocation:          0,
 			config: clientConfig{
+
 				InitialForageTurns: 3,
 				SkipForage:         1,
 
@@ -74,14 +75,14 @@ func (c client) wealth() wealthTier {
 	cData := c.gameState().ClientInfo
 	switch {
 	case cData.LifeStatus == shared.Critical: // We dying
-		return Dying
+		return dying
 	case cData.Resources > c.config.JBThreshold:
 		// c.Logf("[Team 5][Wealth:%v][Class:%v]", cData.Resources,c.config.JBThreshold)      // Debugging
-		return JeffBezos // Rich
+		return jeffBezos // Rich
 	case cData.Resources > c.config.ImperialThreshold && cData.Resources <= c.config.JBThreshold:
-		return MiddleClass // Middle
+		return middleClass // Middle
 	default:
-		return ImperialStudent // Middle class
+		return imperialStudent // Middle class
 	}
 }
 
