@@ -58,6 +58,10 @@ type clientConfig struct {
 	forageContributionNoisePercent float64
 
 	forageDecider forageDecider
+
+	// maxOpinion is the boundary where we either give resources without questioning
+	// or we refuse to give them resources.
+	maxOpinion int
 }
 
 // client is Lucy.
@@ -67,7 +71,10 @@ type client struct {
 	forageHistory        ForageHistory
 	expectedForageReward shared.Resources
 	taxAmount            shared.Resources
-	opinionTeams         []opinionOnTeams
+
+	// IITO/Gifts
+	opinionTeams  []opinionOnTeams
+	receivedOffer map[shared.ClientID]shared.Resources
 
 	// allocation is the president's response to your last common pool resource request
 	allocation shared.Resources
@@ -89,6 +96,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			kickstartTaxPercent:            0.25,
 			forageContributionCapPercent:   0.2,
 			forageContributionNoisePercent: 0.01,
+			maxOpinion:                     10,
 			forageDecider: func(c client) (shared.ForageDecision, shared.Resources) {
 				if c.forageHistorySize() < c.config.randomForageTurns {
 					c.Logf("[Forage decision]: random")
@@ -122,13 +130,26 @@ func (c *client) StartOfTurn() {
 	c.Logf("Emotional state: %v", c.emotionalState())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
 
+	// if opinionTeams is empty. Initialise it.
+	if len(c.opinionTeams) <= 0 {
+		for _, clientID := range shared.TeamIDs {
+			c.opinionTeams = append(c.opinionTeams, opinionOnTeams{clientID: clientID, opinion: 0})
+		}
+	}
+
+	// Reset the map
+	c.receivedOffer = nil
+	if c.receivedOffer == nil {
+		c.receivedOffer = make(map[shared.ClientID]shared.Resources)
+	}
+
 	for clientID, status := range c.gameState().ClientLifeStatuses {
 		if status != shared.Dead && clientID != c.GetID() {
 			return
 		}
 	}
-	c.Logf("I'm all alone :c")
 
+	c.Logf("I'm all alone :c")
 }
 
 /********************/
