@@ -160,7 +160,7 @@ var (
 		10,
 		"Max y bound of archipelago (bounds for possible disaster).",
 	)
-	disasterPeriod = flag.Int(
+	disasterPeriod = flag.Uint(
 		"disasterPeriod",
 		15,
 		"Period T between disasters in deterministic case and E[T] in stochastic case.",

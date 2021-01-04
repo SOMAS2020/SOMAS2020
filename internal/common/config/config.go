@@ -75,7 +75,7 @@ type FishingConfig struct {
 // DisasterConfig captures disaster-specific config
 type DisasterConfig struct {
 	XMin, XMax, YMin, YMax      shared.Coordinate     // [min, max] x,y bounds of archipelago (bounds for possible disaster)
-	Period                      int                   // Period T between disasters in deterministic case and E[T] in stochastic case.
+	Period                      uint                  // Period T between disasters in deterministic case and E[T] in stochastic case.
 	SpatialPDFType              shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
 	MagnitudeLambda             float64               // Exponential rate param for disaster magnitude
 	MagnitudeResourceMultiplier float64               // multiplier to map disaster magnitude to CP resource deductions

@@ -38,8 +38,8 @@ func TestSamplingOfCertainties(t *testing.T) {
 }
 
 func TestDeterministicPeriod(t *testing.T) {
-	nTurns := 20 // number of turns in this test
-	period := 4  // number of turns between disasters
+	nTurns := uint(20) // number of turns in this test
+	period := uint(4)  // number of turns between disasters
 
 	disasterConf := config.DisasterConfig{
 		XMin:             0.0,
@@ -53,15 +53,15 @@ func TestDeterministicPeriod(t *testing.T) {
 	}
 	clientIDs := []shared.ClientID{shared.Team1, shared.Team2} // arbitrarily chosen for test
 	env := InitEnvironment(clientIDs, disasterConf)
-	nDisasters := 0
-	for i := 1; i <= nTurns; i++ {
+	nDisasters := uint(0)
+	for i := uint(1); i <= nTurns; i++ {
 		env = env.SampleForDisaster(disasterConf, uint(i))
 		if env.LastDisasterReport.Magnitude > 0 {
 			nDisasters++
 		}
 	}
-	if nDisasters != int(nTurns/period) {
-		t.Errorf("Expected %v disasters over %v turns with period %v. Got %v", int(nTurns/period), nTurns, period, nTurns)
+	if nDisasters != nTurns/period {
+		t.Errorf("Expected %v disasters over %v turns with period %v. Got %v", nTurns/period, nTurns, period, nTurns)
 	}
 }
 
