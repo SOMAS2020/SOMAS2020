@@ -162,7 +162,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	ruleSelected := false
-	if ruleToVoteReturn.ProposedRule != "" {
+	if ruleToVoteReturn.ActionTaken && ruleToVoteReturn.ProposedRule != "" {
 		ruleSelected = true
 	}
 
