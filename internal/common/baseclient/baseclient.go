@@ -88,8 +88,9 @@ type BaseClient struct {
 	predictionInfo shared.DisasterPredictionInfo
 
 	// exported variables are accessible by the client implementations
-	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
-	ServerReadHandle ServerReadHandle
+	LocalVariableCache map[rules.VariableFieldName]rules.VariableValuePair
+	Communications     map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
+	ServerReadHandle   ServerReadHandle
 }
 
 // Echo prints a message to show that the client exists
@@ -154,6 +155,32 @@ func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.Client
 // COMPULSORY: please override to save incoming communication relevant to your agent strategy
 func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
+}
+
+// InspectCommunication is a function which scans over Receive communications for any data
+// that might be used to update the LocalVariableCache
+func (c *BaseClient) InspectCommunication(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	for fieldName, dataPoint := range data {
+		switch fieldName {
+		case shared.TaxAmount:
+			c.LocalVariableCache[rules.ExpectedTaxContribution] = rules.VariableValuePair{
+				VariableName: rules.ExpectedTaxContribution,
+				Values:       []float64{float64(dataPoint.IntegerData)},
+			}
+		case shared.AllocationAmount:
+			c.LocalVariableCache[rules.ExpectedAllocation] = rules.VariableValuePair{
+				VariableName: rules.ExpectedAllocation,
+				Values:       []float64{float64(dataPoint.IntegerData)},
+			}
+		case shared.SanctionAmount:
+			c.LocalVariableCache[rules.SanctionExpected] = rules.VariableValuePair{
+				VariableName: rules.SanctionExpected,
+				Values:       []float64{float64(dataPoint.IntegerData)},
+			}
+			// TODO: Extend according to new rules added by Team 4
+		}
+
+	}
 }
 
 // GetCommunications is used for testing communications
