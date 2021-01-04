@@ -1040,3 +1040,7 @@ func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
 		PresidentID: s.PresidentID,
 	}
 }
+
+func (s fakeServerHandle) GetGameConfig() config.ClientConfig {
+	return config.ClientConfig{}
+}
