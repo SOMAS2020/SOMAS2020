@@ -130,4 +130,16 @@ var StaticVariables = []VariableValuePair{
 		VariableName: PresidentRuleProposal,
 		Values:       []float64{0},
 	},
+	{
+		VariableName: HasIslandReportPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandActualPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandReportedPrivateResources,
+		Values:       []float64{0},
+	},
 }
