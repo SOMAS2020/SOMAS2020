@@ -24,19 +24,8 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	ourClient := client{
 		// Initialise variables here
 		BaseClient: baseclient.NewClient(clientID),
-		params: islandParams{
-			// Define parameter values here
-			selfishness: 0.5,
-		},
+		params:     getislandParams(),
 	}
-
-	// Set trust scores
-	for _, islandID := range shared.TeamIDs {
-		ourClient.trustScore[islandID] = 50
-		ourClient.theirTrustScore[islandID] = 50
-	}
-	// Set our trust in ourselves to 100
-	ourClient.theirTrustScore[id] = 100
 
 	return &ourClient
 }
@@ -55,6 +44,15 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourSpeaker = speaker{c: c}
 	c.ourJudge = judge{c: c}
 	c.ourPresident = president{c: c}
+	// Set trust scores
+	c.trustScore = make(map[shared.ClientID]float64)
+	c.theirTrustScore = make(map[shared.ClientID]float64)
+	for _, islandID := range shared.TeamIDs {
+		c.trustScore[islandID] = 50
+		c.theirTrustScore[islandID] = 50
+	}
+	// Set our trust in ourselves to 100
+	c.theirTrustScore[id] = 100
 	// Initialise variables
 }
 

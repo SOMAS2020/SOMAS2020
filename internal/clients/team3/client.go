@@ -11,9 +11,7 @@ const id = shared.Team3
 const printTeam3Logs = false
 
 func init() {
-	ourClient := &client{BaseClient: baseclient.NewClient(id),
-		params: getislandParams()}
-
+	ourClient := NewClient(id)
 	baseclient.RegisterClient(id, ourClient)
 }
 
