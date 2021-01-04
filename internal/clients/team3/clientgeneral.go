@@ -33,6 +33,9 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c *client) StartOfTurn() {
 	c.clientPrint("Start of turn!")
 	// TODO add any functions and vairable changes here
+	if c.checkIfCaught() {
+		c.timeSinceCaught = 0
+	}
 	c.updateCompliance()
 	c.resetIIGOInfo()
 	gameState := c.ServerReadHandle.GetGameState()
@@ -158,6 +161,10 @@ func (c *client) shouldICheat() bool {
 	return should_i_cheat
 }
 
+// checkIfCaught, checks if the island has been caught during the last turn
+// If it has been caught, it returns True, otherwise False.
+func (c *client) checkIfCaught() bool {
+	return c.iigoInfo.sanctions.ourSanction > c.last_sanctions
 // ResourceReport overides the basic method to mis-report when we have a low compliance score
 func (c *client) ResourceReport() shared.Resources {
 	resource := c.BaseClient.ServerReadHandle.GetGameState().ClientInfo.Resources
