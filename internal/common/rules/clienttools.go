@@ -58,9 +58,7 @@ func analysisEngine(line mat.Vector, currentVal []float64, fixed []bool, auxCode
 
 func deepCopyList(inp []float64) []float64 {
 	newList := make([]float64, len(inp))
-	for i, v := range inp {
-		newList[i] = v
-	}
+	copy(newList, inp)
 	return newList
 }
 
