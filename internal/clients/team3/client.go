@@ -37,8 +37,7 @@ type client struct {
 	presidentPerformance map[shared.ClientID]int
 
 	// ## IIGO ##
-	ruleVotedOn    string
-	ourVoteForRule bool
+	ruleVotedOn string
 
 	// ## Game state & History ##
 	criticalStatePrediction criticalStatePrediction
@@ -51,7 +50,9 @@ type client struct {
 	// declaredResources is a map of all declared island resources
 	declaredResources map[shared.ClientID]shared.Resources
 	//disasterPredictions gives a list of predictions by island for each turn
-	disasterPredictions []map[shared.ClientID]shared.DisasterPrediction
+	disasterPredictions       []map[shared.ClientID]shared.DisasterPrediction
+	globalDisasterPredictions []shared.DisasterPrediction
+	pastDisastersList         baseclient.PastDisastersList
 
 	// ## Compliance ##
 

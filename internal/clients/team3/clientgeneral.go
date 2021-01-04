@@ -231,7 +231,8 @@ func (c *client) evalSpeakerPerformance() {
 		evalOfSpeaker -= c.trustScore[previousJudgeID] * c.params.sensitivity
 	}
 
-	if c.ourVoteForRule != c.iigoInfo.ruleVotingResults[c.ruleVotedOn] {
+	ruleVoteInfo := *c.iigoInfo.ruleVotingResults[c.ruleVotedOn]
+	if ruleVoteInfo.ourVote != ruleVoteInfo.result {
 		evalOfSpeaker += c.params.sensitivity
 	} else {
 		evalOfSpeaker -= c.params.sensitivity
