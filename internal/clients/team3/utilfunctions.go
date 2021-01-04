@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+// A mock server handle used for tests
+type mockServerReadHandle struct {
+	gameState gamestate.ClientGameState
+}
 
 func (c *client) clientPrint(format string, a ...interface{}) {
 	if printTeam3Logs {
@@ -56,6 +62,10 @@ func getAverage(lst []float64) float64 {
 	}
 
 	return (float64(total) / float64(len(lst)))
+}
+
+func (m mockServerReadHandle) GetGameState() gamestate.ClientGameState {
+	return m.gameState
 }
 
 // mostTrusted return the ClientID that corresponds to the highest trust value

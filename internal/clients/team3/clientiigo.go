@@ -2,10 +2,8 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
-	// "github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-	// "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -84,6 +82,56 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
 		}
 	}
+}
+
+// RequestAllocation gives how much island is taking from common pool
+func (c *client) RequestAllocation() shared.Resources {
+	ourAllocation := c.iigoInfo.commonPoolAllocation
+	currentState := c.BaseClient.ServerReadHandle.GetGameState()
+	escapeCritical := c.params.escapeCritcaIsland && currentState.ClientInfo.LifeStatus == shared.Critical
+	distCriticalThreshold := ((c.criticalStatePrediction.upperBound + c.criticalStatePrediction.lowerBound) / 2) - ourAllocation
+
+	if escapeCritical && (ourAllocation < distCriticalThreshold) {
+		// Get enough to save ourselves
+		return distCriticalThreshold
+	}
+
+	if c.shouldICheat() {
+		// Scale up allocation a bit
+		return ourAllocation + shared.Resources(float64(ourAllocation)*c.params.selfishness)
+	}
+
+	// Base return - take what we are allocated, but make sure we are stolen from!
+	if ourAllocation > shared.Resources(0) {
+		return ourAllocation
+	} else {
+		return shared.Resources(0)
+	}
+
+}
+
+// CommonPoolResourceRequest is called by the President in IIGO to
+// request an allocation of resources from the common pool.
+func (c *client) CommonPoolResourceRequest() shared.Resources {
+	var request shared.Resources
+
+	currentState := c.BaseClient.ServerReadHandle.GetGameState()
+	ourResources := currentState.ClientInfo.Resources
+	escapeCritical := c.params.escapeCritcaIsland && currentState.ClientInfo.LifeStatus == shared.Critical
+	distCriticalThreshold := ((c.criticalStatePrediction.upperBound + c.criticalStatePrediction.lowerBound) / 2) - ourResources
+
+	request = shared.Resources(c.params.minimumRequest)
+	if escapeCritical {
+		if request < distCriticalThreshold {
+			request = distCriticalThreshold
+		}
+	}
+	if c.shouldICheat() {
+		request += shared.Resources(float64(request) * c.params.selfishness)
+	}
+	// TODO request based on disaster prediction
+
+	return request
 }
 
 func (c *client) RuleProposal() string {

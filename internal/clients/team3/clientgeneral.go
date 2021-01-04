@@ -46,6 +46,8 @@ func (c *client) StartOfTurn() {
 	// TODO add any functions and vairable changes here
 	c.updateCompliance()
 	c.resetIIGOInfo()
+	gameState := c.ServerReadHandle.GetGameState()
+	c.Logf("Our Status: %+v\n", gameState.ClientInfo)
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
