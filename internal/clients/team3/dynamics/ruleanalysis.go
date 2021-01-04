@@ -65,8 +65,16 @@ func FindClosestApproach(ruleMatrix rules.RuleMatrix, namedInputs map[rules.Vari
 				// Append the restrictions to the dynamics
 				selectedDynamics = append(selectedDynamics, extraDynamics...)
 			}
+			copyOfSelectedDynamics := copySelectedDynamics(selectedDynamics)
 			// We are ready to use the findClosestApproach internal function
 			bestPosition := findClosestApproachInSubspace(ruleMatrix, selectedDynamics, *decodeValues(ruleMatrix, droppedInputs))
+			if ruleevaluation.RuleEvaluation(ruleMatrix, bestPosition) {
+				return laceOutputs(bestPosition, ruleMatrix, droppedInputs, namedInputs)
+			}
+			resolved, left, success3 := combineDefiniteApproaches(copyOfSelectedDynamics, fullSize)
+			if success3 {
+				bestPosition = findClosestApproachInSubspace(ruleMatrix, append(left, resolved), *decodeValues(ruleMatrix, droppedInputs))
+			}
 			return laceOutputs(bestPosition, ruleMatrix, droppedInputs, namedInputs)
 		}
 	}
@@ -84,20 +92,62 @@ func findClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dy
 		distances = append(distances, findDistanceToHyperplane(v.w, v.b, location))
 	}
 
-	indexOfSmall := getSmallest(distances)
+	indexOfSmall := getSmallestNonZero(distances)
 	closestApproach := calculateClosestApproach(dynamics[indexOfSmall], location)
-	if ruleevaluation.RuleEvaluation(matrixOfRules, location) {
+	if ruleevaluation.RuleEvaluation(matrixOfRules, closestApproach) {
 		return closestApproach
 	} else {
 		xSlice := dynamics[:indexOfSmall]
 		ySlice := dynamics[indexOfSmall+1:]
-		return findClosestApproachInSubspace(matrixOfRules, append(xSlice, ySlice...), location)
+		return findClosestApproachInSubspace(matrixOfRules, append(xSlice, ySlice...), closestApproach)
 	}
+}
+
+func copySelectedDynamics(orig []dynamic) []dynamic {
+	cpy := make([]dynamic, len(orig))
+	for i, val := range orig {
+		cpy[i] = val
+	}
+	return cpy
+}
+
+// combineDefiniteApproaches is a last ditch attempt to get a defined position if all else fails
+func combineDefiniteApproaches(selectedDynamics []dynamic, size int) (dynamic, []dynamic, bool) {
+	leftOver := []dynamic{}
+	if len(selectedDynamics) != 0 {
+		baseDynamic := dynamic{
+			w:   *mat.NewVecDense(size, generateEmpty(size)),
+			b:   0,
+			aux: 12,
+		}
+		for _, val := range selectedDynamics {
+			if val.aux == 0 {
+				if baseDynamic.aux == 12 {
+					baseDynamic = val
+				} else {
+					baseDynamic.w.AddScaledVec(&baseDynamic.w, -1, &val.w)
+					baseDynamic.b -= val.b
+				}
+			} else {
+				leftOver = append(leftOver, val)
+			}
+		}
+		return baseDynamic, leftOver, true
+	}
+	return dynamic{}, selectedDynamics, false
+}
+
+func generateEmpty(size int) []float64 {
+	final := []float64{}
+	for i := 0; i < size; i++ {
+		final = append(final, 0.0)
+	}
+	return final
 }
 
 // calculateClosestApproach works out the least squares closes point on hyperplane to current location
 func calculateClosestApproach(constraint dynamic, location mat.VecDense) mat.VecDense {
-	denom := math.Pow(float64(constraint.w.Len()), 2)
+	denom := math.Pow(mat.Norm(&constraint.w, 2), 2)
 	numer := -1 * constraint.b
 	nRows, _ := location.Dims()
 	for i := 0; i < nRows; i++ {
@@ -113,7 +163,7 @@ func calculateClosestApproach(constraint dynamic, location mat.VecDense) mat.Vec
 func BuildSelectedDynamics(matrixOfRules rules.RuleMatrix, auxiliaryVector mat.VecDense, selectedRules []int) []dynamic {
 	matrixVal := matrixOfRules.ApplicableMatrix
 	nRows, _ := matrixVal.Dims()
-	var returnDynamics []dynamic
+	returnDynamics := []dynamic{}
 	for i := 0; i < nRows; i++ {
 		if findInSlice(selectedRules, i) {
 			tempWeights := mat.VecDenseCopyOf(matrixVal.RowView(i))
@@ -233,7 +283,7 @@ func constructImmutableDynamic(immutable Input, reqVar []rules.VariableFieldName
 			deltaVect = append(deltaVect, 0)
 		}
 		for i := 0; i < len(immutable.Value); i++ {
-			deltaVect[i+index] = 0.0
+			deltaVect[i+index] = 1.0
 		}
 		w := mat.NewVecDense(len(deltaVect), deltaVect)
 		b := sumBValues(immutable.Value)
@@ -296,8 +346,22 @@ func decodeValues(rm rules.RuleMatrix, values map[rules.VariableFieldName][]floa
 	return varVect
 }
 
+func decodeWithConst(rm rules.RuleMatrix, values map[rules.VariableFieldName][]float64) *mat.VecDense {
+	var finalVariableVect []float64
+	for _, varName := range rm.RequiredVariables {
+		if value, ok := values[varName]; ok {
+			finalVariableVect = append(finalVariableVect, value...)
+		} else {
+			return nil
+		}
+	}
+	finalVariableVect = append(finalVariableVect, 1)
+	varVect := mat.NewVecDense(len(finalVariableVect), finalVariableVect)
+	return varVect
+}
+
 func evaluateSingle(rm rules.RuleMatrix, values map[rules.VariableFieldName][]float64) (outputVec mat.VecDense, success bool) {
-	varVect := decodeValues(rm, values)
+	varVect := decodeWithConst(rm, values)
 	if varVect != nil {
 		results := ruleevaluation.RuleMul(*varVect, rm.ApplicableMatrix)
 		return *results, true
@@ -309,7 +373,7 @@ func evaluateSingle(rm rules.RuleMatrix, values map[rules.VariableFieldName][]fl
 func IdentifyDeficiencies(b mat.VecDense, aux mat.VecDense) ([]int, error) {
 	if checkDimensions(b, aux) {
 		nRows, _ := b.Dims()
-		var outputData []int
+		outputData := []int{}
 		for i := 0; i < nRows; i++ {
 			if aux.AtVec(i) > 4 || aux.AtVec(i) < 0 {
 				return []int{}, errors.Errorf("Auxilliary vector at entry '%v' has aux code out of range: '%v'", i, aux.AtVec(i))

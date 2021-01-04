@@ -99,6 +99,7 @@ func BasicRealValuedRuleEvaluator(matrixRule rules.RuleMatrix, currentVals mat.V
 }
 
 func RuleEvaluation(matrixRule rules.RuleMatrix, currentVals mat.VecDense) bool {
+	currentVals = appendToCurrentVals(currentVals)
 	tense := false
 	nRows, _ := matrixRule.AuxiliaryVector.Dims()
 	output := false
@@ -113,4 +114,15 @@ func RuleEvaluation(matrixRule rules.RuleMatrix, currentVals mat.VecDense) bool 
 	}
 
 	return output
+}
+
+func appendToCurrentVals(prev mat.VecDense) mat.VecDense {
+	data := []float64{}
+	nRows, _ := prev.Dims()
+	for i := 0; i < nRows; i++ {
+		data = append(data, prev.AtVec(i))
+	}
+	data = append(data, 1)
+	newVec := mat.NewVecDense(len(data), data)
+	return *newVec
 }

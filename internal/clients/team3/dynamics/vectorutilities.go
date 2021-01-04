@@ -6,6 +6,16 @@ import (
 	"math"
 )
 
+func getSmallestNonZero(values []float64) int {
+	newList := []float64{}
+	for _, val := range values {
+		if val != 0 {
+			newList = append(newList, val)
+		}
+	}
+	return getSmallest(newList)
+}
+
 func getSmallest(values []float64) int {
 	currentLowest := values[0]
 	currentLowestIndex := 0
@@ -31,7 +41,7 @@ func findInSlice(input []int, val int) bool {
 func findDistanceToHyperplane(w mat.VecDense, b float64, x mat.VecDense) float64 {
 	v := mat.Dot(&w, &x) + b
 	v = math.Abs(v)
-	scaling := float64(w.Len())
+	scaling := float64(mat.Norm(&w, 2))
 	return v / scaling
 }
 
@@ -52,5 +62,7 @@ func calculateDistanceVecVec(a mat.VecDense, b mat.VecDense) (float64, error) {
 
 // checkDimensions will compare two vectors to see if they have the same dimensions
 func checkDimensions(a mat.VecDense, b mat.VecDense) bool {
-	return a.Dims() == b.Dims()
+	ax, ay := a.Dims()
+	bx, by := b.Dims()
+	return ax == bx && ay == by
 }
