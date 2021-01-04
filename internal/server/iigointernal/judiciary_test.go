@@ -505,6 +505,39 @@ func TestApplySanctions(t *testing.T) {
 
 /// Unit tests ///
 
+func TestCreateBroadcastForSanction(t *testing.T) {
+	cases := []struct {
+		name          string
+		clientID      shared.ClientID
+		tier          roles.IIGOSanctionTier
+		expectedComms map[shared.CommunicationFieldName]shared.CommunicationContent
+	}{
+		{
+			name:     "Basic broadcast",
+			clientID: shared.Team1,
+			tier:     roles.SanctionTier4,
+			expectedComms: map[shared.CommunicationFieldName]shared.CommunicationContent{
+				shared.SanctionClientID: {
+					T:           shared.CommunicationInt,
+					IntegerData: int(shared.Team1),
+				},
+				shared.IIGOSanctionTier: {
+					T:           shared.CommunicationInt,
+					IntegerData: int(roles.SanctionTier4),
+				},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := createBroadcastForSanction(tc.clientID, tc.tier)
+			if !reflect.DeepEqual(tc.expectedComms, res) {
+				t.Errorf("Expected %v got %v", tc.expectedComms, res)
+			}
+		})
+	}
+}
+
 func TestCreateBroadcastsForSanctionThresholds(t *testing.T) {
 	cases := []struct {
 		name                   string
