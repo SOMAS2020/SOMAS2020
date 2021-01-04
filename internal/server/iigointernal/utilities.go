@@ -1,10 +1,13 @@
 package iigointernal
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"gonum.org/v1/gonum/mat"
 )
 
 func broadcastToAllIslands(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
@@ -65,4 +68,44 @@ func boolToFloat(input bool) float64 {
 		return 1
 	}
 	return 0
+}
+
+// convertAmount takes the amount of tax/allocation and converts it into appropriate variable and rule ready to be sent to the client
+func convertAmount(amount shared.Resources, amountType conversionType) (rules.VariableValuePair, rules.RuleMatrix) {
+	var reqVar rules.VariableFieldName
+	var sentVar rules.VariableFieldName
+	var ruleVariables []rules.VariableFieldName
+	if amountType == tax {
+		reqVar, sentVar = rules.IslandTaxContribution, rules.ExpectedTaxContribution
+		// Rule in form IslandTaxContribution - ExpectedTaxContribution >= 0
+		ruleVariables = []rules.VariableFieldName{reqVar, sentVar}
+	} else if amountType == allocation {
+		reqVar, sentVar = rules.IslandAllocation, rules.ExpectedAllocation
+		// Rule in form ExpectedAllocation - IslandAllocation >= 0
+		ruleVariables = []rules.VariableFieldName{sentVar, reqVar}
+	}
+
+	v := []float64{1, -1, 0}
+	aux := []float64{2}
+
+	rowLength := len(ruleVariables) + 1
+	nrows := len(v) / rowLength
+
+	CoreMatrix := mat.NewDense(nrows, rowLength, v)
+	AuxiliaryVector := mat.NewVecDense(nrows, aux)
+
+	retRule := rules.RuleMatrix{
+		RuleName:          fmt.Sprintf("%s = %.2f", sentVar, amount),
+		RequiredVariables: ruleVariables,
+		ApplicableMatrix:  *CoreMatrix,
+		AuxiliaryVector:   *AuxiliaryVector,
+		Mutable:           false,
+	}
+
+	retVar := rules.VariableValuePair{
+		VariableName: sentVar,
+		Values:       []float64{float64(amount)},
+	}
+
+	return retVar, retRule
 }
