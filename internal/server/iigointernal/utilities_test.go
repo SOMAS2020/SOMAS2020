@@ -189,3 +189,132 @@ func TestCommunicateWithIslands(t *testing.T) {
 		})
 	}
 }
+
+func TestWithdrawFromCommonPool(t *testing.T) {
+	cases := []struct {
+		name             string
+		gamestate        *gamestate.GameState
+		inputValue       shared.Resources
+		expectedResource shared.Resources
+		expectedAmount   shared.Resources
+		expectedState    bool
+	}{
+		{
+			name: "Withdraw amount",
+			gamestate: &gamestate.GameState{
+				CommonPool: 300,
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 100},
+					shared.Team3: gamestate.ClientInfo{Resources: 100},
+				},
+			},
+			inputValue:       100,
+			expectedAmount:   100,
+			expectedResource: 200,
+			expectedState:    true,
+		},
+		{
+			name: "Withdraw negative amount",
+			gamestate: &gamestate.GameState{
+				CommonPool: 300,
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 100},
+					shared.Team3: gamestate.ClientInfo{Resources: 100},
+				},
+			},
+			inputValue:       -80,
+			expectedAmount:   -80,
+			expectedResource: 380,
+			expectedState:    true,
+		},
+		{
+			name: "Withdraw more than common pool",
+			gamestate: &gamestate.GameState{
+				CommonPool: 100,
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 70},
+					shared.Team3: gamestate.ClientInfo{Resources: 30},
+				},
+			},
+			inputValue:       250,
+			expectedAmount:   0,
+			expectedResource: 100,
+			expectedState:    false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			amount, state := WithdrawFromCommonPool(tc.inputValue, tc.gamestate)
+			commonPool := tc.gamestate.CommonPool
+			if amount != tc.expectedAmount || commonPool != tc.expectedResource || state != tc.expectedState {
+				t.Errorf("%v - Failed. Got '%v %v %v', but expected '%v %v %v'",
+					tc.name, amount, commonPool, state,
+					tc.expectedAmount, tc.expectedResource, tc.expectedState)
+			}
+		})
+	}
+}
+
+func TestDepositIntoClientPrivatePool(t *testing.T) {
+	cases := []struct {
+		name             string
+		gamestate        *gamestate.GameState
+		inputValue       shared.Resources
+		inputID          shared.ClientID
+		expectedResource shared.Resources
+	}{
+		{
+			name: "Deposit amount",
+			gamestate: &gamestate.GameState{
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 100},
+					shared.Team3: gamestate.ClientInfo{Resources: 100},
+				},
+			},
+			inputValue:       80,
+			inputID:          shared.Team2,
+			expectedResource: 180,
+		},
+		{
+			name: "Negative amount",
+			gamestate: &gamestate.GameState{
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 100},
+					shared.Team3: gamestate.ClientInfo{Resources: 100},
+				},
+			},
+			inputValue:       -80,
+			inputID:          shared.Team1,
+			expectedResource: 20,
+		},
+		{
+			name: "Negative resources",
+			gamestate: &gamestate.GameState{
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: gamestate.ClientInfo{Resources: 100},
+					shared.Team2: gamestate.ClientInfo{Resources: 70},
+					shared.Team3: gamestate.ClientInfo{Resources: 30},
+				},
+			},
+			inputValue:       -80,
+			inputID:          shared.Team3,
+			expectedResource: -50,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			depositIntoClientPrivatePool(tc.inputValue, tc.inputID, tc.gamestate)
+			participantResources := tc.gamestate.ClientInfos[tc.inputID].Resources
+			if participantResources != tc.expectedResource {
+				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, participantResources, tc.expectedResource)
+			}
+		})
+	}
+}
