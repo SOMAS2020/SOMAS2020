@@ -845,6 +845,14 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 	}
 }
 
+func expectedTax(r shared.ResourcesReport) shared.Resources {
+	if r.Reported {
+		return 0.1 * r.ReportedAmount
+	} else {
+		return 15
+	}
+}
+
 func TestBroadcastTaxation(t *testing.T) {
 	cases := []struct {
 		name          string
@@ -943,14 +951,9 @@ func TestBroadcastTaxation(t *testing.T) {
 					t.Errorf("Taxation failed for client %v. Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
 				}
 
-				var expectedTax float64
-				if resources.Reported {
-					expectedTax = 0.1 * float64(resources.ReportedAmount)
-				} else {
-					expectedTax = 15
-				}
+				expectedTax := expectedTax(resources)
 
-				if float64(taxAmount.ResourcesData) != expectedTax {
+				if taxAmount.ResourcesData != expectedTax {
 					t.Errorf("Taxation failed for client %v. Expected tax: %v, evaluated tax: %v", clientID, expectedTax, taxAmount.ResourcesData)
 				}
 
@@ -1003,6 +1006,109 @@ func TestBroadcastTaxation(t *testing.T) {
 					t.Errorf("Taxation failed for client %v. Rule evaluated to false after TaxContribution update", clientID)
 				}
 
+				// t.Logf("CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.ExpectedTaxContribution])
+			}
+
+		})
+	}
+}
+
+type fakeServerHandle struct {
+	PresidentID shared.ClientID
+	JudgeID     shared.ClientID
+	SpeakerID   shared.ClientID
+}
+
+func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
+	return gamestate.ClientGameState{
+		SpeakerID:   s.SpeakerID,
+		JudgeID:     s.JudgeID,
+		PresidentID: s.PresidentID,
+	}
+}
+
+func TestBroadcastTaxationClient(t *testing.T) {
+	cases := []struct {
+		name          string
+		bPresident    executive // base
+		commonPool    shared.Resources
+		clientReports map[shared.ClientID]shared.ResourcesReport
+	}{
+		{
+			name: "Simple test",
+			bPresident: executive{
+				PresidentID:     shared.Team4,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientReports: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {ReportedAmount: 30, Reported: true},
+				shared.Team2: {ReportedAmount: 9, Reported: true},
+				shared.Team3: {ReportedAmount: 15, Reported: true},
+				shared.Team4: {ReportedAmount: 20, Reported: true},
+				shared.Team5: {ReportedAmount: 25, Reported: true},
+				shared.Team6: {ReportedAmount: 40, Reported: true},
+			},
+			commonPool: 150,
+		},
+		{
+			name: "Some non-reports test",
+			bPresident: executive{
+				PresidentID:     shared.Team1,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientReports: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {ReportedAmount: 30, Reported: true},
+				shared.Team2: {Reported: false},
+				shared.Team3: {ReportedAmount: 15, Reported: true},
+				shared.Team4: {Reported: false},
+				shared.Team5: {ReportedAmount: 25, Reported: true},
+				shared.Team6: {Reported: false},
+			},
+			commonPool: 150,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			fakeClientMap := map[shared.ClientID]baseclient.Client{}
+			fakeGameState := gamestate.GameState{
+				CommonPool: tc.commonPool,
+				IIGORolesBudget: map[shared.Role]shared.Resources{
+					shared.President: 10,
+					shared.Speaker:   10,
+					shared.Judge:     10,
+				},
+			}
+			fakeGameConfig := config.IIGOConfig{
+				ReplyAllocationRequestsActionCost: 1,
+			}
+
+			fakeServer := fakeServerHandle{
+				PresidentID: tc.bPresident.PresidentID,
+			}
+
+			aliveID := []shared.ClientID{}
+
+			for clientID := range tc.clientReports {
+				aliveID = append(aliveID, clientID)
+				newClient := baseclient.NewClient(clientID)
+				newClient.Initialise(fakeServer)
+				fakeClientMap[clientID] = newClient
+			}
+
+			setIIGOClients(&fakeClientMap)
+			tc.bPresident.setGameState(&fakeGameState)
+			tc.bPresident.setGameConfig(&fakeGameConfig)
+			tc.bPresident.broadcastTaxation(tc.clientReports, aliveID)
+
+			for clientID, resources := range tc.clientReports {
+				expectedTax := expectedTax(resources)
+				paidTax := fakeClientMap[clientID].GetTaxContribution()
+
+				if expectedTax != paidTax {
+					t.Errorf("Taxation failed for client %v. expected to pay %v, got tax contribution %v", clientID, expectedTax, paidTax)
+				}
 				// t.Logf("CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.ExpectedTaxContribution])
 			}
 

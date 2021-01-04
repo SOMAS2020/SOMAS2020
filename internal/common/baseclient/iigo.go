@@ -53,7 +53,18 @@ func (c *BaseClient) TaxTaken(shared.Resources) {
 // GetTaxContribution gives value of how much the island wants to pay in taxes
 func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// TODO: Implement common pool contribution greater than or equal to tax.
-	return 0
+	gameState := c.ServerReadHandle.GetGameState()
+	presidentCommunications := c.Communications[gameState.PresidentID]
+	var latestTax map[shared.CommunicationFieldName]shared.CommunicationContent
+	for i := range presidentCommunications {
+		msg := presidentCommunications[len(presidentCommunications)-1-i]
+		if isTaxMsg(msg) {
+			latestTax = msg
+			break
+		}
+	}
+
+	return latestTax[shared.TaxAmount].ResourcesData
 }
 
 // GetSanctionPayment gives the value of how much the island is paying in sanctions
@@ -64,5 +75,16 @@ func (c *BaseClient) GetSanctionPayment() shared.Resources {
 // RequestAllocation FIXME: Add documentation. What does this function do?
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
-	return 0
+	gameState := c.ServerReadHandle.GetGameState()
+	presidentCommunications := c.Communications[gameState.PresidentID]
+	var latestAllocation map[shared.CommunicationFieldName]shared.CommunicationContent
+	for i := range presidentCommunications {
+		msg := presidentCommunications[len(presidentCommunications)-1-i]
+		if isAllocationMsg(msg) {
+			latestAllocation = msg
+			break
+		}
+	}
+
+	return latestAllocation[shared.TaxAmount].ResourcesData
 }
