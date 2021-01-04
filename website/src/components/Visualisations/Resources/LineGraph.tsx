@@ -1,8 +1,8 @@
 import React from "react";
-import { Brush, ResponsiveContainer, LineChart, Line, YAxis, XAxis, CartesianGrid, Tooltip, Legend, Surface, Symbols, ReferenceLine } from 'recharts';
+import { LegendProps, Brush, ResponsiveContainer, LineChart, Line, YAxis, XAxis, CartesianGrid, Tooltip, Legend, Surface, Symbols, ReferenceLine } from 'recharts';
 import outputJSON from '../../../output/output.json';
+//import { OutputJSONType } from "../../../consts/types";
 import _ from "lodash";
-
 
 class LineRechartComponent extends React.Component<{}, any> {
 
@@ -31,26 +31,21 @@ class LineRechartComponent extends React.Component<{}, any> {
     }
 
     handleClick = dataKey => {
-        const { disabled } = this.state;
-        if (disabled.includes(dataKey)) {
-            this.setState({
-                disabled: this.state.disabled.filter(obj => obj !== dataKey)
-            });
-        }
-        else {
-            this.setState({
-                disabled: this.state.disabled.concat(dataKey)
-            });
-        }
+        this.setState({
+            disabled: this.state.disabled.includes(dataKey)
+              ? this.state.disabled.filter((obj) => obj !== dataKey)
+              : this.state.disabled.concat(dataKey),
+          });
+      
     };
 
-    renderCustomizedLegend = ({ payload }) => {
+    renderCustomizedLegend = ({ payload }: LegendProps) => {
         return (
             <div className="customized-legend">
-                {payload.map(entry => {
-                    const { dataKey, colour } = entry;
+                {payload?.map(entry => {
+                    const { value, color } = entry;
                     const { disabled } = this.state;
-                    const active = disabled.includes(dataKey);
+                    const active = disabled.includes(value);
                     const style = {
                         marginRight: 10,
                         colour: active ? "#AAA" : "#000"
@@ -59,11 +54,11 @@ class LineRechartComponent extends React.Component<{}, any> {
                     return (
                         <span
                             className="legend-item"
-                            onClick={() => this.handleClick(dataKey)}
+                            onClick={() => this.handleClick(value)}
                             style={style}
                         >
-                            <Surface width={10} height={10} viewBox="0 0 10 10" >
-                                <Symbols cx={5} cy={5} type="circle" size={50} fill={colour} />
+                            <Surface width={10} height={10} viewBox={{x:0, y:0, width:10, height:10}} >
+                                <Symbols cx={5} cy={5} type="circle" size={50} fill={color} />
                                 {active && (
                                     <Symbols
                                         cx={5}
@@ -74,7 +69,7 @@ class LineRechartComponent extends React.Component<{}, any> {
                                     />
                                 )}
                             </Surface>
-                            <span>{dataKey}</span>
+                            <span>{value}</span>
                         </span>
                     )
                 })}
@@ -98,7 +93,7 @@ class LineRechartComponent extends React.Component<{}, any> {
             <ResponsiveContainer height={330} width="95%">
                 <LineChart data={this.state.chartData.GameStates}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    {_.toPairs(this.state.lineColours)
+                    {_.toPairs<string>(this.state.lineColours)
                         .filter(pair => !_.includes(this.state.disabled, pair[0]))
                         .map(pair => (
                             <Line
@@ -126,9 +121,11 @@ class LineRechartComponent extends React.Component<{}, any> {
                         align="center"
                         height={20}
                         wrapperStyle={{ top: 0, left: 25, right: 0, width: 'auto' }}
-                        payload={_.toPairs(this.state.lineColours).map(pair => ({
-                            dataKey: pair[0],
-                            colour: pair[1],
+                        payload={_.toPairs<string>(this.state.lineColours).map(pair => ({
+                            value: pair[0],
+                            color: pair[1], 
+                            type: "circle",
+                            id: `${pair[0]}${pair[1]}`
                         }))}
 
                         content={this.renderCustomizedLegend}
