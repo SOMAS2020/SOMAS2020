@@ -73,7 +73,7 @@ const (
 	JudgeInspectionPerformed
 	VoteResultAnnounced
 	IslandsAllowedToVote
-	SpeakerRuleProposal
+	SpeakerProposedPresidentRule
 	PresidentRuleProposal
 	HasIslandReportPrivateResources
 	IslandActualPrivateResources
@@ -110,7 +110,7 @@ func (v VariableFieldName) String() string {
 		"JudgeInspectionPerformed",
 		"VoteResultAnnounced",
 		"IslandsAllowedToVote",
-		"SpeakerRuleProposal",
+		"SpeakerProposedPresidentRule",
 		"PresidentRuleProposal",
 		"HasIslandReportPrivateResources",
 		"IslandActualPrivateResources",

@@ -116,8 +116,14 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 	valuesToCache := [][]float64{{float64(len(clientIDs))}}
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
-	variablesToCache = []rules.VariableFieldName{rules.SpeakerRuleProposal, rules.PresidentRuleProposal}
-	valuesToCache = [][]float64{{float64(len(ruleID))}, {float64(len(l.ruleToVote))}}
+	rulesEqual := false
+	if ruleID == l.ruleToVote {
+		rulesEqual = true
+	}
+
+	variablesToCache = []rules.VariableFieldName{rules.SpeakerProposedPresidentRule}
+	valuesToCache = [][]float64{{boolToFloat(rulesEqual)}}
+
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
 	return ruleVote.GetBallotBox()
@@ -159,13 +165,6 @@ func generateVotingResultMessage(ruleID string, result bool) map[shared.Communic
 	}
 
 	return returnMap
-}
-
-//reset resets internal variables for safety
-func (l *legislature) reset() {
-	l.ruleToVote = ""
-	l.ballotBox = voting.BallotBox{}
-	l.votingResult = false
 }
 
 // updateRules updates the rules in play according to the result of a vote.

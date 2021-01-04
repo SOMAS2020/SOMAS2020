@@ -142,10 +142,10 @@ func registerRulesByMass() {
 		{
 			Name: "rule_to_vote_on_rule",
 			ReqVar: []VariableFieldName{
-				SpeakerRuleProposal,
-				PresidentRuleProposal,
+
+				SpeakerProposedPresidentRule,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
 			Linked:  false,
