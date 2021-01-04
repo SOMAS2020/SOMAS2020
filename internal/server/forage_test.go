@@ -31,7 +31,7 @@ func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, re
 var envConf = config.DisasterConfig{
 	XMax:            10,
 	YMax:            10,
-	GlobalProb:      0.1,
+	Period:          10,
 	SpatialPDFType:  shared.Uniform,
 	MagnitudeLambda: 1.0,
 }
