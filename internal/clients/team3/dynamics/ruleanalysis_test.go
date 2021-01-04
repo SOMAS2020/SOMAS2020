@@ -244,7 +244,7 @@ func TestFetchImmutableInputs(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			res := fetchImmutableInputs(tc.namedInputs)
-			if !reflect.DeepEqual(res, tc.expectedVars) {
+			if !checkVariableFieldNameListsAreEqual(res, tc.expectedVars) {
 				t.Errorf("Expected %v got %v", tc.expectedVars, res)
 			}
 		})
@@ -755,6 +755,18 @@ func checkDynamicListsAreEqual(lst1 []dynamic, lst2 []dynamic) bool {
 	}
 	for _, inp := range lst2 {
 		map2[inp.b] = 0
+	}
+	return reflect.DeepEqual(map1, map2)
+}
+
+func checkVariableFieldNameListsAreEqual(lst1 []rules.VariableFieldName, lst2 []rules.VariableFieldName) bool {
+	map1 := make(map[rules.VariableFieldName]int)
+	map2 := make(map[rules.VariableFieldName]int)
+	for _, inp := range lst1 {
+		map1[inp] = 0
+	}
+	for _, inp := range lst2 {
+		map2[inp] = 0
 	}
 	return reflect.DeepEqual(map1, map2)
 }
