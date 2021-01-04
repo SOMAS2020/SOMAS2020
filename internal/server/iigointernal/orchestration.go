@@ -19,16 +19,16 @@ var AllocationAmountMapExport map[shared.ClientID]shared.Resources
 // SanctionAmountMapExport is a local sanction map for sanctions
 var SanctionAmountMapExport map[shared.ClientID]shared.Resources
 
-// Pointers allow clients to customise implementations of mutable functions
-var judgePointer roles.Judge = nil
-var speakerPointer roles.Speaker = nil
-var presidentPointer roles.President = nil
-
 // iigoClients holds pointers to all the clients
 var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
+
+	// Pointers allow clients to customise implementations of mutable functions
+	var judgePointer roles.Judge = nil
+	var speakerPointer roles.Speaker = nil
+	var presidentPointer roles.President = nil
 
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
