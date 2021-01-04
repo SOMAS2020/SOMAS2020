@@ -93,7 +93,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			anxietyThreshold:               20,
 			desperateStealAmount:           30,
 			evadeTaxes:                     false,
-			kickstartTaxPercent:            0.25,
+			kickstartTaxPercent:            0,
 			forageContributionCapPercent:   0.2,
 			forageContributionNoisePercent: 0.01,
 			maxOpinion:                     10,
