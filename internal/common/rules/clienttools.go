@@ -5,6 +5,8 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+// ComplianceCheck Gives a simple check for compliance to clients, they just need to feed in a RuleMatrix and the
+// variable cache they want to feed from
 func ComplianceCheck(rule RuleMatrix, variables map[VariableFieldName]VariableValuePair) (compliant bool, ruleError error) {
 	if checkAllVariablesAvailable(rule.RequiredVariables, variables) {
 		evalResult := EvaluateRuleFromCaches(rule.RuleName, map[string]RuleMatrix{
@@ -18,6 +20,8 @@ func ComplianceCheck(rule RuleMatrix, variables map[VariableFieldName]VariableVa
 	}
 }
 
+// ComplianceRecommendation *attempts* to calculate a set of variables that comply with a rule if the
+// input variables don't satisfy it already
 func ComplianceRecommendation(rule RuleMatrix, variables map[VariableFieldName]VariableValuePair) (map[VariableFieldName]VariableValuePair, bool) {
 	slicedValues, fixed, success := fetchRequiredVariables(rule.RequiredVariables, variables)
 	if success {
