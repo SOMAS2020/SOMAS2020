@@ -118,7 +118,7 @@ func registerRulesByMass() {
 			Linked:  false,
 		},
 		{
-			Name: "vote_called_rule",
+			Name: "vote_result_rule",
 			ReqVar: []VariableFieldName{
 				VoteResultAnnounced,
 				VoteCalled,
