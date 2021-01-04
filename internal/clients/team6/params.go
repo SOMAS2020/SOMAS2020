@@ -10,11 +10,20 @@ type GiftsReceivedHistory map[shared.ClientID]shared.Resources
 
 type Personality int
 
+type ForageHistory map[shared.ForageType][]ForageResults
+
+type FavourRules []string
+
 const (
 	Selfish Personality = iota
 	Normal
 	Generous
 )
+
+type ForageResults struct {
+	forageIn     shared.Resources
+	forageReturn shared.Resources
+}
 
 // Config configures our island's initial state
 type Config struct {

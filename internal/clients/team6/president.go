@@ -1,3 +1,4 @@
+// team 6's implementation of the President
 package team6
 
 import (

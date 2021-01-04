@@ -2,9 +2,11 @@
 package team6
 
 import (
+	"math/rand"
+	"sort"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -23,7 +25,8 @@ type client struct {
 	giftsOfferedHistory  map[shared.ClientID]shared.Resources
 	giftsReceivedHistory map[shared.ClientID]shared.Resources
 
-	config Config
+	config        Config
+	forageHistory ForageHistory
 }
 
 func init() {
@@ -40,160 +43,41 @@ func init() {
 }
 
 // ########################
-// ######  Foraging  ######
+// ######  General  #######
 // ########################
 
-// ------ TODO: COMPULSORY ------
-func (c *client) DecideForage() (shared.ForageDecision, error) {
-	return c.BaseClient.DecideForage()
+//used for sorting the friendship
+type Pair struct {
+	Key   shared.ClientID
+	Value uint
 }
 
-func (c *client) ForageUpdate(forageDecision shared.ForageDecision, resources shared.Resources) {
-	c.BaseClient.ForageUpdate(forageDecision, resources)
-}
+// A slice of Pairs that implements sort.Interface to sort by Value.
+type PairList []Pair
 
-// ########################
-// ######    IITO    ######
-// ########################
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Less(i, j int) bool { return p[i].Value < p[j].Value }
 
-func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
-	offers := shared.GiftOfferDict{}
-	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
-	ourPersonality := c.getPersonality()
-	friendshipCoffesOnOffer := make(map[shared.ClientID]shared.GiftOffer)
-
-	for team, fsc := range c.getFriendshipCoeffs() {
-		friendshipCoffesOnOffer[team] = shared.GiftOffer(fsc)
+// A function to turn a map into a PairList, then sort and return it.
+func sortMapByValue(m map[shared.ClientID]uint) PairList {
+	p := make(PairList, len(m))
+	i := 0
+	for k, v := range m {
+		p[i] = Pair{k, v}
 	}
-
-	if ourStatus == shared.Critical {
-		// rejects all offers if we are in critical status
-		return offers
-	}
-
-	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		amountOffer := shared.GiftOffer(0.0)
-
-		if status == shared.Critical {
-			// offers a minimum resources to all islands which are in critical status
-			// TODO: what is the best amount to offer???
-			offers[team] = shared.GiftOffer(10.0)
-		} else if amountRequested, found := receivedRequests[team]; found {
-			// otherwise gifts will be offered based on our friendship and the amount
-			if shared.Resources(amountRequested) > ourResources/6.0 {
-				amountOffer = shared.GiftOffer(ourResources / 6.0)
-			} else {
-				amountOffer = shared.GiftOffer(amountRequested)
-			}
-
-			if ourPersonality == Selfish {
-				// introduces high penalty on the gift offers if we are selfish
-				// yes, we are very stingy in this case ;)
-				offers[team] = shared.GiftOffer(friendshipCoffesOnOffer[team] * friendshipCoffesOnOffer[team] * amountOffer)
-			} else if ourPersonality == Normal {
-				// introduces normal penalty
-				offers[team] = shared.GiftOffer(friendshipCoffesOnOffer[team] * amountOffer)
-			} else {
-				// intorduces no penalty - we are rich!
-				offers[team] = shared.GiftOffer(amountOffer)
-			}
-
-		}
-	}
-
-	// TODO: implement different wealth state for our island so we can decided
-	// whether to be generous or not --finished
-	return offers
+	sort.Sort(p)
+	return p
 }
 
-// ------ TODO: COMPULSORY ------
-func (c *client) GetGiftRequests() shared.GiftRequestDict {
-	return c.BaseClient.GetGiftRequests()
-}
-
-func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict {
-	return c.BaseClient.GetGiftResponses(receivedOffers)
-}
-
-func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
-
-}
-
-func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
-
-}
-
-func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
-
-}
-
-func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	return c.BaseClient.DecideGiftAmount(toTeam, giftOffer)
-}
+func (c *client) StartOfTurn() {}
 
 // ########################
-// ######    IIFO    ######
-// ########################
-
-// ------ TODO: COMPULSORY ------
-func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
-	return c.BaseClient.MakeDisasterPrediction()
-}
-
-func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
-	c.BaseClient.ReceiveDisasterPredictions(receivedPredictions)
-}
-
-// ------ TODO: OPTIONAL ------
-func (c *client) MakeForageInfo() shared.ForageShareInfo {
-	return c.BaseClient.MakeForageInfo()
-}
-
-func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
-	c.BaseClient.ReceiveForageInfo(neighbourForaging)
-}
-
-// ########################
-// ######    IIGO    ######
-// ########################
-
-func (c *client) GetClientPresidentPointer() roles.President {
-	return &president{client: c}
-}
-
-func (c *client) GetClientJudgePointer() roles.Judge {
-	return &judge{client: c}
-}
-
-func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	return &speaker{client: c}
-}
-
-// ------ TODO: COMPULSORY ------
-func (c *client) MonitorIIGORole(roleName shared.Role) bool {
-	return c.BaseClient.MonitorIIGORole(roleName)
-}
-
-func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
-	return c.BaseClient.DecideIIGOMonitoringAnnouncement(monitoringResult)
-}
-
-// ########################
-// ######  Disaster  ######
-// ########################
-
-//------ TODO: OPTIONAL ------
-func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disasters.DisasterEffects) {
-	c.BaseClient.DisasterNotification(dR, effects)
-}
-
-// ########################
-// ######   Utils   #######
+// ###### Friendship ######
 // ########################
 
 // increases the friendship level with some other islands
-func (c *client) raiseFriendshipLevel(clientID shared.ClientID) {
+func (c *client) RaiseFriendshipLevel(clientID shared.ClientID) {
 	currFriendship := c.friendship[clientID]
 
 	if currFriendship == MaxFriendship {
@@ -204,7 +88,7 @@ func (c *client) raiseFriendshipLevel(clientID shared.ClientID) {
 }
 
 // decreases the friendship level with some other islands
-func (c *client) lowerFriendshipLevel(clientID shared.ClientID) {
+func (c *client) LowerFriendshipLevel(clientID shared.ClientID) {
 	currFriendship := c.friendship[clientID]
 
 	if currFriendship == MinFriendship {
@@ -237,4 +121,58 @@ func (c client) getPersonality() Personality {
 
 	// TODO: more cases to have?
 	return Generous
+}
+
+// ########################
+// ######  Foraging  ######
+// ########################
+func chooseForageType() int {
+	return int(shared.DeerForageType)
+}
+
+func (c *client) DecideForage() (shared.ForageDecision, error) {
+	ft := chooseForageType()
+	return shared.ForageDecision{
+		Type:         shared.ForageType(ft),
+		Contribution: shared.Resources(rand.Float64() * 20),
+	}, nil
+}
+
+func (c *client) ForageUpdate(shared.ForageDecision, shared.Resources) {}
+
+/*
+------ TODO: OPTIONAL ------
+func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
+*/
+
+// ########################
+// ######  Voting  ########
+// ########################
+// GetVoteForRule returns the client's vote in favour of or against a rule.
+func (c *client) GetVoteForRule(ruleName string) bool {
+	for _, val := range c.favourRules {
+		if val == ruleName {
+			return true
+		}
+	}
+	return false
+}
+
+// GetVoteForElection returns the client's Borda vote for the role to be elected.
+// COMPULSORY: use opinion formation to decide a rank for islands for the role
+func (c *client) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
+	// Done ;)
+	// Get all alive islands
+	aliveClients := rules.VariableMap[rules.IslandsAlive]
+	// Convert to ClientID type and place into unordered map
+	aliveClientIDs := map[int]shared.ClientID{}
+	for i, v := range aliveClients.Values {
+		aliveClientIDs[i] = shared.ClientID(int(v))
+	}
+	// Recombine map, in shuffled order
+	var returnList []shared.ClientID
+	for _, v := range aliveClientIDs {
+		returnList = append(returnList, v)
+	}
+	return returnList
 }
