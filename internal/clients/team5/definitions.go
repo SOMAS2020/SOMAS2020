@@ -106,6 +106,10 @@ type clientConfig struct {
 type client struct {
 	*baseclient.BaseClient
 
+	// Roles
+	team5Speaker	speaker
+	team5Judge		judge
+
 	// History
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
@@ -113,9 +117,8 @@ type client struct {
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
 
+	// IIGO communication
 	taxAmount shared.Resources
-
-	// allocation is the president's response to your last common pool resource request
 	allocation shared.Resources
 
 	config clientConfig
