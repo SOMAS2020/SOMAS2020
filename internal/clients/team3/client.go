@@ -19,7 +19,7 @@ type client struct {
 	// ## Gifting ##
 
 	acceptedGifts        map[shared.ClientID]int
-	requestedGiftAmounts map[shared.ClientID]shared.Resources
+	requestedGiftAmounts map[shared.ClientID]shared.GiftRequest
 	receivedResponses    []shared.GiftResponse
 
 	// ## Trust ##
@@ -79,6 +79,7 @@ type islandParams struct {
 	salaryThreshold             float64
 	localPoolThreshold          float64
 	giftInflationPercentage     float64
-	giftConstantAdjustor        int
+	trustConstantAdjustor       int
 	trustParameter              float64
+	giftOfferEquity             float64
 }

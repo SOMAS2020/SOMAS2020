@@ -36,7 +36,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	c.params.giftInflationPercentage = 0.2
 	c.params.localPoolThreshold = 150
 	c.params.trustParameter = 0.8
-	c.params.giftConstantAdjustor = 10
+	c.params.trustConstantAdjustor = 10
 
 	requests := shared.GiftRequestDict{}
 
@@ -56,15 +56,100 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 		} else {
 			var requestAmt float64
 			if c.trustScore[island] >= 50 {
-				requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.trustParameter) * float64(c.params.giftConstantAdjustor)
+				requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.trustParameter) * float64(c.params.trustConstantAdjustor)
 			} else {
-				requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], -c.params.trustParameter) * float64(c.params.giftConstantAdjustor)
+				requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], -c.params.trustParameter) * float64(c.params.trustConstantAdjustor)
 			}
 			requests[island] = shared.GiftRequest(requestAmt)
 		}
 	}
 
+	c.requestedGiftAmounts = requests
 	return requests
+}
+
+func findAvgExclMinMax(Requests shared.GiftRequestDict) shared.GiftRequest {
+	var sum shared.GiftRequest
+	minClient := shared.TeamIDs[0]
+	maxClient := shared.TeamIDs[0]
+
+	// Find min and max requests
+	for island, request := range Requests {
+		if request < Requests[minClient] {
+			minClient = island
+		}
+		if request > Requests[maxClient] {
+			maxClient = island
+		}
+	}
+
+	// Compute average ignoring highest and lowest
+	for island, request := range Requests {
+		if island != minClient || island != maxClient {
+			sum += request
+		}
+	}
+
+	return shared.GiftRequest(int(sum) / len(shared.TeamIDs))
+}
+
+// GetGiftResponses allows clients to accept gifts offered by other clients.
+// It also needs to provide a reasoning should it not accept the full amount.
+func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
+	offers := shared.GiftOfferDict{}
+
+	if shared.ClientLifeStatus(2) == shared.Critical {
+		for island := range receivedRequests {
+			offers[island] = 0.0
+		}
+		return offers
+	}
+
+	var amounts map[shared.ClientID]shared.GiftRequest
+	var allocations, allocWeights map[shared.ClientID]float64
+	var allocSum float64
+	var avgAmount, avgRequest shared.GiftRequest
+	var totalRequestedAmt float64
+	var sumRequest shared.GiftRequest
+
+	for island, request := range receivedRequests {
+		sumRequest += request
+		if c.trustScore[island] > 50 {
+			amounts[island] = request * shared.GiftRequest(math.Pow(c.trustScore[island], c.params.trustParameter)*float64(c.params.trustConstantAdjustor))
+		} else {
+			amounts[island] = request * shared.GiftRequest(math.Pow(c.trustScore[island], -c.params.trustParameter)*float64(c.params.trustConstantAdjustor))
+		}
+	}
+
+	avgRequest = findAvgExclMinMax(receivedRequests)
+	avgAmount = findAvgExclMinMax(amounts)
+
+	for island, amount := range amounts {
+		allocations[island] = float64(avgRequest) + c.params.giftOfferEquity*float64((avgAmount-amount)+(receivedRequests[island]-avgRequest))
+		allocations[island] = math.Max(float64(receivedRequests[island]), allocations[island])
+	}
+
+	for _, alloc := range allocations {
+		allocSum += alloc
+	}
+	for island, alloc := range allocations {
+		allocWeights[island] = alloc / allocSum
+	}
+
+	for _, requests := range c.requestedGiftAmounts {
+		totalRequestedAmt += float64(requests)
+	}
+	giftBudget := c.params.localPoolThreshold - c.localPool + totalRequestedAmt
+
+	for island := range receivedRequests {
+		if float64(sumRequest) < giftBudget {
+			offers[island] = shared.GiftOffer(allocWeights[island] * float64(sumRequest))
+		} else {
+			offers[island] = shared.GiftOffer(allocWeights[island] * giftBudget)
+		}
+	}
+
+	return offers
 }
 
 // GetGiftResponses returns the result of our island accepting/rejecting offered amounts.
@@ -94,7 +179,7 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	for clientID := range receivedResponses {
 		c.localPool += float64(receivedResponses[clientID].AcceptedAmount)
-		trustAdjustor := receivedResponses[clientID].AcceptedAmount - c.requestedGiftAmounts[clientID]
+		trustAdjustor := receivedResponses[clientID].AcceptedAmount - shared.Resources(c.requestedGiftAmounts[clientID])
 		newTrustScore := 10 + (trustAdjustor * 0.2)
 		if trustAdjustor >= 0 {
 			c.updatetrustMapAgg(clientID, float64(newTrustScore))
