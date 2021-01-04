@@ -74,6 +74,7 @@ const (
 	MonitoringResult
 	IIGOSanctionTier
 	IIGOSanctionScore
+	SanctionClientID
 )
 
 func (c CommunicationFieldName) String() string {
@@ -94,6 +95,7 @@ func (c CommunicationFieldName) String() string {
 		"MonitoringResult",
 		"IIGOSanctionTier",
 		"IIGOSanctionScore",
+		"SanctionClientID",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]

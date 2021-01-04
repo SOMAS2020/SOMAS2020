@@ -21,15 +21,6 @@ const (
 	Team6
 )
 
-/*const (
-	// President Role
-	President int = iota
-	// Speaker Role
-	Speaker
-	// Judge Role
-	Judge
-)*/
-
 // SortClientByID implements sort.Interface for []ClientID
 type SortClientByID []ClientID
 

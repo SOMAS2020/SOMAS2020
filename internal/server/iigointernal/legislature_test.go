@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -24,6 +25,7 @@ func TestRuleVotedIn(t *testing.T) {
 	}
 	s := legislature{
 		gameState: &fakeGameState,
+		gameConf:  &config.IIGOConfig{},
 	}
 	cases := []struct {
 		name          string
@@ -86,6 +88,7 @@ func TestRuleVotedOut(t *testing.T) {
 	}
 	s := legislature{
 		gameState: &fakeGameState,
+		gameConf:  &config.IIGOConfig{},
 	}
 	cases := []struct {
 		name          string
