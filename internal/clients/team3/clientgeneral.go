@@ -50,6 +50,9 @@ func (c *client) StartOfTurn() {
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
+	c.ourSpeaker = speaker{c: c}
+	c.ourJudge = judge{c: c}
+	c.ourPresident = president{c: c}
 	// Initialise variables
 }
 
