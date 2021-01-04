@@ -90,6 +90,35 @@ func (c *client) resetIIGOInfo() {
 	c.last_sanctions = 0
 }
 
+func (c *client) GetTaxContribution() shared.Resources {
+	commonPool := c.BaseClient.ServerReadHandle.GetGameState().CommonPool
+	totalToPay := 100 - commonPool
+	if len(c.disasterPredictions) != 0 {
+		if disaster, ok := c.disasterPredictions[int(c.BaseClient.ServerReadHandle.GetGameState().Turn)][c.BaseClient.GetID()]; ok {
+			totalToPay = (shared.Resources(disaster.Magnitude) - commonPool) / shared.Resources(disaster.TimeLeft)
+		}
+	}
+	sumTrust := 0.0
+	for id, trust := range c.trustScore {
+		if id != c.BaseClient.GetID() {
+			sumTrust += trust
+		} else {
+			sumTrust += (1 - c.params.selfishness) * 100
+		}
+	}
+	toPay := (totalToPay / shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
+	targetResources := shared.Resources(2-c.params.riskFactor) * (c.criticalStatePrediction.upperBound)
+	if c.getLocalResources()-toPay <= targetResources {
+		toPay = shared.Resources(math.Max(float64(c.getLocalResources()-targetResources), 0.0))
+	}
+	if (c.iigoInfo.taxationAmount > toPay) && !c.shouldICheat() {
+		return c.iigoInfo.taxationAmount
+	}
+	c.clientPrint("Paying %v in tax", toPay)
+	return toPay
+
+}
+
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client.
 // This function is overridden to receive information and update local info accordingly.
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
