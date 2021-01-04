@@ -4,6 +4,7 @@ Main repository for SOMAS2020 Coursework.
 
 - [Setup & Rules](./docs/SETUP.md)
 - [Infra Info](./docs/INFRA.md)
+- [Simulation Execution Order](./docs/EXECUTION_ORDER.md)
 
 ## Running code
 ```bash
@@ -28,9 +29,16 @@ After running, the `output` directory will contain the output of the program.
 ### Visualisation Website
 See [`website/README.md`](website/README.md)
 
-### WebAssembly Output
+### WebAssembly Build
 
-A script is provided to compile the program into WebAssembly for use in the website.
+Scripts provided to compile the program into WebAssembly for the website.
+
+#### If you have `node`
+```bash
+node ./website/scripts/buildWasm.js
+```
+
+#### Otherwise
 
 On Linux/maxOS,
 ```bash

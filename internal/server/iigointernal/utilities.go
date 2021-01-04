@@ -41,6 +41,28 @@ func WithdrawFromCommonPool(value shared.Resources, gameState *gamestate.GameSta
 	}
 }
 
+func depositIntoClientPrivatePool(value shared.Resources, id shared.ClientID, state *gamestate.GameState) {
+	participantInfo := state.ClientInfos[id]
+	participantInfo.Resources += value
+	state.ClientInfos[id] = participantInfo
+}
+
 func depositIntoCommonPool(value shared.Resources, state *gamestate.GameState) {
 	state.CommonPool += value
+}
+
+func Contains(islandIDSlice []shared.ClientID, islandID shared.ClientID) bool {
+	for _, a := range islandIDSlice {
+		if a == islandID {
+			return true
+		}
+	}
+	return false
+}
+
+func boolToFloat(input bool) float64 {
+	if input {
+		return 1
+	}
+	return 0
 }
