@@ -427,7 +427,7 @@ func TestApplySanctions(t *testing.T) {
 				{
 					ClientID:     shared.Team1,
 					SanctionTier: roles.SanctionTier1,
-					TurnsLeft:    sanctionLength,
+					TurnsLeft:    2,
 				},
 			},
 		},
@@ -443,17 +443,17 @@ func TestApplySanctions(t *testing.T) {
 				{
 					ClientID:     shared.Team1,
 					SanctionTier: roles.SanctionTier1,
-					TurnsLeft:    sanctionLength,
+					TurnsLeft:    2,
 				},
 				{
 					ClientID:     shared.Team2,
 					SanctionTier: roles.SanctionTier2,
-					TurnsLeft:    sanctionLength,
+					TurnsLeft:    2,
 				},
 				{
 					ClientID:     shared.Team3,
 					SanctionTier: roles.SanctionTier3,
-					TurnsLeft:    sanctionLength,
+					TurnsLeft:    2,
 				},
 			},
 		},
@@ -475,17 +475,17 @@ func TestApplySanctions(t *testing.T) {
 				{
 					ClientID:     shared.Team1,
 					SanctionTier: roles.NoSanction,
-					TurnsLeft:    sanctionLength,
+					TurnsLeft:    2,
 				},
 				{
 					ClientID:     shared.Team2,
 					SanctionTier: roles.SanctionTier1,
-					TurnsLeft:    sanctionLength,
+					TurnsLeft:    2,
 				},
 				{
 					ClientID:     shared.Team3,
 					SanctionTier: roles.SanctionTier4,
-					TurnsLeft:    sanctionLength,
+					TurnsLeft:    2,
 				},
 			},
 		},
@@ -495,6 +495,7 @@ func TestApplySanctions(t *testing.T) {
 			judiciaryInst := defaultInitJudiciary()
 			judiciaryInst.sanctionRecord = tc.sanctionRecord
 			judiciaryInst.sanctionThresholds = tc.sanctionThresholds
+			judiciaryInst.gameConf.SanctionLength = 2
 			judiciaryInst.applySanctions()
 			if !checkListOfSanctionEquals(tc.expectedSanctions, judiciaryInst.localSanctionCache[0]) {
 				t.Errorf("Expected %v got %v", tc.expectedSanctions, judiciaryInst.localSanctionCache[0])
@@ -620,7 +621,7 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 	}{
 		{
 			name:               "Basic evaluations: no sanction",
-			localSanctionCache: defaultInitLocalSanctionCache(sanctionCacheDepth),
+			localSanctionCache: defaultInitLocalSanctionCache(3),
 			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
 				shared.Team1: {
 					ReportedAmount: 50,
@@ -793,7 +794,7 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			res := runEvaluationRulesOnSanctions(tc.localSanctionCache, tc.reportedIslandResources, tc.rulesCache)
+			res := runEvaluationRulesOnSanctions(tc.localSanctionCache, tc.reportedIslandResources, tc.rulesCache, 500)
 			if !reflect.DeepEqual(res, tc.expectedSanctions) {
 				t.Errorf("Expected %v got %v", tc.expectedSanctions, res)
 			}
@@ -1960,7 +1961,7 @@ func checkListOfSanctionEquals(list1 []roles.Sanction, list2 []roles.Sanction) b
 }
 
 func augmentBasicSanctionCache(time int, additionalSanctions []roles.Sanction) map[int][]roles.Sanction {
-	basicCache := defaultInitLocalSanctionCache(sanctionCacheDepth)
+	basicCache := defaultInitLocalSanctionCache(3)
 	basicCache[time] = append(basicCache[time], additionalSanctions...)
 	return basicCache
 }
