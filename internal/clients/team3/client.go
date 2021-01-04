@@ -8,6 +8,7 @@ import (
 )
 
 const id = shared.Team3
+const printTeam3Logs = false
 
 func init() {
 	ourClient := &client{BaseClient: baseclient.NewClient(id),

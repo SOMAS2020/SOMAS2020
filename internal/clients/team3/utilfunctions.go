@@ -1,10 +1,17 @@
 package team3
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+func (c *client) clientPrint(format string, a ...interface{}) {
+	if printTeam3Logs {
+		c.Logf("%v", fmt.Sprintf(format, a...))
+	}
+}
 
 // getLocalResources retrieves our islands resrouces from server
 func (c *client) getLocalResources() shared.Resources {
