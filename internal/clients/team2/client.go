@@ -140,7 +140,7 @@ func criticalStatus(c *client) bool {
 }
 
 //TODO: how does this work?
-func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
+//func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
 
 //checkOthersCrit checks if anyone else is critical
 func checkOthersCrit(c *client) bool {

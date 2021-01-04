@@ -1,7 +1,6 @@
 package team2
 
 import (
-	"math"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -14,7 +13,7 @@ type ForagingResults struct {
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	     // implement a normal distribution which shifts closer to hunt or fish
+	// implement a normal distribution which shifts closer to hunt or fish
 	var Threshold float64 = decideThreshold(c) //number from 0 to 1
 
 	if rand.Float64() > Threshold { //we fish when above the threshold
@@ -63,16 +62,17 @@ func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 
 //being the only agent to hunt is desirable, most desirable outcome is us and one other agent hunting
 func decideThreshold(c *client) float64 { //will move the threshold, higher value means more likely to hunt
-	if Otheragentinfo(c)==1{    //in the case when one other person only is hunting  
-		return 0.95 
-	}else if Otheragentinfo(c)>1{   //if no one is likely to hunt then we do default probability
+	if Otheragentinfo(c) == 1 { //in the case when one other person only is hunting
+		return 0.95
+	} else if Otheragentinfo(c) > 1 { //if no one is likely to hunt then we do default probability
 		return 0.1 + (Otheragentinfo(c) * 0.15) //default hunt probability is 10%, the less people hunting the more likely we do it
-	}else{
-		return 0.1  //when no one is likely to hunt we have a default 10% chance of hunting just in the off chance another person hunts
+	} else {
+		return 0.1 //when no one is likely to hunt we have a default 10% chance of hunting just in the off chance another person hunts
 	}
 }
 
-//EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves 
+/*
+//EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
 func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
 	//Have no idea where to find the shared foraging info, somewhere in IITO?
 	var HuntNum float64 = 0
@@ -89,14 +89,14 @@ func Otheragentinfo(c *client) float64 { //will return a value of how many agent
 	return HuntNum
 
 	return 0
-}
+}*/
 
 func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 	// Return on Investment
 	roi := map[shared.ClientID]shared.Resources{}
 	for _, val := range neighbourForaging {
-		c.foragingReturnsHist[val.SharedFrom].append(shared.ForageInfo{	DecisionMade : val.DecisionMade,                 //this needs to change
-																		ResourcesObtained : val.ResourcesObtained})
+		c.foragingReturnsHist[val.SharedFrom].append(shared.ForageInfo{DecisionMade: val.DecisionMade, //this needs to change
+			ResourcesObtained: val.ResourcesObtained})
 
 		if val.DecisionMade.Type == shared.DeerForageType {
 			roi[val.SharedFrom] = val.ResourceObtained / shared.Resources(val.DecisionMade.Contribution) * 100
