@@ -7,7 +7,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-//  Old config doesn't work for some reason?
+//  Old config doesn't work for some reason? might be nice to have a file just for config so its easy to find
 /*
 	func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
@@ -27,15 +27,17 @@ import (
 }
 */
 
-//================================================================
-/*  Init */
-//================================================================
+/*================================================================
+	Init
+================================================================*/
 func init() {
 	baseclient.RegisterClient(
 		id,
 		&client{
+			// Old config
 			// BaseClient:    baseclient.NewClient(id),
 			// forageHistory: ForageHistory{},
+
 			BaseClient:      baseclient.NewClient(id),
 			forageHistory:   ForageHistory{},
 			resourceHistory: ResourceHistory{},
@@ -46,9 +48,13 @@ func init() {
 				InitialForageTurns: 3,
 				SkipForage:         1,
 
-				JBThreshold:         100, // just examples
-				MiddleThreshold:     60.0,
-				ImperialThreshold:   30.0, // surely should be - 100e6? (your right we are so far indebt)
+				// Threshold for wealth
+				JBThreshold:       100,
+				MiddleThreshold:   60.0,
+				ImperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
+				//  Dying threshold is 0 < Dying < Imperial
+
+				// Gifts Config
 				DyingGiftRequest:    10,
 				ImperialGiftRequest: 5,
 				MiddleGiftRequest:   2,
@@ -57,17 +63,21 @@ func init() {
 	)
 }
 
+// StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
-	c.updateResourceHistory(c.resourceHistory)
-	c.config.JBThreshold = c.resourceHistory[1] * 2 // Actual threshold according to the amount of resources given to us
+	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
+
+	// Assign the thresholds according to the amount of resouces in the first turn
+	c.config.JBThreshold = c.resourceHistory[1] * 2
 	c.config.MiddleThreshold = c.resourceHistory[1] * 0.95
 	c.config.ImperialThreshold = c.resourceHistory[1] * 0.5
 
+	// Print the Thresholds
 	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
 		c.config.JBThreshold, c.config.MiddleThreshold, c.config.ImperialThreshold)
 
-	c.Logf("[Debug] - [Start of Turn] Current Class: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
-	// c.Logf("[The Pitts]: %v", c.gameState().ClientInfo.Resources)
+	// Print the level of wealth we are at
+	c.Logf("[Debug] - [Start of Turn] Class: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
 			return
@@ -76,10 +86,11 @@ func (c *client) StartOfTurn() {
 
 }
 
-//================================================================
-/*  Wealth class */
-//================================================================
-
+/*================================================================
+	Wealth class
+		Calculates the class of wealth we are in according
+		to thresholds
+=================================================================*/
 func (c client) wealth() WealthTier {
 	cData := c.gameState().ClientInfo
 	switch {
@@ -95,73 +106,10 @@ func (c client) wealth() WealthTier {
 	}
 }
 
-/********************/
-/***    IIFO        */
-/********************/
-
-func (c *client) MakeForageInfo() shared.ForageShareInfo {
-	var shareTo []shared.ClientID
-
-	for id, status := range c.gameState().ClientLifeStatuses {
-		if status != shared.Dead {
-			shareTo = append(shareTo, id)
-		}
-	}
-
-	lastDecisionTurn := -1
-	var lastDecision shared.ForageDecision
-	var lastRevenue shared.Resources
-
-	for forageType, outcomes := range c.forageHistory {
-		for _, outcome := range outcomes {
-			if int(outcome.turn) > lastDecisionTurn {
-				lastDecisionTurn = int(outcome.turn)
-				lastDecision = shared.ForageDecision{
-					Type:         forageType,
-					Contribution: outcome.input,
-				}
-				lastRevenue = outcome.output
-			}
-		}
-	}
-
-	if lastDecisionTurn < 0 {
-		shareTo = []shared.ClientID{}
-	}
-
-	forageInfo := shared.ForageShareInfo{
-		ShareTo:          shareTo,
-		ResourceObtained: lastRevenue,
-		DecisionMade:     lastDecision,
-	}
-
-	c.Logf("Sharing forage info: %v", forageInfo)
-	return forageInfo
-}
-
-func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
-	for _, forageInfo := range forageInfos { // for all foraging information from all islands
-		c.forageHistory[forageInfo.DecisionMade.Type] = // all their information (based on method of foraging)
-			append( // add to our history
-				c.forageHistory[forageInfo.DecisionMade.Type], // type
-				ForageOutcome{ // outcome
-					turn:   c.gameState().Turn,
-					input:  forageInfo.DecisionMade.Contribution,
-					output: forageInfo.ResourceObtained,
-				},
-			)
-	}
-}
-
-// gameState() gets the data from the server about our island
-func (c *client) gameState() gamestate.ClientGameState {
-	return c.BaseClient.ServerReadHandle.GetGameState()
-}
-
-//================================================================
-/*  Resouce History  */
-//================================================================
-
+/*================================================================
+	Resource History
+		Stores the level of resources we have at each turn
+=================================================================*/
 func (c *client) updateResourceHistory(resourceHistory ResourceHistory) {
 	currentResources := c.gameState().ClientInfo.Resources
 	c.resourceHistory[c.gameState().Turn] = currentResources
@@ -170,5 +118,9 @@ func (c *client) updateResourceHistory(resourceHistory ResourceHistory) {
 		c.Logf("[Debug] - Previous round amount: %v", amount)
 	}
 	c.Logf("[Debug] - Current round amount: %v", currentResources)
+}
 
+//gameState() gets the data from the server about our island
+func (c *client) gameState() gamestate.ClientGameState {
+	return c.BaseClient.ServerReadHandle.GetGameState()
 }

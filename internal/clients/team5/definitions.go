@@ -8,6 +8,10 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
 
+/*================================================================
+	Types
+=================================================================*/
+
 const id = shared.Team5
 
 // WealthTier defines how much money we have
@@ -15,9 +19,10 @@ type WealthTier int
 
 //================ Resource History =========================================
 
+//ResourceHistory OUR islands resources per turn
 type ResourceHistory map[uint]shared.Resources
 
-//================ Foraging =========================================
+//================ Foraging History =========================================
 
 // ForageOutcome records the ROI on a foraging session
 type ForageOutcome struct {
@@ -30,40 +35,47 @@ type ForageOutcome struct {
 type ForageHistory map[shared.ForageType][]ForageOutcome
 
 //================ Gifts ===========================================
+
+//GiftOutcome defines the gifts
 type GiftOutcome struct {
 	occasions uint
 	amount    shared.Resources
 }
 
-// GiftRequest contains the details of a gift request from an island to another
-type GiftRequest shared.Resources
+// // GiftRequest contains the details of a gift request from an island to another
+// type GiftRequest shared.Resources
 
-// GiftRequestDict contains the details of an island's gift requests to everyone else.
-type GiftRequestDict map[shared.ClientID]GiftRequest
+// // GiftRequestDict contains the details of an island's gift requests to everyone else.
+// type GiftRequestDict map[shared.ClientID]GiftRequest
 
+// AcceptReason (Yes/No)
+type AcceptReason int
+
+// GiftResponse is a struct of the response and reason
+type GiftResponse struct {
+	AcceptedAmount shared.Resources
+	Reason         AcceptReason
+}
+
+// GiftInfo holds information about the gifts
 type GiftInfo struct {
 	requested shared.GiftRequest
 	gifted    shared.GiftOffer
 	reason    shared.AcceptReason
 }
 
+//GiftExchange Looks at the exchanges our island has made (Gifts)
 type GiftExchange struct {
 	IslandRequest map[uint]GiftInfo
 	OurRequest    map[uint]GiftInfo
 }
 
+//GiftHistory is the history of our gifts
 type GiftHistory map[shared.ClientID]GiftExchange
 
-type AcceptReason int
-
-type GiftResponse struct {
-	AcceptedAmount shared.Resources
-	Reason         AcceptReason
-}
-
-//================================================================
-/*  Client information */
-//================================================================
+/*================================================================
+	Client Information
+=================================================================*/
 type clientConfig struct {
 	// Initial non planned foraging
 	InitialForageTurns uint
@@ -109,7 +121,10 @@ type client struct {
 	config clientConfig
 }
 
-// Possible wealth classes
+/*================================================================
+	Constants
+=================================================================*/
+// Wealth Tiers
 const (
 	Dying           WealthTier = iota // Sets values = 0
 	ImperialStudent                   // iota sets the folloing values =1
@@ -128,6 +143,9 @@ const (
 	Ignored
 )
 
+/*================================================================
+	Functions
+=================================================================*/
 func (wt WealthTier) String() string {
 	strings := [...]string{"Dying", "ImperialStudent", "MiddleClass", "JeffBezos"}
 	if wt >= 0 && int(wt) < len(strings) {
