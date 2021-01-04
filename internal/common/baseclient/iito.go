@@ -105,5 +105,11 @@ func (c *BaseClient) ShareIntendedContribution() shared.IntendedContribution {
 func (c *BaseClient) ReceiveIntendedContribution(receivedIntendedContribution shared.ReceivedIntendedContributionDict) {
 	// You can check the other's common pool contributions like this
 	// intededContributions := c.intendedContribution
+}
 
+// DecideGiftAmount is executed at the end of each turn and asks clients how much
+// they want to fulfill a gift offer they have made.
+// COMPULSORY, you need to implement this method
+func (c *BaseClient) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
+	return giftOffer
 }
