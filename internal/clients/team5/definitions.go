@@ -11,11 +11,18 @@ import (
 /*================================================================
 	Types
 =================================================================*/
-
 const id = shared.Team5
 
-// WealthTier defines how much money we have
+//WealthTier is how much money we have
 type WealthTier int
+
+//================ Common Pool =========================================
+
+//CPRequestHistory history of CP Requests
+type CPRequestHistory []shared.Resources
+
+//CPAllocationHistory History of allocations
+type CPAllocationHistory []shared.Resources
 
 //================ Resource History =========================================
 
@@ -73,9 +80,8 @@ type GiftExchange struct {
 //GiftHistory is the history of our gifts
 type GiftHistory map[shared.ClientID]GiftExchange
 
-/*================================================================
-	Client Information
-=================================================================*/
+// Client Information */
+
 type clientConfig struct {
 	// Initial non planned foraging
 	InitialForageTurns uint
@@ -106,12 +112,12 @@ type clientConfig struct {
 type client struct {
 	*baseclient.BaseClient
 
-	resourceHistory ResourceHistory
-
-	forageHistory ForageHistory // Stores our previous foraging data
-	// giftHistory   GiftHistory
-
-	giftHistory GiftHistory
+	// History
+	resourceHistory     ResourceHistory
+	forageHistory       ForageHistory
+	giftHistory         GiftHistory
+	cpRequestHistory    CPRequestHistory
+	cpAllocationHistory CPAllocationHistory
 
 	taxAmount shared.Resources
 
@@ -122,7 +128,7 @@ type client struct {
 }
 
 /*================================================================
-	Constants
+Constants
 =================================================================*/
 // Wealth Tiers
 const (
@@ -143,9 +149,7 @@ const (
 	Ignored
 )
 
-/*================================================================
-	Functions
-=================================================================*/
+//String converts string to number
 func (wt WealthTier) String() string {
 	strings := [...]string{"Dying", "ImperialStudent", "MiddleClass", "JeffBezos"}
 	if wt >= 0 && int(wt) < len(strings) {

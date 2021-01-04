@@ -7,29 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-//  Old config doesn't work for some reason? might be nice to have a file just for config so its easy to find
-/*
-	func NewClient(clientID shared.ClientID) baseclient.Client {
-	return &client{
-		BaseClient:    baseclient.NewClient(clientID),
-		forageHistory: ForageHistory{},
-		taxAmount:     0,
-		allocation:    0,
-		config: clientConfig{
-			InitialForageTurns: 10,
-			SkipForage:         5,
-
-			JBThreshold:       1000.0,
-			MiddleThreshold:   60.0,
-			ImperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
-		},
-	}
-}
-*/
-
-/*================================================================
-	Init
-================================================================*/
 func init() {
 	baseclient.RegisterClient(
 		id,
@@ -38,12 +15,14 @@ func init() {
 			// BaseClient:    baseclient.NewClient(id),
 			// forageHistory: ForageHistory{},
 
-			BaseClient:      baseclient.NewClient(id),
-			forageHistory:   ForageHistory{},
-			resourceHistory: ResourceHistory{},
-			giftHistory:     GiftHistory{},
-			taxAmount:       0,
-			allocation:      0,
+			BaseClient:          baseclient.NewClient(id),
+			cpRequestHistory:    CPRequestHistory{},
+			cpAllocationHistory: CPAllocationHistory{},
+			forageHistory:       ForageHistory{},
+			resourceHistory:     ResourceHistory{},
+			giftHistory:         GiftHistory{},
+			taxAmount:           0,
+			allocation:          0,
 			config: clientConfig{
 				InitialForageTurns: 3,
 				SkipForage:         1,
@@ -90,7 +69,7 @@ func (c *client) StartOfTurn() {
 	Wealth class
 		Calculates the class of wealth we are in according
 		to thresholds
-=================================================================*/
+================================================================*/
 func (c client) wealth() WealthTier {
 	cData := c.gameState().ClientInfo
 	switch {
@@ -120,7 +99,22 @@ func (c *client) updateResourceHistory(resourceHistory ResourceHistory) {
 	c.Logf("[Debug] - Current round amount: %v", currentResources)
 }
 
-//gameState() gets the data from the server about our island
 func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
+}
+
+//------------------------------------Comunication--------------------------------------------------------//
+// to get information on minimum tax amount and cp allocation
+func (c *client) ReceiveCommunication(
+	sender shared.ClientID,
+	data map[shared.CommunicationFieldName]shared.CommunicationContent,
+) {
+	for field, content := range data {
+		switch field {
+		case shared.TaxAmount:
+			c.taxAmount = shared.Resources(content.IntegerData)
+		case shared.AllocationAmount:
+			c.allocation = shared.Resources(content.IntegerData)
+		}
+	}
 }
