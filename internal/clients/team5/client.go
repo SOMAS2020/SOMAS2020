@@ -65,11 +65,11 @@ func (c *client) StartOfTurn() {
 
 }
 
-/*================================================================
-	Wealth class
-		Calculates the class of wealth we are in according
-		to thresholds
-================================================================*/
+//================================================================
+/*	Wealth class
+	Calculates the class of wealth we are in according
+	to thresholds */
+//=================================================================
 func (c client) wealth() WealthTier {
 	cData := c.gameState().ClientInfo
 	switch {
@@ -85,10 +85,11 @@ func (c client) wealth() WealthTier {
 	}
 }
 
-/*================================================================
-	Resource History
-		Stores the level of resources we have at each turn
-=================================================================*/
+//================================================================
+/*	Resource History
+	Stores the level of resources we have at each turn */
+//=================================================================
+
 func (c *client) updateResourceHistory(resourceHistory ResourceHistory) {
 	currentResources := c.gameState().ClientInfo.Resources
 	c.resourceHistory[c.gameState().Turn] = currentResources
@@ -103,8 +104,10 @@ func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
 }
 
-//------------------------------------Comunication--------------------------------------------------------//
-// to get information on minimum tax amount and cp allocation
+//================================================================
+/*	Comunication
+	Gets information on minimum tax amount and cp allocation */
+//=================================================================
 func (c *client) ReceiveCommunication(
 	sender shared.ClientID,
 	data map[shared.CommunicationFieldName]shared.CommunicationContent,

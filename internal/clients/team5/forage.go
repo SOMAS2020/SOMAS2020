@@ -36,10 +36,10 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	}
 }
 
-/*================================================================
-	Foraging types
-		Each of the types of foraging are below
-=================================================================*/
+//================================================================
+/*	Foraging types
+	Each of the types of foraging are below */
+//=================================================================
 /* InitialForage() (Risk for wealth if we have wealth or conserve if we dont)
 Born in the middle class
 Roll randomly
@@ -223,9 +223,9 @@ func (c *client) lastHopeForage() shared.ForageDecision {
 	return forageDecision
 }
 
-/*================================================================
-	Foraging History Functions
-=================================================================*/
+//================================================================
+/*	Foraging History Functions */
+//=================================================================
 
 //ForageUpdate Updates the foraging history
 func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output shared.Resources) {

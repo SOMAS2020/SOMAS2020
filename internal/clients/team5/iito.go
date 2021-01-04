@@ -2,10 +2,6 @@ package team5
 
 import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
-//=============================================================
-//=======GIFTS=================================================
-//=============================================================
-
 /*
 	COMPULSORY:
 	GetGiftRequests() shared.GiftRequestDict
