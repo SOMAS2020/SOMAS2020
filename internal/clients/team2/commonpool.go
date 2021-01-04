@@ -26,14 +26,13 @@ func determineAllocation(c *client) shared.Resources {
 	if criticalStatus(c) {
 		return determineThreshold(c) //not sure about this amount
 	}
-	if determineTax(c) > ourResources {
+	if determineTax(c)+determineThreshold(c) > ourResources {
 		return (determineTax(c) - ourResources)
 	}
 	if c.gameState().ClientInfo.Resources < internalThreshold(c) {
 		return (internalThreshold(c) - ourResources)
 	}
 	//TODO: maybe separate standard gameplay when no-one is critical vs when others are critical
-	//standardGamePlay or others are critical
 	return 0
 }
 
@@ -44,26 +43,26 @@ func (c *client) RequestAllocation() shared.Resources {
 //GetTaxContribution determines how much we put into pool
 func (c *client) GetTaxContribution() shared.Resources {
 	var ourResources = c.gameState().ClientInfo.Resources
-	var Taxmin shared.Resources = determineTax(c)                          //minimum tax contribution to not break law
+	var Taxmin shared.Resources = determineTax(c)
 	var allocation shared.Resources = AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
 	if criticalStatus(c) {
 		return 0 //tax evasion
 	}
 	if determineTax(c)+determineThreshold(c) > ourResources {
-		return 0 //no choice but tax evasion
+		return 0 //tax evasion
 	}
-	if ourResources < internalThreshold(c) { //if we are below our own internal threshold
+	if ourResources < internalThreshold(c) {
 		return Taxmin
 	}
 	if checkOthersCrit(c) {
-		return (ourResources - internalThreshold(c) - Taxmin) / 2 //TODO: tune this
+		return (ourResources - internalThreshold(c) - Taxmin) / 2
 	}
 
 	allocation = AverageCommonPoolDilemma(c) + Taxmin
 	return allocation
 }
 
-//determineTaxreturns how much tax we have to pay
+//determineTax returns how much tax we have to pay
 func determineTax(c *client) shared.Resources {
 	return shared.Resources(shared.TaxAmount) //TODO: not sure if this is correct tax amount to use
 }
@@ -86,18 +85,30 @@ func internalThreshold(c *client) shared.Resources {
 
 //Checks if there was a disaster in the previous turn
 func checkForDisaster(c *client) bool {
-	return false //TODO: make this work
+	var prevSeason uint
+	if c.gameState().Turn == 1 {
+		prevSeason = 1
+		return false
+	}
+	if prevSeason != c.gameState().Season {
+		prevSeason += 1
+		return true
+	}
+	return false
 }
 
-//TODO: add cost of living to threshold
 //Finds the game threshold if this information is available or works it out based on history of turns
 func determineThreshold(c *client) shared.Resources {
+	var costOfLiving shared.Resources = 10 //TODO: add cost of living to threshold once available (somewhere in ClientGameConfig)
+	//var threshold = if disasterCommonPoolThreshold.Visible == True { threshold = disasterCommonPoolThreshold/6} else null
 	var ourResources = c.gameState().ClientInfo.Resources
 	var turn = c.gameState().Turn
 	var season = c.gameState().Season
 	var disasterBasedAdjustment float64
 	var nextPredictedDisasterMag float64 = 5 //TODO: Get this from Hamish's part
 	var prevDisasterMag float64 = 5          //TODO: Find this value
+	//if threshold != null return (threshold + costOfLiving) * 1.1 //as threshold may not always be enough
+	//else if threshold unknown
 	if turn == 1 {
 		return ourResources / 4 //TODO: tune initial threshold guess when we start playing
 	}
@@ -115,7 +126,7 @@ func determineThreshold(c *client) shared.Resources {
 		disasterBasedAdjustment += 5
 	}
 	//change factor by if next mag > or < prev mag
-	return shared.Resources(float64(baseThreshold)*(nextPredictedDisasterMag/prevDisasterMag) + disasterBasedAdjustment)
+	return shared.Resources(float64(baseThreshold)*(nextPredictedDisasterMag/prevDisasterMag)+disasterBasedAdjustment) + costOfLiving
 }
 
 //this function determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers etc
