@@ -11,6 +11,9 @@ Note that in the stochastic case, the period is a *geometric* random variable as
 ### Severity and Location
 In both the stochastic and deterministic cases, the **magnitude** and **location** of a disaster are sampled in the same fashion. The magnitude is exponentially distributed with scale parameter `ExponentialRate` in the `DisasterConig`. This was chosen to model a plausible real life scenario where smaller disasters are far more common than very serious ones. The xy co-ordinates of the *epicentre* (location of peak magnitude) of the disaster are sampled from a joint uniform distribution with bounds specified in the `DisasterConfig`. When a disaster strikes, the **effect** (damage) felt by a given island is inversely proportional to the square of its distance to the epicentre of the disaster.
 
+![alt text](assets/disaster_plots.png "Distribution plots for disasters")
+
+
 
 
 
