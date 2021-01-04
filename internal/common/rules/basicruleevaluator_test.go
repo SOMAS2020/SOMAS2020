@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"fmt"
 	"testing"
 
 	"gonum.org/v1/gonum/mat"
@@ -88,4 +89,88 @@ func registerNewLinkedRule(t *testing.T) {
 	if ruleError != nil {
 		t.Errorf("Problem with registering new real valued rule in test, error message : '%v'", ruleError.Error())
 	}
+}
+
+func createTaxRule(tax float64) (RuleMatrix, VariableValuePair) {
+	reqVar := []VariableFieldName{
+		IslandTaxContribution,
+		ExpectedTaxContribution,
+	}
+	v := []float64{1, -1, 0}
+	aux := []float64{2}
+
+	rowLength := len(reqVar) + 1
+	nrows := len(v) / rowLength
+
+	CoreMatrix := mat.NewDense(nrows, rowLength, v)
+	AuxiliaryVector := mat.NewVecDense(nrows, aux)
+
+	rule := RuleMatrix{
+		RuleName:          fmt.Sprintf("Tax = %.2f", tax),
+		RequiredVariables: reqVar,
+		ApplicableMatrix:  *CoreMatrix,
+		AuxiliaryVector:   *AuxiliaryVector,
+		Mutable:           false,
+	}
+
+	expectedVariable := VariableValuePair{
+		VariableName: ExpectedTaxContribution,
+		Values:       []float64{tax},
+	}
+
+	return rule, expectedVariable
+}
+
+func TestBasicLocalRuleEvaluatorPositive(t *testing.T) {
+	cases := []struct {
+		name            string
+		tax             float64
+		taxContribution float64
+		want            bool
+	}{
+		{
+			name:            "Equal test",
+			tax:             21.37,
+			taxContribution: 21.37,
+			want:            true,
+		},
+		{
+			name:            "Greater than test",
+			tax:             21.37,
+			taxContribution: 22.22,
+			want:            true,
+		},
+		{
+			name:            "Smaller than test",
+			tax:             5,
+			taxContribution: 2.2,
+			want:            false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			rule, expectedVariable := createTaxRule(tc.tax)
+
+			islandTaxVariable := VariableValuePair{
+				VariableName: IslandTaxContribution,
+				Values:       []float64{tc.taxContribution},
+			}
+
+			variableMap := map[VariableFieldName]VariableValuePair{}
+			variableMap[expectedVariable.VariableName] = expectedVariable
+			variableMap[islandTaxVariable.VariableName] = islandTaxVariable
+
+			ok, err := BasicLocalBooleanRuleEvaluator(rule, variableMap)
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			if ok != tc.want {
+				t.Errorf("Mismatch in expected and evaluated")
+			}
+		})
+	}
+
 }

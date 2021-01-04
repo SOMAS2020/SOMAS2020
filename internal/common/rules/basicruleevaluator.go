@@ -6,19 +6,22 @@ import (
 )
 
 func createVarList(variables []VariableFieldName) ([]float64, error) {
+	return createVarListInternal(variables, VariableMap)
+}
+
+func createVarListInternal(variables []VariableFieldName, variableMap map[VariableFieldName]VariableValuePair) ([]float64, error) {
 	var variableVect []float64
 
 	for _, v := range variables {
-		if val, varOk := VariableMap[v]; varOk {
+		if val, varOk := variableMap[v]; varOk {
 			variableVect = append(variableVect, val.Values...)
 		} else {
-			return nil, errors.Errorf("Variable: '%v' not found in global variable cache", v)
+			return nil, errors.Errorf("Variable: '%v' not found in variable cache %v", v, variableMap)
 		}
 	}
 
 	variableVect = append(variableVect, 1)
 	return variableVect, nil
-
 }
 
 func ruleMul(variableVect []float64, ApplicableMatrix mat.Dense) *mat.VecDense {
@@ -193,4 +196,33 @@ func BasicLinkedRuleEvaluator(ruleName string) (bool, error) {
 		return false, errors.Errorf("Unrecognised rule linking %v", link.LinkType)
 	}
 	return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
+}
+
+// BasicLocalBooleanRuleEvaluator implements a basic version local rule evaluator, provides single boolean output (and error if present)
+func BasicLocalBooleanRuleEvaluator(rule RuleMatrix, vars map[VariableFieldName]VariableValuePair) (bool, error) {
+	//Checking dimensions line up
+	variableVect, err := createVarListInternal(rule.RequiredVariables, vars)
+	if err != nil {
+		return false, err
+	}
+
+	_, nCols := rule.ApplicableMatrix.Dims()
+
+	if nCols != len(variableVect) {
+		return false, errors.Errorf(
+			"dimension mismatch in evaluating rule: '%v' rule matrix has '%v' columns, while we sourced '%v' variables",
+			rule.RuleName,
+			nCols,
+			len(vars),
+		)
+	}
+
+	c := ruleMul(variableVect, rule.ApplicableMatrix)
+
+	resultVect, err := genResult(rule.AuxiliaryVector, c)
+	if err != nil {
+		return false, err
+	}
+
+	return checkForFalse(resultVect), nil
 }

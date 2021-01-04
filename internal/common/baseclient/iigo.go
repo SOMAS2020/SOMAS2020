@@ -73,9 +73,23 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	}
 
 	if newTaxDecision.TaxDecided {
-		// gotVariable := newTaxDecision.ExpectedTax
-		// gotRule := newTaxDecision.TaxRule
-		return newTaxDecision.TaxAmount
+		clientContribution := float64(newTaxDecision.TaxAmount)
+
+		expectedVariable := newTaxDecision.ExpectedTax
+		contribuitionVariable := rules.VariableValuePair{
+			VariableName: rules.IslandTaxContribution,
+			Values:       []float64{clientContribution},
+		}
+		variableMap := map[rules.VariableFieldName]rules.VariableValuePair{}
+		variableMap[expectedVariable.VariableName] = expectedVariable
+		variableMap[contribuitionVariable.VariableName] = contribuitionVariable
+
+		gotRule := newTaxDecision.TaxRule
+
+		eval, err := rules.BasicLocalBooleanRuleEvaluator(gotRule, variableMap)
+		if err == nil && eval {
+			return newTaxDecision.TaxAmount
+		}
 	}
 
 	return 0 //default if no tax message was found
@@ -108,7 +122,23 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 	if newAllocationDecision.AllocationDecided {
 		// gotVariable := newAllocationDecision.ExpectedAllocation
 		// gotRule := newAllocationDecision.AllocationRule
-		return newAllocationDecision.AllocationAmount
+		clientAllocation := float64(newAllocationDecision.AllocationAmount)
+
+		expectedVariable := newAllocationDecision.ExpectedAllocation
+		contribuitionVariable := rules.VariableValuePair{
+			VariableName: rules.IslandAllocation,
+			Values:       []float64{clientAllocation},
+		}
+		variableMap := map[rules.VariableFieldName]rules.VariableValuePair{}
+		variableMap[expectedVariable.VariableName] = expectedVariable
+		variableMap[contribuitionVariable.VariableName] = contribuitionVariable
+
+		gotRule := newAllocationDecision.AllocationRule
+
+		eval, err := rules.BasicLocalBooleanRuleEvaluator(gotRule, variableMap)
+		if err == nil && eval {
+			return newAllocationDecision.AllocationAmount
+		}
 	}
 
 	return clientGameState.CommonPool //default if no allocation was made
