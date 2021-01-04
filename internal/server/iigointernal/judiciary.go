@@ -12,14 +12,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// to be moved to paramters
-const sanctionCacheDepth = 3
-const historyCacheDepth = 3
-const maxNoReport = 500
-
-// to be changed
-const sanctionLength = 2
-
 type judiciary struct {
 	gameState             *gamestate.GameState
 	gameConf              *config.IIGOConfig
@@ -45,6 +37,16 @@ func (j *judiciary) loadSanctionConfig() {
 func (j *judiciary) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	j.gameState = gameState
 	j.gameConf = gameConf
+	j.resetCaches()
+}
+
+func (j *judiciary) resetCaches() {
+	if len(j.localSanctionCache) != j.gameConf.SanctionCacheDepth {
+		j.localSanctionCache = defaultInitLocalSanctionCache(j.gameConf.SanctionCacheDepth)
+	}
+	if len(j.localHistoryCache) != j.gameConf.HistoryCacheDepth {
+		j.localHistoryCache = defaultInitLocalHistoryCache(j.gameConf.HistoryCacheDepth)
+	}
 }
 
 func (j *judiciary) broadcastSanctionConfig() {
@@ -100,12 +102,12 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 				}
 			}
 		}
-		j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
+		j.localHistoryCache = defaultInitLocalHistoryCache(j.gameConf.HistoryCacheDepth)
 	}
 	tempResults, success := j.clientJudge.InspectHistory(iigoHistory, 0)
 	finalResults = mergeEvaluationReturn(tempResults, finalResults)
 	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
-	j.cycleHistoryCache(entryForHistoryCache)
+	j.cycleHistoryCache(entryForHistoryCache, j.gameConf.HistoryCacheDepth)
 	j.evaluationResults = finalResults
 	return j.evaluationResults, success
 }
@@ -179,14 +181,14 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 
 // applySanctions uses RulesInPlay and it's versions of the sanction rules to work out how much to sanction an island
 func (j *judiciary) applySanctions() {
-	j.cycleSanctionCache()
+	j.cycleSanctionCache(j.gameConf.SanctionCacheDepth)
 	var currentSanctions []roles.Sanction
 	for islandID, sanctionScore := range j.sanctionRecord {
 		islandSanctionTier := getIslandSanctionTier(sanctionScore, j.sanctionThresholds)
 		sanctionEntry := roles.Sanction{
 			ClientID:     islandID,
 			SanctionTier: islandSanctionTier,
-			TurnsLeft:    sanctionLength,
+			TurnsLeft:    j.gameConf.SanctionLength,
 		}
 		currentSanctions = append(currentSanctions, sanctionEntry)
 		broadcastToAllIslands(j.JudgeID, createBroadcastForSanction(islandID, islandSanctionTier))
@@ -202,7 +204,7 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 		broadcastPardonCommunications(j.JudgeID, communications)
 	}
 	j.localSanctionCache = newSanctionMap
-	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay)
+	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay, j.gameConf.AssumedResourcesNoReport)
 	SanctionAmountMapExport = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
 		communicateWithIslands(j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
@@ -215,8 +217,8 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 	j.localSanctionCache = decrementSanctionTime(j.localSanctionCache)
 }
 
-// cycleSanctionCache rolls the sanction cahce one turn forward (effectively dropping any sanctions longer than the depth)
-func (j *judiciary) cycleSanctionCache() {
+// cycleSanctionCache rolls the sanction cache one turn forward (effectively dropping any sanctions longer than the depth)
+func (j *judiciary) cycleSanctionCache(sanctionCacheDepth int) {
 	oldMap := j.localSanctionCache
 	delete(oldMap, sanctionCacheDepth-1)
 	newMapReturn := defaultInitLocalSanctionCache(sanctionCacheDepth)
@@ -228,7 +230,7 @@ func (j *judiciary) cycleSanctionCache() {
 }
 
 // cycleHistoryCache rolls the history cache (for retributive justice) forward
-func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
+func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability, historyCacheDepth int) {
 	oldMap := j.localHistoryCache
 	delete(oldMap, historyCacheDepth-1)
 	newMapReturn := defaultInitLocalHistoryCache(historyCacheDepth)
@@ -241,7 +243,7 @@ func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
 
 // clearHistoryCache wipes the history cache (when retributive justice has happened)
 func (j *judiciary) clearHistoryCache() {
-	j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
+	j.localHistoryCache = defaultInitLocalHistoryCache(j.gameConf.HistoryCacheDepth)
 }
 
 // Helper functions //
@@ -300,13 +302,13 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSa
 }
 
 // runEvaluationRulesOnSanctions uses the custom sanction evaluator calculate how much each island should be paying in sanctions
-func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.ResourcesReport, rulesCache map[string]rules.RuleMatrix) map[shared.ClientID]shared.Resources {
+func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.ResourcesReport, rulesCache map[string]rules.RuleMatrix, maxNoReport shared.Resources) map[shared.ClientID]shared.Resources {
 	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
 	for _, sanctionList := range localSanctionCache {
 		for _, sanction := range sanctionList {
 			ruleName := getTierSanctionMap()[sanction.SanctionTier]
 			if ruleMat, ok := rulesCache[ruleName]; ok {
-				resources := shared.Resources(maxNoReport)
+				resources := maxNoReport
 				if reportedIslandResources[sanction.ClientID].Reported {
 					resources = reportedIslandResources[sanction.ClientID].ReportedAmount
 				}
