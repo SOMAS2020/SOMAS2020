@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	//config.Config
+	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
 		10,
@@ -48,6 +48,8 @@ var (
 		3,
 		"The maximum consecutive turns an island can be in the critical state.",
 	)
+
+	// config.ForagingConfig.DeerHuntConfig
 	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
@@ -103,6 +105,8 @@ var (
 		0.2,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
+
+	// config.ForagingConfig.FishingConfig
 	foragingFishMaxPerHunt = flag.Uint(
 		"foragingMaxFishPerHunt",
 		6,
@@ -367,7 +371,6 @@ func parseConfig() (config.Config, error) {
 	}
 
 	iigoConf := config.IIGOConfig{
-
 		// Executive branch
 		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
 		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),
