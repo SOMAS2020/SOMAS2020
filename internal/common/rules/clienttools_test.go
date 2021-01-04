@@ -329,7 +329,7 @@ func TestAnalysisEngine(t *testing.T) {
 	}{
 		{
 			name:        "Simple adjust",
-			line:        mat.NewVecDense(2, []float64{1, 1}),
+			line:        mat.NewVecDense(3, []float64{1, 1, 0}),
 			currentVal:  []float64{1, 1},
 			fixed:       []bool{true, false},
 			auxCode:     0,
@@ -338,7 +338,7 @@ func TestAnalysisEngine(t *testing.T) {
 		},
 		{
 			name:        "Complex adjust",
-			line:        mat.NewVecDense(3, []float64{0, 1, 1}),
+			line:        mat.NewVecDense(4, []float64{0, 1, 1, 0}),
 			currentVal:  []float64{1, 1, 1},
 			fixed:       []bool{true, false, true},
 			auxCode:     0,
