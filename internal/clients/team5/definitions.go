@@ -113,10 +113,10 @@ type client struct {
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
 
+	// IIGO communications
 	taxAmount shared.Resources
-
-	// allocation is the president's response to your last common pool resource request
 	allocation shared.Resources
+	sanctionAmount shared.Resources
 
 	config clientConfig
 }
