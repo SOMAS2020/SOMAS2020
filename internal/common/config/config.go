@@ -37,6 +37,9 @@ type Config struct {
 
 	// Wrapped disaster config
 	DisasterConfig DisasterConfig
+
+	// Wrapped IIGO config
+	IIGOConfig IIGOConfig
 }
 
 // DeerHuntConfig is a subset of foraging config
@@ -77,6 +80,27 @@ type DisasterConfig struct {
 	MagnitudeLambda             float64               // Exponential rate param for disaster magnitude
 	MagnitudeResourceMultiplier float64               // multiplier to map disaster magnitude to CP resource deductions
 	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
+}
+
+type IIGOConfig struct {
+	// Executive branch
+	GetRuleForSpeakerActionCost        shared.Resources
+	BroadcastTaxationActionCost        shared.Resources
+	ReplyAllocationRequestsActionCost  shared.Resources
+	RequestAllocationRequestActionCost shared.Resources
+	RequestRuleProposalActionCost      shared.Resources
+	AppointNextSpeakerActionCost       shared.Resources
+	// Judiciary branch
+	InspectHistoryActionCost       shared.Resources
+	InspectBallotActionCost        shared.Resources
+	InspectAllocationActionCost    shared.Resources
+	AppointNextPresidentActionCost shared.Resources
+	// Legislative branch
+	SetVotingResultActionCost      shared.Resources
+	SetRuleToVoteActionCost        shared.Resources
+	AnnounceVotingResultActionCost shared.Resources
+	UpdateRulesActionCost          shared.Resources
+	AppointNextJudgeActionCost     shared.Resources
 }
 
 // ForagingConfig captures foraging-specific config
