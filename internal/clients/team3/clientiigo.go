@@ -1,6 +1,10 @@
 package team3
 
 import (
+	// "github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -22,9 +26,36 @@ import (
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
 	TaxTaken(shared.Resources)
-	GetTaxContribution() shared.Resources
 	RequestAllocation() shared.Resources
 */
+func (c *client) GetTaxContribution() shared.Resources {
+	commonPool := c.BaseClient.ServerReadHandle.GetGameState().CommonPool
+	var totalToPay shared.Resources
+	if len(c.disasterPredictions) != 0 {
+		disaster := c.disasterPredictions[int(c.BaseClient.ServerReadHandle.GetGameState().Turn)][c.BaseClient.GetID()]
+		totalToPay = (shared.Resources(disaster.Magnitude) - commonPool) / shared.Resources(disaster.TimeLeft)
+	} else {
+		totalToPay = 100 - commonPool
+	}
+	sumTrust := 0.0
+	for id, trust := range c.trustScore {
+		if id != c.BaseClient.GetID() {
+			sumTrust += trust
+		} else {
+			sumTrust += (1 - c.params.selfishness) * 100
+		}
+	}
+	toPay := (totalToPay / shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
+	targetResources := shared.Resources(2-c.params.riskFactor) * (c.criticalStatePrediction.upperBound)
+	if c.getLocalResources()-toPay <= targetResources {
+		toPay = shared.Resources(math.Max(float64(c.getLocalResources()-targetResources), 0.0))
+	}
+	if (c.iigoInfo.taxationAmount > toPay) && !c.shouldICheat() {
+		return c.iigoInfo.taxationAmount
+	}
+	return toPay
+
+}
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
 	c.clientPrint("became speaker")
