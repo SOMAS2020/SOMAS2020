@@ -204,7 +204,9 @@ func registerTestRule(rulesStore map[string]RuleMatrix) {
 	aux := []float64{2, 3, 3, 2}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, err := registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, false)
+	_, err := registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, false, RuleLink{
+		Linked: false,
+	})
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
 	//A very contrived rule//
 	if err != nil {
@@ -212,7 +214,9 @@ func registerTestRule(rulesStore map[string]RuleMatrix) {
 	}
 	name = "Kinda Test Rule 2"
 
-	_, err = registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, true)
+	_, err = registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, true, RuleLink{
+		Linked: false,
+	})
 	if err != nil {
 		panic("Couldn't register Rule during test")
 	}
