@@ -2,12 +2,13 @@ package voting
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 type RuleVote struct {
 	//Checked by RuleVote
-	ruleToVote    string
+	ruleToVote    rules.RuleMatrix
 	islandsToVote []shared.ClientID
 	//Held by RuleVote
 	ballots []bool
@@ -19,8 +20,8 @@ type BallotBox struct {
 }
 
 // SetRule is called by baseSpeaker to set the rule to be voted on.
-func (v *RuleVote) SetRule(rule string) {
-	v.ruleToVote = rule
+func (v *RuleVote) SetRule(ruleMatrix rules.RuleMatrix) {
+	v.ruleToVote = ruleMatrix
 }
 
 // SetVotingIslands is called by baseSpeaker to set the islands eligible to vote.
@@ -32,10 +33,22 @@ func (v *RuleVote) SetVotingIslands(clientIDs []shared.ClientID) {
 // GatherBallots is called by baseSpeaker to get votes from clients.
 func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client) {
 	//Gather N ballots from islands
-	if v.ruleToVote != "" && len(v.islandsToVote) > 0 {
+	if ruleMatrixIsNotEmpty(v.ruleToVote) && len(v.islandsToVote) > 0 {
 		for _, island := range v.islandsToVote {
 			v.ballots = append(v.ballots, clientMap[island].GetVoteForRule(v.ruleToVote))
 		}
+	}
+}
+
+func ruleMatrixIsNotEmpty(ruleMatrix rules.RuleMatrix) bool { //MIKETODO: make sure ApplicableMatrix and AuxiliaryVector are empty too
+	if ruleMatrix.RuleName == "" &&
+		len(ruleMatrix.RequiredVariables) == 0 &&
+		// ruleMatrix.ApplicableMatrix == (mat.Dense{}) &&
+		// ruleMatrix.AuxiliaryVector == (mat.VecDense{}) &&
+		ruleMatrix.Mutable == false {
+		return false
+	} else {
+		return true
 	}
 }
 

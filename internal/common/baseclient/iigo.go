@@ -23,12 +23,12 @@ func (c *BaseClient) ResourceReport() shared.ResourcesReport {
 
 // RuleProposal is called by the President in IIGO to propose a
 // rule to be voted on.
-func (c *BaseClient) RuleProposal() string {
+func (c *BaseClient) RuleProposal() rules.RuleMatrix {
 	allRules := rules.AvailableRules
-	for k := range allRules {
-		return k
+	for _, ruleMatrix := range allRules {
+		return ruleMatrix
 	}
-	return ""
+	return rules.RuleMatrix{}
 }
 
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role

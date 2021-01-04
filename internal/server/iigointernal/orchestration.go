@@ -29,7 +29,7 @@ var legislativeBranch = legislature{
 	gameConf:     nil,
 	SpeakerID:    0,
 	judgeSalary:  0,
-	ruleToVote:   "",
+	ruleToVote:   rules.RuleMatrix{},
 	ballotBox:    voting.BallotBox{},
 	votingResult: false,
 }
@@ -162,7 +162,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	//TODO:- shouldn't updateRules be called here?
 	var voteCalled bool = false
 
-	insufficientBudget = legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRule)
+	insufficientBudget = legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRuleMatrix)
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for legislativeBranch setRuleToVote"
 	}

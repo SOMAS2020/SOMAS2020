@@ -18,7 +18,7 @@ type executive struct {
 	PresidentID         shared.ClientID
 	clientPresident     roles.President
 	speakerSalary       shared.Resources
-	RulesProposals      []string
+	RulesProposals      []rules.RuleMatrix
 	ResourceRequests    map[shared.ClientID]shared.Resources
 	speakerTurnsInPower int
 }
@@ -45,7 +45,7 @@ func (e *executive) returnSpeakerSalary() shared.Resources {
 
 // Get rule proposals to be voted on from remaining islands
 // Called by orchestration
-func (e *executive) setRuleProposals(rulesProposals []string) {
+func (e *executive) setRuleProposals(rulesProposals []rules.RuleMatrix) {
 	e.RulesProposals = rulesProposals
 }
 
@@ -65,7 +65,7 @@ func (e *executive) setGameState(g *gamestate.GameState) {
 // Called by orchestration at the end of the turn
 func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 	if !CheckEnoughInCommonPool(e.gameConf.GetRuleForSpeakerActionCost, e.gameState) {
-		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRule: "", ActionTaken: false},
+		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRuleMatrix: rules.RuleMatrix{}, ActionTaken: false},
 			errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 
@@ -189,7 +189,7 @@ func (e *executive) reset(val string) {
 	e.PresidentID = 0
 	e.clientPresident = nil
 	e.ResourceRequests = map[shared.ClientID]shared.Resources{}
-	e.RulesProposals = []string{}
+	e.RulesProposals = []rules.RuleMatrix{}
 	e.speakerSalary = 0
 }
 
@@ -204,11 +204,11 @@ func (e *executive) requestRuleProposal() error {
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 
-	var ruleProposals []string
+	var ruleProposals []rules.RuleMatrix
 	for _, island := range getIslandAlive() {
-		proposedRule := iigoClients[shared.ClientID(int(island))].RuleProposal()
-		if checkRuleIsValid(proposedRule, rules.AvailableRules) {
-			ruleProposals = append(ruleProposals, proposedRule)
+		proposedRuleMatrix := iigoClients[shared.ClientID(int(island))].RuleProposal()
+		if checkRuleIsValid(proposedRuleMatrix.RuleName, rules.AvailableRules) {
+			ruleProposals = append(ruleProposals, proposedRuleMatrix)
 		}
 	}
 

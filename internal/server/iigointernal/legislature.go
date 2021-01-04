@@ -17,7 +17,7 @@ type legislature struct {
 	gameConf          *config.IIGOConfig
 	SpeakerID         shared.ClientID
 	judgeSalary       shared.Resources
-	ruleToVote        string
+	ruleToVote        rules.RuleMatrix
 	ballotBox         voting.BallotBox
 	votingResult      bool
 	clientSpeaker     roles.Speaker
@@ -56,17 +56,17 @@ func (l *legislature) sendJudgeSalary() error {
 }
 
 // Receive a rule to call a vote on
-func (l *legislature) setRuleToVote(r string) error {
+func (l *legislature) setRuleToVote(ruleMatrix rules.RuleMatrix) error {
 	if !CheckEnoughInCommonPool(l.gameConf.SetRuleToVoteActionCost, l.gameState) {
 		return errors.Errorf("Insufficient Budget in common Pool: setRuleToVote")
 	}
 
-	agendaReturn := l.clientSpeaker.DecideAgenda(r)
+	agendaReturn := l.clientSpeaker.DecideAgenda(ruleMatrix)
 	if agendaReturn.ActionTaken && agendaReturn.ContentType == shared.SpeakerAgenda {
 		if !l.incurServiceCharge(l.gameConf.SetRuleToVoteActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: setRuleToVote")
 		}
-		l.ruleToVote = agendaReturn.RuleID
+		l.ruleToVote = agendaReturn.RuleMatrix
 	}
 	return nil
 }
@@ -83,7 +83,7 @@ func (l *legislature) setVotingResult(clientIDs []shared.ClientID) error {
 		if !l.incurServiceCharge(l.gameConf.SetVotingResultActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
 		}
-		l.ballotBox = l.RunVote(returnVote.RuleID, returnVote.ParticipatingIslands)
+		l.ballotBox = l.RunVote(returnVote.RuleMatrix, returnVote.ParticipatingIslands)
 
 		l.votingResult = l.ballotBox.CountVotesMajority()
 	}
@@ -93,26 +93,38 @@ func (l *legislature) setVotingResult(clientIDs []shared.ClientID) error {
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.
 //Passing in empty ruleID or empty clientIDs results in no vote occurring
-func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting.BallotBox {
+func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.ClientID) voting.BallotBox {
 
-	if ruleID == "" || len(clientIDs) == 0 {
+	if ruleMatrixIsEmpty(ruleMatrix) || len(clientIDs) == 0 {
 		return voting.BallotBox{}
 	}
 
 	ruleVote := voting.RuleVote{}
 
 	//TODO: check if rule is valid, otherwise return empty ballot, raise error?
-	ruleVote.SetRule(ruleID)
+	ruleVote.SetRule(ruleMatrix)
 
 	//TODO: intersection of islands alive and islands chosen to vote in case of client error
 	//TODO: check if remaining slice is >0, otherwise return empty ballot, raise error?
 	ruleVote.SetVotingIslands(clientIDs)
 
 	ruleVote.GatherBallots(iigoClients)
-	//TODO: log of vote occurring with ruleID, clientIDs
+	//TODO: log of vote occurring with ruleMatrix, clientIDs
 	//TODO: log of clientIDs vs islandsAllowedToVote
-	//TODO: log of ruleID vs s.RuleToVote
+	//TODO: log of ruleMatrix vs s.RuleToVote
 	return ruleVote.GetBallotBox()
+}
+
+func ruleMatrixIsEmpty(ruleMatrix rules.RuleMatrix) bool { //MIKETODO: make sure ApplicableMatrix and AuxiliaryVector are empty too
+	if ruleMatrix.RuleName == "" &&
+		len(ruleMatrix.RequiredVariables) == 0 &&
+		// ruleMatrix.ApplicableMatrix == (mat.Dense{}) &&
+		// ruleMatrix.AuxiliaryVector == (mat.VecDense{}) &&
+		ruleMatrix.Mutable == false {
+		return true
+	} else {
+		return false
+	}
 }
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
@@ -131,21 +143,21 @@ func (l *legislature) announceVotingResult() error {
 		}
 
 		//Reset
-		l.ruleToVote = ""
+		l.ruleToVote = rules.RuleMatrix{}
 		l.votingResult = false
 
 		//Perform announcement
-		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(returnAnouncement.RuleID, returnAnouncement.VotingResult))
+		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(returnAnouncement.RuleMatrix, returnAnouncement.VotingResult))
 	}
 	return nil
 }
 
-func generateVotingResultMessage(ruleID string, result bool) map[shared.CommunicationFieldName]shared.CommunicationContent {
+func generateVotingResultMessage(ruleMatrix rules.RuleMatrix, result bool) map[shared.CommunicationFieldName]shared.CommunicationContent {
 	returnMap := map[shared.CommunicationFieldName]shared.CommunicationContent{}
 
 	returnMap[shared.RuleName] = shared.CommunicationContent{
-		T:        shared.CommunicationString,
-		TextData: ruleID,
+		T:              shared.CommunicationString,
+		RuleMatrixData: ruleMatrix,
 	}
 	returnMap[shared.RuleVoteResult] = shared.CommunicationContent{
 		T:           shared.CommunicationBool,
@@ -157,7 +169,7 @@ func generateVotingResultMessage(ruleID string, result bool) map[shared.Communic
 
 //reset resets internal variables for safety
 func (l *legislature) reset() {
-	l.ruleToVote = ""
+	l.ruleToVote = rules.RuleMatrix{}
 	l.ballotBox = voting.BallotBox{}
 	l.votingResult = false
 }

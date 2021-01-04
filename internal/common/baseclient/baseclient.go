@@ -20,14 +20,14 @@ type Client interface {
 	StartOfTurn()
 	Logf(format string, a ...interface{})
 
-	GetVoteForRule(ruleName string) bool
+	GetVoteForRule(ruleMatrix rules.RuleMatrix) bool
 	GetVoteForElection(roleToElect shared.Role) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
 	CommonPoolResourceRequest() shared.Resources
 	ResourceReport() shared.ResourcesReport
-	RuleProposal() string
+	RuleProposal() rules.RuleMatrix
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
@@ -124,7 +124,7 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 }
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
-func (c *BaseClient) GetVoteForRule(ruleName string) bool {
+func (c *BaseClient) GetVoteForRule(ruleMatrix rules.RuleMatrix) bool {
 	// TODO implement decision on voting that considers the rule
 	return true
 }
