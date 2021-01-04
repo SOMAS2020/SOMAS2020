@@ -89,6 +89,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 			if ourPersonality == Selfish {
 				// introduces high penalty on the gift offers if we are selfish
+				// yes, we are very stingy in this case ;)
 				offers[team] = shared.GiftOffer(friendshipCoffesOnOffer[team] * friendshipCoffesOnOffer[team] * amountOffer)
 			} else if ourPersonality == Normal {
 				// introduces normal penalty
@@ -101,8 +102,8 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		}
 	}
 
-	// TODO: implement different wealth state for our island so we can decided --finished
-	// whether to be generous or not
+	// TODO: implement different wealth state for our island so we can decided
+	// whether to be generous or not --finished
 	return offers
 }
 
