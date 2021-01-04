@@ -137,7 +137,7 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 			gifted:    shared.GiftOffer(response.AcceptedAmount),
 			reason:    shared.AcceptReason(response.Reason),
 		}
-		c.giftHistory[team].TheirRequest[turn] = newGiftRequest
+		c.giftHistory[team] = giftExchange{TheirRequest: map[uint]giftInfo{c.gameState().Turn: newGiftRequest}}
 	}
 	c.Logf("[Debug] UpdateGiftInfo: %v", c.giftHistory[shared.Team3].TheirRequest[turn])
 }
