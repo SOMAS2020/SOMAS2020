@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -31,7 +32,6 @@ type Client interface {
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
-	TaxTaken(shared.Resources)
 	GetTaxContribution() shared.Resources
 	GetSanctionPayment() shared.Resources
 	RequestAllocation() shared.Resources
@@ -68,6 +68,7 @@ type Client interface {
 // ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate
 type ServerReadHandle interface {
 	GetGameState() gamestate.ClientGameState
+	GetGameConfig() config.ClientConfig
 }
 
 // NewClient produces a new client with the BaseClient already implemented.
@@ -124,6 +125,7 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 }
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
+// COMPULSORY: vote to represent your island's opinion on a rule
 func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 	// TODO implement decision on voting that considers the rule
 	return true
@@ -149,11 +151,13 @@ func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.Client
 }
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
+// COMPULSORY: please override to save incoming communication relevant to your agent strategy
 func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
 }
 
 // GetCommunications is used for testing communications
+// BASE
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
 	return &c.Communications
 }
