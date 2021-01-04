@@ -683,12 +683,17 @@ func TestReplyAllocationRequest(t *testing.T) {
 			fakeGameConfig := config.IIGOConfig{
 				ReplyAllocationRequestsActionCost: 1,
 			}
+			fakeServer := fakeServerHandle{
+				PresidentID: tc.bPresident.PresidentID,
+			}
 
 			aliveID := []shared.ClientID{}
 
 			for clientID := range tc.clientRequests {
 				aliveID = append(aliveID, clientID)
-				fakeClientMap[clientID] = baseclient.NewClient(clientID)
+				newClient := baseclient.NewClient(clientID)
+				newClient.Initialise(fakeServer)
+				fakeClientMap[clientID] = newClient
 			}
 
 			setIIGOClients(&fakeClientMap)
@@ -719,6 +724,12 @@ func TestReplyAllocationRequest(t *testing.T) {
 
 				if allocationAmount != expectedAllocation {
 					t.Errorf("Allocation failed for client %v. Expected tax: %v, evaluated tax: %v", clientID, expectedAllocation, allocationAmount)
+				}
+
+				allocationRequest := fakeClientMap[clientID].RequestAllocation()
+
+				if allocationRequest > expectedAllocation {
+					t.Errorf("Allocation failed for client %v. Expected allocation request <= %v , got allocation request: %v", clientID, expectedAllocation, allocationRequest)
 				}
 
 				// Evaluate Rule
@@ -967,8 +978,8 @@ func TestBroadcastTaxation(t *testing.T) {
 				// Check client return
 				paidTax := fakeClientMap[clientID].GetTaxContribution()
 
-				if expectedTax != paidTax {
-					t.Errorf("Taxation failed for client %v. expected to pay %v, got tax contribution %v", clientID, expectedTax, paidTax)
+				if expectedTax < paidTax {
+					t.Errorf("Taxation failed for client %v. expected to pay at least %v, got tax contribution %v", clientID, expectedTax, paidTax)
 				}
 
 				// Evaluate Rule
