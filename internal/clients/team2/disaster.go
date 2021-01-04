@@ -3,6 +3,7 @@ package team2
 import (
 	"math"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -74,14 +75,21 @@ func GetMinMax(minOrMax bool, coordinate1 shared.Coordinate, coordinate2 shared.
 
 // MakeDisasterPrediction is used to provide our island's prediction on the next disaster
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
+	//------------Tuning Parameters---------------//
+	tuningParamK := 1.0
+	varianceCapTimeRemaining := 10000.0
+	tuningParamG := 1.0
+	varianceCapMagnitude := 10000.0
+	//--------------------------------------------//
+
 	// Get the location prediction
 	locationPrediction := GetLocationPrediction(c)
 
 	// Get the time until next disaster prediction
-	timeRemainingPrediction := GetTimeRemainingPrediction(c)
+	timeRemainingPrediction, confidenceTimeRemaining := GetTimeRemainingPrediction(c, tuningParamK, varianceCapTimeRemaining)
 
 	// Get the magnitude prediction
-	magnitudePrediction := GetMagnitudePrediction(c)
+	magnitudePrediction, confidenceMagnitude := GetMagnitudePrediction(c, tuningParamG, varianceCapMagnitude)
 
 	// Get the overall confidence in these predictions
 	confidencePrediction := GetConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
@@ -116,24 +124,36 @@ func GetLocationPrediction(c *client) CartesianCoordinates {
 }
 
 // GetTimeRemainingPrediction provides a prediction about the time remaining until the next disaster.
-// The prediction is 1/sample mean of the Bernoulli RV, minus the turns since the last disaster
-func GetTimeRemainingPrediction(c *client) int {
+// The prediction is 1/sample mean of the Bernoulli RV, minus the turns since the last disaster.
+func GetTimeRemainingPrediction(c *client, tuningParamK float64, varianceCapTimeRemaining float64) (int, shared.PredictionConfidence) {
 	totalTurns := float64(c.gameState().Turn)
 	totalDisasters := float64(len(c.disasterHistory))
-	timeBetweenDisasters := math.Round(totalTurns / totalDisasters)
+	sampleMean := math.Round(totalDisasters / totalTurns)
+	timeBetweenDisasters := 1 / sampleMean
+
+	// Get the time remaining prediction
 	timeRemaining := timeBetweenDisasters - (totalTurns - c.disasterHistory[len(c.disasterHistory)-1].Turn)
-	return int(timeRemaining)
+
+	// Get the confidence in this prediction
+	estimatedVariance := (1 - sampleMean) / math.Pow(sampleMean, 2)
+	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, estimatedVariance/(tuningParamK*totalTurns), varianceCapTimeRemaining) / varianceCapTimeRemaining)
+	return int(timeRemaining), confidence
 }
 
 // GetMagnitudePrediction provides a prediction about the magnitude of the next disaster.
 // The prediction is the sample mean of the past magnitudes of disasters
-func GetMagnitudePrediction(c *client) shared.Magnitude {
+func GetMagnitudePrediction(c *client, tuningParamG float64, varianceCapMagnitude float64) (shared.Magnitude, shared.PredictionConfidence) {
 	totalTurns := float64(c.gameState().Turn)
 	totalMagnitudes := 0.0
 	for _, disasterReport := range c.disasterHistory {
 		totalMagnitudes += disasterReport.Report.Magnitude
 	}
-	return totalMagnitudes / totalTurns
+	sampleMean := totalMagnitudes / totalTurns
+
+	// Get the confidence in this prediction
+	estimatedVariance := math.Pow(sampleMean, 2)
+	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, estimatedVariance/(tuningParamG*totalTurns), varianceCapMagnitude) / varianceCapMagnitude)
+	return sampleMean, confidence
 }
 
 // GetConfidencePrediction provides an overall confidence in our prediction.
@@ -142,13 +162,22 @@ func GetConfidencePrediction(confidenceTimeRemaining shared.PredictionConfidence
 	return (confidenceTimeRemaining + confidenceMagnitude) / 2
 }
 
+// GetMinMaxFloat is the same as GetMinMax but works for floats
+func GetMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
+	if (minOrMax == Min && value1 < value2) || (minOrMax == Max && value1 > value2) {
+		return value1
+	}
+	return value2
+}
+
 // GetTrustedIslands returns a slice of the islands we want to share our prediction with.
 // NOTE: CURRENTLY THIS JUST RETURNS ALL ISLANDS.
 func GetTrustedIslands() []shared.ClientID {
-	trustedIslands := make([]shared.ClientID, len(RegisteredClients))
+	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClients))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
+	return trustedIslands
 }
 
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,
