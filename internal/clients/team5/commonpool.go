@@ -11,7 +11,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	if c.gameState().Turn == 1 && c.gameState().Season == 1 {
 		newRequest = c.config.ImperialThreshold
 		c.Logf("Common Pool Request: %v", newRequest)
-	} else if c.wealth() == Imperial_Student || c.wealth() == Dying {
+	} else if c.wealth() == ImperialStudent || c.wealth() == Dying {
 		// If we are as poor as imperial student, request more resource from cp (whichever number is higher)
 		if c.config.ImperialThreshold < (c.gameState().CommonPool / 6) {
 			newRequest = c.gameState().CommonPool / 6
@@ -40,7 +40,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	c.Logf("Current cp allocation amount: %v", c.allocation)
 
 	// if we are poor we get this amount no matter the approval
-	if c.wealth() == Imperial_Student || c.wealth() == Dying {
+	if c.wealth() == ImperialStudent || c.wealth() == Dying {
 		//allocation = c.cpRequestHistory[len(c.cpRequestHistory)-1] //this one not working rn but it should be the same as the longer code.
 		// will be fixed by preet's team
 		if c.config.ImperialThreshold < (c.gameState().CommonPool / 6) {
