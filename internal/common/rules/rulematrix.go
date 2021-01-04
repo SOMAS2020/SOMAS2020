@@ -32,11 +32,9 @@ type RuleMatrix struct {
 }
 
 // RuleMatrixIsEmpty returns true is the RuleMatrix is uninitialised
-func (r *RuleMatrix) RuleMatrixIsEmpty() bool { //MIKETODO: make sure ApplicableMatrix and AuxiliaryVector are empty too
+func (r *RuleMatrix) RuleMatrixIsEmpty() bool {
 	if r.RuleName == "" &&
 		len(r.RequiredVariables) == 0 &&
-		// r.ApplicableMatrix == (mat.Dense{}) &&
-		// r.AuxiliaryVector == (mat.VecDense{}) &&
 		r.Mutable == false &&
 		r.Link == (RuleLink{}) {
 		// if r.ApplicableMatrix != nil && r.AuxiliaryVector != nil {

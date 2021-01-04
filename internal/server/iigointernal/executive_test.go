@@ -174,7 +174,7 @@ func TestPickRuleToVote(t *testing.T) {
 
 			if got.ActionTaken && tc.want {
 				if len(tc.input) == 0 {
-					// if got.ProposedRuleMatrix != "" { //MIKETODO
+					// if got.ProposedRuleMatrix != "" {
 					// 	t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
 					if !got.ProposedRuleMatrix.RuleMatrixIsEmpty() { //
 						t.Errorf("%v - Failed. Returned '%v', but expectd an empty ruleMatrix", tc.name, got.ProposedRuleMatrix)
@@ -443,7 +443,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			}
 
 			if len(tc.expected) == 0 {
-				// if got.ProposedRuleMatrix != "" {//MIKETODO
+				// if got.ProposedRuleMatrix != "" {
 				// 	t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
 				if !got.ProposedRuleMatrix.RuleMatrixIsEmpty() { //
 					t.Errorf("%v - Failed. Returned '%v', but expectd an empty ruleMatrix", tc.name, got.ProposedRuleMatrix)
