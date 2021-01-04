@@ -16,18 +16,13 @@ func InitEnvironment(islandIDs []shared.ClientID, envConf config.DisasterConfig)
 		YMin:    envConf.YMin,
 		YMax:    envConf.YMax,
 	}
-	dp := disasterParameters{
-		globalProb:      envConf.GlobalProb,
-		spatialPDF:      envConf.SpatialPDFType,
-		magnitudeLambda: envConf.MagnitudeLambda,
-	}
 
 	xPoints := equidistantPoints(envConf.XMin, envConf.XMax, uint(len(islandIDs)))
 	for i, id := range islandIDs {
 		island := IslandLocationInfo{id, xPoints[i], float64(0)} // begin with equidistant points on x axis
 		ag.Islands[id] = island
 	}
-	return Environment{Geography: ag, DisasterParams: dp, LastDisasterReport: DisasterReport{}}
+	return Environment{Geography: ag, LastDisasterReport: DisasterReport{}}
 }
 
 // get n equally spaced points on a line connecting x0, x1
