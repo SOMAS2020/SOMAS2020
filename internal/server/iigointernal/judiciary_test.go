@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -106,8 +108,9 @@ func TestLoadSanctionConfig(t *testing.T) {
 	}
 }
 
+// TODO - Outdated Test? Presidents salary should not be deducted from the budget
 // TestSendPresidentSalary checks whether judiciary can correctly send salaries to the executive branch
-func TestSendPresidentSalary(t *testing.T) {
+/*func TestSendPresidentSalary(t *testing.T) {
 	cases := []struct {
 		name              string
 		defaultPresSalary shared.Resources
@@ -155,13 +158,14 @@ func TestSendPresidentSalary(t *testing.T) {
 				presidentSalary: tc.defaultPresSalary,
 				clientJudge:     tc.clientJudge,
 			}
-			judicialInst.sendPresidentSalary(&dummyExec)
+			judicialInst.sendPresidentSalary()
 			if !reflect.DeepEqual(tc.expectedBudget, dummyExec.budget) {
 				t.Errorf("Expected %v got %v", tc.expectedBudget, dummyExec.budget)
 			}
 		})
 	}
 }
+*/
 
 // TestInspectHistory checks whether inspect history is able to take account of client decisions
 func TestInspectHistory(t *testing.T) {
@@ -1766,10 +1770,90 @@ func generateDummyRuleMatrices() []rules.RuleMatrix {
 	return outputArray
 }
 
+func TestJudgeIncureServiceCharge(t *testing.T) {
+	cases := []struct {
+		name                string
+		bJudge              judiciary // base
+		input               shared.Resources
+		expectedReturn      bool
+		expectedCommonPool  shared.Resources
+		expectedJudgeBudget shared.Resources
+	}{
+		{
+			name: "Excess pay",
+			bJudge: judiciary{
+				JudgeID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 400,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     100,
+					},
+				},
+			},
+			input:               50,
+			expectedReturn:      true,
+			expectedCommonPool:  350,
+			expectedJudgeBudget: 50,
+		},
+		{
+			name: "Negative Budget",
+			bJudge: judiciary{
+				JudgeID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 400,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
+					},
+				},
+			},
+			input:               50,
+			expectedReturn:      true,
+			expectedCommonPool:  350,
+			expectedJudgeBudget: -40,
+		},
+		{
+			name: "Limited common pool",
+			bJudge: judiciary{
+				JudgeID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 40,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
+					},
+				},
+			},
+			input:               50,
+			expectedReturn:      false,
+			expectedCommonPool:  40,
+			expectedJudgeBudget: 10,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			returned := tc.bJudge.incurServiceCharge(tc.input)
+			commonPool := tc.bJudge.gameState.CommonPool
+			judgeBudget := tc.bJudge.gameState.IIGORolesBudget[shared.Judge]
+			if returned != tc.expectedReturn ||
+				commonPool != tc.expectedCommonPool ||
+				judgeBudget != tc.expectedJudgeBudget {
+				t.Errorf("%v - Failed. Got '%v, %v, %v', but expected '%v, %v, %v'",
+					tc.name, returned, commonPool, judgeBudget,
+					tc.expectedReturn, tc.expectedCommonPool, tc.expectedJudgeBudget)
+			}
+		})
+	}
+}
+
 func defaultInitJudiciary() judiciary {
 	return judiciary{
 		JudgeID:               0,
-		budget:                0,
 		presidentSalary:       0,
 		evaluationResults:     map[shared.ClientID]roles.EvaluationReturn{},
 		clientJudge:           &baseclient.BaseJudge{},
@@ -1779,6 +1863,15 @@ func defaultInitJudiciary() judiciary {
 		ruleViolationSeverity: map[string]roles.IIGOSanctionScore{},
 		localSanctionCache:    map[int][]roles.Sanction{},
 		localHistoryCache:     map[int][]shared.Accountability{},
+		gameConf:              &config.IIGOConfig{},
+		gameState: &gamestate.GameState{
+			CommonPool: 999,
+			IIGORolesBudget: map[shared.Role]shared.Resources{
+				shared.President: 100,
+				shared.Speaker:   10,
+				shared.Judge:     10,
+			},
+		},
 	}
 }
 
