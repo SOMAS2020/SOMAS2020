@@ -142,6 +142,7 @@ func registerRulesByMass() {
 		{
 			Name: "rule_to_vote_on_rule",
 			ReqVar: []VariableFieldName{
+
 				SpeakerProposedPresidentRule,
 			},
 			Values:  []float64{1, -1},
@@ -218,6 +219,27 @@ func registerRulesByMass() {
 			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
 			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "island_must_report_private_resource",
+			ReqVar: []VariableFieldName{
+				HasIslandReportPrivateResources,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "island_must_report_actual_private_resource",
+			ReqVar: []VariableFieldName{
+				IslandActualPrivateResources,
+				IslandReportedPrivateResources,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
 			Linked:  false,
 		},
 	}
