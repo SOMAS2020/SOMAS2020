@@ -70,6 +70,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		judgeID:           g.JudgeID,
 		internalIIGOCache: []shared.Accountability{},
 	}
+	executiveBranch.monitoring = &monitoring
+	legislativeBranch.monitoring = &monitoring
+	judicialBranch.monitoring = &monitoring
+
 	iigoClients = *clientMap
 
 	// Increments the budget by a constant 100

@@ -21,6 +21,7 @@ type executive struct {
 	RulesProposals      []string
 	ResourceRequests    map[shared.ClientID]shared.Resources
 	speakerTurnsInPower int
+	monitoring          *monitor
 }
 
 // loadClientPresident checks client pointer is good and if not panics

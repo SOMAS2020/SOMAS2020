@@ -22,6 +22,7 @@ type legislature struct {
 	votingResult      bool
 	clientSpeaker     roles.Speaker
 	judgeTurnsInPower int
+	monitoring        *monitor
 }
 
 // loadClientSpeaker checks client pointer is good and if not panics
@@ -110,9 +111,15 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 	ruleVote.SetVotingIslands(clientIDs)
 
 	ruleVote.GatherBallots(iigoClients)
-	//TODO: log of vote occurring with ruleID, clientIDs
-	//TODO: log of clientIDs vs islandsAllowedToVote
-	//TODO: log of ruleID vs s.RuleToVote
+
+	variablesToCache := []rules.VariableFieldName{rules.IslandsAllowedToVote}
+	valuesToCache := [][]float64{{float64(len(clientIDs))}}
+	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+
+	variablesToCache = []rules.VariableFieldName{rules.SpeakerRuleProposal, rules.PresidentRuleProposal}
+	valuesToCache = [][]float64{{float64(len(ruleID))}, {float64(len(l.ruleToVote))}}
+	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+
 	return ruleVote.GetBallotBox()
 }
 
