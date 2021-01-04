@@ -98,7 +98,7 @@ func findAvgExclMinMax(Requests shared.GiftRequestDict) shared.GiftRequest {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 
-	if shared.ClientLifeStatus(2) == shared.Critical {
+	if shared.ClientLifeStatus(shared.Team3) == shared.Critical {
 		for island := range receivedRequests {
 			offers[island] = 0.0
 		}
