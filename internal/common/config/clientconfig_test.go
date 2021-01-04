@@ -20,11 +20,9 @@ func TestGetClientConfig(t *testing.T) {
 				MaxCriticalConsecutiveTurns: 3,
 				MaxSeasons:                  4, // not visible
 				DisasterConfig: DisasterConfig{
-					MagnitudeResourceMultiplier:        5,
-					MagnitudeResourceMultiplierVisible: true,
-					CommonpoolThreshold:                6,
-					CommonpoolThresholdVisible:         true,
-					GlobalProb:                         4.20, // not visible
+					CommonpoolThreshold:        6,
+					CommonpoolThresholdVisible: true,
+					GlobalProb:                 4.20, // not visible
 				},
 			},
 			want: ClientConfig{
@@ -32,10 +30,6 @@ func TestGetClientConfig(t *testing.T) {
 				MinimumResourceThreshold:    2,
 				MaxCriticalConsecutiveTurns: 3,
 				DisasterConfig: ClientDisasterConfig{
-					MagnitudeResourceMultiplier: SelectivelyVisibleFloat64{
-						Value: 5,
-						Valid: true,
-					},
 					CommonpoolThreshold: SelectivelyVisibleResources{
 						Value: 6,
 						Valid: true,
@@ -51,11 +45,9 @@ func TestGetClientConfig(t *testing.T) {
 				MaxCriticalConsecutiveTurns: 3,
 				MaxSeasons:                  4, // not visible
 				DisasterConfig: DisasterConfig{
-					MagnitudeResourceMultiplier:        5,
-					MagnitudeResourceMultiplierVisible: false,
-					CommonpoolThreshold:                6,
-					CommonpoolThresholdVisible:         false,
-					GlobalProb:                         4.20, // not visible
+					CommonpoolThreshold:        6,
+					CommonpoolThresholdVisible: false,
+					GlobalProb:                 4.20, // not visible
 				},
 			},
 			want: ClientConfig{
@@ -63,9 +55,6 @@ func TestGetClientConfig(t *testing.T) {
 				MinimumResourceThreshold:    2,
 				MaxCriticalConsecutiveTurns: 3,
 				DisasterConfig: ClientDisasterConfig{
-					MagnitudeResourceMultiplier: SelectivelyVisibleFloat64{
-						Valid: false,
-					},
 					CommonpoolThreshold: SelectivelyVisibleResources{
 						Valid: false,
 					},

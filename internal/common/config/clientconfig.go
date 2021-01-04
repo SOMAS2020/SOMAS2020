@@ -12,8 +12,7 @@ type ClientConfig struct {
 
 // ClientDisasterConfig contains disaster config information visible to clients.
 type ClientDisasterConfig struct {
-	MagnitudeResourceMultiplier SelectivelyVisibleFloat64
-	CommonpoolThreshold         SelectivelyVisibleResources
+	CommonpoolThreshold SelectivelyVisibleResources
 }
 
 // GetClientConfig gets ClientConfig.
@@ -29,10 +28,6 @@ func (c Config) GetClientConfig() ClientConfig {
 // GetClientDisasterConfig gets ClientDisasterConfig
 func (c DisasterConfig) GetClientDisasterConfig() ClientDisasterConfig {
 	return ClientDisasterConfig{
-		MagnitudeResourceMultiplier: getSelectivelyVisibleFloat64(
-			c.MagnitudeResourceMultiplier,
-			c.MagnitudeResourceMultiplierVisible,
-		),
 		CommonpoolThreshold: getSelectivelyVisibleResources(
 			c.CommonpoolThreshold,
 			c.CommonpoolThresholdVisible,

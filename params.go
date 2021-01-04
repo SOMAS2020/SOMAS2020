@@ -184,11 +184,6 @@ var (
 		500,
 		"Multiplier to map disaster magnitude to CP resource deductions",
 	)
-	disasterMagnitudeResourceMultiplierVisible = flag.Bool(
-		"disasterMagnitudeResourceMultiplierVisible",
-		false,
-		"Whether disasterMagnitudeResourceMultiplierVisible is visible to agents",
-	)
 	disasterCommonpoolThreshold = flag.Float64(
 		"disasterCommonpoolThreshold",
 		50,
@@ -368,17 +363,16 @@ func parseConfig() (config.Config, error) {
 		FishingConfig:  fishingConf,
 	}
 	disasterConf := config.DisasterConfig{
-		XMin:                               *disasterXMin,
-		XMax:                               *disasterXMax,
-		YMin:                               *disasterYMin,
-		YMax:                               *disasterYMax,
-		GlobalProb:                         *disasterGlobalProb,
-		SpatialPDFType:                     parsedDisasterSpatialPDFType,
-		MagnitudeLambda:                    *disasterMagnitudeLambda,
-		MagnitudeResourceMultiplier:        *disasterMagnitudeResourceMultiplier,
-		MagnitudeResourceMultiplierVisible: *disasterMagnitudeResourceMultiplierVisible,
-		CommonpoolThreshold:                shared.Resources(*disasterCommonpoolThreshold),
-		CommonpoolThresholdVisible:         *disasterCommonpoolThresholdVisible,
+		XMin:                        *disasterXMin,
+		XMax:                        *disasterXMax,
+		YMin:                        *disasterYMin,
+		YMax:                        *disasterYMax,
+		GlobalProb:                  *disasterGlobalProb,
+		SpatialPDFType:              parsedDisasterSpatialPDFType,
+		MagnitudeLambda:             *disasterMagnitudeLambda,
+		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
+		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
+		CommonpoolThresholdVisible:  *disasterCommonpoolThresholdVisible,
 	}
 
 	iigoConf := config.IIGOConfig{
