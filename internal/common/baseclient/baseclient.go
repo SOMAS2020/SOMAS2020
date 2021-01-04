@@ -124,6 +124,7 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 }
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
+// COMPULSORY: vote to represent your island's opinion on a rule
 func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 	// TODO implement decision on voting that considers the rule
 	return true
@@ -149,11 +150,13 @@ func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.Client
 }
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
+// COMPULSORY: please override to save incoming communication relevant to your agent strategy
 func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
 }
 
 // GetCommunications is used for testing communications
+// BASE
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
 	return &c.Communications
 }
