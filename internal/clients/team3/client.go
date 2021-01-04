@@ -67,11 +67,15 @@ type client struct {
 	params islandParams
 	// iigoInfo caches information regarding iigo in the current turn
 	iigoInfo iigoCommunicationInfo
+
+	locationService locator
 }
 
 type criticalStatePrediction struct {
 	upperBound shared.Resources
 	lowerBound shared.Resources
+
+	locationService locator
 }
 
 type islandParams struct {
@@ -91,6 +95,7 @@ type islandParams struct {
 	anger                       float64
 	aggression                  float64
 	sensitivity                 float64
+	laziness                    float64
 }
 
 type ruleVoteInfo struct {
