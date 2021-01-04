@@ -221,6 +221,16 @@ func registerRulesByMass() {
 			Mutable: true,
 			Linked:  false,
 		},
+		{
+			Name: "rule_chosen_from_proposal_list",
+			ReqVar: []VariableFieldName{
+				RuleChosenFromProposalList,
+			},
+			Values:  []float64{-1, 1},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
 	}
 
 	for _, rs := range ruleSpecs {

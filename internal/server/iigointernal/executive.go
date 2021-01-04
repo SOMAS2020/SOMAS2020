@@ -78,6 +78,21 @@ func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 		}
 	}
 
+	//Log Rule: selected rule must come from rule proposal list
+	if returnRule.ActionTaken && (returnRule.ContentType == shared.PresidentRuleProposal) {
+		ruleChosenFromProposalList := false
+		for _, a := range e.RulesProposals {
+			if a == returnRule.ProposedRule {
+				ruleChosenFromProposalList = true
+			}
+		}
+
+		variablesToCache := []rules.VariableFieldName{rules.RuleChosenFromProposalList}
+		valuesToCache := [][]float64{{boolToFloat(ruleChosenFromProposalList)}}
+		e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
+
+	}
+
 	return returnRule, nil
 }
 
