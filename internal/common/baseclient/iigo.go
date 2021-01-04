@@ -125,6 +125,9 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 	return valToBeReturned
 }
 
+// CheckCompliance provides clients with an easy interface to feed a variable and check whether it is compliant
+// with all the rules that are affected by it
+// OPTIONAL
 func (c *BaseClient) CheckCompliance(variable rules.VariableFieldName) bool {
 	rulesAffected, found := rules.PickUpRulesByVariable(variable, rules.RulesInPlay, c.LocalVariableCache)
 	complianceCheck := true
@@ -142,6 +145,9 @@ func (c *BaseClient) CheckCompliance(variable rules.VariableFieldName) bool {
 	return complianceCheck
 }
 
+// GetRecommendation provides clients with a way of working out (in reasonably simple cases) what value
+// a given variable must be to ensure compliance
+// OPTIONAL
 func (c *BaseClient) GetRecommendation(variable rules.VariableFieldName) (compliantValue rules.VariableValuePair, success bool) {
 	rulesAffected, found := rules.PickUpRulesByVariable(variable, rules.RulesInPlay, c.LocalVariableCache)
 	if !found {
