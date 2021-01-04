@@ -2,7 +2,6 @@
 *note*: GH doesn't support LaTeX in MD file previews. View this file locally in VSCode or similar to see the maths.
 
 ### Prevalence
-
 Disasters are one of the key components to the the long term CRD. Disasters can be configured to occur with a **stochastic** or **deterministic** period $T_0$ by toggling the `StochasticPeriod` parameter in the `DisasterConfig`. These two cases are designed such that:
 - In the *deterministic* case, a disaster occurs regularly with a period $T_0$ (i.e. it is guaranteed to occur every $T$ turns).
 - In the *stochastic* case, the *expected* period $E[T]$ = $T_0$.
