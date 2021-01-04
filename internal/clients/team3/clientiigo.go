@@ -64,7 +64,7 @@ func (c *client) resetIIGOInfo() {
 func (c *client) GetTaxContribution() shared.Resources {
 	commonPool := c.BaseClient.ServerReadHandle.GetGameState().CommonPool
 	totalToPay := 100 - commonPool
-	if len(c.disasterPredictions) != 0 {
+	if len(c.disasterPredictions) > int(c.ServerReadHandle.GetGameState().Turn) {
 		if disaster, ok := c.disasterPredictions[int(c.BaseClient.ServerReadHandle.GetGameState().Turn)][c.BaseClient.GetID()]; ok {
 			totalToPay = (shared.Resources(disaster.Magnitude) - commonPool) / shared.Resources(disaster.TimeLeft)
 		}
