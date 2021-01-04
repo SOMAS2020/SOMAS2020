@@ -1,8 +1,9 @@
 package baseclient
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"math/rand"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 // GetGiftRequests allows clients to signalize that they want a gift
@@ -77,11 +78,11 @@ func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientI
 	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 }
 
-// ShareIntendedContributionis called on each client to give them the 
+// ShareIntendedContributionis called on each client to give them the
 // option of sharing how much they intend to contribute to the common pool. They must also
 // choose what islands they want to share the information with
 func (c *BaseClient) ShareIntendedContribution() shared.IntendedContribution {
-	
+
 	// For MVP, share this prediction with all islands since trust has not yet been implemented
 	trustedIslands := make([]shared.ClientID, len(RegisteredClients))
 	for index, id := range shared.TeamIDs {
@@ -89,7 +90,7 @@ func (c *BaseClient) ShareIntendedContribution() shared.IntendedContribution {
 	}
 
 	contribution := shared.IntendedContribution{
-		Contribution: rand.Float64(),
+		Contribution:   rand.Float64(),
 		TeamsOfferedTo: trustedIslands,
 	}
 
@@ -101,8 +102,8 @@ func (c *BaseClient) ShareIntendedContribution() shared.IntendedContribution {
 // ReceiveIntendedContribution provides each client with the intended common pool contribution from the islands
 // that have chosen to share it with them
 // COMPULSORY, you must implement this function
-func (c *BaseClient) ReceiveIntendedContribution(receivedIntendedContribution shared.ReceivedIntendedContribution) {
+func (c *BaseClient) ReceiveIntendedContribution(receivedIntendedContribution shared.ReceivedIntendedContributionDict) {
 	// You can check the other's common pool contributions like this
 	// intededContributions := c.intendedContribution
-	
+
 }

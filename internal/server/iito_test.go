@@ -8,18 +8,17 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"math/rand"
 )
 
 // The response from any client to a gift-related query must be sanitised to have an entry for all alive clients.
 
 type mockClientIITO struct {
 	baseclient.BaseClient
-	requests          shared.GiftRequestDict
-	offers            shared.GiftOfferDict
-	responses         shared.GiftResponseDict
-	receivedResponses shared.GiftResponseDict
-	otherIslandContribution shared.ReceivedIntendedContribution
+	requests                shared.GiftRequestDict
+	offers                  shared.GiftOfferDict
+	responses               shared.GiftResponseDict
+	receivedResponses       shared.GiftResponseDict
+	otherIslandContribution shared.ReceivedIntendedContributionDict
 }
 
 func (c *mockClientIITO) GetGiftRequests() shared.GiftRequestDict {
@@ -38,10 +37,16 @@ func (c *mockClientIITO) UpdateGiftInfo(responses shared.GiftResponseDict) {
 	c.receivedResponses = responses
 }
 
+func (c *mockClientIITO) ReceiveIntendedContribution(receivedIntendedContribution shared.ReceivedIntendedContributionDict) {
+	// You can check the other's common pool contributions like this
+	// intededContributions := c.intendedContribution
+	c.otherIslandContribution = receivedIntendedContribution
+
+}
 func shareIntendedContribution(contribution float64, shareTo []shared.ClientID) shared.IntendedContribution {
 	if len(shareTo) > 0 {
 		return shared.IntendedContribution{
-			Contribution: contribution,
+			Contribution:   contribution,
 			TeamsOfferedTo: shareTo,
 		}
 	}
@@ -54,11 +59,11 @@ func shareIntendedContribution(contribution float64, shareTo []shared.ClientID) 
 func receiveIntendedContribution(contribution float64, sharedFrom shared.ClientID) shared.ReceivedIntendedContribution {
 	return shared.ReceivedIntendedContribution{
 		Contribution: contribution,
-		SharedFrom:     sharedFrom,
+		SharedFrom:   sharedFrom,
 	}
 }
 
-func (c *mockClientIITO) getOtherIslandsCommonPoolContribution() shared.ReceivedIntendedContribution {
+func (c *mockClientIITO) getOtherIslandsCommonPoolContribution() shared.ReceivedIntendedContributionDict {
 	return c.otherIslandContribution
 }
 
@@ -343,7 +348,7 @@ func TestDistributeContributions(t *testing.T) {
 		},
 	}
 
-	mockClient := map[shared.ClientID]*mockClientIIFO{
+	mockClient := map[shared.ClientID]*mockClientIITO{
 		shared.Team1: {},
 		shared.Team2: {},
 		shared.Team3: {},
@@ -355,16 +360,16 @@ func TestDistributeContributions(t *testing.T) {
 		shared.Team3: mockClient[shared.Team3],
 	}
 
-	team1Contribution := rand.Float64()
-	
-	input := shared.IntendedContribution{
+	team1Contribution := float64(1)
+
+	input := shared.IntendedContributionDict{
 		shared.Team1: shareIntendedContribution(team1Contribution, []shared.ClientID{shared.Team2, shared.Team3}),
 		shared.Team2: shareIntendedContribution(0.0, []shared.ClientID{}),
 		shared.Team3: shareIntendedContribution(0.0, []shared.ClientID{shared.Team1, shared.Team2}),
 	}
-	want := map[shared.ClientID]shared.ReceivedIntendedContribution{
-		shared.Team1: shared.ReceivedIntendedContribution(nil),
-		shared.Team2: {shared.Team1: receiveIntendedContribution(team1Prediction, shared.Team1)},
+	want := map[shared.ClientID]shared.ReceivedIntendedContributionDict{
+		shared.Team1: shared.ReceivedIntendedContributionDict(nil),
+		shared.Team2: {shared.Team1: receiveIntendedContribution(team1Contribution, shared.Team1)},
 	}
 
 	server := &SOMASServer{
