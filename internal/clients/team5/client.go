@@ -43,13 +43,13 @@ type client struct {
 
 
 func (c client) wealth() WealthTier {  
-	c_data := c.gameState().ClientInfo  
+	cData := c.gameState().ClientInfo  
 	switch {  
-		case c_data.LifeStatus == shared.Critical:    
+		case cData.LifeStatus == shared.Critical:    
 			return Dying  
-		case c_data.Resources > c.config.ImperialThreshold && c_data.Resources < c.config.MiddleThreshold :    
+		case cData.Resources > c.config.ImperialThreshold && cData.Resources < c.config.MiddleThreshold :    
 			return Imperial_Student  
-		case c_data.Resources > c.config.JBThreshold:    
+		case cData.Resources > c.config.JBThreshold:    
 			return Jeff_Bezos  
 		default:    
 			return Middle_Class  
