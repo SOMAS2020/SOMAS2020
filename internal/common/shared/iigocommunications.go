@@ -14,9 +14,8 @@ const (
 	CommunicationInt CommunicationContentType = iota
 	CommunicationString
 	CommunicationBool
-	CommunicationResources
-	CommunicationIIGORule
-	CommunicationIIGOVar
+	CommunicationTax
+	CommunicationAllocation
 	CommunicationIIGORole
 )
 
@@ -25,9 +24,8 @@ func (c CommunicationContentType) String() string {
 		"CommunicationInt",
 		"CommunicationString",
 		"CommunicationBool",
-		"CommunicationResources",
-		"CommunicationIIGORule",
-		"CommunicationIIGOVar",
+		"CommunicationTax",
+		"CommunicationAllocation",
 		"CommunicationIIGORole",
 	}
 	if c >= 0 && int(c) < len(strs) {
@@ -51,16 +49,31 @@ func (c CommunicationContentType) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
 
+// TaxDecision is part of CommunicationContent and is used to send a tax decision from president to the client
+type TaxDecision struct {
+	TaxAmount   Resources
+	TaxRule     rules.RuleMatrix
+	ExpectedTax rules.VariableValuePair
+	TaxDecided  bool
+}
+
+// AllocationDecision is part of CommunicationContent and is used to send an allocation decision from president to the client
+type AllocationDecision struct {
+	AllocationAmount   Resources
+	AllocationRule     rules.RuleMatrix
+	ExpectedAllocation rules.VariableValuePair
+	AllocationDecided  bool
+}
+
 // CommunicationContent is a general datastructure used for communications
 type CommunicationContent struct {
-	T             CommunicationContentType
-	IntegerData   int
-	TextData      string
-	BooleanData   bool
-	ResourcesData Resources
-	IIGORuleData  rules.RuleMatrix
-	IIGOVarData   rules.VariableValuePair
-	IIGORoleData  Role
+	T                  CommunicationContentType
+	IntegerData        int
+	TextData           string
+	BooleanData        bool
+	TaxDecision        TaxDecision
+	AllocationDecision AllocationDecision
+	IIGORoleData       Role
 }
 
 type CommunicationFieldName int
@@ -73,12 +86,8 @@ const (
 	PresidentID
 	RuleName
 	RuleVoteResult
-	TaxAmount
-	TaxRule
-	TaxVariable
-	AllocationAmount
-	AllocationRule
-	AllocationVariable
+	Tax
+	Allocation
 	PardonClientID
 	PardonTier
 	SanctionAmount
@@ -97,12 +106,8 @@ func (c CommunicationFieldName) String() string {
 		"PresidentID",
 		"RuleName",
 		"RuleVoteResult",
-		"TaxAmount",
-		"TaxRule",
-		"TaxVariable",
-		"AllocationAmount",
-		"AllocationRule",
-		"AllocationVariable",
+		"TaxDecision",
+		"AllocationDecision",
 		"PardonClientID",
 		"PardonTier",
 		"SanctionAmount",

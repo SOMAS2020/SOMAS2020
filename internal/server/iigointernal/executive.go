@@ -105,16 +105,13 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		}
 		for islandID, amount := range taxMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
-				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-
-				expectedVariable, taxRule := convertAmount(amount, tax)
-
-				data[shared.TaxAmount] = shared.CommunicationContent{T: shared.CommunicationResources, ResourcesData: amount}
-				data[shared.TaxRule] = shared.CommunicationContent{T: shared.CommunicationIIGORule, IIGORuleData: taxRule}
-				data[shared.TaxVariable] = shared.CommunicationContent{T: shared.CommunicationIIGOVar, IIGOVarData: expectedVariable}
-
-				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+				e.sendTax(islandID, amount)
 			}
+		}
+	} else {
+		// default case when president doesn't take an action. send tax = 0
+		for _, islandID := range aliveIslands {
+			e.sendNoTax(islandID)
 		}
 	}
 
@@ -149,21 +146,17 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 	}
 	returnContent := e.getAllocationRequests(commonPool)
 	allocationsMade := false
-	if returnContent.ActionTaken {
+	if returnContent.ActionTaken && returnContent.ContentType == shared.PresidentAllocation {
 		if !e.incurServiceCharge(e.gameConf.ReplyAllocationRequestsActionCost) {
 			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
 		allocationsMade = true
 		for islandID, amount := range returnContent.ResourceMap {
-			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-
-			expectedVariable, allocationRule := convertAmount(amount, allocation)
-
-			data[shared.AllocationAmount] = shared.CommunicationContent{T: shared.CommunicationResources, ResourcesData: amount}
-			data[shared.AllocationRule] = shared.CommunicationContent{T: shared.CommunicationIIGORule, IIGORuleData: allocationRule}
-			data[shared.AllocationVariable] = shared.CommunicationContent{T: shared.CommunicationIIGOVar, IIGOVarData: expectedVariable}
-
-			communicateWithIslands(islandID, e.PresidentID, data)
+			e.sendAllocation(islandID, amount)
+		}
+	} else {
+		for islandID := range e.ResourceRequests {
+			e.sendNoAllocation(islandID)
 		}
 	}
 	return allocationsMade, nil
@@ -298,4 +291,46 @@ func convertAmount(amount shared.Resources, amountType conversionType) (rules.Va
 	}
 
 	return retVar, retRule
+}
+
+func (e *executive) sendTax(islandID shared.ClientID, taxAmount shared.Resources) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	expectedVariable, taxRule := convertAmount(taxAmount, tax)
+	taxToSend := shared.TaxDecision{
+		TaxAmount:   taxAmount,
+		TaxRule:     taxRule,
+		ExpectedTax: expectedVariable,
+		TaxDecided:  true,
+	}
+
+	data[shared.Tax] = shared.CommunicationContent{T: shared.CommunicationTax, TaxDecision: taxToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+}
+
+func (e *executive) sendNoTax(islandID shared.ClientID) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	taxToSend := shared.TaxDecision{TaxDecided: false}
+	data[shared.Tax] = shared.CommunicationContent{T: shared.CommunicationTax, TaxDecision: taxToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+}
+
+func (e *executive) sendAllocation(islandID shared.ClientID, allocationAmount shared.Resources) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	expectedVariable, allocationRule := convertAmount(allocationAmount, allocation)
+	allocationToSend := shared.AllocationDecision{
+		AllocationAmount:   allocationAmount,
+		AllocationRule:     allocationRule,
+		ExpectedAllocation: expectedVariable,
+		AllocationDecided:  true,
+	}
+
+	data[shared.Allocation] = shared.CommunicationContent{T: shared.CommunicationAllocation, AllocationDecision: allocationToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+}
+
+func (e *executive) sendNoAllocation(islandID shared.ClientID) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	allocationToSend := shared.AllocationDecision{AllocationDecided: false}
+	data[shared.Allocation] = shared.CommunicationContent{T: shared.CommunicationAllocation, AllocationDecision: allocationToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 }

@@ -18,15 +18,3 @@ func RegisterClient(id shared.ClientID, c Client) {
 	}
 	RegisteredClients[id] = c
 }
-
-func isTaxMsg(msg map[shared.CommunicationFieldName]shared.CommunicationContent) bool {
-	return msg[shared.TaxAmount].T == shared.CommunicationResources &&
-		msg[shared.TaxRule].T == shared.CommunicationIIGORule &&
-		msg[shared.TaxVariable].T == shared.CommunicationIIGOVar
-}
-
-func isAllocationMsg(msg map[shared.CommunicationFieldName]shared.CommunicationContent) bool {
-	return msg[shared.AllocationAmount].T == shared.CommunicationResources &&
-		msg[shared.AllocationRule].T == shared.CommunicationIIGORule &&
-		msg[shared.AllocationVariable].T == shared.CommunicationIIGOVar
-}

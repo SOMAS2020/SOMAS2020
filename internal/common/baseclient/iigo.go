@@ -55,22 +55,20 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// If no new communication was received and there is no rule governing taxation, it will still recieve last valid tax
 	gameState := c.ServerReadHandle.GetGameState()
 	presidentCommunications := c.Communications[gameState.PresidentID]
-	var latestTax map[shared.CommunicationFieldName]shared.CommunicationContent
+	var newTaxDecision shared.TaxDecision
 
-	foundTax := false
 	for i := range presidentCommunications {
 		msg := presidentCommunications[len(presidentCommunications)-1-i]
-		if isTaxMsg(msg) {
-			latestTax = msg
-			foundTax = true
+		if msg[shared.Tax].T == shared.CommunicationTax {
+			newTaxDecision = msg[shared.Tax].TaxDecision
 			break
 		}
 	}
 
-	if foundTax {
+	if newTaxDecision.TaxDecided {
 		// gotVariable := latestTax[shared.TaxVariable].IIGOVarData
 		// gotRule := latestTax[shared.TaxRule].IIGORuleData
-		return latestTax[shared.TaxAmount].ResourcesData
+		return newTaxDecision.TaxAmount
 	}
 
 	return 0 //default if no tax message was found
@@ -86,14 +84,20 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
 	gameState := c.ServerReadHandle.GetGameState()
 	presidentCommunications := c.Communications[gameState.PresidentID]
-	var latestAllocation map[shared.CommunicationFieldName]shared.CommunicationContent
+	var newAllocationDecision shared.AllocationDecision
 	for i := range presidentCommunications {
 		msg := presidentCommunications[len(presidentCommunications)-1-i]
-		if isAllocationMsg(msg) {
-			latestAllocation = msg
+		if msg[shared.Allocation].T == shared.CommunicationAllocation {
+			newAllocationDecision = msg[shared.Allocation].AllocationDecision
 			break
 		}
 	}
 
-	return latestAllocation[shared.TaxAmount].ResourcesData
+	if newAllocationDecision.AllocationDecided {
+		// gotVariable := latestTax[shared.TaxVariable].IIGOVarData
+		// gotRule := latestTax[shared.TaxRule].IIGORuleData
+		return newAllocationDecision.AllocationAmount
+	}
+
+	return gameState.CommonPool //default if no allocation was made
 }
