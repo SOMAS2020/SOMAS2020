@@ -1,8 +1,9 @@
 package rules
 
 import (
-	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
+
+	"github.com/pkg/errors"
 )
 
 func createVarList(variables []VariableFieldName, varCache map[VariableFieldName]VariableValuePair) ([]float64, error) {
@@ -238,7 +239,7 @@ func EvaluateRuleFromCaches(ruleName string, rulesCache map[string]RuleMatrix, v
 					RulePasses:    false,
 					IsRealOutput:  false,
 					RealOutputVal: 0,
-					EvalError:     &RuleError{
+					EvalError: &RuleError{
 						ErrorType: ChildRuleNotFound,
 						Err:       errors.Errorf("Child rule was not found in cache"),
 					},
@@ -248,10 +249,10 @@ func EvaluateRuleFromCaches(ruleName string, rulesCache map[string]RuleMatrix, v
 			if isRealValued {
 				eval, res, err := basicRealValuedRuleEvaluator(rule, variableCache)
 				return RuleEvaluationReturn{
-					RulePasses: eval,
-					IsRealOutput: true,
+					RulePasses:    eval,
+					IsRealOutput:  true,
 					RealOutputVal: res,
-					EvalError: err,
+					EvalError:     err,
 				}
 			}
 			eval, err := basicBooleanRuleEvaluator(rule, variableCache)

@@ -1,10 +1,11 @@
 package rules
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
-	"gonum.org/v1/gonum/mat"
 	"reflect"
 	"testing"
+
+	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
+	"gonum.org/v1/gonum/mat"
 )
 
 func TestGenerateBoolList(t *testing.T) {
