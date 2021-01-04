@@ -60,7 +60,7 @@ func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 	}
 }
 
-//being the only agent to hunt is desirable, most desirable outcome is us and one other agent hunting
+//being the only agent to hunt is undesirable, having one hunting partner is the desirable, the more hunters after that the less we want to hunt
 func decideThreshold(c *client) float64 { //will move the threshold, higher value means more likely to hunt
 	if Otheragentinfo(c) == 1 { //in the case when one other person only is hunting
 		return 0.95
