@@ -141,12 +141,10 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	//decide if we want to run SetTaxationAmount
 	p.c.declaredResources = islandsResources
 	gameState := p.c.BaseClient.ServerReadHandle.GetGameState()
-	var resourcesRequired float64
-	if len(p.c.disasterPredictions) != 0 {
-		disaster := p.c.disasterPredictions[int(gameState.Turn)][(p.c.BaseClient.GetID())]
+	resourcesRequired := 100.0 - float64(gameState.CommonPool)
+	if disaster, ok := p.c.disasterPredictions[int(p.c.BaseClient.ServerReadHandle.GetGameState().Turn)][p.c.BaseClient.GetID()]; ok {
 		resourcesRequired = (disaster.Magnitude - float64(gameState.CommonPool)/float64(disaster.TimeLeft))
 	}
-	resourcesRequired = 100.0 - float64(gameState.CommonPool) //will change to average magnitude when we got it somehow magick
 	AveTax := resourcesRequired / float64(len(islandsResources))
 	var adjustedResources []float64
 	adjustedResourcesMap := make(map[shared.ClientID]shared.Resources)
@@ -165,6 +163,7 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		taxation = shared.Resources(math.Max(float64(taxation), 0.0))
 		taxationMap[island] = taxation
 	}
+	p.c.clientPrint("tax amounts : %v\n", taxationMap)
 	return taxationMap, true
 
 }
