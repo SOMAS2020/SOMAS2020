@@ -39,6 +39,7 @@ func (e *executive) loadClientPresident(clientPresidentPointer roles.President) 
 	e.clientPresident = clientPresidentPointer
 }
 
+// syncWithGame sets internal game state and configuration. Used to populate the executive struct for testing
 func (e *executive) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	e.gameState = gameState
 	e.gameConf = gameConf
@@ -61,16 +62,6 @@ func (e *executive) setRuleProposals(rulesProposals []string) {
 // Called by orchestration
 func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]shared.Resources) {
 	e.ResourceRequests = resourceRequests
-}
-
-// setGameState is used for setting the game state of the executive branch
-// Called for testing.
-func (e *executive) setGameState(g *gamestate.GameState) {
-	e.gameState = g
-}
-
-func (e *executive) setGameConfig(c *config.IIGOConfig) {
-	e.gameConf = c
 }
 
 // Get rules to be voted on to Speaker

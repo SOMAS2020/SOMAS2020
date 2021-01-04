@@ -53,12 +53,12 @@ func (c *BaseClient) TaxTaken(shared.Resources) {
 // GetTaxContribution gives value of how much the island wants to pay in taxes
 func (c *BaseClient) GetTaxContribution() shared.Resources {
 	// If no new communication was received and there is no rule governing taxation, it will still recieve last valid tax
-	gameState := c.ServerReadHandle.GetGameState()
-	presidentCommunications := c.Communications[gameState.PresidentID]
-	var newTaxDecision shared.TaxDecision
+	clientGameState := c.ServerReadHandle.GetGameState()
+	presidentCommunications := c.Communications[clientGameState.PresidentID]
+	newTaxDecision := shared.TaxDecision{TaxDecided: false}
 
 	for i := range presidentCommunications {
-		msg := presidentCommunications[len(presidentCommunications)-1-i]
+		msg := presidentCommunications[len(presidentCommunications)-1-i] // in reverse order
 		if msg[shared.Tax].T == shared.CommunicationTax {
 			newTaxDecision = msg[shared.Tax].TaxDecision
 			break
@@ -66,8 +66,8 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	}
 
 	if newTaxDecision.TaxDecided {
-		// gotVariable := latestTax[shared.TaxVariable].IIGOVarData
-		// gotRule := latestTax[shared.TaxRule].IIGORuleData
+		// gotVariable := newTaxDecision.ExpectedTax
+		// gotRule := newTaxDecision.TaxRule
 		return newTaxDecision.TaxAmount
 	}
 
@@ -82,11 +82,11 @@ func (c *BaseClient) GetSanctionPayment() shared.Resources {
 // RequestAllocation FIXME: Add documentation. What does this function do?
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
-	gameState := c.ServerReadHandle.GetGameState()
-	presidentCommunications := c.Communications[gameState.PresidentID]
-	var newAllocationDecision shared.AllocationDecision
+	clientGameState := c.ServerReadHandle.GetGameState()
+	presidentCommunications := c.Communications[clientGameState.PresidentID]
+	newAllocationDecision := shared.AllocationDecision{AllocationDecided: false}
 	for i := range presidentCommunications {
-		msg := presidentCommunications[len(presidentCommunications)-1-i]
+		msg := presidentCommunications[len(presidentCommunications)-1-i] // in reverse order
 		if msg[shared.Allocation].T == shared.CommunicationAllocation {
 			newAllocationDecision = msg[shared.Allocation].AllocationDecision
 			break
@@ -94,10 +94,10 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 	}
 
 	if newAllocationDecision.AllocationDecided {
-		// gotVariable := latestTax[shared.TaxVariable].IIGOVarData
-		// gotRule := latestTax[shared.TaxRule].IIGORuleData
+		// gotVariable := newAllocationDecision.ExpectedAllocation
+		// gotRule := newAllocationDecision.AllocationRule
 		return newAllocationDecision.AllocationAmount
 	}
 
-	return gameState.CommonPool //default if no allocation was made
+	return clientGameState.CommonPool //default if no allocation was made
 }

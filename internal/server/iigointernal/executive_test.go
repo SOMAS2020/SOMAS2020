@@ -436,7 +436,16 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			fakeGameConfig := config.IIGOConfig{
 				GetRuleForSpeakerActionCost: 1,
 			}
-			tc.bPresident.setGameConfig(&fakeGameConfig)
+			fakeGameState := gamestate.GameState{
+				CommonPool: 100,
+				IIGORolesBudget: map[shared.Role]shared.Resources{
+					shared.President: 10,
+					shared.Speaker:   10,
+					shared.Judge:     10,
+				},
+			}
+
+			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
 			got, _ := tc.bPresident.getRuleForSpeaker()
 
 			if got.ContentType != wantPresidentReturnType {
@@ -683,8 +692,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 			}
 
 			setIIGOClients(&fakeClientMap)
-			tc.bPresident.setGameState(&fakeGameState)
-			tc.bPresident.setGameConfig(&fakeGameConfig)
+			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
 			tc.bPresident.replyAllocationRequest(tc.commonPool)
 
@@ -925,8 +933,7 @@ func TestBroadcastTaxation(t *testing.T) {
 			}
 
 			setIIGOClients(&fakeClientMap)
-			tc.bPresident.setGameState(&fakeGameState)
-			tc.bPresident.setGameConfig(&fakeGameConfig)
+			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
 
 			tc.bPresident.broadcastTaxation(tc.clientReports, aliveID)
 
