@@ -27,17 +27,17 @@ import (
 */
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	// c.Logf("became speaker")
+	c.clientPrint("became speaker")
 	return &c.ourSpeaker
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	// c.Logf("became judge")
+	c.clientPrint("became judge")
 	return &c.ourJudge
 }
 
 func (c *client) GetClientPresidentPointer() roles.President {
-	// c.Logf("became president")
+	c.clientPrint("became president")
 	return &c.ourPresident
 }
 
