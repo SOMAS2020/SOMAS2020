@@ -1,11 +1,20 @@
 package team2
 
 import (
+	"sort"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// TODO: initialise confidence to 50
 // TODO: Future work - initialise confidence to something more (based on strategy)
+
+type IslandTrustMap map[int]GiftInfo
+
+// Overwrite default sort implementation
+func (p IslandTrustMap) Len() int      { return len(p) }
+func (p IslandTrustMap) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
+// func (p IslandTrustMap) Less(i, j int) bool { return p[i].trust < p[j].trust }
 
 // Calculates the confidence we have in an island based on our past experience with them
 // Depending on the situation we need to judge, we look at a different history
@@ -71,8 +80,8 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 
 // }
 
-func max(numbers map[int]GiftInfo) int {
-	var maxNumber int
+func max(numbers map[uint]GiftInfo) uint {
+	var maxNumber uint
 	for maxNumber = range numbers {
 		break
 	}
@@ -84,62 +93,88 @@ func max(numbers map[int]GiftInfo) int {
 	return maxNumber
 }
 
-// [[(1, toUS: 30, fromUS: 40), (2, toUS: 10, fromUS: 10), (3, toUS: 40, fromUS: 50)],
-// [(1, toUS: 50, fromUS: 10), (2, toUS: 10, fromUS: 30), (3, toUS: 40, fromUS: 50)],
-// [(1, toUS: 40, fromUS: 40), (2, toUS: 30, fromUS: 10), (3, toUS: 40, fromUS: 50)]]
-// interactions with team toUs ... fromUs
-// 1: 120 ...  90
-// 2: 50 ... 50
-// 3: 120 ... 150
-
 // this just means the confidence we have in others while requesting gifts, not the trust we have on them
 // Updates the confidence of an island regarding gifts
 func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	turn := c.gameState().Turn
 	pastConfidence := c.confidence("Gifts", island)
 
-	ourLastTurnRequested := max(c.giftHist[island].OurRequest)
-	theirLastTurnRequested := max(c.giftHist[island].IslandRequest)
-
-	ourDonation := c.giftHist[island].IslandRequest[theirLastTurnRequested].gifted
-	ourRequest := c.giftHist[island].OurRequest[ourLastTurnRequested].request
-	theirDonation := c.giftHist[island].OurRequest[ourLastTurnRequested].gifted
-	theirRequest := c.giftHist[island].IslandRequest[theirLastTurnRequested].request
-
-	ourDonationRatio := ourDonation / theirRequest   // min: 0, max: 1
-	theirDonationRatio := theirDonation / ourRequest // min: 0, max: 1
-
-	//should take into account the dimensions of the contributions ratio of 0.9
-	// 9 out of 10 != 90 out of 100
-	if mod(ourDonation-theirDonation) > 10 {
-
+	var bufferLen = 0
+	if turn < 10 {
+		bufferLen = int(turn)
+	} else {
+		bufferLen = 10
 	}
 
-	switch {
-	case ourLastTurnRequested == theirLastTurnRequested: //we both requested a gift from eachother:
-		switch {
-		case theirDonationRatio > ourDonationRatio:
-			// return itwentamazing
-		case ourDonationRatio > theirDonationRatio:
-			// return itwentokay
-		case numberoftheirrequests << ournumberofrequests:
-			// return itwentreasonable // < itwentokay
-		case theiramountrequested << ouramountrequested:
-			// return itwentreasonable
-		case theyarecritical:
-			// return theyshouldknowbetterbutfine // < itwentreasonable
-		default:
-			// return bigdisappointment // < theyshouldknowbetterbutfine
-		}
-	case ourRequest > 0 && theirRequest == 0:
+	runMeanTheyReq := 0.0
+	runMeanTheyDon := 0.0
+	runMeanWeReq := 0.0
+	runMeanWeDon := 0.0
 
-	case ourRequest == 0 && theirRequest > 0:
+	ourReqMap := c.giftHist[island].OurRequest
+	theirReqMap := c.giftHist[island].IslandRequest
+
+	ourKeys := make([]int, 0)
+	for k, _ := range ourReqMap {
+		ourKeys = append(ourKeys, int(k))
 	}
 
-	// how much they give us vs how much we requested, how much we give them,
-	// how many times they request, how much they've previously requested, state they're in
+	theirKeys := make([]int, 0)
+	for k, _ := range theirReqMap {
+		theirKeys = append(theirKeys, int(k))
+	}
 
-	return total
+	// Sort the keys in decreasing order
+	sort.Ints(ourKeys)
+	sort.Ints(theirKeys)
+
+	// Take running average of the interactions
+	// The individual turn values will be scaled wrt to the "distance" from the current turn
+	// ie transactions further in the past are valued less
+	for i := 0; i < bufferLen; i++ {
+		// Get the transaction distance to the previous transaction
+		theirTransDist := turn - uint(theirKeys[i])
+		ourTransDist := turn - uint(ourKeys[i])
+		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
+		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
+		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
+		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
+		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
+	}
+
+	// TODO: is there a potential divide by 0 here?
+	usRatio := runMeanTheyDon / runMeanWeReq   // between 0 and 1
+	themRatio := runMeanWeDon / runMeanTheyReq // between 0 and 1
+
+	diff := usRatio - themRatio // between -1 and 1
+	// confidence increases if usRatio >= themRatio
+	// confidence decreases if not
+
+	// e.g. 1 pastConfidnece = 50%
+	// diff = 100% in our favour 1.0
+	// inc pastConfidence = (50 + 100)/2 = 75
+
+	// e.g. 2 pastConfidence = 90%
+	// diff = 70% in our favour
+	// inc pastConfidence = (90 + 70)/2 = 80
+
+	// e.g. 3 pastConfidence = 80%
+	// diff = 30% against us
+	// inc pastConfidence = (80 - 30)/2 = 25
+
+	// e.g. 4 pastConfidence = 100%
+	// diff = 100% against us
+	// inc pastConfidence = (100 - 100)/2 = 0
+
+	// e.g. 5 pastConfidence = 0%
+	// diff = 100% in our favour
+	// inc pastConfidence = (0 + 100)/2 = 50
+
+	// TODO: improve how ratios are used to improve pastConfidence
+	// pastConfidence = (pastConfidence + sensitivity*diff*100) / 2
+	pastConfidence = int((pastConfidence + int(diff*100)) / 2)
+
+	return pastConfidence
 }
 
 //func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
