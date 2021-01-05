@@ -2,6 +2,7 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -79,12 +80,12 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			// All other islands will be evaluated fairly using base implementation.
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
-				evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
-				if err != nil {
+				evaluation := rules.EvaluateRule(rule)
+				if evaluation.EvalError != nil {
 					return outMap, false
 				}
 				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
-				tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
+				tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation.RulePasses)
 			}
 			outMap[clientID] = tempReturn
 		}
