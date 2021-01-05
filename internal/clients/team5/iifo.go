@@ -6,15 +6,15 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// PastDisastersList is a List of previous disasters.
-type disasterInfo struct {
-	epiX shared.Coordinate // x co-ord of disaster epicentre
-	epiY shared.Coordinate // y ""
-	mag  shared.Magnitude
-	turn uint
+type forecastInfo struct {
+	epiX       shared.Coordinate // x co-ord of disaster epicentre
+	epiY       shared.Coordinate // y ""
+	mag        shared.Magnitude
+	turn       uint
+	confidence float64
 }
 
-type disasterHistory map[uint]disasterInfo // stores history of past disasters
+type forecastHistory map[uint]forecastInfo // stores history of past disasters
 
 // MakeDisasterPrediction is called on each client for them to make a prediction about a disaster
 // Prediction includes location, magnitude, confidence etc
@@ -26,7 +26,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		CoordinateX: meanDisaster.epiX,
 		CoordinateY: meanDisaster.epiY,
 		Magnitude:   meanDisaster.mag,
-		TimeLeft:    int(meanDisaster.turn),
+		TimeLeft:    int(meanDisaster.turn - c.getTurn()),
 	}
 
 	prediction.Confidence = c.determineForecastConfidence()
@@ -41,34 +41,82 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		PredictionMade: prediction,
 		TeamsOfferedTo: trustedIslandIDs,
 	}
+	c.lastDisasterPrediction = prediction
+	// update forecast history
+	c.forecastHistory[c.getTurn()] = forecastInfo{
+		epiX: prediction.CoordinateX,
+		epiY: prediction.CoordinateY,
+		mag:  prediction.Magnitude,
+		turn: uint(prediction.TimeLeft) + c.getTurn(),
+	}
 	return predictionInfo
 }
 
 // averages observations over history to get 'mean' disaster
-func (c *client) getMeanDisasterInfo() disasterInfo {
+func (c client) getMeanDisasterInfo() forecastInfo {
 	sumX, sumY, sumMag := 0.0, 0.0, 0.0
 
 	for _, dInfo := range c.disasterHistory {
-		sumX += dInfo.epiX
-		sumY += dInfo.epiY
-		sumMag += dInfo.mag
+		sumX += dInfo.report.X
+		sumY += dInfo.report.Y
+		sumMag += dInfo.report.Y
 	}
-	n := float64(len(c.disasterHistory))
-	meanDisaster := disasterInfo{
-		epiX: sumX / n,
-		epiY: sumY / n,
-		mag:  sumMag / n,
-		turn: uint(n), // not really relevant for this
+	n := float64(len(c.forecastHistory))
+	period, conf := c.analyseDisasterPeriod()
+
+	meanDisaster := forecastInfo{
+		epiX:       sumX / n,
+		epiY:       sumY / n,
+		mag:        sumMag / n,
+		turn:       c.getLastDisasterTurn() + period,
+		confidence: conf,
 	}
 	return meanDisaster
 }
 
+func (c client) getLastDisasterTurn() uint {
+	n = len(c.disasterHistory)
+	if n > 0 {
+		lastT := uint(0)
+		for t := range c.disasterHistory { // TODO: find nicer way of getting largest key (turn)
+			if t > lastT {
+				lastT = t
+			}
+		}
+		return lastT
+	}
+	return 0
+}
+
+func (c *client) analyseDisasterPeriod() (period uint, conf float64) {
+	periods := []uint{0}
+	periodDiffs := []int{}
+	i := 1
+	for turn := range c.disasterHistory {
+		periods = append(periods, turn-periods[i-1]) // period = no. turns between successive disasters
+		if len(periods) > 2 {
+			periodDiffs = append(periodDiffs, int(periods[i]-periods[i-1]))
+		}
+		i++
+	}
+	periods = periods[1:] // remove leading 0
+	diffSum := 0.0        // sum of differences in periods between disasters
+	for _, pd := range periodDiffs {
+		diffSum += math.Abs(float64(pd))
+	}
+	if diffSum == 0 { // perfectly cyclical - consistent period
+		return periods[0], 100.0
+	}
+	// if not consisten, return mean period we've seen so far
+	return uint(diffSum / float64(len(periodDiffs))), 65.0
+}
+
 func (c *client) determineForecastConfidence() float64 {
-	totalDisaster := disasterInfo{}
+	totalDisaster := forecastInfo{}
 	sqDiff := func(x, meanX float64) float64 { return math.Pow(x-meanX, 2) }
 	meanInfo := c.getMeanDisasterInfo()
 	// Find the sum of the square of the difference between the actual and mean, for each field
-	for _, d := range c.disasterHistory {
+	for _, d := range c.forecastHistory {
 		totalDisaster.epiX += sqDiff(d.epiX, meanInfo.epiX)
 		totalDisaster.epiY += sqDiff(d.epiY, meanInfo.epiY)
 		totalDisaster.mag += sqDiff(d.mag, meanInfo.mag)
@@ -76,7 +124,7 @@ func (c *client) determineForecastConfidence() float64 {
 
 	// TODO: find a better method of calculating confidence
 	// Find the sum of the variances and the average variance
-	variance := (totalDisaster.epiX + totalDisaster.epiY + totalDisaster.mag) / float64(len(c.disasterHistory))
+	variance := (totalDisaster.epiX + totalDisaster.epiY + totalDisaster.mag) / float64(len(c.forecastHistory))
 	variance = math.Min(c.config.maxForecastVariance, variance)
 
 	return c.config.maxForecastVariance - variance
@@ -93,9 +141,9 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	sumTime := 0
 
 	//c.lastDisasterForecast.Confidence *= 1.3 // inflate confidence of our prediction above others
-	receivedPredictions[ourClientID] = shared.ReceivedDisasterPredictionInfo{PredictionMade: c.lastDisasterForecast, SharedFrom: ourClientID}
+	receivedPredictions[ourClientID] = shared.ReceivedDisasterPredictionInfo{PredictionMade: c.lastDisasterPrediction, SharedFrom: ourClientID}
 
-	// Add other island's predictions using their confidence values
+	// weight predictions by their confidence and our assessment of their forecasting reputation
 	for rxTeam, pred := range receivedPredictions {
 		rep := float64(c.opinions[rxTeam].forecastReputation) + 1 // our notion of another island's forecasting reputation
 		sumX += pred.PredictionMade.Confidence * pred.PredictionMade.CoordinateX * rep
@@ -115,4 +163,8 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	}
 
 	c.Logf("Final Prediction: [%v]", finalPrediction)
+}
+
+func (c *client) analysePastDisasters() {
+
 }
