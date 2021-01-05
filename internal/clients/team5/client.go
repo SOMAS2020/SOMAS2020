@@ -46,6 +46,10 @@ func (c *client) StartOfTurn() {
 	turn := c.getTurn()
 	c.cpResourceHistory[turn] = c.getCP()
 
+	// update opinion score of current roles. Ideally at startOfTurns but for some reasons it doesn't update opinion score here
+	// move to GetVoteForElection() for now
+	//c.evaluateRoles()
+
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
