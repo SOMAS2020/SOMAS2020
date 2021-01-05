@@ -32,9 +32,9 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.initOpinions()
 	c.initGiftHist()
 	// Assign the thresholds according to the amount of resouces in the first turn
-	c.config.jbThreshold = (c.gameState().ClientInfo.Resources) * 2
-	c.config.middleThreshold = (c.gameState().ClientInfo.Resources) * 0.95
-	c.config.imperialThreshold = (c.gameState().ClientInfo.Resources) * 0.6
+	c.config.jbThreshold = (c.gameState().ClientInfo.Resources) * c.config.jbThreshold
+	c.config.middleThreshold = (c.gameState().ClientInfo.Resources) * c.config.middleThreshold
+	c.config.imperialThreshold = (c.gameState().ClientInfo.Resources) * c.config.imperialThreshold
 
 	// Print the Thresholds
 	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",

@@ -49,10 +49,10 @@ func getClientConfig() clientConfig {
 		NormalRandomIncrease: 0.05,
 		MaxForagePercentage:  0.20,
 
-		// Threshold for wealth
-		jbThreshold:       95,
-		middleThreshold:   60.0,
-		imperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
+		// Threshold for wealth as multiplier
+		jbThreshold:       2.0,
+		middleThreshold:   1.0,
+		imperialThreshold: 0.6, // surely should be - 100e6? (your right we are so far indebt)
 		//  Dying threshold is 0 < Dying < Imperial
 
 		// Gifts Config
