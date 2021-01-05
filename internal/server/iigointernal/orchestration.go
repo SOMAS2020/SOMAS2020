@@ -68,11 +68,22 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	iigoClients = *clientMap
 
-	// Increments the budget by a constant 100
-	// TODO:- the constant should be retrieved from the rules
-	g.IIGORolesBudget[shared.President] += 100
-	g.IIGORolesBudget[shared.Judge] += 100
-	g.IIGORolesBudget[shared.Speaker] += 100
+	// Increments the budget according to increment_budget_role rules
+	PresidentIncRule, ok := rules.RulesInPlay["increment_budget_president"]
+	if ok {
+		PresidentBudgetInc := PresidentIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.President] += shared.Resources(PresidentBudgetInc)
+	}
+	JudgeIncRule, ok := rules.RulesInPlay["increment_budget_judge"]
+	if ok {
+		JudgeBudgetInc := JudgeIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.Judge] += shared.Resources(JudgeBudgetInc)
+	}
+	SpeakerIncRule, ok := rules.RulesInPlay["increment_budget_speaker"]
+	if ok {
+		SpeakerBudgetInc := SpeakerIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.Speaker] += shared.Resources(SpeakerBudgetInc)
+	}
 
 	//Increment the turns in Power for each role
 	g.IIGOTurnsInPower[shared.President] += 1
