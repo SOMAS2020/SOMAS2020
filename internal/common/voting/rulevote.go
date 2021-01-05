@@ -7,10 +7,10 @@ import (
 
 type RuleVote struct {
 	//Checked by RuleVote
-	ruleToVote    string
-	islandsToVote []shared.ClientID
+	ruleToVote string
+	voterList  []shared.ClientID
 	//Held by RuleVote
-	ballots []bool
+	ballots map[int][]bool
 }
 
 type BallotBox struct {
@@ -26,15 +26,15 @@ func (v *RuleVote) SetRule(rule string) {
 // SetVotingIslands is called by baseSpeaker to set the islands eligible to vote.
 func (v *RuleVote) SetVotingIslands(clientIDs []shared.ClientID) {
 	//TODO: intersection of islands alive and islands chosen to vote
-	v.islandsToVote = clientIDs
+	v.voterList = clientIDs
 }
 
 // GatherBallots is called by baseSpeaker to get votes from clients.
 func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client) {
 	//Gather N ballots from islands
-	if v.ruleToVote != "" && len(v.islandsToVote) > 0 {
-		for _, island := range v.islandsToVote {
-			v.ballots = append(v.ballots, clientMap[island].GetVoteForRule(v.ruleToVote))
+	if v.ruleToVote != "" && len(v.voterList) > 0 {
+		for i := 0; i < len(v.voterList); i++ {
+			v.ballots[i][0], v.ballots[i][1] = clientMap[v.voterList[i]].VoteForRule(v.ruleToVote)
 		}
 	}
 }
@@ -45,9 +45,9 @@ func (v *RuleVote) GetBallotBox() BallotBox {
 	//The following is in accordance with anonymous voting
 	var outcome BallotBox
 	for _, vote := range v.ballots {
-		if vote {
+		if vote[1] == false && vote[0] == true {
 			outcome.VotesInFavour += 1
-		} else if !vote {
+		} else if vote[1] == false && vote[0] == false {
 			outcome.VotesAgainst += 1
 		}
 	}
@@ -57,5 +57,5 @@ func (v *RuleVote) GetBallotBox() BallotBox {
 //CountVotesMajority is called by baseSpeaker and
 //returns the majority result of the BallotBox
 func (b *BallotBox) CountVotesMajority() bool {
-	return b.VotesInFavour >= b.VotesAgainst
+	return b.VotesInFavour > b.VotesAgainst
 }
