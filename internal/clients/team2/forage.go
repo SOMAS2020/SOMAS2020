@@ -15,20 +15,20 @@ type ForagingResults struct {
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	// implement a normal distribution which shifts closer to hunt or fish
 	var Threshold float64 = decideThreshold(c) //number from 0 to 1
-
+	var forageDecision shared.ForageType
 	if rand.Float64() > Threshold { //we fish when above the threshold
-		ft := 1
+		forageDecision = 1
 	} else { // we hunt when below the threshold
-		ft := 0
+		forageDecision = 0
 	}
 	return shared.ForageDecision{
-		Type:         shared.ForageType(ft),
+		Type:         shared.ForageType(forageDecision),
 		Contribution: shared.Resources(20), //contribute fixed amount for now
 	}, nil
 }
 
 //Decide amount of resources to put into foraging
-func (c *client) DecideForageAmount(foragingDecisionThreshold) shared.Resources {
+func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources // we have given to the pool already by this point in the turn
 	if criticalStatus(c) {
 		return 0
@@ -102,7 +102,7 @@ func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 // MakeForageInfo allows clients to share their most recent foraging DecisionMade, ResourceObtained from it to
 // other clients.
 // OPTIONAL. If this is not implemented then all values are nil.
-func (c *BaseClient) MakeForageInfo() shared.ForageShareInfo {
+func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	contribution := shared.ForageDecision{Type: shared.DeerForageType, Contribution: 0}
 	return shared.ForageShareInfo{DecisionMade: contribution, ResourceObtained: 0, ShareTo: []shared.ClientID{}}
 }

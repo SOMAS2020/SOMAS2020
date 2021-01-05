@@ -3,6 +3,7 @@ package team2
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -111,7 +112,8 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		// commonpoolHistory: CommonPoolHistory{},
 		// we could experiment with how being more/less trustful affects agent performance
 		// i.e. start with assuming all islands selfish, normal, altruistic
-		islandEmpathies: IslandEmpathies{},
+		foragingReturnsHist: ForagingReturnsHist{},
+		islandEmpathies:     IslandEmpathies{},
 	}
 }
 
