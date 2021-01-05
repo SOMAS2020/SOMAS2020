@@ -72,7 +72,7 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	newVal, success := c.GetRecommendation(rules.IslandTaxContribution)
 	if success {
 		// TODO: Choose whether to use this compliant value
-		valToBeReturned = shared.Resources(newVal.Values[0])
+		valToBeReturned = shared.Resources(newVal.Values[rules.SingleValueVariableEntry])
 	}
 	return valToBeReturned
 }
@@ -95,7 +95,7 @@ func (c *BaseClient) GetSanctionPayment() shared.Resources {
 	newVal, success := c.GetRecommendation(rules.SanctionPaid)
 	if success {
 		// TODO: Choose whether to use this compliant value
-		valToBeReturned = shared.Resources(newVal.Values[0])
+		valToBeReturned = shared.Resources(newVal.Values[rules.SingleValueVariableEntry])
 	}
 	return valToBeReturned
 }
@@ -120,7 +120,7 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 	newVal, success := c.GetRecommendation(rules.IslandAllocation)
 	if success {
 		// TODO: Choose whether to use this compliant value
-		valToBeReturned = shared.Resources(newVal.Values[0])
+		valToBeReturned = shared.Resources(newVal.Values[rules.SingleValueVariableEntry])
 	}
 	return valToBeReturned
 }
