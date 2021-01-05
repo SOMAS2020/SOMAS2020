@@ -1,10 +1,27 @@
 import React from "react";
-import { LegendProps, Brush, ResponsiveContainer, LineChart, Line, YAxis, XAxis, CartesianGrid, Tooltip, Legend, Surface, Symbols, ReferenceLine } from 'recharts';
-import outputJSON from '../../../output/output.json';
-//import { OutputJSONType } from "../../../consts/types";
+import { 
+    LegendProps, 
+    Brush, 
+    ResponsiveContainer, 
+    LineChart, 
+    Line, 
+    YAxis, 
+    XAxis, 
+    CartesianGrid, 
+    Tooltip, 
+    Legend, 
+    Surface, 
+    Symbols, 
+    ReferenceLine } 
+from 'recharts';
+import { OutputJSONType } from "../../../consts/types";
 import _ from "lodash";
 
-class LineRechartComponent extends React.Component<{}, any> {
+interface IProps {
+    output:OutputJSONType,
+}
+
+class LineRechartComponent extends React.Component<IProps, any> {
 
     constructor(props) {
         super(props);
@@ -26,7 +43,7 @@ class LineRechartComponent extends React.Component<{}, any> {
                 team5: "ClientInfos.Team5.Resources",
                 team6: "ClientInfos.Team6.Resources",
             },
-            chartData: outputJSON
+            chartData: this.props.output
         };
     }
 
@@ -112,7 +129,7 @@ class LineRechartComponent extends React.Component<{}, any> {
                         <ReferenceLine
                             x={seasonEnd}
                             label="Season End"
-                            stroke="red"
+                            stroke="black"
                             strokeDasharray="3 3"
                         />
                     ))}

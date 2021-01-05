@@ -9,7 +9,7 @@ const Resources = (props: { output: OutputJSONType }) => {
       <h1>Resources over Time</h1>
       <p>Select teams to show/hide by cicking the team at the top of the chart.
          Use the slider at the bottom to change which turns are displayed.</p>
-      <LineRechartComponent />
+      <LineRechartComponent output={props.output}/>
     </div>
   );
 };
