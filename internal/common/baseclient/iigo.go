@@ -25,14 +25,19 @@ func (c *BaseClient) ResourceReport() shared.ResourcesReport {
 	}
 }
 
-// RuleProposal is called by the President in IIGO to propose a
-// rule to be voted on.
-func (c *BaseClient) RuleProposal() string {
+// RuleProposal is for an island to propose a rule to be voted on. It is called
+// by the President in IIGO. If the returned ruleMatrix is one of the rules
+// in AvailableRules cache with unchanged content, then the proposal is for
+// putting the rule in/out of play. However, if the returned ruleMatrix is
+// one of the rules in AvailableRules cache with changed content, the proposal
+// is then for modifying the rule's content only, it won't put the rule in/out of
+// play. Only a mutable rule's content can be modified.
+func (c *BaseClient) RuleProposal() rules.RuleMatrix {
 	allRules := rules.AvailableRules
-	for k := range allRules {
-		return k
+	for _, ruleMatrix := range allRules {
+		return ruleMatrix
 	}
-	return ""
+	return rules.RuleMatrix{}
 }
 
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role
