@@ -42,6 +42,14 @@ func updateVariableInternal(variableName VariableFieldName, newValue VariableVal
 	return false
 }
 
+func CopyVariableMap() map[VariableFieldName]VariableValuePair {
+	newMap := make(map[VariableFieldName]VariableValuePair)
+	for key, value := range VariableMap {
+		newMap[key] = value
+	}
+	return newMap
+}
+
 type VariableFieldName int
 
 const (
@@ -71,6 +79,9 @@ const (
 	SanctionExpected
 	TestVariable
 	JudgeInspectionPerformed
+	VoteResultAnnounced
+	IslandsAllowedToVote
+	SpeakerProposedPresidentRule
 )
 
 func (v VariableFieldName) String() string {
@@ -101,6 +112,9 @@ func (v VariableFieldName) String() string {
 		"SanctionExpected",
 		"TestVariable",
 		"JudgeInspectionPerformed",
+		"VoteResultAnnounced",
+		"IslandsAllowedToVote",
+		"SpeakerProposedPresidentRule",
 	}
 	if v >= 0 && int(v) < len(strs) {
 		return strs[v]
