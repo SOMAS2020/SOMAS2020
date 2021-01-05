@@ -8,7 +8,7 @@ type ClientConfig struct {
 	MinimumResourceThreshold    shared.Resources
 	MaxCriticalConsecutiveTurns uint
 	DisasterConfig              ClientDisasterConfig
-	IIGOClientConfig            ClientIIGOConfig
+	IIGOClientConfig            IIGOConfig
 }
 
 // ClientIIGOConfig contains iigo config fields that is visible to clients
@@ -25,10 +25,10 @@ type ClientIIGOConfig struct {
 	InspectBallotActionCost        shared.Resources
 	InspectAllocationActionCost    shared.Resources
 	AppointNextPresidentActionCost shared.Resources
-	SanctionCacheDepth             int
-	HistoryCacheDepth              int
+	SanctionCacheDepth             uint
+	HistoryCacheDepth              uint
 	AssumedResourcesNoReport       shared.Resources
-	SanctionLength                 int
+	SanctionLength                 uint
 	// Legislative branch
 	SetVotingResultActionCost      shared.Resources
 	SetRuleToVoteActionCost        shared.Resources
@@ -64,29 +64,6 @@ func (c DisasterConfig) GetClientDisasterConfig() ClientDisasterConfig {
 }
 
 // GetClientIIGOConfig gets ClientIIGOConfig
-func (c IIGOConfig) GetClientIIGOConfig() ClientIIGOConfig {
-	return ClientIIGOConfig{
-		// Executive branch
-		GetRuleForSpeakerActionCost:        c.GetRuleForSpeakerActionCost,
-		BroadcastTaxationActionCost:        c.BroadcastTaxationActionCost,
-		ReplyAllocationRequestsActionCost:  c.ReplyAllocationRequestsActionCost,
-		RequestAllocationRequestActionCost: c.RequestAllocationRequestActionCost,
-		RequestRuleProposalActionCost:      c.RequestRuleProposalActionCost,
-		AppointNextSpeakerActionCost:       c.AppointNextSpeakerActionCost,
-		// Judiciary branch
-		InspectHistoryActionCost:       c.InspectHistoryActionCost,
-		InspectBallotActionCost:        c.InspectBallotActionCost,
-		InspectAllocationActionCost:    c.InspectAllocationActionCost,
-		AppointNextPresidentActionCost: c.AppointNextPresidentActionCost,
-		SanctionCacheDepth:             c.SanctionCacheDepth,
-		HistoryCacheDepth:              c.HistoryCacheDepth,
-		AssumedResourcesNoReport:       c.AssumedResourcesNoReport,
-		SanctionLength:                 c.SanctionLength,
-		// Legislative branch
-		SetVotingResultActionCost:      c.SetVotingResultActionCost,
-		SetRuleToVoteActionCost:        c.SetRuleToVoteActionCost,
-		AnnounceVotingResultActionCost: c.AnnounceVotingResultActionCost,
-		UpdateRulesActionCost:          c.UpdateRulesActionCost,
-		AppointNextJudgeActionCost:     c.AppointNextJudgeActionCost,
-	}
+func (c IIGOConfig) GetClientIIGOConfig() IIGOConfig {
+	return c
 }

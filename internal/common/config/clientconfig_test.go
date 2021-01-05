@@ -56,7 +56,7 @@ func TestGetClientConfig(t *testing.T) {
 						Valid: true,
 					},
 				},
-				IIGOClientConfig: ClientIIGOConfig{
+				IIGOClientConfig: IIGOConfig{
 					GetRuleForSpeakerActionCost:        50,
 					BroadcastTaxationActionCost:        50,
 					ReplyAllocationRequestsActionCost:  50,
@@ -122,7 +122,7 @@ func TestGetClientConfig(t *testing.T) {
 						Valid: false,
 					},
 				},
-				IIGOClientConfig: ClientIIGOConfig{
+				IIGOClientConfig: IIGOConfig{
 					GetRuleForSpeakerActionCost:        50,
 					BroadcastTaxationActionCost:        50,
 					ReplyAllocationRequestsActionCost:  50,

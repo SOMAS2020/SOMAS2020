@@ -82,12 +82,12 @@ func TestGetSelectivelyVisibleInteger(t *testing.T) {
 	cases := []struct {
 		name  string
 		valid bool
-		want  SelectivelyVisibleInteger
+		want  SelectivelyVisibleInt
 	}{
 		{
 			name:  "valid",
 			valid: true,
-			want: SelectivelyVisibleInteger{
+			want: SelectivelyVisibleInt{
 				Value: origVal,
 				Valid: true,
 			},
@@ -95,7 +95,7 @@ func TestGetSelectivelyVisibleInteger(t *testing.T) {
 		{
 			name:  "not valid",
 			valid: false,
-			want: SelectivelyVisibleInteger{
+			want: SelectivelyVisibleInt{
 				Value: 0,
 				Valid: false,
 			},
@@ -104,7 +104,7 @@ func TestGetSelectivelyVisibleInteger(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := getSelectivelyVisibleInteger(origVal, tc.valid)
+			got := getSelectivelyVisibleInt(origVal, tc.valid)
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Errorf("want '%v' got '%v'", tc.want, got)
 			}
