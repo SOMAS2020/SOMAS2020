@@ -56,12 +56,12 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo
 		}
 		tempReturn := outputMap[clientID]
 		for _, rule := range rulesAffected {
-			evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
-			if err != nil {
+			ret := rules.EvaluateRule(rule)
+			if ret.EvalError != nil {
 				return outputMap, false
 			}
 			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
-			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
+			tempReturn.Evaluations = append(tempReturn.Evaluations, ret.RulePasses)
 		}
 		outputMap[clientID] = tempReturn
 	}
