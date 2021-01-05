@@ -1,6 +1,7 @@
 package team3
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -66,4 +67,13 @@ func (c *client) isClientStatusCritical(ClientID shared.ClientID) bool {
 		return true
 	}
 	return false
+}
+
+// A mock server handle used for tests
+type mockServerReadHandle struct {
+	gameState gamestate.ClientGameState
+}
+
+func (m mockServerReadHandle) GetGameState() gamestate.ClientGameState {
+	return m.gameState
 }
