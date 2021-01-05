@@ -107,6 +107,8 @@ type IIGOConfig struct {
 	AnnounceVotingResultActionCost shared.Resources
 	UpdateRulesActionCost          shared.Resources
 	AppointNextJudgeActionCost     shared.Resources
+
+	StartWithRulesInPlay bool
 }
 
 // ForagingConfig captures foraging-specific config

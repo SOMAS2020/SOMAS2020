@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"log"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -78,6 +79,11 @@ func createSOMASServer(
 			PresidentID: shared.Team3,
 			CommonPool:  gameConfig.InitialCommonPool,
 		},
+	}
+	if gameConfig.IIGOConfig.StartWithRulesInPlay {
+		for ruleName, _ := range rules.AvailableRules {
+			_ = rules.PullRuleIntoPlay(ruleName)
+		}
 	}
 	server.gameState.DeerPopulation = foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig, server.logf)
 
