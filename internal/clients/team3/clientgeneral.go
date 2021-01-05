@@ -32,7 +32,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 
 func (c *client) StartOfTurn() {
 	c.clientPrint("Start of turn!")
-	// TODO add any functions and vairable changes here
+	// TODO add any functions and variable changes here
 	c.updateCompliance()
 	c.resetIIGOInfo()
 }
@@ -45,6 +45,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)
 	c.theirTrustScore = make(map[shared.ClientID]float64)
+	//c.localVariableCache = rules.CopyVariableMap()
 	for _, islandID := range shared.TeamIDs {
 		c.trustScore[islandID] = 50
 		c.theirTrustScore[islandID] = 50

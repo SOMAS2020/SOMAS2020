@@ -89,34 +89,33 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 func (c *client) RuleProposal() string {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
-	// Magically will be available
-	coolMap := make(map[string]rules.RuleMatrix)
-	coolmap2 := make(map[rules.VariableFieldName]dynamics.Input)
-
-	// Will fix properly later
-	shortestSoFar := 999999.0
-	longestSoFar := 0.0
+	internalMap := copyRulesMap(rules.RulesInPlay)
+	inputMap := c.locationService.TranslateCommunications(c.localVariableCache)
+	c.localInputsCache = inputMap
+	shortestSoFar := -2.0
 	selectedRule := ""
 	for key, rule := range rules.AvailableRules {
 		if _, ok := rules.RulesInPlay[key]; !ok {
-			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule)
+			reqInputs := dynamics.SourceRequiredInputs(rule, inputMap)
+			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule, reqInputs)
 			if valid {
 				ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
 				distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
-				if distance != -1 {
-					if shortestSoFar > distance {
-						if _, ok := rules.RulesInPlay[rule.RuleName]; !ok {
-							shortestSoFar = distance
-							selectedRule = rule.RuleName
-						}
-					}
+				if distance == -1 {
+					return key
 				}
+				if shortestSoFar == -2.0 || shortestSoFar > distance {
+					shortestSoFar = distance
+					selectedRule = rule.RuleName
+				}
+
 			}
 		} else {
-			lstRules := dynamics.RemoveFromMap(coolMap, key)
-			dist := dynamics.CalculateDistanceFromRuleSpace(lstRules, coolmap2)
-			if dist > longestSoFar {
+			lstRules := dynamics.RemoveFromMap(internalMap, key)
+			dist := dynamics.CalculateDistanceFromRuleSpace(lstRules, inputMap)
+			if shortestSoFar == -2.0 || dist < shortestSoFar {
 				selectedRule = rule.RuleName
+				shortestSoFar = dist
 			}
 		}
 	}
@@ -124,4 +123,12 @@ func (c *client) RuleProposal() string {
 		return "inspect_ballot_rule"
 	}
 	return selectedRule
+}
+
+func copyRulesMap(inp map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
+	newMap := make(map[string]rules.RuleMatrix)
+	for key, val := range inp {
+		newMap[key] = val
+	}
+	return newMap
 }
