@@ -123,8 +123,7 @@ func (s *SOMASServer) logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
 }
 
-// ServerForClient is a reference to the server for particular client. It is
-// meant as an instance of baseclient.ServerReadHandle
+// ServerForClient is a reference to the server for particular client. It implements baseclient.ServerReadHandle
 type ServerForClient struct {
 	clientID shared.ClientID
 	server   *SOMASServer
@@ -134,4 +133,9 @@ type ServerForClient struct {
 // s.server
 func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 	return s.server.gameState.GetClientGameStateCopy(s.clientID)
+}
+
+// GetGameConfig returns ClientConfig which is a subset of the entire Config that is visible to clients.
+func (s ServerForClient) GetGameConfig() config.ClientConfig {
+	return s.server.gameConfig.GetClientConfig()
 }
