@@ -60,13 +60,14 @@ func (c *client) RequestAllocation() shared.Resources {
 	return allocation
 }
 
+// Calculate our contribution to common pool
 func (c *client) commonPoolContribution() shared.Resources {
 	turn := c.getTurn()
 	var contribution shared.Resources
 	// Day 1 we don't contribute anything
 	if turn == 1 {
 		contribution = 0
-	} else {
+	} else { // other days we contribute based on cashflow of commonpool
 		difference := c.cpResourceHistory[turn] - c.cpResourceHistory[turn-1]
 		if difference < 0 {
 			contribution = 0
