@@ -30,8 +30,6 @@ type SOMASServer struct {
 	// We don't store this in gameState--gameState is shared to clients and should
 	// not contain pointers to other clients!
 	clientMap map[shared.ClientID]baseclient.Client
-
-	//iigoServer iigointernal.IIGOServer
 }
 
 // NewSOMASServer returns an instance of the main server we use.
@@ -89,10 +87,6 @@ func createSOMASServer(
 			server:   server,
 		})
 	}
-
-	//server.iigoServer = iigointernal.IIGOServer{
-	//	IIGOLogging: server.logf,
-	//}
 
 	return server
 }

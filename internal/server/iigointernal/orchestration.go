@@ -24,7 +24,6 @@ var SanctionAmountMapExport map[shared.ClientID]shared.Resources
 var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
-
 func RunIIGO(logger serverLogger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
 	logger("\n\n\n iigo has begun begun what is happeniiiiing \n\n\n")
 	// featureJudge is an instantiation of the Judge interface
