@@ -54,8 +54,14 @@ func (e *Election) OpenBallot(clientIDs []shared.ClientID, clientMap map[shared.
 
 	//Delete the voters from initial candidate list who already have a President, Speaker or Judge. 
 	var roleIDIndex []int
+	var roleToBeChangedIndex int
+	for i:=0;i<len(currentRoleIDList);i++ {
+		if currentRoleIDList[i] == roleToBeChanged {
+			roleToBeChangedIndex = i
+		}
+	}
 	for i := 0; i < len(currentRoleIDList); i++ {
-		if currentRoleIDList[i] != roleToBeChanged {
+		if i != roleToBeChangedIndex {
 			for j := 0; j < len(e.candidateList); j++ {
 				if e.candidateList[j] == currentRoleIDList[i] {
 					roleIDIndex = append(roleIDIndex, j)
