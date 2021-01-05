@@ -22,27 +22,3 @@ jobs:
           golangci_lint_flags: "--disable-all -E golint"
           tool_name: golint 
           level: warning 
-      - name: misspell
-        uses: reviewdog/action-golangci-lint@v1
-        with:
-          golangci_lint_flags: "--disable-all -E misspell"
-          tool_name: misspell
-          level: warning
-      - name: exhaustive
-        uses: reviewdog/action-golangci-lint@v1
-        with:
-          golangci_lint_flags: "--disable-all -E exhaustive"
-          tool_name: exhaustive 
-          fail_on_error: true
-      - name: exhaustivestruct
-        uses: reviewdog/action-golangci-lint@v1
-        with:
-          golangci_lint_flags: "--disable-all -E exhaustivestruct"
-          tool_name: exhaustivestruct
-          level: warning
-      - name: goimports
-        uses: reviewdog/action-golangci-lint@v1
-        with:
-          golangci_lint_flags: "--disable-all -E goimports"
-          tool_name: goimports 
-          fail_on_error: true
