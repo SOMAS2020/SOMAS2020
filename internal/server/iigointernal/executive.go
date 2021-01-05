@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -13,13 +14,13 @@ import (
 )
 
 type executive struct {
-	gameState           *gamestate.GameState
-	gameConf            *config.IIGOConfig
-	PresidentID         shared.ClientID
-	clientPresident     roles.President
-	RulesProposals      []rules.RuleMatrix
-	ResourceRequests    map[shared.ClientID]shared.Resources
-	monitoring          *monitor
+	gameState        *gamestate.GameState
+	gameConf         *config.IIGOConfig
+	PresidentID      shared.ClientID
+	clientPresident  roles.President
+	RulesProposals   []rules.RuleMatrix
+	ResourceRequests map[shared.ClientID]shared.Resources
+	monitoring       *monitor
 }
 
 // loadClientPresident checks client pointer is good and if not panics
@@ -83,7 +84,7 @@ func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 	if returnRule.ActionTaken && (returnRule.ContentType == shared.PresidentRuleProposal) {
 		ruleChosenFromProposalList := false
 		for _, a := range e.RulesProposals {
-			if a == returnRule.ProposedRule {
+			if reflect.DeepEqual(a, returnRule.ProposedRuleMatrix) {
 				ruleChosenFromProposalList = true
 			}
 		}

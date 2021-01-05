@@ -14,14 +14,14 @@ import (
 )
 
 type legislature struct {
-	gameState         *gamestate.GameState
-	gameConf          *config.IIGOConfig
-	SpeakerID         shared.ClientID
-	ruleToVote        rules.RuleMatrix
-	ballotBox         voting.BallotBox
-	votingResult      bool
-	clientSpeaker     roles.Speaker
-	monitoring        *monitor
+	gameState     *gamestate.GameState
+	gameConf      *config.IIGOConfig
+	SpeakerID     shared.ClientID
+	ruleToVote    rules.RuleMatrix
+	ballotBox     voting.BallotBox
+	votingResult  bool
+	clientSpeaker roles.Speaker
+	monitoring    *monitor
 }
 
 // loadClientSpeaker checks client pointer is good and if not panics
@@ -159,8 +159,8 @@ func (l *legislature) announceVotingResult() (bool, error) {
 		resultAnnounced = true
 
 		//log rule "must announce what was called"
-		announcementRuleMatchesVote := returnAnouncement.RuleID == l.ruleToVote
-		announcementResultMatchesVote := returnAnouncement.RuleID == l.ruleToVote
+		announcementRuleMatchesVote := reflect.DeepEqual(returnAnouncement.RuleMatrix, l.ruleToVote)
+		announcementResultMatchesVote := returnAnouncement.VotingResult == l.votingResult
 		variablesToCache := []rules.VariableFieldName{rules.AnnouncementRuleMatchesVote, rules.AnnouncementResultMatchesVote}
 		valuesToCache := [][]float64{{boolToFloat(announcementRuleMatchesVote)}, {boolToFloat(announcementResultMatchesVote)}}
 		l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
