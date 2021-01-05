@@ -142,6 +142,8 @@ func determineThreshold(c *client) shared.Resources {
 //the factor which we multiply the fair_sharer average by: tune_average
 //the factor which we multiply the altruist value by: tune_alt
 
+//Extra Functionality TODO: The bigger the drop in the common pool, the more we give in the altruistic mode
+//TODO: inside determine_fair and determine_altruist make the 6 how many alive agents there are
 func AverageCommonPoolDilemma(c *client) shared.Resources {
 	ResourceHistory := c.commonPoolHistory
 	turn := c.gameState().Turn
@@ -150,8 +152,6 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 	var fair_sharer float64 //this is how much we contribute when we are a fair sharer and altruist
 	var altruist float64
 
-	var decreasing_pool float64 //records for how many turns the common pool is decreasing
-	var intervene float64 = 3   //when the pool is struggling for this number of rounds we intervene
 	var no_freeride float64 = 3 //how many turns at the beginning we cannot free ride for
 	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
 
@@ -166,11 +166,7 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 	prevTurn := turn - 1
 	prevTurn2 := turn - 2
 	if ResourceHistory[prevTurn] > ResourceHistory[turn] { //decreasing common pool means consider altruist
-		decreasing_pool++ //increment decreasing pool every turn the pool decreases
-		if decreasing_pool > intervene {
-			decreasing_pool = 0 //once we have contributed a lot we reset
-			return shared.Resources(altruist)
-		}
+		return shared.Resources(altruist)
 	}
 
 	if float64(turn) > no_freeride { //we will not allow ourselves to use free riding at the start of the game
