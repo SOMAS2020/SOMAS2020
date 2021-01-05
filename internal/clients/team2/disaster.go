@@ -119,7 +119,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 // GetLocationPrediction provides a prediction about the location of the next disaster.
 // The prediction is always the the centre of the archipelago
 func GetLocationPrediction(c *client) CartesianCoordinates {
-	archipelagoGeography := c.gamestate().Environment.Geography
+	archipelagoGeography := c.gameState().Geography
 	archipelagoCentre := CartesianCoordinates{
 		X: archipelagoGeography.XMin + (archipelagoGeography.XMax-archipelagoGeography.XMin)/2,
 		Y: archipelagoGeography.YMin + (archipelagoGeography.YMax-archipelagoGeography.YMin)/2,

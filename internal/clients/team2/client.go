@@ -5,6 +5,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -158,7 +159,6 @@ func (c *client) DisasterNotification(report disasters.DisasterReport, effects d
 	}
 }
 
-
 //checkOthersCrit checks if anyone else is critical
 func checkOthersCrit(c *client) bool {
 	for clientID, status := range c.gameState().ClientLifeStatuses {
@@ -178,6 +178,7 @@ func (c *client) gameState() gamestate.ClientGameState {
 // You will need it to access the game state through its GetGameStateMethod.
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
+	c.LocalVariableCache = rules.CopyVariableMap()
 	// loop through each island (there might not be 6)
 	for clientID, _ := range c.gameState().ClientLifeStatuses {
 		// set the confidence to 50 and initialise any other stuff

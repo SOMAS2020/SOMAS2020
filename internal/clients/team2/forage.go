@@ -2,7 +2,8 @@ package team2
 
 import (
 	"math/rand"
-  "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 type ForagingResults struct {
@@ -35,7 +36,7 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 	if ourResources < internalThreshold(c) && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
 		return (ourResources - determineThreshold(c)) / 2 //tune divisor
 	}
-	resourcesForForaging := (ourResources - internalThreshold)
+	resourcesForForaging := (ourResources - internalThreshold(c))
 	return resourcesForForaging
 }
 
@@ -77,12 +78,12 @@ func decideThreshold(c *client) float64 { //will move the threshold, higher valu
 
 //EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
 func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
-	HuntNum := 0.00   //this the average number of likely hunters
-	totalDecisions := 0.00  //this is for finding the average 
-	for _, id := range clientInfo {   //loop through every agent 
-		if  id.LifeStatus != shared.Dead {//client is dead ignore their decisions
-			for index, forageInfo := range c.foragingReturnsHist[id] {  //loop through the agents array and add their average to HuntNum
-				HuntNum = (HuntNum + forageInfo.DecisionMade.ForageType)/totalDecisions //add the agents decision to HuntNum and then average 
+	HuntNum := 0.00                                                //this the average number of likely hunters
+	totalDecisions := 0.00                                         //this is for finding the average
+	for id, lifeStatus := range c.gameState().ClientLifeStatuses { //loop through every agent
+		if lifeStatus != shared.Dead { //client is dead ignore their decisions
+			for _, forageInfo := range c.foragingReturnsHist[id] { //loop through the agents array and add their average to HuntNum
+				HuntNum = (HuntNum + float64(forageInfo.DecisionMade.Type)) / totalDecisions //add the agents decision to HuntNum and then average
 				totalDecisions++
 			}
 		}
@@ -90,15 +91,15 @@ func Otheragentinfo(c *client) float64 { //will return a value of how many agent
 	return HuntNum
 }
 
-
 //TODO: This function needs to be changed according to Eirik, I have no idea how
 func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 	// updates our foragingReturnsHist with the decisions everyone made
 	roi := map[shared.ClientID]shared.Resources{}
 	for _, val := range neighbourForaging {
-		c.foragingReturnsHist[val.SharedFrom].append(shared.ForageInfo{DecisionMade: val.DecisionMade, //this needs to change
+		/*c.foragingReturnsHist[val.SharedFrom].append(
+		shared.ForageInfo{ DecisionMade: val.DecisionMade, //this needs to change
 			ResourcesObtained: val.ResourcesObtained})
-
+		*/
 		if val.DecisionMade.Type == shared.DeerForageType {
 			roi[val.SharedFrom] = val.ResourceObtained / shared.Resources(val.DecisionMade.Contribution) * 100
 		}
@@ -112,4 +113,3 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	contribution := shared.ForageDecision{Type: shared.DeerForageType, Contribution: 0}
 	return shared.ForageShareInfo{DecisionMade: contribution, ResourceObtained: 0, ShareTo: []shared.ClientID{}}
 }
-

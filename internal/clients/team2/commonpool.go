@@ -139,7 +139,7 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 	var fair_sharer float64 //this is how much we contribute when we are a fair sharer and altruist
 	var altruist float64
 
-	var decreasing_pool float64 //records for how many turns the common pool is decreasing
+	//var decreasing_pool float64 //records for how many turns the common pool is decreasing
 	var no_freeride float64 = 3 //how many turns at the beginning we cannot free ride for
 	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
 
