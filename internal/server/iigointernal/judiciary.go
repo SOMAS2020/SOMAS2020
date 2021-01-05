@@ -172,13 +172,20 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, currentPresident shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
 	var nextPresident shared.ClientID
-	electionsettings := j.clientJudge.CallPresidentElection(monitoring, j.presidentTurnsInPower, allIslands)
-	if electionsettings.HoldElection {
+	electionSettings := j.clientJudge.CallPresidentElection(monitoring, j.presidentTurnsInPower, allIslands)
+
+	//Log election rule
+	termCondition := j.gameState.IIGOTurnsInPower[shared.President] > j.gameConf.IIGOTermLengths[shared.President]
+	variablesToCache := []rules.VariableFieldName{rules.TermEnded, rules.ElectionHeld}
+	valuesToCache := [][]float64{{boolToFloat(termCondition)}, {boolToFloat(electionSettings.HoldElection)}}
+	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+
+	if electionSettings.HoldElection {
 		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
 			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 		}
-		election.ProposeElection(shared.President, electionsettings.VotingMethod)
-		election.OpenBallot(electionsettings.IslandsToVote)
+		election.ProposeElection(shared.President, electionSettings.VotingMethod)
+		election.OpenBallot(electionSettings.IslandsToVote)
 		election.Vote(iigoClients)
 		j.presidentTurnsInPower = 0
 		nextPresident = election.CloseBallot()

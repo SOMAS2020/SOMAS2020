@@ -66,6 +66,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		presidentID:       g.PresidentID,
 		judgeID:           g.JudgeID,
 		internalIIGOCache: []shared.Accountability{},
+		TermLengths:       gameConf.IIGOConfig.IIGOTermLengths,
 	}
 	executiveBranch.monitoring = &monitoring
 	legislativeBranch.monitoring = &monitoring
@@ -78,6 +79,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	g.IIGORolesBudget[shared.President] += 100
 	g.IIGORolesBudget[shared.Judge] += 100
 	g.IIGORolesBudget[shared.Speaker] += 100
+
+	//Increment the turns in Power for each role
+	g.IIGOTurnsInPower[shared.President] += 1
+	g.IIGOTurnsInPower[shared.Speaker] += 1
+	g.IIGOTurnsInPower[shared.Judge] += 1
 
 	// Pass in gamestate and IIGO configs
 	// So that we don't have to pass gamestate as arguments in every function in roles
@@ -111,7 +117,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		judicialBranch.applySanctions()
 	}
 
-	judgeMonitored := monitoring.monitorRole(iigoClients[g.PresidentID])
+	judgeMonitored := monitoring.monitorRole(g, iigoClients[g.PresidentID])
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.ResourcesReport{}
@@ -183,7 +189,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	valuesToCache := [][]float64{{boolToFloat(allocationsMade)}}
 	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
-	presidentMonitored := monitoring.monitorRole(iigoClients[g.SpeakerID])
+	presidentMonitored := monitoring.monitorRole(g, iigoClients[g.SpeakerID])
 
 	// 3 Speaker actions
 
@@ -208,7 +214,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	valuesToCache = [][]float64{{boolToFloat(voteCalled)}, {boolToFloat(resultAnnounced)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
-	speakerMonitored := monitoring.monitorRole(iigoClients[g.JudgeID])
+	speakerMonitored := monitoring.monitorRole(g, iigoClients[g.JudgeID])
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
 	var appointJudgeError, appointSpeakerError, appointPresidentError error

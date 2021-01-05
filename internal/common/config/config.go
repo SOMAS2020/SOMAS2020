@@ -85,6 +85,8 @@ type DisasterConfig struct {
 }
 
 type IIGOConfig struct {
+	// IIGO term lengths (set by config)
+	IIGOTermLengths map[shared.Role]uint
 	// Executive branch
 	GetRuleForSpeakerActionCost        shared.Resources
 	BroadcastTaxationActionCost        shared.Resources

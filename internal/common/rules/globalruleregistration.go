@@ -395,6 +395,17 @@ func registerRulesByMass() {
 			Mutable: false,
 			Linked:  false,
 		},
+		{
+			Name: "roles_must_hold_election",
+			ReqVar: []VariableFieldName{
+				TermEnded,
+				ElectionHeld,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
 	}
 
 	for _, rs := range ruleSpecs {
