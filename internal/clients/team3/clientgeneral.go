@@ -27,17 +27,6 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		params:     getislandParams(),
 	}
 
-	// Set trust scores
-	for _, islandID := range shared.TeamIDs {
-
-		// Initialise trust scores for all islands except our own
-		if islandID == ourClient.GetID() {
-			continue
-		}
-		ourClient.trustScore[islandID] = 50
-		ourClient.theirTrustScore[islandID] = 50
-	}
-  
 	return &ourClient
 }
 
@@ -48,7 +37,7 @@ func (c *client) StartOfTurn() {
 	// Initialise trustMap and theirtrustMap local cache to empty maps
 	c.inittrustMapAgg()
 	c.inittheirtrustMapAgg()
-  
+
 	c.updateCompliance()
 	c.resetIIGOInfo()
 }
@@ -58,15 +47,19 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourSpeaker = speaker{c: c}
 	c.ourJudge = judge{c: c}
 	c.ourPresident = president{c: c}
+
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)
 	c.theirTrustScore = make(map[shared.ClientID]float64)
 	for _, islandID := range shared.TeamIDs {
+		// Initialise trust scores for all islands except our own
+		if islandID == c.BaseClient.GetID() {
+			continue
+		}
 		c.trustScore[islandID] = 50
 		c.theirTrustScore[islandID] = 50
 	}
-	// Set our trust in ourselves to 100
-	c.theirTrustScore[id] = 100
+
 	// Initialise variables
 }
 
