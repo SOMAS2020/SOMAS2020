@@ -89,13 +89,13 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		TaxAmountMapExport = taxMapReturn.ResourceMap
 		for islandID, amount := range taxMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
-				e.sendTax(islandID, amount)
+				e.sendDecision(islandID, amount, shared.IIGOTaxDecision)
 			}
 		}
 	} else {
 		// default case when president doesn't take an action. send tax = 0
 		for _, islandID := range aliveIslands {
-			e.sendNoTax(islandID)
+			e.sendNoDecision(islandID, shared.IIGOTaxDecision)
 		}
 	}
 
@@ -137,11 +137,11 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 		allocationsMade = true
 		AllocationAmountMapExport = returnContent.ResourceMap
 		for islandID, amount := range returnContent.ResourceMap {
-			e.sendAllocation(islandID, amount)
+			e.sendDecision(islandID, amount, shared.IIGOAllocationDecision)
 		}
 	} else {
 		for islandID := range e.ResourceRequests {
-			e.sendNoAllocation(islandID)
+			e.sendNoDecision(islandID, shared.IIGOAllocationDecision)
 		}
 	}
 	return allocationsMade, nil
@@ -238,44 +238,40 @@ func (e *executive) incurServiceCharge(cost shared.Resources) bool {
 	return ok
 }
 
-func (e *executive) sendTax(islandID shared.ClientID, taxAmount shared.Resources) {
+func (e *executive) sendDecision(islandID shared.ClientID, value shared.Resources, communicationType shared.CommunicationFieldName) {
 	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-	expectedVariable, taxRule := convertAmount(taxAmount, tax)
-	taxToSend := shared.TaxDecision{
-		TaxAmount:   taxAmount,
-		TaxRule:     taxRule,
-		ExpectedTax: expectedVariable,
-		TaxDecided:  true,
+	var expected rules.VariableValuePair
+	var decided rules.VariableValuePair
+
+	if communicationType == shared.IIGOTaxDecision {
+		expected = rules.MakeVariableValuePair(rules.ExpectedTaxContribution, []float64{float64(value)})
+		decided = rules.MakeVariableValuePair(rules.TaxDecisionMade, []float64{boolToFloat(true)})
+	} else {
+		expected = rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{float64(value)})
+		decided = rules.MakeVariableValuePair(rules.AllocationMade, []float64{boolToFloat(true)})
 	}
 
-	data[shared.Tax] = shared.CommunicationContent{T: shared.CommunicationTax, TaxDecision: taxToSend}
-	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
-}
-
-func (e *executive) sendNoTax(islandID shared.ClientID) {
-	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-	taxToSend := shared.TaxDecision{TaxDecided: false}
-	data[shared.Tax] = shared.CommunicationContent{T: shared.CommunicationTax, TaxDecision: taxToSend}
-	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
-}
-
-func (e *executive) sendAllocation(islandID shared.ClientID, allocationAmount shared.Resources) {
-	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-	expectedVariable, allocationRule := convertAmount(allocationAmount, allocation)
-	allocationToSend := shared.AllocationDecision{
-		AllocationAmount:   allocationAmount,
-		AllocationRule:     allocationRule,
-		ExpectedAllocation: expectedVariable,
-		AllocationDecided:  true,
+	allocationToSend := shared.ValueDecision{
+		Amount:       value,
+		DecisionMade: decided,
+		Expected:     expected,
 	}
 
-	data[shared.Allocation] = shared.CommunicationContent{T: shared.CommunicationAllocation, AllocationDecision: allocationToSend}
+	data[communicationType] = shared.CommunicationContent{T: shared.CommunicationIIGOValue, IIGOValueData: allocationToSend}
 	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 }
 
-func (e *executive) sendNoAllocation(islandID shared.ClientID) {
+func (e *executive) sendNoDecision(islandID shared.ClientID, communicationType shared.CommunicationFieldName) {
 	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-	allocationToSend := shared.AllocationDecision{AllocationDecided: false}
-	data[shared.Allocation] = shared.CommunicationContent{T: shared.CommunicationAllocation, AllocationDecision: allocationToSend}
+	var decided rules.VariableValuePair
+	if communicationType == shared.IIGOTaxDecision {
+		decided = rules.MakeVariableValuePair(rules.TaxDecisionMade, []float64{boolToFloat(false)})
+	} else {
+		decided = rules.MakeVariableValuePair(rules.AllocationMade, []float64{boolToFloat(false)})
+	}
+	allocationToSend := shared.ValueDecision{
+		DecisionMade: decided,
+	}
+	data[communicationType] = shared.CommunicationContent{T: shared.CommunicationIIGOValue, IIGOValueData: allocationToSend}
 	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 }

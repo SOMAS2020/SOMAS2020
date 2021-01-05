@@ -705,21 +705,21 @@ func TestReplyAllocationRequest(t *testing.T) {
 				communicationsGot := *(fakeClientMap[clientID]).GetCommunications()
 				presidentCommunication := communicationsGot[tc.bPresident.PresidentID][0]
 
-				allocation := presidentCommunication[shared.Allocation].AllocationDecision
-				allocationAmount := allocation.AllocationAmount
-				allocationRule := allocation.AllocationRule
-				allocationVariable := allocation.ExpectedAllocation
+				allocation := presidentCommunication[shared.IIGOAllocationDecision].IIGOValueData
+				allocationAmount := allocation.Amount
+				expectedAllocVar := allocation.Expected
+				decidedVar := allocation.DecisionMade
 
-				if presidentCommunication[shared.Allocation].T != shared.CommunicationAllocation {
-					t.Errorf("Allocation failed for client %v. Rule type is %v", clientID, presidentCommunication[shared.Allocation].T)
+				if presidentCommunication[shared.IIGOAllocationDecision].T != shared.CommunicationIIGOValue {
+					t.Errorf("Allocation failed for client %v. Rule type is %v", clientID, presidentCommunication[shared.IIGOAllocationDecision].T)
 				}
 
-				if reflect.DeepEqual(allocationRule, rules.RuleMatrix{}) {
-					t.Errorf("Allocation failed for client %v. Rule entry is empty. Got communication : %v", clientID, communicationsGot)
+				if reflect.DeepEqual(expectedAllocVar, rules.VariableValuePair{}) {
+					t.Errorf("Allocation failed for client %v. Expected Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
 				}
 
-				if reflect.DeepEqual(allocationVariable, rules.VariableValuePair{}) {
-					t.Errorf("Allocation failed for client %v. Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
+				if reflect.DeepEqual(decidedVar, rules.VariableValuePair{}) {
+					t.Errorf("Allocation failed for client %v. Decided Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
 				}
 
 				if allocationAmount != expectedAllocation {
@@ -732,54 +732,6 @@ func TestReplyAllocationRequest(t *testing.T) {
 					t.Errorf("Allocation failed for client %v. Expected allocation request <= %v , got allocation request: %v", clientID, expectedAllocation, allocationRequest)
 				}
 
-				// Evaluate Rule
-				rule := allocationRule
-				rules.AvailableRules[rule.RuleName] = rule
-
-				gotVar := allocationVariable
-				if gotVar.VariableName != rules.ExpectedAllocation {
-					t.Errorf("Allocation failed for client %v. Tax variable has wrong name %v", clientID, gotVar.VariableName)
-				}
-
-				rules.UpdateVariable(gotVar.VariableName, gotVar)
-
-				// Update the IslandAllocation to 1000
-				rules.UpdateVariable(rules.IslandAllocation,
-					rules.VariableValuePair{
-						VariableName: rules.IslandAllocation, Values: []float64{1000},
-					},
-				)
-
-				eval, err := rules.BasicBooleanRuleEvaluator(rule.RuleName)
-
-				if err != nil {
-					t.Error(err)
-				}
-
-				if eval {
-					t.Errorf("Allocation failed for client %v. Rule evaluated to true with large island allocation", clientID)
-				}
-
-				// t.Logf("CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.IslandTaxContribution])
-
-				// Update the TaxContribuition to match the received amount
-				rules.UpdateVariable(rules.IslandAllocation,
-					rules.VariableValuePair{
-						VariableName: rules.IslandAllocation, Values: []float64{float64(allocationAmount)},
-					},
-				)
-
-				// t.Logf("After CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.IslandTaxContribution])
-
-				eval, err = rules.BasicBooleanRuleEvaluator(rule.RuleName)
-
-				if err != nil {
-					t.Error(err)
-				}
-
-				if !eval {
-					t.Errorf("Allocation failed for client %v. Rule evaluated to false after island allocation has been updated", clientID)
-				}
 			}
 		})
 	}
@@ -952,21 +904,21 @@ func TestBroadcastTaxation(t *testing.T) {
 				communicationsGot := *(fakeClientMap[clientID]).GetCommunications()
 				presidentCommunication := communicationsGot[tc.bPresident.PresidentID][0]
 
-				tax := presidentCommunication[shared.Tax]
-				taxAmount := tax.TaxDecision.TaxAmount
-				taxRule := tax.TaxDecision.TaxRule
-				taxVariable := tax.TaxDecision.ExpectedTax
+				taxDecision := presidentCommunication[shared.IIGOTaxDecision].IIGOValueData
+				taxAmount := taxDecision.Amount
+				taxExpectedVar := taxDecision.Expected
+				decided := taxDecision.DecisionMade
 
-				if tax.T != shared.CommunicationTax {
-					t.Errorf("Taxation failed for client %v. Rule type is %v", clientID, tax.T)
+				if presidentCommunication[shared.IIGOTaxDecision].T != shared.CommunicationIIGOValue {
+					t.Errorf("Taxation failed for client %v. Rule type is %v", clientID, presidentCommunication[shared.IIGOTaxDecision].T)
 				}
 
-				if reflect.DeepEqual(taxRule, rules.RuleMatrix{}) {
-					t.Errorf("Taxation failed for client %v. Rule entry is empty. Got communication : %v", clientID, communicationsGot)
+				if reflect.DeepEqual(taxExpectedVar, rules.VariableValuePair{}) {
+					t.Errorf("Taxation failed for client %v. Expected Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
 				}
 
-				if reflect.DeepEqual(taxVariable, rules.VariableValuePair{}) {
-					t.Errorf("Taxation failed for client %v. Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
+				if reflect.DeepEqual(decided, rules.VariableValuePair{}) {
+					t.Errorf("Taxation failed for client %v. Decided Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
 				}
 
 				expectedTax := expectedTax(resources)
@@ -981,57 +933,6 @@ func TestBroadcastTaxation(t *testing.T) {
 				if expectedTax < paidTax {
 					t.Errorf("Taxation failed for client %v. expected to pay at least %v, got tax contribution %v", clientID, expectedTax, paidTax)
 				}
-
-				// Evaluate Rule
-				rule := taxRule
-				rules.AvailableRules[rule.RuleName] = rule
-
-				gotVar := taxVariable
-				if gotVar.VariableName != rules.ExpectedTaxContribution {
-					t.Errorf("Taxation failed for client %v. Tax variable has wrong name %v", clientID, gotVar.VariableName)
-				}
-
-				rules.UpdateVariable(gotVar.VariableName, gotVar)
-
-				// Update the TaxContribuition to 0
-				rules.UpdateVariable(rules.IslandTaxContribution,
-					rules.VariableValuePair{
-						VariableName: rules.IslandTaxContribution, Values: []float64{0},
-					},
-				)
-
-				eval, err := rules.BasicBooleanRuleEvaluator(rule.RuleName)
-
-				if err != nil {
-					t.Error(err)
-				}
-
-				if eval {
-					t.Errorf("Taxation failed for client %v. Rule evaluated to true without TaxContribution update", clientID)
-				}
-
-				// t.Logf("CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.IslandTaxContribution])
-
-				// Update the TaxContribuition to match the received amount
-				rules.UpdateVariable(rules.IslandTaxContribution,
-					rules.VariableValuePair{
-						VariableName: rules.IslandTaxContribution, Values: []float64{float64(taxAmount)},
-					},
-				)
-
-				// t.Logf("After CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.IslandTaxContribution])
-
-				eval, err = rules.BasicBooleanRuleEvaluator(rule.RuleName)
-
-				if err != nil {
-					t.Error(err)
-				}
-
-				if !eval {
-					t.Errorf("Taxation failed for client %v. Rule evaluated to false after TaxContribution update", clientID)
-				}
-
-				// t.Logf("CID: (%v, %v), %v", clientID, resources.ReportedAmount, rules.VariableMap[rules.ExpectedTaxContribution])
 			}
 
 		})

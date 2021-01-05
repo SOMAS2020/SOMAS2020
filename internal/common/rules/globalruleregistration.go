@@ -188,6 +188,30 @@ func registerRulesByMass() {
 			Mutable: true,
 			Linked:  false,
 		},
+		{
+			Name: "tax_decision",
+			ReqVar: []VariableFieldName{
+				TaxDecisionMade,
+			},
+			Values:     []float64{1, -1},
+			Aux:        []float64{0},
+			Mutable:    false,
+			Linked:     true,
+			LinkType:   ParentFailAutoRulePass,
+			LinkedRule: "check_taxation_rule",
+		},
+		{
+			Name: "allocation_decision",
+			ReqVar: []VariableFieldName{
+				AllocationMade,
+			},
+			Values:     []float64{1, -1},
+			Aux:        []float64{0},
+			Mutable:    false,
+			Linked:     true,
+			LinkType:   ParentFailAutoRulePass,
+			LinkedRule: "check_allocation_rule",
+		},
 	}
 
 	for _, rs := range ruleSpecs {

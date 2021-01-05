@@ -167,16 +167,12 @@ func (c *BaseClient) InspectCommunication(data map[shared.CommunicationFieldName
 	}
 	for fieldName, dataPoint := range data {
 		switch fieldName {
-		case shared.TaxAmount:
-			c.LocalVariableCache[rules.ExpectedTaxContribution] = rules.VariableValuePair{
-				VariableName: rules.ExpectedTaxContribution,
-				Values:       []float64{float64(dataPoint.IntegerData)},
-			}
-		case shared.AllocationAmount:
-			c.LocalVariableCache[rules.ExpectedAllocation] = rules.VariableValuePair{
-				VariableName: rules.ExpectedAllocation,
-				Values:       []float64{float64(dataPoint.IntegerData)},
-			}
+		case shared.IIGOTaxDecision:
+			c.LocalVariableCache[rules.ExpectedTaxContribution] = dataPoint.IIGOValueData.Expected
+			c.LocalVariableCache[rules.TaxDecisionMade] = dataPoint.IIGOValueData.DecisionMade
+		case shared.IIGOAllocationDecision:
+			c.LocalVariableCache[rules.ExpectedAllocation] = dataPoint.IIGOValueData.Expected
+			c.LocalVariableCache[rules.AllocationMade] = dataPoint.IIGOValueData.DecisionMade
 		case shared.SanctionAmount:
 			c.LocalVariableCache[rules.SanctionExpected] = rules.VariableValuePair{
 				VariableName: rules.SanctionExpected,
