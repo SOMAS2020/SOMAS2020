@@ -131,13 +131,13 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 				AcceptedAmount: 0,
 				Reason:         shared.DeclineDontNeed,
 			}
-		} else if c.friendship[client] == c.config.minFriendship {
+		} else if c.friendship[client] == c.clientConfig.minFriendship {
 			// TODO: is this stupid?
 			responses[client] = shared.GiftResponse{
 				AcceptedAmount: 0,
 				Reason:         shared.DeclineDontLikeYou,
 			}
-		} else if c.friendship[client] == c.config.maxFriendship {
+		} else if c.friendship[client] == c.clientConfig.maxFriendship {
 			// prevents our friend island from running out of resources
 			responses[client] = shared.GiftResponse{
 				AcceptedAmount: shared.Resources(offer) - costOfLiving,

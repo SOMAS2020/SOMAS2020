@@ -25,6 +25,7 @@ type judiciary struct {
 	ruleViolationSeverity map[string]roles.IIGOSanctionScore
 	localSanctionCache    map[int][]roles.Sanction
 	localHistoryCache     map[int][]shared.Accountability
+	monitoring            *monitor
 }
 
 // Loads ruleViolationSeverity and sanction thresholds
@@ -132,10 +133,10 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 		}
 		election.ProposeElection(shared.President, electionsettings.VotingMethod)
-		election.OpenBallot(electionsettings.IslandsToVote)
+		election.OpenBallot(electionsettings.IslandsToVote, iigoClients)
 		election.Vote(iigoClients)
 		j.presidentTurnsInPower = 0
-		nextPresident = election.CloseBallot()
+		nextPresident = election.CloseBallot(iigoClients)
 		nextPresident = j.clientJudge.DecideNextPresident(nextPresident)
 	} else {
 		j.presidentTurnsInPower++

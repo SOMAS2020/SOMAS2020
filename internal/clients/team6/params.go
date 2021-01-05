@@ -22,9 +22,6 @@ type GiftsRequestedHistory map[shared.ClientID]shared.Resources
 // Personality enumerate our personality
 type Personality int
 
-// ForageHistory stores our forage history
-type ForageHistory map[shared.ForageType][]ForageResults
-
 type FavourRules []string
 
 // enumerates personality
@@ -34,13 +31,8 @@ const (
 	Generous
 )
 
-type ForageResults struct {
-	forageIn     shared.Resources
-	forageReturn shared.Resources
-}
-
 // Config configures our island's initial state
-type Config struct {
+type ClientConfig struct {
 	minFriendship          FriendshipLevel
 	maxFriendship          FriendshipLevel
 	friendshipChangingRate FriendshipLevel
@@ -62,7 +54,7 @@ var (
 	giftsRequestedHistory = GiftsRequestedHistory{}
 	forageHistory         = ForageHistory{}
 	favourRules           = FavourRules{}
-	config                = Config{
+	clientConfig          = ClientConfig{
 		minFriendship:          0.0,
 		maxFriendship:          100.0,
 		friendshipChangingRate: 20.0,

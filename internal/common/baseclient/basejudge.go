@@ -56,12 +56,12 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo
 		}
 		tempReturn := outputMap[clientID]
 		for _, rule := range rulesAffected {
-			evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
-			if err != nil {
+			ret := rules.EvaluateRule(rule)
+			if ret.EvalError != nil {
 				return outputMap, false
 			}
 			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
-			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
+			tempReturn.Evaluations = append(tempReturn.Evaluations, ret.RulePasses)
 		}
 		outputMap[clientID] = tempReturn
 	}
@@ -86,7 +86,7 @@ func (j *BaseJudge) CallPresidentElection(monitoring shared.MonitorResult, turns
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
-		VotingMethod:  shared.Plurality,
+		VotingMethod:  shared.Runoff,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
