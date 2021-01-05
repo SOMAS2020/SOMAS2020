@@ -39,3 +39,46 @@ func (c *client) initOpinions() {
 func (o opinion) String() string {
 	return fmt.Sprintf("opinion{score: %.2f}", o.score)
 }
+
+// "Normalize" opinion to keep it in range -1 and 1
+func (c *client) normalizeOpinion() {
+	for clientID, _ := range c.opinions {
+		if c.opinions[clientID].score < -1.0 {
+			c.opinions[clientID].score = -1
+		} else if c.opinions[clientID].score > 1.0 {
+			c.opinions[clientID].score = 1
+		}
+	}
+}
+
+//Evaluate if the roles are corrupted or not based on their budget spending
+//	versus total tax paid to common pool
+//Either everyone is corrupted or not
+func (c *client) evaluateRoles() {
+	speakerID := c.ServerReadHandle.GetGameState().SpeakerID
+	judgeID := c.ServerReadHandle.GetGameState().JudgeID
+	presidentID := c.ServerReadHandle.GetGameState().PresidentID
+	//compute total budget
+	budget := c.ServerReadHandle.GetGameState().IIGORolesBudget
+	var totalBudget shared.Resources = 0
+	for role, _ := range budget {
+		totalBudget += budget[role]
+	}
+	// compute total maximum tax to cp
+	var totalTax shared.Resources
+	numberAliveTeams := len(c.getAliveTeams(true)) //include us
+	for i := 0; i < numberAliveTeams; i++ {
+		totalTax += c.taxAmount
+	}
+	// Not corrupt
+	if totalBudget <= totalTax {
+		c.opinions[speakerID].score += 0.1 //arbitrary number
+		c.opinions[judgeID].score += 0.1
+		c.opinions[presidentID].score += 0.1
+	} else {
+		c.opinions[speakerID].score -= 0.1 //arbitrary number
+		c.opinions[judgeID].score -= 0.1
+		c.opinions[presidentID].score -= 0.1
+	}
+	c.normalizeOpinion()
+}
