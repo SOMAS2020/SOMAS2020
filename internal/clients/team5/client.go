@@ -9,10 +9,10 @@ import (
 
 func init() {
 	baseclient.RegisterClient(
-		id,
+		ourClientID,
 		&client{
 			// forageHistory: ForageHistory{},
-			BaseClient:          baseclient.NewClient(id),
+			BaseClient:          baseclient.NewClient(ourClientID),
 			cpRequestHistory:    cpRequestHistory{},
 			cpAllocationHistory: cpAllocationHistory{},
 			forageHistory:       forageHistory{},

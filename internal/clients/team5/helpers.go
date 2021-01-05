@@ -16,3 +16,12 @@ func (c client) getSeason() uint {
 func (c client) getCP() shared.Resources {
 	return c.gameState().CommonPool
 }
+
+func (c client) getOtherAliveTeams() (aliveTeams []shared.ClientID) {
+	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+		if team != ourClientID && status == shared.Alive {
+			aliveTeams = append(aliveTeams, team)
+		}
+	}
+	return aliveTeams
+}
