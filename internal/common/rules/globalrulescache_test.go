@@ -50,8 +50,8 @@ func TestPullRuleIntoPlay(t *testing.T) {
 
 			if tc.errorExpected {
 				if ruleErr, ok := err.(*RuleError); ok {
-					if ruleErr.errorType != tc.errorType {
-						t.Errorf("Expected error type '%v' got error type '%v'", tc.errorType.String(), ruleErr.errorType.String())
+					if ruleErr.ErrorType != tc.errorType {
+						t.Errorf("Expected error type '%v' got error type '%v'", tc.errorType.String(), ruleErr.ErrorType.String())
 					}
 				} else {
 					t.Errorf("Unrecognised Error format recieved, with message: '%v'", ruleErr.Error())
@@ -91,8 +91,8 @@ func TestPullRuleOutOfPlay(t *testing.T) {
 
 			if tc.errorExpected {
 				if ruleErr, ok := err.(*RuleError); ok {
-					if ruleErr.errorType != tc.errorType {
-						t.Errorf("Expected error type '%v' got error type '%v'", tc.errorType.String(), ruleErr.errorType.String())
+					if ruleErr.ErrorType != tc.errorType {
+						t.Errorf("Expected error type '%v' got error type '%v'", tc.errorType.String(), ruleErr.ErrorType.String())
 					}
 				} else {
 					t.Errorf("Unrecognised Error format received, with message: '%v'", ruleErr.Error())
@@ -171,8 +171,8 @@ func TestModifyRule(t *testing.T) {
 
 			if tc.errorExpected {
 				if ruleErr, ok := err.(*RuleError); ok {
-					if ruleErr.errorType != tc.errType {
-						t.Errorf("Expected error type '%v' got error type '%v'", tc.errType.String(), ruleErr.errorType.String())
+					if ruleErr.ErrorType != tc.errType {
+						t.Errorf("Expected error type '%v' got error type '%v'", tc.errType.String(), ruleErr.ErrorType.String())
 					}
 				} else {
 					t.Errorf("Unrecognised Error format received, with message: '%v'", ruleErr.Error())
