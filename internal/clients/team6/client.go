@@ -24,9 +24,8 @@ type client struct {
 	friendship           map[shared.ClientID]float64
 	giftsOfferedHistory  map[shared.ClientID]shared.Resources
 	giftsReceivedHistory map[shared.ClientID]shared.Resources
-
-	config        Config
-	forageHistory ForageHistory
+	config               Config
+	forageHistory        ForageHistory
 }
 
 func init() {
@@ -126,19 +125,68 @@ func (c client) getPersonality() Personality {
 // ########################
 // ######  Foraging  ######
 // ########################
-func chooseForageType() int {
-	return int(shared.DeerForageType)
+func (c client) changeForageType() shared.ForageType { //TODO
+	return shared.DeerForageType
+}
+
+func (c client) decideContribution() shared.Resources {
+	var multiplier shared.Resources = 0.8
+	var safetyBuffer shared.Resources = 10
+	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	return multiplier * (ourResources - safetyBuffer)
+}
+
+func (c *client) randomForage() shared.ForageDecision {
+	var resources shared.Resources
+	var forageType shared.ForageType
+
+	if c.ServerReadHandle.GetGameState().Turn == 2 {
+		forageType = shared.FishForageType
+	} else {
+		forageType = shared.DeerForageType
+	}
+	tmp := rand.Float64()
+	if tmp > 0.2 { //up to 20% resources
+		resources = 0.2 * c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	} else {
+		resources = shared.Resources(tmp) * c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	}
+
+	return shared.ForageDecision{
+		Type:         shared.ForageType(forageType),
+		Contribution: shared.Resources(resources),
+	}
+}
+
+func (c *client) noramlForage() shared.ForageDecision {
+	ft := c.changeForageType()
+	amt := c.decideContribution()
+	return shared.ForageDecision{
+		Type:         shared.ForageType(ft),
+		Contribution: shared.Resources(amt),
+	}
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	ft := chooseForageType()
-	return shared.ForageDecision{
-		Type:         shared.ForageType(ft),
-		Contribution: shared.Resources(rand.Float64() * 20),
-	}, nil
+	if c.ServerReadHandle.GetGameState().Turn < 3 { //the agent will randomly forage at the start
+		return c.randomForage(), nil
+	} else {
+		return c.noramlForage(), nil
+	}
+
 }
 
-func (c *client) ForageUpdate(shared.ForageDecision, shared.Resources) {}
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, outcome shared.Resources) {
+	c.forageHistory[forageDecision.Type] =
+		append(
+			c.forageHistory[forageDecision.Type],
+			ForageResults{
+				forageIn:     forageDecision.Contribution,
+				forageReturn: outcome,
+				forageROI:    float64(forageDecision.Contribution/outcome - 1),
+			},
+		)
+}
 
 /*
 ------ TODO: OPTIONAL ------
@@ -149,14 +197,14 @@ func (c *client) DisasterNotification(disasters.DisasterReport, map[shared.Clien
 // ######  Voting  ########
 // ########################
 // GetVoteForRule returns the client's vote in favour of or against a rule.
-func (c *client) GetVoteForRule(ruleName string) bool {
-	for _, val := range c.favourRules {
-		if val == ruleName {
-			return true
-		}
-	}
-	return false
-}
+// func (c *client) GetVoteForRule(ruleName string) bool {
+// 	for _, val := range c.favourRules {
+// 		if val == ruleName {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
 // COMPULSORY: use opinion formation to decide a rank for islands for the role
