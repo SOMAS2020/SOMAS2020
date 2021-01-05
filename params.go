@@ -317,6 +317,12 @@ var (
 		2,
 		"Sanction length for all sanctions",
 	)
+
+	startWithRulesInPlay = flag.Bool(
+		"startWithRulesInPlay",
+		true,
+		"Pull all available rules into play at start of run",
+	)
 )
 
 func parseConfig() (config.Config, error) {
@@ -411,6 +417,7 @@ func parseConfig() (config.Config, error) {
 		AnnounceVotingResultActionCost: shared.Resources(*iigoAnnounceVotingResultActionCost),
 		UpdateRulesActionCost:          shared.Resources(*iigoUpdateRulesActionCost),
 		AppointNextJudgeActionCost:     shared.Resources(*iigoAppointNextJudgeActionCost),
+		StartWithRulesInPlay:           *startWithRulesInPlay,
 	}
 
 	return config.Config{

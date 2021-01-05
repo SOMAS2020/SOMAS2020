@@ -183,8 +183,8 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
 			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 		}
-		election.ProposeElection(shared.President, electionSettings.VotingMethod)
-		election.OpenBallot(electionSettings.IslandsToVote, iigoClients)
+		election.ProposeElection(shared.President, electionsettings.VotingMethod)
+		election.OpenBallot(electionsettings.IslandsToVote, allIslands)
 		election.Vote(iigoClients)
 		j.gameState.IIGOTurnsInPower[shared.President] = 0
 		electedPresident := election.CloseBallot(iigoClients)
