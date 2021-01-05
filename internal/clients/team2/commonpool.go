@@ -4,6 +4,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
+//CommonPoolUpdate Records history of common pool levels
 func CommonPoolUpdate(c *client, commonPoolHistory CommonPoolHistory) {
 	currentPool := c.gameState().CommonPool
 	c.commonPoolHistory[c.gameState().Turn] = float64(currentPool)
@@ -11,7 +12,7 @@ func CommonPoolUpdate(c *client, commonPoolHistory CommonPoolHistory) {
 
 //Records our resources level each turn
 func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHistory) {
-	var currentLevel = c.gameState().ClientInfo.Resources
+	currentLevel := c.gameState().ClientInfo.Resources
 	c.resourceLevelHistory[c.gameState().Turn] = currentLevel
 }
 
@@ -24,13 +25,13 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 func determineAllocation(c *client) shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
 	if criticalStatus(c) {
-		return determineThreshold(c) //not sure about this amount
+		return c.determineThreshold() //not sure about this amount
 	}
-	if determineTax(c)+determineThreshold(c) > ourResources {
+	if determineTax(c)+c.determineThreshold() > ourResources {
 		return (determineTax(c) - ourResources)
 	}
-	if c.gameState().ClientInfo.Resources < internalThreshold(c) {
-		return (internalThreshold(c) - ourResources)
+	if c.gameState().ClientInfo.Resources < c.internalThreshold() {
+		return (c.internalThreshold() - ourResources)
 	}
 	//TODO: maybe separate standard gameplay when no-one is critical vs when others are critical
 	return 0
@@ -42,20 +43,20 @@ func (c *client) RequestAllocation() shared.Resources {
 
 //GetTaxContribution determines how much we put into pool
 func (c *client) GetTaxContribution() shared.Resources {
-	var ourResources = c.gameState().ClientInfo.Resources
-	var Taxmin shared.Resources = determineTax(c)
-	var allocation shared.Resources = AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
+	ourResources := c.gameState().ClientInfo.Resources
+	Taxmin := determineTax(c)
+	allocation := AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
 	if criticalStatus(c) {
 		return 0 //tax evasion
 	}
-	if determineTax(c)+determineThreshold(c) > ourResources {
+	if determineTax(c)+c.determineThreshold() > ourResources {
 		return 0 //tax evasion
 	}
-	if ourResources < internalThreshold(c) {
+	if ourResources < c.internalThreshold() {
 		return Taxmin
 	}
 	if checkOthersCrit(c) {
-		return (ourResources - internalThreshold(c) - Taxmin) / 2
+		return (ourResources - c.internalThreshold() - Taxmin) / 2
 	}
 
 	allocation = AverageCommonPoolDilemma(c) + Taxmin
@@ -68,17 +69,23 @@ func determineTax(c *client) shared.Resources {
 }
 
 //internalThreshold determines our internal threshold for survival, allocationrec is the output of the function AverageCommonPool which determines which role we will be
-func internalThreshold(c *client) shared.Resources {
-	var gameThreshold shared.Resources = determineThreshold(c)
-	var allocationrec = AverageCommonPoolDilemma(c)
-	var disasterEffectOnUs float64 = 3            //TODO: call function from Hamish's part to get map clientID: effect
-	var disasterPredictionConfidence float64 = 50 //TODO: call function from Hamish's part to get this confidence level
-	var turnsLeftUntilDisaster uint = 3           //TODO: call function from Hamish's part to get number of turns
-	if disasterEffectOnUs > 4 {                   //tune
-		return (gameThreshold + allocationrec) * shared.Resources(disasterPredictionConfidence/10) //tune
+func (c *client) internalThreshold() shared.Resources {
+	gameThreshold := c.determineThreshold()
+	allocationrec := AverageCommonPoolDilemma(c)
+	ourVulnerability := GetIslandDVPs(c.gameState().Geography)[c.GetID()] //TODO: get value from init function
+	//turnsLeftUntilDisaster := 3           //TODO: get this value when known
+	totalTurns := float64(c.gameState().Turn)
+	sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, totalTurns)
+	turnsLeftConfidence := GetTimeRemainingConfidence(totalTurns, sampleMeanX)
+	//TODO: Update these to be functions more specific to our island rather than general mag
+	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
+	confidenceMagnitude := GetMagnitudeConfidence(totalTurns, sampleMeanM)
+
+	if magnitudePrediction > sampleMeanM { //larger mag than average expected
+		return (gameThreshold + allocationrec) * shared.Resources((confidenceMagnitude/10)*(1+ourVulnerability)) //tune
 	}
-	if turnsLeftUntilDisaster < 3 { //tune
-		return 3
+	if timeRemainingPrediction < 3 { //tune
+		return (gameThreshold + allocationrec) * shared.Resources((turnsLeftConfidence/10)*(1+ourVulnerability)) //tune
 	}
 	return gameThreshold + allocationrec
 }
@@ -91,28 +98,32 @@ func checkForDisaster(c *client) bool {
 		return false
 	}
 	if prevSeason != c.gameState().Season {
-		prevSeason += 1
+		prevSeason++
 		return true
 	}
 	return false
 }
 
 //Finds the game threshold if this information is available or works it out based on history of turns
-func determineThreshold(c *client) shared.Resources {
-	var costOfLiving shared.Resources = 10 //TODO: add cost of living to threshold once available (somewhere in ClientGameConfig)
-	//var threshold = if disasterCommonPoolThreshold.Visible == True { threshold = disasterCommonPoolThreshold/6} else null
-	var ourResources = c.gameState().ClientInfo.Resources
-	var turn = c.gameState().Turn
-	var season = c.gameState().Season
+func (c *client) determineThreshold() shared.Resources {
+	costOfLiving := c.gameConfig().CostOfLiving
+	if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid {
+		var threshold = (c.gameConfig().DisasterConfig.CommonpoolThreshold.Value) / 6
+		return threshold*1.1 + costOfLiving //*1.1 as threshold may not always be enough
+	}
+	ourResources := c.gameState().ClientInfo.Resources
+	turn := c.gameState().Turn
+	season := c.gameState().Season
 	var disasterBasedAdjustment float64
-	var nextPredictedDisasterMag float64 = 5 //TODO: Get this from Hamish's part
-	var prevDisasterMag float64 = 5          //TODO: Find this value
-	//if threshold != null return (threshold + costOfLiving) * 1.1 //as threshold may not always be enough
-	//else if threshold unknown
+	ourVulnerability := GetIslandDVPs(c.gameState().Geography)[c.GetID()] //TODO: get value from init function
+	//turnsLeftUntilDisaster := 3           //TODO: get this value when available in client config
+	totalTurns := float64(c.gameState().Turn)
+	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
+
 	if turn == 1 {
 		return ourResources / 4 //TODO: tune initial threshold guess when we start playing
 	}
-	var baseThreshold = c.resourceLevelHistory[1] / 4
+	baseThreshold := c.resourceLevelHistory[1] / 4
 	if season == 1 { //keep threshold from first turn
 		return baseThreshold
 	}
@@ -126,7 +137,7 @@ func determineThreshold(c *client) shared.Resources {
 		disasterBasedAdjustment += 5
 	}
 	//change factor by if next mag > or < prev mag
-	return shared.Resources(float64(baseThreshold)*(nextPredictedDisasterMag/prevDisasterMag)+disasterBasedAdjustment) + costOfLiving
+	return shared.Resources(float64(baseThreshold)*(magnitudePrediction/sampleMeanM)*(1+ourVulnerability)+disasterBasedAdjustment) + costOfLiving
 }
 
 //this function determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers etc
@@ -150,7 +161,7 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 	var fair_sharer float64 //this is how much we contribute when we are a fair sharer and altruist
 	var altruist float64
 
-	var decreasing_pool float64 //records for how many turns the common pool is decreasing
+	//var decreasing_pool float64 //records for how many turns the common pool is decreasing
 	var no_freeride float64 = 3 //how many turns at the beginning we cannot free ride for
 	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
 
