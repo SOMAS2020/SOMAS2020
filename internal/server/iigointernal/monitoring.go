@@ -54,16 +54,16 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 			variablePairs := entry.Pairs
 			var rulesAffected []string
 			for _, variable := range variablePairs {
-				valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, ruleStore)
+				valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, ruleStore, rules.VariableMap)
 				if foundRules {
 					rulesAffected = append(rulesAffected, valuesToBeAdded...)
 				}
 				rules.UpdateVariable(variable.VariableName, variable)
 			}
 			for _, rule := range rulesAffected {
-				evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
-				if err == nil {
-					performedRoleCorrectly = evaluation && performedRoleCorrectly
+				ret := rules.EvaluateRule(rule)
+				if ret.EvalError == nil {
+					performedRoleCorrectly = ret.RulePasses && performedRoleCorrectly
 				}
 			}
 		}

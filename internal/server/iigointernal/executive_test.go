@@ -1,11 +1,13 @@
 package iigointernal
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"reflect" // Used to compare two maps
 	"testing"
 
-	"reflect" // Used to compare two maps
-
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -83,23 +85,28 @@ func TestAllocationRequests(t *testing.T) {
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentAllocation
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
 			executive := &executive{
-				ID:              shared.Team1,
-				budget:          50,
+				PresidentID:     shared.Team1,
 				clientPresident: &baseclient.BasePresident{},
 			}
 
-			val, evaluationOccurred := executive.clientPresident.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
-			if evaluationOccurred && tc.want {
-				if !reflect.DeepEqual(tc.reply, val) {
-					t.Errorf("%v - Failed. Expected %v, got %v", tc.name, tc.reply, val)
+			got := executive.clientPresident.EvaluateAllocationRequests(tc.input.resourceRequests, tc.input.commonPoolResource)
+
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
+			}
+
+			if got.ActionTaken && tc.want {
+				if !reflect.DeepEqual(tc.reply, got.ResourceMap) {
+					t.Errorf("%v - Failed. Expected %v, got %v", tc.name, tc.reply, got.ResourceMap)
 				}
 			} else {
-				if evaluationOccurred != tc.want {
-					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, evaluationOccurred, tc.want)
+				if got.ActionTaken != tc.want {
+					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, got.ActionTaken, tc.want)
 				}
 			}
 		})
@@ -110,9 +117,9 @@ func calcExpectedVal(resourcesRequested shared.Resources, totalResourcesRequeste
 	return 0.75 * (resourcesRequested * availableInPool) / totalResourcesRequested
 }
 
-func checkIfInList(s string, lst []string) bool {
+func checkIfInList(s rules.RuleMatrix, lst []rules.RuleMatrix) bool {
 	for _, i := range lst {
-		if s == i {
+		if reflect.DeepEqual(s, i) {
 			return true
 		}
 	}
@@ -121,36 +128,37 @@ func checkIfInList(s string, lst []string) bool {
 func TestPickRuleToVote(t *testing.T) {
 	cases := []struct {
 		name  string
-		input []string
+		input []rules.RuleMatrix
 		reply string
 		want  bool
 	}{
 		{
 			name:  "Basic rule",
-			input: []string{"rule"},
+			input: []rules.RuleMatrix{{RuleName: "rule"}},
 			reply: "rule",
 			want:  true,
 		},
 		{
-			name:  "Empty string",
-			input: []string{""},
+			name:  "Empty rule",
+			input: []rules.RuleMatrix{{}},
 			reply: "",
 			want:  true,
 		},
 		{
 			name:  "Longer list",
-			input: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			input: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 			reply: "",
 			want:  true,
 		},
 		{
 			name:  "Empty list",
-			input: []string{},
+			input: []rules.RuleMatrix{},
 			reply: "",
 			want:  false,
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentRuleProposal
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
@@ -158,18 +166,25 @@ func TestPickRuleToVote(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 			}
 
-			val, err := executive.clientPresident.PickRuleToVote(tc.input)
-			if err && tc.want {
+			got := executive.clientPresident.PickRuleToVote(tc.input)
+
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected return type  %v, got %v", tc.name, wantPresidentReturnType, got.ContentType)
+			}
+
+			if got.ActionTaken && tc.want {
 				if len(tc.input) == 0 {
-					if val != "" {
-						t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, val)
+					// if got.ProposedRuleMatrix != "" {
+					// 	t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
+					if !got.ProposedRuleMatrix.RuleMatrixIsEmpty() { //
+						t.Errorf("%v - Failed. Returned '%v', but expectd an empty ruleMatrix", tc.name, got.ProposedRuleMatrix)
 					}
-				} else if !checkIfInList(val, tc.input) {
-					t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, val, tc.input)
+				} else if !checkIfInList(got.ProposedRuleMatrix, tc.input) {
+					t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRuleMatrix, tc.input)
 				}
 			} else {
-				if err != tc.want {
-					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, err, tc.want)
+				if got.ActionTaken != tc.want {
+					t.Errorf("%v - Failed. Returned error '%v' which was not equal to expected '%v'", tc.name, got.ActionTaken, tc.want)
 				}
 			}
 		})
@@ -179,23 +194,23 @@ func TestPickRuleToVote(t *testing.T) {
 func TestSetRuleProposals(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []string
-		expected []string
+		input    []rules.RuleMatrix
+		expected []rules.RuleMatrix
 	}{
 		{
 			name:     "Single Rule",
-			input:    []string{"rule"},
-			expected: []string{"rule"},
+			input:    []rules.RuleMatrix{{RuleName: "rule"}},
+			expected: []rules.RuleMatrix{{RuleName: "rule"}},
 		},
 		{
 			name:     "No Rule",
-			input:    []string{""},
-			expected: []string{""},
+			input:    []rules.RuleMatrix{{RuleName: ""}},
+			expected: []rules.RuleMatrix{{RuleName: ""}},
 		},
 		{
 			name:     "Multiple Rules",
-			input:    []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
-			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			input:    []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
+			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
 	}
 
@@ -203,8 +218,8 @@ func TestSetRuleProposals(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			executive := &executive{
-				ID:             shared.Team1,
-				RulesProposals: []string{},
+				PresidentID:    shared.Team1,
+				RulesProposals: []rules.RuleMatrix{},
 			}
 
 			executive.setRuleProposals(tc.input)
@@ -220,71 +235,125 @@ func TestSetRuleProposals(t *testing.T) {
 func TestGetTaxMap(t *testing.T) {
 	cases := []struct {
 		name           string
-		input          map[shared.ClientID]shared.Resources
+		input          map[shared.ClientID]shared.ResourcesReport
 		bPresident     executive // base
 		expectedLength int
+		expected       map[shared.ClientID]shared.Resources
 	}{
 		{
 			name:  "Empty tax map base",
-			input: map[shared.ClientID]shared.Resources{},
+			input: map[shared.ClientID]shared.ResourcesReport{},
 			bPresident: executive{
-				ID:              3,
+				PresidentID:     3,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 0,
 		},
 		{
-			name:  "Short tax map base",
-			input: map[shared.ClientID]shared.Resources{1: 5},
+			name: "Short tax map base",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: true},
+			},
 			bPresident: executive{
-				ID:              3,
+				PresidentID:     3,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 1,
 		},
 		{
-			name:  "Long tax map base",
-			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			name: "Long tax map base",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: true},
+				2: {ReportedAmount: 10, Reported: true},
+				3: {ReportedAmount: 15, Reported: true},
+				4: {ReportedAmount: 20, Reported: true},
+				5: {ReportedAmount: 25, Reported: true},
+				6: {ReportedAmount: 30, Reported: true},
+			},
 			bPresident: executive{
-				ID:              4,
+				PresidentID:     4,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 6,
 		},
 		{
 			name:  "Client empty tax map base",
-			input: map[shared.ClientID]shared.Resources{},
+			input: map[shared.ClientID]shared.ResourcesReport{},
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 0,
 		},
 		{
-			name:  "Client short tax map base",
-			input: map[shared.ClientID]shared.Resources{1: 5},
+			name: "Client short tax map base",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: true},
+			},
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 1,
 		},
 		{
-			name:  "Client long tax map base",
-			input: map[shared.ClientID]shared.Resources{1: 5, 2: 10, 3: 15, 4: 20, 5: 25, 6: 30},
+			name: "Client long tax map base",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: true},
+				2: {ReportedAmount: 10, Reported: true},
+				3: {ReportedAmount: 15, Reported: true},
+				4: {ReportedAmount: 20, Reported: true},
+				5: {ReportedAmount: 25, Reported: true},
+				6: {ReportedAmount: 30, Reported: true},
+			},
 			bPresident: executive{
-				ID:              5,
+				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 			},
 			expectedLength: 6,
 		},
+		{
+			name: "Clients not reporting",
+			input: map[shared.ClientID]shared.ResourcesReport{
+				1: {ReportedAmount: 5, Reported: false},
+				2: {ReportedAmount: 10, Reported: false},
+				3: {ReportedAmount: 15, Reported: false},
+				4: {ReportedAmount: 20, Reported: false},
+				5: {ReportedAmount: 25, Reported: false},
+				6: {ReportedAmount: 30, Reported: false},
+			},
+			bPresident: executive{
+				PresidentID:     5,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			expected: map[shared.ClientID]shared.Resources{
+				1: 15,
+				2: 15,
+				3: 15,
+				4: 15,
+				5: 15,
+				6: 15,
+			},
+		},
 	}
 
+	wantPresidentReturnType := shared.PresidentTaxation
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			val, _ := tc.bPresident.getTaxMap(tc.input)
-			if len(val) != tc.expectedLength {
-				t.Errorf("%v - Failed. RulesProposals set to '%v', expected '%v'", tc.name, val, tc.input)
+			got := tc.bPresident.getTaxMap(tc.input)
+
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
+			}
+
+			if tc.expected == nil {
+				if len(got.ResourceMap) != tc.expectedLength {
+					t.Errorf("%v - Failed. TaxMap set to '%v', expected '%v'", tc.name, got.ResourceMap, tc.input)
+				}
+			} else {
+				if !reflect.DeepEqual(got.ResourceMap, tc.expected) {
+					t.Errorf("%v - Failed. TaxMap set to '%v', expected '%v'", tc.name, got.ResourceMap, tc.expected)
+				}
 			}
 
 		})
@@ -292,68 +361,95 @@ func TestGetTaxMap(t *testing.T) {
 }
 
 func TestGetRuleForSpeaker(t *testing.T) {
+
+	fakeGameState := gamestate.GameState{
+		CommonPool: 400,
+		IIGORolesBudget: map[shared.Role]shared.Resources{
+			shared.President: 10,
+			shared.Speaker:   10,
+			shared.Judge:     10,
+		},
+	}
 	cases := []struct {
 		name       string
 		bPresident executive // base
-		expected   []string
+		expected   []rules.RuleMatrix
 	}{
 		{
 			name: "Empty tax map base",
 			bPresident: executive{
-				ID:              3,
-				RulesProposals:  []string{},
+				PresidentID:     3,
+				RulesProposals:  []rules.RuleMatrix{},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
-			expected: []string{""},
+			expected: []rules.RuleMatrix{{RuleName: ""}},
 		},
 		{
 			name: "Short tax map base",
 			bPresident: executive{
-				ID:              3,
-				RulesProposals:  []string{"test"},
+				PresidentID:     3,
+				RulesProposals:  []rules.RuleMatrix{{RuleName: "test"}},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
-			expected: []string{"test"},
+			expected: []rules.RuleMatrix{{RuleName: "test"}},
 		},
 		{
 			name: "Long tax map base",
 			bPresident: executive{
-				ID:              3,
-				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				PresidentID:     3,
+				RulesProposals:  []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
-			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
 		{
 			name: "Client empty tax map base",
 			bPresident: executive{
-				ID:              5,
-				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				PresidentID:     5,
+				RulesProposals:  []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
-			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
 		{
 			name: "Client tax map base override",
 			bPresident: executive{
-				ID:              5,
-				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				PresidentID:     5,
+				RulesProposals:  []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 				clientPresident: &baseclient.BasePresident{},
+				gameState:       &fakeGameState,
+				gameConf:        &config.IIGOConfig{},
 			},
-			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentRuleProposal
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			val, _ := tc.bPresident.getRuleForSpeaker()
+			got, _ := tc.bPresident.getRuleForSpeaker()
+
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
+			}
+
 			if len(tc.expected) == 0 {
-				if val != "" {
-					t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, val)
+				// if got.ProposedRuleMatrix != "" {
+				// 	t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
+				if !got.ProposedRuleMatrix.RuleMatrixIsEmpty() { //
+					t.Errorf("%v - Failed. Returned '%v', but expectd an empty ruleMatrix", tc.name, got.ProposedRuleMatrix)
 				}
-			} else if !checkIfInList(val, tc.expected) {
-				t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, val, tc.expected)
+			} else if !checkIfInList(got.ProposedRuleMatrix, tc.expected) {
+				t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRuleMatrix, tc.expected)
 			}
 		})
 	}
@@ -369,7 +465,7 @@ func TestGetAllocationRequests(t *testing.T) {
 		{
 			name: "Limited Resources",
 			bPresident: executive{
-				ID: 3,
+				PresidentID: 3,
 				ResourceRequests: map[shared.ClientID]shared.Resources{
 					shared.Team1: 5,
 					shared.Team2: 10,
@@ -393,7 +489,7 @@ func TestGetAllocationRequests(t *testing.T) {
 		{
 			name: "Excess Resources",
 			bPresident: executive{
-				ID: 3,
+				PresidentID: 3,
 				ResourceRequests: map[shared.ClientID]shared.Resources{
 					shared.Team1: 5,
 					shared.Team2: 10,
@@ -416,7 +512,7 @@ func TestGetAllocationRequests(t *testing.T) {
 		{
 			name: "Client override limited resourceRequests",
 			bPresident: executive{
-				ID: 5,
+				PresidentID: 5,
 				ResourceRequests: map[shared.ClientID]shared.Resources{
 					shared.Team1: 5,
 					shared.Team2: 10,
@@ -440,7 +536,7 @@ func TestGetAllocationRequests(t *testing.T) {
 		{
 			name: "Client override excess resourceRequests",
 			bPresident: executive{
-				ID: 5,
+				PresidentID: 5,
 				ResourceRequests: map[shared.ClientID]shared.Resources{
 					shared.Team1: 5,
 					shared.Team2: 10,
@@ -462,12 +558,224 @@ func TestGetAllocationRequests(t *testing.T) {
 		},
 	}
 
+	wantPresidentReturnType := shared.PresidentAllocation
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			val, _ := tc.bPresident.getAllocationRequests(tc.input)
-			if !reflect.DeepEqual(val, tc.expected) {
-				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, val, tc.expected)
+			got := tc.bPresident.getAllocationRequests(tc.input)
+
+			if got.ContentType != wantPresidentReturnType {
+				t.Errorf("%v - Failed. Expected action type  %v, got action %v", tc.name, wantPresidentReturnType, got.ContentType)
+			}
+
+			if !reflect.DeepEqual(got.ResourceMap, tc.expected) {
+				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, got.ResourceMap, tc.expected)
+			}
+		})
+	}
+}
+
+func TestReplyAllocationRequest(t *testing.T) {
+	cases := []struct {
+		name           string
+		bPresident     executive // base
+		commonPool     shared.Resources
+		clientRequests map[shared.ClientID]shared.Resources
+		expected       map[shared.ClientID]shared.Resources
+	}{
+		{
+			name: "Excess resources",
+			bPresident: executive{
+				PresidentID:     5,
+				clientPresident: &baseclient.BasePresident{},
+				gameConf:        &config.IIGOConfig{},
+			},
+			clientRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+			commonPool: 150,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+		},
+		{
+			name: "Limited resources",
+			bPresident: executive{
+				PresidentID:     1,
+				clientPresident: &baseclient.BasePresident{},
+				gameConf:        &config.IIGOConfig{},
+			},
+			clientRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 5,
+				shared.Team2: 10,
+				shared.Team3: 15,
+				shared.Team4: 20,
+				shared.Team5: 25,
+				shared.Team6: 30,
+			},
+			commonPool: 100,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: calcExpectedVal(5, 105, 100),
+				shared.Team2: calcExpectedVal(10, 105, 100),
+				shared.Team3: calcExpectedVal(15, 105, 100),
+				shared.Team4: calcExpectedVal(20, 105, 100),
+				shared.Team5: calcExpectedVal(25, 105, 100),
+				shared.Team6: calcExpectedVal(30, 105, 100),
+			},
+		},
+		{
+			name: "Zero requests",
+			bPresident: executive{
+				PresidentID:     3,
+				clientPresident: &baseclient.BasePresident{},
+				gameConf:        &config.IIGOConfig{},
+			},
+			clientRequests: map[shared.ClientID]shared.Resources{
+				shared.Team1: 0,
+				shared.Team2: 0,
+				shared.Team3: 0,
+				shared.Team4: 0,
+				shared.Team5: 0,
+				shared.Team6: 0,
+			},
+			commonPool: 100,
+			expected: map[shared.ClientID]shared.Resources{
+				shared.Team1: 0,
+				shared.Team2: 0,
+				shared.Team3: 0,
+				shared.Team4: 0,
+				shared.Team5: 0,
+				shared.Team6: 0,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			fakeClientMap := map[shared.ClientID]baseclient.Client{}
+			fakeGameState := gamestate.GameState{
+				CommonPool: tc.commonPool,
+				IIGORolesBudget: map[shared.Role]shared.Resources{
+					shared.President: 10,
+					shared.Speaker:   10,
+					shared.Judge:     10,
+				},
+			}
+
+			aliveID := []shared.ClientID{}
+
+			for clientID := range tc.clientRequests {
+				aliveID = append(aliveID, clientID)
+				fakeClientMap[clientID] = baseclient.NewClient(clientID)
+			}
+
+			setIIGOClients(&fakeClientMap)
+			tc.bPresident.setGameState(&fakeGameState)
+			tc.bPresident.setAllocationRequest(tc.clientRequests)
+			tc.bPresident.replyAllocationRequest(tc.commonPool)
+
+			for clientID, expectedAllocation := range tc.expected {
+				communicationGot := *(fakeClientMap[clientID]).GetCommunications()
+				communicationExpected := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{
+					tc.bPresident.PresidentID: {
+						{shared.AllocationAmount: {T: shared.CommunicationInt, IntegerData: int(expectedAllocation)}},
+					},
+				}
+				if !reflect.DeepEqual(communicationGot, communicationExpected) {
+					t.Errorf("Allocation request failed. Expected communication: %v,\n Got communication : %v", communicationExpected, communicationGot)
+				}
+			}
+		})
+	}
+}
+
+func TestPresidentIncurServiceCharge(t *testing.T) {
+	cases := []struct {
+		name                    string
+		bPresident              executive // base
+		input                   shared.Resources
+		expectedReturn          bool
+		expectedCommonPool      shared.Resources
+		expectedPresidentBudget shared.Resources
+	}{
+		{
+			name: "Excess pay",
+			bPresident: executive{
+				PresidentID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 400,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 100,
+						shared.Speaker:   10,
+						shared.Judge:     10,
+					},
+				},
+			},
+			input:                   50,
+			expectedReturn:          true,
+			expectedCommonPool:      350,
+			expectedPresidentBudget: 50,
+		},
+		{
+			name: "Negative Budget",
+			bPresident: executive{
+				PresidentID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 400,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
+					},
+				},
+			},
+			input:                   50,
+			expectedReturn:          true,
+			expectedCommonPool:      350,
+			expectedPresidentBudget: -40,
+		},
+		{
+			name: "Limited common pool",
+			bPresident: executive{
+				PresidentID: shared.Team1,
+				gameState: &gamestate.GameState{
+					CommonPool: 40,
+					IIGORolesBudget: map[shared.Role]shared.Resources{
+						shared.President: 10,
+						shared.Speaker:   10,
+						shared.Judge:     10,
+					},
+				},
+			},
+			input:                   50,
+			expectedReturn:          false,
+			expectedCommonPool:      40,
+			expectedPresidentBudget: 10,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			returned := tc.bPresident.incurServiceCharge(tc.input)
+			commonPool := tc.bPresident.gameState.CommonPool
+			presidentBudget := tc.bPresident.gameState.IIGORolesBudget[shared.President]
+			if returned != tc.expectedReturn ||
+				commonPool != tc.expectedCommonPool ||
+				presidentBudget != tc.expectedPresidentBudget {
+				t.Errorf("%v - Failed. Got '%v, %v, %v', but expected '%v, %v, %v'",
+					tc.name, returned, commonPool, presidentBudget,
+					tc.expectedReturn, tc.expectedCommonPool, tc.expectedPresidentBudget)
 			}
 		})
 	}

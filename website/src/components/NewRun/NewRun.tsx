@@ -4,6 +4,7 @@ import { Alert, Button, Row, Col, OverlayTrigger, Tooltip, Form } from 'react-bo
 import { useLoadingState, initialLoadingState } from "../../contexts/loadingState"
 import Artifacts from '../Artifacts/Artifacts'
 import { clearLocalOutput, loadFlags, loadLocalOutput, runGameHelper, setFlagHelper, clearLocalFlags } from './utils'
+import VisualiseButton from "../VisualiseButton/VisualiseButton"
 
 
 type FlagFormProps = {
@@ -121,7 +122,7 @@ const NewRun = () => {
     setFlags(fs)
   }
 
-  return <div>
+  return <div style={{ paddingTop: 24 }}>
     <h1>New Run</h1>
 
     {
@@ -141,7 +142,7 @@ const NewRun = () => {
     }
     {
       runError &&
-      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible style={{ maxWidth: `90vw`, margin: `auto`, marginTop: 24 }}>
+      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible className="custom-alert">
         <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
         <p>{runError}</p>
       </Alert>
@@ -155,6 +156,9 @@ const NewRun = () => {
 
         <h3 style={{ marginTop: 24 }}>Artifacts</h3>
         <Artifacts output={output.output} logs={output.logs} />
+
+        <h3 style={{ marginTop: 24 }}>Visualise</h3>
+        <VisualiseButton output={output.output} />
       </div>
     }
   </div>

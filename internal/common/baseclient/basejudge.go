@@ -30,16 +30,16 @@ func (j *BaseJudge) PayPresident(presidentSalary shared.Resources) (shared.Resou
 	return presidentSalary, true
 }
 
-// inspectHistoryInternal is the base implementation of InspectHistory.
+// InspectHistory is the base implementation of evaluating islands choices the last turn.
 // OPTIONAL: override if you want to evaluate the history log differently.
-func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
+func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, rules.VariableMap)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
@@ -56,12 +56,12 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability) (map[sha
 		}
 		tempReturn := outputMap[clientID]
 		for _, rule := range rulesAffected {
-			evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
-			if err != nil {
+			ret := rules.EvaluateRule(rule)
+			if ret.EvalError != nil {
 				return outputMap, false
 			}
 			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
-			tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
+			tempReturn.Evaluations = append(tempReturn.Evaluations, ret.RulePasses)
 		}
 		outputMap[clientID] = tempReturn
 	}
@@ -86,7 +86,7 @@ func (j *BaseJudge) CallPresidentElection(monitoring shared.MonitorResult, turns
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
-		VotingMethod:  shared.Plurality,
+		VotingMethod:  shared.Runoff,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
