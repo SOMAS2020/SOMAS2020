@@ -92,7 +92,6 @@ func (c *client) GetTaxContribution() shared.Resources {
 // This function is overridden to receive information and update local info accordingly.
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
-	// TODO parse sanction info
 	for contentType, content := range data {
 		switch contentType {
 		case shared.TaxAmount:
@@ -101,15 +100,28 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			c.iigoInfo.commonPoolAllocation = shared.Resources(content.IntegerData)
 		case shared.RuleName:
 			currentRuleID := content.TextData
-			if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
-				c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
-				c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
-			} else {
-				c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
+			// Rule voting
+			if _, ok := data[shared.RuleVoteResult]; ok {
+				if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
+					c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
+					c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
+				} else {
+					c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
+				}
+			}
+			// Rule sanctions
+			if _, ok := data[shared.IIGOSanctionScore]; ok {
+				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
 			}
 		case shared.RoleMonitored:
 			c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
 			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
+		case shared.SanctionClientID:
+			c.iigoInfo.sanctions.islandSanctions[shared.ClientID(content.IntegerData)] = roles.IIGOSanctionTier(data[shared.IIGOSanctionTier].IntegerData)
+		case shared.IIGOSanctionTier:
+			c.iigoInfo.sanctions.tierInfo[roles.IIGOSanctionTier(content.IntegerData)] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+		case shared.SanctionAmount:
+			c.iigoInfo.sanctions.ourSanction = roles.IIGOSanctionScore(content.IntegerData)
 		}
 	}
 }
