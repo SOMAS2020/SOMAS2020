@@ -146,7 +146,7 @@ func (pres *president) CallSpeakerElection(monitoring shared.MonitorResult, turn
 // DecideNextSpeaker returns the ID of chosen next Speaker
 // OPTIONAL: override to manipulate the result of the election
 
-//Spicing things up and randomly choosing the speaker, however we will link this to opinion :)
+//Spicing things up and randomly choosing the speaker, however we will link this to **opinion**
 func (pres *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	rand.Seed(time.Now().UnixNano())
 	return shared.ClientID(rand.Intn(5))
