@@ -116,12 +116,12 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 
 	ourKeys := make([]int, 0)
 	for k, _ := range ourReqMap {
-		ourKeys = append(ourKeys, k)
+		ourKeys = append(ourKeys, int(k))
 	}
 
 	theirKeys := make([]int, 0)
 	for k, _ := range theirReqMap {
-		theirKeys = append(theirKeys, k)
+		theirKeys = append(theirKeys, int(k))
 	}
 
 	// Sort the keys in decreasing order
@@ -136,10 +136,10 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 		theirTransDist := turn - uint(theirKeys[i])
 		ourTransDist := turn - uint(ourKeys[i])
 		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
-		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[theirKeys[i]].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
-		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[ourKeys[i]].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
-		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[ourKeys[i]].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
-		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[theirKeys[i]].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
+		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
+		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
+		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
+		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
 	}
 
 	// TODO: is there a potential divide by 0 here?
@@ -170,6 +170,7 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	// diff = 100% in our favour
 	// inc pastConfidence = (0 + 100)/2 = 50
 
+	// TODO: improve how ratios are used to improve pastConfidence
 	// pastConfidence = (pastConfidence + sensitivity*diff*100) / 2
 	pastConfidence = int((pastConfidence + int(diff*100)) / 2)
 
