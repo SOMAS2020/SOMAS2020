@@ -5,20 +5,12 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-type RuleVoteResult int
-
-const (
-	Approve = iota
-	Reject
-	Abstain
-)
-
 type RuleVote struct {
 	//Checked by RuleVote
 	ruleToVote string
 	voterList  []shared.ClientID
 	//Held by RuleVote
-	ballots []RuleVoteResult
+	ballots []shared.RuleVoteResult
 }
 
 type BallotBox struct {
@@ -54,9 +46,9 @@ func (v *RuleVote) GetBallotBox() BallotBox {
 	//Abstentions will not be considered(vote[1]==true)
 	var outcome BallotBox
 	for i:=0;i<len(v.ballots);i++ {
-		if v.ballots[i] == Approve {
+		if v.ballots[i] == shared.Approve {
 			outcome.VotesInFavour += 1
-		} else if v.ballots[i] == Reject {
+		} else if v.ballots[i] == shared.Reject {
 			outcome.VotesAgainst += 1
 		}
 	}
