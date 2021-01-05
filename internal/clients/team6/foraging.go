@@ -7,6 +7,14 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
+// ForageHistory stores our forage history
+type ForageHistory map[shared.ForageType][]ForageResults
+
+type ForageResults struct {
+	forageIn     shared.Resources
+	forageReturn shared.Resources
+}
+
 func chooseForageType() int {
 	return int(shared.DeerForageType)
 }
@@ -69,7 +77,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, outcome shar
 			ForageResults{
 				forageIn:     forageDecision.Contribution,
 				forageReturn: outcome,
-				forageROI:    float64(forageDecision.Contribution/outcome - 1),
+				// forageROI:    float64(forageDecision.Contribution/outcome - 1),
 			},
 		)
 }
