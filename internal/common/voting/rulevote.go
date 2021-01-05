@@ -10,7 +10,8 @@ type RuleVote struct {
 	ruleToVote string
 	voterList  []shared.ClientID
 	//Held by RuleVote
-	ballots map[int][]bool
+	ballots []bool
+	abstentOrNot []bool
 }
 
 type BallotBox struct {
@@ -32,11 +33,9 @@ func (v *RuleVote) SetVotingIslands(clientIDs []shared.ClientID) {
 // GatherBallots is called by baseSpeaker to get votes from clients.
 func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client) {
 	//Gather N ballots from islands
-	oneIslandVote := make([]bool, 2)
 	if v.ruleToVote != "" && len(v.voterList) > 0 {
 		for i := 0; i < len(v.voterList); i++ {
-			oneIslandVote[0], oneIslandVote[1] = clientMap[v.voterList[i]].VoteForRule(v.ruleToVote)
-			v.ballots[i] = oneIslandVote
+			v.ballots[i], v.abstentOrNot[i] = clientMap[v.voterList[i]].VoteForRule(v.ruleToVote)
 		}
 	}
 }
@@ -47,10 +46,10 @@ func (v *RuleVote) GetBallotBox() BallotBox {
 	//The following is in accordance with anonymous voting
 	//Abstentions will not be considered(vote[1]==true)
 	var outcome BallotBox
-	for _, vote := range v.ballots {
-		if vote[1] == false && vote[0] == true {
+	for i:=0;i<len(v.ballots);i++ {
+		if v.abstentOrNot[i] == false && v.ballots[i] == true {
 			outcome.VotesInFavour += 1
-		} else if vote[1] == false && vote[0] == false {
+		} else if v.abstentOrNot[i] == false && v.ballots[i] == false {
 			outcome.VotesAgainst += 1
 		}
 	}
