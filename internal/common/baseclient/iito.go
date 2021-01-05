@@ -102,7 +102,7 @@ func (c *BaseClient) ShareIntendedContribution() shared.IntendedContribution {
 
 // ReceiveIntendedContribution provides each client with the intended common pool contribution from the islands
 // that have chosen to share it with them
-// COMPULSORY, you must implement this function
+// OPTIONAL, you can implement this if you want to partake in the iito session
 func (c *BaseClient) ReceiveIntendedContribution(receivedIntendedContribution shared.ReceivedIntendedContributionDict) {
 	// You can check the other's common pool contributions like this
 	// intededContributions := c.intendedContribution
