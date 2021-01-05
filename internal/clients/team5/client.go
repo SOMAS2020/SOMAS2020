@@ -8,61 +8,37 @@ import (
 )
 
 func init() {
-	baseclient.RegisterClient(
-		id,
-		&client{
-			// Old config
-			// BaseClient:    baseclient.NewClient(id),
-			// forageHistory: ForageHistory{},
+	c := client{
+		BaseClient:          baseclient.NewClient(ourClientID),
+		cpRequestHistory:    cpRequestHistory{},
+		cpAllocationHistory: cpAllocationHistory{},
+		forageHistory:       forageHistory{},
+		resourceHistory:     resourceHistory{},
+		giftHistory:         map[shared.ClientID]giftExchange{},
 
-			BaseClient:          baseclient.NewClient(id),
-			cpRequestHistory:    cPRequestHistory{},
-			cpAllocationHistory: cPAllocationHistory{},
-			forageHistory:       forageHistory{},
-			resourceHistory:     resourceHistory{},
-			giftHistory:         map[shared.ClientID]giftExchange{},
+		taxAmount:  0,
+		allocation: 0,
+		config:     getClientConfig(),
+	}
 
-			taxAmount:  0,
-			allocation: 0,
-			config: clientConfig{
-				//Variables for Intial forage
-				InitialForageTurns:      3,
-				MinimumForagePercentage: 0.01,
-				NormalForagePercentage:  0.05,
-				JBForagePercentage:      0.10, // % of our resources when JB is Normal< X < JB
-
-				// Variables for Normal forage
-				SkipForage:           1,
-				NormalRandomIncrease: 0.05,
-				MaxForagePercentage:  0.20,
-
-				// Threshold for wealth
-				JBThreshold:       100,
-				MiddleThreshold:   60.0,
-				ImperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
-				//  Dying threshold is 0 < Dying < Imperial
-
-				// Gifts Config
-				DyingGiftRequestAmount:    10,
-				ImperialGiftRequestAmount: 5,
-				MiddleGiftRequestAmount:   2,
-			},
-		},
-	)
+	baseclient.RegisterClient(ourClientID, &c)
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
+	if c.getTurn() == startTurn {
+		c.firstTurnSetup()
+	}
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.wealth()
 	// Assign the thresholds according to the amount of resouces in the first turn
-	c.config.JBThreshold = c.resourceHistory[1] * 2
-	c.config.MiddleThreshold = c.resourceHistory[1] * 0.95
-	c.config.ImperialThreshold = c.resourceHistory[1] * 0.5
+	c.config.jbThreshold = c.resourceHistory[1] * 2
+	c.config.middleThreshold = c.resourceHistory[1] * 0.95
+	c.config.imperialThreshold = c.resourceHistory[1] * 0.5
 
 	// Print the Thresholds
 	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
-		c.config.JBThreshold, c.config.MiddleThreshold, c.config.ImperialThreshold)
+		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
 
 	// Print the level of wealth we are at
 	c.Logf("[Debug] - [Start of Turn] Class: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
@@ -84,10 +60,10 @@ func (c client) wealth() wealthTier {
 	switch {
 	case cData.LifeStatus == shared.Critical: // We dying
 		return dying
-	case cData.Resources > c.config.JBThreshold:
+	case cData.Resources > c.config.jbThreshold:
 		// c.Logf("[Team 5][Wealth:%v][Class:%v]", cData.Resources,c.config.JBThreshold)      // Debugging
 		return jeffBezos // Rich
-	case cData.Resources > c.config.ImperialThreshold && cData.Resources <= c.config.JBThreshold:
+	case cData.Resources > c.config.imperialThreshold && cData.Resources <= c.config.jbThreshold:
 		return middleClass // Middle
 	default:
 		return imperialStudent // Middle class
@@ -129,4 +105,9 @@ func (c *client) ReceiveCommunication(
 			c.allocation = shared.Resources(content.IntegerData)
 		}
 	}
+}
+
+func (c *client) firstTurnSetup() {
+	c.initOpinions()
+	c.Logf("Opinions at first turn: %v", c.opinionHistory)
 }

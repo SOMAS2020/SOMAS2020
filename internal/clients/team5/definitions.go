@@ -11,23 +11,23 @@ import (
 //================================================================
 /*	Types */
 //=================================================================
-const id = shared.Team5
-
-//wealthTier is how much money we have
-type wealthTier int
+const ourClientID = shared.Team5
+const startTurn = 1
 
 //================ Common Pool =========================================
 
-//cPRequestHistory history of CP Requests
-type cPRequestHistory []shared.Resources
+type resourceHistoryType map[uint]shared.Resources
 
-//cPAllocationHistory History of allocations
-type cPAllocationHistory []shared.Resources
+//cpRequestHistory history of CP Requests
+type cpRequestHistory resourceHistoryType
+
+//cpAllocationHistory History of allocations
+type cpAllocationHistory resourceHistoryType
 
 //================ Resource History =========================================
 
 //resourceHistory OUR islands resources per turn
-type resourceHistory map[uint]shared.Resources
+type resourceHistory resourceHistoryType
 
 //================ Foraging History =========================================
 
@@ -62,47 +62,20 @@ type giftExchange struct {
 type giftHistory map[shared.ClientID]giftExchange
 
 // Client Information */
-
-type clientConfig struct {
-
-	// Initial non planned foraging
-	InitialForageTurns      uint
-	MinimumForagePercentage float64
-	NormalForagePercentage  float64
-	JBForagePercentage      float64
-
-	// Normal foraging
-	NormalRandomIncrease float64
-	MaxForagePercentage  float64
-	SkipForage           uint // Skip for X turns if no positive RoI
-
-	// If resources go above this limit we are balling with money
-	JBThreshold shared.Resources
-	// Middle class:  Middle < Jeff bezos
-	MiddleThreshold shared.Resources
-	// Poor: Imperial student < Middle
-	ImperialThreshold shared.Resources
-
-	// How much to request when we are dying
-	DyingGiftRequestAmount shared.Resources
-	// How much to request when we are at Imperial
-	ImperialGiftRequestAmount shared.Resources
-	// How much to request when we are dying
-	MiddleGiftRequestAmount shared.Resources
-}
-
 // Client is the island number
 type client struct {
 	*baseclient.BaseClient
 
-	// History
+	// history
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
-	cpRequestHistory    cPRequestHistory
-	cpAllocationHistory cPAllocationHistory
+	cpRequestHistory    cpRequestHistory
+	cpAllocationHistory cpAllocationHistory
+	opinionHistory      opinionHistory
+	giftHistory         giftHistory
 
-	giftHistory giftHistory
-
+	// current states
+	opinions  opinionMap // opinions of each team
 	taxAmount shared.Resources
 
 	// allocation is the president's response to your last common pool resource request
@@ -115,22 +88,13 @@ type client struct {
 /*	Constants */
 //=================================================================
 // Wealth Tiers
-const (
-	dying           wealthTier = iota // Sets values = 0
-	imperialStudent                   // iota sets the folloing values =1
-	middleClass                       // = 2
-	jeffBezos                         // = 3
-)
+type wealthTier int
 
 const (
-	// Accept ...
-	Accept shared.AcceptReason = iota
-	// DeclineDontNeed ...
-	DeclineDontNeed
-	// DeclineDontLikeYou ...
-	DeclineDontLikeYou
-	// Ignored ...
-	Ignored
+	dying wealthTier = iota
+	imperialStudent
+	middleClass
+	jeffBezos
 )
 
 //================================================================

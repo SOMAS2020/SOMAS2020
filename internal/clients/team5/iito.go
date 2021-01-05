@@ -30,7 +30,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			if status == shared.Critical { // Other island are critical
 				requests[team] = shared.GiftRequest(0.0) // Dont ask for money
 			} else {
-				requests[team] = shared.GiftRequest(c.config.DyingGiftRequestAmount) // Ask for money cus we dying
+				requests[team] = shared.GiftRequest(c.config.dyingGiftRequestAmount) // Ask for money cus we dying
 			}
 		}
 	case c.wealth() == imperialStudent: // We are poor
@@ -38,7 +38,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			if status == shared.Critical {
 				requests[team] = shared.GiftRequest(0.0) // Dont ask from people if they are dying
 			} else {
-				requests[team] = shared.GiftRequest(c.config.ImperialGiftRequestAmount) // Ask for money
+				requests[team] = shared.GiftRequest(c.config.imperialGiftRequestAmount) // Ask for money
 			}
 		}
 	default:
@@ -46,7 +46,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			if status == shared.Critical {
 				requests[team] = shared.GiftRequest(0.0)
 			} else {
-				requests[team] = shared.GiftRequest(c.config.MiddleGiftRequestAmount) // Ask for money
+				requests[team] = shared.GiftRequest(c.config.middleGiftRequestAmount) // Ask for money
 			}
 		}
 	}
