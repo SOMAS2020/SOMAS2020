@@ -1,15 +1,16 @@
 package rules
 
 import (
-	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
+
+	"github.com/pkg/errors"
 )
 
-func createVarList(variables []VariableFieldName) ([]float64, error) {
+func createVarList(variables []VariableFieldName, varCache map[VariableFieldName]VariableValuePair) ([]float64, error) {
 	var variableVect []float64
 
 	for _, v := range variables {
-		if val, varOk := VariableMap[v]; varOk {
+		if val, varOk := varCache[v]; varOk {
 			variableVect = append(variableVect, val.Values...)
 		} else {
 			return nil, errors.Errorf("Variable: '%v' not found in global variable cache", v)
@@ -103,67 +104,182 @@ func checkForFalse(resultVect []bool) bool {
 
 }
 
-// BasicBooleanRuleEvaluator implements a basic version of the Matrix rule evaluator, provides single boolean output (and error if present)
-func BasicBooleanRuleEvaluator(ruleName string) (bool, error) {
-
-	if rm, ok := AvailableRules[ruleName]; ok {
-		variableVect, err := createVarList(rm.RequiredVariables)
-		if err != nil {
-			return false, err
+func checkForCode4(auxVect mat.VecDense) bool {
+	nRows, _ := auxVect.Dims()
+	for i := 0; i < nRows; i++ {
+		if auxVect.AtVec(i) == 4.0 {
+			return true
 		}
-
-		//Checking dimensions line up
-		_, nCols := rm.ApplicableMatrix.Dims()
-
-		if nCols != len(variableVect) {
-			return false, errors.Errorf(
-				"dimension mismatch in evaluating rule: '%v' rule matrix has '%v' columns, while we sourced '%v' variables",
-				ruleName,
-				nCols,
-				len(variableVect),
-			)
-		}
-
-		c := ruleMul(variableVect, rm.ApplicableMatrix)
-
-		resultVect, err := genResult(rm.AuxiliaryVector, c)
-		if err != nil {
-			return false, err
-		}
-
-		return checkForFalse(resultVect), nil
 	}
-	return false, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
+	return false
 }
 
-// BasicRealValuedRuleEvaluator implements real valued rule evaluation in the same form as the boolean one
-func BasicRealValuedRuleEvaluator(ruleName string) (bool, float64, error) {
-	if rm, ok := AvailableRules[ruleName]; ok {
-		variableVect, err := createVarList(rm.RequiredVariables)
-		if err != nil {
-			return false, 0, err
+// basicBooleanRuleEvaluator implements a basic version of the Matrix rule evaluator, provides single boolean output (and error if present)
+func basicBooleanRuleEvaluator(rule RuleMatrix, variableCache map[VariableFieldName]VariableValuePair) (bool, error) {
+
+	variableVect, err := createVarList(rule.RequiredVariables, variableCache)
+	if err != nil {
+		return false, &RuleError{
+			ErrorType: VariableCacheDidNotHaveAllRequiredVariables,
+			Err:       errors.Errorf("Variable cache did not contain all required variables"),
 		}
-
-		//Checking dimensions line up
-		_, nCols := rm.ApplicableMatrix.Dims()
-
-		if nCols != len(variableVect) {
-			return false, 0, errors.Errorf(
-				"dimension mismatch in evaluating rule: '%v' rule matrix has '%v' columns, while we sourced '%v' variables",
-				ruleName,
-				nCols,
-				len(variableVect),
-			)
-		}
-
-		c := ruleMul(variableVect, rm.ApplicableMatrix)
-
-		resultVect, outputVal, err := genRealResult(rm.AuxiliaryVector, c)
-		if err != nil {
-			return false, 0, err
-		}
-
-		return checkForFalse(resultVect), outputVal, nil
 	}
-	return false, 0, errors.Errorf("rule name: '%v' provided doesn't exist in global rule list", ruleName)
+
+	//Checking dimensions line up
+	_, nCols := rule.ApplicableMatrix.Dims()
+
+	if nCols != len(variableVect) {
+		return false, &RuleError{
+			ErrorType: VariableVectDimsDoNotMatchRuleMatrix,
+			Err:       errors.Errorf("Variable Vector Dimensions do not match the rule matrix"),
+		}
+	}
+
+	c := ruleMul(variableVect, rule.ApplicableMatrix)
+
+	resultVect, err := genResult(rule.AuxiliaryVector, c)
+	if err != nil {
+		return false, &RuleError{
+			ErrorType: AuxVectorCodeOutOfRange,
+			Err:       err,
+		}
+	}
+
+	return checkForFalse(resultVect), nil
+
+}
+
+// basicRealValuedRuleEvaluator implements real valued rule evaluation in the same form as the boolean one
+func basicRealValuedRuleEvaluator(rule RuleMatrix, variableCache map[VariableFieldName]VariableValuePair) (bool, float64, error) {
+
+	variableVect, err := createVarList(rule.RequiredVariables, variableCache)
+	if err != nil {
+		return false, 0, &RuleError{
+			ErrorType: VariableCacheDidNotHaveAllRequiredVariables,
+			Err:       errors.Errorf("Variable cache did not contain all required variables"),
+		}
+	}
+
+	//Checking dimensions line up
+	_, nCols := rule.ApplicableMatrix.Dims()
+
+	if nCols != len(variableVect) {
+		return false, 0, &RuleError{
+			ErrorType: VariableVectDimsDoNotMatchRuleMatrix,
+			Err:       errors.Errorf("Variable Vector Dimensions do not match the rule matrix"),
+		}
+
+	}
+
+	c := ruleMul(variableVect, rule.ApplicableMatrix)
+
+	resultVect, outputVal, err := genRealResult(rule.AuxiliaryVector, c)
+	if err != nil {
+		return false, 0, &RuleError{
+			ErrorType: AuxVectorCodeOutOfRange,
+			Err:       err,
+		}
+	}
+
+	return checkForFalse(resultVect), outputVal, nil
+
+}
+
+// basicLinkedRuleEvaluator evaluates linked rules using the above two evaluators
+func basicLinkedRuleEvaluator(rule RuleMatrix, childRule RuleMatrix, variableCache map[VariableFieldName]VariableValuePair) (bool, error) {
+	link := rule.Link
+	if !link.Linked {
+		return basicBooleanRuleEvaluator(rule, variableCache)
+	}
+	if link.LinkType == ParentFailAutoRulePass {
+		parentPass, parentErr := basicBooleanRuleEvaluator(rule, variableCache)
+		if parentErr != nil {
+			return false, errors.Errorf("Parent Rule errored out with : %v", parentErr)
+		}
+		if !parentPass {
+			return true, nil
+		}
+		childPass, childErr := basicBooleanRuleEvaluator(childRule, variableCache)
+		if childErr != nil {
+			return false, errors.Errorf("Parent Rule errored out with : %v", childErr)
+		}
+		return childPass, nil
+	}
+	return false, errors.Errorf("Unrecognised rule linking %v", link.LinkType)
+}
+
+// RuleEvaluationReturn provides a wrapped for the results of a rule evaluation
+type RuleEvaluationReturn struct {
+	RulePasses    bool
+	IsRealOutput  bool
+	RealOutputVal float64
+	EvalError     error
+}
+
+func EvaluateRule(ruleName string) RuleEvaluationReturn {
+	return EvaluateRuleFromCaches(ruleName, AvailableRules, VariableMap)
+}
+
+func EvaluateRuleFromCaches(ruleName string, rulesCache map[string]RuleMatrix, variableCache map[VariableFieldName]VariableValuePair) RuleEvaluationReturn {
+	if rule, ok := rulesCache[ruleName]; ok {
+		if checkAllVariablesAvailable(rule.RequiredVariables, variableCache) {
+			auxVect := rule.AuxiliaryVector
+			linked := rule.Link.Linked
+			if linked {
+				if childRule, isInCache := rulesCache[rule.Link.LinkedRule]; isInCache {
+					eval, err := basicLinkedRuleEvaluator(rule, childRule, variableCache)
+					return RuleEvaluationReturn{
+						RulePasses:    eval,
+						IsRealOutput:  false,
+						RealOutputVal: 0,
+						EvalError:     err,
+					}
+				}
+				return RuleEvaluationReturn{
+					RulePasses:    false,
+					IsRealOutput:  false,
+					RealOutputVal: 0,
+					EvalError: &RuleError{
+						ErrorType: ChildRuleNotFound,
+						Err:       errors.Errorf("Child rule was not found in cache"),
+					},
+				}
+			}
+			isRealValued := checkForCode4(auxVect)
+			if isRealValued {
+				eval, res, err := basicRealValuedRuleEvaluator(rule, variableCache)
+				return RuleEvaluationReturn{
+					RulePasses:    eval,
+					IsRealOutput:  true,
+					RealOutputVal: res,
+					EvalError:     err,
+				}
+			}
+			eval, err := basicBooleanRuleEvaluator(rule, variableCache)
+			return RuleEvaluationReturn{
+				RulePasses:    eval,
+				IsRealOutput:  false,
+				RealOutputVal: 0,
+				EvalError:     err,
+			}
+		}
+		return RuleEvaluationReturn{
+			RulePasses:    false,
+			IsRealOutput:  false,
+			RealOutputVal: 0,
+			EvalError: &RuleError{
+				ErrorType: VariableCacheDidNotHaveAllRequiredVariables,
+				Err:       errors.Errorf("Provided variable cache did not contain all required variables"),
+			},
+		}
+	}
+	return RuleEvaluationReturn{
+		RulePasses:    false,
+		IsRealOutput:  false,
+		RealOutputVal: 0,
+		EvalError: &RuleError{
+			ErrorType: RuleNotInAvailableRulesCache,
+			Err:       errors.Errorf("Rule was not found in the given cache"),
+		},
+	}
 }

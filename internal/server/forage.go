@@ -102,6 +102,7 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	hunt, err := foraging.CreateDeerHunt(
 		contributions,
 		dhConf,
+		s.logf,
 	)
 	if err != nil {
 		return errors.Errorf("Error running deer hunt: %v", err)
@@ -174,7 +175,7 @@ func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]sha
 
 	fConf := s.gameConfig.ForagingConfig.FishingConfig
 
-	huntF, err := foraging.CreateFishingExpedition(contributions, fConf)
+	huntF, err := foraging.CreateFishingExpedition(contributions, fConf, s.logf)
 	if err != nil {
 		return errors.Errorf("Error running fish hunt: %v", err)
 	}

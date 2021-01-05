@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	//config.Config
+	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
 		10,
@@ -48,6 +48,8 @@ var (
 		3,
 		"The maximum consecutive turns an island can be in the critical state.",
 	)
+
+	// config.ForagingConfig.DeerHuntConfig
 	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
@@ -103,6 +105,8 @@ var (
 		0.2,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
+
+	// config.ForagingConfig.FishingConfig
 	foragingFishMaxPerHunt = flag.Uint(
 		"foragingMaxFishPerHunt",
 		6,
@@ -138,6 +142,7 @@ var (
 		int(shared.EqualSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
+
 	// config.DisasterConfig
 	disasterXMin = flag.Float64(
 		"disasterXMin",
@@ -159,10 +164,10 @@ var (
 		10,
 		"Max y bound of archipelago (bounds for possible disaster).",
 	)
-	disasterGlobalProb = flag.Float64(
-		"disasterGlobalProb",
-		0.1,
-		"Bernoulli 'p' param. Chance of a disaster occurring.",
+	disasterPeriod = flag.Uint(
+		"disasterPeriod",
+		15,
+		"Period T between disasters in deterministic case and E[T] in stochastic case.",
 	)
 	disasterSpatialPDFType = flag.Int(
 		"disasterSpatialPDFType",
@@ -183,6 +188,128 @@ var (
 		"disasterCommonpoolThreshold",
 		50,
 		"Common pool threshold value for disaster to be mitigated",
+	)
+	disasterPeriodStochastic = flag.Bool(
+		"disasterStochasticPeriod",
+		false,
+		"If true, period between disasters becomes random. If false, it will be consistent (deterministic)",
+	)
+	disasterCommonpoolThresholdVisible = flag.Bool(
+		"disasterCommonpoolThresholdVisible",
+		false,
+		"Whether disasterCommonpoolThreshold is visible to agents",
+	)
+
+	// config.IIGOConfig - Executive branch
+	iigoGetRuleForSpeakerActionCost = flag.Float64(
+		"iigoGetRuleForSpeakerActionCost",
+		10,
+		"IIGO action cost for getRuleForSpeaker action",
+	)
+	iigoBroadcastTaxationActionCost = flag.Float64(
+		"iigoBroadcastTaxationActionCost",
+		10,
+		"IIGO action cost for broadcastTaxation action",
+	)
+	iigoReplyAllocationRequestsActionCost = flag.Float64(
+		"iigoReplyAllocationRequestsActionCost",
+		10,
+		"IIGO action cost for replyAllocationRequests action",
+	)
+	iigoRequestAllocationRequestActionCost = flag.Float64(
+		"iigoRequestAllocationRequestActionCost",
+		10,
+		"IIGO action cost for requestAllocationRequest action",
+	)
+	iigoRequestRuleProposalActionCost = flag.Float64(
+		"iigoRequestRuleProposalActionCost",
+		10,
+		"IIGO action cost for requestRuleProposal action",
+	)
+	iigoAppointNextSpeakerActionCost = flag.Float64(
+		"iigoAppointNextSpeakerActionCost",
+		10,
+		"IIGO action cost for appointNextSpeaker action",
+	)
+
+	// config.IIGOConfig - Judiciary branch
+	iigoInspectHistoryActionCost = flag.Float64(
+		"iigoInspectHistoryActionCost",
+		10,
+		"IIGO action cost for inspectHistory",
+	)
+
+	iigoInspectBallotActionCost = flag.Float64(
+		"iigoInspectBallotActionCost",
+		10,
+		"IIGO action cost for inspectBallot",
+	)
+
+	iigoInspectAllocationActionCost = flag.Float64(
+		"iigoInspectAllocationActionCost",
+		10,
+		"IIGO action cost for inspectAllocation",
+	)
+
+	iigoAppointNextPresidentActionCost = flag.Float64(
+		"iigoAppointNextPresidentActionCost",
+		10,
+		"IIGO action cost for appointNextPresident",
+	)
+
+	// config.IIGOConfig - Legislative branch
+	iigoSetVotingResultActionCost = flag.Float64(
+		"iigoSetVotingResultActionCost",
+		10,
+		"IIGO action cost for setVotingResult",
+	)
+
+	iigoSetRuleToVoteActionCost = flag.Float64(
+		"iigoSetRuleToVoteActionCost",
+		10,
+		"IIGO action cost for setRuleToVote action",
+	)
+
+	iigoAnnounceVotingResultActionCost = flag.Float64(
+		"iigoAnnounceVotingResultActionCost",
+		10,
+		"IIGO action cost for announceVotingResult action",
+	)
+
+	iigoUpdateRulesActionCost = flag.Float64(
+		"iigoUpdateRulesActionCost",
+		10,
+		"IIGO action cost for updateRules action",
+	)
+
+	iigoAppointNextJudgeActionCost = flag.Float64(
+		"iigoAppointNextJudgeActionCost",
+		10,
+		"IIGO action cost for appointNextJudge action",
+	)
+
+	iigoSanctionCacheDepth = flag.Int(
+		"iigoSanctionCacheDepth",
+		3,
+		"Turn depth of sanctions to be applied or pardoned",
+	)
+
+	iigoHistoryCacheDepth = flag.Int(
+		"iigoHistoryCacheDepth",
+		3,
+		"Turn depth of history cache for events to be evaluated",
+	)
+
+	iigoAssumedResourcesNoReport = flag.Int(
+		"iigoAssumedResourcesNoReport",
+		500,
+		"If an island doesn't report usaged this value is assumed for sanction calculations",
+	)
+
+	iigoSanctionLength = flag.Int(
+		"iigoSanctionLength",
+		2,
+		"Sanction length for all sanctions",
 	)
 )
 
@@ -223,7 +350,6 @@ func parseConfig() (config.Config, error) {
 		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
 		ThetaCritical:         *foragingDeerThetaCritical,
 		ThetaMax:              *foragingDeerThetaMax,
-
 		MaxDeerPopulation:     parseDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
 	}
@@ -246,12 +372,40 @@ func parseConfig() (config.Config, error) {
 		XMax:                        *disasterXMax,
 		YMin:                        *disasterYMin,
 		YMax:                        *disasterYMax,
-		GlobalProb:                  *disasterGlobalProb,
+		Period:                      *disasterPeriod,
 		SpatialPDFType:              parsedDisasterSpatialPDFType,
 		MagnitudeLambda:             *disasterMagnitudeLambda,
+		StochasticPeriod:            *disasterPeriodStochastic,
 		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
 		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
+		CommonpoolThresholdVisible:  *disasterCommonpoolThresholdVisible,
 	}
+
+	iigoConf := config.IIGOConfig{
+		// Executive branch
+		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
+		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),
+		ReplyAllocationRequestsActionCost:  shared.Resources(*iigoReplyAllocationRequestsActionCost),
+		RequestAllocationRequestActionCost: shared.Resources(*iigoRequestAllocationRequestActionCost),
+		RequestRuleProposalActionCost:      shared.Resources(*iigoRequestRuleProposalActionCost),
+		AppointNextSpeakerActionCost:       shared.Resources(*iigoAppointNextSpeakerActionCost),
+		// Judiciary branch
+		InspectHistoryActionCost:       shared.Resources(*iigoInspectHistoryActionCost),
+		InspectBallotActionCost:        shared.Resources(*iigoInspectBallotActionCost),
+		InspectAllocationActionCost:    shared.Resources(*iigoInspectAllocationActionCost),
+		AppointNextPresidentActionCost: shared.Resources(*iigoAppointNextPresidentActionCost),
+		SanctionCacheDepth:             *iigoSanctionCacheDepth,
+		HistoryCacheDepth:              *iigoHistoryCacheDepth,
+		AssumedResourcesNoReport:       shared.Resources(*iigoAssumedResourcesNoReport),
+		SanctionLength:                 *iigoSanctionLength,
+		// Legislative branch
+		SetVotingResultActionCost:      shared.Resources(*iigoSetVotingResultActionCost),
+		SetRuleToVoteActionCost:        shared.Resources(*iigoSetRuleToVoteActionCost),
+		AnnounceVotingResultActionCost: shared.Resources(*iigoAnnounceVotingResultActionCost),
+		UpdateRulesActionCost:          shared.Resources(*iigoUpdateRulesActionCost),
+		AppointNextJudgeActionCost:     shared.Resources(*iigoAppointNextJudgeActionCost),
+	}
+
 	return config.Config{
 		MaxSeasons:                  *maxSeasons,
 		MaxTurns:                    *maxTurns,
@@ -262,5 +416,6 @@ func parseConfig() (config.Config, error) {
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
+		IIGOConfig:                  iigoConf,
 	}, nil
 }

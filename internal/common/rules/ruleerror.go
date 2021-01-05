@@ -19,6 +19,10 @@ const (
 	TriedToReRegisterRule
 	RuleIsAlreadyInPlay
 	RuleIsNotInPlay
+	VariableCacheDidNotHaveAllRequiredVariables
+	VariableVectDimsDoNotMatchRuleMatrix
+	AuxVectorCodeOutOfRange
+	ChildRuleNotFound
 )
 
 func (r RuleErrorType) String() string {
@@ -30,6 +34,10 @@ func (r RuleErrorType) String() string {
 		"TriedToReRegisterRule",
 		"RuleIsAlreadyInPlay",
 		"RuleIsNotInPlay",
+		"VariableCacheDidNotHaveAllRequiredVariables",
+		"VariableVectDimsDoNotMatchRuleMatrix",
+		"AuxVectorCOdeOutOfRange",
+		"ChildRuleNotFound",
 	}
 
 	if r >= 0 && int(r) < len(strs) {
@@ -55,14 +63,14 @@ func (r RuleErrorType) MarshalJSON() ([]byte, error) {
 
 // RuleError provides a packaged version of the RuleErrorType for clients to deal with
 type RuleError struct {
-	errorType RuleErrorType
-	err       error
+	ErrorType RuleErrorType
+	Err       error
 }
 
 func (e *RuleError) Error() string {
-	return e.err.Error()
+	return e.Err.Error()
 }
 
 func (e *RuleError) Type() RuleErrorType {
-	return e.errorType
+	return e.ErrorType
 }
