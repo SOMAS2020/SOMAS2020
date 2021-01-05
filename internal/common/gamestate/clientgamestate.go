@@ -23,7 +23,7 @@ type ClientGameState struct {
 	CommonPool shared.Resources
 
 	// Island Locations
-	IslandLocations map[shared.ClientID]disasters.IslandLocationInfo
+	Geography disasters.ArchipelagoGeography
 
 	// Islands holding IIGO roles
 	SpeakerID   shared.ClientID

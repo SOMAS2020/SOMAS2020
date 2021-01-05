@@ -15,7 +15,13 @@ func TestGetClientGameStateCopy(t *testing.T) {
 		shared.Team3: {ID: shared.Team3, X: shared.Coordinate(7), Y: shared.Coordinate(2)},
 	}
 
-	geography := disasters.ArchipelagoGeography{Islands: islandLocation}
+	geography := disasters.ArchipelagoGeography{
+		Islands: islandLocation,
+		XMin:    0,
+		XMax:    10,
+		YMin:    0,
+		YMax:    10,
+	}
 	env := disasters.Environment{Geography: geography}
 
 	gameState := GameState{
@@ -39,8 +45,12 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				CriticalConsecutiveTurnsCounter: 2,
 			},
 		},
-		IIGORolesBudget: map[shared.Role]shared.Resources{},
-		CommonPool:      20,
+		IIGORolesBudget: map[shared.Role]shared.Resources{
+			shared.Judge:     shared.Resources(10),
+			shared.President: shared.Resources(30),
+			shared.Speaker:   shared.Resources(40),
+		},
+		CommonPool: 20,
 	}
 
 	lifeStatuses := map[shared.ClientID]shared.ClientLifeStatus{
@@ -59,8 +69,8 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				ClientInfo:         gameState.ClientInfos[tc],
 				ClientLifeStatuses: lifeStatuses,
 				CommonPool:         gameState.CommonPool,
-				IslandLocations:    gameState.Environment.Geography.Islands,
-				IIGORolesBudget:    map[shared.Role]shared.Resources{},
+				Geography:          gameState.Environment.Geography,
+				IIGORolesBudget:    gameState.IIGORolesBudget,
 			}
 
 			gotClientGS := gameState.GetClientGameStateCopy(tc)
