@@ -62,7 +62,7 @@ func (c client) getNumOfAliveIslands() uint {
 	num := uint(0)
 
 	for _, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if status != shared.Critical {
+		if status != shared.Dead {
 			num++
 		}
 	}

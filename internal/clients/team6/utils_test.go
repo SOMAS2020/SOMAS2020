@@ -308,7 +308,7 @@ func TestGetNumOfAliveIslands(t *testing.T) {
 				},
 				clientConfig: clientConfig,
 			},
-			want: uint(0),
+			want: uint(1),
 		},
 		{
 			testname: "3 survivors test",
