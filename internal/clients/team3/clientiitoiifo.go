@@ -57,6 +57,8 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		PredictionMade: prediction,
 		TeamsOfferedTo: trustedIslands,
 	}
+
+	// TODO need to initialise
 	c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)][c.GetID()] = predictionInfo.PredictionMade
 	return predictionInfo
 }

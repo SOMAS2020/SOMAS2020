@@ -199,13 +199,13 @@ func (c *client) evalPresidentPerformance() {
 
 	evalOfPresident += float64(c.iigoInfo.commonPoolAllocation-c.CommonPoolResourceRequest()) * c.params.sensitivity
 
-	if PickRuleToVote() == c.ruleVotedOn {
-		evalOfPresident += c.params.sensitivity
-	} else {
-		evalOfPresident -= c.params.sensitivity
-	}
+	// if c.ourPresident.PickRuleToVote() == c.ruleVotedOn {
+	// 	evalOfPresident += c.params.sensitivity
+	// } else {
+	// 	evalOfPresident -= c.params.sensitivity
+	// }
 
-	evalOfPresident += (SetTaxationAmount() - c.iigoInfo.taxationAmount) * c.params.sensitivity
+	// evalOfPresident += (SetTaxationAmount() - c.iigoInfo.taxationAmount) * c.params.sensitivity
 
 	// Did the president support our vote for speaker?
 	ourVoteForSpeaker := c.GetVoteForElection(shared.Speaker)
