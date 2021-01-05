@@ -3,19 +3,25 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 const id = shared.Team3
 
 func init() {
-	ourClient := &client{BaseClient: baseclient.NewClient(id)}
+	ourClient := &client{BaseClient: baseclient.NewClient(id),
+		params: getislandParams()}
 
 	baseclient.RegisterClient(id, ourClient)
 }
 
 type client struct {
 	*baseclient.BaseClient
+	ourSpeaker   speaker
+	ourJudge     judge
+	ourPresident president
+
 	// ## Gifting ##
 
 	acceptedGifts        map[shared.ClientID]int
@@ -36,6 +42,7 @@ type client struct {
 	presidentPerformance map[shared.ClientID]int
 
 	// ## Game state & History ##
+	criticalStatePrediction criticalStatePrediction
 
 	// unused or replaced by getter functions
 	// currentIteration iterationInfo
@@ -58,17 +65,24 @@ type client struct {
 
 	// params is list of island wide function parameters
 	params islandParams
+	// iigoInfo caches information regarding iigo in the current turn
+	iigoInfo iigoCommunicationInfo
+}
+
+type criticalStatePrediction struct {
+	upperBound shared.Resources
+	lowerBound shared.Resources
 }
 
 type islandParams struct {
-	giftingThreshold            int
+	giftingThreshold            shared.Resources
 	equity                      float64
 	complianceLevel             float64
 	resourcesSkew               float64
 	saveCriticalIsland          bool
 	escapeCritcaIsland          bool
 	selfishness                 float64
-	minimumRequest              int
+	minimumRequest              shared.Resources
 	disasterPredictionWeighting float64
 	DesiredRuleSet              []string
 	recidivism                  float64
@@ -77,4 +91,49 @@ type islandParams struct {
 	anger                       float64
 	aggression                  float64
 	salaryThreshold             float64
+}
+
+type sanctionInfo struct {
+	// tierInfo provides tiers and sanction score required to get to that tier
+	tierInfo map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+	// rulePenalties provides sanction score given for breaking each rule
+	rulePenalties map[string]roles.IIGOSanctionScore
+	// islandSanctions stores sanction tier of each island (but not score)
+	islandSanctions map[shared.ClientID]roles.IIGOSanctionTier
+	// ourSanction is the sanction score for our island
+	ourSanction roles.IIGOSanctionScore
+}
+
+type ruleVoteInfo struct {
+	// ourVote needs to be updated accordingly
+	ourVote         bool
+	resultAnnounced bool
+	// true -> yes, false -> no
+	result bool
+}
+
+type iigoCommunicationInfo struct {
+	// Retrieved fully from communications
+
+	// commonPoolAllocation gives resources allocated by president from requests
+	commonPoolAllocation shared.Resources
+	// taxationAmount gives tax amount decided by president
+	taxationAmount shared.Resources
+	// monitoringOutcomes stores the outcome of the monitoring of an island.
+	// key is the role being monitored.
+	// true -> correct performance, false -> incorrect performance.
+	monitoringOutcomes map[shared.Role]bool
+	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
+	monitoringDeclared map[shared.Role]bool
+	// Struct containing sanction information
+	sanctions *sanctionInfo
+
+	// Below need to be at least partially updated by our functions
+
+	// ruleVotingResults is a map of rules and the corresponding info
+	ruleVotingResults map[string]*ruleVoteInfo
+	// ourRequest stores how much we requested from commonpool
+	ourRequest shared.Resources
+	// ourDeclaredResources stores how much we said we had to the president
+	ourDeclaredResources shared.Resources
 }
