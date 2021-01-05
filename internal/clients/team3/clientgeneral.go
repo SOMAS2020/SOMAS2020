@@ -24,10 +24,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	ourClient := client{
 		// Initialise variables here
 		BaseClient: baseclient.NewClient(clientID),
-		params: islandParams{
-			// Define parameter values here
-			selfishness: 0.5,
-		},
+		params:     getislandParams(),
 	}
 
 	// Set trust scores
@@ -40,12 +37,12 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		ourClient.trustScore[islandID] = 50
 		ourClient.theirTrustScore[islandID] = 50
 	}
-
+  
 	return &ourClient
 }
 
 func (c *client) StartOfTurn() {
-	// c.Logf("Start of turn!")
+	c.clientPrint("Start of turn!")
 	// TODO add any functions and vairable changes here
 
 	// Initialise trustMap and theirtrustMap local cache to empty maps
@@ -61,6 +58,15 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourSpeaker = speaker{c: c}
 	c.ourJudge = judge{c: c}
 	c.ourPresident = president{c: c}
+	// Set trust scores
+	c.trustScore = make(map[shared.ClientID]float64)
+	c.theirTrustScore = make(map[shared.ClientID]float64)
+	for _, islandID := range shared.TeamIDs {
+		c.trustScore[islandID] = 50
+		c.theirTrustScore[islandID] = 50
+	}
+	// Set our trust in ourselves to 100
+	c.theirTrustScore[id] = 100
 	// Initialise variables
 }
 
@@ -163,6 +169,17 @@ func (c *client) updateCompliance() {
 func (c *client) shouldICheat() bool {
 	var should_i_cheat = rand.Float64() > c.compliance
 	return should_i_cheat
+}
+
+// ResourceReport overides the basic method to mis-report when we have a low compliance score
+func (c *client) ResourceReport() shared.Resources {
+	resource := c.BaseClient.ServerReadHandle.GetGameState().ClientInfo.Resources
+	if c.areWeCritical() || !c.shouldICheat() {
+		return resource
+	} else {
+		skewed_resource := resource / shared.Resources(c.params.resourcesSkew)
+		return skewed_resource
+	}
 }
 
 /*
