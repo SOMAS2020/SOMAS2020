@@ -385,6 +385,16 @@ func registerRulesByMass() {
 			Mutable: false,
 			Linked:  false,
 		},
+		{
+			Name: "judge_historical_retribution_permission",
+			ReqVar: []VariableFieldName{
+				JudgeHistoricalRetributionPerformed,
+			},
+			Values:  []float64{1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
 	}
 
 	for _, rs := range ruleSpecs {

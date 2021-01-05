@@ -93,14 +93,15 @@ type IIGOConfig struct {
 	RequestRuleProposalActionCost      shared.Resources
 	AppointNextSpeakerActionCost       shared.Resources
 	// Judiciary branch
-	InspectHistoryActionCost       shared.Resources
-	InspectBallotActionCost        shared.Resources
-	InspectAllocationActionCost    shared.Resources
-	AppointNextPresidentActionCost shared.Resources
-	SanctionCacheDepth             int
-	HistoryCacheDepth              int
-	AssumedResourcesNoReport       shared.Resources
-	SanctionLength                 int
+	InspectHistoryActionCost        shared.Resources
+	HistoricalRetributionActionCost shared.Resources
+	InspectBallotActionCost         shared.Resources
+	InspectAllocationActionCost     shared.Resources
+	AppointNextPresidentActionCost  shared.Resources
+	SanctionCacheDepth              int
+	HistoryCacheDepth               int
+	AssumedResourcesNoReport        shared.Resources
+	SanctionLength                  int
 	// Legislative branch
 	SetVotingResultActionCost      shared.Resources
 	SetRuleToVoteActionCost        shared.Resources

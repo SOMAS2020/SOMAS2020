@@ -1940,6 +1940,7 @@ func defaultInitJudiciary() judiciary {
 		localSanctionCache:    map[int][]roles.Sanction{},
 		localHistoryCache:     map[int][]shared.Accountability{},
 		gameConf:              &config.IIGOConfig{},
+		monitoring:            &monitor{},
 		gameState: &gamestate.GameState{
 			CommonPool: 999,
 			IIGORolesBudget: map[shared.Role]shared.Resources{

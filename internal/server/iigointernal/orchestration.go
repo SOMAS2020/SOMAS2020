@@ -104,16 +104,12 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 1 Judge action - inspect history
 	judicialBranch.loadSanctionConfig()
-	historyInspected := true
 	if g.Turn > 0 {
-		_, historyInspected = judicialBranch.inspectHistory(g.IIGOHistory[g.Turn-1])
+		//TODO: handle return types, quit IIGO if no moneyz
+		judicialBranch.inspectHistory(g.IIGOHistory[g.Turn-1])
 		judicialBranch.updateSanctionScore()
 		judicialBranch.applySanctions()
 	}
-
-	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
-	valuesToCache := [][]float64{{boolToFloat(historyInspected)}}
-	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
 	judgeMonitored := monitoring.monitorRole(iigoClients[g.PresidentID])
 
@@ -183,8 +179,8 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		ruleSelected = true
 	}
 
-	variablesToCache = []rules.VariableFieldName{rules.AllocationMade}
-	valuesToCache = [][]float64{{boolToFloat(allocationsMade)}}
+	variablesToCache := []rules.VariableFieldName{rules.AllocationMade}
+	valuesToCache := [][]float64{{boolToFloat(allocationsMade)}}
 	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
 	presidentMonitored := monitoring.monitorRole(iigoClients[g.SpeakerID])

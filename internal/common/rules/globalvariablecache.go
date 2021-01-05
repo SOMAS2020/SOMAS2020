@@ -95,6 +95,7 @@ const (
 	HasIslandReportPrivateResources
 	IslandActualPrivateResources
 	IslandReportedPrivateResources
+	JudgeHistoricalRetributionPerformed
 )
 
 func (v VariableFieldName) String() string {
@@ -149,6 +150,7 @@ func (v VariableFieldName) String() string {
 		"HasIslandReportPrivateResources",
 		"IslandActualPrivateResources",
 		"IslandReportedPrivateResources",
+		"JudgeHistoricalRetributionPerformed",
 	}
 	if v >= 0 && int(v) < len(strs) {
 		return strs[v]

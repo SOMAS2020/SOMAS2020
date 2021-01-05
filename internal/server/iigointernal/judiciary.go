@@ -94,13 +94,47 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 		return nil, false
 	}
 	finalResults := getBaseEvalResults(shared.TeamIDs)
-	if j.clientJudge.HistoricalRetributionEnabled() {
+	tempResults, success := j.clientJudge.InspectHistory(iigoHistory, 0)
+
+	//Log rule: "Judge has the obligation to inspect history"
+	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
+	valuesToCache := [][]float64{{boolToFloat(success)}}
+	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+
+	if success {
+		//Quit if taking resources goes wrong
+		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
+			return nil, false
+		}
+	}
+
+	//Quit early if CP does not have enough resources for historical Retribution
+	if success && !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
+		finalResults = mergeEvaluationReturn(tempResults, finalResults)
+		entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+		j.cycleHistoryCache(entryForHistoryCache, j.gameConf.HistoryCacheDepth)
+		j.evaluationResults = finalResults
+		return j.evaluationResults, success
+	}
+
+	//Perform historical checking
+	decisionOfHistoricalRetribution := j.clientJudge.HistoricalRetributionEnabled()
+	if decisionOfHistoricalRetribution {
+		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
+			//Quit if taking resources goes wrong
+			if success {
+				finalResults = mergeEvaluationReturn(tempResults, finalResults)
+				entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+				j.cycleHistoryCache(entryForHistoryCache, j.gameConf.HistoryCacheDepth)
+				j.evaluationResults = finalResults
+				return j.evaluationResults, success
+			} else {
+				return nil, false
+			}
+		}
 		for turnsAgo, v := range j.localHistoryCache {
 			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)
 			if rsuccess {
-				if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
-					return nil, false
-				}
 				for key, accounts := range res {
 					curr := finalResults[key]
 					curr.Evaluations = append(curr.Evaluations, accounts.Evaluations...)
@@ -111,7 +145,12 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 		}
 		j.localHistoryCache = defaultInitLocalHistoryCache(j.gameConf.HistoryCacheDepth)
 	}
-	tempResults, success := j.clientJudge.InspectHistory(iigoHistory, 0)
+
+	//Log rule: "Judge is not allowed to perform historical retribution"
+	variablesToCache = []rules.VariableFieldName{rules.JudgeHistoricalRetributionPerformed}
+	valuesToCache = [][]float64{{boolToFloat(decisionOfHistoricalRetribution)}}
+	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+
 	finalResults = mergeEvaluationReturn(tempResults, finalResults)
 	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
 	j.cycleHistoryCache(entryForHistoryCache, j.gameConf.HistoryCacheDepth)
