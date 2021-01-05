@@ -7,13 +7,13 @@ import (
 )
 
 // PastDisastersList is a List of previous disasters.
-type PastDisastersList = []DisasterInfo
+type PastDisastersList = []disasterInfo
 
-type DisasterInfo struct {
-	CoordinateX shared.Coordinate
-	CoordinateY shared.Coordinate
-	Magnitude   shared.Magnitude
-	Turn        uint
+type disasterInfo struct {
+	epiX shared.Coordinate // x co-ord of disaster epicentre
+	epiY shared.Coordinate // y ""
+	mag  shared.Magnitude
+	turn uint
 }
 
 // MakeDisasterPrediction is called on each client for them to make a prediction about a disaster
@@ -23,11 +23,11 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	// Set up dummy disasters for testing purposes
 	pastDisastersList := make(PastDisastersList, 5)
 	for i := 0; i < 4; i++ {
-		pastDisastersList[i] = (DisasterInfo{
-			CoordinateX: float64(i),
-			CoordinateY: float64(i),
-			Magnitude:   float64(i),
-			Turn:        uint(i),
+		pastDisastersList[i] = (disasterInfo{
+			epiX: float64(i),
+			epiY: float64(i),
+			mag:  float64(i),
+			turn: uint(i),
 		})
 	}
 
@@ -35,10 +35,10 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	meanDisaster := getMeanDisaster(pastDisastersList)
 
 	prediction := shared.DisasterPrediction{
-		CoordinateX: meanDisaster.CoordinateX,
-		CoordinateY: meanDisaster.CoordinateY,
-		Magnitude:   meanDisaster.Magnitude,
-		TimeLeft:    int(meanDisaster.Turn),
+		CoordinateX: meanDisaster.epiX,
+		CoordinateY: meanDisaster.epiY,
+		Magnitude:   meanDisaster.mag,
+		TimeLeft:    int(meanDisaster.turn),
 	}
 
 	// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
@@ -61,40 +61,40 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	return predictionInfo
 }
 
-func getMeanDisaster(pastDisastersList PastDisastersList) DisasterInfo {
+func getMeanDisaster(pastDisastersList PastDisastersList) disasterInfo {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	numberDisastersPassed := float64(len(pastDisastersList))
 
 	for _, disaster := range pastDisastersList {
-		totalCoordinateX += disaster.CoordinateX
-		totalCoordinateY += disaster.CoordinateY
-		totalMagnitude += float64(disaster.Magnitude)
-		totalTurn += float64(disaster.Turn)
+		totalCoordinateX += disaster.epiX
+		totalCoordinateY += disaster.epiY
+		totalMagnitude += float64(disaster.mag)
+		totalTurn += float64(disaster.turn)
 	}
 
-	meanDisaster := DisasterInfo{
-		CoordinateX: totalCoordinateX / numberDisastersPassed,
-		CoordinateY: totalCoordinateY / numberDisastersPassed,
-		Magnitude:   totalMagnitude / numberDisastersPassed,
-		Turn:        uint(math.Round(totalTurn / numberDisastersPassed)),
+	meanDisaster := disasterInfo{
+		epiX: totalCoordinateX / numberDisastersPassed,
+		epiY: totalCoordinateY / numberDisastersPassed,
+		mag:  totalMagnitude / numberDisastersPassed,
+		turn: uint(math.Round(totalTurn / numberDisastersPassed)),
 	}
 	return meanDisaster
 }
 
-func determineConfidence(pastDisastersList PastDisastersList, meanDisaster DisasterInfo, varianceLimit float64) float64 {
-	totalDisaster := DisasterInfo{}
+func determineConfidence(pastDisastersList PastDisastersList, meanDisaster disasterInfo, varianceLimit float64) float64 {
+	totalDisaster := disasterInfo{}
 	numberDisastersPassed := float64(len(pastDisastersList))
 
 	// Find the sum of the square of the difference between the actual and mean, for each field
 	for _, disaster := range pastDisastersList {
-		totalDisaster.CoordinateX += math.Pow(disaster.CoordinateX-meanDisaster.CoordinateX, 2)
-		totalDisaster.CoordinateY += math.Pow(disaster.CoordinateY-meanDisaster.CoordinateY, 2)
-		totalDisaster.Magnitude += math.Pow(disaster.Magnitude-meanDisaster.Magnitude, 2)
-		totalDisaster.Turn += uint(math.Round(math.Pow(float64(disaster.Turn-meanDisaster.Turn), 2)))
+		totalDisaster.epiX += math.Pow(disaster.epiX-meanDisaster.epiX, 2)
+		totalDisaster.epiY += math.Pow(disaster.epiY-meanDisaster.epiY, 2)
+		totalDisaster.mag += math.Pow(disaster.mag-meanDisaster.mag, 2)
+		totalDisaster.turn += uint(math.Round(math.Pow(float64(disaster.turn-meanDisaster.turn), 2)))
 	}
 
 	// Find the sum of the variances and the average variance
-	varianceSum := (totalDisaster.CoordinateX + totalDisaster.CoordinateY + totalDisaster.Magnitude + float64(totalDisaster.Turn)) / numberDisastersPassed
+	varianceSum := (totalDisaster.epiX + totalDisaster.epiY + totalDisaster.mag + float64(totalDisaster.turn)) / numberDisastersPassed
 	averageVariance := varianceSum / 4
 
 	// Implement the variance cap chosen

@@ -29,6 +29,9 @@ type clientConfig struct {
 	imperialGiftRequestAmount shared.Resources
 	// How much to request when we are dying
 	middleGiftRequestAmount shared.Resources
+
+	// Disasters and IIFO
+	forecastTrustTreshold opinionScore // min opinion score of another team to consider their forecast in creating ours
 }
 
 // set param values here. In order to add a new value, you need to add a definition in struct above.

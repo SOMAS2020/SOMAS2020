@@ -39,3 +39,23 @@ func (c *client) initOpinions() {
 func (o opinion) String() string {
 	return fmt.Sprintf("opinion{score: %.2f}", o.score)
 }
+
+// getTrustedTeams finds teams whose opinion scores (our opinion of them) exceed a threshold `trustThresh`. Furthermore,
+// if `proportional` is true, the scores of the trusted teams will be relative (such that sum of scores = 1). If not,
+// the absolute opinion scores for each client are returned.
+func (c client) getTrustedTeams(trustThresh opinionScore, proportional bool) (trustedTeams map[shared.ClientID]float64) {
+	totalTrustedOpScore := 0.0
+	for team, opinion := range c.opinions {
+		if opinion.score >= trustThresh && c.isClientAlive(team) { // trust team and they're alive
+			trustedTeams[team] = float64(opinion.score)
+			totalTrustedOpScore += float64(opinion.score)
+		}
+	}
+	if !proportional {
+		return trustedTeams // return here if we only want absolute op. scores
+	}
+	for team, score := range trustedTeams {
+		trustedTeams[team] = score / totalTrustedOpScore // scale proportionally to other trusted teams for weighting
+	}
+	return trustedTeams // weighted proportional scores
+}
