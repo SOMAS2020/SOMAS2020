@@ -22,12 +22,13 @@ Any function in bold is a client function and something that we expect you to ov
 |internal/server/turn.go| endOfTurn| This function performs the following actions in this order: <ol><li>Calls IIGOAllocations() which asks the agents how much they would like to take from the CP</li> <li> Calls runForage() which initiates a foraging session. This prompts the agents to make foraging decisions and returns their foraging profits </li> <li>Calls IITOEndOfTurn() which currently executes all gift transactions agreed upon in IITO </li> <li>Calls IIGOTax() which asks the agents how much they would like to contribute to the CP including their tax payment </li> <li>Calls probeDisaster() to checks if a disaster has occured. If a disaster has occured it notifies the agent as such</li> <li>Calls deductCostOfLiving() which is fairly self-explanotary</li></ol>  Each of these function will be explained further in the EndOfTurn section below |
 
 ## IIGO
-
+All IIGO communications can be received by islands through the **ReceiveCommunication** function in baseclient.
 | Filename | Function | Description |
 | ---- | ---- | ---- |
 |internal/server/iigo.go|runIIGO| Updates the alive islands variables in the rules. Then runs RunIIGO but in the iigointernal package  |
 |internal/server/iigointernal/orchestration.go| RunIIGO |Calls **GetClientROLEPointer()** (ROLE = Speaker, Judge and President) to initialise the legislative, judicial and executive branches with the client Speaker, Judge and President objects and then orchestrates the IIGO session. |
-|internal/server/iigointernal/judiciary.go| loadSanctionConfig| The island holding the role of Judge|
+|internal/server/iigointernal/judiciary.go| loadSanctionConfig| Calls GetRuleViolationSeverity() and GetSanctionThresholds() on the island holding the role of Judge and broadcasts this information to all islands.|
+
 |internal/server/iigointernal/monitoring.go| monitorRole| The President island has the option to monitor the Judge using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
 |internal/server/iigointernal/monitoring.go| monitorRole| The Speaker island has the option to monitor the President using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
 |internal/server/iigointernal/monitoring.go| monitorRole| The Judge island has the option to monitor the Speaker using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
