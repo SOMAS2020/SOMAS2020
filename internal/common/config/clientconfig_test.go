@@ -22,7 +22,7 @@ func TestGetClientConfig(t *testing.T) {
 				DisasterConfig: DisasterConfig{
 					CommonpoolThreshold:        6,
 					CommonpoolThresholdVisible: true,
-					GlobalProb:                 4.20, // not visible
+					Period:                     4, // not visible
 				},
 			},
 			want: ClientConfig{
@@ -47,7 +47,7 @@ func TestGetClientConfig(t *testing.T) {
 				DisasterConfig: DisasterConfig{
 					CommonpoolThreshold:        6,
 					CommonpoolThresholdVisible: false,
-					GlobalProb:                 4.20, // not visible
+					Period:                     4, // not visible
 				},
 			},
 			want: ClientConfig{

@@ -42,6 +42,14 @@ func updateVariableInternal(variableName VariableFieldName, newValue VariableVal
 	return false
 }
 
+func CopyVariableMap() map[VariableFieldName]VariableValuePair {
+	newMap := make(map[VariableFieldName]VariableValuePair)
+	for key, value := range VariableMap {
+		newMap[key] = value
+	}
+	return newMap
+}
+
 type VariableFieldName int
 
 const (

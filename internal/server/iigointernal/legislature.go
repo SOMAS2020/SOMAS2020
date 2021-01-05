@@ -205,10 +205,10 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 			return l.gameState.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
 		}
 		election.ProposeElection(shared.Judge, electionsettings.VotingMethod)
-		election.OpenBallot(electionsettings.IslandsToVote)
+		election.OpenBallot(electionsettings.IslandsToVote, iigoClients)
 		election.Vote(iigoClients)
 		l.judgeTurnsInPower = 0
-		nextJudge = election.CloseBallot()
+		nextJudge = election.CloseBallot(iigoClients)
 		nextJudge = l.clientSpeaker.DecideNextJudge(nextJudge)
 	} else {
 		l.judgeTurnsInPower++

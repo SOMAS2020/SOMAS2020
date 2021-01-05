@@ -68,10 +68,11 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
 		CommonPool:         g.CommonPool,
-		IslandLocations:    g.Environment.Geography.Islands,
+		Geography:          g.Environment.Geography,
 		SpeakerID:          g.SpeakerID,
 		JudgeID:            g.JudgeID,
 		PresidentID:        g.PresidentID,
+		IIGORolesBudget:    copyRolesBudget(g.IIGORolesBudget),
 	}
 }
 

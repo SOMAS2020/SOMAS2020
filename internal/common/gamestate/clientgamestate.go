@@ -23,10 +23,13 @@ type ClientGameState struct {
 	CommonPool shared.Resources
 
 	// Island Locations
-	IslandLocations map[shared.ClientID]disasters.IslandLocationInfo
+	Geography disasters.ArchipelagoGeography
 
 	// Islands holding IIGO roles
 	SpeakerID   shared.ClientID
 	JudgeID     shared.ClientID
 	PresidentID shared.ClientID
+
+	// IIGO roles budget (initialised in orchestration.go)
+	IIGORolesBudget map[shared.Role]shared.Resources
 }
