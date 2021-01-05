@@ -32,11 +32,9 @@ func (v *RuleVote) SetVotingIslands(clientIDs []shared.ClientID) {
 // GatherBallots is called by baseSpeaker to get votes from clients.
 func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client) {
 	//Gather N ballots from islands
-	oneIslandVote := make([]bool, 2)
 	if v.ruleToVote != "" && len(v.voterList) > 0 {
 		for i := 0; i < len(v.voterList); i++ {
-			oneIslandVote[0], oneIslandVote[1] = clientMap[v.voterList[i]].VoteForRule(v.ruleToVote)
-			v.ballots = append(v.ballots, oneIslandVote)
+			v.ballots = append(v.ballots, clientMap[v.voterList[i]].VoteForRule(v.ruleToVote))
 		}
 	}
 }
