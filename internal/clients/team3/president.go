@@ -23,6 +23,7 @@ func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	p.c.clientPrint("choosing speaker")
 	// Naively choose group 0
 	return mostTrusted(p.c.trustMapAgg)
+
 }
 
 // Computes average request, excluding top and bottom
@@ -156,5 +157,4 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	}
 	p.c.clientPrint("tax amounts : %v\n", taxationMap)
 	return taxationMap, true
-
 }

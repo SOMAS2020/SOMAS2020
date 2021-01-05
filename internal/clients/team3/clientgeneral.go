@@ -53,6 +53,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)
 	c.theirTrustScore = make(map[shared.ClientID]float64)
+	//c.localVariableCache = rules.CopyVariableMap()
 	for _, islandID := range shared.TeamIDs {
 		c.trustScore[islandID] = 50
 		c.theirTrustScore[islandID] = 50
@@ -171,6 +172,7 @@ func (c *client) shouldICheat() bool {
 	var should_i_cheat = rand.Float64() > c.compliance
 	return should_i_cheat
 }
+
 
 // checkIfCaught, checks if the island has been caught during the last turn
 // If it has been caught, it returns True, otherwise False.
