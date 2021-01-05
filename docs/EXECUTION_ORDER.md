@@ -27,7 +27,10 @@ Any function in bold is a client function and something that we expect you to ov
 | ---- | ---- | ---- |
 |internal/server/iigo.go|runIIGO| Updates the alive islands variables in the rules. Then runs RunIIGO but in the iigointernal package  |
 |internal/server/iigointernal/orchestration.go| RunIIGO |Calls **GetClientROLEPointer()** (ROLE = Speaker, Judge and President) to initialise the legislative, judicial and executive branches with the client Speaker, Judge and President objects and then orchestrates the IIGO session. |
-|internal/server/iigointernal/judiciary.go| 
+|internal/server/iigointernal/judiciary.go| loadSanctionConfig| The island holding the role of Judge|
+|internal/server/iigointernal/monitoring.go| monitorRole| The President island has the option to monitor the Judge using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
+|internal/server/iigointernal/monitoring.go| monitorRole| The Speaker island has the option to monitor the President using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
+|internal/server/iigointernal/monitoring.go| monitorRole| The Judge island has the option to monitor the Speaker using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
 
 ## IIFO
 | Filename | Function | Description |
