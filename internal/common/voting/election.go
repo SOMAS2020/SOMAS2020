@@ -22,10 +22,54 @@ func (e *Election) ProposeElection(role shared.Role, method shared.ElectionVotin
 }
 
 // OpenBallot sets the islands eligible to vote.
-func (e *Election) OpenBallot(clientIDs []shared.ClientID) {
+func (e *Election) OpenBallot(clientIDs []shared.ClientID, clientMap map[shared.ClientID]baseclient.Client) {
 	e.voterList = clientIDs
-	//TODO candidate list in each election need to be determined, as it won't always equals to voter list.
 	e.candidateList = e.voterList
+	//TODO candidate list in each election need to be determined, as it won't always equals to voter list.
+	var currentPresidentID shared.ClientID
+	var currentJudgeID shared.ClientID
+	var currentSpeakerID shared.ClientID
+	for i := 0; i < len(e.voterList); i++ {
+		if clientMap[e.voterList[i]].MonitorIIGORole(shared.President) == true {
+			currentPresidentID = e.voterList[i]
+		} else if clientMap[e.voterList[i]].MonitorIIGORole(shared.Judge) == true {
+			currentJudgeID = e.voterList[i]
+		} else if clientMap[e.voterList[i]].MonitorIIGORole(shared.Speaker) == true {
+			currentSpeakerID = e.voterList[i]
+		}
+	}
+	currentRoleIDList := []shared.ClientID{currentPresidentID, currentJudgeID, currentSpeakerID}
+
+	var roleToBeChanged shared.ClientID
+	switch e.roleToElect {
+	case shared.President:
+		roleToBeChanged = currentRoleIDList[0]
+	case shared.Judge:
+		roleToBeChanged = currentRoleIDList[1]
+	case shared.Speaker:
+		roleToBeChanged = currentRoleIDList[2]
+	}
+
+	var roleIDIndex []int
+	for i := 0; i < len(currentRoleIDList); i++ {
+		if currentRoleIDList[i] != roleToBeChanged {
+			for j := 0; j < len(e.candidateList); j++ {
+				if e.candidateList[j] == currentRoleIDList[i] {
+					roleIDIndex = append(roleIDIndex, j)
+				}
+			}
+		}
+	}
+
+	if roleIDIndex[0] < roleIDIndex[1] {
+		e.candidateList = append(e.candidateList[:roleIDIndex[1]], e.candidateList[roleIDIndex[1]+1:]...)
+		e.candidateList = append(e.candidateList[:roleIDIndex[0]], e.candidateList[roleIDIndex[0]+1:]...)
+	} else if roleIDIndex[0] > roleIDIndex[1] {
+		e.candidateList = append(e.candidateList[:roleIDIndex[0]], e.candidateList[roleIDIndex[0]+1:]...)
+		e.candidateList = append(e.candidateList[:roleIDIndex[1]], e.candidateList[roleIDIndex[1]+1:]...)
+	} else {
+		e.candidateList = append(e.candidateList[:roleIDIndex[0]], e.candidateList[roleIDIndex[0]+1:]...)
+	}
 }
 
 // Vote gets votes from eligible islands.
