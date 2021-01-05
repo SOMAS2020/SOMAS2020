@@ -20,9 +20,9 @@ func (j *judge) PayPresident(salary shared.Resources) (shared.Resources, bool) {
 
 	// If our island is in a critical state, then we will deduct part of the salary
 	// defined by the salaryThreshold to at least meet our required threshold for survival.
-	if j.c.ServerReadHandle.GetGameState().ClientLifeStatuses[shared.Team3] == shared.Critical {
-		take := j.c.params.salaryThreshold - j.c.localPool
-		salary -= shared.Resources(take)
+	if j.c.ServerReadHandle.GetGameState().ClientLifeStatuses[j.c.BaseClient.GetID()] == shared.Critical {
+		take := shared.Resources(j.c.params.salaryThreshold) - j.c.getLocalResources()
+		salary -= take
 	}
 	return salary, true
 }
@@ -33,7 +33,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 	// If we do not have sufficient budget to conduct the inspection,
 	// then we will return an empty map with true evaluations.
-	if j.c.localPool < config.IIGOConfig.InspectHistoryActionCost {
+	if j.c.getLocalResources() < config.IIGOConfig.InspectHistoryActionCost {
 		// dummy evaluation map
 		for _, entry := range iigoHistory {
 			outMap[entry.ClientID] = roles.EvaluationReturn{

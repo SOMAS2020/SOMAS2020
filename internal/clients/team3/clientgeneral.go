@@ -31,7 +31,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	for _, islandID := range shared.TeamIDs {
 
 		// Initialise trust scores for all islands except our own
-		if islandID == shared.Team3 {
+		if islandID == ourClient.GetID() {
 			continue
 		}
 		ourClient.trustScore[islandID] = 50
@@ -69,7 +69,7 @@ func (c *client) updatetheirtrustMapAgg(ClientID shared.ClientID, amount float64
 func (c *client) inittrustMapAgg() {
 
 	for _, islandID := range shared.TeamIDs {
-		if islandID == shared.Team3 {
+		if islandID == c.BaseClient.GetID() {
 			continue
 		}
 		c.trustMapAgg[islandID] = []float64{}
@@ -79,7 +79,7 @@ func (c *client) inittrustMapAgg() {
 // inittheirtrustMapAgg initialises the theirTrustMapAgg to empty list values ready for each turn
 func (c *client) inittheirtrustMapAgg() {
 	for _, islandID := range shared.TeamIDs {
-		if islandID == shared.Team3 {
+		if islandID == c.BaseClient.GetID() {
 			continue
 		}
 		c.theirTrustMapAgg[islandID] = []float64{}
