@@ -8,7 +8,7 @@ import (
 
 type RuleVote struct {
 	//Checked by RuleVote
-	ruleToVote rules.RuleMatrix
+	ruleToVote string
 	voterList  []shared.ClientID
 	//Held by RuleVote
 	ballots []shared.RuleVoteType
@@ -20,7 +20,7 @@ type BallotBox struct {
 }
 
 // SetRule is called by baseSpeaker to set the rule to be voted on.
-func (v *RuleVote) SetRule(ruleMatrix rules.RuleMatrix) {
+func (v *RuleVote) SetRule(ruleMatrix string) {
 	v.ruleToVote = ruleMatrix
 }
 
