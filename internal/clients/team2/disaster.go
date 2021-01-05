@@ -93,7 +93,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	// Get the magnitude prediction and confidence
 	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
-	confidenceMagnitude := GetTimeRemainingConfidence(totalTurns, sampleMeanM)
+	confidenceMagnitude := GetMagnitudeConfidence(totalTurns, sampleMeanM)
 
 	// Get the overall confidence in these predictions
 	confidencePrediction := GetConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
