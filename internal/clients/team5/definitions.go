@@ -75,11 +75,13 @@ type client struct {
 	*baseclient.BaseClient
 
 	// Roles
+	team5president president
+
+	// Roles
 	team5Speaker speaker
 	team5Judge   judge
 
 	// History
-	// history
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
 	giftHistory         giftHistory
