@@ -44,24 +44,35 @@ type DisasterEffects struct {
 // Environment holds the state of the enivornment
 type Environment struct {
 	Geography          ArchipelagoGeography
-	DisasterParams     disasterParameters
 	LastDisasterReport DisasterReport
 }
 
 // SampleForDisaster samples the stochastic disaster process to see if a disaster occurred
-func (e Environment) SampleForDisaster() Environment {
+func (e Environment) SampleForDisaster(dConf config.DisasterConfig, turn uint) Environment {
 	// spatial distr info
 	pdfX := distuv.Uniform{Min: e.Geography.XMin, Max: e.Geography.XMax}
 	pdfY := distuv.Uniform{Min: e.Geography.YMin, Max: e.Geography.YMax}
 
-	pdfMag := distuv.Exponential{Rate: e.DisasterParams.magnitudeLambda} // Rate = lambda
-	pdfGlobal := distuv.Bernoulli{P: e.DisasterParams.globalProb}        // Bernoulli RV where `P` = P(X=1)
+	pdfMag := distuv.Exponential{Rate: dConf.MagnitudeLambda} // Rate = lambda
 
 	dR := DisasterReport{Magnitude: 0, X: -1, Y: -1} // default: no disaster. Zero magnitude with arb co-ords
 
-	if pdfGlobal.Rand() == 1.0 { // D Day
-		dR = DisasterReport{Magnitude: pdfMag.Rand(), X: pdfX.Rand(), Y: pdfY.Rand()}
+	if dConf.StochasticPeriod {
+		// if T is the disaster period (time between occurrences), we need:
+		// E[T] = T (stochastic and deterministic cases respectively). Since
+		// T is a geometric RV in the stochastic case, p = 1/E[T]
+		p := 1 / float64(dConf.Period)
+		pdfGlobal := distuv.Bernoulli{P: p} // Bernoulli RV where `P` = P(X=1)
+
+		if pdfGlobal.Rand() == 1.0 { // D Day
+			dR = DisasterReport{Magnitude: pdfMag.Rand(), X: pdfX.Rand(), Y: pdfY.Rand()}
+		}
+	} else {
+		if turn%uint(dConf.Period) == 0 && turn > 0 {
+			dR = DisasterReport{Magnitude: pdfMag.Rand(), X: pdfX.Rand(), Y: pdfY.Rand()}
+		}
 	}
+
 	e.LastDisasterReport = dR // record last report in env state
 	return e                  // return same env back but with updated disaster report
 }
