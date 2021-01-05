@@ -17,7 +17,7 @@ var (
 	)
 	maxTurns = flag.Uint(
 		"maxTurns",
-		50,
+		6,
 		"The maximum numbers of 1-indexed turns to run the game.",
 	)
 	initialResources = flag.Float64(

@@ -26,15 +26,8 @@ func init() {
 
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
-	if c.getTurn() == startTurn {
-		c.firstTurnSetup()
-	}
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.wealth()
-	// Assign the thresholds according to the amount of resouces in the first turn
-	c.config.jbThreshold = c.resourceHistory[1] * 2
-	c.config.middleThreshold = c.resourceHistory[1] * 0.95
-	c.config.imperialThreshold = c.resourceHistory[1] * 0.5
 
 	// Print the Thresholds
 	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
@@ -48,6 +41,18 @@ func (c *client) StartOfTurn() {
 		}
 	}
 
+}
+
+func (c *client) EndOfTurn() {} // waiting for infra to implement?
+
+func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
+	c.ServerReadHandle = serverReadHandle // don't change this
+	c.initOpinions()
+
+	// Assign the thresholds according to the amount of resouces in the first turn
+	c.config.jbThreshold = c.resourceHistory[1] * 2
+	c.config.middleThreshold = c.resourceHistory[1] * 0.95
+	c.config.imperialThreshold = c.resourceHistory[1] * 0.5
 }
 
 //================================================================
@@ -105,9 +110,4 @@ func (c *client) ReceiveCommunication(
 			c.allocation = shared.Resources(content.IntegerData)
 		}
 	}
-}
-
-func (c *client) firstTurnSetup() {
-	c.initOpinions()
-	c.Logf("Opinions at first turn: %v", c.opinionHistory)
 }
