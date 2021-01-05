@@ -54,24 +54,11 @@ func findAvgNoTails(resourceRequest map[shared.ClientID]shared.Resources) shared
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
 func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
 	p.c.clientPrint("Evaluating allocations...")
-	// var allocations, allocWeights map[shared.ClientID]float64
 	var avgResource, avgRequest shared.Resources
-	// var resources map[shared.ClientID]shared.Resources
 	var allocSum, commonPoolThreshold, sumRequest float64
-	// var finalAllocations map[shared.ClientID]shared.Resources
 
 	// Make sure resource skew is greater than 1
 	resourceSkew := math.Max(float64(p.c.params.resourcesSkew), 1)
-
-	// TEMP
-	p.c.declaredResources = map[shared.ClientID]shared.Resources{
-		shared.Team1: 10,
-		shared.Team2: 10,
-		shared.Team3: 10,
-		shared.Team4: 10,
-		shared.Team5: 10,
-		shared.Team6: 10,
-	}
 
 	resources := make(map[shared.ClientID]shared.Resources)
 	allocations := make(map[shared.ClientID]float64)
@@ -80,11 +67,13 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 
 	for island, req := range resourceRequest {
 		sumRequest += float64(req)
-		resources[island] = shared.Resources(float64(p.c.declaredResources[island]) * math.Pow(resourceSkew, 1-p.c.trustScore[island]))
+		resources[island] = shared.Resources(float64(p.c.declaredResources[island]) * math.Pow(resourceSkew, (100-p.c.trustScore[island]/100)))
 	}
 
 	p.c.clientPrint("Resource requests: %+v\n", resourceRequest)
-	p.c.clientPrint("Their resource estimation: %+v\n Our estimation: %+v\n", p.c.declaredResources, resources)
+	p.c.clientPrint("Their resource estimation: %+v\n", p.c.declaredResources)
+	p.c.clientPrint("Our estimation: %+v\n", resources)
+	p.c.clientPrint("Trust Scores: %+v\n", p.c.trustScore)
 
 	avgRequest = findAvgNoTails(resourceRequest)
 	avgResource = findAvgNoTails(resources)
