@@ -3,7 +3,6 @@ package team3
 import (
 	"math"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -129,45 +128,6 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
 		}
 	}
-}
-
-func (c *client) RuleProposal() string {
-	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
-	c.locationService.syncTrustScore(c.trustScore)
-	internalMap := copyRulesMap(rules.RulesInPlay)
-	inputMap := c.locationService.TranslateCommunications(c.localVariableCache)
-	c.localInputsCache = inputMap
-	shortestSoFar := -2.0
-	selectedRule := ""
-	for key, rule := range rules.AvailableRules {
-		if _, ok := rules.RulesInPlay[key]; !ok {
-			reqInputs := dynamics.SourceRequiredInputs(rule, inputMap)
-			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule, reqInputs)
-			if valid {
-				ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
-				distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
-				if distance == -1 {
-					return key
-				}
-				if shortestSoFar == -2.0 || shortestSoFar > distance {
-					shortestSoFar = distance
-					selectedRule = rule.RuleName
-				}
-
-			}
-		} else {
-			lstRules := dynamics.RemoveFromMap(internalMap, key)
-			dist := dynamics.CalculateDistanceFromRuleSpace(lstRules, inputMap)
-			if shortestSoFar == -2.0 || dist < shortestSoFar {
-				selectedRule = rule.RuleName
-				shortestSoFar = dist
-			}
-		}
-	}
-	if selectedRule == "" {
-		return "inspect_ballot_rule"
-	}
-	return selectedRule
 }
 
 func (c *client) GetVoteForRule(ruleName string) bool {
