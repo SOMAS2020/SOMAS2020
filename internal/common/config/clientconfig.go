@@ -63,6 +63,7 @@ func (c DisasterConfig) GetClientDisasterConfig() ClientDisasterConfig {
 	}
 }
 
+// GetClientIIGOConfig gets ClientIIGOConfig
 func (c IIGOConfig) GetClientIIGOConfig() ClientIIGOConfig {
 	return ClientIIGOConfig{
 		// Executive branch
