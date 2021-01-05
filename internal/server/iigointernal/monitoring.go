@@ -54,7 +54,7 @@ func (m *monitor) monitorRole(g *gamestate.GameState, roleAccountable baseclient
 			message := generateMonitoringMessage(roleName, evaluationResult)
 			broadcastToAllIslands(roleAccountable.GetID(), message)
 
-			g.IIGOTurnsInPower[roleName] = m.TermLengths[roleName]
+			g.IIGOTurnsInPower[roleName] = m.TermLengths[roleName] + 1
 		}
 
 		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}
