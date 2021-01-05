@@ -74,13 +74,13 @@ type client struct {
 	// should this have a * in front?
 	*baseclient.BaseClient
 
-	islandEmpathies       IslandEmpathies
-	commonPoolHistory     CommonPoolHistory
-	resourcesLevelHistory ResourcesLevelHistory
-	opinionHist           OpinionHist
-	predictionsHist       PredictionsHist
-	foragingReturnsHist   ForagingReturnsHist
-	giftHist              GiftHist
+	islandEmpathies      IslandEmpathies
+	commonPoolHistory    CommonPoolHistory
+	resourceLevelHistory ResourcesLevelHistory
+	opinionHist          OpinionHist
+	predictionHist       PredictionsHist
+	foragingReturnsHist  ForagingReturnsHist
+	giftHist             GiftHist
 }
 
 func init() {
@@ -92,14 +92,14 @@ func init() {
 // i.e. start with assuming all islands selfish, normal, altruistic
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
-		BaseClient:            baseclient.NewClient(clientID),
-		commonPoolHistory:     CommonPoolHistory{},
-		resourcesLevelHistory: ResourcesLevelHistory{},
-		opinionHist:           OpinionHist{},
-		predictionsHist:       PredictionsHist{},
-		foragingReturnsHist:   ForagingReturnsHist{},
-		giftHist:              GiftHist{},
-		islandEmpathies:       IslandEmpathies{},
+		BaseClient:           baseclient.NewClient(clientID),
+		commonPoolHistory:    CommonPoolHistory{},
+		resourceLevelHistory: ResourcesLevelHistory{},
+		opinionHist:          OpinionHist{},
+		predictionHist:       PredictionsHist{},
+		foragingReturnsHist:  ForagingReturnsHist{},
+		giftHist:             GiftHist{},
+		islandEmpathies:      IslandEmpathies{},
 
 		//TODO: implement config to gather all changeable parameters in one place
 	}
@@ -155,11 +155,11 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	for clientID, _ := range c.gameState().ClientLifeStatuses {
 		// set the confidence to 50 and initialise any other stuff
 		var Histories map[Situation][]int
-		Histories["President"] = append(Histories["President"], 50)
-		Histories["Speaker"] = append(Histories["Speaker"], 50)
-		Histories["Judge"] = append(Histories["Judge"], 50)
-		Histories["Foraging"] = append(Histories["Foraging"], 50)
-		Histories["Gifts"] = append(Histories["Gifts"], 50)
+		Histories["President"] = make([50])
+		Histories["Speaker"] = [50]
+		Histories["Judge"] =[50]
+		Histories["Foraging"] = [50]
+		Histories["Gifts"] = [50]
 
 		c.opinionHist[clientID] = Opinion{
 			Histories: Histories,
