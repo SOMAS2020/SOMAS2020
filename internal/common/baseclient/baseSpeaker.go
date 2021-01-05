@@ -8,10 +8,10 @@ type BaseSpeaker struct {
 }
 
 // PayJudge is used for paying judge for his service
-func (s *BaseSpeaker) PayJudge(salary shared.Resources) shared.SpeakerReturnContent {
+func (s *BaseSpeaker) PayJudge() shared.SpeakerReturnContent {
 	return shared.SpeakerReturnContent{
 		ContentType: shared.SpeakerJudgeSalary,
-		JudgeSalary: salary,
+		JudgeSalary: 10,
 		ActionTaken: true,
 	}
 }

@@ -142,10 +142,10 @@ func registerRulesByMass() {
 		{
 			Name: "rule_to_vote_on_rule",
 			ReqVar: []VariableFieldName{
-				SpeakerRuleProposal,
-				PresidentRuleProposal,
+
+				SpeakerProposedPresidentRule,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
 			Linked:  false,
@@ -279,6 +279,108 @@ func registerRulesByMass() {
 				RuleSelected,
 			},
 			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "iigo_monitor_rule_permission_1",
+			ReqVar: []VariableFieldName{
+				MonitorRoleDecideToMonitor,
+				MonitorRoleAnnounce,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "iigo_monitor_rule_permission_2",
+			ReqVar: []VariableFieldName{
+				MonitorRoleEvalResult,
+				MonitorRoleEvalResultDecide,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: true,
+		},
+		{
+			Name: "island_must_report_private_resource",
+			ReqVar: []VariableFieldName{
+				HasIslandReportPrivateResources,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "island_must_report_actual_private_resource",
+			ReqVar: []VariableFieldName{
+				IslandActualPrivateResources,
+				IslandReportedPrivateResources,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "salary_cycle_speaker",
+			ReqVar: []VariableFieldName{
+				SpeakerPayment,
+			},
+			Values:  []float64{1, -10},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "salary_cycle_judge",
+			ReqVar: []VariableFieldName{
+				JudgePayment,
+			},
+			Values:  []float64{1, -10},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "salary_cycle_president",
+			ReqVar: []VariableFieldName{
+				PresidentPayment,
+			},
+			Values:  []float64{1, -10},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "salary_paid_speaker",
+			ReqVar: []VariableFieldName{
+				SpeakerPaid,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "salary_paid_judge",
+			ReqVar: []VariableFieldName{
+				JudgePaid,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "salary_paid_president",
+			ReqVar: []VariableFieldName{
+				PresidentPaid,
+			},
+			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
 			Linked:  false,

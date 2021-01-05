@@ -16,7 +16,6 @@ type legislature struct {
 	gameState         *gamestate.GameState
 	gameConf          *config.IIGOConfig
 	SpeakerID         shared.ClientID
-	judgeSalary       shared.Resources
 	ruleToVote        string
 	ballotBox         voting.BallotBox
 	votingResult      bool
@@ -41,7 +40,7 @@ func (l *legislature) syncWithGame(gameState *gamestate.GameState, gameConf *con
 // sendJudgeSalary conduct the transaction based on amount from client implementation
 func (l *legislature) sendJudgeSalary() error {
 	if l.clientSpeaker != nil {
-		amountReturn := l.clientSpeaker.PayJudge(l.judgeSalary)
+		amountReturn := l.clientSpeaker.PayJudge()
 		if amountReturn.ActionTaken && amountReturn.ContentType == shared.SpeakerJudgeSalary {
 			// Subtract from common resources pool
 			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn.JudgeSalary, l.gameState)
@@ -49,9 +48,16 @@ func (l *legislature) sendJudgeSalary() error {
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, l.gameState.JudgeID, l.gameState)
+
+				variablesToCache := []rules.VariableFieldName{rules.JudgePayment}
+				valuesToCache := [][]float64{{float64(amountWithdraw)}}
+				l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 				return nil
 			}
 		}
+		variablesToCache := []rules.VariableFieldName{rules.JudgePaid}
+		valuesToCache := [][]float64{{boolToFloat(amountReturn.ActionTaken)}}
+		l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 	}
 	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
@@ -116,8 +122,14 @@ func (l *legislature) RunVote(ruleID string, clientIDs []shared.ClientID) voting
 	valuesToCache := [][]float64{{float64(len(clientIDs))}}
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
-	variablesToCache = []rules.VariableFieldName{rules.SpeakerRuleProposal, rules.PresidentRuleProposal}
-	valuesToCache = [][]float64{{float64(len(ruleID))}, {float64(len(l.ruleToVote))}}
+	rulesEqual := false
+	if ruleID == l.ruleToVote {
+		rulesEqual = true
+	}
+
+	variablesToCache = []rules.VariableFieldName{rules.SpeakerProposedPresidentRule}
+	valuesToCache = [][]float64{{boolToFloat(rulesEqual)}}
+
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
 	return ruleVote.GetBallotBox()
@@ -167,13 +179,6 @@ func generateVotingResultMessage(ruleID string, result bool) map[shared.Communic
 	}
 
 	return returnMap
-}
-
-//reset resets internal variables for safety
-func (l *legislature) reset() {
-	l.ruleToVote = ""
-	l.ballotBox = voting.BallotBox{}
-	l.votingResult = false
 }
 
 // updateRules updates the rules in play according to the result of a vote.

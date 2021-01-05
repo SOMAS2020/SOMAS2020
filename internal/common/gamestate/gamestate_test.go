@@ -4,14 +4,24 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 func TestGetClientGameStateCopy(t *testing.T) {
-	gameState := GameState{
-		Season: 1,
-		Turn:   4,
+	islandLocation := map[shared.ClientID]disasters.IslandLocationInfo{
+		shared.Team1: {ID: shared.Team1, X: shared.Coordinate(5), Y: shared.Coordinate(0)},
+		shared.Team2: {ID: shared.Team2, X: shared.Coordinate(6), Y: shared.Coordinate(1)},
+		shared.Team3: {ID: shared.Team3, X: shared.Coordinate(7), Y: shared.Coordinate(2)},
+	}
 
+	geography := disasters.ArchipelagoGeography{Islands: islandLocation}
+	env := disasters.Environment{Geography: geography}
+
+	gameState := GameState{
+		Season:      1,
+		Turn:        4,
+		Environment: env,
 		ClientInfos: map[shared.ClientID]ClientInfo{
 			shared.Team1: {
 				Resources:                       10,
@@ -29,8 +39,8 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				CriticalConsecutiveTurnsCounter: 2,
 			},
 		},
-
-		CommonPool: 20,
+		IIGORolesBudget: map[shared.Role]shared.Resources{},
+		CommonPool:      20,
 	}
 
 	lifeStatuses := map[shared.ClientID]shared.ClientLifeStatus{
@@ -49,6 +59,8 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				ClientInfo:         gameState.ClientInfos[tc],
 				ClientLifeStatuses: lifeStatuses,
 				CommonPool:         gameState.CommonPool,
+				IslandLocations:    gameState.Environment.Geography.Islands,
+				IIGORolesBudget:    map[shared.Role]shared.Resources{},
 			}
 
 			gotClientGS := gameState.GetClientGameStateCopy(tc)

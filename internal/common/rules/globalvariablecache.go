@@ -56,8 +56,14 @@ const (
 	AllocationMade
 	IslandsAlive
 	SpeakerSalary
+	SpeakerPayment
+	SpeakerPaid
 	JudgeSalary
+	JudgePayment
+	JudgePaid
 	PresidentSalary
+	PresidentPayment
+	PresidentPaid
 	RuleSelected
 	VoteCalled
 	ExpectedTaxContribution
@@ -71,9 +77,13 @@ const (
 	SanctionExpected
 	TestVariable
 	JudgeInspectionPerformed
+	MonitorRoleAnnounce
+	MonitorRoleDecideToMonitor
+	MonitorRoleEvalResult
+	MonitorRoleEvalResultDecide
 	VoteResultAnnounced
 	IslandsAllowedToVote
-	SpeakerRuleProposal
+	SpeakerProposedPresidentRule
 	PresidentRuleProposal
 	RuleChosenFromProposalList
 	AnnouncementRuleMatchesVote
@@ -82,6 +92,9 @@ const (
 	SpeakerLeftoverBudget
 	JudgeLeftoverBudget
 	IslandsProposedRules
+	HasIslandReportPrivateResources
+	IslandActualPrivateResources
+	IslandReportedPrivateResources
 )
 
 func (v VariableFieldName) String() string {
@@ -97,8 +110,14 @@ func (v VariableFieldName) String() string {
 		"AllocationMade",
 		"IslandsAlive",
 		"SpeakerSalary",
+		"SpeakerPayment",
+		"SpeakerPaid",
 		"JudgeSalary",
+		"JudgePayment",
+		"JudgePaid",
 		"PresidentSalary",
+		"PresidentPayment",
+		"PresidentPaid",
 		"RuleSelected",
 		"VoteCalled",
 		"ExpectedTaxContribution",
@@ -112,9 +131,13 @@ func (v VariableFieldName) String() string {
 		"SanctionExpected",
 		"TestVariable",
 		"JudgeInspectionPerformed",
+		"MonitorRoleAnnounce",
+		"MonitorRoleDecideToMonitor",
+		"MonitorRoleEvalResult",
+		"MonitorRoleEvalResultDecide",
 		"VoteResultAnnounced",
 		"IslandsAllowedToVote",
-		"SpeakerRuleProposal",
+		"SpeakerProposedPresidentRule",
 		"PresidentRuleProposal",
 		"RuleChosenFromProposalList",
 		"AnnouncementRuleMatchesVote",
@@ -123,6 +146,9 @@ func (v VariableFieldName) String() string {
 		"SpeakerLeftoverBudget",
 		"JudgeLeftoverBudget",
 		"IslandsProposedRules",
+		"HasIslandReportPrivateResources",
+		"IslandActualPrivateResources",
+		"IslandReportedPrivateResources",
 	}
 	if v >= 0 && int(v) < len(strs) {
 		return strs[v]

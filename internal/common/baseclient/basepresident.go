@@ -71,11 +71,11 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 }
 
 // PaySpeaker pays the speaker a salary.
-func (p *BasePresident) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
+func (p *BasePresident) PaySpeaker() shared.PresidentReturnContent {
 	// TODO : Implement opinion based salary payment. Salary should be set by a rule
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
-		SpeakerSalary: 0,
+		SpeakerSalary: 10,
 		ActionTaken:   true,
 	}
 }

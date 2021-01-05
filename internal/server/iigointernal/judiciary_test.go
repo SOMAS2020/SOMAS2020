@@ -1931,7 +1931,6 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 func defaultInitJudiciary() judiciary {
 	return judiciary{
 		JudgeID:               0,
-		presidentSalary:       0,
 		evaluationResults:     map[shared.ClientID]roles.EvaluationReturn{},
 		clientJudge:           &baseclient.BaseJudge{},
 		presidentTurnsInPower: 0,

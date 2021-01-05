@@ -16,7 +16,6 @@ type judiciary struct {
 	gameState             *gamestate.GameState
 	gameConf              *config.IIGOConfig
 	JudgeID               shared.ClientID
-	presidentSalary       shared.Resources
 	evaluationResults     map[shared.ClientID]roles.EvaluationReturn
 	clientJudge           roles.Judge
 	presidentTurnsInPower int
@@ -66,17 +65,24 @@ func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
 // sendPresidentSalary conduct the transaction based on amount from client implementation
 func (j *judiciary) sendPresidentSalary() error {
 	if j.clientJudge != nil {
-		amount, presidentPaid := j.clientJudge.PayPresident(j.presidentSalary)
+		amountReturn, presidentPaid := j.clientJudge.PayPresident()
 		if presidentPaid {
 			// Subtract from common resources po
-			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, j.gameState)
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn, j.gameState)
 
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, j.gameState.PresidentID, j.gameState)
+
+				variablesToCache := []rules.VariableFieldName{rules.PresidentPayment}
+				valuesToCache := [][]float64{{float64(amountWithdraw)}}
+				j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 				return nil
 			}
 		}
+		variablesToCache := []rules.VariableFieldName{rules.PresidentPaid}
+		valuesToCache := [][]float64{{boolToFloat(presidentPaid)}}
+		j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 	}
 	return errors.Errorf("Cannot perform sendJudgeSalary")
 }

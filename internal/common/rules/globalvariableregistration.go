@@ -51,12 +51,36 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{50},
 	},
 	{
+		VariableName: SpeakerPayment,
+		Values:       []float64{50},
+	},
+	{
+		VariableName: SpeakerPaid,
+		Values:       []float64{0},
+	},
+	{
 		VariableName: JudgeSalary,
 		Values:       []float64{50},
 	},
 	{
+		VariableName: JudgePayment,
+		Values:       []float64{50},
+	},
+	{
+		VariableName: JudgePaid,
+		Values:       []float64{0},
+	},
+	{
 		VariableName: PresidentSalary,
 		Values:       []float64{50},
+	},
+	{
+		VariableName: PresidentPayment,
+		Values:       []float64{50},
+	},
+	{
+		VariableName: PresidentPaid,
+		Values:       []float64{0},
 	},
 	{
 		VariableName: ExpectedTaxContribution,
@@ -115,6 +139,22 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{0},
 	},
 	{
+		VariableName: MonitorRoleAnnounce,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleDecideToMonitor,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleEvalResult,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleEvalResultDecide,
+		Values:       []float64{0},
+	},
+	{
 		VariableName: VoteResultAnnounced,
 		Values:       []float64{0},
 	},
@@ -123,7 +163,7 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{0},
 	},
 	{
-		VariableName: SpeakerRuleProposal,
+		VariableName: SpeakerProposedPresidentRule,
 		Values:       []float64{0},
 	},
 	{
@@ -156,6 +196,17 @@ var StaticVariables = []VariableValuePair{
 	},
 	{
 		VariableName: IslandsProposedRules,
+		Values:       []float64{0},
+	},
+		VariableName: HasIslandReportPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandActualPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandReportedPrivateResources,
 		Values:       []float64{0},
 	},
 }

@@ -17,7 +17,6 @@ type executive struct {
 	gameConf            *config.IIGOConfig
 	PresidentID         shared.ClientID
 	clientPresident     roles.President
-	speakerSalary       shared.Resources
 	RulesProposals      []string
 	ResourceRequests    map[shared.ClientID]shared.Resources
 	speakerTurnsInPower int
@@ -35,13 +34,6 @@ func (e *executive) loadClientPresident(clientPresidentPointer roles.President) 
 func (e *executive) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	e.gameState = gameState
 	e.gameConf = gameConf
-}
-
-// returnSpeakerSalary returns the salary to the common pool.
-func (e *executive) returnSpeakerSalary() shared.Resources {
-	x := e.speakerSalary
-	e.speakerSalary = 0
-	return x
 }
 
 // Get rule proposals to be voted on from remaining islands
@@ -195,7 +187,7 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 // sendSpeakerSalary conduct the transaction based on amount from client implementation
 func (e *executive) sendSpeakerSalary() error {
 	if e.clientPresident != nil {
-		amountReturn := e.clientPresident.PaySpeaker(e.speakerSalary)
+		amountReturn := e.clientPresident.PaySpeaker()
 		if amountReturn.ActionTaken && amountReturn.ContentType == shared.PresidentSpeakerSalary {
 			// Subtract from common resources pool
 			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn.SpeakerSalary, e.gameState)
@@ -203,19 +195,18 @@ func (e *executive) sendSpeakerSalary() error {
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, e.gameState.SpeakerID, e.gameState)
+
+				variablesToCache := []rules.VariableFieldName{rules.SpeakerPayment}
+				valuesToCache := [][]float64{{float64(amountWithdraw)}}
+				e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
 				return nil
 			}
 		}
+		variablesToCache := []rules.VariableFieldName{rules.SpeakerPaid}
+		valuesToCache := [][]float64{{boolToFloat(amountReturn.ActionTaken)}}
+		e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
 	}
 	return errors.Errorf("Cannot perform sendSpeakerSalary")
-}
-
-func (e *executive) reset() {
-	e.PresidentID = 0
-	e.clientPresident = nil
-	e.ResourceRequests = map[shared.ClientID]shared.Resources{}
-	e.RulesProposals = []string{}
-	e.speakerSalary = 0
 }
 
 // Helper functions:
