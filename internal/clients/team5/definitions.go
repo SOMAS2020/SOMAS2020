@@ -43,17 +43,12 @@ type forageHistory map[shared.ForageType][]forageOutcome
 
 //================ Gifts ===========================================
 
-// giftResponse is a struct of the response and reason
-type giftResponse struct {
-	AcceptedAmount shared.Resources
-	Reason         shared.AcceptReason
-}
-
 // giftInfo holds information about the gifts
 type giftInfo struct {
-	requested shared.GiftRequest
-	gifted    shared.GiftOffer
-	reason    shared.AcceptReason
+	requested      shared.GiftRequest
+	offered        shared.GiftOffer
+	response       shared.GiftResponse
+	actualRecieved shared.Resources
 }
 
 //giftExchange Looks at how much they requested and we request

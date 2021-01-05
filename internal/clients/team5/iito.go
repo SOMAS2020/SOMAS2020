@@ -50,15 +50,18 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			}
 		}
 	}
-	// // Store the request we made into giftHistory
-	// for team := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-	// 	newGiftRequest := giftInfo{ // 	For each client create a new gift info
-	// 		requested: requests[team], // Store how much we requested
-	// 	}
-	// 	c.giftHistory[team].OurRequest[c.gameState().Turn] = newGiftRequest
-	// }
+	// Store the request we made into giftHistory
+	for team := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+		newGiftRequest := giftInfo{ // 	For each client create a new gift info
+			requested: requests[team], // Store how much we requested
+		}
+		ourReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
+		c.giftHistory[team] = giftExchange{OurRequest: ourReq}
+	}
 
-	// c.Logf("[Debug] Team 5 Gift request: %v", c.giftHistory[shared.Team3].OurRequest[c.gameState().Turn])
+	c.Logf("GetGiftRequests")
+	c.Logf("[Debug] OurRequest: %v", c.giftHistory[shared.Team3].OurRequest[c.gameState().Turn])
+	c.Logf("[Debug] TheirReques: %v", c.giftHistory[shared.Team3].TheirRequest[c.gameState().Turn])
 
 	return requests
 }
@@ -91,13 +94,16 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	for team := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 
 		newGiftRequest := giftInfo{ // 	For each client create a new gift info
-			gifted: offers[team], // Store how much we offered
+			requested: receivedRequests[team],
+			offered:   offers[team], // Store how much we offered
 		}
-		ourReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
-		c.giftHistory[team] = giftExchange{OurRequest: ourReq}
+		theirReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
+		c.giftHistory[team] = giftExchange{TheirRequest: theirReq}
 	}
 
-	c.Logf("[Debug] GetGiftResponse: %v", c.giftHistory[shared.Team3].OurRequest)
+	c.Logf("GetGiftOffers")
+	c.Logf("[Debug] OurRequest: %v", c.giftHistory[shared.Team3].OurRequest[c.gameState().Turn])
+	c.Logf("[Debug] TheirReques: %v", c.giftHistory[shared.Team3].TheirRequest[c.gameState().Turn])
 	return offers
 }
 
@@ -112,12 +118,18 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 			Reason:         shared.Accept,           // Accept all gifts duh
 		}
 		newGiftRequest := giftInfo{ // 	For each client create a new gift info
-			requested: c.giftHistory[team].OurRequest[c.gameState().Turn].requested, // Amount requested (from above)
-			gifted:    shared.GiftOffer(responses[team].AcceptedAmount),             // Amount accepted
-			reason:    shared.AcceptReason(responses[team].Reason),                  // Reason accepted
+			offered:  receivedOffers[team], // Amount accepted
+			response: responses[team],      // Reason accepted
 		}
+		// ourReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
+		// c.giftHistory[team] = giftExchange{OurRequest: ourReq}
 		c.giftHistory[team].OurRequest[c.gameState().Turn] = newGiftRequest
 	}
+
+	c.Logf("GetGiftResponse")
+	c.Logf("[Debug] OurRequest: %v", c.giftHistory[shared.Team3].OurRequest[c.gameState().Turn])
+	c.Logf("[Debug] TheirReques: %v", c.giftHistory[shared.Team3].TheirRequest[c.gameState().Turn])
+
 	return responses
 }
 
@@ -129,18 +141,18 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 // COMPULSORY, you need to implement this method
 
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
-	turn := c.gameState().Turn
 
-	for team, response := range receivedResponses { // for each ID
+	for team := range receivedResponses { // for each ID
 		newGiftRequest := giftInfo{
-			requested: c.giftHistory[team].TheirRequest[turn].requested,
-			gifted:    shared.GiftOffer(response.AcceptedAmount),
-			reason:    shared.AcceptReason(response.Reason),
+			response: receivedResponses[team],
 		}
-		theirReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
-		c.giftHistory[team] = giftExchange{TheirRequest: theirReq}
+		// theirReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
+		// c.giftHistory[team] = giftExchange{TheirRequest: theirReq}
+		c.giftHistory[team].TheirRequest[c.gameState().Turn] = newGiftRequest
 	}
-	c.Logf("[Debug] UpdateGiftInfo: %v", c.giftHistory[shared.Team3].TheirRequest[turn])
+	c.Logf("UpdateGiftInfo")
+	c.Logf("[Debug] OurRequest: %v", c.giftHistory[shared.Team3].OurRequest[c.gameState().Turn])
+	c.Logf("[Debug] TheirReques: %v", c.giftHistory[shared.Team3].TheirRequest[c.gameState().Turn])
 }
 
 // ==================================== Gifting history to be made =========================================
