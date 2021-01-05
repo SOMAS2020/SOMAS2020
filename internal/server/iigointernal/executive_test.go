@@ -668,6 +668,9 @@ func TestReplyAllocationRequest(t *testing.T) {
 		},
 	}
 
+	rules.PullRuleIntoPlay("allocation_decision")
+	rules.PullRuleIntoPlay("check_allocation_rule")
+
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
@@ -728,7 +731,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 
 				allocationRequest := fakeClientMap[clientID].RequestAllocation()
 
-				if allocationRequest > expectedAllocation {
+				if allocationRequest != expectedAllocation {
 					t.Errorf("Allocation failed for client %v. Expected allocation request <= %v , got allocation request: %v", clientID, expectedAllocation, allocationRequest)
 				}
 
@@ -867,6 +870,9 @@ func TestBroadcastTaxation(t *testing.T) {
 		},
 	}
 
+	rules.PullRuleIntoPlay("tax_decision")
+	rules.PullRuleIntoPlay("check_taxation_rule")
+
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
@@ -881,6 +887,7 @@ func TestBroadcastTaxation(t *testing.T) {
 			}
 			fakeGameConfig := config.IIGOConfig{
 				ReplyAllocationRequestsActionCost: 1,
+				BroadcastTaxationActionCost:       1,
 			}
 			fakeServer := fakeServerHandle{
 				PresidentID: tc.bPresident.PresidentID,
@@ -930,7 +937,7 @@ func TestBroadcastTaxation(t *testing.T) {
 				// Check client return
 				paidTax := fakeClientMap[clientID].GetTaxContribution()
 
-				if expectedTax < paidTax {
+				if expectedTax != paidTax {
 					t.Errorf("Taxation failed for client %v. expected to pay at least %v, got tax contribution %v", clientID, expectedTax, paidTax)
 				}
 			}
