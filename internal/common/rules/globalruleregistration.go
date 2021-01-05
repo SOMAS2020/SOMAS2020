@@ -268,7 +268,7 @@ func registerRulesByMass() {
 			ReqVar: []VariableFieldName{
 				SpeakerPayment,
 			},
-			Values:  []float64{1, -10},
+			Values:  []float64{-1, 10},
 			Aux:     []float64{0},
 			Mutable: true,
 			Linked:  false,
@@ -278,7 +278,7 @@ func registerRulesByMass() {
 			ReqVar: []VariableFieldName{
 				JudgePayment,
 			},
-			Values:  []float64{1, -10},
+			Values:  []float64{-1, 10},
 			Aux:     []float64{0},
 			Mutable: true,
 			Linked:  false,
@@ -288,7 +288,7 @@ func registerRulesByMass() {
 			ReqVar: []VariableFieldName{
 				PresidentPayment,
 			},
-			Values:  []float64{1, -10},
+			Values:  []float64{-1, 10},
 			Aux:     []float64{0},
 			Mutable: true,
 			Linked:  false,
@@ -321,6 +321,36 @@ func registerRulesByMass() {
 			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "increment_budget_speaker",
+			ReqVar: []VariableFieldName{
+				SpeakerIncrement,
+			},
+			Values:  []float64{-1, 100},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "increment_budget_judge",
+			ReqVar: []VariableFieldName{
+				JudgeIncrement,
+			},
+			Values:  []float64{-1, 100},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "increment_budget_president",
+			ReqVar: []VariableFieldName{
+				PresidentIncrement,
+			},
+			Values:  []float64{-1, 100},
+			Aux:     []float64{0},
+			Mutable: true,
 			Linked:  false,
 		},
 	}
