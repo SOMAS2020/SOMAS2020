@@ -151,7 +151,10 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		adjustedResource := resource * shared.Resources(math.Pow(p.c.params.resourcesSkew, (100-p.c.trustScore[island])/100))
 		adjustedResources = append(adjustedResources, float64(adjustedResource))
 		adjustedResourcesMap[island] = adjustedResource
+		//update criticalThreshold
+		p.c.updateCriticalThreshold(p.c.ServerReadHandle.GetGameState().ClientLifeStatuses[island], shared.Resources(adjustedResource))
 	}
+
 	AveAdjustedResources := getAverage(adjustedResources)
 	taxationMap := make(map[shared.ClientID]shared.Resources)
 	for island, resources := range adjustedResourcesMap {

@@ -33,6 +33,8 @@ func (c *client) StartOfTurn() {
 	c.updateCompliance()
 	c.lastSanction = c.iigoInfo.sanctions.ourSanction
 
+	c.updateCriticalThreshold(c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus, c.ServerReadHandle.GetGameState().ClientInfo.Resources)
+
 	c.resetIIGOInfo()
 	c.Logf("Our Status: %+v\n", c.ServerReadHandle.GetGameState().ClientInfo)
 }
@@ -62,6 +64,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 			ourSanction:     roles.IIGOSanctionScore(0),
 		},
 	}
+	c.criticalStatePrediction.upperBound = serverReadHandle.GetGameState().ClientInfo.Resources
+	c.criticalStatePrediction.lowerBound = serverReadHandle.GetGameState().ClientInfo.Resources
 }
 
 // updatetrustMapAgg adds the amount to the aggregate trust map list for given client
@@ -132,14 +136,21 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 // it uses estimated resources to find these bound. isIncriticalState is a boolean to indicate if the island
 // is in the critical state and the estimated resources is our estimated resources of the island i.e.
 // trust-adjusted resources.
-func (c *client) updateCriticalThreshold(isInCriticalState bool, estimatedResource shared.Resources) {
+func (c *client) updateCriticalThreshold(state shared.ClientLifeStatus, estimatedResource shared.Resources) {
+	isInCriticalState := state == shared.Critical
 	if !isInCriticalState {
 		if estimatedResource < c.criticalStatePrediction.upperBound {
 			c.criticalStatePrediction.upperBound = estimatedResource
+			if c.criticalStatePrediction.upperBound < c.criticalStatePrediction.lowerBound {
+				c.criticalStatePrediction.lowerBound = estimatedResource
+			}
 		}
 	} else {
 		if estimatedResource > c.criticalStatePrediction.lowerBound {
 			c.criticalStatePrediction.lowerBound = estimatedResource
+			if c.criticalStatePrediction.upperBound < c.criticalStatePrediction.lowerBound {
+				c.criticalStatePrediction.upperBound = estimatedResource
+			}
 		}
 	}
 }
