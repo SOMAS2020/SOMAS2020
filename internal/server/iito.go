@@ -12,6 +12,9 @@ func (s *SOMASServer) runIITO() error {
 	s.logf("start runIITO")
 	defer s.logf("finish runIITO")
 	s.gameState.IITOTransactions = s.runGiftSession()
+
+	// This is for sharing an island's intended contributions to the common pool
+	s.runIntendedContributionSession()
 	// TODO:- IITO team
 	return nil
 }
@@ -245,5 +248,47 @@ func (s *SOMASServer) executeTransactions(transactions map[shared.ClientID]share
 				s.clientMap[fromTeam].SentGift(giftAmount, toTeam)
 			}
 		}
+	}
+}
+
+func (s *SOMASServer) runIntendedContributionSession() {
+	s.logf("start runIntendedContributionSession")
+	defer s.logf("finish runIntendedContributionSession")
+	islandContributionDict := s.getIntendedContribution()
+	s.distributeIntendedContributions(islandContributionDict)
+}
+
+func (s *SOMASServer) getIntendedContribution() shared.IntendedContributionDict {
+	islandPredictionsDict := shared.IntendedContributionDict{}
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		islandPredictionsDict[id] = s.clientMap[id].ShareIntendedContribution()
+	}
+	return islandPredictionsDict
+}
+
+func (s *SOMASServer) distributeIntendedContributions(islandPredictionDict shared.IntendedContributionDict) {
+	reorderDictionary := make(map[shared.ClientID]shared.ReceivedIntendedContributionDict)
+	// Add the predictions/sources to the dict containing which predictions each island should receive
+	// Don't allow teams to know who else these predictions were shared with in MVP
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+
+	for idSource, info := range islandPredictionDict {
+		if clientArrayContains(nonDeadClients, idSource) {
+			for _, idShare := range info.TeamsOfferedTo {
+				if idShare == idSource {
+					continue
+				}
+				if reorderDictionary[idShare] == nil {
+					reorderDictionary[idShare] = make(shared.ReceivedIntendedContributionDict)
+				}
+				reorderDictionary[idShare][idSource] = shared.ReceivedIntendedContribution{Contribution: info.Contribution, SharedFrom: idSource}
+			}
+		}
+	}
+
+	// Now distribute these predictions to the islands
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		c.ReceiveIntendedContribution(reorderDictionary[id])
 	}
 }
