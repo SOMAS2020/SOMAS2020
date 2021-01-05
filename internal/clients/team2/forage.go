@@ -78,6 +78,7 @@ func decideThreshold(c *client) float64 { //will move the threshold, higher valu
 
 //EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
 func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
+
 	HuntNum := 0.00                                                //this the average number of likely hunters
 	totalDecisions := 0.00                                         //this is for finding the average
 	for id, lifeStatus := range c.gameState().ClientLifeStatuses { //loop through every agent
