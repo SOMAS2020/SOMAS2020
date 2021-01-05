@@ -34,6 +34,8 @@ type Client interface {
 	GetTaxContribution() shared.Resources
 	GetSanctionPayment() shared.Resources
 	RequestAllocation() shared.Resources
+	ShareIntendedContribution() shared.IntendedContribution
+	ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict)
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
@@ -84,7 +86,8 @@ func NewClient(id shared.ClientID) *BaseClient {
 type BaseClient struct {
 	id shared.ClientID
 
-	predictionInfo shared.DisasterPredictionInfo
+	predictionInfo       shared.DisasterPredictionInfo
+	intendedContribution shared.IntendedContribution
 
 	// exported variables are accessible by the client implementations
 	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
