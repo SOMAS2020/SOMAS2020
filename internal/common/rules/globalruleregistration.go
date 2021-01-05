@@ -406,6 +406,16 @@ func registerRulesByMass() {
 			Mutable: false,
 			Linked:  false,
 		},
+		{
+			Name: "must_appoint_elected_island",
+			ReqVar: []VariableFieldName{
+				AppointmentMatchesVote,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
 	}
 
 	for _, rs := range ruleSpecs {

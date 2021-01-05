@@ -18,7 +18,6 @@ type judiciary struct {
 	JudgeID               shared.ClientID
 	evaluationResults     map[shared.ClientID]roles.EvaluationReturn
 	clientJudge           roles.Judge
-	presidentTurnsInPower int
 	sanctionRecord        map[shared.ClientID]roles.IIGOSanctionScore
 	sanctionThresholds    map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
 	ruleViolationSeverity map[string]roles.IIGOSanctionScore
@@ -171,8 +170,8 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 // appointNextPresident returns the island ID of the island appointed to be President in the next turn
 func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, currentPresident shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
-	var nextPresident shared.ClientID
-	electionSettings := j.clientJudge.CallPresidentElection(monitoring, j.presidentTurnsInPower, allIslands)
+	var appointedPresident shared.ClientID
+	electionSettings := j.clientJudge.CallPresidentElection(monitoring, int(j.gameState.IIGOTurnsInPower[shared.President]), allIslands)
 
 	//Log election rule
 	termCondition := j.gameState.IIGOTurnsInPower[shared.President] > j.gameConf.IIGOTermLengths[shared.President]
@@ -187,14 +186,19 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		election.ProposeElection(shared.President, electionSettings.VotingMethod)
 		election.OpenBallot(electionSettings.IslandsToVote, iigoClients)
 		election.Vote(iigoClients)
-		j.presidentTurnsInPower = 0
-		nextPresident = election.CloseBallot(iigoClients)
-		nextPresident = j.clientJudge.DecideNextPresident(nextPresident)
+		j.gameState.IIGOTurnsInPower[shared.President] = 0
+		electedPresident := election.CloseBallot(iigoClients)
+		appointedPresident = j.clientJudge.DecideNextPresident(electedPresident)
+
+		//Log rule: Must appoint elected role
+		appointmentMatchesVote := appointedPresident == electedPresident
+		variablesToCache := []rules.VariableFieldName{rules.AppointmentMatchesVote}
+		valuesToCache := [][]float64{{boolToFloat(appointmentMatchesVote)}}
+		j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 	} else {
-		j.presidentTurnsInPower++
-		nextPresident = currentPresident
+		appointedPresident = currentPresident
 	}
-	return nextPresident, nil
+	return appointedPresident, nil
 }
 
 func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {

@@ -13,15 +13,14 @@ import (
 )
 
 type legislature struct {
-	gameState         *gamestate.GameState
-	gameConf          *config.IIGOConfig
-	SpeakerID         shared.ClientID
-	ruleToVote        string
-	ballotBox         voting.BallotBox
-	votingResult      bool
-	clientSpeaker     roles.Speaker
-	judgeTurnsInPower int
-	monitoring        *monitor
+	gameState     *gamestate.GameState
+	gameConf      *config.IIGOConfig
+	SpeakerID     shared.ClientID
+	ruleToVote    string
+	ballotBox     voting.BallotBox
+	votingResult  bool
+	clientSpeaker roles.Speaker
+	monitoring    *monitor
 }
 
 // loadClientSpeaker checks client pointer is good and if not panics
@@ -213,8 +212,8 @@ func (l *legislature) updateRules(ruleName string, ruleVotedIn bool) error {
 // appointNextJudge returns the island ID of the island appointed to be Judge in the next turn
 func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJudge shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
-	var nextJudge shared.ClientID
-	electionSettings := l.clientSpeaker.CallJudgeElection(monitoring, l.judgeTurnsInPower, allIslands)
+	var appointedJudge shared.ClientID
+	electionSettings := l.clientSpeaker.CallJudgeElection(monitoring, int(l.gameState.IIGOTurnsInPower[shared.Judge]), allIslands)
 
 	//Log election rule
 	termCondition := l.gameState.IIGOTurnsInPower[shared.Judge] > l.gameConf.IIGOTermLengths[shared.Judge]
@@ -229,14 +228,20 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 		election.ProposeElection(shared.Judge, electionSettings.VotingMethod)
 		election.OpenBallot(electionSettings.IslandsToVote, iigoClients)
 		election.Vote(iigoClients)
-		l.judgeTurnsInPower = 0
-		nextJudge = election.CloseBallot(iigoClients)
-		nextJudge = l.clientSpeaker.DecideNextJudge(nextJudge)
+		l.gameState.IIGOTurnsInPower[shared.Judge] = 0
+		electedJudge := election.CloseBallot(iigoClients)
+		appointedJudge = l.clientSpeaker.DecideNextJudge(electedJudge)
+
+		//Log rule: Must appoint elected role
+		appointmentMatchesVote := appointedJudge == electedJudge
+		variablesToCache := []rules.VariableFieldName{rules.AppointmentMatchesVote}
+		valuesToCache := [][]float64{{boolToFloat(appointmentMatchesVote)}}
+		l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+
 	} else {
-		l.judgeTurnsInPower++
-		nextJudge = currentJudge
+		appointedJudge = currentJudge
 	}
-	return nextJudge, nil
+	return appointedJudge, nil
 }
 
 func (l *legislature) incurServiceCharge(cost shared.Resources) bool {

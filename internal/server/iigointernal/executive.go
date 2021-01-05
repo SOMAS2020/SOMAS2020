@@ -13,14 +13,13 @@ import (
 )
 
 type executive struct {
-	gameState           *gamestate.GameState
-	gameConf            *config.IIGOConfig
-	PresidentID         shared.ClientID
-	clientPresident     roles.President
-	RulesProposals      []string
-	ResourceRequests    map[shared.ClientID]shared.Resources
-	speakerTurnsInPower int
-	monitoring          *monitor
+	gameState        *gamestate.GameState
+	gameConf         *config.IIGOConfig
+	PresidentID      shared.ClientID
+	clientPresident  roles.President
+	RulesProposals   []string
+	ResourceRequests map[shared.ClientID]shared.Resources
+	monitoring       *monitor
 }
 
 // loadClientPresident checks client pointer is good and if not panics
@@ -165,8 +164,8 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
 func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
-	var nextSpeaker shared.ClientID
-	electionSettings := e.clientPresident.CallSpeakerElection(monitoring, e.speakerTurnsInPower, allIslands)
+	var appointedSpeaker shared.ClientID
+	electionSettings := e.clientPresident.CallSpeakerElection(monitoring, int(e.gameState.IIGOTurnsInPower[shared.Speaker]), allIslands)
 
 	//Log election rule
 	termCondition := e.gameState.IIGOTurnsInPower[shared.Speaker] > e.gameConf.IIGOTermLengths[shared.Speaker]
@@ -181,14 +180,19 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		election.ProposeElection(shared.Speaker, electionSettings.VotingMethod)
 		election.OpenBallot(electionSettings.IslandsToVote, iigoClients)
 		election.Vote(iigoClients)
-		e.speakerTurnsInPower = 0
-		nextSpeaker = election.CloseBallot(iigoClients)
-		nextSpeaker = e.clientPresident.DecideNextSpeaker(nextSpeaker)
+		e.gameState.IIGOTurnsInPower[shared.Speaker] = 0
+		electedSpeaker := election.CloseBallot(iigoClients)
+		appointedSpeaker = e.clientPresident.DecideNextSpeaker(electedSpeaker)
+
+		//Log rule: Must appoint elected role
+		appointmentMatchesVote := appointedSpeaker == electedSpeaker
+		variablesToCache := []rules.VariableFieldName{rules.AppointmentMatchesVote}
+		valuesToCache := [][]float64{{boolToFloat(appointmentMatchesVote)}}
+		e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
 	} else {
-		e.speakerTurnsInPower++
-		nextSpeaker = currentSpeaker
+		appointedSpeaker = currentSpeaker
 	}
-	return nextSpeaker, nil
+	return appointedSpeaker, nil
 }
 
 // sendSpeakerSalary conduct the transaction based on amount from client implementation
