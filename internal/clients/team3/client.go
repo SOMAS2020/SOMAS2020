@@ -8,15 +8,19 @@ import (
 )
 
 const id = shared.Team3
+const printTeam3Logs = false
 
 func init() {
-	ourClient := &client{BaseClient: baseclient.NewClient(id)}
-
+	ourClient := NewClient(id)
 	baseclient.RegisterClient(id, ourClient)
 }
 
 type client struct {
 	*baseclient.BaseClient
+	ourSpeaker   speaker
+	ourJudge     judge
+	ourPresident president
+
 	// ## Gifting ##
 
 	acceptedGifts        map[shared.ClientID]int
@@ -75,29 +79,27 @@ type client struct {
 type criticalStatePrediction struct {
 	upperBound shared.Resources
 	lowerBound shared.Resources
-
-	locationService locator
 }
 
 type islandParams struct {
-	giftingThreshold   int
-	equity             float64
-	complianceLevel    float64
-	resourcesSkew      float64
-	saveCriticalIsland bool
-	escapeCritcaIsland bool
-	selfishness        float64
-	minimumRequest     int
-	// ## When fishing foraging is implemnented ##
-	// minimunInvestment  int
-	DesiredRuleSet []string
-	recidivism     float64
-	riskFactor     float64
-	friendliness   float64
-	anger          float64
-	aggression     float64
-	sensitivity    float64
-	laziness       float64
+	giftingThreshold            shared.Resources
+	equity                      float64
+	complianceLevel             float64
+	resourcesSkew               float64
+	saveCriticalIsland          bool
+	escapeCritcaIsland          bool
+	selfishness                 float64
+	minimumRequest              shared.Resources
+	disasterPredictionWeighting float64
+	DesiredRuleSet              []string //Kunal and Victor don't need this btw, delete if it was for them
+	recidivism                  float64
+	riskFactor                  float64
+	friendliness                float64
+	anger                       float64
+	aggression                  float64
+	sensitivity                 float64
+	laziness                    float64
+	//minimumInvestment			float64	// When fish foraging is implemented
 }
 
 type ruleVoteInfo struct {
@@ -128,7 +130,7 @@ type iigoCommunicationInfo struct {
 	startOfTurnSpeakerID   shared.ClientID
 
 	// Struct containing sanction information
-	sanctions sanctionInfo
+	sanctions *sanctionInfo
 
 	// Below need to be at least partially updated by our functions
 

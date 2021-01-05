@@ -28,24 +28,18 @@ import (
 */
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	// c.Logf("became speaker")
-	role := shared.Speaker
-	c.iigoInfo.ourRole = &role
-	return &speaker{c: c}
+	c.clientPrint("became speaker")
+	return &c.ourSpeaker
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	// c.Logf("became judge")
-	role := shared.Judge
-	c.iigoInfo.ourRole = &role
-	return &judge{c: c}
+	c.clientPrint("became judge")
+	return &c.ourJudge
 }
 
 func (c *client) GetClientPresidentPointer() roles.President {
-	// c.Logf("became president")
-	role := shared.President
-	c.iigoInfo.ourRole = &role
-	return &president{c: c}
+	c.clientPrint("became president")
+	return &c.ourPresident
 }
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
@@ -53,12 +47,20 @@ func (c *client) resetIIGOInfo() {
 	c.iigoInfo.ourRole = nil
 	c.iigoInfo.commonPoolAllocation = 0
 	c.iigoInfo.taxationAmount = 0
-	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
 	c.iigoInfo.monitoringOutcomes = make(map[shared.Role]bool)
 	c.iigoInfo.monitoringDeclared = make(map[shared.Role]bool)
 	c.iigoInfo.startOfTurnJudgeID = c.ServerReadHandle.GetGameState().JudgeID
 	c.iigoInfo.startOfTurnPresidentID = c.ServerReadHandle.GetGameState().PresidentID
 	c.iigoInfo.startOfTurnSpeakerID = c.ServerReadHandle.GetGameState().SpeakerID
+	c.iigoInfo.sanctions = &sanctionInfo{
+		tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
+		rulePenalties:   make(map[string]roles.IIGOSanctionScore),
+		islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
+		ourSanction:     roles.IIGOSanctionScore(0),
+	}
+	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
+	c.iigoInfo.ourRequest = 0
+	c.iigoInfo.ourDeclaredResources = 0
 }
 
 func (c *client) getOurRole() string {
@@ -78,7 +80,7 @@ func (c *client) getOurRole() string {
 // This function is overridden to receive information and update local info accordingly.
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
-
+	// TODO parse sanction info
 	for contentType, content := range data {
 		switch contentType {
 		case shared.TaxAmount:
