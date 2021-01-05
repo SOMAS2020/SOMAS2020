@@ -57,7 +57,7 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 			Top:    GetMinMaxCoordinate(Min, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
 		}
 
-		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Right) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
+		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Left) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
 		islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
 	}
 	return islandDVPs
