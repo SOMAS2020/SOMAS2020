@@ -179,6 +179,10 @@ func (e *executive) sendSpeakerSalary() error {
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, e.gameState.SpeakerID, e.gameState)
+
+				variablesToCache := []rules.VariableFieldName{rules.SpeakerSalary, rules.SpeakerPayment}
+				valuesToCache := [][]float64{{float64(e.speakerSalary)}, {float64(amountWithdraw)}}
+				e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
 				return nil
 			}
 		}

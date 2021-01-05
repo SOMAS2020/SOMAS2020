@@ -51,11 +51,23 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{50},
 	},
 	{
+		VariableName: SpeakerPayment,
+		Values:       []float64{50},
+	},
+	{
 		VariableName: JudgeSalary,
 		Values:       []float64{50},
 	},
 	{
+		VariableName: JudgePayment,
+		Values:       []float64{50},
+	},
+	{
 		VariableName: PresidentSalary,
+		Values:       []float64{50},
+	},
+	{
+		VariableName: PresidentPayment,
 		Values:       []float64{50},
 	},
 	{
