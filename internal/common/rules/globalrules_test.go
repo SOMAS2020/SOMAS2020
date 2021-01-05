@@ -33,9 +33,9 @@ func TestIIGOMonitorRulePermission1(t *testing.T) {
 	for _, tc := range cases {
 		UpdateVariable(MonitorRoleDecideToMonitor, MakeVariableValuePair(MonitorRoleDecideToMonitor, []float64{tc.decideToMonitor}))
 		UpdateVariable(MonitorRoleAnnounce, MakeVariableValuePair(MonitorRoleAnnounce, []float64{tc.announce}))
-		eval, _ := BasicBooleanRuleEvaluator("iigo_monitor_rule_permission_1")
+		eval := EvaluateRule("iigo_monitor_rule_permission_1")
 
-		if eval != tc.expected {
+		if eval.RulePasses != tc.expected {
 			t.Errorf("MonitorRulePermission1 - Failed. Input (%v,%v). Rule evaluated to %v, but expected %v.",
 				tc.decideToMonitor, tc.announce, eval, tc.expected)
 		}
@@ -73,9 +73,9 @@ func TestIIGOMonitorRulePermission2(t *testing.T) {
 	for _, tc := range cases {
 		UpdateVariable(MonitorRoleEvalResult, MakeVariableValuePair(MonitorRoleEvalResult, []float64{tc.evalResult}))
 		UpdateVariable(MonitorRoleEvalResultDecide, MakeVariableValuePair(MonitorRoleEvalResultDecide, []float64{tc.evalResultDecide}))
-		eval, _ := BasicBooleanRuleEvaluator("iigo_monitor_rule_permission_2")
+		eval := EvaluateRule("iigo_monitor_rule_permission_2")
 
-		if eval != tc.expected {
+		if eval.RulePasses != tc.expected {
 			t.Errorf("MonitorRulePermission2 - Failed. Input (%v,%v). Rule evaluated to %v, but expected %v.",
 				tc.evalResult, tc.evalResultDecide, eval, tc.expected)
 		}
