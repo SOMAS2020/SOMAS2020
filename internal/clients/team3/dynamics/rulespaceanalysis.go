@@ -23,7 +23,9 @@ func CalculateDistanceFromRuleSpace(allRules []rules.RuleMatrix, namedInputs map
 				return -1
 			}
 			valRule := allRules[currentSmallest]
-			reqMap := sourceRequiredInputs(valRule, namedInputs)
+
+			reqMap := SourceRequiredInputs(valRule, namedInputs)
+
 			newPoint := FindClosestApproach(valRule, reqMap)
 			newMap := softMergeInputs(namedInputs, newPoint)
 			if checkAllCompliant(allRules, newMap) {
@@ -59,14 +61,17 @@ func getSmallestInMap(inputMap map[int]float64) int {
 }
 
 func getDistance(rule rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) float64 {
-	reqMap := sourceRequiredInputs(rule, namedInputs)
-	rawMap := dropAllInputStructs(reqMap)
-	vectData := decodeValues(rule, rawMap)
+
+	reqMap := SourceRequiredInputs(rule, namedInputs)
+
+	rawMap := DropAllInputStructs(reqMap)
+	vectData := DecodeValues(rule, rawMap)
 	allDynamics := BuildAllDynamics(rule, rule.AuxiliaryVector)
 	return GetDistanceToSubspace(allDynamics, *vectData)
 }
 
-func sourceRequiredInputs(rule rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) map[rules.VariableFieldName]Input {
+
+func SourceRequiredInputs(rule rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) map[rules.VariableFieldName]Input {
 	newMap := make(map[rules.VariableFieldName]Input)
 	for _, val := range rule.RequiredVariables {
 		newMap[val] = namedInputs[val]

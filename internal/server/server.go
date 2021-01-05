@@ -66,15 +66,20 @@ func createSOMASServer(
 			Turn:            1,
 			ClientInfos:     clientInfos,
 			Environment:     disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
-			DeerPopulation:  foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig),
 			ForagingHistory: forageHistory,
 			IIGOHistory:     map[uint][]shared.Accountability{},
-			SpeakerID:       shared.Team1,
-			JudgeID:         shared.Team2,
-			PresidentID:     shared.Team3,
-			CommonPool:      gameConfig.InitialCommonPool,
+			IIGORolesBudget: map[shared.Role]shared.Resources{
+				shared.President: 0,
+				shared.Judge:     0,
+				shared.Speaker:   0,
+			},
+			SpeakerID:   shared.Team1,
+			JudgeID:     shared.Team2,
+			PresidentID: shared.Team3,
+			CommonPool:  gameConfig.InitialCommonPool,
 		},
 	}
+	server.gameState.DeerPopulation = foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig, server.logf)
 
 	for _, client := range clientMap {
 		client.Initialise(ServerForClient{
@@ -118,8 +123,7 @@ func (s *SOMASServer) logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
 }
 
-// ServerForClient is a reference to the server for particular client. It is
-// meant as an instance of baseclient.ServerReadHandle
+// ServerForClient is a reference to the server for particular client. It implements baseclient.ServerReadHandle
 type ServerForClient struct {
 	clientID shared.ClientID
 	server   *SOMASServer
@@ -129,4 +133,9 @@ type ServerForClient struct {
 // s.server
 func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 	return s.server.gameState.GetClientGameStateCopy(s.clientID)
+}
+
+// GetGameConfig returns ClientConfig which is a subset of the entire Config that is visible to clients.
+func (s ServerForClient) GetGameConfig() config.ClientConfig {
+	return s.server.gameConfig.GetClientConfig()
 }

@@ -72,10 +72,11 @@ type client struct {
 
 	// params is list of island wide function parameters
 	params islandParams
+
+	locationService locator
 	// iigoInfo caches information regarding iigo in the current turn
 	iigoInfo iigoCommunicationInfo
 
-	locationService    locator
 	localVariableCache map[rules.VariableFieldName]rules.VariableValuePair
 
 	localInputsCache map[rules.VariableFieldName]dynamics.Input

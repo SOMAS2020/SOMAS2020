@@ -2,9 +2,25 @@ package team3
 
 import (
 	"fmt"
+	"math"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+// A mock server handle used for tests
+type mockServerReadHandle struct {
+	gameState  gamestate.ClientGameState
+	gameConfig config.ClientConfig
+}
+
+func (m mockServerReadHandle) GetGameState() gamestate.ClientGameState {
+	return m.gameState
+}
+func (m mockServerReadHandle) GetGameConfig() config.ClientConfig {
+	return m.gameConfig
+}
 
 func (c *client) clientPrint(format string, a ...interface{}) {
 	if printTeam3Logs {
@@ -33,6 +49,15 @@ func (c *client) getIslandsAlive() int {
 	return aliveCount
 }
 
+// areWeCritical returns whether our client is critical or not
+func (c *client) areWeCritical() bool {
+	currentStatus := c.BaseClient.ServerReadHandle.GetGameState().ClientLifeStatuses
+	if currentStatus[c.GetID()] == shared.Critical {
+		return true
+	}
+	return false
+}
+
 // getAverage returns the average of the list
 func getAverage(lst []float64) float64 {
 
@@ -46,4 +71,32 @@ func getAverage(lst []float64) float64 {
 	}
 
 	return (float64(total) / float64(len(lst)))
+}
+
+// mostTrusted return the ClientID that corresponds to the highest trust value
+func mostTrusted(values map[shared.ClientID]float64) shared.ClientID {
+	var max = -math.MaxFloat64
+	var mostTrustedClient shared.ClientID
+
+	for clientID, trustScore := range values {
+		if trustScore > max {
+			max = trustScore
+			mostTrustedClient = clientID
+		}
+	}
+	return mostTrustedClient
+}
+
+// leastTrusted return the ClientID that corresponds to the smallest trust value
+func leastTrusted(values map[shared.ClientID]float64) shared.ClientID {
+	var min = math.MaxFloat64
+	var leastTrustedClient shared.ClientID
+
+	for clientID, trustScore := range values {
+		if trustScore > min {
+			min = trustScore
+			leastTrustedClient = clientID
+		}
+	}
+	return leastTrustedClient
 }

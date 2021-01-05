@@ -3,27 +3,28 @@ package team3
 import (
 	"math"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 /*
-   //IIGO: COMPULSORY
-   MonitorIIGORole(shared.Role) bool
-   DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
+	//IIGO: COMPULSORY
+	MonitorIIGORole(shared.Role) bool
+	DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
 
-   GetVoteForRule(ruleName string) bool
-   GetVoteForElection(roleToElect shared.Role) []shared.ClientID
+	GetVoteForRule(ruleName string) bool
+	GetVoteForElection(roleToElect shared.Role) []shared.ClientID
 
-   CommonPoolResourceRequest() shared.Resources
-   ResourceReport() shared.Resources
-   RuleProposal() string
-   GetClientPresidentPointer() roles.President
-   GetClientJudgePointer() roles.Judge
-   GetClientSpeakerPointer() roles.Speaker
-   TaxTaken(shared.Resources)
-   RequestAllocation() shared.Resources
+	CommonPoolResourceRequest() shared.Resources
+	ResourceReport() shared.Resources
+	RuleProposal() string
+	GetClientPresidentPointer() roles.President
+	GetClientJudgePointer() roles.Judge
+	GetClientSpeakerPointer() roles.Speaker
+	TaxTaken(shared.Resources)
+	RequestAllocation() shared.Resources
 */
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
@@ -156,6 +157,45 @@ func (c *client) GetVoteForRule(ruleName string) bool {
 	// }
 
 	return true
+}
+
+func (c *client) RuleProposal() string {
+	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
+	c.locationService.syncTrustScore(c.trustScore)
+	internalMap := copyRulesMap(rules.RulesInPlay)
+	inputMap := c.locationService.TranslateCommunications(c.localVariableCache)
+	c.localInputsCache = inputMap
+	shortestSoFar := -2.0
+	selectedRule := ""
+	for key, rule := range rules.AvailableRules {
+		if _, ok := rules.RulesInPlay[key]; !ok {
+			reqInputs := dynamics.SourceRequiredInputs(rule, inputMap)
+			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule, reqInputs)
+			if valid {
+				ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
+				distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
+				if distance == -1 {
+					return key
+				}
+				if shortestSoFar == -2.0 || shortestSoFar > distance {
+					shortestSoFar = distance
+					selectedRule = rule.RuleName
+				}
+
+			}
+		} else {
+			lstRules := dynamics.RemoveFromMap(internalMap, key)
+			dist := dynamics.CalculateDistanceFromRuleSpace(lstRules, inputMap)
+			if shortestSoFar == -2.0 || dist < shortestSoFar {
+				selectedRule = rule.RuleName
+				shortestSoFar = dist
+			}
+		}
+	}
+	if selectedRule == "" {
+		return "inspect_ballot_rule"
+	}
+	return selectedRule
 }
 
 // RequestAllocation gives how much island is taking from common pool

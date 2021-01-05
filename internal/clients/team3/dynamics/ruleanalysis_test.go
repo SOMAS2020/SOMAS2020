@@ -45,7 +45,7 @@ func TestDropAllInputStructs(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			res := dropAllInputStructs(tc.input)
+			res := DropAllInputStructs(tc.input)
 			if !reflect.DeepEqual(res, tc.expected) {
 				t.Errorf("Expected %v got %v", tc.expected, res)
 			}

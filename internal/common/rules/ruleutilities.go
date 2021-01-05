@@ -16,6 +16,15 @@ func PickUpRulesByVariable(variableName VariableFieldName, ruleStore map[string]
 	return []string{}, false
 }
 
+func checkAllVariablesAvailable(requiredVariables []VariableFieldName, variables map[VariableFieldName]VariableValuePair) bool {
+	for _, reqVariable := range requiredVariables {
+		if _, ok := variables[reqVariable]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
 func searchForVariableInArray(val VariableFieldName, array []VariableFieldName) (int, bool) {
 	for i, v := range array {
 		if v == val {
