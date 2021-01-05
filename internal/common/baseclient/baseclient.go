@@ -1,10 +1,10 @@
-// Package baseclient contains the Client interface as well as a base client implementation.
 package baseclient
 
 import (
 	"fmt"
 	"log"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -21,7 +21,7 @@ type Client interface {
 	Logf(format string, a ...interface{})
 
 	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(roleToElect shared.Role) []shared.ClientID
+	VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
@@ -31,10 +31,11 @@ type Client interface {
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
-	TaxTaken(shared.Resources)
 	GetTaxContribution() shared.Resources
 	GetSanctionPayment() shared.Resources
 	RequestAllocation() shared.Resources
+	ShareIntendedContribution() shared.IntendedContribution
+	ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict)
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
@@ -68,6 +69,7 @@ type Client interface {
 // ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate
 type ServerReadHandle interface {
 	GetGameState() gamestate.ClientGameState
+	GetGameConfig() config.ClientConfig
 }
 
 // NewClient produces a new client with the BaseClient already implemented.
@@ -84,11 +86,13 @@ func NewClient(id shared.ClientID) *BaseClient {
 type BaseClient struct {
 	id shared.ClientID
 
-	predictionInfo shared.DisasterPredictionInfo
+	predictionInfo       shared.DisasterPredictionInfo
+	intendedContribution shared.IntendedContribution
 
 	// exported variables are accessible by the client implementations
-	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
-	ServerReadHandle ServerReadHandle
+	LocalVariableCache map[rules.VariableFieldName]rules.VariableValuePair
+	Communications     map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
+	ServerReadHandle   ServerReadHandle
 }
 
 // Echo prints a message to show that the client exists
@@ -109,6 +113,7 @@ func (c *BaseClient) GetID() shared.ClientID {
 // You will need it to access the game state through its GetGameStateMethod.
 func (c *BaseClient) Initialise(serverReadHandle ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
+	c.LocalVariableCache = rules.CopyVariableMap()
 }
 
 // StartOfTurn handles the start of a new turn.
@@ -124,6 +129,7 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 }
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
+// COMPULSORY: vote to represent your island's opinion on a rule
 func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 	// TODO implement decision on voting that considers the rule
 	return true
@@ -131,29 +137,59 @@ func (c *BaseClient) GetVoteForRule(ruleName string) bool {
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
 // COMPULSORY: use opinion formation to decide a rank for islands for the role
-func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
-	// Done ;)
-	// Get all alive islands
-	aliveClients := rules.VariableMap[rules.IslandsAlive]
-	// Convert to ClientID type and place into unordered map
-	aliveClientIDs := map[int]shared.ClientID{}
-	for i, v := range aliveClients.Values {
-		aliveClientIDs[i] = shared.ClientID(int(v))
+func (c *BaseClient) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
+	candidates := map[int]shared.ClientID{}
+	for i := 0; i < len(candidateList); i++ {
+		candidates[i] = candidateList[i]
 	}
 	// Recombine map, in shuffled order
 	var returnList []shared.ClientID
-	for _, v := range aliveClientIDs {
+	for _, v := range candidates {
 		returnList = append(returnList, v)
 	}
 	return returnList
 }
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
+// COMPULSORY: please override to save incoming communication relevant to your agent strategy
 func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	c.InspectCommunication(data)
 	c.Communications[sender] = append(c.Communications[sender], data)
 }
 
+// InspectCommunication is a function which scans over Receive communications for any data
+// that might be used to update the LocalVariableCache
+func (c *BaseClient) InspectCommunication(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	if c.LocalVariableCache == nil {
+		return
+	}
+	for fieldName, dataPoint := range data {
+		switch fieldName {
+		case shared.TaxAmount:
+			c.LocalVariableCache[rules.ExpectedTaxContribution] = rules.VariableValuePair{
+				VariableName: rules.ExpectedTaxContribution,
+				Values:       []float64{float64(dataPoint.IntegerData)},
+			}
+		case shared.AllocationAmount:
+			c.LocalVariableCache[rules.ExpectedAllocation] = rules.VariableValuePair{
+				VariableName: rules.ExpectedAllocation,
+				Values:       []float64{float64(dataPoint.IntegerData)},
+			}
+		case shared.SanctionAmount:
+			c.LocalVariableCache[rules.SanctionExpected] = rules.VariableValuePair{
+				VariableName: rules.SanctionExpected,
+				Values:       []float64{float64(dataPoint.IntegerData)},
+			}
+		// TODO: Extend according to new rules added by Team 4
+		default:
+			c.Logf("Communication variable doesn't have associated val %v", fieldName)
+		}
+
+	}
+}
+
 // GetCommunications is used for testing communications
+// BASE
 func (c *BaseClient) GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
 	return &c.Communications
 }
