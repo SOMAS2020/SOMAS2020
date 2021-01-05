@@ -37,6 +37,9 @@ type Config struct {
 
 	// Wrapped disaster config
 	DisasterConfig DisasterConfig
+
+	// Wrapped IIGO config
+	IIGOConfig IIGOConfig
 }
 
 // DeerHuntConfig is a subset of foraging config
@@ -46,8 +49,11 @@ type DeerHuntConfig struct {
 	IncrementalInputDecay float64                             // Determines decay of incremental input cost of hunting more deer
 	BernoulliProb         float64                             // `p` param in D variable (see README). Controls prob of catching a deer or not
 	ExponentialRate       float64                             // `lambda` param in W variable (see README). Controls distribution of deer sizes.
-	ResourceMultiplier    float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	InputScaler           float64                             // scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.
+	OutputScaler          float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
 	DistributionStrategy  shared.ResourceDistributionStrategy // basis on which returns are split amongst hunters
+	ThetaCritical         float64                             // Bernoulli prob of catching deer when running population = max deer per hunt
+	ThetaMax              float64                             // Bernoulli prob of catching deer when running population = carrying capacity (max population)
 
 	// Deer Population
 	MaxDeerPopulation     uint    // Max possible deer population.
@@ -61,16 +67,46 @@ type FishingConfig struct {
 	IncrementalInputDecay float64                             // Determines decay of incremental input cost of catching additional fish
 	Mean                  float64                             // mean of normally distributed fish size
 	Variance              float64                             // variance of normally distributed fish size
-	ResourceMultiplier    float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
+	InputScaler           float64                             // scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.
+	OutputScaler          float64                             // scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.
 	DistributionStrategy  shared.ResourceDistributionStrategy // basis on which returns are split amongst fishermen
 }
 
 // DisasterConfig captures disaster-specific config
 type DisasterConfig struct {
-	XMin, XMax, YMin, YMax shared.Coordinate     // [min, max] x,y bounds of archipelago (bounds for possible disaster)
-	GlobalProb             float64               // Bernoulli 'p' param. Chance of a disaster occurring
-	SpatialPDFType         shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
-	MagnitudeLambda        float64               // Exponential rate param for disaster magnitude
+	XMin, XMax, YMin, YMax      shared.Coordinate     // [min, max] x,y bounds of archipelago (bounds for possible disaster)
+	Period                      uint                  // Period T between disasters in deterministic case and E[T] in stochastic case.
+	SpatialPDFType              shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
+	MagnitudeLambda             float64               // Exponential rate param for disaster magnitude
+	MagnitudeResourceMultiplier float64               // multiplier to map disaster magnitude to CP resource deductions
+	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
+	StochasticPeriod            bool                  // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
+	CommonpoolThresholdVisible  bool                  // whether CommonpoolThreshold is visible to clients
+}
+
+type IIGOConfig struct {
+	// Executive branch
+	GetRuleForSpeakerActionCost        shared.Resources
+	BroadcastTaxationActionCost        shared.Resources
+	ReplyAllocationRequestsActionCost  shared.Resources
+	RequestAllocationRequestActionCost shared.Resources
+	RequestRuleProposalActionCost      shared.Resources
+	AppointNextSpeakerActionCost       shared.Resources
+	// Judiciary branch
+	InspectHistoryActionCost       shared.Resources
+	InspectBallotActionCost        shared.Resources
+	InspectAllocationActionCost    shared.Resources
+	AppointNextPresidentActionCost shared.Resources
+	SanctionCacheDepth             int
+	HistoryCacheDepth              int
+	AssumedResourcesNoReport       shared.Resources
+	SanctionLength                 int
+	// Legislative branch
+	SetVotingResultActionCost      shared.Resources
+	SetRuleToVoteActionCost        shared.Resources
+	AnnounceVotingResultActionCost shared.Resources
+	UpdateRulesActionCost          shared.Resources
+	AppointNextJudgeActionCost     shared.Resources
 }
 
 // ForagingConfig captures foraging-specific config
