@@ -2,14 +2,10 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
-	// "github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-
-	"math"
-
-	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"math"
 )
 
 /*
@@ -117,7 +113,6 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	}
 }
 
-
 func (c *client) RuleProposal() string {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
@@ -148,7 +143,7 @@ func (c *client) RuleProposal() string {
 			if shortestSoFar == -2.0 || dist < shortestSoFar {
 				selectedRule = rule.RuleName
 				shortestSoFar = dist
-        }
+			}
 		}
 	}
 	if selectedRule == "" {
@@ -205,7 +200,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	// TODO request based on disaster prediction
 	c.clientPrint("Our Request: %f", request)
 	return request
-}		
+}
 
 func copyRulesMap(inp map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
 	newMap := make(map[string]rules.RuleMatrix)
@@ -214,4 +209,3 @@ func copyRulesMap(inp map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
 	}
 	return newMap
 }
-
