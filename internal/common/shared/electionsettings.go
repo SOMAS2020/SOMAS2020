@@ -12,8 +12,9 @@ type ElectionVotingMethod int
 // Methods for winner selection in IIGO elections
 const (
 	BordaCount ElectionVotingMethod = iota
-	Plurality
-	Majority
+	Runoff
+	InstantRunoff
+	Approval
 )
 
 // ElectionSettings allows islands to configure elections for power transfer in IIGO
@@ -26,8 +27,9 @@ type ElectionSettings struct {
 func (e ElectionVotingMethod) String() string {
 	strs := [...]string{
 		"BordaCount",
-		"Plurality",
-		"Majority",
+		"Runoff",
+		"InstantRunoff",
+		"Approval",
 	}
 	if e >= 0 && int(e) < len(strs) {
 		return strs[e]

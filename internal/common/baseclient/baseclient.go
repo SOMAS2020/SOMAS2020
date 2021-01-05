@@ -1,4 +1,3 @@
-// Package baseclient contains the Client interface as well as a base client implementation.
 package baseclient
 
 import (
@@ -21,14 +20,14 @@ type Client interface {
 	StartOfTurn()
 	Logf(format string, a ...interface{})
 
-	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(roleToElect shared.Role) []shared.ClientID
+	VoteForRule(ruleName rules.RuleMatrix) shared.RuleVoteType
+	VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
 	CommonPoolResourceRequest() shared.Resources
 	ResourceReport() shared.ResourcesReport
-	RuleProposal() string
+	RuleProposal() rules.RuleMatrix
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
@@ -131,25 +130,22 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
-func (c *BaseClient) GetVoteForRule(ruleName string) bool {
+
+func (c *BaseClient) VoteForRule(ruleName rules.RuleMatrix) shared.RuleVoteType {
 	// TODO implement decision on voting that considers the rule
-	return true
+	return shared.Approve
 }
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
 // COMPULSORY: use opinion formation to decide a rank for islands for the role
-func (c *BaseClient) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
-	// Done ;)
-	// Get all alive islands
-	aliveClients := rules.VariableMap[rules.IslandsAlive]
-	// Convert to ClientID type and place into unordered map
-	aliveClientIDs := map[int]shared.ClientID{}
-	for i, v := range aliveClients.Values {
-		aliveClientIDs[i] = shared.ClientID(int(v))
+func (c *BaseClient) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
+	candidates := map[int]shared.ClientID{}
+	for i := 0; i < len(candidateList); i++ {
+		candidates[i] = candidateList[i]
 	}
 	// Recombine map, in shuffled order
 	var returnList []shared.ClientID
-	for _, v := range aliveClientIDs {
+	for _, v := range candidates {
 		returnList = append(returnList, v)
 	}
 	return returnList
