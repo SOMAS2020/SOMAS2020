@@ -146,8 +146,45 @@ func (pres *president) CallSpeakerElection(monitoring shared.MonitorResult, turn
 // DecideNextSpeaker returns the ID of chosen next Speaker
 // OPTIONAL: override to manipulate the result of the election
 
-//Spicing things up and randomly choosing the speaker, however we will link this to **opinion**
+//Deciding next speaker revokes the voting procedure and it is selected using our opinion,
+//the island with the highest opinion is selected as the speaker of next round
+
 func (pres *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	rand.Seed(time.Now().UnixNano())
-	return shared.ClientID(rand.Intn(5))
+	oparray := []opinionScore{}
+	for id, opinion := range pres.c.opinions { //stores scores except team 5's in an array
+		if id != ourClientID {
+			oparray = append(oparray, opinion.score)
+		}
+	}
+	_, max := pres.c.minmaxOpinion(oparray) //calculates mas score from the array of opinion scores
+
+	if max > 0.0 {
+		for client, op := range pres.c.opinions { //matches highest score to the id of the island and returns that island as the speaker
+			if op.score == max {
+				pres.c.Logf("Opinion on team %v is %v", client, op.score)
+				return shared.ClientID(client)
+			}
+
+		}
+		return shared.ClientID(rand.Intn(5)) //this should never be trigerred, just here for completeness
+	} else {
+		return shared.ClientID(rand.Intn(5)) //triggered if max<0 and thus it's better to randomize speaker selection
+	}
+}
+
+//This function takes in an array of opinions when called and outputs the minimum and maximum scores
+//that can then be matched to the id of an island.
+func (c client) minmaxOpinion(o []opinionScore) (min opinionScore, max opinionScore) {
+	min = o[0]
+	max = o[0]
+	for _, value := range o {
+		if value < min {
+			min = value
+		}
+		if value > max {
+			max = value
+		}
+	}
+	return min, max
 }
