@@ -46,6 +46,9 @@ func (c *client) StartOfTurn() {
 	turn := c.getTurn()
 	c.cpResourceHistory[turn] = c.getCP()
 
+	//update opinion score of current roles
+	c.evaluateRoles()
+
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {

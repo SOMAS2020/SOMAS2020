@@ -60,8 +60,7 @@ func (c *client) normalizeOpinion() {
 	}
 }
 
-//Evaluate if the roles are corrupted or not based on their budget spending
-//	versus total tax paid to common pool
+//Evaluate if the roles are corrupted or not based on their budget spending versus total tax paid to common pool
 //Either everyone is corrupted or not
 func (c *client) evaluateRoles() {
 	speakerID := c.ServerReadHandle.GetGameState().SpeakerID
@@ -90,6 +89,8 @@ func (c *client) evaluateRoles() {
 		c.opinions[presidentID].score -= 0.1
 	}
 	c.normalizeOpinion()
+}
+
 // getTrustedTeams finds teams whose opinion scores (our opinion of them) exceed a threshold `trustThresh`. Furthermore,
 // if `proportional` is true, the scores of the trusted teams will be relative (such that sum of scores = 1). If not,
 // the absolute opinion scores for each client are returned. // TODO: decide if our team should be included here or not
