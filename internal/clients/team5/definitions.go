@@ -81,10 +81,11 @@ type client struct {
 	disasterHistory     disasterHistory
 
 	// current states
-	opinions       opinionMap // opinions of each team
-	taxAmount      shared.Resources
-	allocation     shared.Resources
-	sanctionAmount shared.Resources
+	opinions             opinionMap // opinions of each team
+	taxAmount            shared.Resources
+	allocation           shared.Resources
+	sanctionAmount       shared.Resources
+	lastDisasterForecast shared.DisasterPrediction // stores our most recent disaster forecast
 
 	config clientConfig
 }

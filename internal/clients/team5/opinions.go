@@ -8,6 +8,14 @@ import (
 
 type opinionScore float64
 
+type trustBasis int
+
+// basis on which we trust another team. May may only care about their forecasting reputation, for example.
+const (
+	generalBasis trustBasis = iota
+	forecastingBasis
+)
+
 // an opinion of another island is our general perception of it and is characterised by a score
 // between 1.0 (highest/best perception) and -1.0 (worst/lowest perception). Potential events that may
 // affect our opinion of other teams:
@@ -16,7 +24,8 @@ type opinionScore float64
 // - corrupt IIGO roles
 // - others?
 type opinion struct {
-	score opinionScore // may want to define other atrributes that form an opinion
+	score              opinionScore // broad opinion score
+	forecastReputation opinionScore
 }
 
 // opinions of each team. Need opinion as a pointer so we can modify it
@@ -42,11 +51,20 @@ func (o opinion) String() string {
 
 // getTrustedTeams finds teams whose opinion scores (our opinion of them) exceed a threshold `trustThresh`. Furthermore,
 // if `proportional` is true, the scores of the trusted teams will be relative (such that sum of scores = 1). If not,
-// the absolute opinion scores for each client are returned.
-func (c client) getTrustedTeams(trustThresh opinionScore, proportional bool) (trustedTeams map[shared.ClientID]float64) {
+// the absolute opinion scores for each client are returned. // TODO: decide if our team should be included here or not
+func (c client) getTrustedTeams(trustThresh opinionScore, proportional bool, basis trustBasis) (trustedTeams map[shared.ClientID]float64) {
 	totalTrustedOpScore := 0.0
 	for team, opinion := range c.opinions {
-		if opinion.score >= trustThresh && c.isClientAlive(team) { // trust team and they're alive
+		opValue := opinionScore(0.0)
+
+		switch basis { // get opinion value based on the trust basis specified
+		case generalBasis:
+			opValue = opinion.score
+		case forecastingBasis:
+			opValue = opinion.forecastReputation
+		}
+
+		if opValue >= trustThresh && c.isClientAlive(team) { // trust team and they're alive
 			trustedTeams[team] = float64(opinion.score)
 			totalTrustedOpScore += float64(opinion.score) // store this in case proportional score scaling is req.
 		}
