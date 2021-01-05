@@ -16,6 +16,16 @@ const (
 	Judge
 )
 
+//Rule vote types
+type RuleVoteResult int
+
+const (
+	Approve = iota
+	Reject
+	Abstain
+)
+
+
 func (r Role) String() string {
 	strs := [...]string{"President", "Speaker", "Judge"}
 	if r >= 0 && int(r) < len(strs) {
