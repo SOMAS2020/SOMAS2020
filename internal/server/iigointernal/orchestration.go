@@ -36,7 +36,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		gameState:          nil,
 		gameConf:           nil,
 		JudgeID:            0,
-		presidentSalary:    0,
 		evaluationResults:  nil,
 		localSanctionCache: defaultInitLocalSanctionCache(3),
 		localHistoryCache:  defaultInitLocalHistoryCache(3),
@@ -48,7 +47,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		gameState:    nil,
 		gameConf:     nil,
 		SpeakerID:    0,
-		judgeSalary:  0,
 		ruleToVote:   "",
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
@@ -60,7 +58,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		gameState:        nil,
 		gameConf:         nil,
 		PresidentID:      0,
-		speakerSalary:    0,
 		ResourceRequests: nil,
 	}
 

@@ -16,7 +16,6 @@ type legislature struct {
 	gameState         *gamestate.GameState
 	gameConf          *config.IIGOConfig
 	SpeakerID         shared.ClientID
-	judgeSalary       shared.Resources
 	ruleToVote        string
 	ballotBox         voting.BallotBox
 	votingResult      bool
@@ -41,7 +40,7 @@ func (l *legislature) syncWithGame(gameState *gamestate.GameState, gameConf *con
 // sendJudgeSalary conduct the transaction based on amount from client implementation
 func (l *legislature) sendJudgeSalary() error {
 	if l.clientSpeaker != nil {
-		amountReturn := l.clientSpeaker.PayJudge(l.judgeSalary)
+		amountReturn := l.clientSpeaker.PayJudge()
 		if amountReturn.ActionTaken && amountReturn.ContentType == shared.SpeakerJudgeSalary {
 			// Subtract from common resources pool
 			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn.JudgeSalary, l.gameState)
@@ -50,8 +49,8 @@ func (l *legislature) sendJudgeSalary() error {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, l.gameState.JudgeID, l.gameState)
 
-				variablesToCache := []rules.VariableFieldName{rules.JudgeSalary, rules.JudgePayment}
-				valuesToCache := [][]float64{{float64(l.judgeSalary)}, {float64(amountWithdraw)}}
+				variablesToCache := []rules.VariableFieldName{rules.JudgePayment}
+				valuesToCache := [][]float64{{float64(amountWithdraw)}}
 				l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 				return nil
 			}

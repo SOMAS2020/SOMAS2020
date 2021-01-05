@@ -266,34 +266,31 @@ func registerRulesByMass() {
 		{
 			Name: "salary_cycle_speaker",
 			ReqVar: []VariableFieldName{
-				SpeakerSalary,
 				SpeakerPayment,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -10},
 			Aux:     []float64{0},
-			Mutable: false,
+			Mutable: true,
 			Linked:  false,
 		},
 		{
 			Name: "salary_cycle_judge",
 			ReqVar: []VariableFieldName{
-				JudgeSalary,
 				JudgePayment,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -10},
 			Aux:     []float64{0},
-			Mutable: false,
+			Mutable: true,
 			Linked:  false,
 		},
 		{
 			Name: "salary_cycle_president",
 			ReqVar: []VariableFieldName{
-				PresidentSalary,
 				PresidentPayment,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -10},
 			Aux:     []float64{0},
-			Mutable: false,
+			Mutable: true,
 			Linked:  false,
 		},
 		{
