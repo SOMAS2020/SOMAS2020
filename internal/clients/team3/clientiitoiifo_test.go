@@ -29,10 +29,10 @@ func TestGetGiftRequests(t *testing.T) {
 					},
 					ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
 				params: islandParams{
-					giftInflationPercentage: 0.2,
+					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.75,
-					trustConstantAdjustor:   2,
+					trustParameter:          0.5,
+					trustConstantAdjustor:   0.5,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -59,10 +59,10 @@ func TestGetGiftRequests(t *testing.T) {
 					},
 					ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
 				params: islandParams{
-					giftInflationPercentage: 0.2,
+					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.75,
-					trustConstantAdjustor:   2,
+					trustParameter:          0.5,
+					trustConstantAdjustor:   0.5,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -101,17 +101,17 @@ func TestGetGiftRequests(t *testing.T) {
 					},
 					ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
 				params: islandParams{
-					giftInflationPercentage: 0.2,
+					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.75,
-					trustConstantAdjustor:   2,
+					trustParameter:          0.5,
+					trustConstantAdjustor:   0.5,
 				},
 				trustScore: map[shared.ClientID]float64{
-					shared.Team1: 75.476,
-					shared.Team2: 25.2525,
+					shared.Team1: 0,
+					shared.Team2: 10,
 					shared.Team4: 20,
-					shared.Team5: 100,
-					shared.Team6: 50.001,
+					shared.Team5: 30,
+					shared.Team6: 40,
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
 					shared.Team1: 0,
@@ -165,10 +165,10 @@ func TestGetGiftOffers(t *testing.T) {
 						},
 						ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
 				params: islandParams{
-					giftInflationPercentage: 0.2,
+					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.75,
-					trustConstantAdjustor:   2,
+					trustParameter:          0.5,
+					trustConstantAdjustor:   0.5,
 					giftOfferEquity:         1.1, //TODO needs to be adjusted
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -206,10 +206,10 @@ func TestGetGiftOffers(t *testing.T) {
 						},
 						ClientInfo: gamestate.ClientInfo{Resources: 1000.0}}}},
 				params: islandParams{
-					giftInflationPercentage: 0.2,
+					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.75,
-					trustConstantAdjustor:   2,
+					trustParameter:          0.5,
+					trustConstantAdjustor:   0.5,
 					giftOfferEquity:         1.1, //TODO needs to be adjusted
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -258,10 +258,10 @@ func TestGetGiftOffers(t *testing.T) {
 						},
 						ClientInfo: gamestate.ClientInfo{Resources: 1000.0}}}},
 				params: islandParams{
-					giftInflationPercentage: 0.2,
+					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.75,
-					trustConstantAdjustor:   2,
+					trustParameter:          0.5,
+					trustConstantAdjustor:   0.5,
 					giftOfferEquity:         1.1, //TODO needs to be adjusted
 				},
 				trustScore: map[shared.ClientID]float64{

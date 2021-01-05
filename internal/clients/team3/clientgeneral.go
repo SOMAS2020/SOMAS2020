@@ -43,7 +43,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 
 func (c *client) StartOfTurn() {
 	// c.Logf("Start of turn!")
-	// TODO add any functions and vairable changes here
+	// TODO add any functions and variable changes here
 
 	// Initialise trustMap and theirtrustMap local cache to empty maps
 	c.inittrustMapAgg()
@@ -67,9 +67,10 @@ func (c *client) updatetheirtrustMapAgg(ClientID shared.ClientID, amount float64
 
 // inittrustMapAgg initialises the trustMapAgg to empty list values ready for each turn
 func (c *client) inittrustMapAgg() {
+	c.trustMapAgg = map[shared.ClientID][]float64{}
 
 	for _, islandID := range shared.TeamIDs {
-		if islandID == shared.Team3 {
+		if islandID == c.BaseClient.GetID() {
 			continue
 		}
 		c.trustMapAgg[islandID] = []float64{}
@@ -78,8 +79,10 @@ func (c *client) inittrustMapAgg() {
 
 // inittheirtrustMapAgg initialises the theirTrustMapAgg to empty list values ready for each turn
 func (c *client) inittheirtrustMapAgg() {
+	c.theirTrustMapAgg = map[shared.ClientID][]float64{}
+
 	for _, islandID := range shared.TeamIDs {
-		if islandID == shared.Team3 {
+		if islandID == c.BaseClient.GetID() {
 			continue
 		}
 		c.theirTrustMapAgg[islandID] = []float64{}

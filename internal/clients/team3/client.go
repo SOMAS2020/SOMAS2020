@@ -79,7 +79,8 @@ type islandParams struct {
 	salaryThreshold             float64
 	localPoolThreshold          float64
 	giftInflationPercentage     float64
-	trustConstantAdjustor       int
+	trustConstantAdjustor       float64
 	trustParameter              float64
 	giftOfferEquity             float64
+	NoRequestGiftParam          float64
 }

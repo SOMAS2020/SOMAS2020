@@ -1,6 +1,7 @@
 package team3
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -43,12 +44,14 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	localPool := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 
 	resourcesNeeded := c.params.localPoolThreshold - float64(localPool)
+	fmt.Println("resources needed: ", resourcesNeeded)
 	if resourcesNeeded > 0 {
 		resourcesNeeded *= (1 + c.params.giftInflationPercentage)
 		totalRequestAmt = resourcesNeeded
 	} else {
 		totalRequestAmt = c.params.giftInflationPercentage * c.params.localPoolThreshold
 	}
+	fmt.Println("total request amount: ", totalRequestAmt)
 
 	avgRequestAmt := totalRequestAmt / float64(c.getIslandsAlive()-c.getIslandsCritical())
 
@@ -60,14 +63,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			requests[island] = shared.GiftRequest(0.0)
 		} else {
 			var requestAmt float64
-			if c.trustScore[island] >= 50 {
-				requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.trustParameter) * float64(c.params.trustConstantAdjustor)
-			} else {
-				// TODO: strategy does not really work well < 50 for e.g. trustScore == 0 and trustScore == 20 requesting
-				// gifts in magniture of 0.88 - 1.5 ish which is negligible in relation to gifts requested from trusted
-				// islands
-				requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], -c.params.trustParameter) * float64(c.params.trustConstantAdjustor)
-			}
+			requestAmt = avgRequestAmt*math.Pow(c.trustScore[island], c.params.trustParameter) + c.params.trustConstantAdjustor
 			requests[island] = shared.GiftRequest(requestAmt)
 		}
 	}
@@ -118,18 +114,27 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	var allocations = map[shared.ClientID]float64{}
 	var allocWeights = map[shared.ClientID]float64{}
 	var allocSum float64
-	//var avgAmount, avgRequest shared.GiftRequest
 	var totalRequestedAmt float64
 	var sumRequest shared.GiftRequest
 
+	// 1, 2, 5
 	for island, request := range receivedRequests {
 		sumRequest += request
-		if c.trustScore[island] > 50 {
-			amounts[island] = request * shared.GiftRequest(math.Pow(c.trustScore[island], c.params.trustParameter)*float64(c.params.trustConstantAdjustor))
-		} else {
-			amounts[island] = request * shared.GiftRequest(math.Pow(c.trustScore[island], -c.params.trustParameter)*float64(c.params.trustConstantAdjustor))
+		amounts[island] = request * shared.GiftRequest(math.Pow(c.trustScore[island], c.params.trustParameter)+c.params.trustConstantAdjustor)
+	}
+
+	// fmt.Println("original amounts: ", amounts)
+
+	// 4
+	for _, island := range c.getAliveIslands() {
+		if island == c.BaseClient.GetID() {
+			continue
+		} else if amounts[island] == 0.0 {
+			amounts[island] = shared.GiftRequest(c.trustScore[island] * c.params.NoRequestGiftParam)
 		}
 	}
+
+	fmt.Println("amounts: ", amounts)
 
 	avgRequest := findAvgExclMinMax(receivedRequests)
 	avgAmount := findAvgExclMinMax(amounts)
@@ -138,6 +143,8 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		allocations[island] = float64(avgRequest) + c.params.giftOfferEquity*float64((avgAmount-amount)+(receivedRequests[island]-avgRequest))
 		allocations[island] = math.Max(float64(receivedRequests[island]), allocations[island])
 	}
+
+	fmt.Println("allocations: ", allocations)
 
 	for _, alloc := range allocations {
 		allocSum += alloc

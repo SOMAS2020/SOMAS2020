@@ -26,6 +26,20 @@ func (c *client) getIslandsAlive() int {
 	return aliveCount
 }
 
+func (c *client) getAliveIslands() []shared.ClientID {
+	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
+	var aliveIslands = []shared.ClientID{}
+
+	currentState := c.BaseClient.ServerReadHandle.GetGameState()
+	lifeStatuses = currentState.ClientLifeStatuses
+	for id, statusInfo := range lifeStatuses {
+		if statusInfo == shared.Alive {
+			aliveIslands = append(aliveIslands, id)
+		}
+	}
+	return aliveIslands
+}
+
 // getIslandsCritical retrives number of islands that are critical
 func (c *client) getIslandsCritical() int {
 	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
