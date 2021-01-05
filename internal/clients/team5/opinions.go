@@ -54,6 +54,7 @@ func (o opinion) String() string {
 // the absolute opinion scores for each client are returned. // TODO: decide if our team should be included here or not
 func (c client) getTrustedTeams(trustThresh opinionScore, proportional bool, basis trustBasis) (trustedTeams map[shared.ClientID]float64) {
 	totalTrustedOpScore := 0.0
+	trustedTeams = map[shared.ClientID]float64{}
 	for team, opinion := range c.opinions {
 		opValue := opinionScore(0.0)
 
