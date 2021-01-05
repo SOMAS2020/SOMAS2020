@@ -14,6 +14,7 @@ func init() {
 		cpAllocationHistory: cpAllocationHistory{},
 		forageHistory:       forageHistory{},
 		resourceHistory:     resourceHistory{},
+		team5president:      president{},
 		giftHistory:         map[shared.ClientID]giftExchange{},
 
 		taxAmount:  0,
@@ -39,6 +40,10 @@ func (c *client) StartOfTurn() {
 			return
 		}
 	}
+
+	//update cpResourceHistory
+	turn := c.getTurn()
+	c.cpResourceHistory[turn] = c.getCP()
 
 }
 
