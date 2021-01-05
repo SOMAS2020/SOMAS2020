@@ -34,12 +34,25 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 		evaluationResult := false
 		if decideToMonitor {
 			evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
-			evaluationResult, announce := roleAccountable.DecideIIGOMonitoringAnnouncement(evaluationResult)
-			if announce {
-				message := generateMonitoringMessage(roleName, evaluationResult)
-				broadcastToAllIslands(roleAccountable.GetID(), message)
-			}
 		}
+
+		evaluationResultAnnounce, announce := roleAccountable.DecideIIGOMonitoringAnnouncement(evaluationResult)
+
+		//announce == decideToMonitor
+		variablesToCache := []rules.VariableFieldName{rules.MonitorRoleAnnounce, rules.MonitorRoleDecideToMonitor}
+		valuesToCache := [][]float64{{boolToFloat(decideToMonitor)}, {boolToFloat(announce)}}
+		m.addToCache(roleAccountable.GetID(), variablesToCache, valuesToCache)
+
+		if announce {
+			//check if evalResult = o.g. evalResult
+			variablesToCache := []rules.VariableFieldName{rules.MonitorRoleEvalResult, rules.MonitorRoleEvalResultDecide}
+			valuesToCache := [][]float64{{boolToFloat(evaluationResult)}, {boolToFloat(evaluationResultAnnounce)}}
+			m.addToCache(roleAccountable.GetID(), variablesToCache, valuesToCache)
+
+			message := generateMonitoringMessage(roleName, evaluationResult)
+			broadcastToAllIslands(roleAccountable.GetID(), message)
+		}
+
 		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}
 		return result
 	}

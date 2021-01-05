@@ -74,6 +74,10 @@ const (
 	SanctionExpected
 	TestVariable
 	JudgeInspectionPerformed
+	MonitorRoleAnnounce
+	MonitorRoleDecideToMonitor
+	MonitorRoleEvalResult
+	MonitorRoleEvalResultDecide
 	VoteResultAnnounced
 	IslandsAllowedToVote
 	SpeakerProposedPresidentRule
@@ -114,6 +118,10 @@ func (v VariableFieldName) String() string {
 		"SanctionExpected",
 		"TestVariable",
 		"JudgeInspectionPerformed",
+		"MonitorRoleAnnounce",
+		"MonitorRoleDecideToMonitor",
+		"MonitorRoleEvalResult",
+		"MonitorRoleEvalResultDecide",
 		"VoteResultAnnounced",
 		"IslandsAllowedToVote",
 		"SpeakerProposedPresidentRule",
