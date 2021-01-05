@@ -7,74 +7,97 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = shared.Team5
-
 func init() {
-	baseclient.RegisterClient(
-		id,
-		&client{
-			BaseClient:    baseclient.NewClient(id),
-			cpRequestHistory: CPRequestHistory{},
-			cpAllocationHistory: CPAllocationHistory{},
-			taxAmount:     0,
-			allocation:    0,
-			config: clientConfig {  
-				JBThreshold:       100,      
-				MiddleThreshold:   60,     
-				ImperialThreshold: 30,	
-			},
-		},
-	)
+	c := client{
+		BaseClient:          baseclient.NewClient(ourClientID),
+		cpRequestHistory:    cpRequestHistory{},
+		cpAllocationHistory: cpAllocationHistory{},
+		forageHistory:       forageHistory{},
+		resourceHistory:     resourceHistory{},
+		giftHistory:         map[shared.ClientID]giftExchange{},
+
+		taxAmount:  0,
+		allocation: 0,
+		config:     getClientConfig(),
+	}
+
+	baseclient.RegisterClient(ourClientID, &c)
 }
 
-type client struct {
-	*baseclient.BaseClient
-
-	cpRequestHistory  	CPRequestHistory
-	cpAllocationHistory	CPAllocationHistory
-
-	taxAmount     		shared.Resources
-
-	// allocation is the president's response to your last common pool resource request
-	allocation 			shared.Resources
-
-	config 				clientConfig
-}
-
-
-func (c client) wealth() WealthTier {  
-	c_data := c.gameState().ClientInfo  
-	switch {  
-		case c_data.LifeStatus == shared.Critical:    
-			return Dying  
-		case c_data.Resources > c.config.ImperialThreshold && c_data.Resources < c.config.MiddleThreshold :    
-			return Imperial_Student  
-		case c_data.Resources > c.config.JBThreshold:    
-			return Jeff_Bezos  
-		default:    
-			return Middle_Class  
-		}
-}
-
+// StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
-	c.Logf("Wealth state: %v", c.wealth())
-	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
+	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
+	c.wealth()
 
-	for clientID, status := range c.gameState().ClientLifeStatuses {
+	// Print the Thresholds
+	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
+		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
+
+	// Print the level of wealth we are at
+	c.Logf("[Debug] - [Start of Turn] Class: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
+	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
 			return
 		}
 	}
-	c.Logf("I'm all alone :c")
 
+}
+
+func (c *client) EndOfTurn() {} // waiting for infra to implement?
+
+func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
+	c.ServerReadHandle = serverReadHandle // don't change this
+	c.initOpinions()
+
+	// Assign the thresholds according to the amount of resouces in the first turn
+	c.config.jbThreshold = c.resourceHistory[1] * 2
+	c.config.middleThreshold = c.resourceHistory[1] * 0.95
+	c.config.imperialThreshold = c.resourceHistory[1] * 0.5
+}
+
+//================================================================
+/*	Wealth class
+	Calculates the class of wealth we are in according
+	to thresholds */
+//=================================================================
+func (c client) wealth() wealthTier {
+	cData := c.gameState().ClientInfo
+	switch {
+	case cData.LifeStatus == shared.Critical: // We dying
+		return dying
+	case cData.Resources > c.config.jbThreshold:
+		// c.Logf("[Team 5][Wealth:%v][Class:%v]", cData.Resources,c.config.JBThreshold)      // Debugging
+		return jeffBezos // Rich
+	case cData.Resources > c.config.imperialThreshold && cData.Resources <= c.config.jbThreshold:
+		return middleClass // Middle
+	default:
+		return imperialStudent // Middle class
+	}
+}
+
+//================================================================
+/*	Resource History
+	Stores the level of resources we have at each turn */
+//=================================================================
+
+func (c *client) updateResourceHistory(resourceHistory resourceHistory) {
+	currentResources := c.gameState().ClientInfo.Resources
+	c.resourceHistory[c.gameState().Turn] = currentResources
+	if c.gameState().Turn >= 2 {
+		amount := c.resourceHistory[c.gameState().Turn-1]
+		c.Logf("[Debug] - Previous round amount: %v", amount)
+	}
+	c.Logf("[Debug] - Current round amount: %v", currentResources)
 }
 
 func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
 }
 
-//------------------------------------Comunication--------------------------------------------------------//
-// to get information on minimum tax amount and cp allocation
+//================================================================
+/*	Comunication
+	Gets information on minimum tax amount and cp allocation */
+//=================================================================
 func (c *client) ReceiveCommunication(
 	sender shared.ClientID,
 	data map[shared.CommunicationFieldName]shared.CommunicationContent,

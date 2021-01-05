@@ -85,7 +85,6 @@ func getMeanDisaster(pastDisastersList PastDisastersList) DisasterInfo {
 }
 
 func determineConfidence(pastDisastersList PastDisastersList, meanDisaster DisasterInfo, varianceLimit float64) float64 {
-	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	totalDisaster := DisasterInfo{}
 	numberDisastersPassed := float64(len(pastDisastersList))
 
@@ -98,7 +97,7 @@ func determineConfidence(pastDisastersList PastDisastersList, meanDisaster Disas
 	}
 
 	// Find the sum of the variances and the average variance
-	varianceSum := (totalCoordinateX + totalCoordinateY + totalMagnitude + totalTurn) / numberDisastersPassed
+	varianceSum := (totalDisaster.CoordinateX + totalDisaster.CoordinateY + totalDisaster.Magnitude + float64(totalDisaster.Turn)) / numberDisastersPassed
 	averageVariance := varianceSum / 4
 
 	// Implement the variance cap chosen

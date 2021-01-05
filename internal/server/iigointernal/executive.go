@@ -3,17 +3,20 @@ package iigointernal
 import (
 	"fmt"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
+	"github.com/pkg/errors"
 )
 
 type executive struct {
-	ID                  shared.ClientID
+	gameState           *gamestate.GameState
+	gameConf            *config.IIGOConfig
+	PresidentID         shared.ClientID
 	clientPresident     roles.President
-	budget              shared.Resources
 	speakerSalary       shared.Resources
 	RulesProposals      []string
 	ResourceRequests    map[shared.ClientID]shared.Resources
@@ -23,9 +26,14 @@ type executive struct {
 // loadClientPresident checks client pointer is good and if not panics
 func (e *executive) loadClientPresident(clientPresidentPointer roles.President) {
 	if clientPresidentPointer == nil {
-		panic(fmt.Sprintf("Client '%v' has loaded a nil president pointer", e.ID))
+		panic(fmt.Sprintf("Client '%v' has loaded a nil president pointer", e.PresidentID))
 	}
 	e.clientPresident = clientPresidentPointer
+}
+
+func (e *executive) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
+	e.gameState = gameState
+	e.gameConf = gameConf
 }
 
 // returnSpeakerSalary returns the salary to the common pool.
@@ -47,75 +55,105 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 	e.ResourceRequests = resourceRequests
 }
 
-// Get rules to be voted on to Speaker
-// Called by orchestration at the end of the turn
-func (e *executive) getRuleForSpeaker() (string, bool) {
-	e.budget -= serviceCharge
-	return e.clientPresident.PickRuleToVote(e.RulesProposals)
+// setGameState is used for setting the game state of the executive branch
+// Called for testing.
+func (e *executive) setGameState(g *gamestate.GameState) {
+	e.gameState = g
 }
 
-// Send Tax map all the remaining islands
+// Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
-func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
-	e.budget -= serviceCharge
-	return e.clientPresident.SetTaxationAmount(islandsResources)
+func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
+	if !CheckEnoughInCommonPool(e.gameConf.GetRuleForSpeakerActionCost, e.gameState) {
+		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRule: "", ActionTaken: false},
+			errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+	}
+
+	returnRule := e.clientPresident.PickRuleToVote(e.RulesProposals)
+
+	if returnRule.ActionTaken && (returnRule.ContentType == shared.PresidentRuleProposal) {
+		if !e.incurServiceCharge(e.gameConf.GetRuleForSpeakerActionCost) {
+			return returnRule, errors.Errorf("Insufficient Budget in common Pool: getRuleForSpeaker")
+		}
+	}
+
+	return returnRule, nil
 }
 
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
-func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.Resources) {
-	e.budget -= serviceCharge
-	taxAmountMap, taxesCollected := e.getTaxMap(islandsResources)
-	if taxesCollected {
-		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(taxAmountMap[shared.ClientID(int(island))])}
-			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-			data[shared.TaxAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
+func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.ResourcesReport, aliveIslands []shared.ClientID) error {
+	if !CheckEnoughInCommonPool(e.gameConf.BroadcastTaxationActionCost, e.gameState) {
+		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+	}
+	taxMapReturn := e.getTaxMap(islandsResources)
+	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {
+		if !e.incurServiceCharge(e.gameConf.BroadcastTaxationActionCost) {
+			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+		}
+		for islandID, resourceAmount := range taxMapReturn.ResourceMap {
+			if Contains(aliveIslands, islandID) {
+				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(resourceAmount)}
+				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+				data[shared.TaxAmount] = d
+				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+			}
 		}
 	}
+	return nil
 }
 
 // Send Tax map all the remaining islands
 // Called by orchestration at the end of the turn
-func (e *executive) getAllocationRequests(commonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
-	e.budget -= serviceCharge
+func (e *executive) getAllocationRequests(commonPool shared.Resources) shared.PresidentReturnContent {
 	return e.clientPresident.EvaluateAllocationRequests(e.ResourceRequests, commonPool)
 }
 
-func (e *executive) requestAllocationRequest() {
+func (e *executive) requestAllocationRequest(aliveIslands []shared.ClientID) error {
+	// Listening to islands requests incurs cost to the president. Set the cost to 0?
+	if !e.incurServiceCharge(e.gameConf.RequestAllocationRequestActionCost) {
+		return errors.Errorf("Insufficient Budget in common Pool: requestAllocationRequest")
+	}
 	allocRequests := make(map[shared.ClientID]shared.Resources)
-	for _, island := range getIslandAlive() {
-		allocRequests[shared.ClientID(int(island))] = iigoClients[shared.ClientID(int(island))].CommonPoolResourceRequest()
+	for _, islandID := range aliveIslands {
+		allocRequests[islandID] = iigoClients[islandID].CommonPoolResourceRequest()
 	}
 	AllocationAmountMapExport = allocRequests
 	e.setAllocationRequest(allocRequests)
+	return nil
 }
 
 // replyAllocationRequest broadcasts the allocation of resources decided by the president
 // to all islands alive
-func (e *executive) replyAllocationRequest(commonPool shared.Resources) bool {
-	e.budget -= serviceCharge
-	allocationMap, requestsEvaluated := e.getAllocationRequests(commonPool)
+func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, error) {
+	if !CheckEnoughInCommonPool(e.gameConf.ReplyAllocationRequestsActionCost, e.gameState) {
+		return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
+	}
+	returnContent := e.getAllocationRequests(commonPool)
 	allocationsMade := false
-	if requestsEvaluated {
+	if returnContent.ActionTaken {
+		if !e.incurServiceCharge(e.gameConf.ReplyAllocationRequestsActionCost) {
+			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
+		}
 		allocationsMade = true
 		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(allocationMap[shared.ClientID(int(island))])}
+			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(returnContent.ResourceMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
 			data[shared.AllocationAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[e.ID], data)
+			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[int(e.PresidentID)], data)
 		}
 	}
-	return allocationsMade
+	return allocationsMade, nil
 }
 
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
-func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) shared.ClientID {
+func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
 	var nextSpeaker shared.ClientID
 	electionsettings := e.clientPresident.CallSpeakerElection(monitoring, e.speakerTurnsInPower, allIslands)
 	if electionsettings.HoldElection {
-		// TODO: deduct the cost of holding an election
+		if !e.incurServiceCharge(e.gameConf.AppointNextSpeakerActionCost) {
+			return e.gameState.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
+		}
 		election.ProposeElection(shared.Speaker, electionsettings.VotingMethod)
 		election.OpenBallot(electionsettings.IslandsToVote)
 		election.Vote(iigoClients)
@@ -126,49 +164,74 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		e.speakerTurnsInPower++
 		nextSpeaker = currentSpeaker
 	}
-	return nextSpeaker
+	return nextSpeaker, nil
 }
 
-// withdrawSpeakerSalary withdraws the salary for speaker from the common pool.
-func (e *executive) withdrawSpeakerSalary(gameState *gamestate.GameState) bool {
-	var speakerSalary = shared.Resources(rules.VariableMap[rules.SpeakerSalary].Values[0])
-	var withdrawnAmount, withdrawSuccesful = WithdrawFromCommonPool(speakerSalary, gameState)
-	e.speakerSalary = withdrawnAmount
-	return withdrawSuccesful
-}
-
-// sendSpeakerSalary send speaker's salary to the speaker.
-func (e *executive) sendSpeakerSalary(legislativeBranch *legislature) {
+// sendSpeakerSalary conduct the transaction based on amount from client implementation
+func (e *executive) sendSpeakerSalary() error {
 	if e.clientPresident != nil {
-		amount, salaryPaid := e.clientPresident.PaySpeaker(e.speakerSalary)
-		if salaryPaid {
-			legislativeBranch.budget = amount
+		amountReturn := e.clientPresident.PaySpeaker(e.speakerSalary)
+		if amountReturn.ActionTaken && amountReturn.ContentType == shared.PresidentSpeakerSalary {
+			// Subtract from common resources pool
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn.SpeakerSalary, e.gameState)
+
+			if withdrawSuccess {
+				// Pay into the client private resources pool
+				depositIntoClientPrivatePool(amountWithdraw, e.gameState.SpeakerID, e.gameState)
+				return nil
+			}
 		}
-		return
 	}
-	legislativeBranch.budget = e.speakerSalary
+	return errors.Errorf("Cannot perform sendSpeakerSalary")
 }
 
 func (e *executive) reset(val string) {
-	e.ID = 0
+	e.PresidentID = 0
 	e.clientPresident = nil
-	e.budget = 0
 	e.ResourceRequests = map[shared.ClientID]shared.Resources{}
 	e.RulesProposals = []string{}
 	e.speakerSalary = 0
 }
 
+// Helper functions:
+func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
+	return e.clientPresident.SetTaxationAmount(islandsResources)
+}
+
 //requestRuleProposal asks each island alive for its rule proposal.
-func (e *executive) requestRuleProposal() {
-	e.budget -= serviceCharge
-	var rules []string
-	for _, island := range getIslandAlive() {
-		rules = append(rules, iigoClients[shared.ClientID(int(island))].RuleProposal())
+func (e *executive) requestRuleProposal() error {
+	if !e.incurServiceCharge(e.gameConf.RequestRuleProposalActionCost) {
+		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 
-	e.setRuleProposals(rules)
+	var ruleProposals []string
+	for _, island := range getIslandAlive() {
+		proposedRule := iigoClients[shared.ClientID(int(island))].RuleProposal()
+		if checkRuleIsValid(proposedRule, rules.AvailableRules) {
+			ruleProposals = append(ruleProposals, proposedRule)
+		}
+	}
+
+	e.setRuleProposals(ruleProposals)
+	return nil
+}
+
+func checkRuleIsValid(ruleName string, rulesCache map[string]rules.RuleMatrix) bool {
+	_, valid := rulesCache[ruleName]
+	return valid
 }
 
 func getIslandAlive() []float64 {
 	return rules.VariableMap[rules.IslandsAlive].Values
+}
+
+// incur charges in both budget and commonpool for performing an actions
+// actionID is typically the function name of the action
+// only return error if we can't withdraw from common pool
+func (e *executive) incurServiceCharge(cost shared.Resources) bool {
+	_, ok := WithdrawFromCommonPool(cost, e.gameState)
+	if ok {
+		e.gameState.IIGORolesBudget[shared.President] -= cost
+	}
+	return ok
 }

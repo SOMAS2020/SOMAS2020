@@ -1,3 +1,4 @@
+import { OutputJSONType } from './consts/types'
 import outputJSONData from './output/output.json'
 import './wasmjs/wasm_exec'
 
@@ -20,7 +21,7 @@ type RunGameReturnTypeWASM = {
 }
 
 export type RunGameReturnType = {
-    output: typeof outputJSONData,
+    output: OutputJSONType,
     logs: string,
 }
 
@@ -77,7 +78,7 @@ export const runGame = async (flags: Flag[]): Promise<RunGameReturnType> => {
         throw new Error(`Can't get output or logs`)
     }
 
-    const processedOutput = JSON.parse(result.output) as typeof outputJSONData
+    const processedOutput = JSON.parse(result.output) as OutputJSONType
 
     // we need to patch git info
     processedOutput.GitInfo = outputJSONData.GitInfo
