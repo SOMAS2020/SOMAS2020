@@ -80,6 +80,9 @@ const (
 	TestVariable
 	JudgeInspectionPerformed
 	TaxDecisionMade
+	VoteResultAnnounced
+	IslandsAllowedToVote
+	SpeakerProposedPresidentRule
 )
 
 func (v VariableFieldName) String() string {
@@ -111,6 +114,9 @@ func (v VariableFieldName) String() string {
 		"TestVariable",
 		"JudgeInspectionPerformed",
 		"TaxDecisionMade",
+		"VoteResultAnnounced",
+		"IslandsAllowedToVote",
+		"SpeakerProposedPresidentRule",
 	}
 	if v >= 0 && int(v) < len(strs) {
 		return strs[v]
