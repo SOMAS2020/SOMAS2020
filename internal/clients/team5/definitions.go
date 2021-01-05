@@ -11,7 +11,8 @@ import (
 //================================================================
 /*	Types */
 //=================================================================
-const id = shared.Team5
+const ourClientID = shared.Team5
+const startTurn = 1
 
 //================ Common Pool =========================================
 
@@ -71,19 +72,21 @@ type client struct {
 	*baseclient.BaseClient
 
 	// Roles
-	team5Speaker	speaker
-	team5Judge		judge
+	team5Speaker speaker
+	team5Judge   judge
 
 	// History
+	// history
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
-  giftHistory         giftHistory
+	giftHistory         giftHistory
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
+	opinionHistory      opinionHistory
 
-
-	// IIGO communication
-	taxAmount shared.Resources
+	// current states
+	opinions   opinionMap // opinions of each team
+	taxAmount  shared.Resources
 	allocation shared.Resources
 
 	config clientConfig
