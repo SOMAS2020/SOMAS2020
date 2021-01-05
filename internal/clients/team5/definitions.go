@@ -64,35 +64,6 @@ type giftExchange struct {
 type giftHistory map[shared.ClientID]giftExchange
 
 // Client Information */
-
-type clientConfig struct {
-
-	// Initial non planned foraging
-	InitialForageTurns      uint
-	MinimumForagePercentage float64
-	NormalForagePercentage  float64
-	JBForagePercentage      float64
-
-	// Normal foraging
-	NormalRandomIncrease float64
-	MaxForagePercentage  float64
-	SkipForage           uint // Skip for X turns if no positive RoI
-
-	// If resources go above this limit we are balling with money
-	jbThreshold shared.Resources
-	// Middle class:  Middle < Jeff bezos
-	middleThreshold shared.Resources
-	// Poor: Imperial student < Middle
-	imperialThreshold shared.Resources
-
-	// How much to request when we are dying
-	dyingGiftRequestAmount shared.Resources
-	// How much to request when we are at Imperial
-	imperialGiftRequestAmount shared.Resources
-	// How much to request when we are dying
-	middleGiftRequestAmount shared.Resources
-}
-
 // Client is the island number
 type client struct {
 	*baseclient.BaseClient

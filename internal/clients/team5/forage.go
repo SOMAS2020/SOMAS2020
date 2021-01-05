@@ -311,7 +311,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 		}
 	}
 
-	forageInfo := shared.ForageShareInfo{ // Build the struct
+	forageInfo := shared.ForageShareInfo{
 		DecisionMade:     contribution, // contribution and Resources obtained
 		ResourceObtained: output,       // How much we got back
 		ShareTo:          shareTo,      // []shared.ClientIDs

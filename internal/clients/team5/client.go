@@ -11,7 +11,6 @@ func init() {
 	baseclient.RegisterClient(
 		id,
 		&client{
-			// Old config
 			// forageHistory: ForageHistory{},
 			BaseClient:          baseclient.NewClient(id),
 			cpRequestHistory:    cpRequestHistory{},
@@ -22,29 +21,7 @@ func init() {
 
 			taxAmount:  0,
 			allocation: 0,
-			config: clientConfig{
-				//Variables for Intial forage
-				InitialForageTurns:      3,
-				MinimumForagePercentage: 0.01,
-				NormalForagePercentage:  0.05,
-				JBForagePercentage:      0.10, // % of our resources when JB is Normal< X < JB
-
-				// Variables for Normal forage
-				SkipForage:           1,
-				NormalRandomIncrease: 0.05,
-				MaxForagePercentage:  0.20,
-
-				// Threshold for wealth
-				jbThreshold:       100,
-				middleThreshold:   60.0,
-				imperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
-				//  Dying threshold is 0 < Dying < Imperial
-
-				// Gifts Config
-				dyingGiftRequestAmount:    10,
-				imperialGiftRequestAmount: 5,
-				middleGiftRequestAmount:   2,
-			},
+			config:     getClientConfig(),
 		},
 	)
 }
