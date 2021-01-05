@@ -1,6 +1,8 @@
 package team3
 
 import (
+
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -42,24 +44,25 @@ func (l *locator) changeStrategy(newParams islandParams) {
 func (l *locator) calculateMetaStrategy() {
 	newMetaStrategy := metaStrategy{}
 	currentParams := l.islandParamsCache
-	newMetaStrategy.conquest = !currentParams.saveCriticalIsland && currentParams.aggression > 0.7 && currentParams.friendliness < 0.5
-	newMetaStrategy.saviour = currentParams.saveCriticalIsland && currentParams.friendliness >= 0.5 && currentParams.aggression <= 0.7
-	newMetaStrategy.democrat = currentParams.complianceLevel > 0.5 && currentParams.selfishness < 0.5
-	newMetaStrategy.generous = currentParams.selfishness < 0.5 && currentParams.saveCriticalIsland && currentParams.recidivism < 0.5 && currentParams.friendliness > 0.5
-	newMetaStrategy.lawful = currentParams.complianceLevel > 0.5 && currentParams.selfishness < 0.5
-	newMetaStrategy.legislative = currentParams.equity > 0.5
-	newMetaStrategy.executive = currentParams.recidivism < 0.5
-	newMetaStrategy.fury = !currentParams.saveCriticalIsland && currentParams.aggression > 0.6 && currentParams.anger > 0.8
-	newMetaStrategy.independent = currentParams.recidivism > 0.5
+
+	newMetaStrategy.conquest = !currentParams.saveCriticalIsland && currentParams.aggression > 70 && currentParams.friendliness < 50
+	newMetaStrategy.saviour = currentParams.saveCriticalIsland && currentParams.friendliness >= 50 && currentParams.aggression <= 70
+	newMetaStrategy.democrat = currentParams.complianceLevel > 50 && currentParams.selfishness < 50
+	newMetaStrategy.generous = currentParams.selfishness < 50 && currentParams.saveCriticalIsland && currentParams.recidivism < 050 && currentParams.friendliness > 50
+	newMetaStrategy.lawful = currentParams.complianceLevel > 50 && currentParams.selfishness < 50
+	newMetaStrategy.legislative = currentParams.equity > 50
+	newMetaStrategy.executive = currentParams.recidivism < 50
+	newMetaStrategy.fury = !currentParams.saveCriticalIsland && currentParams.aggression > 60 && currentParams.anger > 80
+	newMetaStrategy.independent = currentParams.recidivism > 50
 	l.locationStrategy = newMetaStrategy
 }
 
-func (l *locator) checkIfIdealLocationAvailable(ruleMat rules.RuleMatrix) (mat.VecDense, bool) {
+func (l *locator) checkIfIdealLocationAvailable(ruleMat rules.RuleMatrix, recommendedVars map[rules.VariableFieldName]dynamics.Input) (mat.VecDense, bool) {
 	requiredVariables := ruleMat.RequiredVariables
 	valid := true
 	var idealPosition []float64
 	for _, variable := range requiredVariables {
-		values, isValid := l.switchDetermineFunction(variable)
+		values, isValid := l.switchDetermineFunction(variable, recommendedVars[variable].Value)
 		valid = valid && isValid
 		idealPosition = append(idealPosition, values...)
 	}
@@ -70,26 +73,32 @@ func (l *locator) checkIfIdealLocationAvailable(ruleMat rules.RuleMatrix) (mat.V
 	}
 }
 
-func (l *locator) switchDetermineFunction(name rules.VariableFieldName) ([]float64, bool) {
+
+func (l *locator) switchDetermineFunction(name rules.VariableFieldName, recommendedVal []float64) ([]float64, bool) {
 	switch name {
 	case rules.NumberOfIslandsContributingToCommonPool:
-		return l.idealNumberOfIslandsContributingToCommonPool()
+		return l.idealNumberOfIslandsContributingToCommonPool(recommendedVal)
 	case rules.NumberOfIslandsAlive:
-		return l.idealNumberOfIslandsAlive()
+		return l.idealNumberOfIslandsAlive(recommendedVal)
 	case rules.NumberOfBallotsCast:
-		return l.idealNumberOfBallotsCast()
+		return l.idealNumberOfBallotsCast(recommendedVal)
 	case rules.AllocationRequestsMade:
-		return l.idealAllocationRequestsMade()
+		return l.idealAllocationRequestsMade(recommendedVal)
 	case rules.AllocationMade:
-		return l.idealAllocationsMade()
+		return l.idealAllocationsMade(recommendedVal)
 	case rules.IslandsAlive:
-		return l.idealIslandsAlive()
+		return l.idealIslandsAlive(recommendedVal)
+	case rules.IslandTaxContribution:
+		return l.idealIslandTaxContribution(recommendedVal)
+	case rules.IslandAllocation:
+		return l.idealIslandAllocation(recommendedVal)
 	default:
 		return []float64{}, false
 	}
 }
 
-func (l *locator) idealNumberOfIslandsContributingToCommonPool() ([]float64, bool) {
+
+func (l *locator) idealNumberOfIslandsContributingToCommonPool(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.generous {
 		return []float64{l.calcNumberOfNonCriticalIslands()}, true
 	} else {
@@ -97,7 +106,8 @@ func (l *locator) idealNumberOfIslandsContributingToCommonPool() ([]float64, boo
 	}
 }
 
-func (l *locator) idealNumberOfIslandsAlive() ([]float64, bool) {
+
+func (l *locator) idealNumberOfIslandsAlive(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.conquest {
 		return []float64{1}, true
 	} else if l.locationStrategy.saviour {
@@ -107,7 +117,7 @@ func (l *locator) idealNumberOfIslandsAlive() ([]float64, bool) {
 	}
 }
 
-func (l *locator) idealNumberOfBallotsCast() ([]float64, bool) {
+func (l *locator) idealNumberOfBallotsCast(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.democrat {
 		return []float64{l.calcNumberOfAliveIslands()}, true
 	} else if l.locationStrategy.conquest {
@@ -117,15 +127,16 @@ func (l *locator) idealNumberOfBallotsCast() ([]float64, bool) {
 	}
 }
 
-func (l *locator) idealAllocationsMade() ([]float64, bool) {
+
+func (l *locator) idealAllocationsMade(recommendedVal []float64) ([]float64, bool) {
 	return []float64{0}, l.locationStrategy.independent
 }
 
-func (l *locator) idealAllocationRequestsMade() ([]float64, bool) {
+func (l *locator) idealAllocationRequestsMade(recommendedVal []float64) ([]float64, bool) {
 	return []float64{0}, l.locationStrategy.independent
 }
 
-func (l *locator) idealIslandsAlive() ([]float64, bool) {
+func (l *locator) idealIslandsAlive(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.conquest {
 		return []float64{2}, true
 	} else if l.locationStrategy.fury {
@@ -140,6 +151,29 @@ func (l *locator) idealIslandsAlive() ([]float64, bool) {
 	} else {
 		return l.getAllAliveClientIds(), true
 	}
+}
+
+
+func (l *locator) idealIslandTaxContribution(recommendedVal []float64) ([]float64, bool) {
+	if l.locationStrategy.lawful {
+		return recommendedVal, true
+	} else if l.locationStrategy.independent {
+		return []float64{0}, true
+	} else if l.locationStrategy.fury {
+		return []float64{-1 * recommendedVal[0]}, true
+	}
+	return []float64{0}, false
+}
+
+func (l *locator) idealIslandAllocation(recommendedVal []float64) ([]float64, bool) {
+	if l.locationStrategy.lawful {
+		return recommendedVal, true
+	} else if !l.locationStrategy.generous {
+		return []float64{recommendedVal[0] * 2}, true
+	} else if l.locationStrategy.fury {
+		return []float64{3 * recommendedVal[0]}, true
+	}
+	return []float64{0}, false
 }
 
 func (l *locator) calcNumberOfAliveIslands() float64 {
@@ -171,4 +205,58 @@ func (l *locator) getAllAliveClientIds() []float64 {
 		output = append(output, float64(key))
 	}
 	return output
+}
+
+func (l *locator) TranslateCommunications(variableCache map[rules.VariableFieldName]rules.VariableValuePair) (newVariableCache map[rules.VariableFieldName]dynamics.Input) {
+	if variableCache == nil {
+		return map[rules.VariableFieldName]dynamics.Input{}
+	}
+	inputMap := make(map[rules.VariableFieldName]dynamics.Input)
+	for key, pair := range variableCache {
+		inp, valid := buildInput(pair)
+		if valid {
+			inputMap[key] = inp
+		}
+	}
+	return inputMap
+}
+
+func buildInput(pair rules.VariableValuePair) (dynamics.Input, bool) {
+	if isAdjustable, ok := IsChangeable[pair.VariableName]; ok {
+		return dynamics.Input{
+			Name:             pair.VariableName,
+			ClientAdjustable: isAdjustable,
+			Value:            pair.Values,
+		}, true
+	}
+	return dynamics.Input{}, false
+}
+
+var IsChangeable = map[rules.VariableFieldName]bool{
+	rules.NumberOfIslandsContributingToCommonPool: false,
+	rules.NumberOfFailedForages:                   false,
+	rules.NumberOfBrokenAgreements:                false,
+	rules.MaxSeverityOfSanctions:                  false,
+	rules.NumberOfIslandsAlive:                    false,
+	rules.NumberOfBallotsCast:                     false,
+	rules.NumberOfAllocationsSent:                 false,
+	rules.AllocationRequestsMade:                  false,
+	rules.AllocationMade:                          false,
+	rules.IslandsAlive:                            false,
+	rules.SpeakerSalary:                           true,
+	rules.JudgeSalary:                             true,
+	rules.PresidentSalary:                         true,
+	rules.RuleSelected:                            false,
+	rules.VoteCalled:                              false,
+	rules.ExpectedTaxContribution:                 false,
+	rules.ExpectedAllocation:                      false,
+	rules.IslandTaxContribution:                   true,
+	rules.IslandAllocation:                        true,
+	rules.IslandReportedResources:                 false,
+	rules.ConstSanctionAmount:                     false,
+	rules.TurnsLeftOnSanction:                     false,
+	rules.SanctionPaid:                            true,
+	rules.SanctionExpected:                        false,
+	rules.TestVariable:                            false,
+	rules.JudgeInspectionPerformed:                false,
 }

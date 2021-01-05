@@ -64,10 +64,10 @@ func getAverage(lst []float64) float64 {
 	return (float64(total) / float64(len(lst)))
 }
 
+
 func (m mockServerReadHandle) GetGameState() gamestate.ClientGameState {
 	return m.gameState
 }
-
 // mostTrusted return the ClientID that corresponds to the highest trust value
 func mostTrusted(values map[shared.ClientID][]float64) shared.ClientID {
 	var max = -math.MaxFloat64
