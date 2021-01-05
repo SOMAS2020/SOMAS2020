@@ -56,6 +56,9 @@ func (l *legislature) sendJudgeSalary() error {
 				return nil
 			}
 		}
+		variablesToCache := []rules.VariableFieldName{rules.JudgePaid}
+		valuesToCache := [][]float64{{boolToFloat(amountReturn.ActionTaken)}}
+		l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 	}
 	return errors.Errorf("Cannot perform sendJudgeSalary")
 }

@@ -186,6 +186,9 @@ func (e *executive) sendSpeakerSalary() error {
 				return nil
 			}
 		}
+		variablesToCache := []rules.VariableFieldName{rules.SpeakerPaid}
+		valuesToCache := [][]float64{{boolToFloat(amountReturn.ActionTaken)}}
+		e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
 	}
 	return errors.Errorf("Cannot perform sendSpeakerSalary")
 }

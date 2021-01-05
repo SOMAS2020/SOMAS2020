@@ -296,6 +296,36 @@ func registerRulesByMass() {
 			Mutable: false,
 			Linked:  false,
 		},
+		{
+			Name: "salary_paid_speaker",
+			ReqVar: []VariableFieldName{
+				SpeakerPaid,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "salary_paid_judge",
+			ReqVar: []VariableFieldName{
+				JudgePaid,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "salary_paid_president",
+			ReqVar: []VariableFieldName{
+				PresidentPaid,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
 	}
 
 	for _, rs := range ruleSpecs {
