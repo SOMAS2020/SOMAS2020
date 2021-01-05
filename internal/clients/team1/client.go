@@ -87,7 +87,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		taxAmount:     0,
 		allocation:    0,
 		config: clientConfig{
-			randomForageTurns:              5,
+			randomForageTurns:              0,
 			anxietyThreshold:               20,
 			desperateStealAmount:           30,
 			evadeTaxes:                     false,
