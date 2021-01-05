@@ -3,6 +3,7 @@ package baseclient
 import (
 	"math/rand"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -72,12 +73,17 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 
 // PaySpeaker pays the speaker a salary.
 func (p *BasePresident) PaySpeaker() shared.PresidentReturnContent {
-	// TODO : Implement opinion based salary payment. Salary should be set by a rule
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
 		SpeakerSalary: 10,
 		ActionTaken:   true,
 	}
+}
+
+// GetSpeakerSalary gets the speaker's salary from the rules.
+func (p *BasePresident) GetSpeakerSalary() shared.Resources {
+	SpeakerSalaryRule := rules.AvailableRules["salary_cycle_speaker"]
+	return shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
 }
 
 // CallSpeakerElection is called by the executive to decide on power-transfer

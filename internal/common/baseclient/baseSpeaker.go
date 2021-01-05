@@ -1,6 +1,7 @@
 package baseclient
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -14,6 +15,12 @@ func (s *BaseSpeaker) PayJudge() shared.SpeakerReturnContent {
 		JudgeSalary: 10,
 		ActionTaken: true,
 	}
+}
+
+// GetJudgeSalary gets the Judge's salary from the rules.
+func (s *BaseSpeaker) GetJudgeSalary() shared.Resources {
+	JudgeSalaryRule := rules.AvailableRules["salary_cycle_judge"]
+	return shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
 }
 
 //DecideAgenda the interface implementation and example of a well behaved Speaker

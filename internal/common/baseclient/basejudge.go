@@ -30,6 +30,12 @@ func (j *BaseJudge) PayPresident() (shared.Resources, bool) {
 	return 10, true
 }
 
+// GetPresidentSalary gets the President's salary from the rules.
+func (j *BaseJudge) GetPresidentSalary() shared.Resources {
+	PresidentSalaryRule := rules.AvailableRules["salary_cycle_president"]
+	return shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
+}
+
 // InspectHistory is the base implementation of evaluating islands choices the last turn.
 // OPTIONAL: override if you want to evaluate the history log differently.
 func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
