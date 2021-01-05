@@ -22,9 +22,6 @@ type GiftsRequestedHistory map[shared.ClientID]shared.Resources
 // Personality enumerate our personality
 type Personality int
 
-// ForageHistory stores our forage history
-type ForageHistory map[shared.ForageType][]ForageResults
-
 type FavourRules []string
 
 // enumerates personality
@@ -33,11 +30,6 @@ const (
 	Normal
 	Generous
 )
-
-type ForageResults struct {
-	forageIn     shared.Resources
-	forageReturn shared.Resources
-}
 
 // Config configures our island's initial state
 type Config struct {
