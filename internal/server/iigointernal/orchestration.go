@@ -9,8 +9,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-type serverLogger func(format string, a ...interface{})
-
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
@@ -24,7 +22,7 @@ var SanctionAmountMapExport map[shared.ClientID]shared.Resources
 var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
-func RunIIGO(logger serverLogger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
+func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
 	logger("\n\n\n iigo has begun begun what is happeniiiiing \n\n\n")
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
