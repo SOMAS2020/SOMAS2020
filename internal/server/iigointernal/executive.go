@@ -178,8 +178,8 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		if !e.incurServiceCharge(e.gameConf.AppointNextSpeakerActionCost) {
 			return e.gameState.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
 		}
-		election.ProposeElection(shared.Speaker, electionsettings.VotingMethod)
-		election.OpenBallot(electionsettings.IslandsToVote, allIslands)
+		election.ProposeElection(shared.Speaker, electionSettings.VotingMethod)
+		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
 		election.Vote(iigoClients)
 		e.gameState.IIGOTurnsInPower[shared.Speaker] = 0
 		electedSpeaker := election.CloseBallot(iigoClients)

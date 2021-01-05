@@ -235,8 +235,8 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 		if !l.incurServiceCharge(l.gameConf.AppointNextJudgeActionCost) {
 			return l.gameState.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
 		}
-		election.ProposeElection(shared.Judge, electionsettings.VotingMethod)
-		election.OpenBallot(electionsettings.IslandsToVote, allIslands)
+		election.ProposeElection(shared.Judge, electionSettings.VotingMethod)
+		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
 		election.Vote(iigoClients)
 		l.gameState.IIGOTurnsInPower[shared.Judge] = 0
 		electedJudge := election.CloseBallot(iigoClients)
