@@ -110,7 +110,7 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 }
 
 // ########################
-// ######   Utils   ######
+// ######    Utils   ######
 // ########################
 
 // increases the friendship level with some other islands
