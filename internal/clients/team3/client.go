@@ -64,6 +64,8 @@ type client struct {
 
 	// params is list of island wide function parameters
 	params islandParams
+
+	locationService locator
 	// iigoInfo caches information regarding iigo in the current turn
 	iigoInfo iigoCommunicationInfo
 }
@@ -89,6 +91,7 @@ type islandParams struct {
 	friendliness                float64
 	anger                       float64
 	aggression                  float64
+	laziness                    float64
 }
 
 type sanctionInfo struct {
