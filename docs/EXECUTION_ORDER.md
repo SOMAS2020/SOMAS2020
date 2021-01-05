@@ -28,8 +28,9 @@ All IIGO communications can be received by islands through the **ReceiveCommunic
 |internal/server/iigo.go|runIIGO| Updates the alive islands variables in the rules. Then runs RunIIGO but in the iigointernal package  |
 |internal/server/iigointernal/orchestration.go| RunIIGO |Calls **GetClientROLEPointer()** (ROLE = Speaker, Judge and President) to initialise the legislative, judicial and executive branches with the client Speaker, Judge and President objects and then orchestrates the IIGO session. |
 |internal/server/iigointernal/judiciary.go| loadSanctionConfig| Calls GetRuleViolationSeverity() and GetSanctionThresholds() on the island holding the role of Judge and broadcasts this information to all islands.|
-
+|internal/server/iigointernal/judiciary.go| inspectHistory | Calls InspectHistory on the island holding the role of Judge. If the island chooses to do this action (returns success = true) sanctions are applied to islands that are found to be in violation of the rules. The sanction tier of islands breaking the rules is broadcasted to all islands. The penalty is sent only to the island who broke the rule.
 |internal/server/iigointernal/monitoring.go| monitorRole| The President island has the option to monitor the Judge using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
+|internal/server/iigointernal/executive.go| 
 |internal/server/iigointernal/monitoring.go| monitorRole| The Speaker island has the option to monitor the President using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
 |internal/server/iigointernal/monitoring.go| monitorRole| The Judge island has the option to monitor the Speaker using MonitorIIGORole() and then optionally broadcast the result to all the islands using DecideIIGOMonitoringAnnouncement().|
 
