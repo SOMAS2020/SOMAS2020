@@ -8,7 +8,7 @@ import (
 
 type RuleVote struct {
 	//Checked by RuleVote
-	ruleToVote string
+	ruleToVote rules.RuleMatrix
 	voterList  []shared.ClientID
 	//Held by RuleVote
 	ballots []shared.RuleVoteType
