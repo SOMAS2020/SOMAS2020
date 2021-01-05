@@ -93,11 +93,11 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		newGiftRequest := giftInfo{ // 	For each client create a new gift info
 			gifted: offers[team], // Store how much we offered
 		}
-
-		c.giftHistory[team] = giftExchange{OurRequest: map[uint]giftInfo{c.gameState().Turn: newGiftRequest}}
+		ourReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
+		c.giftHistory[team] = giftExchange{OurRequest: ourReq}
 	}
 
-	c.Logf("[Debug] GetGiftResponse: %v", c.giftHistory[shared.Team3].OurRequest[c.gameState().Turn])
+	c.Logf("[Debug] GetGiftResponse: %v", c.giftHistory[shared.Team3].OurRequest)
 	return offers
 }
 
@@ -137,7 +137,8 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 			gifted:    shared.GiftOffer(response.AcceptedAmount),
 			reason:    shared.AcceptReason(response.Reason),
 		}
-		c.giftHistory[team] = giftExchange{TheirRequest: map[uint]giftInfo{c.gameState().Turn: newGiftRequest}}
+		theirReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
+		c.giftHistory[team] = giftExchange{TheirRequest: theirReq}
 	}
 	c.Logf("[Debug] UpdateGiftInfo: %v", c.giftHistory[shared.Team3].TheirRequest[turn])
 }
