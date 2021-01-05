@@ -16,14 +16,8 @@ type judge struct {
 
 // PayPresident pays the president's salary
 func (j *judge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
-	j.c.params.salaryThreshold = 150 //parameter that we need to define
 
-	// If our island is in a critical state, then we will deduct part of the salary
-	// defined by the salaryThreshold to at least meet our required threshold for survival.
-	if j.c.areWeCritical() {
-		take := shared.Resources(j.c.params.salaryThreshold) - j.c.getLocalResources()
-		presidentSalary -= take
-	}
+	// Strategy: Pay the president the amount they are owed, no changing amount.
 	return presidentSalary, true
 }
 
