@@ -38,6 +38,10 @@ func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, p
 		if _, ok := playRules[rulename]; ok {
 			return &RuleError{err: errors.Errorf("Rule '%v' is already in play", rulename), errorType: RuleIsAlreadyInPlay}
 		}
+		linkRule, linked := checkLinking(rulename, allRules)
+		if linked {
+			playRules[linkRule] = allRules[linkRule]
+		}
 		playRules[rulename] = allRules[rulename]
 		return nil
 	}
@@ -53,6 +57,10 @@ func PullRuleOutOfPlay(rulename string) error {
 func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
+			linkRule, linked := checkLinking(rulename, allRules)
+			if linked {
+				delete(playRules, linkRule)
+			}
 			delete(playRules, rulename)
 			return nil
 		}
@@ -96,4 +104,20 @@ func modifyRuleInternal(rulename string, newMatrix mat.Dense, newAuxiliary mat.V
 		return nil
 	}
 	return &RuleError{err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), errorType: RuleNotInAvailableRulesCache}
+}
+
+func checkLinking(ruleName string, availableRules map[string]RuleMatrix) (string, bool) {
+	if rule, ok := availableRules[ruleName]; ok {
+		if rule.Link.Linked {
+			return rule.Link.LinkedRule, true
+		}
+		for _, ruleVal := range availableRules {
+			if ruleVal.Link.Linked {
+				if ruleVal.Link.LinkedRule == ruleName {
+					return ruleVal.RuleName, true
+				}
+			}
+		}
+	}
+	return "", false
 }

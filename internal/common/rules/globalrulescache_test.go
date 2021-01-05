@@ -184,6 +184,64 @@ func TestModifyRule(t *testing.T) {
 	}
 }
 
+func TestCheckLinking(t *testing.T) {
+	cases := []struct {
+		name               string
+		ruleName           string
+		rulesCache         map[string]RuleMatrix
+		expectedLinkedRule string
+		expectedLinked     bool
+	}{
+		{
+			name:     "Basic non linked rule",
+			ruleName: "Some rule",
+			rulesCache: map[string]RuleMatrix{
+				"Some rule": {
+					RuleName: "Some rule",
+					Link: RuleLink{
+						Linked: false,
+					},
+				},
+			},
+			expectedLinkedRule: "",
+			expectedLinked:     false,
+		},
+		{
+			name:     "Basic linked rule",
+			ruleName: "Some rule",
+			rulesCache: map[string]RuleMatrix{
+				"Some rule": {
+					RuleName: "Some rule",
+					Link: RuleLink{
+						Linked:     true,
+						LinkedRule: "Linker Rule",
+					},
+				},
+				"Linker Rule": {
+					RuleName: "Linker Rule",
+					Link: RuleLink{
+						Linked: false,
+					},
+				},
+			},
+			expectedLinkedRule: "Linker Rule",
+			expectedLinked:     true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			lnkRule, linked := checkLinking(tc.ruleName, tc.rulesCache)
+
+			if lnkRule != tc.expectedLinkedRule {
+				t.Errorf("Expected: %v got %v", tc.expectedLinkedRule, lnkRule)
+			}
+			if linked != tc.expectedLinked {
+				t.Errorf("Expected: %v got %v", tc.expectedLinked, linked)
+			}
+		})
+	}
+}
+
 func generateRulesTestStores() (map[string]RuleMatrix, map[string]RuleMatrix) {
 	return map[string]RuleMatrix{}, map[string]RuleMatrix{}
 }
