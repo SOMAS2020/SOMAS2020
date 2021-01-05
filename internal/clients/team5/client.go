@@ -109,5 +109,6 @@ func (c *client) ReceiveCommunication(
 
 func (c *client) firstTurnSetup() {
 	c.initOpinions()
+	c.initGiftHist()
 	c.Logf("Opinions at first turn: %v", c.opinionHistory)
 }
