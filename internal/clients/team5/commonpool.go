@@ -52,7 +52,7 @@ func (c *client) RequestAllocation() shared.Resources {
 		allocation = c.allocation
 	}
 	c.Logf("Taking %v from common pool", allocation)
-	c.cpAllocationHistory = append(c.cpAllocationHistory, c.allocation)
+	c.cpAllocationHistory[c.getTurn()] = c.allocation
 	c.Logf("cpAllocationHistory: %v", c.cpAllocationHistory)
 	return allocation
 }

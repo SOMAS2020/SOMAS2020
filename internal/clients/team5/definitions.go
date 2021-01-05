@@ -11,7 +11,8 @@ import (
 //================================================================
 /*	Types */
 //=================================================================
-const id = shared.Team5
+const ourClientID = shared.Team5
+const startTurn = 1
 
 //================ Common Pool =========================================
 
@@ -70,16 +71,19 @@ type giftHistory map[shared.ClientID]giftExchange
 type client struct {
 	*baseclient.BaseClient
 
-	// History
+	// history
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
-  giftHistory         giftHistory
+	giftHistory         giftHistory
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
+	opinionHistory      opinionHistory
+	giftHistory         giftHistory
 
-	// IIGO communications
-	taxAmount shared.Resources
-	allocation shared.Resources
+	// current states
+	opinions       opinionMap // opinions of each team
+	taxAmount      shared.Resources
+	allocation     shared.Resources
 	sanctionAmount shared.Resources
 
 	config clientConfig
