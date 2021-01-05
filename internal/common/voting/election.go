@@ -1,6 +1,8 @@
 package voting
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -51,7 +53,9 @@ func (e *Election) CloseBallot(clientMap map[shared.ClientID]baseclient.Client) 
 	return result
 }
 
-func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]int, []float64, float64) {
+//func (e *Election) completePreferenceMap()
+
+func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]float64, []float64, float64) {
 	votesLayoutElect := make(map[int][]int)
 	votesSliceSquare := totalVotes
 	candidatesNumber := len(candidateList)
@@ -66,7 +70,7 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 	//Transfer e.votes to votesLayoutMap with type "int"
 	for i := 0; i < islandsNumber; i++ {
 		scoreInit := candidatesNumber + 1
-		for j := 0; j < candidatesNumber; j++ {
+		for j := 0; j < len(votesSliceSquare[i]); j++ {
 			for k := 0; k < candidatesNumber; k++ {
 				if votesSliceSquare[i][j] == e.candidateList[k] {
 					votesLayoutElect[i+1][k] = scoreInit
@@ -79,13 +83,14 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 	//Sort the preference map in order.
 	order := make([]int, candidatesNumber)
 	index := make([]int, candidatesNumber)
-	score := make([]int, candidatesNumber)
-	preferenceMap := make(map[int][]int)
+	score := make([]float64, candidatesNumber)
+	scoreMap := make(map[int][]float64)
 	for k, v := range votesLayoutElect {
 		j := 0
+		var absentNum float64 = 0
 
-		for t := 0; t < candidatesNumber; t++ {
-			order[t] = v[t]
+		for i := 0; i < candidatesNumber; i++ {
+			order[i] = v[i]
 		}
 
 		for i := 0; i < candidatesNumber; i++ {
@@ -97,10 +102,10 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 
 			searcher := sum
 
-			for k := 0; k < candidatesNumber; k++ {
-				if searcher > order[k] {
-					searcher = order[k]
-					index[i] = k
+			for p := 0; p < candidatesNumber; p++ {
+				if searcher > order[p] {
+					searcher = order[p]
+					index[i] = p
 				}
 			}
 
@@ -111,50 +116,59 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 		itrans := 0
 		for i := 0; i < candidatesNumber; i++ {
 			itrans = index[i]
-			score[itrans] = i + 1
+			score[itrans] = float64(i + 1)
 		}
 
 		for i := 0; i < candidatesNumber; i++ {
-			preferenceMap[k] = append(preferenceMap[k], score[i])
+			scoreMap[k] = append(scoreMap[k], score[i])
+		}
+
+		for i := 0; i < len(v); i++ {
+			if v[i] == 0 {
+				absentNum++
+			}
+		}
+
+		for i := 0; i < len(v); i++ {
+			if v[i] == 0 {
+				scoreMap[k][i] = (1 + absentNum) / 2
+			}
 		}
 
 	}
 
 	//Calculate the final score for all candidates.
-	finalScore := make([]int, candidatesNumber)
-	for _, v := range preferenceMap {
+	finalScore := make([]float64, candidatesNumber)
+	for _, v := range scoreMap {
 		for i := 0; i < candidatesNumber; i++ {
 			finalScore[i] += v[i]
 		}
 	}
 	//variance is needed when two or more candidates have equal votes.
 	variance := make([]float64, candidatesNumber)
-	for _, v := range preferenceMap {
+	for _, v := range scoreMap {
 		for i := 0; i < candidatesNumber; i++ {
-			vi := float64(v[i])
-			fSi := float64(finalScore[i])
 			cN := float64(candidatesNumber)
-			variance[i] += (vi - fSi/cN) * (vi - fSi/cN)
+			variance[i] += math.Pow((v[i] - finalScore[i]/cN), 2)
 		}
 	}
 
 	var totalScore float64 = 0
-	for i := 0; i < len(finalScore); i++ {
-		totalScore += float64(finalScore[i])
+	for _, v := range finalScore {
+		totalScore += v
 	}
 
 	return finalScore, variance, totalScore
 }
 
-func findMaxScore(scoreList []int, variance []float64) (int, int) {
-	maxScore := 0
+func findMaxScore(scoreList []float64, variance []float64) (float64, int) {
+	var maxScore float64 = 0
 	maxScoreIndex := 0
 	for i := 0; i < len(scoreList); i++ {
 		if scoreList[i] > maxScore {
 			maxScore = scoreList[i]
 			maxScoreIndex = i
-		}
-		if scoreList[i] == maxScore {
+		} else if scoreList[i] == maxScore {
 			if variance[i] > variance[maxScoreIndex] {
 				maxScoreIndex = i
 			}
@@ -163,8 +177,8 @@ func findMaxScore(scoreList []int, variance []float64) (int, int) {
 	return maxScore, maxScoreIndex
 }
 
-func findMinScore(scoreList []int, variance []float64) (int, int) {
-	minScore := 0
+func findMinScore(scoreList []float64, variance []float64) (float64, int) {
+	var minScore float64 = 0
 	for i := 0; i < len(scoreList); i++ {
 		minScore += scoreList[i]
 	}
@@ -173,8 +187,7 @@ func findMinScore(scoreList []int, variance []float64) (int, int) {
 		if scoreList[i] < minScore {
 			minScore = scoreList[i]
 			minScoreIndex = i
-		}
-		if scoreList[i] == minScore {
+		} else if scoreList[i] == minScore {
 			if variance[i] < variance[minScoreIndex] {
 				minScoreIndex = i
 			}
@@ -188,15 +201,14 @@ func (e *Election) bordaCountResult() shared.ClientID {
 	candidatesNumber := len(e.candidateList)
 	finalScore, variance, _ := e.scoreCalculator(e.votes, e.candidateList)
 
-	maxScore := 0
+	var maxScore float64 = 0
 	var winnerIndex int
 	winnerIndex = 0
 	for i := 0; i < candidatesNumber; i++ {
 		if maxScore < finalScore[i] {
 			maxScore = finalScore[i]
 			winnerIndex = i
-		}
-		if maxScore == finalScore[i] {
+		} else if maxScore == finalScore[i] {
 			if variance[winnerIndex] < variance[i] {
 				winnerIndex = i
 			}
@@ -218,7 +230,7 @@ func (e *Election) runOffResult(clientMap map[shared.ClientID]baseclient.Client)
 
 	maxScore, maxScoreIndex := findMaxScore(scoreList, variance)
 
-	if float64(maxScore) > halfTotalScore {
+	if maxScore > halfTotalScore {
 		winner = rOneCandidateList[maxScoreIndex]
 	} else {
 		//Round two
@@ -237,8 +249,7 @@ func (e *Election) runOffResult(clientMap map[shared.ClientID]baseclient.Client)
 		for i := 0; i < voterNumber; i++ {
 			if rTwoVotes[i][0] == rOneCandidateList[maxScoreIndex] {
 				remainNumber++
-			}
-			if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
+			} else if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
 				changeNumber++
 			}
 		}
@@ -266,7 +277,7 @@ func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.
 		maxScore, maxScoreIndex := findMaxScore(scoreList, variance)
 
 		//Eliminate the least popular one until the most popular one has more than half of the total score.
-		if float64(maxScore) > halfTotalScore {
+		if maxScore > halfTotalScore {
 			winner = candidateList[maxScoreIndex]
 			break
 		}

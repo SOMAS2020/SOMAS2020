@@ -34,12 +34,12 @@ func TestElection(t *testing.T) {
 
 }
 
-func (e *Election) bordaCountTest() ([]int, shared.ClientID) {
+func (e *Election) bordaCountTest() ([]float64, shared.ClientID) {
 	// Implement Borda count winner selection method
 	candidatesNumber := len(e.candidateList)
 	scoreList, variance, _ := e.scoreCalculator(e.votes, e.candidateList)
 
-	maxScore := 0
+	var maxScore float64 = 0
 	var winnerIndex int
 	winnerIndex = 0
 	for i := 0; i < candidatesNumber; i++ {
@@ -104,14 +104,14 @@ func (e *Election) runOffTest(clientMap map[shared.ClientID]baseclient.Client) (
 	return roundCandidateMap, winner
 }
 
-func (e *Election) instantRunoffTest(clientMap map[shared.ClientID]baseclient.Client) (map[int][]shared.ClientID, map[int][]int, shared.ClientID) {
+func (e *Election) instantRunoffTest(clientMap map[shared.ClientID]baseclient.Client) (map[int][]shared.ClientID, map[int][]float64, shared.ClientID) {
 	var winner shared.ClientID
 	candidateNumber := len(e.candidateList)
 	candidateList := e.candidateList
 	totalVotes := e.votes
 	var halfTotalScore float64 = 0
 	roundCandidateMap := make(map[int][]shared.ClientID)
-	roundScoreList := make(map[int][]int)
+	roundScoreList := make(map[int][]float64)
 	roundCount := 1
 	roundCandidateMap[roundCount] = candidateList
 
