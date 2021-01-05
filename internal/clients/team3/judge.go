@@ -137,7 +137,19 @@ func (j *judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSan
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
 // COMPULSORY: decide which islands, if any, to forgive
 func (j *judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
-	return j.BaseJudge.GetPardonedIslands(currentSanctions)
+	pardons := make(map[int][]bool)
+	for key, sanctionList := range currentSanctions {
+		lst := make([]bool, len(sanctionList))
+		pardons[key] = lst
+		for index, sanction := range sanctionList {
+			if j.c.trustScore[sanction.ClientID] > 50 && j.c.params.friendliness > 40 {
+				pardons[key][index] = true
+			} else {
+				pardons[key][index] = false
+			}
+		}
+	}
+	return pardons
 }
 
 // HistoricalRetributionEnabled enables historical retribution of inspection (automatically set to 3 turns ago)
