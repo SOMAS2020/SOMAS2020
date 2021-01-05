@@ -59,7 +59,7 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{0},
 	},
 	{
-		VariableName: SpeakerIncrement,
+		VariableName: SpeakerBudgetIncrement,
 		Values:       []float64{100},
 	},
 	{
@@ -75,7 +75,7 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{0},
 	},
 	{
-		VariableName: JudgeIncrement,
+		VariableName: JudgeBudgetIncrement,
 		Values:       []float64{100},
 	},
 	{
@@ -91,7 +91,7 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{0},
 	},
 	{
-		VariableName: PresidentIncrement,
+		VariableName: PresidentBudgetIncrement,
 		Values:       []float64{100},
 	},
 	{

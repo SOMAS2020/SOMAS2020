@@ -326,7 +326,7 @@ func registerRulesByMass() {
 		{
 			Name: "increment_budget_speaker",
 			ReqVar: []VariableFieldName{
-				SpeakerIncrement,
+				SpeakerBudgetIncrement,
 			},
 			Values:  []float64{-1, 100},
 			Aux:     []float64{0},
@@ -336,7 +336,7 @@ func registerRulesByMass() {
 		{
 			Name: "increment_budget_judge",
 			ReqVar: []VariableFieldName{
-				JudgeIncrement,
+				JudgeBudgetIncrement,
 			},
 			Values:  []float64{-1, 100},
 			Aux:     []float64{0},
@@ -346,7 +346,7 @@ func registerRulesByMass() {
 		{
 			Name: "increment_budget_president",
 			ReqVar: []VariableFieldName{
-				PresidentIncrement,
+				PresidentBudgetIncrement,
 			},
 			Values:  []float64{-1, 100},
 			Aux:     []float64{0},

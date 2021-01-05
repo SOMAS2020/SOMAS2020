@@ -73,26 +73,22 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	iigoClients = *clientMap
 
-	// Increments the budget by a constant 100
-	PresidentIncRule := rules.AvailableRules["increment_budget_president"].ApplicableMatrix
-	PresidentIncrement := PresidentIncRule.At(0, 1)
-	g.IIGORolesBudget[shared.President] += shared.Resources(PresidentIncrement)
-	JudgeIncRule := rules.AvailableRules["increment_budget_judge"].ApplicableMatrix
-	JudgeIncrement := JudgeIncRule.At(0, 1)
-	g.IIGORolesBudget[shared.Judge] += shared.Resources(JudgeIncrement)
-	SpeakerIncRule := rules.AvailableRules["increment_budget_speaker"].ApplicableMatrix
-	SpeakerIncrement := SpeakerIncRule.At(0, 1)
-	g.IIGORolesBudget[shared.Speaker] += shared.Resources(SpeakerIncrement)
-
-	variablesToCache := []rules.VariableFieldName{rules.PresidentIncrement}
-	valuesToCache := [][]float64{{PresidentIncrement}}
-	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
-	variablesToCache = []rules.VariableFieldName{rules.JudgeIncrement}
-	valuesToCache = [][]float64{{JudgeIncrement}}
-	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
-	variablesToCache = []rules.VariableFieldName{rules.SpeakerIncrement}
-	valuesToCache = [][]float64{{SpeakerIncrement}}
-	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
+	// Increments the budget according to increment_budget_role rules
+	PresidentIncRule, ok := rules.RulesInPlay["increment_budget_president"]
+	if ok {
+		PresidentBudgetInc := PresidentIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.President] += shared.Resources(PresidentBudgetInc)
+	}
+	JudgeIncRule, ok := rules.RulesInPlay["increment_budget_judge"]
+	if ok {
+		JudgeBudgetInc := JudgeIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.Judge] += shared.Resources(JudgeBudgetInc)
+	}
+	SpeakerIncRule, ok := rules.RulesInPlay["increment_budget_speaker"]
+	if ok {
+		SpeakerBudgetInc := SpeakerIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.Speaker] += shared.Resources(SpeakerBudgetInc)
+	}
 
 	// Pass in gamestate and IIGO configs
 	// So that we don't have to pass gamestate as arguments in every function in roles
@@ -126,8 +122,8 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		judicialBranch.applySanctions()
 	}
 
-	variablesToCache = []rules.VariableFieldName{rules.JudgeInspectionPerformed}
-	valuesToCache = [][]float64{{boolToFloat(historyInspected)}}
+	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
+	valuesToCache := [][]float64{{boolToFloat(historyInspected)}}
 	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
 	judgeMonitored := monitoring.monitorRole(iigoClients[g.PresidentID])
