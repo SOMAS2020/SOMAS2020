@@ -9,6 +9,7 @@ import (
 // Generate borda vote based on opinion score for roles
 // Team 5 will always be top
 func (c *client) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
+	c.evaluateRoles() //temporarily. Not ideal because election don't happen everyday
 	opinionSortByTeam := c.opinionSortByTeam()
 	opinionSortByScore := c.opinionSortByScore()
 	sortedTeamByOpinion := sortedMapOfOpinion(findIndexOfScore(opinionSortByScore, opinionSortByTeam))
