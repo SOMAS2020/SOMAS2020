@@ -85,9 +85,10 @@ type client struct {
 	opinionHistory      opinionHistory
 
 	// current states
-	opinions   opinionMap // opinions of each team
-	taxAmount  shared.Resources
-	allocation shared.Resources
+	opinions       opinionMap // opinions of each team
+	taxAmount      shared.Resources
+	allocation     shared.Resources
+	sanctionAmount shared.Resources
 
 	config clientConfig
 }
