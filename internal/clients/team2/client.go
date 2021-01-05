@@ -77,6 +77,18 @@ type DisasterOccurence struct {
 	Report disasters.DisasterReport
 }
 
+////////////////
+//archipelagoGeography := c.gamestate().Environment.Geography
+////////////////
+// A set of constants that define tuning parameters
+const (
+	// Disasters
+	TuningParamK             float64 = 1
+	VarianceCapTimeRemaining float64 = 10000
+	TuningParamG             float64 = 1
+	VarianceCapMagnitude     float64 = 10000
+)
+
 type OpinionHist map[shared.ClientID]Opinion
 type PredictionsHist map[shared.ClientID][]shared.DisasterPrediction
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo

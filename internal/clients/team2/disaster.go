@@ -3,7 +3,7 @@ package team2
 import (
 	"math"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -29,12 +29,11 @@ const (
 
 // GetIslandDVPs is used to calculate the disaster vulnerability parameter of each island in the game.
 // This only needs to be run at the start of the game because island's positions do not change
-func GetIslandDVPs(c *client) DisasterVulnerabilityParametersDict {
+func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) DisasterVulnerabilityParametersDict {
 	islandDVPs := DisasterVulnerabilityParametersDict{}
-	archipelagoGeography := c.gamestate().Environment.Geography
 	archipelagoCentre := CartesianCoordinates{
-		X: archipelagoGeography.Xmin + (archipelagoGeography.Xmax-archipelagoGeography.Xmin)/2,
-		Y: archipelagoGeography.Ymin + (archipelagoGeography.Ymax-archipelagoGeography.Ymin)/2,
+		X: archipelagoGeography.XMin + (archipelagoGeography.XMax-archipelagoGeography.XMin)/2,
+		Y: archipelagoGeography.YMin + (archipelagoGeography.YMax-archipelagoGeography.YMin)/2,
 	}
 	areaOfArchipelago := (archipelagoGeography.XMax - archipelagoGeography.XMin) * (archipelagoGeography.YMax - archipelagoGeography.YMin)
 
@@ -46,16 +45,16 @@ func GetIslandDVPs(c *client) DisasterVulnerabilityParametersDict {
 			Y: locationInfo.Y - archipelagoCentre.Y,
 		}
 		shiftedArchipelagoOutline := Outline{
-			Left:   archipelagoGeography.Xmin + relativeOffset.X,
-			Right:  archipelagoGeography.Xmax + relativeOffset.X,
-			Bottom: archipelagoGeography.Ymin + relativeOffset.Y,
-			Top:    archipelagoGeography.Ymax + relativeOffset.Y,
+			Left:   archipelagoGeography.XMin + relativeOffset.X,
+			Right:  archipelagoGeography.XMax + relativeOffset.X,
+			Bottom: archipelagoGeography.YMin + relativeOffset.Y,
+			Top:    archipelagoGeography.YMax + relativeOffset.Y,
 		}
 		overlapArchipelagoOutline := Outline{
-			Left:   GetMinMax(Max, shiftedArchipelagoOutline.Left, archipelagoGeography.Xmin),
-			Right:  GetMinMax(Min, shiftedArchipelagoOutline.Right, archipelagoGeography.Xmax),
-			Bottom: GetMinMax(Max, shiftedArchipelagoOutline.Bottom, archipelagoGeography.Ymin),
-			Top:    GetMinMax(Min, shiftedArchipelagoOutline.Top, archipelagoGeography.Ymax),
+			Left:   GetMinMax(Max, shiftedArchipelagoOutline.Left, archipelagoGeography.XMin),
+			Right:  GetMinMax(Min, shiftedArchipelagoOutline.Right, archipelagoGeography.XMax),
+			Bottom: GetMinMax(Max, shiftedArchipelagoOutline.Bottom, archipelagoGeography.YMin),
+			Top:    GetMinMax(Min, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
 		}
 
 		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Right) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
@@ -75,21 +74,18 @@ func GetMinMax(minOrMax bool, coordinate1 shared.Coordinate, coordinate2 shared.
 
 // MakeDisasterPrediction is used to provide our island's prediction on the next disaster
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
-	//------------Tuning Parameters---------------//
-	tuningParamK := 1.0
-	varianceCapTimeRemaining := 10000.0
-	tuningParamG := 1.0
-	varianceCapMagnitude := 10000.0
-	//--------------------------------------------//
+	totalTurns := float64(c.gameState().Turn)
 
 	// Get the location prediction
 	locationPrediction := GetLocationPrediction(c)
 
-	// Get the time until next disaster prediction
-	timeRemainingPrediction, confidenceTimeRemaining := GetTimeRemainingPrediction(c, tuningParamK, varianceCapTimeRemaining)
+	// Get the time until next disaster prediction and confidence
+	sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, totalTurns)
+	confidenceTimeRemaining := GetTimeRemainingConfidence(totalTurns, sampleMeanX)
 
-	// Get the magnitude prediction
-	magnitudePrediction, confidenceMagnitude := GetMagnitudePrediction(c, tuningParamG, varianceCapMagnitude)
+	// Get the magnitude prediction and confidence
+	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
+	confidenceMagnitude := GetTimeRemainingConfidence(totalTurns, sampleMeanM)
 
 	// Get the overall confidence in these predictions
 	confidencePrediction := GetConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
@@ -117,43 +113,52 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 func GetLocationPrediction(c *client) CartesianCoordinates {
 	archipelagoGeography := c.gamestate().Environment.Geography
 	archipelagoCentre := CartesianCoordinates{
-		X: archipelagoGeography.Xmin + (archipelagoGeography.Xmax-archipelagoGeography.Xmin)/2,
-		Y: archipelagoGeography.Ymin + (archipelagoGeography.Ymax-archipelagoGeography.Ymin)/2,
+		X: archipelagoGeography.XMin + (archipelagoGeography.XMax-archipelagoGeography.XMin)/2,
+		Y: archipelagoGeography.YMin + (archipelagoGeography.YMax-archipelagoGeography.YMin)/2,
 	}
 	return archipelagoCentre
 }
 
-// GetTimeRemainingPrediction provides a prediction about the time remaining until the next disaster.
-// The prediction is 1/sample mean of the Bernoulli RV, minus the turns since the last disaster.
-func GetTimeRemainingPrediction(c *client, tuningParamK float64, varianceCapTimeRemaining float64) (int, shared.PredictionConfidence) {
-	totalTurns := float64(c.gameState().Turn)
+// GetTimeRemainingPrediction returns a prediction about the time remaining until the next disaster and the sample mean
+// of the RV X. The prediction is 1/sample mean of the Bernoulli RV, minus the turns since the last disaster.
+func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, int) {
 	totalDisasters := float64(len(c.disasterHistory))
-	sampleMean := math.Round(totalDisasters / totalTurns)
-	timeBetweenDisasters := 1 / sampleMean
+	sampleMeanX := totalDisasters / totalTurns
 
 	// Get the time remaining prediction
-	timeRemaining := timeBetweenDisasters - (totalTurns - c.disasterHistory[len(c.disasterHistory)-1].Turn)
-
-	// Get the confidence in this prediction
-	estimatedVariance := (1 - sampleMean) / math.Pow(sampleMean, 2)
-	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, estimatedVariance/(tuningParamK*totalTurns), varianceCapTimeRemaining) / varianceCapTimeRemaining)
-	return int(timeRemaining), confidence
+	expectationTd := math.Round(1 / sampleMeanX)
+	timeRemaining := expectationTd - (totalTurns - c.disasterHistory[len(c.disasterHistory)-1].Turn)
+	return sampleMeanX, int(timeRemaining)
 }
 
-// GetMagnitudePrediction provides a prediction about the magnitude of the next disaster.
-// The prediction is the sample mean of the past magnitudes of disasters
-func GetMagnitudePrediction(c *client, tuningParamG float64, varianceCapMagnitude float64) (shared.Magnitude, shared.PredictionConfidence) {
-	totalTurns := float64(c.gameState().Turn)
+// GetTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is
+// given in the report (can ask Hamish)
+func GetTimeRemainingConfidence(totalTurns float64, sampleMeanX float64) float64 {
+	varianceTd := (1 - sampleMeanX) / math.Pow(sampleMeanX, 2)
+	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, varianceTd/(TuningParamK*totalTurns), VarianceCapTimeRemaining) / VarianceCapTimeRemaining)
+	return confidence
+}
+
+// GetMagnitudePrediction returns a prediction about the magnitude of the next disaster and the sample mean
+// of the RV M. The prediction is the sample mean of the past magnitudes of disasters
+func GetMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magnitude) {
 	totalMagnitudes := 0.0
 	for _, disasterReport := range c.disasterHistory {
 		totalMagnitudes += disasterReport.Report.Magnitude
 	}
-	sampleMean := totalMagnitudes / totalTurns
+	sampleMeanM := totalMagnitudes / totalTurns
 
-	// Get the confidence in this prediction
-	estimatedVariance := math.Pow(sampleMean, 2)
-	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, estimatedVariance/(tuningParamG*totalTurns), varianceCapMagnitude) / varianceCapMagnitude)
-	return sampleMean, confidence
+	// Get the magnitude prediction
+	magnitudePrediction := sampleMeanM
+	return sampleMeanM, magnitudePrediction
+}
+
+// GetMagnitudeConfidence returns the confidence in the magnitude prediction. The formula for this confidence is
+// given in the report (can ask Hamish)
+func GetMagnitudeConfidence(totalTurns float64, sampleMeanM float64) float64 {
+	varianceM := math.Pow(sampleMeanM, 2)
+	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, varianceM/(TuningParamG*totalTurns), VarianceCapMagnitude) / VarianceCapMagnitude)
+	return confidence
 }
 
 // GetConfidencePrediction provides an overall confidence in our prediction.
@@ -173,7 +178,7 @@ func GetMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
 // GetTrustedIslands returns a slice of the islands we want to share our prediction with.
 // NOTE: CURRENTLY THIS JUST RETURNS ALL ISLANDS.
 func GetTrustedIslands() []shared.ClientID {
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClients))
+	trustedIslands := make([]shared.ClientID, len(shared.TeamIDs))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
