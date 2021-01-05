@@ -72,21 +72,17 @@ func decideThreshold(c *client) float64 { //will move the threshold, higher valu
 }
 
 //TODO: LINE 83 foragingReturnHist how to access a clients foraging decision?
-//TODO: LINE 82 rather than 6 it needs to figure out how many alive agents there are, make a function which outputs no. of alive agents
 //EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
 func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
-	var HuntNum float64 = 0
-	if c.gameState().Turn == 1 {
-		var agentHistory [int]float64 //this map will store the probability an agent will hunt
-	}
-	for i := 0; i < 6; i++ { //update agentHistory by looping through all the agents and adding their most recent decisions and then find their average hunt/fish
-		agentHistory[i] = (agentHistory[i] + float64(c.foragingReturnHist[i])) / 2 //whatever the agent declares 0,1
-		if agentHistory[i] > 0.5 {                                                 //if an agent on average picks hunt more than 50% of the time we assume they will pick hunt
-			Huntnum++
+	HuntNum := 0.00
+	for _, id := range clientInfo {​​​​​​​
+		if   {//client is dead ignore their decision
+			for index, forageInfo := range c.foragingReturnsHist[id] {
+			forageInfo.DecisionMade.ForageType
+			}
 		}
-	}
+	}​​​​​​​
 	return HuntNum
-	return 0
 }
 
 //TODO: This function needs to be changed according to Eirik, I have no idea why
