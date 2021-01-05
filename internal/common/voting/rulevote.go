@@ -5,6 +5,14 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
+type ruleVoteResult int
+
+const (
+	Approve = iota
+	Reject
+	Abstain
+)
+
 type RuleVote struct {
 	//Checked by RuleVote
 	ruleToVote string
