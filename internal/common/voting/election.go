@@ -1,7 +1,6 @@
 package voting
 
 import (
-	"math"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -135,13 +134,13 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 			vi := float64(v[i])
 			fSi := float64(finalScore[i])
 			cN := float64(candidatesNumber)
-			variance[i] += math.Pow((vi - fSi/cN), 2)
+			variance[i] += (vi - fSi/cN) * (vi - fSi/cN)
 		}
 	}
 
 	var totalScore float64 = 0
-	for _, v := range finalScore {
-		totalScore += float64(v)
+	for i := 0; i < len(finalScore); i++ {
+		totalScore += float64(finalScore[i])
 	}
 
 	return finalScore, variance, totalScore
@@ -154,7 +153,8 @@ func findMaxScore(scoreList []int, variance []float64) (int, int) {
 		if scoreList[i] > maxScore {
 			maxScore = scoreList[i]
 			maxScoreIndex = i
-		} else if scoreList[i] == maxScore {
+		}
+		if scoreList[i] == maxScore {
 			if variance[i] > variance[maxScoreIndex] {
 				maxScoreIndex = i
 			}
@@ -173,7 +173,8 @@ func findMinScore(scoreList []int, variance []float64) (int, int) {
 		if scoreList[i] < minScore {
 			minScore = scoreList[i]
 			minScoreIndex = i
-		} else if scoreList[i] == minScore {
+		}
+		if scoreList[i] == minScore {
 			if variance[i] < variance[minScoreIndex] {
 				minScoreIndex = i
 			}
@@ -194,7 +195,8 @@ func (e *Election) bordaCountResult() shared.ClientID {
 		if maxScore < finalScore[i] {
 			maxScore = finalScore[i]
 			winnerIndex = i
-		} else if maxScore == finalScore[i] {
+		}
+		if maxScore == finalScore[i] {
 			if variance[winnerIndex] < variance[i] {
 				winnerIndex = i
 			}
@@ -235,7 +237,8 @@ func (e *Election) runOffResult(clientMap map[shared.ClientID]baseclient.Client)
 		for i := 0; i < voterNumber; i++ {
 			if rTwoVotes[i][0] == rOneCandidateList[maxScoreIndex] {
 				remainNumber++
-			} else if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
+			}
+			if rTwoVotes[i][0] == rOneCandidateList[competitorIndex] {
 				changeNumber++
 			}
 		}
