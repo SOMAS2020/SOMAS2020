@@ -2,7 +2,6 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -34,16 +33,16 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 	// If we do not have sufficient budget to conduct the inspection,
 	// then we will return an empty map with true evaluations.
-	if j.c.getLocalResources() < config.IIGOConfig.InspectHistoryActionCost {
-		// dummy evaluation map
-		for _, entry := range iigoHistory {
-			outMap[entry.ClientID] = roles.EvaluationReturn{
-				Rules:       []rules.RuleMatrix{},
-				Evaluations: []bool{},
-			}
-		}
-		return outMap, true
-	}
+	// if j.c.getLocalResources() < config.IIGOConfig.InspectHistoryActionCost {
+	// 	// dummy evaluation map
+	// 	for _, entry := range iigoHistory {
+	// 		outMap[entry.ClientID] = roles.EvaluationReturn{
+	// 			Rules:       []rules.RuleMatrix{},
+	// 			Evaluations: []bool{},
+	// 		}
+	// 	}
+	// 	return outMap, true
+	// }
 
 	// Else, carry out inspectHistory as base implementation.
 	for _, entry := range iigoHistory {
