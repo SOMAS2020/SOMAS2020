@@ -69,3 +69,66 @@ func TestRaiseFriendshipLevel(t *testing.T) {
 		})
 	}
 }
+
+func TestLowerFriendshipLevel(t *testing.T) {
+	tests := []struct {
+		testname      string
+		testClient    client
+		testTeam      shared.ClientID
+		testDeduction FriendshipLevel
+		want          Friendship
+	}{
+		{
+			testname: "common test",
+			testClient: client{
+				friendship: Friendship{
+					shared.Team1: 50.0,
+					shared.Team2: 50.0,
+					shared.Team3: 50.0,
+					shared.Team4: 50.0,
+					shared.Team5: 50.0,
+				},
+				config: config,
+			},
+			testTeam:      shared.Team3,
+			testDeduction: FriendshipLevel(50.0),
+			want: Friendship{
+				shared.Team1: 50.0,
+				shared.Team2: 50.0,
+				shared.Team3: 40.0,
+				shared.Team4: 50.0,
+				shared.Team5: 50.0,
+			},
+		},
+		{
+			testname: "overflow test",
+			testClient: client{
+				friendship: Friendship{
+					shared.Team1: 50.0,
+					shared.Team2: 50.0,
+					shared.Team3: 50.0,
+					shared.Team4: 50.0,
+					shared.Team5: 10.0,
+				},
+				config: config,
+			},
+			testTeam:      shared.Team5,
+			testDeduction: FriendshipLevel(100.0),
+			want: Friendship{
+				shared.Team1: 50.0,
+				shared.Team2: 50.0,
+				shared.Team3: 50.0,
+				shared.Team4: 50.0,
+				shared.Team5: 0.0,
+			},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.testname, func(t *testing.T) {
+			tc.testClient.lowerFriendshipLevel(tc.testTeam, tc.testDeduction)
+			if !reflect.DeepEqual(tc.testClient.friendship, tc.want) {
+				t.Errorf("got %v, want %v", tc.testClient.friendship, tc.want)
+			}
+		})
+	}
+}
