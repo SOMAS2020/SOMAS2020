@@ -51,10 +51,10 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 			Top:    archipelagoGeography.YMax + relativeOffset.Y,
 		}
 		overlapArchipelagoOutline := Outline{
-			Left:   GetMinMax(Max, shiftedArchipelagoOutline.Left, archipelagoGeography.XMin),
-			Right:  GetMinMax(Min, shiftedArchipelagoOutline.Right, archipelagoGeography.XMax),
-			Bottom: GetMinMax(Max, shiftedArchipelagoOutline.Bottom, archipelagoGeography.YMin),
-			Top:    GetMinMax(Min, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
+			Left:   GetMinMaxCoordinate(Max, shiftedArchipelagoOutline.Left, archipelagoGeography.XMin),
+			Right:  GetMinMaxCoordinate(Min, shiftedArchipelagoOutline.Right, archipelagoGeography.XMax),
+			Bottom: GetMinMaxCoordinate(Max, shiftedArchipelagoOutline.Bottom, archipelagoGeography.YMin),
+			Top:    GetMinMaxCoordinate(Min, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
 		}
 
 		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Right) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
@@ -63,13 +63,21 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 	return islandDVPs
 }
 
-// GetMinMax returns either the minimum or maximum coordinate of the two supplied, according to the bool argument
+// GetMinMaxCoordinate returns either the minimum or maximum coordinate of the two supplied, according to the bool argument
 // that is input to the function
-func GetMinMax(minOrMax bool, coordinate1 shared.Coordinate, coordinate2 shared.Coordinate) shared.Coordinate {
+func GetMinMaxCoordinate(minOrMax bool, coordinate1 shared.Coordinate, coordinate2 shared.Coordinate) shared.Coordinate {
 	if (minOrMax == Min && coordinate1 < coordinate2) || (minOrMax == Max && coordinate1 > coordinate2) {
 		return coordinate1
 	}
 	return coordinate2
+}
+
+// GetMinMaxFloat is the same as GetMinMaxCoordinate but works for floats
+func GetMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
+	if (minOrMax == Min && value1 < value2) || (minOrMax == Max && value1 > value2) {
+		return value1
+	}
+	return value2
 }
 
 // MakeDisasterPrediction is used to provide our island's prediction on the next disaster
@@ -165,14 +173,6 @@ func GetMagnitudeConfidence(totalTurns float64, sampleMeanM float64) float64 {
 // The confidence is the average of those from the timeRemaining and Magnitude predictions.
 func GetConfidencePrediction(confidenceTimeRemaining shared.PredictionConfidence, confidenceMagnitude shared.PredictionConfidence) shared.PredictionConfidence {
 	return (confidenceTimeRemaining + confidenceMagnitude) / 2
-}
-
-// GetMinMaxFloat is the same as GetMinMax but works for floats
-func GetMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
-	if (minOrMax == Min && value1 < value2) || (minOrMax == Max && value1 > value2) {
-		return value1
-	}
-	return value2
 }
 
 // GetTrustedIslands returns a slice of the islands we want to share our prediction with.
