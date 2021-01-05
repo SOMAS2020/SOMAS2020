@@ -60,8 +60,8 @@ type CommunicationContent struct {
 	IntegerData   int
 	TextData      string
 	BooleanData   bool
-	IIGOValueData ValueDecision
 	IIGORoleData  Role
+	IIGOValueData ValueDecision
 }
 
 type CommunicationFieldName int

@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"fmt"
 	"testing"
 
 	"gonum.org/v1/gonum/mat"
@@ -89,34 +88,4 @@ func registerNewLinkedRule(t *testing.T) {
 	if ruleError != nil {
 		t.Errorf("Problem with registering new real valued rule in test, error message : '%v'", ruleError.Error())
 	}
-}
-
-func createTaxRule(tax float64) (RuleMatrix, VariableValuePair) {
-	reqVar := []VariableFieldName{
-		IslandTaxContribution,
-		ExpectedTaxContribution,
-	}
-	v := []float64{1, -1, 0}
-	aux := []float64{2}
-
-	rowLength := len(reqVar) + 1
-	nrows := len(v) / rowLength
-
-	CoreMatrix := mat.NewDense(nrows, rowLength, v)
-	AuxiliaryVector := mat.NewVecDense(nrows, aux)
-
-	rule := RuleMatrix{
-		RuleName:          fmt.Sprintf("Tax = %.2f", tax),
-		RequiredVariables: reqVar,
-		ApplicableMatrix:  *CoreMatrix,
-		AuxiliaryVector:   *AuxiliaryVector,
-		Mutable:           false,
-	}
-
-	expectedVariable := VariableValuePair{
-		VariableName: ExpectedTaxContribution,
-		Values:       []float64{tax},
-	}
-
-	return rule, expectedVariable
 }
