@@ -60,8 +60,8 @@ type GiftInfo struct {
 }
 
 type GiftExchange struct {
-	IslandRequest map[int]GiftInfo
-	OurRequest    map[int]GiftInfo
+	IslandRequest map[uint]GiftInfo
+	OurRequest    map[uint]GiftInfo
 }
 
 type OpinionHist map[shared.ClientID]Opinion
@@ -154,15 +154,18 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// loop through each island (there might not be 6)
 	for clientID, _ := range c.gameState().ClientLifeStatuses {
 		// set the confidence to 50 and initialise any other stuff
-		var Histories map[Situation][]int
-		Histories["President"] = make([50])
-		Histories["Speaker"] = [50]
-		Histories["Judge"] =[50]
-		Histories["Foraging"] = [50]
-		Histories["Gifts"] = [50]
-
+		Histories := make(map[Situation][]int)
+		Histories["President"] = []int{50}
+		Histories["Speaker"] = []int{50}
+		Histories["Judge"] = []int{50}
+		Histories["Foraging"] = []int{50}
+		Histories["Gifts"] = []int{50}
 		c.opinionHist[clientID] = Opinion{
-			Histories: Histories,
+			Histories:    Histories,
+			Performances: map[Situation]ExpectationReality{},
+		}
+		c.giftHist[clientID] = GiftExchange{IslandRequest: map[uint]GiftInfo{},
+			OurRequest: map[uint]GiftInfo{},
 		}
 	}
 }

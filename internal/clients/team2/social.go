@@ -34,6 +34,7 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 
 	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
 	islandSituationPerf.exp = average
+	c.Logf("%v", c.opinionHist)
 	c.opinionHist[otherIsland].Performances[situation] = islandSituationPerf
 
 	return average
