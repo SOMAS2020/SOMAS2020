@@ -4,7 +4,6 @@ package foraging
 
 import (
 	"fmt"
-	"log"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -21,6 +20,7 @@ type deerHuntParams struct {
 type DeerHunt struct {
 	ParticipantContributions map[shared.ClientID]shared.Resources
 	params                   deerHuntParams
+	logger                   shared.Logger
 }
 
 // TotalInput simply sums the total group resource input of hunt participants
@@ -66,6 +66,11 @@ func (d DeerHunt) getPopulationLinkedProbability(dhConf config.DeerHuntConfig, p
 	thetaCritical := dhConf.ThetaCritical
 	thetaMax := dhConf.ThetaMax
 	p := float64(population) / float64(dhConf.MaxDeerPerHunt)
+
+	if pMax == pCritical { // catch the special case where max deer per hunt = max population. You've got params wrong if you're here though :)
+		d.Logf("Warning: detected pMax = pCritical. This is likely because you've set max deer per hunt to max deer population. Should have max pop. > max per hunt.")
+		return thetaCritical * float64(p) // same as f1. Avoid calculating alpha
+	}
 	alpha := (thetaMax - thetaCritical) / (pMax - float64(pCritical))
 
 	f1 := func(p float64) float64 { return thetaCritical * float64(p) }
@@ -81,5 +86,5 @@ func (d DeerHunt) getPopulationLinkedProbability(dhConf config.DeerHuntConfig, p
 
 // Logf is a this type's custom logger
 func (d DeerHunt) Logf(format string, a ...interface{}) {
-	log.Printf("[SERVER][DeerHunt]: %v", fmt.Sprintf(format, a...))
+	d.logger("[DEERHUNT]: %v", fmt.Sprintf(format, a...))
 }

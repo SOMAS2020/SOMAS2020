@@ -7,32 +7,48 @@ import (
 type BaseSpeaker struct {
 }
 
-// PayJudge pays the Judge a salary.
-// OPTIONAL: override to pay the Judge less than the full amount.
-func (s *BaseSpeaker) PayJudge(salary shared.Resources) (shared.Resources, bool) {
-	return salary, true
+// PayJudge is used for paying judge for his service
+func (s *BaseSpeaker) PayJudge(salary shared.Resources) shared.SpeakerReturnContent {
+	return shared.SpeakerReturnContent{
+		ContentType: shared.SpeakerJudgeSalary,
+		JudgeSalary: salary,
+		ActionTaken: true,
+	}
 }
 
 //DecideAgenda the interface implementation and example of a well behaved Speaker
 //who sets the vote to be voted on to be the rule the President provided
-// OPTIONAL: override to alter the rule chosen by the President
-func (s *BaseSpeaker) DecideAgenda(ruleID string) (string, bool) {
-	return ruleID, true
+func (s *BaseSpeaker) DecideAgenda(ruleID string) shared.SpeakerReturnContent {
+	return shared.SpeakerReturnContent{
+		ContentType: shared.SpeakerAgenda,
+		RuleID:      ruleID,
+		ActionTaken: true,
+	}
 }
 
 //DecideVote is the interface implementation and example of a well behaved Speaker
 //who calls a vote on the proposed rule and asks all available islands to vote.
-//OPTIONAL: Return an empty string or empty []shared.ClientID for no vote to occur
-func (s *BaseSpeaker) DecideVote(ruleID string, aliveClients []shared.ClientID) (string, []shared.ClientID, bool) {
+//Return an empty string or empty []shared.ClientID for no vote to occur
+func (s *BaseSpeaker) DecideVote(ruleID string, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
 	//TODO: disregard islands with sanctions
-	return ruleID, aliveClients, true
+	return shared.SpeakerReturnContent{
+		ContentType:          shared.SpeakerVote,
+		ParticipatingIslands: aliveClients,
+		RuleID:               ruleID,
+		ActionTaken:          true,
+	}
 }
 
 //DecideAnnouncement is the interface implementation and example of a well behaved Speaker
 //A well behaved speaker announces what had been voted on and the corresponding result
-//COMPULSORY: Return "", _ for no announcement to occur
-func (s *BaseSpeaker) DecideAnnouncement(ruleId string, result bool) (string, bool, bool) {
-	return ruleId, result, true
+//Return "", _ for no announcement to occur
+func (s *BaseSpeaker) DecideAnnouncement(ruleID string, result bool) shared.SpeakerReturnContent {
+	return shared.SpeakerReturnContent{
+		ContentType:  shared.SpeakerAnnouncement,
+		RuleID:       ruleID,
+		VotingResult: result,
+		ActionTaken:  true,
+	}
 }
 
 // CallJudgeElection is called by the legislature to decide on power-transfer
@@ -41,7 +57,7 @@ func (s *BaseSpeaker) CallJudgeElection(monitoring shared.MonitorResult, turnsIn
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
-		VotingMethod:  shared.Plurality,
+		VotingMethod:  shared.BordaCount,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
