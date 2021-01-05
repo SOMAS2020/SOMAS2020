@@ -159,7 +159,7 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 // COMPULSORY, you need to implement this method
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
 	if c.resourceHistory[c.gameState().Turn-1] < c.ServerReadHandle.GetGameState().ClientInfo.Resources { // if resources are higher that previous' rounds resources
-		if c.wealth() >= 2 { //this is only fullfilled if any of the isl
+		if c.wealth() >= 2 { //this is only fullfilled if we are wealthy enough Mid and JB
 			if c.opinions[toTeam].score > 0 && c.opinions[toTeam].score <= 0.5 { //if twe are walthy (>=2) and our opinion on the island is between 0 and 0.5 then fulfill full offer
 				return giftOffer
 			} else if c.opinions[toTeam].score > 0.5 && c.opinions[toTeam].score <= 1 { //if we are wealthy (>=2) and we have a high opinion on the island, then boost the gift a little by 1.4
@@ -167,7 +167,7 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 			} else {
 				return 0
 			}
-		} else if c.wealth() == 1 {
+		} else if c.wealth() == 1 { //this is only fullfilled if we are ICL students rich
 			if c.opinions[toTeam].score > 0 && c.opinions[toTeam].score <= 0.5 { //if wealth is one but opinion is between 0 and 0.5 then give half the offerr
 				return giftOffer / 2
 			} else if c.opinions[toTeam].score > 0.5 && c.opinions[toTeam].score <= 1 { //if wealth is 1 and opinion is 0.5 to 1 then give fulfill whole offer
