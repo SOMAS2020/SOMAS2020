@@ -29,12 +29,11 @@ func (c *client) StartOfTurn() {
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.wealth()
 
-	// Print the Thresholds
-	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
-		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
+	c.opinionHistory[c.getTurn()] = c.opinions // assign last turn's opinions as default for this turn
 
 	// Print the level of wealth we are at
 	c.Logf("[Debug] - [Start of Turn] Class: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
+
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
 			return
@@ -47,8 +46,6 @@ func (c *client) StartOfTurn() {
 
 }
 
-func (c *client) EndOfTurn() {} // waiting for infra to implement?
-
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle // don't change this
 	c.initOpinions()
@@ -57,6 +54,10 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.config.jbThreshold = c.resourceHistory[1] * 2
 	c.config.middleThreshold = c.resourceHistory[1] * 0.95
 	c.config.imperialThreshold = c.resourceHistory[1] * 0.5
+
+	// Print the Thresholds
+	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
+		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
 }
 
 //================================================================
