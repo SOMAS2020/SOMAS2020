@@ -66,10 +66,10 @@ func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
 // sendPresidentSalary conduct the transaction based on amount from client implementation
 func (j *judiciary) sendPresidentSalary() error {
 	if j.clientJudge != nil {
-		amount, presidentPaid := j.clientJudge.PayPresident(j.presidentSalary)
+		amountReturn, presidentPaid := j.clientJudge.PayPresident(j.presidentSalary)
 		if presidentPaid {
 			// Subtract from common resources po
-			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, j.gameState)
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn, j.gameState)
 
 			if withdrawSuccess {
 				// Pay into the client private resources pool
@@ -81,6 +81,9 @@ func (j *judiciary) sendPresidentSalary() error {
 				return nil
 			}
 		}
+		variablesToCache := []rules.VariableFieldName{rules.PresidentPaid}
+		valuesToCache := [][]float64{{boolToFloat(presidentPaid)}}
+		j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 	}
 	return errors.Errorf("Cannot perform sendJudgeSalary")
 }

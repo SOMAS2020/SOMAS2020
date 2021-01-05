@@ -57,10 +57,13 @@ const (
 	IslandsAlive
 	SpeakerSalary
 	SpeakerPayment
+	SpeakerPaid
 	JudgeSalary
 	JudgePayment
+	JudgePaid
 	PresidentSalary
 	PresidentPayment
+	PresidentPaid
 	RuleSelected
 	VoteCalled
 	ExpectedTaxContribution
@@ -97,10 +100,13 @@ func (v VariableFieldName) String() string {
 		"IslandsAlive",
 		"SpeakerSalary",
 		"SpeakerPayment",
+		"SpeakerPaid",
 		"JudgeSalary",
 		"JudgePayment",
+		"JudgePaid",
 		"PresidentSalary",
 		"PresidentPayment",
+		"PresidentPaid",
 		"RuleSelected",
 		"VoteCalled",
 		"ExpectedTaxContribution",
