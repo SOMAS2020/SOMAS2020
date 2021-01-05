@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -69,6 +70,7 @@ type Client interface {
 // ServerReadHandle is a read-only handle to the game server, used for client to get up-to-date gamestate
 type ServerReadHandle interface {
 	GetGameState() gamestate.ClientGameState
+	GetGameConfig() config.ClientConfig
 }
 
 // NewClient produces a new client with the BaseClient already implemented.
