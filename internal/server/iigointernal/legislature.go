@@ -147,7 +147,7 @@ func (l *legislature) announceVotingResult() (bool, error) {
 		announcementRuleMatchesVote := returnAnouncement.RuleID == l.ruleToVote
 		announcementResultMatchesVote := returnAnouncement.RuleID == l.ruleToVote
 		variablesToCache := []rules.VariableFieldName{rules.AnnouncementRuleMatchesVote, rules.AnnouncementResultMatchesVote}
-		valuesToCache := [][]float64{{boolToFloat(announcementRuleMatchesVote), boolToFloat(announcementResultMatchesVote)}}
+		valuesToCache := [][]float64{{boolToFloat(announcementRuleMatchesVote)}, {boolToFloat(announcementResultMatchesVote)}}
 		l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
 	}

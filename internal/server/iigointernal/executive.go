@@ -77,7 +77,7 @@ func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 		rulesProposed := len(e.RulesProposals) > 0
 
 		variablesToCache := []rules.VariableFieldName{rules.IslandsProposedRules, rules.PresidentRuleProposal}
-		valuesToCache := [][]float64{{boolToFloat(rulesProposed), boolToFloat(returnRule.ActionTaken)}}
+		valuesToCache := [][]float64{{boolToFloat(rulesProposed)}, {boolToFloat(returnRule.ActionTaken)}}
 		e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
 	}
 
