@@ -15,16 +15,18 @@ const id = shared.Team5
 
 //================ Common Pool =========================================
 
+type resourceHistoryType map[uint]shared.Resources
+
 //cpRequestHistory history of CP Requests
-type cpRequestHistory []shared.Resources
+type cpRequestHistory resourceHistoryType
 
 //cpAllocationHistory History of allocations
-type cpAllocationHistory []shared.Resources
+type cpAllocationHistory resourceHistoryType
 
 //================ Resource History =========================================
 
 //resourceHistory OUR islands resources per turn
-type resourceHistory map[uint]shared.Resources
+type resourceHistory resourceHistoryType
 
 //================ Foraging History =========================================
 
