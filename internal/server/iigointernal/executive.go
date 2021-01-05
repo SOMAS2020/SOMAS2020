@@ -73,7 +73,7 @@ func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 	returnRule := e.clientPresident.PickRuleToVote(e.RulesProposals)
 
 	//Log Rule: obligation to select a rule if there is something in the proposal list
-	if e.gameState.IIGORolesBudget[shared.Role(shared.President)]-e.gameConf.GetRuleForSpeakerActionCost >= 0 {
+	if e.gameState.IIGORolesBudget[shared.President]-e.gameConf.GetRuleForSpeakerActionCost >= 0 {
 		rulesProposed := len(e.RulesProposals) > 0
 
 		variablesToCache := []rules.VariableFieldName{rules.IslandsProposedRules, rules.PresidentRuleProposal}
