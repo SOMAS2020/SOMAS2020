@@ -20,7 +20,7 @@ type Client interface {
 	StartOfTurn()
 	Logf(format string, a ...interface{})
 
-	VoteForRule(ruleName string) shared.RuleVoteResult
+	VoteForRule(ruleName string) shared.RuleVoteType
 	VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
@@ -130,7 +130,7 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
-func (c *BaseClient) VoteForRule(ruleName string) shared.RuleVoteResult {
+func (c *BaseClient) VoteForRule(ruleName string) shared.RuleVoteType {
 	// TODO implement decision on voting that considers the rule
 	return shared.Approve
 }
