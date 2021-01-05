@@ -130,7 +130,7 @@ func (pres *president) CallSpeakerElection(monitoring shared.MonitorResult, turn
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
-		VotingMethod:  shared.Plurality,
+		VotingMethod:  shared.BordaCount,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
