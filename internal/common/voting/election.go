@@ -25,12 +25,16 @@ func (e *Election) ProposeElection(role shared.Role, method shared.ElectionVotin
 func (e *Election) OpenBallot(clientIDs []shared.ClientID, clientMap map[shared.ClientID]baseclient.Client) {
 	e.voterList = clientIDs
 	//Get candidate list.
-	allClients := []shared.ClientID{shared.Team1, shared.Team2, shared.Team3, shared.Team4, shared.Team5, shared.Team6}
-	for i:=0;i<len(allClients);i++ {
+	idSorter := shared.Team1
+	for {
 		for island, _ := range clientMap {
-			if island == allClients[i] {
+			if island == idSorter {
 				e.candidateList = append(e.candidateList, island)
 			}
+		}
+		idSorter++
+		if len(e.candidateList) == len(clientMap) {
+			break
 		}
 	}
 }
