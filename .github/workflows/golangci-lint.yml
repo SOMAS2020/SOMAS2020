@@ -15,4 +15,4 @@ jobs:
           golangci_lint_flags: "--disable-all -E golint"
           tool_name: golint 
           level: warning 
-          golint-path: './ingternal/client/team6/...'
+          golint-path: './internal/clients/team6/...'
