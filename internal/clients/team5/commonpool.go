@@ -1,37 +1,37 @@
 package team5
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 // Request resource from the President
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	// Initially, request the minimum
-	newRequest := c.config.ImperialThreshold
-	if c.gameState().Turn == 1 && c.gameState().Season == 1 {
-		newRequest = c.config.ImperialThreshold
-		c.Logf("Common Pool Request: %v", newRequest)
+	reqAmount := c.config.imperialThreshold
+	turn := c.getTurn()
+	currentCP := c.getCP()
+
+	if turn == 1 && c.getSeason() == 1 {
+		reqAmount = c.config.imperialThreshold
 	} else if c.wealth() == imperialStudent || c.wealth() == dying {
 		// If we are as poor as imperial student, request more resource from cp (whichever number is higher)
-		if c.config.ImperialThreshold < (c.gameState().CommonPool / 6) {
-			newRequest = c.gameState().CommonPool / 6
-		} else {
-			newRequest = c.config.ImperialThreshold
-		}
-	} else {
+		reqAmount = shared.Resources(math.Max(float64(c.config.imperialThreshold), float64(currentCP/6)))
+
+	} else if turn > 1 {
 		// For other scenarios, look at the history and make decisions based on that
-		lastAllocation := c.cpAllocationHistory[len(c.cpAllocationHistory)-1]
+		lastAllocation := c.cpAllocationHistory[turn-1]
 		if lastAllocation == 0 {
-			newRequest = c.config.ImperialThreshold
-			c.Logf("Common Pool Request: %v", newRequest)
+			reqAmount = c.config.imperialThreshold
 		} else {
-			newRequest = lastAllocation + 10
-			c.Logf("Common Pool Request: %v", newRequest)
+			reqAmount = lastAllocation + 10
 		}
 	}
+	c.Logf("Submitting CP resource request of %v resources", reqAmount)
 	//Update request history
-	c.cpRequestHistory = append(c.cpRequestHistory, newRequest)
-	return newRequest
+	c.cpRequestHistory[turn] = reqAmount
+	return reqAmount
 }
 
 //Request resource from the common pool
@@ -43,10 +43,10 @@ func (c *client) RequestAllocation() shared.Resources {
 	if c.wealth() == imperialStudent || c.wealth() == dying {
 		//allocation = c.cpRequestHistory[len(c.cpRequestHistory)-1] //this one not working rn but it should be the same as the longer code.
 		// will be fixed by preet's team
-		if c.config.ImperialThreshold < (c.gameState().CommonPool / 6) {
+		if c.config.imperialThreshold < (c.gameState().CommonPool / 6) {
 			allocation = c.gameState().CommonPool / 6
 		} else {
-			allocation = c.config.ImperialThreshold
+			allocation = c.config.imperialThreshold
 		}
 	} else {
 		allocation = c.allocation
