@@ -8,37 +8,37 @@ import (
 
 // TestBasicRuleEvaluatorPositive Checks whether rule we expect to evaluate as true actually evaluates as such
 func TestBasicRuleEvaluatorPositive(t *testing.T) {
-	result, err := BasicBooleanRuleEvaluator("Kinda Complicated Rule")
-	if !result {
-		t.Errorf("Rule evaluation came as false, when it was expected to be true, potential error with value '%v'", err)
+	ret := EvaluateRule("Kinda Complicated Rule")
+	if !ret.RulePasses {
+		t.Errorf("Rule evaluation came as false, when it was expected to be true, potential error with value '%v'", ret.EvalError)
 	}
 }
 
 // TestBasicRuleEvaluatorNegative Checks whether rule we expect to evaluate as false actually evaluates as such
 func TestBasicRuleEvaluatorNegative(t *testing.T) {
 	registerTestRule(AvailableRules)
-	result, err := BasicBooleanRuleEvaluator("Kinda Test Rule")
-	if result || err != nil {
-		t.Errorf("Rule evaluation came as true, when it was expected to be false, potential error with value '%v'", err)
+	ret := EvaluateRule("Kinda Test Rule")
+	if ret.RulePasses || ret.EvalError != nil {
+		t.Errorf("Rule evaluation came as true, when it was expected to be false, potential error with value '%v'", ret.EvalError)
 	}
 }
 
 func TestBasicRealValuedRuleEvaluator(t *testing.T) {
 	registerNewRealValuedRule(t)
-	result, value, _ := BasicRealValuedRuleEvaluator("Real Test rule")
-	if !result && value != 2.0 {
-		t.Errorf("Real values rule evaluation error, expected true got '%v', value expected '2' got '%v'", result, value)
+	ret := EvaluateRule("Real Test rule")
+	if !ret.RulePasses && ret.RealOutputVal != 2.0 {
+		t.Errorf("Real values rule evaluation error, expected true got '%v', value expected '2' got '%v'", ret.RulePasses, ret.RealOutputVal)
 	}
 }
 
 func TestBasicLinkedRuleEvaluator(t *testing.T) {
 	registerNewLinkedRule(t)
-	result, err := BasicLinkedRuleEvaluator("Linked test rule")
-	if err != nil {
-		t.Errorf("Linked rule evaluation error: %v", err)
+	ret := EvaluateRule("Linked test rule")
+	if ret.EvalError != nil {
+		t.Errorf("Linked rule evaluation error: %v", ret.EvalError)
 	}
-	if !result {
-		t.Errorf("Linked rule evaluated to %v expected %v", result, true)
+	if !ret.RulePasses {
+		t.Errorf("Linked rule evaluated to %v expected %v", ret.RulePasses, true)
 	}
 }
 
