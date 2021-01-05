@@ -4,6 +4,8 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+const SingleValueVariableEntry = 0
+
 // LinkTypeOption gives an enumerated type for the various link types available for rules
 type LinkTypeOption int
 
