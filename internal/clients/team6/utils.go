@@ -24,7 +24,7 @@ func (c *client) lowerFriendshipLevel(clientID shared.ClientID, deduction Friend
 	logDeduction := (deduction / (c.friendship[clientID] + deduction)) * (c.config.maxFriendship / 5)
 	loweredFriendship := currFriendship - logDeduction
 
-	if loweredFriendship > c.config.minFriendship {
+	if loweredFriendship < c.config.minFriendship {
 		// c.Logf("Friendship with island[%v] is at minimum!", clientID)
 		c.friendship[clientID] = c.config.minFriendship
 	} else {
