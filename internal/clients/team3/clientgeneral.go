@@ -7,6 +7,7 @@ import (
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -24,9 +25,16 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 
 func (c *client) StartOfTurn() {
 	c.clientPrint("Start of turn!")
-	// TODO add any functions and vairable changes here
+
+	if c.checkIfCaught() {
+		c.clientPrint("We've been caught")
+		c.timeSinceCaught = 0
+	}
 	c.updateCompliance()
+	c.lastSanction = c.iigoInfo.sanctions.ourSanction
+
 	c.resetIIGOInfo()
+	c.Logf("Our Status: %+v\n", c.ServerReadHandle.GetGameState().ClientInfo)
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
@@ -38,13 +46,22 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)
 	c.theirTrustScore = make(map[shared.ClientID]float64)
+	//c.localVariableCache = rules.CopyVariableMap()
 	for _, islandID := range shared.TeamIDs {
 		c.trustScore[islandID] = 50
 		c.theirTrustScore[islandID] = 50
 	}
 	// Set our trust in ourselves to 100
 	c.theirTrustScore[id] = 100
-	// Initialise variables
+
+	c.iigoInfo = iigoCommunicationInfo{
+		sanctions: &sanctionInfo{
+			tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
+			rulePenalties:   make(map[string]roles.IIGOSanctionScore),
+			islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
+			ourSanction:     roles.IIGOSanctionScore(0),
+		},
+	}
 }
 
 // updatetrustMapAgg adds the amount to the aggregate trust map list for given client
@@ -133,11 +150,11 @@ func (c *client) updateCriticalThreshold(isInCriticalState bool, estimatedResour
 func (c *client) updateCompliance() {
 	if c.timeSinceCaught == 0 {
 		c.compliance = 1
-		c.numTimeCaught += 1
+		c.numTimeCaught++
 	} else {
 		c.compliance = c.params.complianceLevel + (1.0-c.params.complianceLevel)*
 			math.Exp(-float64(c.timeSinceCaught)/math.Pow((float64(c.numTimeCaught)+1.0), c.params.recidivism))
-		c.timeSinceCaught += 1
+		c.timeSinceCaught++
 	}
 }
 
@@ -146,6 +163,12 @@ func (c *client) updateCompliance() {
 // 1, we expect this method to always return False.
 func (c *client) shouldICheat() bool {
 	return rand.Float64() > c.compliance
+}
+
+// checkIfCaught, checks if the island has been caught during the last turn
+// If it has been caught, it returns True, otherwise False.
+func (c *client) checkIfCaught() bool {
+	return c.iigoInfo.sanctions.ourSanction > c.lastSanction
 }
 
 // ResourceReport overides the basic method to mis-report when we have a low compliance score
