@@ -7,22 +7,22 @@ import (
 // Request resource from the President
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	// Initially, request the minimum
-	newRequest := c.config.ImperialThreshold
+	newRequest := c.config.imperialThreshold
 	if c.gameState().Turn == 1 && c.gameState().Season == 1 {
-		newRequest = c.config.ImperialThreshold
+		newRequest = c.config.imperialThreshold
 		c.Logf("Common Pool Request: %v", newRequest)
 	} else if c.wealth() == imperialStudent || c.wealth() == dying {
 		// If we are as poor as imperial student, request more resource from cp (whichever number is higher)
-		if c.config.ImperialThreshold < (c.gameState().CommonPool / 6) {
+		if c.config.imperialThreshold < (c.gameState().CommonPool / 6) {
 			newRequest = c.gameState().CommonPool / 6
 		} else {
-			newRequest = c.config.ImperialThreshold
+			newRequest = c.config.imperialThreshold
 		}
 	} else {
 		// For other scenarios, look at the history and make decisions based on that
 		lastAllocation := c.cpAllocationHistory[len(c.cpAllocationHistory)-1]
 		if lastAllocation == 0 {
-			newRequest = c.config.ImperialThreshold
+			newRequest = c.config.imperialThreshold
 			c.Logf("Common Pool Request: %v", newRequest)
 		} else {
 			newRequest = lastAllocation + 10
@@ -43,10 +43,10 @@ func (c *client) RequestAllocation() shared.Resources {
 	if c.wealth() == imperialStudent || c.wealth() == dying {
 		//allocation = c.cpRequestHistory[len(c.cpRequestHistory)-1] //this one not working rn but it should be the same as the longer code.
 		// will be fixed by preet's team
-		if c.config.ImperialThreshold < (c.gameState().CommonPool / 6) {
+		if c.config.imperialThreshold < (c.gameState().CommonPool / 6) {
 			allocation = c.gameState().CommonPool / 6
 		} else {
-			allocation = c.config.ImperialThreshold
+			allocation = c.config.imperialThreshold
 		}
 	} else {
 		allocation = c.allocation

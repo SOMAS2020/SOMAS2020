@@ -79,18 +79,18 @@ type clientConfig struct {
 	SkipForage           uint // Skip for X turns if no positive RoI
 
 	// If resources go above this limit we are balling with money
-	JBThreshold shared.Resources
+	jbThreshold shared.Resources
 	// Middle class:  Middle < Jeff bezos
-	MiddleThreshold shared.Resources
+	middleThreshold shared.Resources
 	// Poor: Imperial student < Middle
-	ImperialThreshold shared.Resources
+	imperialThreshold shared.Resources
 
 	// How much to request when we are dying
-	DyingGiftRequestAmount shared.Resources
+	dyingGiftRequestAmount shared.Resources
 	// How much to request when we are at Imperial
-	ImperialGiftRequestAmount shared.Resources
+	imperialGiftRequestAmount shared.Resources
 	// How much to request when we are dying
-	MiddleGiftRequestAmount shared.Resources
+	middleGiftRequestAmount shared.Resources
 }
 
 // Client is the island number
@@ -124,17 +124,6 @@ const (
 	imperialStudent
 	middleClass
 	jeffBezos
-)
-
-const (
-	// Accept ...
-	Accept shared.AcceptReason = iota
-	// DeclineDontNeed ...
-	DeclineDontNeed
-	// DeclineDontLikeYou ...
-	DeclineDontLikeYou
-	// Ignored ...
-	Ignored
 )
 
 //================================================================
