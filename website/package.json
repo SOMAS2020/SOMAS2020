@@ -6,11 +6,13 @@
   "dependencies": {
     "d3": "^6.3.1",
     "localforage": "^1.9.0",
+    "lodash": "^4.17.20",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.0",
     "react-dom": "^17.0.1",
     "react-router-bootstrap": "^0.25.0",
     "react-router-dom": "^5.2.0",
+    "recharts": "1.8.5",
     "typescript": "^4.0.3",
     "web-vitals": "^0.2.4"
   },
@@ -49,11 +51,13 @@
     "@testing-library/user-event": "^12.1.10",
     "@types/d3": "^6.2.0",
     "@types/jest": "^26.0.15",
+    "@types/lodash": "^4.14.167",
     "@types/node": "^12.0.0",
     "@types/react": "^16.9.53",
     "@types/react-dom": "^16.9.8",
     "@types/react-router-bootstrap": "^0.24.5",
     "@types/react-router-dom": "^5.1.6",
+    "@types/recharts": "^1.8.18",
     "fs-extra": "^9.0.1",
     "gh-pages": "^3.1.0",
     "react-scripts": "4.0.1"

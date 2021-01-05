@@ -12,6 +12,9 @@ func (s *SOMASServer) runIITO() error {
 	s.logf("start runIITO")
 	defer s.logf("finish runIITO")
 	s.gameState.IITOTransactions = s.runGiftSession()
+
+	// This is for sharing an island's intended contributions to the common pool
+	s.runIntendedContributionSession()
 	// TODO:- IITO team
 	return nil
 }
@@ -35,7 +38,7 @@ func (s *SOMASServer) runGiftSession() map[shared.ClientID]shared.GiftResponseDi
 	transactions := s.distributeGiftHistory(responses)
 	for key := range transactions {
 		for fromTeam, response := range transactions[key] {
-			s.logf("Gifts to %v from %v: %v\n", fromTeam, key, response.AcceptedAmount)
+			s.logf("[IITO]: Gifts to %v from %v: %v\n", fromTeam, key, response.AcceptedAmount)
 			if response.Reason != shared.Accept {
 				delete(transactions[key], fromTeam)
 			}
@@ -49,7 +52,7 @@ func (s *SOMASServer) sanitiseTeamGiftRequests(requests shared.GiftRequestDict, 
 	for team, request := range requests {
 		if s.gameState.ClientInfos[team].LifeStatus == shared.Dead || team == thisTeam || request == 0 {
 			delete(requests, team)
-			s.logf("Team %v violated request conventions. To team %v, requested %v", thisTeam, team, request)
+			// s.logf("%v violated request conventions. To %v, requested %v", thisTeam, team, request)
 		}
 	}
 	return requests
@@ -123,14 +126,14 @@ func (s *SOMASServer) sanitiseTeamGiftOffers(offers shared.GiftOfferDict, thisTe
 		totalOffers += offer
 		if s.gameState.ClientInfos[team].LifeStatus == shared.Dead || team == thisTeam || offer == 0 {
 			delete(offers, team)
-			s.logf("Team %v made an invalid offer", thisTeam)
+			// s.logf("%v made an invalid offer", thisTeam)
 		}
 	}
 
 	// Find the optimal combination of offers if the sum of their offers exceeds their capacity.
 	totalResources := shared.GiftOffer(s.gameState.ClientInfos[thisTeam].Resources)
 	if totalOffers > totalResources {
-		s.logf("Total offerings exceed total resources for team %v", thisTeam)
+		s.logf("[IITO]: Total offerings exceed total resources for %v", thisTeam)
 		// Yay, a knapsack problem!
 		_, bestCombination := offersKnapsackSolver(totalResources, offers)
 		newOffers := shared.GiftOfferDict{}
@@ -169,17 +172,17 @@ func (s *SOMASServer) sanitiseTeamGiftResponses(responses shared.GiftResponseDic
 		// cap each response so that the an island can't accept more than it was offered.
 		if response.Reason != shared.Accept {
 			response.AcceptedAmount = 0
-			s.logf("Team %v had a malformed response. Accepted: %v, Reason: %v, Offered: %v ", thisTeam, response.AcceptedAmount, response.Reason, offers[team])
+			s.logf("[IITO]: %v had a malformed response. Accepted: %v, Reason: %v, Offered: %v ", thisTeam, response.AcceptedAmount, response.Reason, offers[team])
 		} else if response.AcceptedAmount > shared.Resources(offers[team]) {
 			response.AcceptedAmount = shared.Resources(offers[team])
-			s.logf("Team %v tried to accept more than it was offered. Accepted: %v, Offered: %v ", thisTeam, response.AcceptedAmount, offers[team])
+			s.logf("[IITO]: %v tried to accept more than it was offered. Accepted: %v, Offered: %v ", thisTeam, response.AcceptedAmount, offers[team])
 		}
 		responses[team] = response
 
 		// Can't respond to an offer that was not given.
 		if _, ok := offers[team]; !ok {
 			delete(responses, team)
-			s.logf("Team %v tried to accept a non-existent offer. Accepted: %v, Offered: %v ", thisTeam, response.AcceptedAmount, team)
+			s.logf("[IITO]: %v tried to accept a non-existent offer. Accepted: %v, Offered: %v ", thisTeam, response.AcceptedAmount, team)
 		}
 	}
 	// Pad the responses so that each offer is responded to, even if ignored.
@@ -230,15 +233,62 @@ func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]s
 func (s *SOMASServer) executeTransactions(transactions map[shared.ClientID]shared.GiftResponseDict) {
 	for fromTeam, responses := range transactions {
 		for toTeam, indivResponse := range responses {
-			transactionMsg := fmt.Sprintf("Team %v received gift from %v: %v", toTeam, fromTeam, indivResponse.AcceptedAmount)
-			errTake := s.takeResources(fromTeam, indivResponse.AcceptedAmount, "TAKE: "+transactionMsg)
+			giftAmount := s.clientMap[fromTeam].DecideGiftAmount(toTeam, indivResponse.AcceptedAmount)
+			if giftAmount < 0 {
+				s.logf("[IITO]: Negative resources received in executeTransactions() from %v. Nice Try", fromTeam)
+				continue
+			}
+			transactionMsg := fmt.Sprintf("[IITO]: %v received gift from %v: %v", toTeam, fromTeam, giftAmount)
+			errTake := s.takeResources(fromTeam, giftAmount, "TAKE: "+transactionMsg)
 			if errTake != nil {
-				s.logf("Error deducting amount: %v", errTake)
+				s.logf("[IITO]: Error deducting amount: %v", errTake)
 			} else {
-				s.giveResources(toTeam, indivResponse.AcceptedAmount, "GIVE: "+transactionMsg)
-				s.clientMap[toTeam].ReceivedGift(indivResponse.AcceptedAmount, fromTeam)
-				s.clientMap[fromTeam].SentGift(indivResponse.AcceptedAmount, toTeam)
+				s.giveResources(toTeam, giftAmount, "GIVE: "+transactionMsg)
+				s.clientMap[toTeam].ReceivedGift(giftAmount, fromTeam)
+				s.clientMap[fromTeam].SentGift(giftAmount, toTeam)
 			}
 		}
+	}
+}
+
+func (s *SOMASServer) runIntendedContributionSession() {
+	s.logf("start runIntendedContributionSession")
+	defer s.logf("finish runIntendedContributionSession")
+	islandContributionDict := s.getIntendedContribution()
+	s.distributeIntendedContributions(islandContributionDict)
+}
+
+func (s *SOMASServer) getIntendedContribution() shared.IntendedContributionDict {
+	islandPredictionsDict := shared.IntendedContributionDict{}
+	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		islandPredictionsDict[id] = s.clientMap[id].ShareIntendedContribution()
+	}
+	return islandPredictionsDict
+}
+
+func (s *SOMASServer) distributeIntendedContributions(islandPredictionDict shared.IntendedContributionDict) {
+	reorderDictionary := make(map[shared.ClientID]shared.ReceivedIntendedContributionDict)
+	// Add the predictions/sources to the dict containing which predictions each island should receive
+	// Don't allow teams to know who else these predictions were shared with in MVP
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+
+	for idSource, info := range islandPredictionDict {
+		if clientArrayContains(nonDeadClients, idSource) {
+			for _, idShare := range info.TeamsOfferedTo {
+				if idShare == idSource {
+					continue
+				}
+				if reorderDictionary[idShare] == nil {
+					reorderDictionary[idShare] = make(shared.ReceivedIntendedContributionDict)
+				}
+				reorderDictionary[idShare][idSource] = shared.ReceivedIntendedContribution{Contribution: info.Contribution, SharedFrom: idSource}
+			}
+		}
+	}
+
+	// Now distribute these predictions to the islands
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		c.ReceiveIntendedContribution(reorderDictionary[id])
 	}
 }

@@ -29,7 +29,7 @@ func TestDeerUtilityTier(t *testing.T) {
 	for _, tt := range tests {
 		testname := fmt.Sprintf("%.3f", tt.inputR)
 		t.Run(testname, func(t *testing.T) {
-			ans := utilityTier(tt.inputR, uint(maxDeer), decay)
+			ans := utilityTier(tt.inputR, uint(maxDeer), decay, 1.0)
 			if ans != uint(tt.want) {
 				t.Errorf("got %d, want %d", ans, tt.want)
 			}
@@ -48,7 +48,10 @@ func TestTotalInput(t *testing.T) {
 		DeerGrowthCoefficient: 0.4,
 	}
 	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
-	hunt, _ := CreateDeerHunt(huntParticipants, fConf)
+	dummyLogger := func(format string, a ...interface{}) {
+		t.Logf("[DEERHUNT]: %v", fmt.Sprintf(format, a...))
+	}
+	hunt, _ := CreateDeerHunt(huntParticipants, fConf, dummyLogger)
 	ans := hunt.TotalInput()
 	if ans != 1.9 {
 		t.Errorf("TotalInput() = %.2f; want 1.9", ans)

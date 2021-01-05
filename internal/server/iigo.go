@@ -13,7 +13,7 @@ func (s *SOMASServer) runIIGO() error {
 
 	nonDead := getNonDeadClientIDs(s.gameState.ClientInfos)
 	updateAliveIslands(nonDead)
-	iigoSuccessful, iigoStatus := iigointernal.RunIIGO(&s.gameState, &s.clientMap)
+	iigoSuccessful, iigoStatus := iigointernal.RunIIGO(&s.gameState, &s.clientMap, &s.gameConfig)
 	if !iigoSuccessful {
 		s.logf(iigoStatus)
 	}
@@ -21,7 +21,7 @@ func (s *SOMASServer) runIIGO() error {
 }
 
 func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) {
-	s.gameState.IIGOHistory = append(s.gameState.IIGOHistory,
+	s.gameState.IIGOHistory[s.gameState.Turn] = append(s.gameState.IIGOHistory[s.gameState.Turn],
 		shared.Accountability{
 			ClientID: clientID,
 			Pairs:    pairs,
@@ -30,8 +30,8 @@ func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []ru
 }
 
 func (s *SOMASServer) runIIGOTax() error {
-	s.logf("start runIIGOTax")
-	defer s.logf("finish runIIGOTax")
+	s.logf("start runIIGOTaxCommonPool")
+	defer s.logf("finish runIIGOTaxCommonPool")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
 	for clientID, v := range clientMap {
 		var taxPaid shared.Resources
@@ -44,7 +44,6 @@ func (s *SOMASServer) runIIGOTax() error {
 			taxPaid = 0
 		} else {
 			s.gameState.CommonPool += tax
-			s.clientMap[clientID].TaxTaken(tax)
 			taxPaid = tax
 		}
 		clientSanctionErr := s.takeResources(clientID, sanction, "sanction")
@@ -55,6 +54,7 @@ func (s *SOMASServer) runIIGOTax() error {
 			s.gameState.CommonPool += sanction
 			sanctionPaid = sanction
 		}
+
 		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,
