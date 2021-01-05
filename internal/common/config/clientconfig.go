@@ -14,7 +14,7 @@ type ClientConfig struct {
 type ClientDisasterConfig struct {
 	CommonpoolThreshold SelectivelyVisibleResources
 	DisasterPeriod      SelectivelyVisibleDisasterPeriod
-	StochasticDisasters bool // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
+	StochasticDisasters SelectivelyVisibleStochasticDisaster // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
 }
 
 // GetClientConfig gets ClientConfig.
@@ -38,6 +38,9 @@ func (c DisasterConfig) GetClientDisasterConfig() ClientDisasterConfig {
 			c.Period,
 			c.PeriodVisible,
 		),
-		StochasticDisasters: c.StochasticPeriod,
+		StochasticDisasters: getSelectivelyVisibleStochasticDisaster(
+			c.StochasticPeriod,
+			c.StochasticPeriodVisible,
+		),
 	}
 }

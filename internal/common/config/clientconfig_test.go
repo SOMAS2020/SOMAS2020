@@ -25,6 +25,7 @@ func TestGetClientConfig(t *testing.T) {
 					Period:                     4, // not visible
 					PeriodVisible:              true,
 					StochasticPeriod:           true,
+					StochasticPeriodVisible:    true,
 				},
 			},
 			want: ClientConfig{
@@ -40,7 +41,10 @@ func TestGetClientConfig(t *testing.T) {
 						Period: 4,
 						Valid:  true,
 					},
-					StochasticDisasters: true,
+					StochasticDisasters: SelectivelyVisibleStochasticDisaster{
+						Stochastic: true,
+						Valid:      true,
+					},
 				},
 			},
 		},

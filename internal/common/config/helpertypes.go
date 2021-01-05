@@ -30,6 +30,11 @@ type SelectivelyVisibleDisasterPeriod struct {
 	Valid  bool
 }
 
+type SelectivelyVisibleStochasticDisaster struct {
+	Stochastic bool
+	Valid      bool
+}
+
 func getSelectivelyVisibleResources(value shared.Resources, valid bool) SelectivelyVisibleResources {
 	var res shared.Resources
 	if valid {
@@ -48,5 +53,15 @@ func getSelectivelyVisibleDisasterPeriod(period uint, valid bool) SelectivelyVis
 	return SelectivelyVisibleDisasterPeriod{
 		Period: p,
 		Valid:  valid,
+	}
+}
+func getSelectivelyVisibleStochasticDisaster(stochastic bool, valid bool) SelectivelyVisibleStochasticDisaster {
+	var s bool
+	if valid {
+		s = stochastic
+	}
+	return SelectivelyVisibleStochasticDisaster{
+		Stochastic: s,
+		Valid:      valid,
 	}
 }
