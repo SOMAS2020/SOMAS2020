@@ -2,6 +2,7 @@ package voting
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -19,8 +20,8 @@ type BallotBox struct {
 }
 
 // SetRule is called by baseSpeaker to set the rule to be voted on.
-func (v *RuleVote) SetRule(rule string) {
-	v.ruleToVote = rule
+func (v *RuleVote) SetRule(ruleMatrix rules.RuleMatrix) {
+	v.ruleToVote = ruleMatrix
 }
 
 // SetVotingIslands is called by baseSpeaker to set the islands eligible to vote.

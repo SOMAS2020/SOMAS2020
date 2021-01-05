@@ -43,7 +43,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		gameConf:     nil,
 		SpeakerID:    0,
 		judgeSalary:  0,
-		ruleToVote:   "",
+		ruleToVote:   rules.RuleMatrix{},
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
 	}
@@ -156,7 +156,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	ruleSelected := false
-	if ruleToVoteReturn.ProposedRule != "" {
+	if !ruleToVoteReturn.ProposedRuleMatrix.RuleMatrixIsEmpty() {
 		ruleSelected = true
 	}
 
@@ -168,7 +168,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 3 Speaker actions
 
-	insufficientBudget = legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRule)
+	//TODO:- shouldn't updateRules be called somewhere?
+	insufficientBudget = legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRuleMatrix)
+
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for legislativeBranch setRuleToVote"
 	}
