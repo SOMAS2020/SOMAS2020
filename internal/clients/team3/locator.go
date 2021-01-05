@@ -1,7 +1,6 @@
 package team3
 
 import (
-
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -73,7 +72,6 @@ func (l *locator) checkIfIdealLocationAvailable(ruleMat rules.RuleMatrix, recomm
 	}
 }
 
-
 func (l *locator) switchDetermineFunction(name rules.VariableFieldName, recommendedVal []float64) ([]float64, bool) {
 	switch name {
 	case rules.NumberOfIslandsContributingToCommonPool:
@@ -97,7 +95,6 @@ func (l *locator) switchDetermineFunction(name rules.VariableFieldName, recommen
 	}
 }
 
-
 func (l *locator) idealNumberOfIslandsContributingToCommonPool(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.generous {
 		return []float64{l.calcNumberOfNonCriticalIslands()}, true
@@ -105,7 +102,6 @@ func (l *locator) idealNumberOfIslandsContributingToCommonPool(recommendedVal []
 		return []float64{l.calcNumberOfAliveIslands()}, true
 	}
 }
-
 
 func (l *locator) idealNumberOfIslandsAlive(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.conquest {
@@ -126,7 +122,6 @@ func (l *locator) idealNumberOfBallotsCast(recommendedVal []float64) ([]float64,
 		return []float64{}, false
 	}
 }
-
 
 func (l *locator) idealAllocationsMade(recommendedVal []float64) ([]float64, bool) {
 	return []float64{0}, l.locationStrategy.independent
@@ -153,8 +148,10 @@ func (l *locator) idealIslandsAlive(recommendedVal []float64) ([]float64, bool) 
 	}
 }
 
-
 func (l *locator) idealIslandTaxContribution(recommendedVal []float64) ([]float64, bool) {
+	if len(recommendedVal) == 0 {
+		return recommendedVal, false
+	}
 	if l.locationStrategy.lawful {
 		return recommendedVal, true
 	} else if l.locationStrategy.independent {
@@ -166,6 +163,9 @@ func (l *locator) idealIslandTaxContribution(recommendedVal []float64) ([]float6
 }
 
 func (l *locator) idealIslandAllocation(recommendedVal []float64) ([]float64, bool) {
+	if len(recommendedVal) == 0 {
+		return recommendedVal, false
+	}
 	if l.locationStrategy.lawful {
 		return recommendedVal, true
 	} else if !l.locationStrategy.generous {

@@ -71,6 +71,7 @@ func generateArbitrarySanctionMatrix(ruleName string, currentResourcesFactor flo
 		Values:  coreVect,
 		Aux:     auxVect,
 		Mutable: false,
+		Linked:  false,
 	})
 	return rulesMat
 }

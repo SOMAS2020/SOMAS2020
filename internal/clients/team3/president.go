@@ -14,15 +14,10 @@ type president struct {
 	c *client
 }
 
-func (p *president) PaySpeaker(salary shared.Resources) (shared.Resources, bool) {
-	// Use the base implementation
-	return p.BasePresident.PaySpeaker(salary)
-}
-
 func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	p.c.clientPrint("choosing speaker")
 	// Naively choose group 0
-	return mostTrusted(p.c.trustMapAgg)
+	return mostTrusted(p.c.trustScore)
 
 }
 
@@ -53,7 +48,7 @@ func findAvgNoTails(resourceRequest map[shared.ClientID]shared.Resources) shared
 }
 
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
-func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
+func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
 	p.c.clientPrint("Evaluating allocations...")
 	var avgResource, avgRequest shared.Resources
 	var allocSum, commonPoolThreshold, sumRequest float64
@@ -124,12 +119,24 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	p.c.clientPrint("Final allocations: %+v\n", finalAllocations)
 
 	// Curently always evaluate, would there be a time when we don't want to?
-	return finalAllocations, true
+	return shared.PresidentReturnContent{
+		ContentType: shared.PresidentAllocation,
+		ResourceMap: finalAllocations,
+		ActionTaken: true,
+	}
 }
 
-func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
+func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
 	//decide if we want to run SetTaxationAmount
-	p.c.declaredResources = islandsResources
+	p.c.declaredResources = make(map[shared.ClientID]shared.Resources)
+	for island, report := range islandsResources {
+		if report.Reported {
+			p.c.declaredResources[island] = report.ReportedAmount
+		} else {
+			//TODO: read from params.config file once its available now i just hope they die of satanic attacc
+			p.c.declaredResources[island] = shared.Resources(666)
+		}
+	}
 	gameState := p.c.BaseClient.ServerReadHandle.GetGameState()
 	resourcesRequired := 100.0 - float64(gameState.CommonPool)
 	if len(p.c.disasterPredictions) > int(p.c.ServerReadHandle.GetGameState().Turn) {
@@ -137,10 +144,10 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 			resourcesRequired = (disaster.Magnitude - float64(gameState.CommonPool)/float64(disaster.TimeLeft))
 		}
 	}
-	AveTax := resourcesRequired / float64(len(islandsResources))
+	AveTax := resourcesRequired / float64(len(p.c.declaredResources))
 	var adjustedResources []float64
 	adjustedResourcesMap := make(map[shared.ClientID]shared.Resources)
-	for island, resource := range islandsResources {
+	for island, resource := range p.c.declaredResources {
 		adjustedResource := resource * shared.Resources(math.Pow(p.c.params.resourcesSkew, (100-p.c.trustScore[island])/100))
 		adjustedResources = append(adjustedResources, float64(adjustedResource))
 		adjustedResourcesMap[island] = adjustedResource
@@ -156,5 +163,9 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		taxationMap[island] = taxation
 	}
 	p.c.clientPrint("tax amounts : %v\n", taxationMap)
-	return taxationMap, true
+	return shared.PresidentReturnContent{
+		ContentType: shared.PresidentTaxation,
+		ResourceMap: taxationMap,
+		ActionTaken: true,
+	}
 }

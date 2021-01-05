@@ -1,11 +1,12 @@
 package team3
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"math"
 )
 
 /*

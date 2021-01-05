@@ -60,7 +60,7 @@ func TestEvaluateAllocationRequests(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var sum shared.Resources
 			tc.ourPresident = president{c: &tc.ourClient}
-			ansMap, _ := tc.ourPresident.EvaluateAllocationRequests(tc.requests, tc.availCommonPool)
+			ansMap := tc.ourPresident.EvaluateAllocationRequests(tc.requests, tc.availCommonPool).ResourceMap
 			for _, ans := range ansMap {
 				sum += ans
 			}
@@ -75,7 +75,7 @@ func TestSetTaxationAmount(t *testing.T) {
 	cases := []struct {
 		name              string
 		president         president
-		declaredResources map[shared.ClientID]shared.Resources
+		declaredResources map[shared.ClientID]shared.ResourcesReport
 		expected          map[shared.ClientID]shared.Resources
 	}{
 		{
@@ -99,13 +99,13 @@ func TestSetTaxationAmount(t *testing.T) {
 				},
 				compliance: 1,
 			}},
-			declaredResources: map[shared.ClientID]shared.Resources{
-				0: 100,
-				1: 100,
-				2: 100,
-				3: 100,
-				4: 100,
-				5: 100,
+			declaredResources: map[shared.ClientID]shared.ResourcesReport{
+				0: {100, true},
+				1: {100, true},
+				2: {100, true},
+				3: {100, true},
+				4: {100, true},
+				5: {100, true},
 			},
 			expected: map[shared.ClientID]shared.Resources{
 				0: 7,
@@ -114,13 +114,12 @@ func TestSetTaxationAmount(t *testing.T) {
 				3: 10,
 				4: 10,
 				5: 10,
-			},
-		},
+			}},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			ans, _ := tc.president.SetTaxationAmount(tc.declaredResources)
+			ans := tc.president.SetTaxationAmount(tc.declaredResources).ResourceMap
 			if !reflect.DeepEqual(ans, tc.expected) {
 				t.Errorf("got %v, want %v", ans, tc.expected)
 			}
