@@ -43,6 +43,7 @@ func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client
 //returns the BallotBox with n votesInFavour and N-n votesAgainst
 func (v *RuleVote) GetBallotBox() BallotBox {
 	//The following is in accordance with anonymous voting
+	//Abstentions will not be considered(vote[1]==true)
 	var outcome BallotBox
 	for _, vote := range v.ballots {
 		if vote[1] == false && vote[0] == true {
