@@ -3,6 +3,7 @@ package team3
 // General client functions testing
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"math"
 	"reflect"
 	"testing"
@@ -22,42 +23,44 @@ func TestUpdateTrustMapAgg(t *testing.T) {
 			name: "Basic test",
 			ourClient: client{
 				trustMapAgg: map[shared.ClientID][]float64{
-					0: []float64{},
-					1: []float64{},
-					3: []float64{},
-					4: []float64{},
-					5: []float64{},
+					0: {},
+					1: {},
+					3: {},
+					4: {},
+					5: {},
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			clientID: 1,
 			amount:   10.34,
 			expectedVal: map[shared.ClientID][]float64{
-				0: []float64{},
-				1: []float64{10.34},
-				3: []float64{},
-				4: []float64{},
-				5: []float64{},
+				0: {},
+				1: {10.34},
+				3: {},
+				4: {},
+				5: {},
 			},
 		},
 		{
 			name: "Basic Test 1",
 			ourClient: client{
 				trustMapAgg: map[shared.ClientID][]float64{
-					0: []float64{5.92},
-					1: []float64{62.78},
-					3: []float64{17.62},
-					4: []float64{-10.3},
-					5: []float64{6.42},
+					0: {5.92},
+					1: {62.78},
+					3: {17.62},
+					4: {-10.3},
+					5: {6.42},
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			clientID: 4,
 			amount:   -9.56,
 			expectedVal: map[shared.ClientID][]float64{
-				0: []float64{5.92},
-				1: []float64{62.78},
-				3: []float64{17.62},
-				4: []float64{-10.3, -9.56},
-				5: []float64{6.42},
+				0: {5.92},
+				1: {62.78},
+				3: {17.62},
+				4: {-10.3, -9.56},
+				5: {6.42},
 			},
 		},
 	}
@@ -87,6 +90,7 @@ func TestInitTrustMapAgg(t *testing.T) {
 					4: []float64{-10.3},
 					5: []float64{6.42},
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			expectedVal: map[shared.ClientID][]float64{
 				0: []float64{},
@@ -106,6 +110,7 @@ func TestInitTrustMapAgg(t *testing.T) {
 					4: []float64{-10.3, 6.58, 3.74, -65.78, -78.98, 34.56},
 					5: []float64{6.42, 69.69, 98.87, -60.7857, 99.9999, 0.00001, 0.05},
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			expectedVal: map[shared.ClientID][]float64{
 				0: []float64{},
@@ -143,6 +148,7 @@ func TestUpdateTrustScore(t *testing.T) {
 					4: 50.0,
 					5: 50.0,
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			trustMapAgg: map[shared.ClientID][]float64{
 				0: []float64{5.92},
@@ -169,6 +175,7 @@ func TestUpdateTrustScore(t *testing.T) {
 					4: 5.05,
 					5: 69.69,
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			trustMapAgg: map[shared.ClientID][]float64{
 				0: []float64{5.92, 8.97, 10.75},

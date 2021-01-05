@@ -71,7 +71,7 @@ func (c *client) inittrustMapAgg() {
 	c.trustMapAgg = map[shared.ClientID][]float64{}
 
 	for _, islandID := range shared.TeamIDs {
-		if islandID == c.BaseClient.GetID() {
+		if islandID+1 == c.BaseClient.GetID() {
 			continue
 		}
 		c.trustMapAgg[islandID] = []float64{}
@@ -83,7 +83,7 @@ func (c *client) inittheirtrustMapAgg() {
 	c.theirTrustMapAgg = map[shared.ClientID][]float64{}
 
 	for _, islandID := range shared.TeamIDs {
-		if islandID == c.BaseClient.GetID() {
+		if islandID+1 == c.BaseClient.GetID() {
 			continue
 		}
 		c.theirTrustMapAgg[islandID] = []float64{}
