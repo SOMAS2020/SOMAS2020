@@ -1,6 +1,10 @@
 package team5
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"fmt"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 type opinionScore float64
 
@@ -15,7 +19,8 @@ type opinion struct {
 	score opinionScore // may want to define other atrributes that form an opinion
 }
 
-type opinionMap map[shared.ClientID]opinion // opinions of each team
+// opinions of each team. Need opinion as a pointer so we can modify it
+type opinionMap map[shared.ClientID]*opinion
 
 // history of opinionMaps (opinions per team) across turns
 type opinionHistory map[uint]opinionMap // key is turn, value is opinion
@@ -25,8 +30,12 @@ func (c *client) initOpinions() {
 	c.opinionHistory = opinionHistory{}
 	c.opinions = opinionMap{}
 	for _, team := range c.getAliveTeams(true) { // true to include our team if alive
-		c.opinions[team] = opinion{score: 0} // start with neutral opinion score
+		c.opinions[team] = &opinion{score: 0} // start with neutral opinion score
 	}
 	c.opinionHistory[startTurn] = c.opinions // 0th turn is how we start before the game starts - our initial bias
 	c.Logf("Opinions at first turn (turn %v): %v", startTurn, c.opinionHistory)
+}
+
+func (o opinion) String() string {
+	return fmt.Sprintf("opinion{score: %.2f}", o.score)
 }
