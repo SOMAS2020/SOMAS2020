@@ -80,10 +80,9 @@ func (c client) getTrustedTeams(trustThresh opinionScore, proportional bool, bas
 }
 
 func (c *client) giftOpinions() {
-	// ======================= Bad =======================
-
-	// If we get OFFERED LESS than we Requested
 	for team := range c.gameState().ClientLifeStatuses { // for each ID
+		// ======================= Bad =======================
+		// If we get OFFERED LESS than we Requested
 		if shared.Resources(c.giftHistory[team].OurRequest[c.getTurn()].offered) <
 			shared.Resources(c.giftHistory[team].OurRequest[c.getTurn()].requested) {
 			c.opinions[team].score -= 0.05
@@ -104,18 +103,18 @@ func (c *client) giftOpinions() {
 		c.opinions[highestRequest].score -= 0.05
 
 		// ======================= Good =======================
-		// If they GIVE MORE than OFFERED then increase it a bit
+		// If they GIVE MORE than OFFERED then increase it a bit (can be abused)
 		if shared.Resources(c.giftHistory[team].OurRequest[c.getTurn()].actualRecieved) >
 			shared.Resources(c.giftHistory[team].OurRequest[c.getTurn()].offered) {
 			c.opinions[team].score += 0.025
 		}
 
-		// If they OFFER MORE than we REQUESTED + we RECIEVE MORE than they offered
+		// If we RECIEVE MORE than WE REQUESTED and they OFFERED
 		if shared.Resources(c.giftHistory[team].OurRequest[c.getTurn()].actualRecieved) >
 			shared.Resources(c.giftHistory[team].OurRequest[c.getTurn()].offered) &&
 			shared.Resources(c.giftHistory[team].OurRequest[c.getTurn()].actualRecieved) >
 				shared.Resources(c.giftHistory[team].OurRequest[c.getTurn()].requested) {
-			c.opinions[team].score += 0.10
+			c.opinions[team].score += 0.2
 		}
 
 		// If they REQUEST the LEAST compared to other islands

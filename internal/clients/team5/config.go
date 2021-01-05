@@ -39,7 +39,7 @@ type clientConfig struct {
 func getClientConfig() clientConfig {
 	return clientConfig{
 		//Variables for Intial forage
-		InitialForageTurns:      3,
+		InitialForageTurns:      5,
 		MinimumForagePercentage: 0.01,
 		NormalForagePercentage:  0.05,
 		JBForagePercentage:      0.10, // % of our resources when JB is Normal< X < JB
@@ -50,7 +50,7 @@ func getClientConfig() clientConfig {
 		MaxForagePercentage:  0.20,
 
 		// Threshold for wealth
-		jbThreshold:       100,
+		jbThreshold:       95,
 		middleThreshold:   60.0,
 		imperialThreshold: 30.0, // surely should be - 100e6? (your right we are so far indebt)
 		//  Dying threshold is 0 < Dying < Imperial

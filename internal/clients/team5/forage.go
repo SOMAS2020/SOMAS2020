@@ -133,6 +133,22 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			}
 		}
 	}
+
+	// Check how many turns people have foraged deer for
+	prevTurnsHunters := make(map[uint]uint)
+	totalHunters := uint(0)
+	for _, returns := range forageHistory[shared.DeerForageType] { // For deers
+		prevTurnsHunters[returns.turn] = prevTurnsHunters[returns.turn] + 1
+	}
+	for i := c.gameState().Turn - 5; i < c.gameState().Turn-1; i++ {
+		// c.Logf("what is i", i)
+		totalHunters += prevTurnsHunters[i]
+	}
+	probDeerHunting -= float64(totalHunters) * 0.05
+	// c.Logf("FORAGING HISTORY %v", prevTurnsHunters)
+	// c.Logf("FORAGING HISTORY %v", totalHunters)
+	// c.Logf("Foraging %v", probDeerHunting)
+
 	c.Logf("[Debug] Number of Deer Hunters from pervious turn %v", deerHunters)
 	c.Logf("[Debug] Number of Fish Hunters %v", fishHunters)
 	if bestForagingMethod == shared.FishForageType { // Fishing is best but 3 Deer hunters last turn
@@ -171,13 +187,14 @@ func (c *client) normalForage() shared.ForageDecision {
 		c.config.SkipForage = 1 // Reassign the number of skips for next time we have RoI < 0
 
 		// Randomly pick type and invest 1->3%
+
 		var forageMethod shared.ForageType
 		if rand.Float64() < 0.50 {
 			forageMethod = shared.DeerForageType
 		} else {
 			forageMethod = shared.FishForageType
 		}
-
+		forageContribution = forageContribution / 2 // Half the amount we invested (possibly investing too much)
 		return shared.ForageDecision{
 			Type:         forageMethod,
 			Contribution: forageContribution,
@@ -269,14 +286,15 @@ func (c *client) forageHistorySize() uint {
 
 //RecieveForageInfo get info from other teams
 func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
+
 	for _, forageInfo := range forageInfos { // for all foraging information from all islands (ignore the islands)
 		c.forageHistory[forageInfo.DecisionMade.Type] = // all their information (based on method of foraging)
 			append( // add to our history
 				c.forageHistory[forageInfo.DecisionMade.Type], // Type of foraging
 				forageOutcome{ // Outcome of their foraging
-					turn:   c.gameState().Turn,
-					input:  forageInfo.DecisionMade.Contribution,
-					output: forageInfo.ResourceObtained,
+					turn:   c.gameState().Turn,                   // The current turn
+					input:  forageInfo.DecisionMade.Contribution, // Contribution
+					output: forageInfo.ResourceObtained,          // Resource obtained
 				},
 			)
 	}
