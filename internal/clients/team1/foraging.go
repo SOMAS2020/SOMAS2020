@@ -32,10 +32,7 @@ func (o ForageOutcome) profit() shared.Resources {
 
 type ForageHistory map[shared.ForageType][]ForageOutcome
 
-// A forageDecider gives a ForageDecision as well as the expected reward if that decision is taken
-type forageDecider = func(client) (shared.ForageDecision, shared.Resources)
-
-func randomDecider(c client) (shared.ForageDecision, shared.Resources) {
+func (c client) randomForage() shared.ForageDecision {
 	// Up to 10% of our current resources
 	forageContribution := shared.Resources(0.2*rand.Float64()) * c.gameState().ClientInfo.Resources
 	var forageType shared.ForageType
@@ -48,17 +45,17 @@ func randomDecider(c client) (shared.ForageDecision, shared.Resources) {
 	return shared.ForageDecision{
 		Type:         forageType,
 		Contribution: forageContribution,
-	}, shared.Resources(-1)
+	}
 }
 
-func roiDecider(c client) (shared.ForageDecision, shared.Resources) {
+func (c client) roiForage() shared.ForageDecision {
 	forageType := bestROIForageType(c.forageHistory)
 	if forageType == shared.ForageType(-1) {
 		// Here we have found that the best idea is to not forage
 		return shared.ForageDecision{
 			Type:         shared.FishForageType,
 			Contribution: 0,
-		}, 0
+		}
 	}
 	expectedOutcome := bestROIOutcome(c.forageHistory[forageType])
 
@@ -78,10 +75,10 @@ func roiDecider(c client) (shared.ForageDecision, shared.Resources) {
 		Type:         forageType,
 		Contribution: contribution,
 	}
-	return forageDecision, expectedOutcome.revenue
+	return forageDecision
 }
 
-func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
+func (c client) regressionForage() shared.ForageDecision {
 	bestReward := shared.Resources(0)
 	var decision shared.ForageDecision
 
@@ -103,7 +100,7 @@ func regressionDecider(c client) (shared.ForageDecision, shared.Resources) {
 		}
 	}
 
-	return decision, bestReward
+	return decision
 }
 
 const flipScale = 0.3
@@ -111,7 +108,7 @@ const flipScale = 0.3
 // flipDecider does the opposite of what the mass did the previous turn. It
 // forages deer, with an amount inversely proportional to the sum of contributed
 // resources
-func flipDecider(c client) (shared.ForageDecision, shared.Resources) {
+func (c client) flipForage() shared.ForageDecision {
 	deerHistory := c.forageHistory[shared.DeerForageType]
 	totalContributionLastTurn := shared.Resources(0)
 	totalHuntersLastTurn := 0
@@ -126,11 +123,10 @@ func flipDecider(c client) (shared.ForageDecision, shared.Resources) {
 
 	if totalContributionLastTurn == shared.Resources(0) {
 		// Big contribution
-		contribution := 0.3 * c.gameState().ClientInfo.Resources
 		return shared.ForageDecision{
 			Contribution: 0.3 * c.gameState().ClientInfo.Resources,
 			Type:         shared.DeerForageType,
-		}, 1.2 * contribution // arbitrarily expect a 20% ROI
+		}
 	}
 
 	// Proxy for population
@@ -146,26 +142,17 @@ func flipDecider(c client) (shared.ForageDecision, shared.Resources) {
 	return shared.ForageDecision{
 		Contribution: contribution,
 		Type:         shared.DeerForageType,
-	}, contribution * totalROI
+	}
 }
 
-func constantDecider(resourcePercent float64, c client) (shared.ForageDecision, shared.Resources) {
-	lastROI := 1.0
-	for _, outcome := range c.forageHistory[shared.DeerForageType] {
-		if outcome.participant == c.GetID() && outcome.turn == c.ServerReadHandle.GetGameState().Turn-1 {
-			lastROI = outcome.ROI()
-			break
-		}
-	}
-
-	contribution := 0.2 * c.gameState().ClientInfo.Resources
+func (c client) constantForage(resourcePercent float64) shared.ForageDecision {
 	decision := shared.ForageDecision{
 		Type:         shared.DeerForageType,
-		Contribution: contribution,
+		Contribution: 0.2 * c.gameState().ClientInfo.Resources,
 	}
 
 	c.Logf("[Forage decision]: constant (%v)", decision)
-	return decision, shared.Resources(lastROI) * contribution
+	return decision
 }
 
 func outcomeRegression(history []ForageOutcome) regression.Regression {
@@ -195,28 +182,32 @@ func (c *client) regressionOptimalContribution(r regression.Regression) shared.R
 	return shared.Resources(-r.Coeff(1) / (2 * r.Coeff(2)))
 }
 
-func desperateDecider(c client) (shared.ForageDecision, shared.Resources) {
+func (c client) desperateForage() shared.ForageDecision {
 	forageType := bestROIForageType(c.forageHistory)
 	if forageType == shared.ForageType(-1) {
 		forageType = shared.DeerForageType
 	}
 
-	contribution := c.gameState().ClientInfo.Resources
-
-	r := outcomeRegression(c.forageHistory[forageType])
-	expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
-
 	return shared.ForageDecision{
 		Type:         forageType,
-		Contribution: contribution,
-	}, shared.Resources(expectedRewardF)
+		Contribution: c.gameState().ClientInfo.Resources,
+	}
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	decision, expectedReward := c.config.forageDecider(*c)
-	c.expectedForageReward = expectedReward
-
-	return decision, nil
+	if c.forageHistorySize() < c.config.randomForageTurns {
+		c.Logf("[Forage decision]: random")
+		return c.randomForage(), nil
+	} else if c.emotionalState() == Desperate {
+		c.Logf("[Forage decision]: desperate")
+		return c.desperateForage(), nil
+	} else if len(c.livingClients()) > 1 {
+		c.Logf("[Forage decision]: flip")
+		return c.flipForage(), nil
+	} else {
+		c.Logf("[Forage decision]: constant")
+		return c.constantForage(0.2), nil
+	}
 }
 
 func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shared.Resources) {

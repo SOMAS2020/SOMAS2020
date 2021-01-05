@@ -24,6 +24,7 @@ type sortByOpinion []opinionOnTeams
 /*** 		Helpers	 	***/
 /**************************/
 
+// implemnent sort.Interface
 func (a sortByOpinion) Len() int           { return len(a) }
 func (a sortByOpinion) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a sortByOpinion) Less(i, j int) bool { return a[i].opinion > a[j].opinion }

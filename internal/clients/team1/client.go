@@ -57,8 +57,6 @@ type clientConfig struct {
 	// amount as a percentage of current resources
 	forageContributionNoisePercent float64
 
-	forageDecider forageDecider
-
 	// maxOpinion is the boundary where we either give resources without questioning
 	// or we refuse to give them resources.
 	maxOpinion int
@@ -97,21 +95,6 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			forageContributionCapPercent:   0.2,
 			forageContributionNoisePercent: 0.01,
 			maxOpinion:                     10,
-			forageDecider: func(c client) (shared.ForageDecision, shared.Resources) {
-				if c.forageHistorySize() < c.config.randomForageTurns {
-					c.Logf("[Forage decision]: random")
-					return randomDecider(c)
-				} else if c.emotionalState() == Desperate {
-					c.Logf("[Forage decision]: desperate")
-					return desperateDecider(c)
-				} else if len(c.livingClients()) > 1 {
-					c.Logf("[Forage decision]: flip")
-					return flipDecider(c)
-				} else {
-					c.Logf("[Forage decision]: constant")
-					return constantDecider(0.2, c)
-				}
-			},
 		},
 	}
 }
