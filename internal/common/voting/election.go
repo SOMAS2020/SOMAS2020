@@ -24,8 +24,9 @@ func (e *Election) ProposeElection(role shared.Role, method shared.ElectionVotin
 // OpenBallot sets the islands eligible to vote.
 func (e *Election) OpenBallot(clientIDs []shared.ClientID, clientMap map[shared.ClientID]baseclient.Client) {
 	e.voterList = clientIDs
+	//Initialize candidate list.
 	e.candidateList = e.voterList
-	//TODO candidate list in each election need to be determined, as it won't always equals to voter list.
+	//Get current President, Judge and Speaker IDs. 
 	var currentPresidentID shared.ClientID
 	var currentJudgeID shared.ClientID
 	var currentSpeakerID shared.ClientID
@@ -40,6 +41,7 @@ func (e *Election) OpenBallot(clientIDs []shared.ClientID, clientMap map[shared.
 	}
 	currentRoleIDList := []shared.ClientID{currentPresidentID, currentJudgeID, currentSpeakerID}
 
+	//Determine role to be changed.
 	var roleToBeChanged shared.ClientID
 	switch e.roleToElect {
 	case shared.President:
@@ -50,6 +52,7 @@ func (e *Election) OpenBallot(clientIDs []shared.ClientID, clientMap map[shared.
 		roleToBeChanged = currentRoleIDList[2]
 	}
 
+	//Delete the voters from initial candidate list who already have a President, Speaker or Judge. 
 	var roleIDIndex []int
 	for i := 0; i < len(currentRoleIDList); i++ {
 		if currentRoleIDList[i] != roleToBeChanged {
@@ -60,7 +63,6 @@ func (e *Election) OpenBallot(clientIDs []shared.ClientID, clientMap map[shared.
 			}
 		}
 	}
-
 	if roleIDIndex[0] < roleIDIndex[1] {
 		e.candidateList = append(e.candidateList[:roleIDIndex[1]], e.candidateList[roleIDIndex[1]+1:]...)
 		e.candidateList = append(e.candidateList[:roleIDIndex[0]], e.candidateList[roleIDIndex[0]+1:]...)
