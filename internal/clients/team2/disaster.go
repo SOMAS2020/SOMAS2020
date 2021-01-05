@@ -154,7 +154,7 @@ func GetMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magn
 	for _, disasterReport := range c.disasterHistory {
 		totalMagnitudes += disasterReport.Report.Magnitude
 	}
-	sampleMeanM := totalMagnitudes / totalTurns
+	sampleMeanM := totalMagnitudes / float64(len(c.disasterHistory))
 
 	// Get the magnitude prediction
 	magnitudePrediction := sampleMeanM
