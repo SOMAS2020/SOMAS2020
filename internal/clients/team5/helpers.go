@@ -27,3 +27,13 @@ func (c client) getAliveTeams(includeUs bool) (aliveTeams []shared.ClientID) {
 	}
 	return aliveTeams
 }
+
+// checks if a given client is alive
+func (c client) isClientAlive(id shared.ClientID) bool {
+	for _, cl := range c.getAliveTeams(false) {
+		if cl == id {
+			return true
+		}
+	}
+	return false
+}

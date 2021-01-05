@@ -4,6 +4,7 @@ package team5
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -14,6 +15,7 @@ func init() {
 		cpAllocationHistory: cpAllocationHistory{},
 		forageHistory:       forageHistory{},
 		resourceHistory:     resourceHistory{},
+		team5president:      president{},
 		giftHistory:         map[shared.ClientID]giftExchange{},
 
 		taxAmount:  0,
@@ -40,10 +42,15 @@ func (c *client) StartOfTurn() {
 		}
 	}
 
+	//update cpResourceHistory
+	turn := c.getTurn()
+	c.cpResourceHistory[turn] = c.getCP()
+
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle // don't change this
+	c.LocalVariableCache = rules.CopyVariableMap()
 	c.initOpinions()
 
 	// Assign the thresholds according to the amount of resouces in the first turn
