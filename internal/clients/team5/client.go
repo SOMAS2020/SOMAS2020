@@ -8,32 +8,26 @@ import (
 )
 
 func init() {
-	baseclient.RegisterClient(
-		ourClientID,
-		&client{
-			// forageHistory: ForageHistory{},
-			BaseClient:          baseclient.NewClient(ourClientID),
-			cpRequestHistory:    cpRequestHistory{},
-			cpAllocationHistory: cpAllocationHistory{},
-			forageHistory:       forageHistory{},
-			resourceHistory:     resourceHistory{},
-			giftHistory:         map[shared.ClientID]giftExchange{},
+	c := client{
+		BaseClient:          baseclient.NewClient(ourClientID),
+		cpRequestHistory:    cpRequestHistory{},
+		cpAllocationHistory: cpAllocationHistory{},
+		forageHistory:       forageHistory{},
+		resourceHistory:     resourceHistory{},
+		giftHistory:         map[shared.ClientID]giftExchange{},
 
-			taxAmount:  0,
-			allocation: 0,
-			config:     getClientConfig(),
-		},
-	)
+		taxAmount:  0,
+		allocation: 0,
+		config:     getClientConfig(),
+	}
+
+	baseclient.RegisterClient(ourClientID, &c)
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.wealth()
-	// Assign the thresholds according to the amount of resouces in the first turn
-	c.config.jbThreshold = c.resourceHistory[1] * 2
-	c.config.middleThreshold = c.resourceHistory[1] * 0.95
-	c.config.imperialThreshold = c.resourceHistory[1] * 0.5
 
 	// Print the Thresholds
 	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
@@ -51,6 +45,18 @@ func (c *client) StartOfTurn() {
 	turn := c.getTurn()
 	c.cpResourceHistory[turn] = c.getCP()
 
+}
+
+func (c *client) EndOfTurn() {} // waiting for infra to implement?
+
+func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
+	c.ServerReadHandle = serverReadHandle // don't change this
+	c.initOpinions()
+
+	// Assign the thresholds according to the amount of resouces in the first turn
+	c.config.jbThreshold = c.resourceHistory[1] * 2
+	c.config.middleThreshold = c.resourceHistory[1] * 0.95
+	c.config.imperialThreshold = c.resourceHistory[1] * 0.5
 }
 
 //================================================================

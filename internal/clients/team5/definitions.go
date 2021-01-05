@@ -12,6 +12,7 @@ import (
 /*	Types */
 //=================================================================
 const ourClientID = shared.Team5
+const startTurn = 1
 
 //================ Common Pool =========================================
 
@@ -73,15 +74,17 @@ type giftHistory map[shared.ClientID]giftExchange
 type client struct {
 	*baseclient.BaseClient
 
-	// History
+	// history
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
 	cpResourceHistory   cpResourceHistory
+	opinionHistory      opinionHistory
+	giftHistory         giftHistory
 
-	giftHistory giftHistory
-
+	// current states
+	opinions  opinionMap // opinions of each team
 	taxAmount shared.Resources
 
 	// allocation is the president's response to your last common pool resource request
