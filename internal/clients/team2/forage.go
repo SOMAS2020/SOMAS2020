@@ -86,7 +86,7 @@ func Otheragentinfo(c *client) float64 { //will return a value of how many agent
 	return HuntNum
 }
 
-//TODO: This function needs to be changed according to Eirik, I have no idea why
+//TODO: This function needs to be changed according to Eirik, I have no idea how
 func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 	// updates our foragingReturnsHist with the decisions everyone made
 	roi := map[shared.ClientID]shared.Resources{}
