@@ -75,11 +75,13 @@ type FishingConfig struct {
 // DisasterConfig captures disaster-specific config
 type DisasterConfig struct {
 	XMin, XMax, YMin, YMax      shared.Coordinate     // [min, max] x,y bounds of archipelago (bounds for possible disaster)
-	GlobalProb                  float64               // Bernoulli 'p' param. Chance of a disaster occurring
+	Period                      uint                  // Period T between disasters in deterministic case and E[T] in stochastic case.
 	SpatialPDFType              shared.SpatialPDFType // Set x,y prob. distribution of the disaster's epicentre (more post MVP)
 	MagnitudeLambda             float64               // Exponential rate param for disaster magnitude
 	MagnitudeResourceMultiplier float64               // multiplier to map disaster magnitude to CP resource deductions
 	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
+	StochasticPeriod            bool                  // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
+	CommonpoolThresholdVisible  bool                  // whether CommonpoolThreshold is visible to clients
 }
 
 type IIGOConfig struct {
@@ -95,6 +97,10 @@ type IIGOConfig struct {
 	InspectBallotActionCost        shared.Resources
 	InspectAllocationActionCost    shared.Resources
 	AppointNextPresidentActionCost shared.Resources
+	SanctionCacheDepth             int
+	HistoryCacheDepth              int
+	AssumedResourcesNoReport       shared.Resources
+	SanctionLength                 int
 	// Legislative branch
 	SetVotingResultActionCost      shared.Resources
 	SetRuleToVoteActionCost        shared.Resources

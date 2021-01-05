@@ -11,24 +11,17 @@ func TestSamplingOfCertainties(t *testing.T) {
 	clientIDs := []shared.ClientID{shared.Team1, shared.Team2} // arbitrarily chosen for test
 
 	disasterConf := config.DisasterConfig{
-		XMin:            0.0,
-		XMax:            10.0, // chosen quite arbitrarily
-		YMin:            0.0,
-		YMax:            10.0,
-		GlobalProb:      0.1,
-		SpatialPDFType:  shared.Uniform,
-		MagnitudeLambda: 1.0,
+		XMin:             0.0,
+		XMax:             10.0, // chosen quite arbitrarily
+		YMin:             0.0,
+		YMax:             10.0,
+		Period:           1,
+		SpatialPDFType:   shared.Uniform,
+		MagnitudeLambda:  1.0,
+		StochasticPeriod: true,
 	}
-
 	env := InitEnvironment(clientIDs, disasterConf)
-	env.DisasterParams.globalProb = 0
-	updatedEnv := env.SampleForDisaster()
-	if updatedEnv.LastDisasterReport.Magnitude > 0.0 {
-		t.Error("Disaster struck despite global probability set to zero")
-	}
-
-	env.DisasterParams.globalProb = 1
-	updatedEnv = env.SampleForDisaster()
+	updatedEnv := env.SampleForDisaster(disasterConf, 1)
 	if updatedEnv.LastDisasterReport.Magnitude == 0.0 {
 		t.Error("No disaster recorded despite global prob. set to one")
 	}
@@ -44,6 +37,34 @@ func TestSamplingOfCertainties(t *testing.T) {
 	}
 }
 
+func TestDeterministicPeriod(t *testing.T) {
+	nTurns := uint(20) // number of turns in this test
+	period := uint(4)  // number of turns between disasters
+
+	disasterConf := config.DisasterConfig{
+		XMin:             0.0,
+		XMax:             5.0,
+		YMin:             0.0,
+		YMax:             5.0,
+		Period:           period,
+		SpatialPDFType:   shared.Uniform,
+		MagnitudeLambda:  1.0,
+		StochasticPeriod: false,
+	}
+	clientIDs := []shared.ClientID{shared.Team1, shared.Team2} // arbitrarily chosen for test
+	env := InitEnvironment(clientIDs, disasterConf)
+	nDisasters := uint(0)
+	for i := uint(1); i <= nTurns; i++ {
+		env = env.SampleForDisaster(disasterConf, uint(i))
+		if env.LastDisasterReport.Magnitude > 0 {
+			nDisasters++
+		}
+	}
+	if nDisasters != nTurns/period {
+		t.Errorf("Expected %v disasters over %v turns with period %v. Got %v", nTurns/period, nTurns, period, nTurns)
+	}
+}
+
 func TestDisasterEffects(t *testing.T) {
 
 	clientIDs := []shared.ClientID{shared.Team1, shared.Team2, shared.Team3} // arbitrarily chosen for test
@@ -53,7 +74,7 @@ func TestDisasterEffects(t *testing.T) {
 		XMax:                        10.0,
 		YMin:                        0.0,
 		YMax:                        10.0,
-		GlobalProb:                  1.0,
+		Period:                      1.0,
 		SpatialPDFType:              shared.Uniform,
 		MagnitudeLambda:             1.0,
 		CommonpoolThreshold:         10.0,
