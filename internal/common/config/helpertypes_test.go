@@ -76,3 +76,38 @@ func TestGetSelectivelyVisibleResources(t *testing.T) {
 		})
 	}
 }
+
+func TestGetSelectivelyVisibleInteger(t *testing.T) {
+	origVal := 5
+	cases := []struct {
+		name  string
+		valid bool
+		want  SelectivelyVisibleInteger
+	}{
+		{
+			name:  "valid",
+			valid: true,
+			want: SelectivelyVisibleInteger{
+				Value: origVal,
+				Valid: true,
+			},
+		},
+		{
+			name:  "not valid",
+			valid: false,
+			want: SelectivelyVisibleInteger{
+				Value: 0,
+				Valid: false,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := getSelectivelyVisibleInteger(origVal, tc.valid)
+			if !reflect.DeepEqual(tc.want, got) {
+				t.Errorf("want '%v' got '%v'", tc.want, got)
+			}
+		})
+	}
+}
