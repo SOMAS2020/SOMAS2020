@@ -11,14 +11,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func (c *client) DemoEvaluation() {
-	evalResult, err := rules.BasicBooleanRuleEvaluator("Kinda Complicated Rule")
-	if err != nil {
-		panic(err.Error())
-	}
-	c.Logf("Rule Eval: %t", evalResult)
-}
-
 // NewClient initialises the island state
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	ourClient := client{
@@ -39,6 +31,7 @@ func (c *client) StartOfTurn() {
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
+	c.LocalVariableCache = rules.CopyVariableMap()
 	c.ourSpeaker = speaker{c: c}
 	c.ourJudge = judge{c: c}
 	c.ourPresident = president{c: c}
@@ -152,19 +145,17 @@ func (c *client) updateCompliance() {
 // the compliance at a specific time in the game. If the compliance is
 // 1, we expect this method to always return False.
 func (c *client) shouldICheat() bool {
-	var should_i_cheat = rand.Float64() > c.compliance
-	return should_i_cheat
+	return rand.Float64() > c.compliance
 }
 
 // ResourceReport overides the basic method to mis-report when we have a low compliance score
-func (c *client) ResourceReport() shared.Resources {
+func (c *client) ResourceReport() shared.ResourcesReport {
 	resource := c.BaseClient.ServerReadHandle.GetGameState().ClientInfo.Resources
 	if c.areWeCritical() || !c.shouldICheat() {
-		return resource
-	} else {
-		skewed_resource := resource / shared.Resources(c.params.resourcesSkew)
-		return skewed_resource
+		return shared.ResourcesReport{ReportedAmount: resource, Reported: true}
 	}
+	skewedResource := resource / shared.Resources(c.params.resourcesSkew)
+	return shared.ResourcesReport{ReportedAmount: skewedResource, Reported: true}
 }
 
 /*
