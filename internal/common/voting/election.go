@@ -55,7 +55,7 @@ func (e *Election) CloseBallot(clientMap map[shared.ClientID]baseclient.Client) 
 
 //func (e *Election) completePreferenceMap()
 
-func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]float64, []float64, float64) {
+func scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]float64, []float64, float64) {
 	votesLayoutElect := make(map[int][]int)
 	votesSliceSquare := totalVotes
 	candidatesNumber := len(candidateList)
@@ -72,7 +72,7 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 		scoreInit := candidatesNumber + 1
 		for j := 0; j < len(votesSliceSquare[i]); j++ {
 			for k := 0; k < candidatesNumber; k++ {
-				if votesSliceSquare[i][j] == e.candidateList[k] {
+				if votesSliceSquare[i][j] == candidateList[k] {
 					votesLayoutElect[i+1][k] = scoreInit
 					scoreInit--
 				}
@@ -199,7 +199,7 @@ func findMinScore(scoreList []float64, variance []float64) (float64, int) {
 func (e *Election) bordaCountResult() shared.ClientID {
 	// Implement Borda count winner selection method
 	candidatesNumber := len(e.candidateList)
-	finalScore, variance, _ := e.scoreCalculator(e.votes, e.candidateList)
+	finalScore, variance, _ := scoreCalculator(e.votes, e.candidateList)
 
 	var maxScore float64 = 0
 	var winnerIndex int
@@ -222,7 +222,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 func (e *Election) runOffResult(clientMap map[shared.ClientID]baseclient.Client) shared.ClientID {
 	var winner shared.ClientID
 	//Round one
-	scoreList, variance, totalScore := e.scoreCalculator(e.votes, e.candidateList)
+	scoreList, variance, totalScore := scoreCalculator(e.votes, e.candidateList)
 	rOneCandidateList := e.candidateList
 	voterNumber := len(e.voterList)
 
@@ -270,7 +270,7 @@ func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.
 	var halfTotalScore float64 = 0
 
 	for {
-		scoreList, variance, totalScore := e.scoreCalculator(totalVotes, candidateList)
+		scoreList, variance, totalScore := scoreCalculator(totalVotes, candidateList)
 
 		halfTotalScore = 0.5 * totalScore
 
