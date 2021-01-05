@@ -78,7 +78,6 @@ type client struct {
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
 	opinionHistory      opinionHistory
-	giftHistory         giftHistory
 
 	// current states
 	opinions       opinionMap // opinions of each team
