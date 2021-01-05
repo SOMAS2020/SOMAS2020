@@ -24,59 +24,18 @@ func (e *Election) ProposeElection(role shared.Role, method shared.ElectionVotin
 // OpenBallot sets the islands eligible to vote.
 func (e *Election) OpenBallot(clientIDs []shared.ClientID, clientMap map[shared.ClientID]baseclient.Client) {
 	e.voterList = clientIDs
-	//Initialize candidate list.
-	e.candidateList = e.voterList
-	//Get current President, Judge and Speaker IDs. 
-	var currentPresidentID shared.ClientID
-	var currentJudgeID shared.ClientID
-	var currentSpeakerID shared.ClientID
-	for i := 0; i < len(e.voterList); i++ {
-		if clientMap[e.voterList[i]].MonitorIIGORole(shared.President) == true {
-			currentPresidentID = e.voterList[i]
-		} else if clientMap[e.voterList[i]].MonitorIIGORole(shared.Judge) == true {
-			currentJudgeID = e.voterList[i]
-		} else if clientMap[e.voterList[i]].MonitorIIGORole(shared.Speaker) == true {
-			currentSpeakerID = e.voterList[i]
-		}
-	}
-	currentRoleIDList := []shared.ClientID{currentPresidentID, currentJudgeID, currentSpeakerID}
-
-	//Determine role to be changed.
-	var roleToBeChanged shared.ClientID
-	switch e.roleToElect {
-	case shared.President:
-		roleToBeChanged = currentRoleIDList[0]
-	case shared.Judge:
-		roleToBeChanged = currentRoleIDList[1]
-	case shared.Speaker:
-		roleToBeChanged = currentRoleIDList[2]
-	}
-
-	//Delete the voters from initial candidate list who already have a President, Speaker or Judge. 
-	var roleIDIndex []int
-	var roleToBeChangedIndex int
-	for i:=0;i<len(currentRoleIDList);i++ {
-		if currentRoleIDList[i] == roleToBeChanged {
-			roleToBeChangedIndex = i
-		}
-	}
-	for i := 0; i < len(currentRoleIDList); i++ {
-		if i != roleToBeChangedIndex {
-			for j := 0; j < len(e.candidateList); j++ {
-				if e.candidateList[j] == currentRoleIDList[i] {
-					roleIDIndex = append(roleIDIndex, j)
-				}
+	//Get candidate list.
+	idSorter := shared.Team1
+	for {
+		for island, _ := range clientMap {
+			if island == idSorter {
+				e.candidateList = append(e.candidateList, island)
 			}
 		}
-	}
-	if roleIDIndex[0] < roleIDIndex[1] {
-		e.candidateList = append(e.candidateList[:roleIDIndex[1]], e.candidateList[roleIDIndex[1]+1:]...)
-		e.candidateList = append(e.candidateList[:roleIDIndex[0]], e.candidateList[roleIDIndex[0]+1:]...)
-	} else if roleIDIndex[0] > roleIDIndex[1] {
-		e.candidateList = append(e.candidateList[:roleIDIndex[0]], e.candidateList[roleIDIndex[0]+1:]...)
-		e.candidateList = append(e.candidateList[:roleIDIndex[1]], e.candidateList[roleIDIndex[1]+1:]...)
-	} else {
-		e.candidateList = append(e.candidateList[:roleIDIndex[0]], e.candidateList[roleIDIndex[0]+1:]...)
+		idSorter++
+		if len(e.candidateList) == len(clientMap) {
+			break
+		}
 	}
 }
 
@@ -107,7 +66,7 @@ func (e *Election) CloseBallot(clientMap map[shared.ClientID]baseclient.Client) 
 
 //func (e *Election) completePreferenceMap()
 
-func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]float64, []float64, float64) {
+func scoreCalculator(totalVotes [][]shared.ClientID, candidateList []shared.ClientID) ([]float64, []float64, float64) {
 	votesLayoutElect := make(map[int][]int)
 	votesSliceSquare := totalVotes
 	candidatesNumber := len(candidateList)
@@ -124,7 +83,7 @@ func (e *Election) scoreCalculator(totalVotes [][]shared.ClientID, candidateList
 		scoreInit := candidatesNumber + 1
 		for j := 0; j < len(votesSliceSquare[i]); j++ {
 			for k := 0; k < candidatesNumber; k++ {
-				if votesSliceSquare[i][j] == e.candidateList[k] {
+				if votesSliceSquare[i][j] == candidateList[k] {
 					votesLayoutElect[i+1][k] = scoreInit
 					scoreInit--
 				}
@@ -251,7 +210,7 @@ func findMinScore(scoreList []float64, variance []float64) (float64, int) {
 func (e *Election) bordaCountResult() shared.ClientID {
 	// Implement Borda count winner selection method
 	candidatesNumber := len(e.candidateList)
-	finalScore, variance, _ := e.scoreCalculator(e.votes, e.candidateList)
+	finalScore, variance, _ := scoreCalculator(e.votes, e.candidateList)
 
 	var maxScore float64 = 0
 	var winnerIndex int
@@ -274,7 +233,7 @@ func (e *Election) bordaCountResult() shared.ClientID {
 func (e *Election) runOffResult(clientMap map[shared.ClientID]baseclient.Client) shared.ClientID {
 	var winner shared.ClientID
 	//Round one
-	scoreList, variance, totalScore := e.scoreCalculator(e.votes, e.candidateList)
+	scoreList, variance, totalScore := scoreCalculator(e.votes, e.candidateList)
 	rOneCandidateList := e.candidateList
 	voterNumber := len(e.voterList)
 
@@ -322,7 +281,7 @@ func (e *Election) instantRunoffResult(clientMap map[shared.ClientID]baseclient.
 	var halfTotalScore float64 = 0
 
 	for {
-		scoreList, variance, totalScore := e.scoreCalculator(totalVotes, candidateList)
+		scoreList, variance, totalScore := scoreCalculator(totalVotes, candidateList)
 
 		halfTotalScore = 0.5 * totalScore
 

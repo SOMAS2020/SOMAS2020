@@ -499,7 +499,7 @@ func TestApplySanctions(t *testing.T) {
 			judiciaryInst := defaultInitJudiciary()
 			judiciaryInst.sanctionRecord = tc.sanctionRecord
 			judiciaryInst.sanctionThresholds = tc.sanctionThresholds
-			judiciaryInst.gameConf.SanctionLength = tc.sanctionLength
+			judiciaryInst.gameConf.SanctionLength = uint(tc.sanctionLength)
 			judiciaryInst.applySanctions()
 			if !checkListOfSanctionEquals(tc.expectedSanctions, judiciaryInst.localSanctionCache[0]) {
 				t.Errorf("Expected %v got %v", tc.expectedSanctions, judiciaryInst.localSanctionCache[0])
