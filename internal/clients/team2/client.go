@@ -77,9 +77,10 @@ type DisasterOccurence struct {
 	Report disasters.DisasterReport
 }
 
-////////////////
+// Currently what want to use to get archipelago geography but talking to Yannis to get this fixed
+// Because it doesn't work atm
 //archipelagoGeography := c.gamestate().Environment.Geography
-////////////////
+
 // A set of constants that define tuning parameters
 const (
 	// Disasters
