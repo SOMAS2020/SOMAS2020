@@ -31,6 +31,7 @@ func (e *executive) loadClientPresident(clientPresidentPointer roles.President) 
 	e.clientPresident = clientPresidentPointer
 }
 
+// syncWithGame sets internal game state and configuration. Used to populate the executive struct for testing
 func (e *executive) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	e.gameState = gameState
 	e.gameConf = gameConf
@@ -55,18 +56,12 @@ func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]sh
 	e.ResourceRequests = resourceRequests
 }
 
-// setGameState is used for setting the game state of the executive branch
-// Called for testing.
-func (e *executive) setGameState(g *gamestate.GameState) {
-	e.gameState = g
-}
-
 // Get rules to be voted on to Speaker
 // Called by orchestration at the end of the turn
 func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 	if !CheckEnoughInCommonPool(e.gameConf.GetRuleForSpeakerActionCost, e.gameState) {
 		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRule: "", ActionTaken: false},
-			errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+			errors.Errorf("Insufficient Budget in common Pool: getRuleForSpeaker")
 	}
 
 	returnRule := e.clientPresident.PickRuleToVote(e.RulesProposals)
@@ -86,19 +81,24 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 	taxMapReturn := e.getTaxMap(islandsResources)
+
 	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {
 		if !e.incurServiceCharge(e.gameConf.BroadcastTaxationActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 		}
-		for islandID, resourceAmount := range taxMapReturn.ResourceMap {
+		TaxAmountMapExport = taxMapReturn.ResourceMap
+		for islandID, amount := range taxMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
-				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(resourceAmount)}
-				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-				data[shared.TaxAmount] = d
-				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+				e.sendTax(islandID, amount)
 			}
 		}
+	} else {
+		// default case when president doesn't take an action. send tax = 0
+		for _, islandID := range aliveIslands {
+			e.sendNoTax(islandID)
+		}
 	}
+
 	return nil
 }
 
@@ -130,16 +130,18 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 	}
 	returnContent := e.getAllocationRequests(commonPool)
 	allocationsMade := false
-	if returnContent.ActionTaken {
+	if returnContent.ActionTaken && returnContent.ContentType == shared.PresidentAllocation {
 		if !e.incurServiceCharge(e.gameConf.ReplyAllocationRequestsActionCost) {
 			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
 		allocationsMade = true
-		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(returnContent.ResourceMap[shared.ClientID(int(island))])}
-			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-			data[shared.AllocationAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[int(e.PresidentID)], data)
+		AllocationAmountMapExport = returnContent.ResourceMap
+		for islandID, amount := range returnContent.ResourceMap {
+			e.sendAllocation(islandID, amount)
+		}
+	} else {
+		for islandID := range e.ResourceRequests {
+			e.sendNoAllocation(islandID)
 		}
 	}
 	return allocationsMade, nil
@@ -201,7 +203,7 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 //requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() error {
 	if !e.incurServiceCharge(e.gameConf.RequestRuleProposalActionCost) {
-		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+		return errors.Errorf("Insufficient Budget in common Pool: requestRuleProposal")
 	}
 
 	var ruleProposals []string
@@ -234,4 +236,46 @@ func (e *executive) incurServiceCharge(cost shared.Resources) bool {
 		e.gameState.IIGORolesBudget[shared.President] -= cost
 	}
 	return ok
+}
+
+func (e *executive) sendTax(islandID shared.ClientID, taxAmount shared.Resources) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	expectedVariable, taxRule := convertAmount(taxAmount, tax)
+	taxToSend := shared.TaxDecision{
+		TaxAmount:   taxAmount,
+		TaxRule:     taxRule,
+		ExpectedTax: expectedVariable,
+		TaxDecided:  true,
+	}
+
+	data[shared.Tax] = shared.CommunicationContent{T: shared.CommunicationTax, TaxDecision: taxToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+}
+
+func (e *executive) sendNoTax(islandID shared.ClientID) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	taxToSend := shared.TaxDecision{TaxDecided: false}
+	data[shared.Tax] = shared.CommunicationContent{T: shared.CommunicationTax, TaxDecision: taxToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+}
+
+func (e *executive) sendAllocation(islandID shared.ClientID, allocationAmount shared.Resources) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	expectedVariable, allocationRule := convertAmount(allocationAmount, allocation)
+	allocationToSend := shared.AllocationDecision{
+		AllocationAmount:   allocationAmount,
+		AllocationRule:     allocationRule,
+		ExpectedAllocation: expectedVariable,
+		AllocationDecided:  true,
+	}
+
+	data[shared.Allocation] = shared.CommunicationContent{T: shared.CommunicationAllocation, AllocationDecision: allocationToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+}
+
+func (e *executive) sendNoAllocation(islandID shared.ClientID) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	allocationToSend := shared.AllocationDecision{AllocationDecided: false}
+	data[shared.Allocation] = shared.CommunicationContent{T: shared.CommunicationAllocation, AllocationDecision: allocationToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 }

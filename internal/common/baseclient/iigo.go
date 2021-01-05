@@ -57,7 +57,7 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 // The tax is the minimum contribution, you can pay more if you want to
 // COMPULSORY
 func (c *BaseClient) GetTaxContribution() shared.Resources {
-	// TODO: Implement common pool contribution greater than or equal to tax.
+	// If no new communication was received and there is no rule governing taxation, it will still recieve last valid tax
 	valToBeReturned := shared.Resources(0)
 	c.LocalVariableCache[rules.IslandTaxContribution] = rules.VariableValuePair{
 		VariableName: rules.IslandTaxContribution,
@@ -66,7 +66,7 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	isCompliant := c.CheckCompliance(rules.IslandTaxContribution)
 	if isCompliant {
 		// TODO: with this compliance check, agents can see whether they'd like to continue returning this value
-		valToBeReturned = 0
+		return valToBeReturned
 	}
 	// Use the toolkit to recommend a value
 	newVal, success := c.GetRecommendation(rules.IslandTaxContribution)
@@ -75,6 +75,7 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 		valToBeReturned = shared.Resources(newVal.Values[0])
 	}
 	return valToBeReturned
+
 }
 
 // GetSanctionPayment is called at the end of turn to pay any sanctions that have been
@@ -106,7 +107,7 @@ func (c *BaseClient) GetSanctionPayment() shared.Resources {
 // COMPULSORY
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
-	valToBeReturned := shared.Resources(0)
+	valToBeReturned := c.ServerReadHandle.GetGameState().CommonPool
 	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
 		VariableName: rules.IslandAllocation,
 		Values:       []float64{float64(valToBeReturned)},
@@ -122,7 +123,9 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 		// TODO: Choose whether to use this compliant value
 		valToBeReturned = shared.Resources(newVal.Values[0])
 	}
+
 	return valToBeReturned
+
 }
 
 // CheckCompliance provides clients with an easy interface to feed a variable and check whether it is compliant
