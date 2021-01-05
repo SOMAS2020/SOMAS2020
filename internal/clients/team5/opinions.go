@@ -48,7 +48,7 @@ func (c client) getTrustedTeams(trustThresh opinionScore, proportional bool) (tr
 	for team, opinion := range c.opinions {
 		if opinion.score >= trustThresh && c.isClientAlive(team) { // trust team and they're alive
 			trustedTeams[team] = float64(opinion.score)
-			totalTrustedOpScore += float64(opinion.score)
+			totalTrustedOpScore += float64(opinion.score) // store this in case proportional score scaling is req.
 		}
 	}
 	if !proportional {

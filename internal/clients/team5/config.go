@@ -32,6 +32,7 @@ type clientConfig struct {
 
 	// Disasters and IIFO
 	forecastTrustTreshold opinionScore // min opinion score of another team to consider their forecast in creating ours
+	maxForecastVariance   float64      // maximum tolerable variance in historical forecast values
 }
 
 // set param values here. In order to add a new value, you need to add a definition in struct above.
@@ -58,5 +59,9 @@ func getClientConfig() clientConfig {
 		dyingGiftRequestAmount:    10,
 		imperialGiftRequestAmount: 5,
 		middleGiftRequestAmount:   2,
+
+		// Disasters and IIFO
+		forecastTrustTreshold: 0.0, // neutral opinion
+		maxForecastVariance:   100.0,
 	}
 }
