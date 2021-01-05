@@ -23,11 +23,17 @@ type GameState struct {
 	Environment    disasters.Environment
 	DeerPopulation foraging.DeerPopulationModel
 
-	// IIGO History
-	IIGOHistory []shared.Accountability
+	// Foraging History
+	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
 
+	// IIGO History: indexed by turn
+	IIGOHistory map[uint][]shared.Accountability
+
+	// IIGO roles budget (initialised in orchestration.go)
+	IIGORolesBudget map[shared.Role]shared.Resources
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
+
 	// Orchestration
 	SpeakerID   shared.ClientID
 	JudgeID     shared.ClientID
@@ -43,7 +49,9 @@ func (g GameState) Copy() GameState {
 	ret.ClientInfos = copyClientInfos(g.ClientInfos)
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
+	ret.ForagingHistory = copyForagingHistory(g.ForagingHistory)
 	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
+	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	return ret
 }
 
@@ -59,6 +67,12 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		Turn:               g.Turn,
 		ClientInfo:         g.ClientInfos[id].Copy(),
 		ClientLifeStatuses: clientLifeStatuses,
+		CommonPool:         g.CommonPool,
+		IslandLocations:    g.Environment.Geography.Islands,
+		SpeakerID:          g.SpeakerID,
+		JudgeID:            g.JudgeID,
+		PresidentID:        g.PresidentID,
+		IIGORolesBudget:    copyRolesBudget(g.IIGORolesBudget),
 	}
 }
 
@@ -70,9 +84,36 @@ func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]Clien
 	return ret
 }
 
-func copyIIGOHistory(iigoHistory []shared.Accountability) []shared.Accountability {
-	ret := make([]shared.Accountability, len(iigoHistory))
-	copy(ret, iigoHistory)
+func copyRolesBudget(m map[shared.Role]shared.Resources) map[shared.Role]shared.Resources {
+	ret := make(map[shared.Role]shared.Resources, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
+func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]shared.Accountability {
+	targetMap := make(map[uint][]shared.Accountability)
+	for key, value := range iigoHistory {
+		targetMap[key] = copySingleIIGOEntry(value)
+	}
+	return targetMap
+}
+
+func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability {
+	ret := make([]shared.Accountability, len(input))
+	copy(ret, input)
+	return ret
+}
+
+func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) map[shared.ForageType][]foraging.ForagingReport {
+	ret := make(map[shared.ForageType][]foraging.ForagingReport, len(fHist))
+	for k, v := range fHist { // iterate over different foraging types
+		ret[k] = make([]foraging.ForagingReport, len(v))
+		for i, el := range v { // iterate over reports across time for given foraging type
+			ret[k][i] = el.Copy()
+		}
+	}
 	return ret
 }
 

@@ -56,18 +56,31 @@ func (s *SOMASServer) runOrgs() error {
 }
 
 // endOfTurn performs end of turn updates
+// TODO: organise order of end of turn actions
 func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
 	defer s.logf("finish endOfTurn")
 
-	err := s.runOrgsEndOfTurn()
-	if err != nil {
-		return errors.Errorf("Failed to run orgs end of turn: %v", err)
+	if err := s.runIIGOAllocations(); err != nil {
+		return errors.Errorf("Failed to get common pool allocations at end of turn: %v", err)
 	}
 
-	err = s.runForage()
-	if err != nil {
+	// TODO : break foraging down into foraging investments and foraging returns
+	if err := s.runForage(); err != nil {
 		return errors.Errorf("Failed to run hunt at end of turn: %v", err)
+	}
+
+	if err := s.runIIFOEndOfTurn(); err != nil {
+		return errors.Errorf("IIFO EndOfTurn error: %v", err)
+	}
+
+	// TODO: break IITO down into giving gifts and receiving gifts
+	if err := s.runIITOEndOfTurn(); err != nil {
+		return errors.Errorf("IITO EndOfTurn error: %v", err)
+	}
+
+	if err := s.runIIGOTax(); err != nil {
+		return errors.Errorf("Failed to put taxes into common pool at end of turn: %v", err)
 	}
 
 	// probe for disaster
@@ -78,6 +91,11 @@ func (s *SOMASServer) endOfTurn() error {
 	s.gameState.Environment = updatedEnv
 	// increment turn & season if needed
 	disasterHappened := updatedEnv.LastDisasterReport.Magnitude > 0
+
+	if disasterHappened {
+		s.applyDisasterEffects()    // compute effects taking into account CP and deduct resources accordingly
+		s.notifyClientsOfDisaster() // sends disaster report and effects to all non-dead clients
+	}
 	s.incrementTurnAndSeason(disasterHappened)
 
 	// deduct cost of living
@@ -91,26 +109,6 @@ func (s *SOMASServer) endOfTurn() error {
 	return nil
 }
 
-// runOrgsEndOfTurn runs all the end of turn variants of the orgs.
-func (s *SOMASServer) runOrgsEndOfTurn() error {
-	s.logf("start runOrgsEndOfTurn")
-	defer s.logf("finish runOrgsEndOfTurn")
-
-	if err := s.runIIGOEndOfTurn(); err != nil {
-		return errors.Errorf("IIGO EndOfTurn error: %v", err)
-	}
-
-	if err := s.runIIFOEndOfTurn(); err != nil {
-		return errors.Errorf("IIFO EndOfTurn error: %v", err)
-	}
-
-	if err := s.runIITOEndOfTurn(); err != nil {
-		return errors.Errorf("IITO EndOfTurn error: %v", err)
-	}
-
-	return nil
-}
-
 // incrementTurnAndSeason increments turn, and season if a disaster happened.
 func (s *SOMASServer) incrementTurnAndSeason(disasterHappened bool) {
 	s.logf("start incrementTurnAndSeason")
@@ -119,6 +117,18 @@ func (s *SOMASServer) incrementTurnAndSeason(disasterHappened bool) {
 	s.gameState.Turn++
 	if disasterHappened {
 		s.gameState.Season++
+	}
+}
+
+func (s *SOMASServer) notifyClientsOfDisaster() {
+	s.logf("start notifying clients of disaster")
+	defer s.logf("finish notifying clients of disaster")
+
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		effects := s.gameState.Environment.ComputeDisasterEffects(s.gameState.CommonPool, s.gameConfig.DisasterConfig) // gets effects of most recent disaster
+		c.DisasterNotification(s.gameState.Environment.LastDisasterReport, effects)
 	}
 }
 
