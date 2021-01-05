@@ -49,6 +49,10 @@ func (l *legislature) sendJudgeSalary() error {
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, l.gameState.JudgeID, l.gameState)
+
+				variablesToCache := []rules.VariableFieldName{rules.JudgeSalary, rules.JudgePayment}
+				valuesToCache := [][]float64{{float64(l.judgeSalary)}, {float64(amountWithdraw)}}
+				l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 				return nil
 			}
 		}

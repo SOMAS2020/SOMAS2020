@@ -56,8 +56,11 @@ const (
 	AllocationMade
 	IslandsAlive
 	SpeakerSalary
+	SpeakerPayment
 	JudgeSalary
+	JudgePayment
 	PresidentSalary
+	PresidentPayment
 	RuleSelected
 	VoteCalled
 	ExpectedTaxContribution
@@ -93,8 +96,11 @@ func (v VariableFieldName) String() string {
 		"AllocationMade",
 		"IslandsAlive",
 		"SpeakerSalary",
+		"SpeakerPayment",
 		"JudgeSalary",
+		"JudgePayment",
 		"PresidentSalary",
+		"PresidentPayment",
 		"RuleSelected",
 		"VoteCalled",
 		"ExpectedTaxContribution",

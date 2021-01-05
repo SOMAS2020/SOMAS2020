@@ -74,6 +74,10 @@ func (j *judiciary) sendPresidentSalary() error {
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, j.gameState.PresidentID, j.gameState)
+
+				variablesToCache := []rules.VariableFieldName{rules.PresidentSalary, rules.PresidentPayment}
+				valuesToCache := [][]float64{{float64(j.presidentSalary)}, {float64(amountWithdraw)}}
+				j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 				return nil
 			}
 		}
