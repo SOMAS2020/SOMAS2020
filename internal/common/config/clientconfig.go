@@ -14,27 +14,27 @@ type ClientConfig struct {
 // ClientIIGOConfig contains iigo config fields that is visible to clients
 type ClientIIGOConfig struct {
 	// Executive branch
-	GetRuleForSpeakerActionCost        SelectivelyVisibleResources
-	BroadcastTaxationActionCost        SelectivelyVisibleResources
-	ReplyAllocationRequestsActionCost  SelectivelyVisibleResources
-	RequestAllocationRequestActionCost SelectivelyVisibleResources
-	RequestRuleProposalActionCost      SelectivelyVisibleResources
-	AppointNextSpeakerActionCost       SelectivelyVisibleResources
+	GetRuleForSpeakerActionCost        shared.Resources
+	BroadcastTaxationActionCost        shared.Resources
+	ReplyAllocationRequestsActionCost  shared.Resources
+	RequestAllocationRequestActionCost shared.Resources
+	RequestRuleProposalActionCost      shared.Resources
+	AppointNextSpeakerActionCost       shared.Resources
 	// Judiciary branch
-	InspectHistoryActionCost       SelectivelyVisibleResources
-	InspectBallotActionCost        SelectivelyVisibleResources
-	InspectAllocationActionCost    SelectivelyVisibleResources
-	AppointNextPresidentActionCost SelectivelyVisibleResources
-	SanctionCacheDepth             SelectivelyVisibleInteger
-	HistoryCacheDepth              SelectivelyVisibleInteger
-	AssumedResourcesNoReport       SelectivelyVisibleResources
-	SanctionLength                 SelectivelyVisibleInteger
+	InspectHistoryActionCost       shared.Resources
+	InspectBallotActionCost        shared.Resources
+	InspectAllocationActionCost    shared.Resources
+	AppointNextPresidentActionCost shared.Resources
+	SanctionCacheDepth             int
+	HistoryCacheDepth              int
+	AssumedResourcesNoReport       shared.Resources
+	SanctionLength                 int
 	// Legislative branch
-	SetVotingResultActionCost      SelectivelyVisibleResources
-	SetRuleToVoteActionCost        SelectivelyVisibleResources
-	AnnounceVotingResultActionCost SelectivelyVisibleResources
-	UpdateRulesActionCost          SelectivelyVisibleResources
-	AppointNextJudgeActionCost     SelectivelyVisibleResources
+	SetVotingResultActionCost      shared.Resources
+	SetRuleToVoteActionCost        shared.Resources
+	AnnounceVotingResultActionCost shared.Resources
+	UpdateRulesActionCost          shared.Resources
+	AppointNextJudgeActionCost     shared.Resources
 }
 
 // ClientDisasterConfig contains disaster config information visible to clients.
@@ -67,83 +67,26 @@ func (c DisasterConfig) GetClientDisasterConfig() ClientDisasterConfig {
 func (c IIGOConfig) GetClientIIGOConfig() ClientIIGOConfig {
 	return ClientIIGOConfig{
 		// Executive branch
-		GetRuleForSpeakerActionCost: getSelectivelyVisibleResources(
-			c.GetRuleForSpeakerActionCost,
-			true,
-		),
-		BroadcastTaxationActionCost: getSelectivelyVisibleResources(
-			c.BroadcastTaxationActionCost,
-			true,
-		),
-		ReplyAllocationRequestsActionCost: getSelectivelyVisibleResources(
-			c.ReplyAllocationRequestsActionCost,
-			true,
-		),
-		RequestAllocationRequestActionCost: getSelectivelyVisibleResources(
-			c.RequestAllocationRequestActionCost,
-			true,
-		),
-		RequestRuleProposalActionCost: getSelectivelyVisibleResources(
-			c.RequestRuleProposalActionCost,
-			true,
-		),
-		AppointNextSpeakerActionCost: getSelectivelyVisibleResources(
-			c.AppointNextSpeakerActionCost,
-			true,
-		),
+		GetRuleForSpeakerActionCost:        c.GetRuleForSpeakerActionCost,
+		BroadcastTaxationActionCost:        c.BroadcastTaxationActionCost,
+		ReplyAllocationRequestsActionCost:  c.ReplyAllocationRequestsActionCost,
+		RequestAllocationRequestActionCost: c.RequestAllocationRequestActionCost,
+		RequestRuleProposalActionCost:      c.RequestRuleProposalActionCost,
+		AppointNextSpeakerActionCost:       c.AppointNextSpeakerActionCost,
 		// Judiciary branch
-		InspectHistoryActionCost: getSelectivelyVisibleResources(
-			c.InspectHistoryActionCost,
-			true,
-		),
-		InspectBallotActionCost: getSelectivelyVisibleResources(
-			c.InspectBallotActionCost,
-			true,
-		),
-		InspectAllocationActionCost: getSelectivelyVisibleResources(
-			c.InspectAllocationActionCost,
-			true,
-		),
-		AppointNextPresidentActionCost: getSelectivelyVisibleResources(
-			c.AppointNextPresidentActionCost,
-			true,
-		),
-		SanctionCacheDepth: getSelectivelyVisibleInteger(
-			c.SanctionCacheDepth,
-			true,
-		),
-		HistoryCacheDepth: getSelectivelyVisibleInteger(
-			c.HistoryCacheDepth,
-			true,
-		),
-		AssumedResourcesNoReport: getSelectivelyVisibleResources(
-			c.AssumedResourcesNoReport,
-			true,
-		),
-		SanctionLength: getSelectivelyVisibleInteger(
-			c.SanctionLength,
-			true,
-		),
+		InspectHistoryActionCost:       c.InspectHistoryActionCost,
+		InspectBallotActionCost:        c.InspectBallotActionCost,
+		InspectAllocationActionCost:    c.InspectAllocationActionCost,
+		AppointNextPresidentActionCost: c.AppointNextPresidentActionCost,
+		SanctionCacheDepth:             c.SanctionCacheDepth,
+		HistoryCacheDepth:              c.HistoryCacheDepth,
+		AssumedResourcesNoReport:       c.AssumedResourcesNoReport,
+		SanctionLength:                 c.SanctionLength,
 		// Legislative branch
-		SetVotingResultActionCost: getSelectivelyVisibleResources(
-			c.SetVotingResultActionCost,
-			true,
-		),
-		SetRuleToVoteActionCost: getSelectivelyVisibleResources(
-			c.SetRuleToVoteActionCost,
-			true,
-		),
-		AnnounceVotingResultActionCost: getSelectivelyVisibleResources(
-			c.AnnounceVotingResultActionCost,
-			true,
-		),
-		UpdateRulesActionCost: getSelectivelyVisibleResources(
-			c.UpdateRulesActionCost,
-			true,
-		),
-		AppointNextJudgeActionCost: getSelectivelyVisibleResources(
-			c.AppointNextJudgeActionCost,
-			true,
-		),
+		SetVotingResultActionCost:      c.SetVotingResultActionCost,
+		SetRuleToVoteActionCost:        c.SetRuleToVoteActionCost,
+		AnnounceVotingResultActionCost: c.AnnounceVotingResultActionCost,
+		UpdateRulesActionCost:          c.UpdateRulesActionCost,
+		AppointNextJudgeActionCost:     c.AppointNextJudgeActionCost,
 	}
 }
