@@ -1,11 +1,19 @@
 package team2
 
 import (
+	"sort"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// TODO: initialise confidence to 50
 // TODO: Future work - initialise confidence to something more (based on strategy)
+
+type IslandTrustMap map[int]GiftInfo
+
+// Overwrite default sort implementation
+func (p IslandTrustMap) Len() int           { return len(p) }
+func (p IslandTrustMap) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p IslandTrustMap) Less(i, j int) bool { return p[i].trust < p[j].trust }
 
 // Calculates the confidence we have in an island based on our past experience with them
 // Depending on the situation we need to judge, we look at a different history
@@ -71,8 +79,8 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 
 // }
 
-func max(numbers map[int]GiftInfo) int {
-	var maxNumber int
+func max(numbers map[uint]GiftInfo) uint {
+	var maxNumber uint
 	for maxNumber = range numbers {
 		break
 	}
@@ -97,43 +105,63 @@ func max(numbers map[int]GiftInfo) int {
 func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	turn := c.gameState().Turn
 	pastConfidence := c.confidence("Gifts", island)
+	const bufferLen = 10
 
-	ourLastTurnRequested := max(c.giftHist[island].OurRequest)
-	theirLastTurnRequested := max(c.giftHist[island].IslandRequest)
+	// runningMean := previousMean + (nthValue - previousMean)/numberofTurnsBefore
+	runMeanTheyReq := 0
+	runMeanTheyDon := 0
+	runMeanWeReq := 0
+	runMeanWeDon := 0
 
-	ourDonation := c.giftHist[island].IslandRequest[theirLastTurnRequested].gifted
-	ourRequest := c.giftHist[island].OurRequest[ourLastTurnRequested].request
-	theirDonation := c.giftHist[island].OurRequest[ourLastTurnRequested].gifted
-	theirRequest := c.giftHist[island].IslandRequest[theirLastTurnRequested].request
+	ourReqMap := c.giftHist[island].OurRequest
+	theirReqMap := c.giftHist[island].IslandRequest
 
-	ourDonationRatio := ourDonation / theirRequest   // min: 0, max: 1
-	theirDonationRatio := theirDonation / ourRequest // min: 0, max: 1
+	// Sort the keys in decreasing order
+	sort.Ints(ourReqMap)
+	sort.Ints(theirReqMap)
 
-	//should take into account the dimensions of the contributions ratio of 0.9
-	// 9 out of 10 != 90 out of 100
-	if mod(ourDonation-theirDonation) > 10 {
-
+	// Idea is to look at the past 10 transactions, not turns
+	ourLastTurns := [bufferLen]int{}
+	theirLastTurns := [bufferLen]int{}
+	numKeys := 0
+	// Take keys (turns) of our last 10 transactions
+	for key := range ourReqMap {
+		ourLastTurns = append(ourLastTurns, key)
+		if numKeys > bufferLen {
+			break
+		}
 	}
 
-	switch {
-	case ourLastTurnRequested == theirLastTurnRequested: //we both requested a gift from eachother:
-		switch {
-		case theirDonationRatio > ourDonationRatio:
-			// return itwentamazing
-		case ourDonationRatio > theirDonationRatio:
-			// return itwentokay
-		case numberoftheirrequests << ournumberofrequests:
-			// return itwentreasonable // < itwentokay
-		case theiramountrequested << ouramountrequested:
-			// return itwentreasonable
-		case theyarecritical:
-			// return theyshouldknowbetterbutfine // < itwentreasonable
-		default:
-			// return bigdisappointment // < theyshouldknowbetterbutfine
+	numKeys = 0
+	// Take keys (turns) of their last 10 transactions
+	for key := range theirReqMap {
+		theirLastTurns = append(theirLastTurns, key)
+		if numKeys > bufferLen {
+			break
 		}
-	case ourRequest > 0 && theirRequest == 0:
+	}
 
-	case ourRequest == 0 && theirRequest > 0:
+	// Take running average of the interactions
+	// The individual turn values will be scaled wrt to the "distance" from the current turn
+	// ie transactions further in the past are valued less
+	for i := 0; i < bufferLen; i++ {
+		// Get the transaction distance to the previous transaction
+		theirTransDist := turn - theirLastTurns[i]
+		ourTransDist := turn - ourLastTurns[i]
+		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
+		runMeanTheyReq = runMeanTheyReq + (theirReqMap[theirLastTurns[i]].requested/theirTransDist-runMeanTheyReq)/(i+1)
+		runMeanTheyDon = runMeanTheyDon + (ourReqMap[ourLastTurns[i]].gifted/ourTransDist-runMeanTheyDon)/(i+1)
+		runMeanWeReq = runMeanWeReq + (ourReqMap[ourLastTurns[i]].requested/ourTransDist-runMeanWeReq)/(i+1)
+		runMeanWeDon = runMeanWeDon + (theirReqMap[theirLastTurns[i]].gifted/theirTransDist-runMeanWeDon)/(i+1)
+	}
+
+	usRatio := runMeanTheyDon / runMeanWeReq
+	themRatio := runMeanWeDon / runMeanTheyReq
+
+	if usRatio >= themRatio {
+		// confidence increases
+	} else {
+		// confidence decreases
 	}
 
 	// how much they give us vs how much we requested, how much we give them,

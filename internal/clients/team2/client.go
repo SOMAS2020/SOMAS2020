@@ -60,8 +60,8 @@ type GiftInfo struct {
 }
 
 type GiftExchange struct {
-	IslandRequest map[uint]GiftInfo
-	OurRequest    map[uint]GiftInfo
+	IslandRequest map[int]GiftInfo
+	OurRequest    map[int]GiftInfo
 }
 
 type OpinionHist map[shared.ClientID]Opinion
