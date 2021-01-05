@@ -11,20 +11,23 @@ import (
 //================================================================
 /*	Types */
 //=================================================================
-const id = shared.Team5
+const ourClientID = shared.Team5
+const startTurn = 1
 
 //================ Common Pool =========================================
 
+type resourceHistoryType map[uint]shared.Resources
+
 //cpRequestHistory history of CP Requests
-type cpRequestHistory []shared.Resources
+type cpRequestHistory resourceHistoryType
 
 //cpAllocationHistory History of allocations
-type cpAllocationHistory []shared.Resources
+type cpAllocationHistory resourceHistoryType
 
 //================ Resource History =========================================
 
 //resourceHistory OUR islands resources per turn
-type resourceHistory map[uint]shared.Resources
+type resourceHistory resourceHistoryType
 
 //================ Foraging History =========================================
 
@@ -40,16 +43,6 @@ type forageHistory map[shared.ForageType][]forageOutcome
 
 //================ Gifts ===========================================
 
-//giftOutcome defines the gifts
-type giftOutcome struct {
-	occasions uint
-	amount    shared.Resources
-}
-
-// type GiftRequest shared.Resources
-
-// type GiftRequestDict map[shared.ClientID]GiftRequest
-
 // giftResponse is a struct of the response and reason
 type giftResponse struct {
 	AcceptedAmount shared.Resources
@@ -63,59 +56,38 @@ type giftInfo struct {
 	reason    shared.AcceptReason
 }
 
-//giftExchange Looks at the exchanges our island has made (Gifts)
+//giftExchange Looks at how much they requested and we request
 type giftExchange struct {
-	IslandRequest map[uint]giftInfo
-	OurRequest    map[uint]giftInfo
+	// 							uint = turn
+	TheirRequest map[uint]giftInfo
+	OurRequest   map[uint]giftInfo
 }
 
-//giftHistory is the history of our gifts
+//	giftHistory is the history of our gifts according to which island sent it
 type giftHistory map[shared.ClientID]giftExchange
 
 // Client Information */
-
-type clientConfig struct {
-
-	// Initial non planned foraging
-	InitialForageTurns      uint
-	MinimumForagePercentage float64
-	NormalForagePercentage  float64
-	JBForagePercentage      float64
-
-	// Normal foraging
-	NormalRandomIncrease float64
-	MaxForagePercentage  float64
-	SkipForage           uint // Skip for X turns if no positive RoI
-
-	// If resources go above this limit we are balling with money
-	JBThreshold shared.Resources
-	// Middle class:  Middle < Jeff bezos
-	MiddleThreshold shared.Resources
-	// Poor: Imperial student < Middle
-	ImperialThreshold shared.Resources
-
-	// How much to request when we are dying
-	DyingGiftRequestAmount shared.Resources
-	// How much to request when we are at Imperial
-	ImperialGiftRequestAmount shared.Resources
-	// How much to request when we are dying
-	MiddleGiftRequestAmount shared.Resources
-}
-
 // Client is the island number
 type client struct {
 	*baseclient.BaseClient
 
+<<<<<<< HEAD
 	// Roles
 	team5president president
 
 	// History
+=======
+	// history
+>>>>>>> develop
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
-	giftHistory         giftHistory
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
+	opinionHistory      opinionHistory
+	giftHistory         giftHistory
 
+	// current states
+	opinions  opinionMap // opinions of each team
 	taxAmount shared.Resources
 
 	// allocation is the president's response to your last common pool resource request
@@ -135,17 +107,6 @@ const (
 	imperialStudent
 	middleClass
 	jeffBezos
-)
-
-const (
-	// Accept ...
-	Accept shared.AcceptReason = iota
-	// DeclineDontNeed ...
-	DeclineDontNeed
-	// DeclineDontLikeYou ...
-	DeclineDontLikeYou
-	// Ignored ...
-	Ignored
 )
 
 //================================================================
