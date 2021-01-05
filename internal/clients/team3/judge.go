@@ -15,16 +15,16 @@ type judge struct {
 }
 
 // PayPresident pays the president's salary
-func (j *judge) PayPresident(salary shared.Resources) (shared.Resources, bool) {
+func (j *judge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
 	j.c.params.salaryThreshold = 150 //parameter that we need to define
 
 	// If our island is in a critical state, then we will deduct part of the salary
 	// defined by the salaryThreshold to at least meet our required threshold for survival.
-	if j.c.ServerReadHandle.GetGameState().ClientLifeStatuses[j.c.BaseClient.GetID()] == shared.Critical {
+	if j.c.areWeCritical() {
 		take := shared.Resources(j.c.params.salaryThreshold) - j.c.getLocalResources()
-		salary -= take
+		presidentSalary -= take
 	}
-	return salary, true
+	return presidentSalary, true
 }
 
 // InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
