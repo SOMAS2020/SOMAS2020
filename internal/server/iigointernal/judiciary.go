@@ -241,11 +241,6 @@ func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability, histo
 	j.localHistoryCache = newMapReturn
 }
 
-// clearHistoryCache wipes the history cache (when retributive justice has happened)
-func (j *judiciary) clearHistoryCache() {
-	j.localHistoryCache = defaultInitLocalHistoryCache(int(j.gameConf.HistoryCacheDepth))
-}
-
 // Helper functions //
 
 func broadcastGeneric(judgeID shared.ClientID, itemsForbroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent) {
