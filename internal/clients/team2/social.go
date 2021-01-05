@@ -11,9 +11,10 @@ import (
 type IslandTrustMap map[int]GiftInfo
 
 // Overwrite default sort implementation
-func (p IslandTrustMap) Len() int           { return len(p) }
-func (p IslandTrustMap) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p IslandTrustMap) Less(i, j int) bool { return p[i].trust < p[j].trust }
+func (p IslandTrustMap) Len() int      { return len(p) }
+func (p IslandTrustMap) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
+// func (p IslandTrustMap) Less(i, j int) bool { return p[i].trust < p[j].trust }
 
 // Calculates the confidence we have in an island based on our past experience with them
 // Depending on the situation we need to judge, we look at a different history
@@ -92,82 +93,87 @@ func max(numbers map[uint]GiftInfo) uint {
 	return maxNumber
 }
 
-// [[(1, toUS: 30, fromUS: 40), (2, toUS: 10, fromUS: 10), (3, toUS: 40, fromUS: 50)],
-// [(1, toUS: 50, fromUS: 10), (2, toUS: 10, fromUS: 30), (3, toUS: 40, fromUS: 50)],
-// [(1, toUS: 40, fromUS: 40), (2, toUS: 30, fromUS: 10), (3, toUS: 40, fromUS: 50)]]
-// interactions with team toUs ... fromUs
-// 1: 120 ...  90
-// 2: 50 ... 50
-// 3: 120 ... 150
-
 // this just means the confidence we have in others while requesting gifts, not the trust we have on them
 // Updates the confidence of an island regarding gifts
 func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	turn := c.gameState().Turn
 	pastConfidence := c.confidence("Gifts", island)
-	const bufferLen = 10
 
-	// runningMean := previousMean + (nthValue - previousMean)/numberofTurnsBefore
-	runMeanTheyReq := 0
-	runMeanTheyDon := 0
-	runMeanWeReq := 0
-	runMeanWeDon := 0
+	var bufferLen = 0
+	if turn < 10 {
+		bufferLen = int(turn)
+	} else {
+		bufferLen = 10
+	}
+
+	runMeanTheyReq := 0.0
+	runMeanTheyDon := 0.0
+	runMeanWeReq := 0.0
+	runMeanWeDon := 0.0
 
 	ourReqMap := c.giftHist[island].OurRequest
 	theirReqMap := c.giftHist[island].IslandRequest
 
+	ourKeys := make([]int, 0)
+	for k, _ := range ourReqMap {
+		ourKeys = append(ourKeys, k)
+	}
+
+	theirKeys := make([]int, 0)
+	for k, _ := range theirReqMap {
+		theirKeys = append(theirKeys, k)
+	}
+
 	// Sort the keys in decreasing order
-	sort.Ints(ourReqMap)
-	sort.Ints(theirReqMap)
-
-	// Idea is to look at the past 10 transactions, not turns
-	ourLastTurns := [bufferLen]int{}
-	theirLastTurns := [bufferLen]int{}
-	numKeys := 0
-	// Take keys (turns) of our last 10 transactions
-	for key := range ourReqMap {
-		ourLastTurns = append(ourLastTurns, key)
-		if numKeys > bufferLen {
-			break
-		}
-	}
-
-	numKeys = 0
-	// Take keys (turns) of their last 10 transactions
-	for key := range theirReqMap {
-		theirLastTurns = append(theirLastTurns, key)
-		if numKeys > bufferLen {
-			break
-		}
-	}
+	sort.Ints(ourKeys)
+	sort.Ints(theirKeys)
 
 	// Take running average of the interactions
 	// The individual turn values will be scaled wrt to the "distance" from the current turn
 	// ie transactions further in the past are valued less
 	for i := 0; i < bufferLen; i++ {
 		// Get the transaction distance to the previous transaction
-		theirTransDist := turn - theirLastTurns[i]
-		ourTransDist := turn - ourLastTurns[i]
+		theirTransDist := turn - uint(theirKeys[i])
+		ourTransDist := turn - uint(ourKeys[i])
 		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
-		runMeanTheyReq = runMeanTheyReq + (theirReqMap[theirLastTurns[i]].requested/theirTransDist-runMeanTheyReq)/(i+1)
-		runMeanTheyDon = runMeanTheyDon + (ourReqMap[ourLastTurns[i]].gifted/ourTransDist-runMeanTheyDon)/(i+1)
-		runMeanWeReq = runMeanWeReq + (ourReqMap[ourLastTurns[i]].requested/ourTransDist-runMeanWeReq)/(i+1)
-		runMeanWeDon = runMeanWeDon + (theirReqMap[theirLastTurns[i]].gifted/theirTransDist-runMeanWeDon)/(i+1)
+		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[theirKeys[i]].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
+		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[ourKeys[i]].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
+		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[ourKeys[i]].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
+		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[theirKeys[i]].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
 	}
 
-	usRatio := runMeanTheyDon / runMeanWeReq
-	themRatio := runMeanWeDon / runMeanTheyReq
+	// TODO: is there a potential divide by 0 here?
+	usRatio := runMeanTheyDon / runMeanWeReq   // between 0 and 1
+	themRatio := runMeanWeDon / runMeanTheyReq // between 0 and 1
 
-	if usRatio >= themRatio {
-		// confidence increases
-	} else {
-		// confidence decreases
-	}
+	diff := usRatio - themRatio // between -1 and 1
+	// confidence increases if usRatio >= themRatio
+	// confidence decreases if not
 
-	// how much they give us vs how much we requested, how much we give them,
-	// how many times they request, how much they've previously requested, state they're in
+	// e.g. 1 pastConfidnece = 50%
+	// diff = 100% in our favour 1.0
+	// inc pastConfidence = (50 + 100)/2 = 75
 
-	return total
+	// e.g. 2 pastConfidence = 90%
+	// diff = 70% in our favour
+	// inc pastConfidence = (90 + 70)/2 = 80
+
+	// e.g. 3 pastConfidence = 80%
+	// diff = 30% against us
+	// inc pastConfidence = (80 - 30)/2 = 25
+
+	// e.g. 4 pastConfidence = 100%
+	// diff = 100% against us
+	// inc pastConfidence = (100 - 100)/2 = 0
+
+	// e.g. 5 pastConfidence = 0%
+	// diff = 100% in our favour
+	// inc pastConfidence = (0 + 100)/2 = 50
+
+	// pastConfidence = (pastConfidence + sensitivity*diff*100) / 2
+	pastConfidence = int((pastConfidence + int(diff*100)) / 2)
+
+	return pastConfidence
 }
 
 //func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
