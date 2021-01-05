@@ -44,6 +44,8 @@ func (c *client) GetClientPresidentPointer() roles.President {
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
 func (c *client) resetIIGOInfo() {
+	c.clientPrint("IIGO cache from previous turn: %+v", c.iigoInfo)
+	c.clientPrint("IIGO sanction info from previous turn: %+v", c.iigoInfo.sanctions)
 	c.iigoInfo.commonPoolAllocation = 0
 	c.iigoInfo.taxationAmount = 0
 	c.iigoInfo.monitoringOutcomes = make(map[shared.Role]bool)
@@ -92,6 +94,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 // This function is overridden to receive information and update local info accordingly.
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
+	// c.clientPrint("Received communication: %+v", data)
 	for contentType, content := range data {
 		switch contentType {
 		case shared.TaxAmount:
@@ -111,6 +114,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			}
 			// Rule sanctions
 			if _, ok := data[shared.IIGOSanctionScore]; ok {
+				// c.clientPrint("Received sanction info: %+v", data)
 				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
 			}
 		case shared.RoleMonitored:
