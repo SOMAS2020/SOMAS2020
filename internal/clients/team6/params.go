@@ -1,19 +1,33 @@
 package team6
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
-type Friendship map[shared.ClientID]float64
+// FriendshipLevel measures the friendship levels
+type FriendshipLevel float64
 
-type GiftsOfferedHistory map[shared.ClientID]shared.Resources
+// Friendship is the friendship level between us and another island
+type Friendship map[shared.ClientID]FriendshipLevel
 
+// GiftsSentHistory stores what gifts we have sent
+type GiftsSentHistory map[shared.ClientID]shared.Resources
+
+// GiftsReceivedHistory stores what gifts we have received
 type GiftsReceivedHistory map[shared.ClientID]shared.Resources
 
+// GiftsRequestedHistory stores what gifts we have requested
+type GiftsRequestedHistory map[shared.ClientID]shared.Resources
+
+// Personality enumerate our personality
 type Personality int
 
+// ForageHistory stores our forage history
 type ForageHistory map[shared.ForageType][]ForageResults
 
 type FavourRules []string
 
+// enumerates personality
 const (
 	Selfish Personality = iota
 	Normal
@@ -27,8 +41,12 @@ type ForageResults struct {
 
 // Config configures our island's initial state
 type Config struct {
-	selfishThreshold shared.Resources
-	normalThreshold  shared.Resources
+	minFriendship          FriendshipLevel
+	maxFriendship          FriendshipLevel
+	friendshipChangingRate FriendshipLevel
+	selfishThreshold       shared.Resources
+	normalThreshold        shared.Resources
+	payingTax              shared.Resources
 }
 
 var (
@@ -39,10 +57,17 @@ var (
 		shared.Team4: 50.0,
 		shared.Team5: 50.0,
 	}
-	giftsOfferedHistory  = GiftsOfferedHistory{}
-	giftsReceivedHistory = GiftsReceivedHistory{}
-	config               = Config{
-		selfishThreshold: 50.0,
-		normalThreshold:  150.0,
+	giftsSentHistory      = GiftsSentHistory{}
+	giftsReceivedHistory  = GiftsReceivedHistory{}
+	giftsRequestedHistory = GiftsRequestedHistory{}
+	forageHistory         = ForageHistory{}
+	favourRules           = FavourRules{}
+	config                = Config{
+		minFriendship:          0.0,
+		maxFriendship:          100.0,
+		friendshipChangingRate: 20.0,
+		selfishThreshold:       50.0,
+		normalThreshold:        150.0,
+		payingTax:              15.0,
 	}
 )

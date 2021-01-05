@@ -1,4 +1,3 @@
-// team 6's implementation of the Speaker
 package team6
 
 import (

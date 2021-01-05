@@ -1,30 +1,73 @@
 package team6
 
 import (
-
-	"github.com/SOMAS2020/SOMAS2020/internal/common/shared")
-
-
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
 
-	// You can fetch the clients which are alive like this:
+	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+	ourPersonality := c.getPersonality()
+
+	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+	costOfLiving := c.ServerReadHandle.GetGameConfig().CostOfLiving
+	criticalCounter := c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter
+	maxCriticalCounter := c.ServerReadHandle.GetGameConfig().MaxCriticalConsecutiveTurns
+
+	friendshipCoffesOnRequest := make(map[shared.ClientID]shared.GiftRequest)
+
+	for team, fsc := range c.getFriendshipCoeffs() {
+		friendshipCoffesOnRequest[team] = shared.GiftRequest(fsc + float64(1))
+	}
+
+	// requests gifts from all islands if we are in critical status
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if status == shared.Critical {
-			requests[team] = shared.GiftRequest(100.0)
+		if ourStatus == shared.Critical {
+			if criticalCounter == maxCriticalCounter-uint(1) {
+				// EMERGENCY!! will try to get a minimum number so that we can survive
+				requests[team] = shared.GiftRequest(minThreshold)
+			} else {
+				// not emergency, will be more greedy, but we are still in critical status
+				requests[team] = shared.GiftRequest(minThreshold + costOfLiving)
+			}
+		} else if status != shared.Alive {
+			// won't ask a gift from a critical or dead island
+			continue
 		} else {
-			requests[team] = shared.GiftRequest(0.0)
+			// TODO: do we need to request gifts when we are not critical anyway?
+			if ourPersonality == Selfish {
+				// asks more when we are selfish
+				requests[team] = shared.GiftRequest(costOfLiving) * friendshipCoffesOnRequest[team] * friendshipCoffesOnRequest[team]
+			} else if ourPersonality == Normal {
+				// asks a regular amount
+				requests[team] = shared.GiftRequest(costOfLiving) * friendshipCoffesOnRequest[team]
+			} else if ourPersonality == Generous {
+				// asks for a cost of living
+				requests[team] = shared.GiftRequest(costOfLiving)
+			}
+		}
+
+		// records the requests into our history book
+		if _, found := c.giftsRequestedHistory[team]; found {
+			c.giftsRequestedHistory[team] += shared.Resources(requests[team])
+		} else {
+			c.giftsRequestedHistory[team] = shared.Resources(requests[team])
 		}
 	}
+
 	return requests
 }
 
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
+
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
 	ourPersonality := c.getPersonality()
+
+	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+
 	friendshipCoffesOnOffer := make(map[shared.ClientID]shared.GiftOffer)
 
 	for team, fsc := range c.getFriendshipCoeffs() {
@@ -32,7 +75,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	}
 
 	if ourStatus == shared.Critical {
-		// rejects all offers if we are in critical status
+		// rejects all offers if we are in critical status or will be
 		return offers
 	}
 
@@ -41,12 +84,15 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 		if status == shared.Critical {
 			// offers a minimum resources to all islands which are in critical status
-			// TODO: what is the best amount to offer???
-			offers[team] = shared.GiftOffer(10.0)
+			offers[team] = shared.GiftOffer(minThreshold)
 		} else if amountRequested, found := receivedRequests[team]; found {
 			// otherwise gifts will be offered based on our friendship and the amount
-			if shared.Resources(amountRequested) > ourResources/6.0 {
-				amountOffer = shared.GiftOffer(ourResources / 6.0)
+			// TODO: offers gifts to the best friends first
+			if ourResources-shared.Resources(amountRequested) <= minThreshold {
+				// cannot offer the gift if it let us fall into the minimum resources threshold
+				break
+			} else if shared.Resources(amountRequested) > ourResources/shared.Resources(c.getNumOfAliveIslands()) {
+				amountOffer = shared.GiftOffer(ourResources / shared.Resources(c.getNumOfAliveIslands()))
 			} else {
 				amountOffer = shared.GiftOffer(amountRequested)
 			}
@@ -54,39 +100,97 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			if ourPersonality == Selfish {
 				// introduces high penalty on the gift offers if we are selfish
 				// yes, we are very stingy in this case ;)
-				offers[team] = shared.GiftOffer(friendshipCoffesOnOffer[team] * friendshipCoffesOnOffer[team] * amountOffer)
+				offers[team] = friendshipCoffesOnOffer[team] * friendshipCoffesOnOffer[team] * amountOffer
 			} else if ourPersonality == Normal {
 				// introduces normal penalty
-				offers[team] = shared.GiftOffer(friendshipCoffesOnOffer[team] * amountOffer)
-			} else {
+				offers[team] = friendshipCoffesOnOffer[team] * amountOffer
+			} else if ourPersonality == Generous {
 				// intorduces no penalty - we are rich!
-				offers[team] = shared.GiftOffer(amountOffer)
+				offers[team] = amountOffer
 			}
-
 		}
 	}
 
-	// TODO: implement different wealth state for our island so we can decided
-	// whether to be generous or not --finished
 	return offers
+}
 
 func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict {
 	responses := shared.GiftResponseDict{}
+
+	costOfLiving := c.ServerReadHandle.GetGameConfig().CostOfLiving
+	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+
 	for client, offer := range receivedOffers {
-		responses[client] = shared.GiftResponse{
-			AcceptedAmount: shared.Resources(offer),
-			Reason:         shared.Accept,
+		if ourStatus == shared.Critical {
+			responses[client] = shared.GiftResponse{
+				AcceptedAmount: shared.Resources(offer),
+				Reason:         shared.Accept,
+			}
+		} else if c.ServerReadHandle.GetGameState().ClientLifeStatuses[client] == shared.Critical {
+			responses[client] = shared.GiftResponse{
+				AcceptedAmount: 0,
+				Reason:         shared.DeclineDontNeed,
+			}
+		} else if c.friendship[client] == c.config.minFriendship {
+			// TODO: is this stupid?
+			responses[client] = shared.GiftResponse{
+				AcceptedAmount: 0,
+				Reason:         shared.DeclineDontLikeYou,
+			}
+		} else if c.friendship[client] == c.config.maxFriendship {
+			// prevents our friend island from running out of resources
+			responses[client] = shared.GiftResponse{
+				AcceptedAmount: shared.Resources(offer) - costOfLiving,
+				Reason:         shared.Accept,
+			}
+		} else {
+			responses[client] = shared.GiftResponse{
+				AcceptedAmount: shared.Resources(offer),
+				Reason:         shared.Accept,
+			}
 		}
 	}
+
 	return responses
 }
 
-func (c *client) UpdateGiftInfo(ReceivedResponses shared.GiftResponseDict) {}
+// TODO: anything else for this function?
+func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
+	for client, response := range receivedResponses {
+		c.Logf("The island[%v] accepts the amount[%v] because they [%v]", client, response.AcceptedAmount, response.Reason)
+	}
+}
 
 func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
-	//myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	defer c.Logf("The gift[%v] has been sent to the island[%v]", sent, to)
+
+	if _, found := c.giftsSentHistory[to]; found {
+		c.giftsSentHistory[to] += sent
+	} else {
+		c.giftsSentHistory[to] = sent
+	}
 }
 
 func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
-	//myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	defer c.Logf("The gift[%v] has been received from the island[%v]", received, from)
+
+	if _, found := c.giftsReceivedHistory[from]; found {
+		c.giftsReceivedHistory[from] += received
+	} else {
+		c.giftsReceivedHistory[from] = received
+	}
+}
+
+func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
+	giftAmount := shared.Resources(0.0)
+
+	if c.ServerReadHandle.GetGameState().ClientLifeStatuses[toTeam] == shared.Critical {
+		if giftOffer < c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold {
+			giftAmount = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+		} else {
+			giftAmount = giftOffer
+		}
+	}
+
+	return giftAmount
 }
