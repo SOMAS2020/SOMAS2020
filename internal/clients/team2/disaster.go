@@ -189,7 +189,7 @@ func GetTrustedIslands() []shared.ClientID {
 // that they have been granted access to see
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
 	for island, prediction := range receivedPredictions {
-		updatedHist := append(c.predictionsHist[island], prediction.PredictionMade)
-		c.predictionsHist[island] = updatedHist
+		updatedHist := append(c.predictionHist[island], prediction.PredictionMade)
+		c.predictionHist[island] = updatedHist
 	}
 }

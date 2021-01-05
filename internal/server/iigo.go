@@ -44,7 +44,6 @@ func (s *SOMASServer) runIIGOTax() error {
 			taxPaid = 0
 		} else {
 			s.gameState.CommonPool += tax
-			s.clientMap[clientID].TaxTaken(tax)
 			taxPaid = tax
 		}
 		clientSanctionErr := s.takeResources(clientID, sanction, "sanction")
