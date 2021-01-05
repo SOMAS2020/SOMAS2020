@@ -24,6 +24,9 @@ type cpRequestHistory resourceHistoryType
 //cpAllocationHistory History of allocations
 type cpAllocationHistory resourceHistoryType
 
+//cpResourceHistory History of resource in common pool
+type cpResourceHistory resourceHistoryType
+
 //================ Resource History =========================================
 
 //resourceHistory OUR islands resources per turn
@@ -82,6 +85,7 @@ type client struct {
 	giftHistory         giftHistory
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
+	cpResourceHistory   cpResourceHistory
 	opinionHistory      opinionHistory
 
 	// current states

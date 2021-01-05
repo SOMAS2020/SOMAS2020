@@ -40,6 +40,10 @@ func (c *client) StartOfTurn() {
 		}
 	}
 
+	//update cpResourceHistory
+	turn := c.getTurn()
+	c.cpResourceHistory[turn] = c.getCP()
+
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
