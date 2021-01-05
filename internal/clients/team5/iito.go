@@ -158,17 +158,25 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 // they want to fulfill a gift offer they have made.
 // COMPULSORY, you need to implement this method
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	if c.resourceHistory[c.gameState().Turn-1] < c.ServerReadHandle.GetGameState().ClientInfo.Resources { // Only if we have more resources than the previous round
-		if c.wealth() >= 2 { //Middle class and JB, fulfill all offers
-			return giftOffer // Give what we said
-		} else if c.wealth() == 1 { //When Imperial Student fulfill all offers but divide Team 3's by 3
-			if toTeam == shared.Team3 {
-				return (giftOffer / 3)
+	if c.resourceHistory[c.gameState().Turn-1] < c.ServerReadHandle.GetGameState().ClientInfo.Resources { // if resources are higher that previous' rounds resources
+		if c.wealth() >= 2 { //this is only fullfilled if any of the isl
+			if c.opinions[toTeam].score > 0 && c.opinions[toTeam].score <= 0.5 { //if twe are walthy (>=2) and our opinion on the island is between 0 and 0.5 then fulfill full offer
+				return giftOffer
+			} else if c.opinions[toTeam].score > 0.5 && c.opinions[toTeam].score <= 1 { //if we are wealthy (>=2) and we have a high opinion on the island, then boost the gift a little by 1.4
+				return giftOffer * 1.4
 			} else {
-				return giftOffer // Return all offers if we are in imperial class but Team 3 / 3
+				return 0
 			}
-		} else {
-			return 0 // Reject all offers if we are in critical state
+		} else if c.wealth() == 1 {
+			if c.opinions[toTeam].score > 0 && c.opinions[toTeam].score <= 0.5 { //if wealth is one but opinion is between 0 and 0.5 then give half the offerr
+				return giftOffer / 2
+			} else if c.opinions[toTeam].score > 0.5 && c.opinions[toTeam].score <= 1 { //if wealth is 1 and opinion is 0.5 to 1 then give fulfill whole offer
+				return giftOffer
+			} else {
+				return 0
+			}
+		} else { //Reject all offers if opinions are below zero and if wealth is below 1
+			return 0
 		}
 	} else { //Reject all offers if we have less than we did last round
 		return 0
