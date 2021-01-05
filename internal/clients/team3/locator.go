@@ -1,6 +1,7 @@
 package team3
 
 import (
+
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -43,6 +44,7 @@ func (l *locator) changeStrategy(newParams islandParams) {
 func (l *locator) calculateMetaStrategy() {
 	newMetaStrategy := metaStrategy{}
 	currentParams := l.islandParamsCache
+
 	newMetaStrategy.conquest = !currentParams.saveCriticalIsland && currentParams.aggression > 70 && currentParams.friendliness < 50
 	newMetaStrategy.saviour = currentParams.saveCriticalIsland && currentParams.friendliness >= 50 && currentParams.aggression <= 70
 	newMetaStrategy.democrat = currentParams.complianceLevel > 50 && currentParams.selfishness < 50
@@ -71,6 +73,7 @@ func (l *locator) checkIfIdealLocationAvailable(ruleMat rules.RuleMatrix, recomm
 	}
 }
 
+
 func (l *locator) switchDetermineFunction(name rules.VariableFieldName, recommendedVal []float64) ([]float64, bool) {
 	switch name {
 	case rules.NumberOfIslandsContributingToCommonPool:
@@ -94,6 +97,7 @@ func (l *locator) switchDetermineFunction(name rules.VariableFieldName, recommen
 	}
 }
 
+
 func (l *locator) idealNumberOfIslandsContributingToCommonPool(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.generous {
 		return []float64{l.calcNumberOfNonCriticalIslands()}, true
@@ -101,6 +105,7 @@ func (l *locator) idealNumberOfIslandsContributingToCommonPool(recommendedVal []
 		return []float64{l.calcNumberOfAliveIslands()}, true
 	}
 }
+
 
 func (l *locator) idealNumberOfIslandsAlive(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.conquest {
@@ -121,6 +126,7 @@ func (l *locator) idealNumberOfBallotsCast(recommendedVal []float64) ([]float64,
 		return []float64{}, false
 	}
 }
+
 
 func (l *locator) idealAllocationsMade(recommendedVal []float64) ([]float64, bool) {
 	return []float64{0}, l.locationStrategy.independent
@@ -146,6 +152,7 @@ func (l *locator) idealIslandsAlive(recommendedVal []float64) ([]float64, bool) 
 		return l.getAllAliveClientIds(), true
 	}
 }
+
 
 func (l *locator) idealIslandTaxContribution(recommendedVal []float64) ([]float64, bool) {
 	if l.locationStrategy.lawful {

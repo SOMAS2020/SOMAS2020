@@ -7,6 +7,7 @@ import (
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -32,9 +33,16 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 
 func (c *client) StartOfTurn() {
 	c.clientPrint("Start of turn!")
-	// TODO add any functions and variable changes here
+
+	if c.checkIfCaught() {
+		c.clientPrint("We've been caught")
+		c.timeSinceCaught = 0
+	}
 	c.updateCompliance()
+	c.lastSanction = c.iigoInfo.sanctions.ourSanction
+
 	c.resetIIGOInfo()
+	c.Logf("Our Status: %+v\n", c.ServerReadHandle.GetGameState().ClientInfo)
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
@@ -52,7 +60,15 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	}
 	// Set our trust in ourselves to 100
 	c.theirTrustScore[id] = 100
-	// Initialise variables
+
+	c.iigoInfo = iigoCommunicationInfo{
+		sanctions: &sanctionInfo{
+			tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
+			rulePenalties:   make(map[string]roles.IIGOSanctionScore),
+			islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
+			ourSanction:     roles.IIGOSanctionScore(0),
+		},
+	}
 }
 
 // updatetrustMapAgg adds the amount to the aggregate trust map list for given client
@@ -155,6 +171,13 @@ func (c *client) updateCompliance() {
 func (c *client) shouldICheat() bool {
 	var should_i_cheat = rand.Float64() > c.compliance
 	return should_i_cheat
+}
+
+
+// checkIfCaught, checks if the island has been caught during the last turn
+// If it has been caught, it returns True, otherwise False.
+func (c *client) checkIfCaught() bool {
+	return c.iigoInfo.sanctions.ourSanction > c.lastSanction
 }
 
 // ResourceReport overides the basic method to mis-report when we have a low compliance score

@@ -74,6 +74,8 @@ type client struct {
 	localVariableCache map[rules.VariableFieldName]rules.VariableValuePair
 
 	localInputsCache map[rules.VariableFieldName]dynamics.Input
+	// last sanction score cache to determine wheter or not we have been caugth in the last turn
+	lastSanction roles.IIGOSanctionScore
 }
 
 type criticalStatePrediction struct {
