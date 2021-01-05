@@ -81,6 +81,7 @@ const (
 	PresidentLeftoverBudget
 	SpeakerLeftoverBudget
 	JudgeLeftoverBudget
+	IslandsProposedRules
 )
 
 func (v VariableFieldName) String() string {
@@ -121,6 +122,7 @@ func (v VariableFieldName) String() string {
 		"PresidentLeftoverBudget",
 		"SpeakerLeftoverBudget",
 		"JudgeLeftoverBudget",
+		"IslandsProposedRules",
 	}
 	if v >= 0 && int(v) < len(strs) {
 		return strs[v]

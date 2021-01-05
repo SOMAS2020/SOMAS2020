@@ -272,6 +272,17 @@ func registerRulesByMass() {
 			Mutable: false,
 			Linked:  false,
 		},
+		{
+			Name: "obl_to_propose_rule_if_some_are_given",
+			ReqVar: []VariableFieldName{
+				IslandsProposedRules,
+				RuleSelected,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
 	}
 
 	for _, rs := range ruleSpecs {
