@@ -20,7 +20,7 @@ type Client interface {
 	StartOfTurn()
 	Logf(format string, a ...interface{})
 
-	VoteForRule(ruleName string) shared.RuleVoteType
+	VoteForRule(ruleName rules.RuleMatrix) shared.RuleVoteType
 	VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
