@@ -8,26 +8,27 @@ import (
 )
 
 func init() {
-	baseclient.RegisterClient(
-		ourClientID,
-		&client{
-			// forageHistory: ForageHistory{},
-			BaseClient:          baseclient.NewClient(ourClientID),
-			cpRequestHistory:    cpRequestHistory{},
-			cpAllocationHistory: cpAllocationHistory{},
-			forageHistory:       forageHistory{},
-			resourceHistory:     resourceHistory{},
-			giftHistory:         map[shared.ClientID]giftExchange{},
+	c := client{
+		BaseClient:          baseclient.NewClient(ourClientID),
+		cpRequestHistory:    cpRequestHistory{},
+		cpAllocationHistory: cpAllocationHistory{},
+		forageHistory:       forageHistory{},
+		resourceHistory:     resourceHistory{},
+		giftHistory:         map[shared.ClientID]giftExchange{},
 
-			taxAmount:  0,
-			allocation: 0,
-			config:     getClientConfig(),
-		},
-	)
+		taxAmount:  0,
+		allocation: 0,
+		config:     getClientConfig(),
+	}
+
+	baseclient.RegisterClient(ourClientID, &c)
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
+	if c.getTurn() == startTurn {
+		c.firstTurnSetup()
+	}
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.wealth()
 	// Assign the thresholds according to the amount of resouces in the first turn
@@ -104,4 +105,9 @@ func (c *client) ReceiveCommunication(
 			c.allocation = shared.Resources(content.IntegerData)
 		}
 	}
+}
+
+func (c *client) firstTurnSetup() {
+	c.initOpinions()
+	c.Logf("Opinions at first turn: %v", c.opinionHistory)
 }
