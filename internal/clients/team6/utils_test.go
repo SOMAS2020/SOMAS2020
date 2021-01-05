@@ -4,9 +4,27 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+// ########################
+// ######  Testing  #######
+// ########################
+
+type stubServerReadHandle struct {
+	gameState  gamestate.ClientGameState
+	gameConfig config.ClientConfig
+}
+
+func (s stubServerReadHandle) GetGameState() gamestate.ClientGameState {
+	return s.gameState
+}
+func (s stubServerReadHandle) GetGameConfig() config.ClientConfig {
+	return s.gameConfig
+}
 
 func TestRaiseFriendshipLevel(t *testing.T) {
 	tests := []struct {
@@ -26,7 +44,7 @@ func TestRaiseFriendshipLevel(t *testing.T) {
 					shared.Team4: 50.0,
 					shared.Team5: 50.0,
 				},
-				config: config,
+				clientConfig: clientConfig,
 			},
 			testTeam:      shared.Team3,
 			testIncrement: FriendshipLevel(50.0),
@@ -48,7 +66,7 @@ func TestRaiseFriendshipLevel(t *testing.T) {
 					shared.Team4: 50.0,
 					shared.Team5: 90.0,
 				},
-				config: config,
+				clientConfig: clientConfig,
 			},
 			testTeam:      shared.Team5,
 			testIncrement: FriendshipLevel(100.0),
@@ -90,7 +108,7 @@ func TestLowerFriendshipLevel(t *testing.T) {
 					shared.Team4: 50.0,
 					shared.Team5: 50.0,
 				},
-				config: config,
+				clientConfig: clientConfig,
 			},
 			testTeam:      shared.Team3,
 			testDeduction: FriendshipLevel(50.0),
@@ -112,7 +130,7 @@ func TestLowerFriendshipLevel(t *testing.T) {
 					shared.Team4: 50.0,
 					shared.Team5: 10.0,
 				},
-				config: config,
+				clientConfig: clientConfig,
 			},
 			testTeam:      shared.Team5,
 			testDeduction: FriendshipLevel(100.0),
@@ -152,7 +170,7 @@ func TestGetFriendshipCoeffs(t *testing.T) {
 					shared.Team4: 75.28,
 					shared.Team5: 99.31,
 				},
-				config: config,
+				clientConfig: clientConfig,
 			},
 			want: map[shared.ClientID]float64{
 				shared.Team1: 0.0,
@@ -172,7 +190,7 @@ func TestGetFriendshipCoeffs(t *testing.T) {
 					shared.Team4: 3.35,
 					shared.Team5: 100.0,
 				},
-				config: config,
+				clientConfig: clientConfig,
 			},
 			want: map[shared.ClientID]float64{
 				shared.Team1: 0.2201,
@@ -199,47 +217,56 @@ func TestGetFriendshipCoeffs(t *testing.T) {
 
 func TestGetPersonality(t *testing.T) {
 	tests := []struct {
-		testname      string
-		testClient    client
-		testClientGamestate gamestate.ClientGameState
-		want          Personality
+		testname   string
+		testClient client
+		want       Personality
 	}{
 		{
 			testname: "selfish test",
+
 			testClient: client{
-				config: config,
-			},
-			testClientGamestate:  gamestate.ClientGameState{
-				ClientInfo: gamestate.ClientInfo{
-						Resources: shared.Resources(30.0),
+				BaseClient: &baseclient.BaseClient{
+					ServerReadHandle: stubServerReadHandle{
+						gameState: gamestate.ClientGameState{
+							ClientInfo: gamestate.ClientInfo{
+								Resources: shared.Resources(49.0),
+							},
+						},
 					},
 				},
+				clientConfig: clientConfig,
 			},
 			want: Personality(Selfish),
 		},
 		{
 			testname: "normal test",
 			testClient: client{
-				config: config,
-			},
-			testClientGamestate:  gamestate.ClientGameState{
-				ClientInfo: gamestate.ClientInfo{
-						Resources: shared.Resources(105.0),
+				BaseClient: &baseclient.BaseClient{
+					ServerReadHandle: stubServerReadHandle{
+						gameState: gamestate.ClientGameState{
+							ClientInfo: gamestate.ClientInfo{
+								Resources: shared.Resources(149.0),
+							},
+						},
 					},
 				},
+				clientConfig: clientConfig,
 			},
 			want: Personality(Normal),
 		},
 		{
 			testname: "generous test",
 			testClient: client{
-				config: config,
-			},
-			testClientGamestate:  gamestate.ClientGameState{
-				ClientInfo: gamestate.ClientInfo{
-						Resources: shared.Resources(205.0),
+				BaseClient: &baseclient.BaseClient{
+					ServerReadHandle: stubServerReadHandle{
+						gameState: gamestate.ClientGameState{
+							ClientInfo: gamestate.ClientInfo{
+								Resources: shared.Resources(151.0),
+							},
+						},
 					},
 				},
+				clientConfig: clientConfig,
 			},
 			want: Personality(Generous),
 		},
@@ -249,7 +276,89 @@ func TestGetPersonality(t *testing.T) {
 		t.Run(tc.testname, func(t *testing.T) {
 			res := tc.testClient.getPersonality()
 			if !reflect.DeepEqual(res, tc.want) {
-				t.Errorf("got %v, want %v", tc.testClient.friendship, tc.want)
+				t.Errorf("got %v, want %v", res, tc.want)
+			}
+		})
+	}
+}
+
+func TestGetNumOfAliveIslands(t *testing.T) {
+	tests := []struct {
+		testname   string
+		testClient client
+		want       uint
+	}{
+		{
+			testname: "1 survivor test",
+
+			testClient: client{
+				BaseClient: &baseclient.BaseClient{
+					ServerReadHandle: stubServerReadHandle{
+						gameState: gamestate.ClientGameState{
+							ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
+								shared.Team1: shared.Dead,
+								shared.Team2: shared.Dead,
+								shared.Team3: shared.Dead,
+								shared.Team4: shared.Dead,
+								shared.Team5: shared.Dead,
+								shared.Team6: shared.Alive,
+							},
+						},
+					},
+				},
+				clientConfig: clientConfig,
+			},
+			want: uint(0),
+		},
+		{
+			testname: "3 survivors test",
+			testClient: client{
+				BaseClient: &baseclient.BaseClient{
+					ServerReadHandle: stubServerReadHandle{
+						gameState: gamestate.ClientGameState{
+							ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
+								shared.Team1: shared.Dead,
+								shared.Team2: shared.Alive,
+								shared.Team3: shared.Dead,
+								shared.Team4: shared.Critical,
+								shared.Team5: shared.Dead,
+								shared.Team6: shared.Alive,
+							},
+						},
+					},
+				},
+				clientConfig: clientConfig,
+			},
+			want: uint(3),
+		},
+		{
+			testname: "6 survivors test",
+			testClient: client{
+				BaseClient: &baseclient.BaseClient{
+					ServerReadHandle: stubServerReadHandle{
+						gameState: gamestate.ClientGameState{
+							ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
+								shared.Team1: shared.Alive,
+								shared.Team2: shared.Critical,
+								shared.Team3: shared.Alive,
+								shared.Team4: shared.Alive,
+								shared.Team5: shared.Alive,
+								shared.Team6: shared.Critical,
+							},
+						},
+					},
+				},
+				clientConfig: clientConfig,
+			},
+			want: uint(6),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testname, func(t *testing.T) {
+			res := tc.testClient.getNumOfAliveIslands()
+			if !reflect.DeepEqual(res, tc.want) {
+				t.Errorf("got %v, want %v", res, tc.want)
 			}
 		})
 	}

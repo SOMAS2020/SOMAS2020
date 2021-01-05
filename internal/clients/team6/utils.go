@@ -7,12 +7,12 @@ import (
 // increases the friendship level with some other islands
 func (c *client) raiseFriendshipLevel(clientID shared.ClientID, increment FriendshipLevel) {
 	currFriendship := c.friendship[clientID]
-	logIncrement := (increment / (c.friendship[clientID] + increment)) * (c.config.maxFriendship / 5)
+	logIncrement := (increment / (c.friendship[clientID] + increment)) * (c.clientConfig.maxFriendship / 5)
 	raisedFriendship := currFriendship + logIncrement
 
-	if raisedFriendship > c.config.maxFriendship {
+	if raisedFriendship > c.clientConfig.maxFriendship {
 		// c.Logf("Friendship with island[%v] is at maximum!", clientID)
-		c.friendship[clientID] = c.config.maxFriendship
+		c.friendship[clientID] = c.clientConfig.maxFriendship
 	} else {
 		c.friendship[clientID] = raisedFriendship
 	}
@@ -21,12 +21,12 @@ func (c *client) raiseFriendshipLevel(clientID shared.ClientID, increment Friend
 // decreases the friendship level with some other islands
 func (c *client) lowerFriendshipLevel(clientID shared.ClientID, deduction FriendshipLevel) {
 	currFriendship := c.friendship[clientID]
-	logDeduction := (deduction / (c.friendship[clientID] + deduction)) * (c.config.maxFriendship / 5)
+	logDeduction := (deduction / (c.friendship[clientID] + deduction)) * (c.clientConfig.maxFriendship / 5)
 	loweredFriendship := currFriendship - logDeduction
 
-	if loweredFriendship < c.config.minFriendship {
+	if loweredFriendship < c.clientConfig.minFriendship {
 		// c.Logf("Friendship with island[%v] is at minimum!", clientID)
-		c.friendship[clientID] = c.config.minFriendship
+		c.friendship[clientID] = c.clientConfig.minFriendship
 	} else {
 		c.friendship[clientID] = loweredFriendship
 	}
@@ -37,7 +37,7 @@ func (c client) getFriendshipCoeffs() map[shared.ClientID]float64 {
 	friendshipCoeffs := make(map[shared.ClientID]float64)
 
 	for team, fs := range c.friendship {
-		friendshipCoeffs[team] = float64(fs / c.config.maxFriendship)
+		friendshipCoeffs[team] = float64(fs / c.clientConfig.maxFriendship)
 	}
 
 	return friendshipCoeffs
@@ -47,9 +47,9 @@ func (c client) getFriendshipCoeffs() map[shared.ClientID]float64 {
 func (c client) getPersonality() Personality {
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 
-	if ourResources <= c.config.selfishThreshold {
+	if ourResources <= c.clientConfig.selfishThreshold {
 		return Selfish
-	} else if ourResources <= c.config.normalThreshold {
+	} else if ourResources <= c.clientConfig.normalThreshold {
 		return Normal
 	}
 

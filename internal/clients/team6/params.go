@@ -32,7 +32,7 @@ const (
 )
 
 // Config configures our island's initial state
-type Config struct {
+type ClientConfig struct {
 	minFriendship          FriendshipLevel
 	maxFriendship          FriendshipLevel
 	friendshipChangingRate FriendshipLevel
@@ -54,7 +54,7 @@ var (
 	giftsRequestedHistory = GiftsRequestedHistory{}
 	forageHistory         = ForageHistory{}
 	favourRules           = FavourRules{}
-	config                = Config{
+	clientConfig          = ClientConfig{
 		minFriendship:          0.0,
 		maxFriendship:          100.0,
 		friendshipChangingRate: 20.0,

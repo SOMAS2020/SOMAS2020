@@ -22,7 +22,7 @@ type client struct {
 	favourRules           FavourRules
 	payingTax             shared.Resources
 
-	config Config
+	clientConfig ClientConfig
 }
 
 func init() {
@@ -36,7 +36,7 @@ func init() {
 			giftsRequestedHistory: giftsRequestedHistory,
 			forageHistory:         forageHistory,
 			favourRules:           favourRules,
-			config:                config,
+			clientConfig:          clientConfig,
 		},
 	)
 }
@@ -67,7 +67,7 @@ func (c *client) updateConfig() {
 	costOfLiving := c.ServerReadHandle.GetGameConfig().CostOfLiving
 	maxCriticalCounter := c.ServerReadHandle.GetGameConfig().MaxCriticalConsecutiveTurns
 
-	updatedConfig := Config{
+	updatedConfig := ClientConfig{
 		minFriendship:          0.0,
 		maxFriendship:          100.0,
 		friendshipChangingRate: 20.0,
@@ -76,7 +76,7 @@ func (c *client) updateConfig() {
 		payingTax:              shared.Resources(criticalCounter / maxCriticalCounter),
 	}
 
-	c.config = Config(updatedConfig)
+	c.clientConfig = ClientConfig(updatedConfig)
 }
 
 // updateFriendship will be called at the start of each turn to update our friendships
@@ -93,9 +93,9 @@ func (c *client) updateFriendship() {
 
 			if received < offered && received < requested {
 				// will be sad if the island give us very little
-				c.lowerFriendshipLevel(team, c.config.friendshipChangingRate*FriendshipLevel(offered/(received+requested+shared.Resources(1.0))))
+				c.lowerFriendshipLevel(team, c.clientConfig.friendshipChangingRate*FriendshipLevel(offered/(received+requested+shared.Resources(1.0))))
 			} else if received >= offered && received >= requested {
-				c.raiseFriendshipLevel(team, c.config.friendshipChangingRate*FriendshipLevel(received/(offered+requested+shared.Resources(1.0))))
+				c.raiseFriendshipLevel(team, c.clientConfig.friendshipChangingRate*FriendshipLevel(received/(offered+requested+shared.Resources(1.0))))
 			} else {
 				// keeps the current friendship level
 				continue
