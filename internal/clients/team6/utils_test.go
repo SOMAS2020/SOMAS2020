@@ -341,7 +341,7 @@ func TestGetNumOfAliveIslands(t *testing.T) {
 								shared.Team1: shared.Alive,
 								shared.Team2: shared.Critical,
 								shared.Team3: shared.Alive,
-								shared.Team4: shared.Alive,
+								shared.Team4: shared.Critical,
 								shared.Team5: shared.Alive,
 								shared.Team6: shared.Critical,
 							},
