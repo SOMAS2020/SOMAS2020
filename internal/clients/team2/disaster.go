@@ -57,7 +57,7 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 			Top:    GetMinMaxCoordinate(Min, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
 		}
 
-		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Right) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
+		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Left) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
 		islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
 	}
 	return islandDVPs
@@ -93,7 +93,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	// Get the magnitude prediction and confidence
 	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
-	confidenceMagnitude := GetTimeRemainingConfidence(totalTurns, sampleMeanM)
+	confidenceMagnitude := GetMagnitudeConfidence(totalTurns, sampleMeanM)
 
 	// Get the overall confidence in these predictions
 	confidencePrediction := GetConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
@@ -141,7 +141,7 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, int) {
 
 // GetTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is
 // given in the report (can ask Hamish)
-func GetTimeRemainingConfidence(totalTurns float64, sampleMeanX float64) float64 {
+func GetTimeRemainingConfidence(totalTurns float64, sampleMeanX float64) shared.PredictionConfidence {
 	varianceTd := (1 - sampleMeanX) / math.Pow(sampleMeanX, 2)
 	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, varianceTd/(TuningParamK*totalTurns), VarianceCapTimeRemaining) / VarianceCapTimeRemaining)
 	return confidence
@@ -163,7 +163,7 @@ func GetMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magn
 
 // GetMagnitudeConfidence returns the confidence in the magnitude prediction. The formula for this confidence is
 // given in the report (can ask Hamish)
-func GetMagnitudeConfidence(totalTurns float64, sampleMeanM float64) float64 {
+func GetMagnitudeConfidence(totalTurns float64, sampleMeanM float64) shared.PredictionConfidence {
 	varianceM := math.Pow(sampleMeanM, 2)
 	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, varianceM/(TuningParamG*totalTurns), VarianceCapMagnitude) / VarianceCapMagnitude)
 	return confidence
