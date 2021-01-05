@@ -141,7 +141,7 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, int) {
 
 // GetTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is
 // given in the report (can ask Hamish)
-func GetTimeRemainingConfidence(totalTurns float64, sampleMeanX float64) float64 {
+func GetTimeRemainingConfidence(totalTurns float64, sampleMeanX float64) shared.PredictionConfidence {
 	varianceTd := (1 - sampleMeanX) / math.Pow(sampleMeanX, 2)
 	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, varianceTd/(TuningParamK*totalTurns), VarianceCapTimeRemaining) / VarianceCapTimeRemaining)
 	return confidence
@@ -163,7 +163,7 @@ func GetMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magn
 
 // GetMagnitudeConfidence returns the confidence in the magnitude prediction. The formula for this confidence is
 // given in the report (can ask Hamish)
-func GetMagnitudeConfidence(totalTurns float64, sampleMeanM float64) float64 {
+func GetMagnitudeConfidence(totalTurns float64, sampleMeanM float64) shared.PredictionConfidence {
 	varianceM := math.Pow(sampleMeanM, 2)
 	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, varianceM/(TuningParamG*totalTurns), VarianceCapMagnitude) / VarianceCapMagnitude)
 	return confidence
