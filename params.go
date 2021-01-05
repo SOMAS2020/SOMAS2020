@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	//config.Config
+	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
 		10,
@@ -17,7 +17,7 @@ var (
 	)
 	maxTurns = flag.Uint(
 		"maxTurns",
-		50,
+		6,
 		"The maximum numbers of 1-indexed turns to run the game.",
 	)
 	initialResources = flag.Float64(
@@ -48,6 +48,8 @@ var (
 		3,
 		"The maximum consecutive turns an island can be in the critical state.",
 	)
+
+	// config.ForagingConfig.DeerHuntConfig
 	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
@@ -103,6 +105,8 @@ var (
 		0.2,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
+
+	// config.ForagingConfig.FishingConfig
 	foragingFishMaxPerHunt = flag.Uint(
 		"foragingMaxFishPerHunt",
 		6,
@@ -160,10 +164,10 @@ var (
 		10,
 		"Max y bound of archipelago (bounds for possible disaster).",
 	)
-	disasterGlobalProb = flag.Float64(
-		"disasterGlobalProb",
-		0.1,
-		"Bernoulli 'p' param. Chance of a disaster occurring.",
+	disasterPeriod = flag.Uint(
+		"disasterPeriod",
+		15,
+		"Period T between disasters in deterministic case and E[T] in stochastic case.",
 	)
 	disasterSpatialPDFType = flag.Int(
 		"disasterSpatialPDFType",
@@ -184,6 +188,16 @@ var (
 		"disasterCommonpoolThreshold",
 		50,
 		"Common pool threshold value for disaster to be mitigated",
+	)
+	disasterPeriodStochastic = flag.Bool(
+		"disasterStochasticPeriod",
+		false,
+		"If true, period between disasters becomes random. If false, it will be consistent (deterministic)",
+	)
+	disasterCommonpoolThresholdVisible = flag.Bool(
+		"disasterCommonpoolThresholdVisible",
+		false,
+		"Whether disasterCommonpoolThreshold is visible to agents",
 	)
 
 	// config.IIGOConfig - Executive branch
@@ -273,6 +287,30 @@ var (
 		10,
 		"IIGO action cost for appointNextJudge action",
 	)
+
+	iigoSanctionCacheDepth = flag.Int(
+		"iigoSanctionCacheDepth",
+		3,
+		"Turn depth of sanctions to be applied or pardoned",
+	)
+
+	iigoHistoryCacheDepth = flag.Int(
+		"iigoHistoryCacheDepth",
+		3,
+		"Turn depth of history cache for events to be evaluated",
+	)
+
+	iigoAssumedResourcesNoReport = flag.Int(
+		"iigoAssumedResourcesNoReport",
+		500,
+		"If an island doesn't report usaged this value is assumed for sanction calculations",
+	)
+
+	iigoSanctionLength = flag.Int(
+		"iigoSanctionLength",
+		2,
+		"Sanction length for all sanctions",
+	)
 )
 
 func parseConfig() (config.Config, error) {
@@ -312,7 +350,6 @@ func parseConfig() (config.Config, error) {
 		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
 		ThetaCritical:         *foragingDeerThetaCritical,
 		ThetaMax:              *foragingDeerThetaMax,
-
 		MaxDeerPopulation:     parseDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
 	}
@@ -335,15 +372,16 @@ func parseConfig() (config.Config, error) {
 		XMax:                        *disasterXMax,
 		YMin:                        *disasterYMin,
 		YMax:                        *disasterYMax,
-		GlobalProb:                  *disasterGlobalProb,
+		Period:                      *disasterPeriod,
 		SpatialPDFType:              parsedDisasterSpatialPDFType,
 		MagnitudeLambda:             *disasterMagnitudeLambda,
+		StochasticPeriod:            *disasterPeriodStochastic,
 		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
 		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
+		CommonpoolThresholdVisible:  *disasterCommonpoolThresholdVisible,
 	}
 
 	iigoConf := config.IIGOConfig{
-
 		// Executive branch
 		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
 		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),
@@ -356,6 +394,10 @@ func parseConfig() (config.Config, error) {
 		InspectBallotActionCost:        shared.Resources(*iigoInspectBallotActionCost),
 		InspectAllocationActionCost:    shared.Resources(*iigoInspectAllocationActionCost),
 		AppointNextPresidentActionCost: shared.Resources(*iigoAppointNextPresidentActionCost),
+		SanctionCacheDepth:             *iigoSanctionCacheDepth,
+		HistoryCacheDepth:              *iigoHistoryCacheDepth,
+		AssumedResourcesNoReport:       shared.Resources(*iigoAssumedResourcesNoReport),
+		SanctionLength:                 *iigoSanctionLength,
 		// Legislative branch
 		SetVotingResultActionCost:      shared.Resources(*iigoSetVotingResultActionCost),
 		SetRuleToVoteActionCost:        shared.Resources(*iigoSetRuleToVoteActionCost),

@@ -24,6 +24,9 @@ type cpRequestHistory resourceHistoryType
 //cpAllocationHistory History of allocations
 type cpAllocationHistory resourceHistoryType
 
+//cpResourceHistory History of resource in common pool
+type cpResourceHistory resourceHistoryType
+
 //================ Resource History =========================================
 
 //resourceHistory OUR islands resources per turn
@@ -66,20 +69,29 @@ type giftHistory map[shared.ClientID]giftExchange
 type client struct {
 	*baseclient.BaseClient
 
-	// history
+	// Roles
+	team5president president
+
+	// Roles
+	team5Speaker speaker
+	team5Judge   judge
+
+	// History
 	resourceHistory     resourceHistory
 	forageHistory       forageHistory
+	giftHistory         giftHistory
 	cpRequestHistory    cpRequestHistory
 	cpAllocationHistory cpAllocationHistory
+	cpResourceHistory   cpResourceHistory
 	opinionHistory      opinionHistory
-	giftHistory         giftHistory
+	disasterHistory     disasterHistory
 
 	// current states
-	opinions  opinionMap // opinions of each team
-	taxAmount shared.Resources
-
-	// allocation is the president's response to your last common pool resource request
-	allocation shared.Resources
+	opinions             opinionMap // opinions of each team
+	taxAmount            shared.Resources
+	allocation           shared.Resources
+	sanctionAmount       shared.Resources
+	lastDisasterForecast shared.DisasterPrediction // stores our most recent disaster forecast
 
 	config clientConfig
 }
