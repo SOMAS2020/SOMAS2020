@@ -286,9 +286,9 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	var shareTo []shared.ClientID
 
-	for id, status := range c.gameState().ClientLifeStatuses { // Check the clients that are alive
+	for team, status := range c.gameState().ClientLifeStatuses { // Check the clients that are alive
 		if status != shared.Dead { // if they are not dead then append the shareTo,id
-			shareTo = append(shareTo, id)
+			shareTo = append(shareTo, team)
 		}
 	}
 
@@ -315,6 +315,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 		DecisionMade:     contribution, // contribution and Resources obtained
 		ResourceObtained: output,       // How much we got back
 		ShareTo:          shareTo,      // []shared.ClientIDs
+		SharedFrom:       shared.Team5,
 	}
 
 	c.Logf("Sharing forage info: %v", forageInfo)

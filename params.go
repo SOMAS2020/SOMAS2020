@@ -75,7 +75,7 @@ var (
 	)
 	foragingDeerOutputScaler = flag.Float64(
 		"foragingDeerOutputScaler",
-		100,
+		15,
 		"scalar value that adjusts deer returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerDistributionStrategy = flag.Int(
@@ -125,7 +125,7 @@ var (
 	)
 	foragingFishingInputScaler = flag.Float64(
 		"foragingFishingInputScaler",
-		100,
+		10,
 		"scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingOutputScaler = flag.Float64(

@@ -194,23 +194,6 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 // ==================================== Gifting history to be made =========================================
 
 // ===================================== Has sending / recv gifts been implemented? ===============================
-// SentGift is executed at the end of each turn and notifies clients that
-// their gift was successfully sent, along with the offer details.
-// COMPULSORY, you need to implement this method
-func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
-	// You can check your updated resources like this:
-	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-}
-
-// ReceivedGift is executed at the end of each turn and notifies clients that
-// their gift was successfully received, along with the offer details.
-// COMPULSORY, you need to implement this method
-func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
-	// You can check your updated resources like this:
-	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-}
-
-// ===================================== Has sending / recv gifts been implemented? ===============================
 
 // DecideGiftAmount is executed at the end of each turn and asks clients how much
 // they want to fulfill a gift offer they have made.
@@ -235,7 +218,44 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 	}
 	c.giftHistory[toTeam].TheirRequest[c.gameState().Turn] = newGiftRequest
 
-	c.Logf("DecideGiftAmount [%v]", c.giftHistory[toTeam].TheirRequest[c.gameState().Turn])
+	c.Logf("TheirRequest [%v]", c.giftHistory[toTeam].TheirRequest[c.gameState().Turn])
+	c.Logf("OurRequest [%v]", c.giftHistory[toTeam].OurRequest[c.gameState().Turn])
 
 	return giftOffer
+}
+
+// ===================================== Has sending / recv gifts been implemented? ===============================
+// SentGift is executed at the end of each turn and notifies clients that
+// their gift was successfully sent, along with the offer details.
+// COMPULSORY, you need to implement this method
+func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
+	// You can check your updated resources like this:
+	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+
+	newGiftRequest := giftInfo{ // 	For each client create a new gift info
+		requested:      c.giftHistory[to].TheirRequest[c.gameState().Turn].requested, // Amount We requested
+		offered:        c.giftHistory[to].TheirRequest[c.gameState().Turn].offered,   // Amount offered TO US
+		response:       c.giftHistory[to].TheirRequest[c.gameState().Turn].response,  // Amount and reason WE accepted
+		actualRecieved: sent,
+	}
+	c.giftHistory[to].TheirRequest[c.gameState().Turn] = newGiftRequest
+	c.Logf("SentGift [%v]", c.giftHistory[to].TheirRequest[c.gameState().Turn])
+}
+
+// ReceivedGift is executed at the end of each turn and notifies clients that
+// their gift was successfully received, along with the offer details.
+// COMPULSORY, you need to implement this method
+func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
+	// You can check your updated resources like this:
+	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	newGiftRequest := giftInfo{ // 	For each client create a new gift info
+		requested:      c.giftHistory[from].OurRequest[c.gameState().Turn].requested, // Amount We requested
+		offered:        c.giftHistory[from].OurRequest[c.gameState().Turn].offered,   // Amount offered TO US
+		response:       c.giftHistory[from].OurRequest[c.gameState().Turn].response,  // Amount and reason WE accepted
+		actualRecieved: received,
+	}
+	c.giftHistory[from].OurRequest[c.gameState().Turn] = newGiftRequest
+	c.Logf("ReceivedGift [%v]", c.giftHistory[from].OurRequest[c.gameState().Turn])
+
+	c.giftOpinions()
 }
