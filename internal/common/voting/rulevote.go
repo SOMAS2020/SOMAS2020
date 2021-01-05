@@ -10,7 +10,7 @@ type RuleVote struct {
 	ruleToVote string
 	voterList  []shared.ClientID
 	//Held by RuleVote
-	ballots []shared.RuleVoteResult
+	ballots []shared.RuleVoteType
 }
 
 type BallotBox struct {
