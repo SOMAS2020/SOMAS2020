@@ -156,7 +156,6 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
 
 	if turn == 1 { //if there is no historical data then use default strategy
-		decreasing_pool = 0
 		return shared.Resources(default_strat)
 	}
 
@@ -166,7 +165,9 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 	prevTurn := turn - 1
 	prevTurn2 := turn - 2
 	if ResourceHistory[prevTurn] > ResourceHistory[turn] { //decreasing common pool means consider altruist
-		return shared.Resources(altruist)
+		if ResourceHistory[prevTurn2] > ResourceHistory[prevTurn] {
+			return shared.Resources(altruist)
+		}
 	}
 
 	if float64(turn) > no_freeride { //we will not allow ourselves to use free riding at the start of the game
