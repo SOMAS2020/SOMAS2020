@@ -71,14 +71,15 @@ func decideThreshold(c *client) float64 { //will move the threshold, higher valu
 	}
 }
 
-//TODO: LINE 83 foragingReturnHist how to access a clients foraging decision?
 //EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
 func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
-	HuntNum := 0.00
-	for _, id := range clientInfo {​​​​​​​
-		if   {//client is dead ignore their decision
-			for index, forageInfo := range c.foragingReturnsHist[id] {
-			forageInfo.DecisionMade.ForageType
+	HuntNum := 0.00   //this the average number of likely hunters
+	totalDecisions := 0.00  //this is for finding the average 
+	for _, id := range clientInfo {​​​​​​​   //loop through every agent 
+		if  id.LifeStatus != shared.Dead {//client is dead ignore their decisions
+			for index, forageInfo := range c.foragingReturnsHist[id] {  //loop through the agents array and add their average to HuntNum
+				HuntNum = (HuntNum + forageInfo.DecisionMade.ForageType)/totalDecisions //add the agents decision to HuntNum and then average 
+				totalDecisions++
 			}
 		}
 	}​​​​​​​
