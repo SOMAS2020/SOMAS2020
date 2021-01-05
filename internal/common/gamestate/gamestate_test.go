@@ -15,7 +15,13 @@ func TestGetClientGameStateCopy(t *testing.T) {
 		shared.Team3: {ID: shared.Team3, X: shared.Coordinate(7), Y: shared.Coordinate(2)},
 	}
 
-	geography := disasters.ArchipelagoGeography{Islands: islandLocation}
+	geography := disasters.ArchipelagoGeography{
+		Islands: islandLocation,
+		XMin:    0,
+		XMax:    10,
+		YMin:    0,
+		YMax:    10,
+	}
 	env := disasters.Environment{Geography: geography}
 
 	gameState := GameState{
@@ -63,7 +69,7 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				ClientInfo:         gameState.ClientInfos[tc],
 				ClientLifeStatuses: lifeStatuses,
 				CommonPool:         gameState.CommonPool,
-				IslandLocations:    gameState.Environment.Geography.Islands,
+				Geography:          gameState.Environment.Geography,
 				IIGORolesBudget:    gameState.IIGORolesBudget,
 			}
 
