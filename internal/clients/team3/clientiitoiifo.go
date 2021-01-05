@@ -33,12 +33,6 @@ import (
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	var totalRequestAmt float64
 
-	// can change these parameters
-	// c.params.giftInflationPercentage = 0.2
-	// c.params.localPoolThreshold = 150
-	// c.params.trustParameter = 0.8
-	// c.params.trustConstantAdjustor = 10
-
 	requests := shared.GiftRequestDict{}
 
 	localPool := c.ServerReadHandle.GetGameState().ClientInfo.Resources
