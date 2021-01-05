@@ -17,7 +17,7 @@ const (
 )
 
 //Rule vote types
-type RuleVoteResult int
+type RuleVoteType int
 
 const (
 	Approve = iota
