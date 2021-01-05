@@ -3,6 +3,7 @@ package baseclient
 import (
 	"math/rand"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -33,21 +34,21 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 }
 
 // PickRuleToVote chooses a rule proposal from all the proposals
-func (p *BasePresident) PickRuleToVote(rulesProposals []string) shared.PresidentReturnContent {
+func (p *BasePresident) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.PresidentReturnContent {
 	// DefaulContentType: No rules were proposed by the islands
-	proposedRule := ""
+	proposedRuleMatrix := rules.RuleMatrix{}
 	actionTaken := false
 
 	// if some rules were proposed
 	if len(rulesProposals) != 0 {
-		proposedRule = rulesProposals[rand.Intn(len(rulesProposals))]
+		proposedRuleMatrix = rulesProposals[rand.Intn(len(rulesProposals))]
 		actionTaken = true
 	}
 
 	return shared.PresidentReturnContent{
-		ContentType:  shared.PresidentRuleProposal,
-		ProposedRule: proposedRule,
-		ActionTaken:  actionTaken,
+		ContentType:        shared.PresidentRuleProposal,
+		ProposedRuleMatrix: proposedRuleMatrix,
+		ActionTaken:        actionTaken,
 	}
 }
 

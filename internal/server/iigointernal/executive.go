@@ -13,13 +13,13 @@ import (
 )
 
 type executive struct {
-	gameState        *gamestate.GameState
-	gameConf         *config.IIGOConfig
-	PresidentID      shared.ClientID
-	clientPresident  roles.President
-	RulesProposals   []string
-	ResourceRequests map[shared.ClientID]shared.Resources
-	monitoring       *monitor
+	gameState           *gamestate.GameState
+	gameConf            *config.IIGOConfig
+	PresidentID         shared.ClientID
+	clientPresident     roles.President
+	RulesProposals      []rules.RuleMatrix
+	ResourceRequests    map[shared.ClientID]shared.Resources
+	monitoring          *monitor
 }
 
 // loadClientPresident checks client pointer is good and if not panics
@@ -37,7 +37,7 @@ func (e *executive) syncWithGame(gameState *gamestate.GameState, gameConf *confi
 
 // Get rule proposals to be voted on from remaining islands
 // Called by orchestration
-func (e *executive) setRuleProposals(rulesProposals []string) {
+func (e *executive) setRuleProposals(rulesProposals []rules.RuleMatrix) {
 	e.RulesProposals = rulesProposals
 }
 
@@ -57,8 +57,8 @@ func (e *executive) setGameState(g *gamestate.GameState) {
 // Called by orchestration at the end of the turn
 func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 	if !CheckEnoughInCommonPool(e.gameConf.GetRuleForSpeakerActionCost, e.gameState) {
-		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRule: "", ActionTaken: false},
-			errors.Errorf("Insufficient Budget in common Pool: getRuleForSpeaker")
+		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRuleMatrix: rules.RuleMatrix{}, ActionTaken: false},
+			errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 
 	returnRule := e.clientPresident.PickRuleToVote(e.RulesProposals)
@@ -226,16 +226,16 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 }
 
 //requestRuleProposal asks each island alive for its rule proposal.
-func (e *executive) requestRuleProposal() error {
+func (e *executive) requestRuleProposal() error { //TODO: add checks for if immutable rules are changed(not allowed), if rule variables fields are changed(not allowed)
 	if !e.incurServiceCharge(e.gameConf.RequestRuleProposalActionCost) {
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 
-	var ruleProposals []string
+	var ruleProposals []rules.RuleMatrix
 	for _, island := range getIslandAlive() {
-		proposedRule := iigoClients[shared.ClientID(int(island))].RuleProposal()
-		if checkRuleIsValid(proposedRule, rules.AvailableRules) {
-			ruleProposals = append(ruleProposals, proposedRule)
+		proposedRuleMatrix := iigoClients[shared.ClientID(int(island))].RuleProposal()
+		if checkRuleIsValid(proposedRuleMatrix.RuleName, rules.AvailableRules) {
+			ruleProposals = append(ruleProposals, proposedRuleMatrix)
 		}
 	}
 

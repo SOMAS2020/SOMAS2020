@@ -7,6 +7,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -116,9 +117,9 @@ func calcExpectedVal(resourcesRequested shared.Resources, totalResourcesRequeste
 	return 0.75 * (resourcesRequested * availableInPool) / totalResourcesRequested
 }
 
-func checkIfInList(s string, lst []string) bool {
+func checkIfInList(s rules.RuleMatrix, lst []rules.RuleMatrix) bool {
 	for _, i := range lst {
-		if s == i {
+		if reflect.DeepEqual(s, i) {
 			return true
 		}
 	}
@@ -127,31 +128,31 @@ func checkIfInList(s string, lst []string) bool {
 func TestPickRuleToVote(t *testing.T) {
 	cases := []struct {
 		name  string
-		input []string
+		input []rules.RuleMatrix
 		reply string
 		want  bool
 	}{
 		{
 			name:  "Basic rule",
-			input: []string{"rule"},
+			input: []rules.RuleMatrix{{RuleName: "rule"}},
 			reply: "rule",
 			want:  true,
 		},
 		{
-			name:  "Empty string",
-			input: []string{""},
+			name:  "Empty rule",
+			input: []rules.RuleMatrix{{}},
 			reply: "",
 			want:  true,
 		},
 		{
 			name:  "Longer list",
-			input: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			input: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 			reply: "",
 			want:  true,
 		},
 		{
 			name:  "Empty list",
-			input: []string{},
+			input: []rules.RuleMatrix{},
 			reply: "",
 			want:  false,
 		},
@@ -173,11 +174,13 @@ func TestPickRuleToVote(t *testing.T) {
 
 			if got.ActionTaken && tc.want {
 				if len(tc.input) == 0 {
-					if got.ProposedRule != "" {
-						t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRule)
+					// if got.ProposedRuleMatrix != "" {
+					// 	t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
+					if !got.ProposedRuleMatrix.RuleMatrixIsEmpty() { //
+						t.Errorf("%v - Failed. Returned '%v', but expectd an empty ruleMatrix", tc.name, got.ProposedRuleMatrix)
 					}
-				} else if !checkIfInList(got.ProposedRule, tc.input) {
-					t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRule, tc.input)
+				} else if !checkIfInList(got.ProposedRuleMatrix, tc.input) {
+					t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRuleMatrix, tc.input)
 				}
 			} else {
 				if got.ActionTaken != tc.want {
@@ -191,23 +194,23 @@ func TestPickRuleToVote(t *testing.T) {
 func TestSetRuleProposals(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []string
-		expected []string
+		input    []rules.RuleMatrix
+		expected []rules.RuleMatrix
 	}{
 		{
 			name:     "Single Rule",
-			input:    []string{"rule"},
-			expected: []string{"rule"},
+			input:    []rules.RuleMatrix{{RuleName: "rule"}},
+			expected: []rules.RuleMatrix{{RuleName: "rule"}},
 		},
 		{
 			name:     "No Rule",
-			input:    []string{""},
-			expected: []string{""},
+			input:    []rules.RuleMatrix{{RuleName: ""}},
+			expected: []rules.RuleMatrix{{RuleName: ""}},
 		},
 		{
 			name:     "Multiple Rules",
-			input:    []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
-			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			input:    []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
+			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
 	}
 
@@ -216,7 +219,7 @@ func TestSetRuleProposals(t *testing.T) {
 
 			executive := &executive{
 				PresidentID:    shared.Team1,
-				RulesProposals: []string{},
+				RulesProposals: []rules.RuleMatrix{},
 			}
 
 			executive.setRuleProposals(tc.input)
@@ -370,67 +373,67 @@ func TestGetRuleForSpeaker(t *testing.T) {
 	cases := []struct {
 		name       string
 		bPresident executive // base
-		expected   []string
+		expected   []rules.RuleMatrix
 	}{
 		{
 			name: "Empty tax map base",
 			bPresident: executive{
 				PresidentID:     3,
-				RulesProposals:  []string{},
+				RulesProposals:  []rules.RuleMatrix{},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
 				monitoring:      &monitor{},
 			},
-			expected: []string{""},
+			expected: []rules.RuleMatrix{{RuleName: ""}},
 		},
 		{
 			name: "Short tax map base",
 			bPresident: executive{
 				PresidentID:     3,
-				RulesProposals:  []string{"test"},
+				RulesProposals:  []rules.RuleMatrix{{RuleName: "test"}},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
 				monitoring:      &monitor{},
 			},
-			expected: []string{"test"},
+			expected: []rules.RuleMatrix{{RuleName: "test"}},
 		},
 		{
 			name: "Long tax map base",
 			bPresident: executive{
 				PresidentID:     3,
-				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				RulesProposals:  []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
 				monitoring:      &monitor{},
 			},
-			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
 		{
 			name: "Client empty tax map base",
 			bPresident: executive{
 				PresidentID:     5,
-				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				RulesProposals:  []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
 				monitoring:      &monitor{},
 			},
-			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
 		{
 			name: "Client tax map base override",
 			bPresident: executive{
 				PresidentID:     5,
-				RulesProposals:  []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+				RulesProposals:  []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
 				monitoring:      &monitor{},
 			},
-			expected: []string{"Somas", "2020", "Internal", "Server", "Roles", "President"},
+			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
 	}
 
@@ -445,11 +448,13 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			}
 
 			if len(tc.expected) == 0 {
-				if got.ProposedRule != "" {
-					t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRule)
+				// if got.ProposedRuleMatrix != "" {
+				// 	t.Errorf("%v - Failed. Returned '%v', but expectd an empty string", tc.name, got.ProposedRuleMatrix)
+				if !got.ProposedRuleMatrix.RuleMatrixIsEmpty() { //
+					t.Errorf("%v - Failed. Returned '%v', but expectd an empty ruleMatrix", tc.name, got.ProposedRuleMatrix)
 				}
-			} else if !checkIfInList(got.ProposedRule, tc.expected) {
-				t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRule, tc.expected)
+			} else if !checkIfInList(got.ProposedRuleMatrix, tc.expected) {
+				t.Errorf("%v - Failed. Returned '%v', expected '%v'", tc.name, got.ProposedRuleMatrix, tc.expected)
 			}
 		})
 	}

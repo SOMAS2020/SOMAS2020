@@ -1,6 +1,7 @@
 package baseclient
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -18,10 +19,10 @@ func (s *BaseSpeaker) PayJudge() shared.SpeakerReturnContent {
 
 //DecideAgenda the interface implementation and example of a well behaved Speaker
 //who sets the vote to be voted on to be the rule the President provided
-func (s *BaseSpeaker) DecideAgenda(ruleID string) shared.SpeakerReturnContent {
+func (s *BaseSpeaker) DecideAgenda(ruleMatrix rules.RuleMatrix) shared.SpeakerReturnContent {
 	return shared.SpeakerReturnContent{
 		ContentType: shared.SpeakerAgenda,
-		RuleID:      ruleID,
+		RuleMatrix:  ruleMatrix,
 		ActionTaken: true,
 	}
 }
@@ -29,12 +30,12 @@ func (s *BaseSpeaker) DecideAgenda(ruleID string) shared.SpeakerReturnContent {
 //DecideVote is the interface implementation and example of a well behaved Speaker
 //who calls a vote on the proposed rule and asks all available islands to vote.
 //Return an empty string or empty []shared.ClientID for no vote to occur
-func (s *BaseSpeaker) DecideVote(ruleID string, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
+func (s *BaseSpeaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
 	//TODO: disregard islands with sanctions
 	return shared.SpeakerReturnContent{
 		ContentType:          shared.SpeakerVote,
 		ParticipatingIslands: aliveClients,
-		RuleID:               ruleID,
+		RuleMatrix:           ruleMatrix,
 		ActionTaken:          true,
 	}
 }
@@ -42,10 +43,10 @@ func (s *BaseSpeaker) DecideVote(ruleID string, aliveClients []shared.ClientID) 
 //DecideAnnouncement is the interface implementation and example of a well behaved Speaker
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
-func (s *BaseSpeaker) DecideAnnouncement(ruleID string, result bool) shared.SpeakerReturnContent {
+func (s *BaseSpeaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
 	return shared.SpeakerReturnContent{
 		ContentType:  shared.SpeakerAnnouncement,
-		RuleID:       ruleID,
+		RuleMatrix:   ruleMatrix,
 		VotingResult: result,
 		ActionTaken:  true,
 	}
