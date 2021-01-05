@@ -48,13 +48,13 @@ type forageHistory map[shared.ForageType][]forageOutcome
 
 // giftInfo holds information about the gifts
 type giftInfo struct {
-	requested      shared.GiftRequest
-	offered        shared.GiftOffer
-	response       shared.GiftResponse
-	actualRecieved shared.Resources
+	requested      shared.GiftRequest  // How much was requested
+	offered        shared.GiftOffer    // How much offered
+	response       shared.GiftResponse // Response to offer
+	actualRecieved shared.Resources    // How much was actually recieved
 }
 
-//giftExchange Looks at how much they requested and we request
+//giftExchange offers the two sides of gifting
 type giftExchange struct {
 	// 							uint = turn
 	TheirRequest map[uint]giftInfo
@@ -64,8 +64,11 @@ type giftExchange struct {
 //	giftHistory is the history of our gifts according to which island sent it
 type giftHistory map[shared.ClientID]giftExchange
 
-// Client Information */
-// Client is the island number
+//================================================================
+/*	Client Information
+	Client is the island number
+*/
+//=================================================================
 type client struct {
 	*baseclient.BaseClient
 

@@ -115,7 +115,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 		}
 	}
 
-	// Looking at our previous foraging history - Work in progress
+	// Looking at our previous foraging history
 	//=============================================================================
 	deerHunters := int(0) // Number of hunters
 	fishHunters := int(0)
@@ -134,23 +134,17 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 		}
 	}
 
-	// Check how many turns people have foraged deer for
+	// Check the previous 5 turns (not including previous), to see if people have foraged deer
 	prevTurnsHunters := make(map[uint]uint)
 	totalHunters := uint(0)
-	for _, returns := range forageHistory[shared.DeerForageType] { // For deers
+	for _, returns := range forageHistory[shared.DeerForageType] { // finds Number of hunters for each turn
 		prevTurnsHunters[returns.turn] = prevTurnsHunters[returns.turn] + 1
 	}
 	for i := c.gameState().Turn - 5; i < c.gameState().Turn-1; i++ {
-		// c.Logf("what is i", i)
-		totalHunters += prevTurnsHunters[i]
+		totalHunters += prevTurnsHunters[i] // Sum of all the hunters in the pervious 5 turns
 	}
 	probDeerHunting -= float64(totalHunters) * 0.05
-	// c.Logf("FORAGING HISTORY %v", prevTurnsHunters)
-	// c.Logf("FORAGING HISTORY %v", totalHunters)
-	// c.Logf("Foraging %v", probDeerHunting)
 
-	c.Logf("[Debug] Number of Deer Hunters from pervious turn %v", deerHunters)
-	c.Logf("[Debug] Number of Fish Hunters %v", fishHunters)
 	if bestForagingMethod == shared.FishForageType { // Fishing is best but 3 Deer hunters last turn
 		bDeer := distuv.Bernoulli{P: 1 - probDeerHunting}     // P(1)[Fishing]=0.6 (1-0.1+0.3*3) if 3 deer hunter
 		bestForagingMethod *= shared.ForageType(bDeer.Rand()) // Multipy the 0 in if Deer Hunting was picked in randomness
