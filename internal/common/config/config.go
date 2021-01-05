@@ -82,6 +82,7 @@ type DisasterConfig struct {
 	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
 	StochasticPeriod            bool                  // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
 	CommonpoolThresholdVisible  bool                  // whether CommonpoolThreshold is visible to clients
+	PeriodVisible               bool                  // whether DisasterPeriod should be visible to clients
 }
 
 type IIGOConfig struct {

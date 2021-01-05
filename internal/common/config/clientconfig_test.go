@@ -23,6 +23,8 @@ func TestGetClientConfig(t *testing.T) {
 					CommonpoolThreshold:        6,
 					CommonpoolThresholdVisible: true,
 					Period:                     4, // not visible
+					PeriodVisible:              true,
+					StochasticPeriod:           true,
 				},
 			},
 			want: ClientConfig{
@@ -34,6 +36,11 @@ func TestGetClientConfig(t *testing.T) {
 						Value: 6,
 						Valid: true,
 					},
+					DisasterPeriod: SelectivelyVisibleDisasterPeriod{
+						Period: 4,
+						Valid:  true,
+					},
+					StochasticDisasters: true,
 				},
 			},
 		},
