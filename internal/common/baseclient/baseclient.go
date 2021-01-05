@@ -34,8 +34,6 @@ type Client interface {
 	GetTaxContribution() shared.Resources
 	GetSanctionPayment() shared.Resources
 	RequestAllocation() shared.Resources
-	ShareIntendedContribution() shared.IntendedContribution
-	ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict)
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
@@ -86,13 +84,11 @@ func NewClient(id shared.ClientID) *BaseClient {
 type BaseClient struct {
 	id shared.ClientID
 
-	predictionInfo       shared.DisasterPredictionInfo
-	intendedContribution shared.IntendedContribution
+	predictionInfo shared.DisasterPredictionInfo
 
 	// exported variables are accessible by the client implementations
-	LocalVariableCache map[rules.VariableFieldName]rules.VariableValuePair
-	Communications     map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
-	ServerReadHandle   ServerReadHandle
+	Communications   map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
+	ServerReadHandle ServerReadHandle
 }
 
 // Echo prints a message to show that the client exists
@@ -113,7 +109,6 @@ func (c *BaseClient) GetID() shared.ClientID {
 // You will need it to access the game state through its GetGameStateMethod.
 func (c *BaseClient) Initialise(serverReadHandle ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
-	c.LocalVariableCache = rules.CopyVariableMap()
 }
 
 // StartOfTurn handles the start of a new turn.
@@ -153,39 +148,7 @@ func (c *BaseClient) VoteForElection(roleToElect shared.Role, candidateList []sh
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client
 // COMPULSORY: please override to save incoming communication relevant to your agent strategy
 func (c *BaseClient) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
-	c.InspectCommunication(data)
 	c.Communications[sender] = append(c.Communications[sender], data)
-}
-
-// InspectCommunication is a function which scans over Receive communications for any data
-// that might be used to update the LocalVariableCache
-func (c *BaseClient) InspectCommunication(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
-	if c.LocalVariableCache == nil {
-		return
-	}
-	for fieldName, dataPoint := range data {
-		switch fieldName {
-		case shared.TaxAmount:
-			c.LocalVariableCache[rules.ExpectedTaxContribution] = rules.VariableValuePair{
-				VariableName: rules.ExpectedTaxContribution,
-				Values:       []float64{float64(dataPoint.IntegerData)},
-			}
-		case shared.AllocationAmount:
-			c.LocalVariableCache[rules.ExpectedAllocation] = rules.VariableValuePair{
-				VariableName: rules.ExpectedAllocation,
-				Values:       []float64{float64(dataPoint.IntegerData)},
-			}
-		case shared.SanctionAmount:
-			c.LocalVariableCache[rules.SanctionExpected] = rules.VariableValuePair{
-				VariableName: rules.SanctionExpected,
-				Values:       []float64{float64(dataPoint.IntegerData)},
-			}
-		// TODO: Extend according to new rules added by Team 4
-		default:
-			c.Logf("Communication variable doesn't have associated val %v", fieldName)
-		}
-
-	}
 }
 
 // GetCommunications is used for testing communications
