@@ -131,7 +131,7 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
 
-func (c *BaseClient) VoteForRule(ruleName string) shared.RuleVoteType {
+func (c *BaseClient) VoteForRule(ruleName rules.RuleMatrix) shared.RuleVoteType {
 	// TODO implement decision on voting that considers the rule
 	return shared.Approve
 }
