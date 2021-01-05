@@ -76,7 +76,7 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 			// TODO: Choose whether to use this compliant value
 			valToBeReturned = shared.Resources(newVal.Values[rules.SingleValueVariableEntry])
 		}
-
+	}
 	return valToBeReturned
 
 }
