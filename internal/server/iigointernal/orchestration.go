@@ -4,45 +4,11 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-// featureJudge is an instantiation of the Judge interface
-// with both the Base Judge features and a reference to client judges
-var judicialBranch = judiciary{
-	gameState:          nil,
-	gameConf:           nil,
-	JudgeID:            0,
-	presidentSalary:    0,
-	evaluationResults:  nil,
-	localSanctionCache: defaultInitLocalSanctionCache(3),
-	localHistoryCache:  defaultInitLocalHistoryCache(3),
-}
-
-// featureSpeaker is an instantiation of the Speaker interface
-// with both the baseSpeaker features and a reference to client speakers
-var legislativeBranch = legislature{
-	gameState:    nil,
-	gameConf:     nil,
-	SpeakerID:    0,
-	judgeSalary:  0,
-	ruleToVote:   rules.RuleMatrix{},
-	ballotBox:    voting.BallotBox{},
-	votingResult: false,
-}
-
-// featurePresident is an instantiation of the President interface
-// with both the basePresident features and a reference to client presidents
-var executiveBranch = executive{
-	gameState:        nil,
-	gameConf:         nil,
-	PresidentID:      0,
-	speakerSalary:    0,
-	ResourceRequests: nil,
-}
 
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
@@ -53,16 +19,45 @@ var AllocationAmountMapExport map[shared.ClientID]shared.Resources
 // SanctionAmountMapExport is a local sanction map for sanctions
 var SanctionAmountMapExport map[shared.ClientID]shared.Resources
 
-// Pointers allow clients to customise implementations of mutable functions
-var judgePointer roles.Judge = nil
-var speakerPointer roles.Speaker = nil
-var presidentPointer roles.President = nil
-
 // iigoClients holds pointers to all the clients
 var iigoClients map[shared.ClientID]baseclient.Client
 
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
+
+	// featureJudge is an instantiation of the Judge interface
+	// with both the Base Judge features and a reference to client judges
+	var judicialBranch = judiciary{
+		gameState:          nil,
+		gameConf:           nil,
+		JudgeID:            0,
+		presidentSalary:    0,
+		evaluationResults:  nil,
+		localSanctionCache: defaultInitLocalSanctionCache(3),
+		localHistoryCache:  defaultInitLocalHistoryCache(3),
+	}
+
+	// featureSpeaker is an instantiation of the Speaker interface
+	// with both the baseSpeaker features and a reference to client speakers
+	var legislativeBranch = legislature{
+		gameState:    nil,
+		gameConf:     nil,
+		SpeakerID:    0,
+		judgeSalary:  0,
+		ruleToVote:   "",
+		ballotBox:    voting.BallotBox{},
+		votingResult: false,
+	}
+
+	// featurePresident is an instantiation of the President interface
+	// with both the basePresident features and a reference to client presidents
+	var executiveBranch = executive{
+		gameState:        nil,
+		gameConf:         nil,
+		PresidentID:      0,
+		speakerSalary:    0,
+		ResourceRequests: nil,
+	}
 
 	var monitoring = monitor{
 		speakerID:         g.SpeakerID,
@@ -70,6 +65,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		judgeID:           g.JudgeID,
 		internalIIGOCache: []shared.Accountability{},
 	}
+	executiveBranch.monitoring = &monitoring
+	legislativeBranch.monitoring = &monitoring
+	judicialBranch.monitoring = &monitoring
+
 	iigoClients = *clientMap
 
 	// Increments the budget by a constant 100
@@ -90,11 +89,11 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	executiveBranch.PresidentID = g.PresidentID
 
 	// Set judgePointer
-	judgePointer = iigoClients[g.JudgeID].GetClientJudgePointer()
+	judgePointer := iigoClients[g.JudgeID].GetClientJudgePointer()
 	// Set speakerPointer
-	speakerPointer = iigoClients[g.SpeakerID].GetClientSpeakerPointer()
+	speakerPointer := iigoClients[g.SpeakerID].GetClientSpeakerPointer()
 	// Set presidentPointer
-	presidentPointer = iigoClients[g.PresidentID].GetClientPresidentPointer()
+	presidentPointer := iigoClients[g.PresidentID].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
 	judicialBranch.loadClientJudge(judgePointer)
@@ -157,7 +156,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		return false, "Common pool resources insufficient for executiveBranch getRuleForSpeaker"
 	}
 
-	var ruleSelected bool = true
+	ruleSelected := false
+	if ruleToVoteReturn.ProposedRule != "" {
+		ruleSelected = true
+	}
 
 	variablesToCache = []rules.VariableFieldName{rules.AllocationMade}
 	valuesToCache = [][]float64{{boolToFloat(allocationsMade)}}
@@ -167,26 +169,26 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 3 Speaker actions
 
-	//TODO:- shouldn't updateRules be called here?
-	var voteCalled bool = false
-
+	//TODO:- shouldn't updateRules be called somewhere?
 	insufficientBudget = legislativeBranch.setRuleToVote(ruleToVoteReturn.ProposedRuleMatrix)
+
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for legislativeBranch setRuleToVote"
 	}
-	insufficientBudget = legislativeBranch.setVotingResult(aliveClientIds)
+	voteCalled, insufficientBudget := legislativeBranch.setVotingResult(aliveClientIds)
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for legislativeBranch setVotingResult"
 	}
-	insufficientBudget = legislativeBranch.announceVotingResult()
+	resultAnnounced, insufficientBudget := legislativeBranch.announceVotingResult()
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for legislativeBranch announceVotingResult"
 	}
 
-	//TODO: this assumes speaker always calls the vote, but they may choose not to in setVotingResult()
-	voteCalled = true
 	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
 	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
+	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+	variablesToCache = []rules.VariableFieldName{rules.VoteCalled, rules.VoteResultAnnounced}
+	valuesToCache = [][]float64{{boolToFloat(voteCalled)}, {boolToFloat(resultAnnounced)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
 	speakerMonitored := monitoring.monitorRole(iigoClients[g.JudgeID])

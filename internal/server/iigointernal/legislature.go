@@ -23,6 +23,7 @@ type legislature struct {
 	votingResult      bool
 	clientSpeaker     roles.Speaker
 	judgeTurnsInPower int
+	monitoring        *monitor
 }
 
 // loadClientSpeaker checks client pointer is good and if not panics
@@ -74,22 +75,23 @@ func (l *legislature) setRuleToVote(ruleMatrix rules.RuleMatrix) error {
 
 //Asks islands to vote on a rule
 //Called by orchestration
-func (l *legislature) setVotingResult(clientIDs []shared.ClientID) error {
+func (l *legislature) setVotingResult(clientIDs []shared.ClientID) (bool, error) {
+	voteCalled := false
 	if !CheckEnoughInCommonPool(l.gameConf.SetVotingResultActionCost, l.gameState) {
-		return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
+		return voteCalled, errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
 	}
 
 	returnVote := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
 	if returnVote.ActionTaken && returnVote.ContentType == shared.SpeakerVote {
 		if !l.incurServiceCharge(l.gameConf.SetVotingResultActionCost) {
-			return errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
+			return voteCalled, errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
 		}
 		l.ballotBox = l.RunVote(returnVote.RuleMatrix, returnVote.ParticipatingIslands)
 
 		l.votingResult = l.ballotBox.CountVotesMajority()
+		voteCalled = true
 	}
-
-	return nil
+	return voteCalled, nil
 }
 
 //RunVote creates the voting object, returns votes by category (for, against) in BallotBox.
@@ -113,14 +115,29 @@ func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.Cl
 	//TODO: log of vote occurring with ruleMatrix, clientIDs
 	//TODO: log of clientIDs vs islandsAllowedToVote
 	//TODO: log of ruleMatrix vs s.RuleToVote
+
+	variablesToCache := []rules.VariableFieldName{rules.IslandsAllowedToVote}
+	valuesToCache := [][]float64{{float64(len(clientIDs))}}
+	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+
+	rulesEqual := false
+	if ruleID == l.ruleToVote {
+		rulesEqual = true
+	}
+
+	variablesToCache = []rules.VariableFieldName{rules.SpeakerProposedPresidentRule}
+	valuesToCache = [][]float64{{boolToFloat(rulesEqual)}}
+	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+
 	return ruleVote.GetBallotBox()
 }
 
 //Speaker declares a result of a vote (see spec to see conditions on what this means for a rule-abiding speaker)
 //Called by orchestration
-func (l *legislature) announceVotingResult() error {
+func (l *legislature) announceVotingResult() (bool, error) {
+	resultAnnounced := false
 	if !CheckEnoughInCommonPool(l.gameConf.AnnounceVotingResultActionCost, l.gameState) {
-		return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
+		return resultAnnounced, errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
 	}
 
 	returnAnouncement := l.clientSpeaker.DecideAnnouncement(l.ruleToVote, l.votingResult)
@@ -128,17 +145,14 @@ func (l *legislature) announceVotingResult() error {
 	if returnAnouncement.ActionTaken && returnAnouncement.ContentType == shared.SpeakerAnnouncement {
 		//Deduct action cost
 		if !l.incurServiceCharge(l.gameConf.AnnounceVotingResultActionCost) {
-			return errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
+			return resultAnnounced, errors.Errorf("Insufficient Budget in common Pool: announceVotingResult")
 		}
-
-		//Reset
-		l.ruleToVote = rules.RuleMatrix{}
-		l.votingResult = false
 
 		//Perform announcement
 		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(returnAnouncement.RuleMatrix, returnAnouncement.VotingResult))
+		resultAnnounced = true
 	}
-	return nil
+	return resultAnnounced, nil
 }
 
 func generateVotingResultMessage(ruleMatrix rules.RuleMatrix, result bool) map[shared.CommunicationFieldName]shared.CommunicationContent {
@@ -156,12 +170,6 @@ func generateVotingResultMessage(ruleMatrix rules.RuleMatrix, result bool) map[s
 	return returnMap
 }
 
-//reset resets internal variables for safety
-func (l *legislature) reset() {
-	l.ruleToVote = rules.RuleMatrix{}
-	l.ballotBox = voting.BallotBox{}
-	l.votingResult = false
-}
 
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn bool) error {
@@ -208,10 +216,10 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 			return l.gameState.JudgeID, errors.Errorf("Insufficient Budget in common Pool: appointNextJudge")
 		}
 		election.ProposeElection(shared.Judge, electionsettings.VotingMethod)
-		election.OpenBallot(electionsettings.IslandsToVote)
+		election.OpenBallot(electionsettings.IslandsToVote, iigoClients)
 		election.Vote(iigoClients)
 		l.judgeTurnsInPower = 0
-		nextJudge = election.CloseBallot()
+		nextJudge = election.CloseBallot(iigoClients)
 		nextJudge = l.clientSpeaker.DecideNextJudge(nextJudge)
 	} else {
 		l.judgeTurnsInPower++

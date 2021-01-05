@@ -21,6 +21,7 @@ type executive struct {
 	RulesProposals      []rules.RuleMatrix
 	ResourceRequests    map[shared.ClientID]shared.Resources
 	speakerTurnsInPower int
+	monitoring          *monitor
 }
 
 // loadClientPresident checks client pointer is good and if not panics
@@ -155,10 +156,10 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 			return e.gameState.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
 		}
 		election.ProposeElection(shared.Speaker, electionsettings.VotingMethod)
-		election.OpenBallot(electionsettings.IslandsToVote)
+		election.OpenBallot(electionsettings.IslandsToVote, iigoClients)
 		election.Vote(iigoClients)
 		e.speakerTurnsInPower = 0
-		nextSpeaker = election.CloseBallot()
+		nextSpeaker = election.CloseBallot(iigoClients)
 		nextSpeaker = e.clientPresident.DecideNextSpeaker(nextSpeaker)
 	} else {
 		e.speakerTurnsInPower++
@@ -183,14 +184,6 @@ func (e *executive) sendSpeakerSalary() error {
 		}
 	}
 	return errors.Errorf("Cannot perform sendSpeakerSalary")
-}
-
-func (e *executive) reset(val string) {
-	e.PresidentID = 0
-	e.clientPresident = nil
-	e.ResourceRequests = map[shared.ClientID]shared.Resources{}
-	e.RulesProposals = []rules.RuleMatrix{}
-	e.speakerSalary = 0
 }
 
 // Helper functions:
