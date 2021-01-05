@@ -9,7 +9,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-
 // TaxAmountMapExport is a local tax amount cache for checking of rules
 var TaxAmountMapExport map[shared.ClientID]shared.Resources
 
@@ -44,7 +43,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		gameConf:     nil,
 		SpeakerID:    0,
 		judgeSalary:  0,
-		ruleToVote:   "",
+		ruleToVote:   rules.RuleMatrix{},
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
 	}
@@ -157,7 +156,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	ruleSelected := false
-	if ruleToVoteReturn.ProposedRule != "" {
+	if !ruleToVoteReturn.ProposedRuleMatrix.RuleMatrixIsEmpty() {
 		ruleSelected = true
 	}
 

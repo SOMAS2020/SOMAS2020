@@ -121,7 +121,7 @@ func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.Cl
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
 	rulesEqual := false
-	if ruleID == l.ruleToVote {
+	if reflect.DeepEqual(ruleMatrix, l.ruleToVote) {
 		rulesEqual = true
 	}
 
@@ -169,7 +169,6 @@ func generateVotingResultMessage(ruleMatrix rules.RuleMatrix, result bool) map[s
 
 	return returnMap
 }
-
 
 // updateRules updates the rules in play according to the result of a vote.
 func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn bool) error {
