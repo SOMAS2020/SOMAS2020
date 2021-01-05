@@ -1,5 +1,7 @@
 package shared
 
+import "github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+
 // PresidentReturnContentType is the index of the return content that should be retrieved if the action was taken.
 type PresidentReturnContentType = int
 
@@ -13,11 +15,11 @@ const (
 
 // PresidentReturnContent is a general datastructure used for president return type
 type PresidentReturnContent struct {
-	ContentType   PresidentReturnContentType
-	ResourceMap   map[ClientID]Resources
-	ProposedRule  string
-	SpeakerSalary Resources
-	ActionTaken   bool
+	ContentType        PresidentReturnContentType
+	ResourceMap        map[ClientID]Resources
+	ProposedRuleMatrix rules.RuleMatrix
+	SpeakerSalary      Resources
+	ActionTaken        bool
 }
 
 // SpeakerReturnContentType is the index of the return content that should be retrieved if the action was taken.
@@ -35,7 +37,7 @@ const (
 type SpeakerReturnContent struct {
 	ContentType          SpeakerReturnContentType
 	ParticipatingIslands []ClientID
-	RuleID               string
+	RuleMatrix           rules.RuleMatrix
 	VotingResult         bool
 	JudgeSalary          Resources
 	ActionTaken          bool
