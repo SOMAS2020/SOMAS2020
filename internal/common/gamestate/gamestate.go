@@ -77,6 +77,7 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		JudgeID:            g.JudgeID,
 		PresidentID:        g.PresidentID,
 		IIGORolesBudget:    copyRolesBudget(g.IIGORolesBudget),
+		IIGOTurnsInPower:   g.IIGOTurnsInPower,
 	}
 }
 
