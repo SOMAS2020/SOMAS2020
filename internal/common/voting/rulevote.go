@@ -2,12 +2,13 @@ package voting
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 type RuleVote struct {
 	//Checked by RuleVote
-	ruleToVote string
+	ruleToVote rules.RuleMatrix
 	voterList  []shared.ClientID
 	//Held by RuleVote
 	ballots []shared.RuleVoteType
@@ -19,7 +20,7 @@ type BallotBox struct {
 }
 
 // SetRule is called by baseSpeaker to set the rule to be voted on.
-func (v *RuleVote) SetRule(ruleMatrix string) {
+func (v *RuleVote) SetRule(ruleMatrix rules.RuleMatrix) {
 	v.ruleToVote = ruleMatrix
 }
 
@@ -32,7 +33,7 @@ func (v *RuleVote) SetVotingIslands(clientIDs []shared.ClientID) {
 // GatherBallots is called by baseSpeaker to get votes from clients.
 func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client) {
 	//Gather N ballots from islands
-	if v.ruleToVote != "" && len(v.voterList) > 0 {
+	if v.ruleToVote.RuleName != "" && len(v.voterList.RuleName) > 0 {
 		for i := 0; i < len(v.voterList); i++ {
 			v.ballots = append(v.ballots, clientMap[v.voterList[i]].VoteForRule(v.ruleToVote))
 		}
