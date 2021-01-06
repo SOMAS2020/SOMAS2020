@@ -47,7 +47,7 @@ func (c client) isClientAlive(id shared.ClientID) bool {
 	return false
 }
 
-func minMaxCap(val, absThresh float64) float64 {
+func absoluteCap(val, absThresh float64) float64 {
 	if val > 0 {
 		return math.Min(val, absThresh)
 	}

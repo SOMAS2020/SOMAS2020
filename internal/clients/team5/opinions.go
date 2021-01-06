@@ -60,10 +60,10 @@ func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) 
 	switch basis {
 	case generalBasis:
 		newScore := float64(op.score) + increment
-		op.score = opinionScore(minMaxCap(newScore, 1.0))
+		op.score = opinionScore(absoluteCap(newScore, 1.0))
 	case forecastingBasis:
 		newScore := float64(op.forecastReputation) + increment
-		op.forecastReputation = opinionScore(minMaxCap(newScore, 1.0))
+		op.forecastReputation = opinionScore(absoluteCap(newScore, 1.0))
 	}
 	wo.opinion = op // update opinion
 }
