@@ -3,6 +3,7 @@ package team2
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -171,6 +172,10 @@ func checkOthersCrit(c *client) bool {
 
 func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
+}
+
+func (c *client) gameConfig() config.ClientConfig {
+	return c.BaseClient.ServerReadHandle.GetGameConfig()
 }
 
 // Initialise initialises the base client.
