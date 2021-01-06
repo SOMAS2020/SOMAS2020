@@ -90,6 +90,8 @@ func (l *locator) switchDetermineFunction(name rules.VariableFieldName, recommen
 		return l.idealIslandTaxContribution(recommendedVal)
 	case rules.IslandAllocation:
 		return l.idealIslandAllocation(recommendedVal)
+	case rules.SanctionPaid:
+		return l.idealIslandSanctionPaid(recommendedVal)
 	default:
 		return []float64{}, false
 	}
@@ -176,6 +178,22 @@ func (l *locator) idealIslandAllocation(recommendedVal []float64) ([]float64, bo
 	return []float64{0}, false
 }
 
+func (l *locator) idealIslandSanctionPaid(recommendedVal []float64) ([]float64, bool) {
+	if len(recommendedVal) == 0 {
+		return recommendedVal, false
+	}
+	if l.locationStrategy.lawful {
+		return recommendedVal, true
+	}
+	if l.locationStrategy.fury {
+		return []float64{0}, true
+	}
+	if l.locationStrategy.independent {
+		return []float64{recommendedVal[rules.SingleValueVariableEntry] * 0.5}, true
+	}
+	return recommendedVal, false
+}
+
 func (l *locator) calcNumberOfAliveIslands() float64 {
 	islandStatuses := l.gameState.ClientLifeStatuses
 	counter := 0.0
@@ -207,7 +225,7 @@ func (l *locator) getAllAliveClientIds() []float64 {
 	return output
 }
 
-func (l *locator) TranslateCommunications(variableCache map[rules.VariableFieldName]rules.VariableValuePair) (newVariableCache map[rules.VariableFieldName]dynamics.Input) {
+func (l *locator) TranslateToInputs(variableCache map[rules.VariableFieldName]rules.VariableValuePair) (newVariableCache map[rules.VariableFieldName]dynamics.Input) {
 	if variableCache == nil {
 		return map[rules.VariableFieldName]dynamics.Input{}
 	}
@@ -219,6 +237,47 @@ func (l *locator) TranslateCommunications(variableCache map[rules.VariableFieldN
 		}
 	}
 	return inputMap
+}
+
+func (l *locator) UpdateCache(oldCache map[rules.VariableFieldName]rules.VariableValuePair, newValues map[rules.VariableFieldName]rules.VariableValuePair) map[rules.VariableFieldName]rules.VariableValuePair {
+	for key, val := range newValues {
+		oldCache[key] = val
+	}
+	return oldCache
+}
+
+func (l *locator) GetRecommendations(updatedVariables map[rules.VariableFieldName]rules.VariableValuePair, rulesCache map[string]rules.RuleMatrix, allVarsCache map[rules.VariableFieldName]rules.VariableValuePair) map[rules.VariableFieldName]rules.VariableValuePair {
+	varList := buildVarList(updatedVariables)
+	compliantVals := make(map[rules.VariableFieldName]dynamics.Input)
+	compliantVals = l.TranslateToInputs(updatedVariables)
+	for _, entry := range varList {
+		rulesAffected, success := rules.PickUpRulesByVariable(entry, rulesCache, allVarsCache)
+		if success {
+			for _, ruleName := range rulesAffected {
+				compliantInputs := dynamics.FindClosestApproach(rulesCache[ruleName], compliantVals)
+				compliantVals = compliantInputs
+			}
+		}
+	}
+	for key, value := range compliantVals {
+		updatedVariables[key] = convertInput(value)
+	}
+	return updatedVariables
+}
+
+func buildVarList(updatedVariables map[rules.VariableFieldName]rules.VariableValuePair) []rules.VariableFieldName {
+	varList := []rules.VariableFieldName{}
+	for key := range updatedVariables {
+		varList = append(varList, key)
+	}
+	return varList
+}
+
+func convertInput(inp dynamics.Input) rules.VariableValuePair {
+	return rules.VariableValuePair{
+		VariableName: inp.Name,
+		Values:       inp.Value,
+	}
 }
 
 func buildInput(pair rules.VariableValuePair) (dynamics.Input, bool) {
