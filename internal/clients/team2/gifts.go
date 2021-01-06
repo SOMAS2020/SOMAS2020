@@ -91,7 +91,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	// prioritize giving gifts to islands we trust (for now confidence)
 
 	// Give no more than half of amount before we reach threshold
-	maxToGive := (c.gameState().ClientInfo.Resources - internalThreshold(c)) / 2
+	maxToGive := (c.gameState().ClientInfo.Resources - c.internalThreshold()) / 2
 
 	var trustRank IslandTrustList
 	if !ourAgentCritical || maxToGive <= 0 {
@@ -217,7 +217,7 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
 	// Give no more than half of amount before we reach threshold
-	maxToGive := (c.gameState().ClientInfo.Resources - internalThreshold(c)) / 2
+	maxToGive := (c.gameState().ClientInfo.Resources - c.internalThreshold()) / 2
 	if giftOffer <= maxToGive {
 		return giftOffer
 	}
