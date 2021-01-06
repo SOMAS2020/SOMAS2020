@@ -206,8 +206,11 @@ func GetTrustedIslands() []shared.ClientID {
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,
 // that they have been granted access to see
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
-	for island, prediction := range receivedPredictions {
-		updatedHist := append(c.predictionHist[island], prediction.PredictionMade)
-		c.predictionHist[island] = updatedHist
+	for _, prediction := range receivedPredictions {
+		currPrediction := PredictionInfo{
+			Prediction: prediction.PredictionMade,
+			Turn:       c.gameState().Turn + uint(prediction.PredictionMade.TimeLeft),
+		}
+		c.predictionHist[prediction.SharedFrom] = append(c.predictionHist[prediction.SharedFrom], currPrediction)
 	}
 }

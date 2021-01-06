@@ -41,7 +41,7 @@ const (
 	President     Situation = "President"
 	Judge         Situation = "Judge"
 	Speaker       Situation = "Speaker"
-	Foraging      Situation = "Foraging"
+	Foraging      Situation = "DisasterPred"
 	GiftWeRequest Situation = "Gifts"
 )
 
@@ -67,8 +67,13 @@ type GiftExchange struct {
 }
 
 type DisasterOccurence struct {
-	Turn   float64
+	Turn   uint
 	Report disasters.DisasterReport
+}
+
+type PredictionInfo struct {
+	Prediction shared.DisasterPrediction
+	Turn       uint
 }
 
 // Currently what want to use to get archipelago geography but talking to Yannis to get this fixed
@@ -85,10 +90,10 @@ const (
 )
 
 type OpinionHist map[shared.ClientID]Opinion
-type PredictionsHist map[shared.ClientID][]shared.DisasterPrediction
+type PredictionsHist map[shared.ClientID][]PredictionInfo
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo
 type GiftHist map[shared.ClientID]GiftExchange
-type DisasterHistory map[int]DisasterOccurence
+type DisasterHistory []DisasterOccurence
 
 // we have to initialise our client somehow
 type client struct {
@@ -153,10 +158,18 @@ func criticalStatus(c *client) bool {
 
 //TODO: how does this work?
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
-	c.disasterHistory[len(c.disasterHistory)] = DisasterOccurence{
-		Turn:   float64(c.gameState().Turn),
+	currDisaster := DisasterOccurence{
+		Turn:   c.gameState().Turn,
 		Report: report,
 	}
+	c.disasterHistory = append(c.disasterHistory, currDisaster)
+	c.updateDisasterConf()
+
+	// Check this actually resets the values stored in PredictionsHist
+	for island, predictions := range c.predictionHist {
+		predictions = predictions[:0]
+	}
+
 }
 
 //checkOthersCrit checks if anyone else is critical
