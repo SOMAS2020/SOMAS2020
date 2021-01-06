@@ -172,13 +172,13 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 		requested:      c.giftHistory[toTeam].theirRequest[c.getTurn()].requested, // Amount We requested
 		offered:        c.giftHistory[toTeam].theirRequest[c.getTurn()].offered,   // Amount offered TO US
 		response:       c.giftHistory[toTeam].theirRequest[c.getTurn()].response,  // Amount and reason WE accepted
-		actualReceived: giftOffer,                                                 // Amount they ACTUALLY recieve
+		actualReceived: giftOffer,                                                 // Amount they ACTUALLY receive
 	}
 	c.giftHistory[toTeam].theirRequest[c.getTurn()] = newGiftRequest
 
 	// Debugging for gift
-	c.Logf("[Debug] ourRequest [%v]", c.giftHistory[toTeam].ourRequest[c.getTurn()])
-	c.Logf("[Debug] theirRequest [%v]", c.giftHistory[toTeam].theirRequest[c.getTurn()])
+	// c.Logf("[Debug] ourRequest [%v]", c.giftHistory[toTeam].ourRequest[c.getTurn()])
+	// c.Logf("[Debug] theirRequest [%v]", c.giftHistory[toTeam].theirRequest[c.getTurn()])
 
 	return giftOffer
 }
@@ -195,7 +195,7 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 		requested:      c.giftHistory[to].theirRequest[c.getTurn()].requested, // Amount We requested
 		offered:        c.giftHistory[to].theirRequest[c.getTurn()].offered,   // Amount offered TO US
 		response:       c.giftHistory[to].theirRequest[c.getTurn()].response,  // Amount and reason WE accepted
-		actualReceived: sent,                                                  // Amount they actually recieve according to server
+		actualReceived: sent,                                                  // Amount they actually receive according to server
 	}
 	c.giftHistory[to].theirRequest[c.getTurn()] = newGiftRequest
 }

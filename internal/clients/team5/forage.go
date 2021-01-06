@@ -141,7 +141,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 		prevTurnsHunters[returns.turn] = prevTurnsHunters[returns.turn] + 1
 	}
 	for i := c.gameState().Turn - 5; i < c.gameState().Turn-1; i++ {
-		totalHunters += prevTurnsHunters[i] // Sum of all the hunters in the pervious 5 turns
+		totalHunters += prevTurnsHunters[i] // Sum of all the hunters in the previous 5 turns
 	}
 	probDeerHunting -= float64(totalHunters) * 0.05
 
@@ -278,7 +278,7 @@ func (c *client) forageHistorySize() uint {
 
 //======================= Part of IIFO ====================================
 
-//RecieveForageInfo get info from other teams
+//ReceiveForageInfo get info from other teams
 func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 
 	for _, forageInfo := range forageInfos { // for all foraging information from all islands (ignore the islands)
