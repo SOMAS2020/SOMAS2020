@@ -9,7 +9,12 @@ import (
 )
 
 func init() {
-	c := client{
+	clientPtr := createClient()
+	baseclient.RegisterClient(ourClientID, clientPtr)
+}
+
+func createClient() *client {
+	return &client{
 		BaseClient:              baseclient.NewClient(ourClientID),
 		cpRequestHistory:        cpRequestHistory{},
 		cpAllocationHistory:     cpAllocationHistory{},
@@ -25,8 +30,6 @@ func init() {
 		allocation: 0,
 		config:     getClientConfig(),
 	}
-
-	baseclient.RegisterClient(ourClientID, &c)
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {

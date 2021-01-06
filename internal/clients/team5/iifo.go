@@ -86,16 +86,21 @@ func (c client) getLastDisasterTurn() uint {
 }
 
 func (c *client) analyseDisasterPeriod() (period uint, conf float64) {
+
+	c.Logf("DH: %v", c.disasterHistory)
+
 	if len(c.disasterHistory) == 0 {
 		return 0, 0 // we can't make any predictions with no disaster history!
 	}
-	periods := []float64{0} // use float so we can use stat.Variance() later
-	periodSum := 0.0
+	periods := []float64{} // use float so we can use stat.Variance() later
+	periodSum := 0.0       // to offset this from average
+	prevTurn := float64(startTurn)
 	for turn := range c.disasterHistory {
-		periods = append(periods, float64(turn)-periods[len(periods)-1]) // period = no. turns between successive disasters
+		periods = append(periods, float64(turn)-prevTurn) // period = no. turns between successive disasters
 		periodSum += periods[len(periods)-1]
+		prevTurn = float64(turn)
 	}
-	periods = periods[1:] // remove leading 0
+	c.Logf("Periods final: %v", periods)
 	if len(periods) == 1 {
 		return uint(periods[0]), 50.0 // if we only have one past observation. Best we can do is estimate that period again.
 	}
@@ -103,8 +108,9 @@ func (c *client) analyseDisasterPeriod() (period uint, conf float64) {
 	v := stat.Variance(periods, nil)
 
 	meanPeriod := periodSum / float64(len(periods))
-	varThresh := meanPeriod / 2
-	varianceRatio := math.Max(v/varThresh, 1.0) // should be between 0 (min var) and 1 (max var)
+	varThresh := meanPeriod
+	varianceRatio := math.Min(v/varThresh, 1.0) // should be between 0 (min var) and 1 (max var)
+
 	conf = (1 - varianceRatio) * 100
 	// if not consistent, return mean period we've seen so far
 	return uint(meanPeriod), conf
