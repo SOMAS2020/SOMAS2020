@@ -203,12 +203,9 @@ func (c *client) credibility(situation Situation, otherIsland shared.ClientID) i
 
 //This function is called when a disaster occurs to update our confidence on others' predictions
 func (c *client) updateDisasterConf() {
-	turn := int(c.gameState().Turn)
 	disasterMag := c.disasterHistory[len(c.disasterHistory)-1].Report.Magnitude
 	disasterTurn := c.disasterHistory[len(c.disasterHistory)-1].Turn
-	islandResults := make(map[shared.ClientID]shared.DisasterPrediction)
 	for island, predictions := range c.predictionHist {
-		islandPreds := predictions[island]
 		avgMag := 0.0
 		avgConf := 0.0
 		avgTurn := 0
@@ -223,15 +220,15 @@ func (c *client) updateDisasterConf() {
 		avgMag = avgMag / float64(len(predictions))
 		avgConf = avgConf / float64(len(predictions))
 
-		magError := int(100 * math.Abs(avgMag-disasterMag) / disasterMag) // percentage error
-		turnError := int(100 * math.Abs(float64((avgTurn-turn)/turn)))    // percentage error
+		magError := int(100 * math.Abs(avgMag-disasterMag) / disasterMag)                    // percentage error
+		turnError := int(100 * math.Abs(float64((uint(avgTurn)-disasterTurn)/disasterTurn))) // percentage error
 
-		predError := int(avgConf) * magError * turnError
+		predError := int(avgConf) * (magError + turnError)
 
 		predConf := 100 - setLimits(predError)
 
 		c.opinionHist[island].Performances["DisasterPred"] = ExpectationReality{
-			exp: predConf,
+			real: predConf,
 		}
 
 		c.confidenceRestrospect("DisasterPred", island)

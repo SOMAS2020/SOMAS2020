@@ -159,7 +159,7 @@ func criticalStatus(c *client) bool {
 //TODO: how does this work?
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
 	if c.disasterHistory == nil {
-		c.disasterHistory = make(DisasterHistory)
+		c.disasterHistory = make(DisasterHistory, 0)
 	}
 	currDisaster := DisasterOccurence{
 		Turn: c.gameState().Turn,
@@ -171,7 +171,7 @@ func (c *client) DisasterNotification(report disasters.DisasterReport, effects d
 
 	// Check this actually resets the values stored in PredictionsHist
 	for island, predictions := range c.predictionHist {
-		predictions = predictions[:0]
+		c.predictionHist[island] = predictions[:0]
 	}
 
 }

@@ -155,7 +155,7 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, int) {
 
 	// Get the time remaining prediction
 	expectationTd := math.Round(1 / sampleMeanX)
-	timeRemaining := expectationTd - (totalTurns - c.disasterHistory[len(c.disasterHistory)-1].Turn)
+	timeRemaining := expectationTd - (totalTurns - float64(c.disasterHistory[len(c.disasterHistory)-1].Turn))
 	if timeRemaining < 0 {
 		timeRemaining = 0
 	}
@@ -212,20 +212,17 @@ func GetIslandsToShareWith() []shared.ClientID {
 // that they have been granted access to see.
 // We use this function to combine all predictions into one final prediction (CombinedPrediction) to use for decisions.
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
-	for _, prediction := range receivedPredictions {
-		currPrediction := PredictionInfo{
-			Prediction: prediction.PredictionMade,
-			Turn:       c.gameState().Turn + uint(prediction.PredictionMade.TimeLeft),
-		}
-		c.predictionHist[prediction.SharedFrom] = append(c.predictionHist[prediction.SharedFrom], currPrediction)
 	UpdatePredictionHistory(c, receivedPredictions)
-
 	// Get the confidence in each island's prediction making ability
-	// CARLA TO INSERT AND REPLACE HERE
-	islandConfidences := map[shared.ClientID]int{
-		0: 0,
-		1: 1,
-		2: 2,
+
+	c.updateDisasterConf()
+	islandConfidences := make(map[shared.ClientID]int)
+	for island, _ := range c.opinionHist {
+		conf := c.confidence("DisasterPred", island)
+		islandConfidences[island] = conf
+		c.opinionHist[island].Performances["DisasterPred"] = ExpectationReality{
+			exp: conf,
+		}
 	}
 
 	// Combine each islands prediction
@@ -239,14 +236,18 @@ func UpdatePredictionHistory(c *client, receivedPredictions shared.ReceivedDisas
 	if c.predictionHist == nil {
 		c.predictionHist = make(PredictionsHist)
 		for _, id := range shared.TeamIDs {
-			c.predictionHist[id] = make([]shared.DisasterPrediction, 0)
+			c.predictionHist[id] = make([]PredictionInfo, 0)
 		}
 	}
 
 	// Add the prediction to the history
-	for island, prediction := range receivedPredictions {
-		updatedHist := append(c.predictionHist[island], prediction.PredictionMade)
-		c.predictionHist[island] = updatedHist
+	for _, prediction := range receivedPredictions {
+		currPrediction := PredictionInfo{
+			Prediction: prediction.PredictionMade,
+			Turn:       c.gameState().Turn + uint(prediction.PredictionMade.TimeLeft),
+		}
+		c.predictionHist[prediction.SharedFrom] = append(c.predictionHist[prediction.SharedFrom], currPrediction)
+
 	}
 }
 
