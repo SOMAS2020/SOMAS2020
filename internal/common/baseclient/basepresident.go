@@ -59,7 +59,8 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 
 	for clientID, clientReport := range islandsResources {
 		if clientReport.Reported {
-			taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * rand.Float64())
+			taxRate := 0.1
+			taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * taxRate)
 		} else {
 			taxAmountMap[clientID] = 15 //flat tax rate
 		}
