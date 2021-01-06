@@ -57,8 +57,8 @@ type giftInfo struct {
 //giftExchange offers the two sides of gifting
 type giftExchange struct {
 	// 							uint = turn
-	TheirRequest map[uint]giftInfo
-	OurRequest   map[uint]giftInfo
+	theirRequest map[uint]giftInfo
+	ourRequest   map[uint]giftInfo
 }
 
 //	giftHistory is the history of our gifts according to which island sent it
