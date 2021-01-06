@@ -225,6 +225,8 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	speakerMonitored := monitoring.monitorRole(g, iigoClients[g.JudgeID])
 	presidentMonitored := monitoring.monitorRole(g, iigoClients[g.SpeakerID])
 	judgeMonitored := monitoring.monitorRole(g, iigoClients[g.PresidentID])
+	//Save to gameState and clear
+	g.IIGOCache = monitoring.internalIIGOCache
 	monitoring.clearCache()
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
