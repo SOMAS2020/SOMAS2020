@@ -74,7 +74,7 @@ type client struct {
 	taxAmount            shared.Resources
 
 	// IITO/Gifts
-	opinionTeams  []opinionOnTeams
+	opinionTeams  []opinionOnTeam
 	receivedOffer map[shared.ClientID]shared.Resources
 
 	// allocation is the president's response to your last common pool resource request
@@ -122,7 +122,7 @@ func (c *client) StartOfTurn() {
 	// if opinionTeams is empty. Initialise it.
 	if len(c.opinionTeams) <= 0 {
 		for _, clientID := range shared.TeamIDs {
-			c.opinionTeams = append(c.opinionTeams, opinionOnTeams{clientID: clientID, opinion: 0})
+			c.opinionTeams = append(c.opinionTeams, opinionOnTeam{clientID: clientID, opinion: 0})
 		}
 	}
 

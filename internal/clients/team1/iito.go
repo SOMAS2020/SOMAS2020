@@ -11,14 +11,14 @@ import (
 /*** 		Types	 	***/
 /**************************/
 
-// optionOnTeamsDict contains the opinion of Team1 about other teams.
+// optionOnTeam contains the opinion of Team1 about another team.
 // 0 is neutral, Positive -> Positive Opinion, Negative -> Negative Opinion
-type opinionOnTeams struct {
+type opinionOnTeam struct {
 	clientID shared.ClientID
 	opinion  int
 }
 
-type sortByOpinion []opinionOnTeams
+type sortByOpinion []opinionOnTeam
 
 /**************************/
 /*** 		Helpers	 	***/
