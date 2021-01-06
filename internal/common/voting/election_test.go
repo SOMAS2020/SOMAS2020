@@ -1,6 +1,7 @@
 package voting
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -37,7 +38,7 @@ func TestElection(t *testing.T) {
 func (e *Election) bordaCountTest() ([]float64, shared.ClientID) {
 	// Implement Borda count winner selection method
 	candidatesNumber := len(e.candidateList)
-	scoreList, variance, _ := e.scoreCalculator(e.votes, e.candidateList)
+	scoreList, variance, _ := scoreCalculator(e.votes, e.candidateList)
 
 	var maxScore float64 = 0
 	var winnerIndex int
@@ -60,7 +61,7 @@ func (e *Election) bordaCountTest() ([]float64, shared.ClientID) {
 func (e *Election) runOffTest(clientMap map[shared.ClientID]baseclient.Client) (map[int][]shared.ClientID, shared.ClientID) {
 	var winner shared.ClientID
 	//Round one
-	scoreList, variance, totalScore := e.scoreCalculator(e.votes, e.candidateList)
+	scoreList, variance, totalScore := scoreCalculator(e.votes, e.candidateList)
 	rOneCandidateList := e.candidateList
 	voterNumber := len(e.voterList)
 	roundCandidateMap := make(map[int][]shared.ClientID)
@@ -116,7 +117,7 @@ func (e *Election) instantRunoffTest(clientMap map[shared.ClientID]baseclient.Cl
 	roundCandidateMap[roundCount] = candidateList
 
 	for {
-		scoreList, variance, totalScore := e.scoreCalculator(totalVotes, candidateList)
+		scoreList, variance, totalScore := scoreCalculator(totalVotes, candidateList)
 
 		roundScoreList[roundCount] = scoreList
 
@@ -177,4 +178,60 @@ func (e *Election) approvalTest() ([][]shared.ClientID, shared.ClientID) {
 	}
 	winner := candidateList[maxScoreIndex]
 	return e.votes, winner
+}
+
+func TestOpenBallot(t *testing.T) {
+	cases := []struct {
+		name               string
+		voters             []shared.ClientID
+		allIslands         []shared.ClientID
+		expectedVoters     []shared.ClientID
+		expectedCandidates []shared.ClientID
+	}{
+		{
+			name:               "basic_test",
+			voters:             []shared.ClientID{shared.ClientID(1), shared.ClientID(3)},
+			allIslands:         []shared.ClientID{shared.ClientID(1), shared.ClientID(3)},
+			expectedVoters:     []shared.ClientID{shared.ClientID(1), shared.ClientID(3)},
+			expectedCandidates: []shared.ClientID{shared.ClientID(1), shared.ClientID(3)},
+		},
+		{
+			name:               "mismatched_voters_and_candidates_test",
+			voters:             []shared.ClientID{shared.ClientID(1), shared.ClientID(3)},
+			allIslands:         []shared.ClientID{shared.ClientID(1), shared.ClientID(2), shared.ClientID(3)},
+			expectedVoters:     []shared.ClientID{shared.ClientID(1), shared.ClientID(3)},
+			expectedCandidates: []shared.ClientID{shared.ClientID(1), shared.ClientID(2), shared.ClientID(3)},
+		},
+		{
+			name:               "mismatched_and_disordered_voters_and_candidates_test",
+			voters:             []shared.ClientID{shared.ClientID(1), shared.ClientID(3)},
+			allIslands:         []shared.ClientID{shared.ClientID(2), shared.ClientID(3), shared.ClientID(1)},
+			expectedVoters:     []shared.ClientID{shared.ClientID(1), shared.ClientID(3)},
+			expectedCandidates: []shared.ClientID{shared.ClientID(1), shared.ClientID(2), shared.ClientID(3)},
+		},
+		{
+			name:               "empty_lists_test",
+			voters:             []shared.ClientID{},
+			allIslands:         []shared.ClientID{},
+			expectedVoters:     []shared.ClientID{},
+			expectedCandidates: []shared.ClientID{},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			testelection := &Election{
+				candidateList: []shared.ClientID{},
+				voterList:     []shared.ClientID{},
+			}
+			testelection.OpenBallot(tc.voters, tc.allIslands)
+			resVoters := testelection.voterList
+			resCandidates := testelection.candidateList
+			if !reflect.DeepEqual(resVoters, tc.expectedVoters) {
+				t.Errorf("Expected voters to be %v got %v", tc.expectedVoters, resVoters)
+			}
+			if !reflect.DeepEqual(resCandidates, tc.expectedCandidates) {
+				t.Errorf("Expected candidates to be %v got %v", tc.expectedCandidates, resCandidates)
+			}
+		})
+	}
 }

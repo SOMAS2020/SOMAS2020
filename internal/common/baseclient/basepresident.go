@@ -3,6 +3,7 @@ package baseclient
 import (
 	"math/rand"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -33,21 +34,21 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 }
 
 // PickRuleToVote chooses a rule proposal from all the proposals
-func (p *BasePresident) PickRuleToVote(rulesProposals []string) shared.PresidentReturnContent {
+func (p *BasePresident) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.PresidentReturnContent {
 	// DefaulContentType: No rules were proposed by the islands
-	proposedRule := ""
+	proposedRuleMatrix := rules.RuleMatrix{}
 	actionTaken := false
 
 	// if some rules were proposed
 	if len(rulesProposals) != 0 {
-		proposedRule = rulesProposals[rand.Intn(len(rulesProposals))]
+		proposedRuleMatrix = rulesProposals[rand.Intn(len(rulesProposals))]
 		actionTaken = true
 	}
 
 	return shared.PresidentReturnContent{
-		ContentType:  shared.PresidentRuleProposal,
-		ProposedRule: proposedRule,
-		ActionTaken:  actionTaken,
+		ContentType:        shared.PresidentRuleProposal,
+		ProposedRuleMatrix: proposedRuleMatrix,
+		ActionTaken:        actionTaken,
 	}
 }
 
@@ -58,7 +59,8 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 
 	for clientID, clientReport := range islandsResources {
 		if clientReport.Reported {
-			taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * rand.Float64())
+			taxRate := 0.1
+			taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * taxRate)
 		} else {
 			taxAmountMap[clientID] = 15 //flat tax rate
 		}
@@ -71,11 +73,15 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 }
 
 // PaySpeaker pays the speaker a salary.
-func (p *BasePresident) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
-	// TODO : Implement opinion based salary payment. Salary should be set by a rule
+func (p *BasePresident) PaySpeaker() shared.PresidentReturnContent {
+	SpeakerSalaryRule, ok := rules.RulesInPlay["salary_cycle_speaker"]
+	var SpeakerSalary shared.Resources = 0
+	if ok {
+		SpeakerSalary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
+	}
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
-		SpeakerSalary: 0,
+		SpeakerSalary: SpeakerSalary,
 		ActionTaken:   true,
 	}
 }
