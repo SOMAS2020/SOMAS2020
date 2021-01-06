@@ -15,16 +15,10 @@ type judge struct {
 }
 
 // PayPresident pays the president's salary
-func (j *judge) PayPresident(salary shared.Resources) (shared.Resources, bool) {
-	j.c.params.salaryThreshold = 150 //parameter that we need to define
+func (j *judge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
 
-	// If our island is in a critical state, then we will deduct part of the salary
-	// defined by the salaryThreshold to at least meet our required threshold for survival.
-	if j.c.ServerReadHandle.GetGameState().ClientLifeStatuses[shared.Team3] == shared.Critical {
-		take := j.c.params.salaryThreshold - j.c.localPool
-		salary -= shared.Resources(take)
-	}
-	return salary, true
+	// Strategy: Pay the president the amount they are owed, no changing amount.
+	return presidentSalary, true
 }
 
 // InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
@@ -33,16 +27,16 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 	// If we do not have sufficient budget to conduct the inspection,
 	// then we will return an empty map with true evaluations.
-	if j.c.localPool < config.IIGOConfig.InspectHistoryActionCost {
-		// dummy evaluation map
-		for _, entry := range iigoHistory {
-			outMap[entry.ClientID] = roles.EvaluationReturn{
-				Rules:       []rules.RuleMatrix{},
-				Evaluations: []bool{},
-			}
-		}
-		return outMap, true
-	}
+	// if j.c.getLocalResources() < config.IIGOConfig.InspectHistoryActionCost {
+	// 	// dummy evaluation map
+	// 	for _, entry := range iigoHistory {
+	// 		outMap[entry.ClientID] = roles.EvaluationReturn{
+	// 			Rules:       []rules.RuleMatrix{},
+	// 			Evaluations: []bool{},
+	// 		}
+	// 	}
+	// 	return outMap, true
+	// }
 
 	// Else, carry out inspectHistory as base implementation.
 	for _, entry := range iigoHistory {
@@ -79,12 +73,12 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			// All other islands will be evaluated fairly using base implementation.
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
-				evaluation, err := rules.BasicBooleanRuleEvaluator(rule)
-				if err != nil {
+				evaluation := rules.EvaluateRule(rule)
+				if evaluation.EvalError != nil {
 					return outMap, false
 				}
 				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
-				tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation)
+				tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation.RulePasses)
 			}
 			outMap[clientID] = tempReturn
 		}
@@ -143,7 +137,19 @@ func (j *judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSan
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
 // COMPULSORY: decide which islands, if any, to forgive
 func (j *judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
-	return j.BaseJudge.GetPardonedIslands(currentSanctions)
+	pardons := make(map[int][]bool)
+	for key, sanctionList := range currentSanctions {
+		lst := make([]bool, len(sanctionList))
+		pardons[key] = lst
+		for index, sanction := range sanctionList {
+			if j.c.trustScore[sanction.ClientID] > 50 && j.c.params.friendliness > 40 {
+				pardons[key][index] = true
+			} else {
+				pardons[key][index] = false
+			}
+		}
+	}
+	return pardons
 }
 
 // HistoricalRetributionEnabled enables historical retribution of inspection (automatically set to 3 turns ago)

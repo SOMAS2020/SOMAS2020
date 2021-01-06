@@ -3,6 +3,8 @@ package team3
 // General client functions testing
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"math"
 	"reflect"
 	"testing"
 
@@ -21,42 +23,44 @@ func TestUpdateTrustMapAgg(t *testing.T) {
 			name: "Basic test",
 			ourClient: client{
 				trustMapAgg: map[shared.ClientID][]float64{
-					0: []float64{},
-					1: []float64{},
-					3: []float64{},
-					4: []float64{},
-					5: []float64{},
+					0: {},
+					1: {},
+					3: {},
+					4: {},
+					5: {},
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			clientID: 1,
 			amount:   10.34,
 			expectedVal: map[shared.ClientID][]float64{
-				0: []float64{},
-				1: []float64{10.34},
-				3: []float64{},
-				4: []float64{},
-				5: []float64{},
+				0: {},
+				1: {10.34},
+				3: {},
+				4: {},
+				5: {},
 			},
 		},
 		{
 			name: "Basic Test 1",
 			ourClient: client{
 				trustMapAgg: map[shared.ClientID][]float64{
-					0: []float64{5.92},
-					1: []float64{62.78},
-					3: []float64{17.62},
-					4: []float64{-10.3},
-					5: []float64{6.42},
+					0: {5.92},
+					1: {62.78},
+					3: {17.62},
+					4: {-10.3},
+					5: {6.42},
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			clientID: 4,
 			amount:   -9.56,
 			expectedVal: map[shared.ClientID][]float64{
-				0: []float64{5.92},
-				1: []float64{62.78},
-				3: []float64{17.62},
-				4: []float64{-10.3, -9.56},
-				5: []float64{6.42},
+				0: {5.92},
+				1: {62.78},
+				3: {17.62},
+				4: {-10.3, -9.56},
+				5: {6.42},
 			},
 		},
 	}
@@ -86,6 +90,7 @@ func TestInitTrustMapAgg(t *testing.T) {
 					4: []float64{-10.3},
 					5: []float64{6.42},
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			expectedVal: map[shared.ClientID][]float64{
 				0: []float64{},
@@ -105,6 +110,7 @@ func TestInitTrustMapAgg(t *testing.T) {
 					4: []float64{-10.3, 6.58, 3.74, -65.78, -78.98, 34.56},
 					5: []float64{6.42, 69.69, 98.87, -60.7857, 99.9999, 0.00001, 0.05},
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			expectedVal: map[shared.ClientID][]float64{
 				0: []float64{},
@@ -142,6 +148,7 @@ func TestUpdateTrustScore(t *testing.T) {
 					4: 50.0,
 					5: 50.0,
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			trustMapAgg: map[shared.ClientID][]float64{
 				0: []float64{5.92},
@@ -168,6 +175,7 @@ func TestUpdateTrustScore(t *testing.T) {
 					4: 5.05,
 					5: 69.69,
 				},
+				BaseClient: baseclient.NewClient(3),
 			},
 			trustMapAgg: map[shared.ClientID][]float64{
 				0: []float64{5.92, 8.97, 10.75},
@@ -190,6 +198,99 @@ func TestUpdateTrustScore(t *testing.T) {
 			tc.ourClient.updateTrustScore(tc.trustMapAgg)
 			if !reflect.DeepEqual(tc.ourClient.trustScore, tc.expectedVal) {
 				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, tc.ourClient.trustScore)
+			}
+		})
+	}
+}
+
+func TestUpdateCriticalThreshold(t *testing.T) {
+	cases := []struct {
+		name              string
+		ourClient         client
+		islandState       shared.ClientLifeStatus
+		estimatedResource shared.Resources
+		expected          criticalStatePrediction
+	}{
+		{
+			name: "in Critical Test",
+			ourClient: client{
+				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30}},
+			islandState:       shared.Critical,
+			estimatedResource: shared.Resources(40),
+			expected:          criticalStatePrediction{upperBound: 70, lowerBound: 40},
+		},
+		{
+			name: "Not in Critical Test",
+			ourClient: client{
+				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30}},
+			islandState:       shared.Alive,
+			estimatedResource: shared.Resources(60),
+			expected:          criticalStatePrediction{upperBound: 60, lowerBound: 30},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.ourClient.updateCriticalThreshold(tc.islandState, tc.estimatedResource)
+			ans := tc.ourClient.criticalStatePrediction
+			if ans != tc.expected {
+				t.Errorf("got %f-%f, want %f-%f", ans.lowerBound, ans.upperBound, tc.expected.lowerBound, tc.expected.upperBound)
+			}
+		})
+	}
+}
+
+func TestUpdateCompliance(t *testing.T) {
+	cases := []struct {
+		name        string
+		ourClient   client
+		expectedVal float64
+	}{
+		{
+			name: "Just caught!",
+			ourClient: client{
+				timeSinceCaught: 0,
+				numTimeCaught:   100,
+				compliance:      0.2,
+				params: islandParams{
+					recidivism:      1.0,
+					complianceLevel: 0.1,
+				},
+			},
+			expectedVal: 1.0,
+		},
+		{
+			name: "Compliance decay - non-compliant agent",
+			ourClient: client{
+				timeSinceCaught: 1,
+				numTimeCaught:   1,
+				compliance:      1.0,
+				params: islandParams{
+					recidivism:      1.0,
+					complianceLevel: 0.0,
+				},
+			},
+			expectedVal: math.Exp(-0.5),
+		},
+		{
+			name: "Compliance decay - fully-compliant agent",
+			ourClient: client{
+				timeSinceCaught: 1,
+				numTimeCaught:   10,
+				compliance:      1.0,
+				params: islandParams{
+					recidivism:      1.0,
+					complianceLevel: 1.0,
+				},
+			},
+			expectedVal: 1.0,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.ourClient.updateCompliance()
+			if tc.ourClient.compliance != tc.expectedVal {
+				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, tc.ourClient.compliance)
 			}
 		})
 	}

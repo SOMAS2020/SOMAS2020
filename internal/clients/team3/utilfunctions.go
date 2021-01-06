@@ -1,9 +1,33 @@
 package team3
 
 import (
+	"fmt"
+	"math"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+// A mock server handle used for tests
+type mockServerReadHandle struct {
+	gameState  gamestate.ClientGameState
+	gameConfig config.ClientConfig
+}
+
+func (m mockServerReadHandle) GetGameState() gamestate.ClientGameState {
+	return m.gameState
+}
+
+func (m mockServerReadHandle) GetGameConfig() config.ClientConfig {
+	return m.gameConfig
+}
+
+func (c *client) clientPrint(format string, a ...interface{}) {
+	if printTeam3Logs {
+		c.Logf("%v", fmt.Sprintf(format, a...))
+	}
+}
 
 // getLocalResources retrieves our islands resrouces from server
 func (c *client) getLocalResources() shared.Resources {
@@ -24,6 +48,16 @@ func (c *client) getIslandsAlive() int {
 		}
 	}
 	return aliveCount
+}
+
+
+// areWeCritical returns whether our client is critical or not
+func (c *client) areWeCritical() bool {
+	currentStatus := c.BaseClient.ServerReadHandle.GetGameState().ClientLifeStatuses
+	if currentStatus[c.GetID()] == shared.Critical {
+		return true
+	}
+	return false
 }
 
 func (c *client) getAliveIslands() []shared.ClientID {
@@ -70,24 +104,30 @@ func getAverage(lst []float64) float64 {
 	return (float64(total) / float64(len(lst)))
 }
 
-// getIslandsAlive retrives number of islands still alive
-func (c *client) isClientStatusCritical(ClientID shared.ClientID) bool {
-	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
+// mostTrusted return the ClientID that corresponds to the highest trust value
+func mostTrusted(values map[shared.ClientID]float64) shared.ClientID {
+	var max = -math.MaxFloat64
+	var mostTrustedClient shared.ClientID
 
-	currentState := c.BaseClient.ServerReadHandle.GetGameState()
-	lifeStatuses = currentState.ClientLifeStatuses
-
-	if lifeStatuses[ClientID] == shared.Critical {
-		return true
+	for clientID, trustScore := range values {
+		if trustScore > max {
+			max = trustScore
+			mostTrustedClient = clientID
+		}
 	}
-	return false
+	return mostTrustedClient
 }
 
-// A mock server handle used for tests
-type mockServerReadHandle struct {
-	gameState gamestate.ClientGameState
-}
+// leastTrusted return the ClientID that corresponds to the smallest trust value
+func leastTrusted(values map[shared.ClientID]float64) shared.ClientID {
+	var min = math.MaxFloat64
+	var leastTrustedClient shared.ClientID
 
-func (m mockServerReadHandle) GetGameState() gamestate.ClientGameState {
-	return m.gameState
+	for clientID, trustScore := range values {
+		if trustScore > min {
+			min = trustScore
+			leastTrustedClient = clientID
+		}
+	}
+	return leastTrustedClient
 }

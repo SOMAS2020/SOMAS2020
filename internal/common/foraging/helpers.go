@@ -48,11 +48,11 @@ func compileForagingReport(
 }
 
 // utilityTier gets the discrete utility tier (i.e. max number of deer/fish) for given scalar resource input
-func utilityTier(input shared.Resources, maxNumberPerHunt uint, decay float64) uint {
+func utilityTier(input shared.Resources, maxNumberPerHunt uint, decay, inputScaler float64) uint {
 	inputF := float64(input)
 	sum := 0.0
 	for i := uint(0); i < maxNumberPerHunt; i++ {
-		sum += math.Pow(decay, float64(i))
+		sum += math.Pow(decay, float64(i)) * inputScaler
 		if inputF < sum {
 			return i
 		}

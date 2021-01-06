@@ -9,8 +9,7 @@ import (
 type BasePresident struct{}
 
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
-// COMPULSORY: decide how much each island can take from the common pool.
-func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
+func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
 	var requestSum shared.Resources
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
 
@@ -25,35 +24,60 @@ func (p *BasePresident) EvaluateAllocationRequests(resourceRequest map[shared.Cl
 			resourceAllocation[id] = shared.Resources(request * availCommonPool * 3 / (4 * requestSum))
 		}
 	}
-	return resourceAllocation, true
+
+	return shared.PresidentReturnContent{
+		ContentType: shared.PresidentAllocation,
+		ResourceMap: resourceAllocation,
+		ActionTaken: true,
+	}
 }
 
 // PickRuleToVote chooses a rule proposal from all the proposals
-// COMPULSORY: decide a method for picking a rule to vote on
-func (p *BasePresident) PickRuleToVote(rulesProposals []string) (string, bool) {
-	if len(rulesProposals) == 0 {
-		// No rules were proposed by the islands
-		return "", false
+func (p *BasePresident) PickRuleToVote(rulesProposals []string) shared.PresidentReturnContent {
+	// DefaulContentType: No rules were proposed by the islands
+	proposedRule := ""
+	actionTaken := false
+
+	// if some rules were proposed
+	if len(rulesProposals) != 0 {
+		proposedRule = rulesProposals[rand.Intn(len(rulesProposals))]
+		actionTaken = true
 	}
-	return rulesProposals[rand.Intn(len(rulesProposals))], true
+
+	return shared.PresidentReturnContent{
+		ContentType:  shared.PresidentRuleProposal,
+		ProposedRule: proposedRule,
+		ActionTaken:  actionTaken,
+	}
 }
 
 // SetTaxationAmount sets taxation amount for all of the living islands
-// islandsResources: map of all the living islands and their remaining resources
-// COMPULSORY: decide how much to tax islands, using rules as a guide if you wish.
-func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.Resources) (map[shared.ClientID]shared.Resources, bool) {
+// islandsResources: map of all the living islands and their reported resources
+func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
-	for id, resourceLeft := range islandsResources {
-		taxAmountMap[id] = shared.Resources(float64(resourceLeft) * rand.Float64())
+
+	for clientID, clientReport := range islandsResources {
+		if clientReport.Reported {
+			taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * rand.Float64())
+		} else {
+			taxAmountMap[clientID] = 15 //flat tax rate
+		}
 	}
-	return taxAmountMap, true
+	return shared.PresidentReturnContent{
+		ContentType: shared.PresidentTaxation,
+		ResourceMap: taxAmountMap,
+		ActionTaken: true,
+	}
 }
 
 // PaySpeaker pays the speaker a salary.
-// OPTIONAL: override to pay the Speaker less than the full amount.
-func (p *BasePresident) PaySpeaker(salary shared.Resources) (shared.Resources, bool) {
-	// TODO : Implement opinion based salary payment.
-	return salary, true
+func (p *BasePresident) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
+	// TODO : Implement opinion based salary payment. Salary should be set by a rule
+	return shared.PresidentReturnContent{
+		ContentType:   shared.PresidentSpeakerSalary,
+		SpeakerSalary: 0,
+		ActionTaken:   true,
+	}
 }
 
 // CallSpeakerElection is called by the executive to decide on power-transfer

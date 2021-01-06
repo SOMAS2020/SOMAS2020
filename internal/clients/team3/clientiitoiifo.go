@@ -7,25 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-/*
-	//IIFO: OPTIONAL
-	MakeDisasterPrediction() shared.DisasterPredictionInfo
-	ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict)
-	MakeForageInfo() shared.ForageShareInfo
-	ReceiveForageInfo([]shared.ForageShareInfo)
-
-	//IITO: COMPULSORY
-	GetGiftRequests() shared.GiftRequestDict
-	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
-	DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources
-
-	//TODO: IITO NON COMPULSORY
-	// The server should handle the below functions maybe?
-	func (c *BaseClient) SentGift(sent shared.Resources, to shared.ClientID)
-	func (c *BaseClient) ReceivedGift(received shared.Resources, from shared.ClientID)
-
-*/
-
 // GetGiftOffers allows clients to make offers in response to gift requests by other clients.
 // It can offer multiple partial gifts.
 // Strategy: We cover the risk that we lose money from the islands that we don’t trust with

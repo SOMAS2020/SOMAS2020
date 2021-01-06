@@ -12,17 +12,17 @@ var AvailableRules = map[string]RuleMatrix{}
 var RulesInPlay = map[string]RuleMatrix{}
 
 // RegisterNewRule Creates and registers new rule based on inputs
-func RegisterNewRule(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, mutable bool) (constructedMatrix *RuleMatrix, Error error) {
-	return registerNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules, mutable)
+func RegisterNewRule(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
+	return registerNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules, mutable, link)
 }
 
 // registerNewRuleInternal provides primal register logic for any rule cache
-func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool) (constructedMatrix *RuleMatrix, Error error) {
+func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
 	if _, ok := ruleStore[ruleName]; ok {
-		return nil, &RuleError{err: errors.Errorf("Rule '%v' already in rule cache", ruleName), errorType: TriedToReRegisterRule}
+		return nil, &RuleError{Err: errors.Errorf("Rule '%v' already in rule cache", ruleName), ErrorType: TriedToReRegisterRule}
 	}
 
-	rm := RuleMatrix{RuleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxiliaryVector: auxiliaryVector, Mutable: mutable}
+	rm := RuleMatrix{RuleName: ruleName, RequiredVariables: requiredVariables, ApplicableMatrix: applicableMatrix, AuxiliaryVector: auxiliaryVector, Mutable: mutable, Link: link}
 	ruleStore[ruleName] = rm
 	return &rm, nil
 }
@@ -36,12 +36,12 @@ func PullRuleIntoPlay(rulename string) error {
 func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
-			return &RuleError{err: errors.Errorf("Rule '%v' is already in play", rulename), errorType: RuleIsAlreadyInPlay}
+			return &RuleError{Err: errors.Errorf("Rule '%v' is already in play", rulename), ErrorType: RuleIsAlreadyInPlay}
 		}
 		playRules[rulename] = allRules[rulename]
 		return nil
 	}
-	return &RuleError{err: errors.Errorf("Rule '%v' does not exist in available rules", rulename), errorType: RuleNotInAvailableRulesCache}
+	return &RuleError{Err: errors.Errorf("Rule '%v' does not exist in available rules", rulename), ErrorType: RuleNotInAvailableRulesCache}
 }
 
 // PullRuleOutOfPlay provides disengagement logic for global rules in play cache
@@ -56,9 +56,9 @@ func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, 
 			delete(playRules, rulename)
 			return nil
 		}
-		return &RuleError{err: errors.Errorf("Rule '%v' is not in play", rulename), errorType: RuleIsNotInPlay}
+		return &RuleError{Err: errors.Errorf("Rule '%v' is not in play", rulename), ErrorType: RuleIsNotInPlay}
 	}
-	return &RuleError{err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), errorType: RuleNotInAvailableRulesCache}
+	return &RuleError{Err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), ErrorType: RuleNotInAvailableRulesCache}
 }
 
 // ModifyRule allows for rules that are flagged as mutable to be modified
@@ -70,17 +70,17 @@ func modifyRuleInternal(rulename string, newMatrix mat.Dense, newAuxiliary mat.V
 	if _, ok := rulesCache[rulename]; ok {
 		oldRuleMatrix := rulesCache[rulename]
 		if !oldRuleMatrix.Mutable {
-			return &RuleError{err: errors.Errorf("Rule '%v' is not mutable", rulename), errorType: RuleRequestedForModificationWasImmutable}
+			return &RuleError{Err: errors.Errorf("Rule '%v' is not mutable", rulename), ErrorType: RuleRequestedForModificationWasImmutable}
 		}
 		oldMatrix := oldRuleMatrix.ApplicableMatrix
 		_, ocols := oldMatrix.Dims()
 		nrows, ncols := newMatrix.Dims()
 		if ocols != ncols {
-			return &RuleError{err: errors.Errorf("Provided Rule matrix '%v' has a dimension mismatch with old matrix '%v'", newMatrix, oldMatrix), errorType: ModifiedRuleMatrixDimensionMismatch}
+			return &RuleError{Err: errors.Errorf("Provided Rule matrix '%v' has a dimension mismatch with old matrix '%v'", newMatrix, oldMatrix), ErrorType: ModifiedRuleMatrixDimensionMismatch}
 		}
 		auxRows, _ := newAuxiliary.Dims()
 		if nrows != auxRows {
-			return &RuleError{err: errors.Errorf("Aux vector '%v' has dimension mismatch with Rule Matrix '%v'", newAuxiliary, newMatrix), errorType: AuxVectorDimensionDontMatchRuleMatrix}
+			return &RuleError{Err: errors.Errorf("Aux vector '%v' has dimension mismatch with Rule Matrix '%v'", newAuxiliary, newMatrix), ErrorType: AuxVectorDimensionDontMatchRuleMatrix}
 		}
 		newRuleMatrix := RuleMatrix{
 			RuleName:          oldRuleMatrix.RuleName,
@@ -95,5 +95,5 @@ func modifyRuleInternal(rulename string, newMatrix mat.Dense, newAuxiliary mat.V
 		}
 		return nil
 	}
-	return &RuleError{err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), errorType: RuleNotInAvailableRulesCache}
+	return &RuleError{Err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), ErrorType: RuleNotInAvailableRulesCache}
 }
