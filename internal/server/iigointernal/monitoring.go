@@ -115,3 +115,7 @@ func generateMonitoringMessage(role shared.Role, result bool) map[shared.Communi
 
 	return returnMap
 }
+
+func (m *monitor) clearCache() {
+	m.internalIIGOCache = []shared.Accountability{}
+}

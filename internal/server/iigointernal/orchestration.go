@@ -229,6 +229,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	speakerMonitored := monitoring.monitorRole(g, iigoClients[g.JudgeID])
 	presidentMonitored := monitoring.monitorRole(g, iigoClients[g.SpeakerID])
 	judgeMonitored := monitoring.monitorRole(g, iigoClients[g.PresidentID])
+	monitoring.clearCache()
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
 	// Get new Judge ID
@@ -256,6 +257,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	speakerMonitored = monitoring.monitorRole(g, iigoClients[g.JudgeID])
 	presidentMonitored = monitoring.monitorRole(g, iigoClients[g.SpeakerID])
 	judgeMonitored = monitoring.monitorRole(g, iigoClients[g.PresidentID])
+	monitoring.clearCache()
 
 	// Get new Judge ID
 	actionCost = gameConf.IIGOConfig
