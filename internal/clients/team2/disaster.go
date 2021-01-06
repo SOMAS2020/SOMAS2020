@@ -84,6 +84,11 @@ func GetMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	totalTurns := float64(c.gameState().Turn)
 
+	// If no disasters have occurred then we cannot make a valid prediction
+	if len(c.disasterHistory) == 0 {
+		return nilPrediction()
+	}
+
 	// Get the location prediction
 	locationPrediction := GetLocationPrediction(c)
 
@@ -114,6 +119,16 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		TeamsOfferedTo: trustedislands,
 	}
 	return disasterPredictionInfo
+}
+
+// nilPrediction provides a nil prediction i.e. a prediction containing no information and
+// is shared with no teams. We can tell it is a nil prediction because disasterHistory is empty
+func nilPrediction() shared.DisasterPredictionInfo {
+	nilPrediction := shared.DisasterPredictionInfo{
+		PredictionMade: shared.DisasterPrediction{},
+		TeamsOfferedTo: []shared.ClientID{},
+	}
+	return nilPrediction
 }
 
 // GetLocationPrediction provides a prediction about the location of the next disaster.

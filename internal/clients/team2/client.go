@@ -77,7 +77,7 @@ type DisasterOccurence struct {
 
 // A set of constants that define tuning parameters
 const (
-	// Disasters
+	// Disasters (0, infinity]
 	TuningParamK             float64 = 1
 	VarianceCapTimeRemaining float64 = 10000
 	TuningParamG             float64 = 1
