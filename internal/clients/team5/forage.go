@@ -303,10 +303,9 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 			shareTo = append(shareTo, team)
 		}
 	}
-
-	lastTurn := c.gameState().Turn - 1 // value of the last turn
-	if lastTurn < 0 {                  // No previous foraging
-		shareTo = []shared.ClientID{}
+	lastTurn := c.getTurn()
+	if c.getTurn() > 1 {
+		lastTurn--
 	}
 
 	var contribution shared.ForageDecision
