@@ -61,6 +61,7 @@ type Client interface {
 	MonitorIIGORole(shared.Role) bool
 	DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
 
+	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
 	SentGift(sent shared.Resources, to shared.ClientID)
 	ReceivedGift(received shared.Resources, from shared.ClientID)
 }
