@@ -10,15 +10,16 @@ import (
 
 func init() {
 	c := client{
-		BaseClient:          baseclient.NewClient(ourClientID),
-		cpRequestHistory:    cpRequestHistory{},
-		cpAllocationHistory: cpAllocationHistory{},
-		forageHistory:       forageHistory{},
-		resourceHistory:     resourceHistory{},
-		team5president:      president{},
-		giftHistory:         map[shared.ClientID]giftExchange{},
-		forecastHistory:     forecastHistory{},
-		disasterHistory:     disasterHistory{},
+		BaseClient:              baseclient.NewClient(ourClientID),
+		cpRequestHistory:        cpRequestHistory{},
+		cpAllocationHistory:     cpAllocationHistory{},
+		forageHistory:           forageHistory{},
+		resourceHistory:         resourceHistory{},
+		team5president:          president{},
+		giftHistory:             map[shared.ClientID]giftExchange{},
+		forecastHistory:         forecastHistory{},
+		receivedForecastHistory: receivedForecastHistory{},
+		disasterHistory:         disasterHistory{},
 
 		taxAmount:  0,
 		allocation: 0,
@@ -122,6 +123,8 @@ func (c *client) ReceiveCommunication(
 			c.taxAmount = shared.Resources(content.IntegerData)
 		case shared.AllocationAmount:
 			c.allocation = shared.Resources(content.IntegerData)
+		case shared.SanctionAmount:
+			c.sanctionAmount = shared.Resources(content.IntegerData)
 		}
 	}
 }

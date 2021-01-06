@@ -81,15 +81,16 @@ type client struct {
 	team5Judge   judge
 
 	// History
-	resourceHistory     resourceHistory
-	forageHistory       forageHistory
-	giftHistory         giftHistory
-	cpRequestHistory    cpRequestHistory
-	cpAllocationHistory cpAllocationHistory
-	cpResourceHistory   cpResourceHistory
-	opinionHistory      opinionHistory
-	forecastHistory     forecastHistory // history of forecasted disasters
-	disasterHistory     disasterHistory // history of actual disasters
+	resourceHistory         resourceHistory
+	forageHistory           forageHistory
+	giftHistory             giftHistory
+	cpRequestHistory        cpRequestHistory
+	cpAllocationHistory     cpAllocationHistory
+	cpResourceHistory       cpResourceHistory
+	opinionHistory          opinionHistory
+	forecastHistory         forecastHistory // history of forecasted disasters
+	receivedForecastHistory receivedForecastHistory
+	disasterHistory         disasterHistory // history of actual disasters
 
 	// current states
 	opinions               opinionMap // opinions of each team
