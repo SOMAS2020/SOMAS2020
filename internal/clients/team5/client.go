@@ -26,10 +26,25 @@ func init() {
 	baseclient.RegisterClient(ourClientID, &c)
 }
 
+func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
+	c.ServerReadHandle = serverReadHandle // don't change this
+	c.LocalVariableCache = rules.CopyVariableMap()
+	c.initOpinions()
+	c.initGiftHist()
+	// Assign the thresholds according to the amount of resouces in the first turn
+	c.config.jbThreshold = (c.gameState().ClientInfo.Resources) * c.config.jbThreshold
+	c.config.middleThreshold = (c.gameState().ClientInfo.Resources) * c.config.middleThreshold
+	c.config.imperialThreshold = (c.gameState().ClientInfo.Resources) * c.config.imperialThreshold
+
+	// Print the Thresholds
+	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
+		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
+}
+
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
-	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.wealth()
+	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 
 	c.opinionHistory[c.getTurn()] = c.opinions // assign last turn's opinions as default for this turn
 
@@ -52,21 +67,6 @@ func (c *client) StartOfTurn() {
 
 }
 
-func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
-	c.ServerReadHandle = serverReadHandle // don't change this
-	c.LocalVariableCache = rules.CopyVariableMap()
-	c.initOpinions()
-
-	// Assign the thresholds according to the amount of resouces in the first turn
-	c.config.jbThreshold = c.resourceHistory[1] * 2
-	c.config.middleThreshold = c.resourceHistory[1] * 0.95
-	c.config.imperialThreshold = c.resourceHistory[1] * 0.5
-
-	// Print the Thresholds
-	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
-		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
-}
-
 //================================================================
 /*	Wealth class
 	Calculates the class of wealth we are in according
@@ -78,9 +78,8 @@ func (c client) wealth() wealthTier {
 	case cData.LifeStatus == shared.Critical: // We dying
 		return dying
 	case cData.Resources > c.config.jbThreshold:
-		// c.Logf("[Team 5][Wealth:%v][Class:%v]", cData.Resources,c.config.JBThreshold)      // Debugging
 		return jeffBezos // Rich
-	case cData.Resources > c.config.imperialThreshold && cData.Resources <= c.config.jbThreshold:
+	case cData.Resources >= c.config.imperialThreshold && cData.Resources <= c.config.jbThreshold:
 		return middleClass // Middle
 	default:
 		return imperialStudent // Middle class
