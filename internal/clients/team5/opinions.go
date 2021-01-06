@@ -45,6 +45,14 @@ func (wo wrappedOpininon) String() string {
 	return fmt.Sprintf("wrappedOpinion{opinion: %v}", wo.opinion)
 }
 
+func (wo wrappedOpininon) getScore() opinionScore {
+	return wo.opinion.score
+}
+
+func (wo wrappedOpininon) getForecastingRep() opinionScore {
+	return wo.opinion.forecastReputation
+}
+
 func (o opinion) String() string {
 	return fmt.Sprintf("opinion{score: %.2f, forecastReputation: %.2f}", o.score, o.forecastReputation)
 }
@@ -64,14 +72,6 @@ func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) 
 	}
 	wo.opinion = op // update opinion
 	return nil
-}
-
-func (wo wrappedOpininon) getScore() opinionScore {
-	return wo.opinion.score
-}
-
-func (wo wrappedOpininon) getForecastingRep() opinionScore {
-	return wo.opinion.forecastReputation
 }
 
 // creates initial opinions of clients and creates
