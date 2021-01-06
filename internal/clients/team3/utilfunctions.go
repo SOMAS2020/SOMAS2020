@@ -50,7 +50,6 @@ func (c *client) getIslandsAlive() int {
 	return aliveCount
 }
 
-
 // areWeCritical returns whether our client is critical or not
 func (c *client) areWeCritical() bool {
 	currentStatus := c.BaseClient.ServerReadHandle.GetGameState().ClientLifeStatuses
@@ -130,4 +129,17 @@ func leastTrusted(values map[shared.ClientID]float64) shared.ClientID {
 		}
 	}
 	return leastTrustedClient
+}
+
+// getIslandsAlive retrives number of islands still alive
+func (c *client) isClientStatusCritical(ClientID shared.ClientID) bool {
+	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
+
+	currentState := c.BaseClient.ServerReadHandle.GetGameState()
+	lifeStatuses = currentState.ClientLifeStatuses
+
+	if lifeStatuses[ClientID] == shared.Critical {
+		return true
+	}
+	return false
 }
