@@ -12,18 +12,18 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	SentGift(sent shared.Resources, to shared.ClientID)
 	ReceivedGift(sent shared.Resources, from shared.ClientID)
 
-	For refrence
+	For reference
 	ourRequest giftInfo
 		requested      shared.GiftRequest    - GetGiftRequest - Amount WE request 1
 		offered        shared.GiftOffer 	- GetGiftResponses - Amount offered TO US 3
 		response       shared.GiftResponse	- GetGiftResponses - Amount WE accepeted and reason 3
-		actualRecieved shared.Resources		- ReceivedGift - Amount WE actually received 6
+		actualReceived shared.Resources		- ReceivedGift - Amount WE actually received 6
 
 	theirRequest giftInfo
 		requested      shared.GiftRequest    - GetGiftOffers - Amount THEY requested  2
 		offered        shared.GiftOffer		- GetGiftOffers - Amount WE offered 2
 		response       shared.GiftResponse 	- UpdateGiftInfo - Amount THEY accepeted and reason 4
-		actualRecieved shared.Resources		- DecideGiftAmount - Amount THEY actually get 5
+		actualReceived shared.Resources		- DecideGiftAmount - Amount THEY actually get 5
 */
 
 // creates initial opinions of clients and sets the values to 0 (prevents nil mapping)
@@ -35,13 +35,13 @@ func (c *client) initGiftHist() {
 			requested:      0,
 			offered:        0,
 			response:       shared.GiftResponse{AcceptedAmount: 0, Reason: 0},
-			actualRecieved: 0,
+			actualReceived: 0,
 		}
 		theirGiftInfo := giftInfo{
 			requested:      0,
 			offered:        0,
 			response:       shared.GiftResponse{AcceptedAmount: 0, Reason: 0},
-			actualRecieved: 0,
+			actualReceived: 0,
 		}
 		ourReq := map[uint]giftInfo{c.getTurn(): ourGiftInfo}
 		theirReq := map[uint]giftInfo{c.getTurn(): theirGiftInfo}
@@ -55,9 +55,7 @@ func (c *client) initGiftHist() {
 // GetGiftRequests we want gifts!
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
-	for team, status := range c.getAliveTeams(false) {
-		team := shared.ClientID(team)
-		status := shared.ClientLifeStatus(status)
+	for team, status := range c.gameState().ClientLifeStatuses {
 		if status != shared.Critical {
 			switch {
 			case c.getLifeStatus() == shared.Critical: // Case we are critical
@@ -83,18 +81,17 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 // unless another team is critical.
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
-	for team, status := range c.getAliveTeams(false) {
-		team := shared.ClientID(team)
+	for team, status := range c.gameState().ClientLifeStatuses {
 		status := shared.ClientLifeStatus(status)
 		switch {
-		case c.wealth() >= 2:
+		case c.wealth() >= 2: // case we are rich
 			if status == shared.Critical {
 				offers[team] = shared.GiftOffer(10.0) // Give 3 to dying islands
 			} else {
 				offers[team] = shared.GiftOffer(1.0) // gift a dollar
 			}
 		default:
-			if status == shared.Critical {
+			if status == shared.Critical { // Case we are poor
 				offers[team] = shared.GiftOffer(1.5)
 			} else {
 				offers[team] = shared.GiftOffer(0.5) // can we abuse the fact that they look at the amount of gifts?
@@ -123,8 +120,7 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 		}
 	}
 	// History
-	for team := range c.getAliveTeams(false) { // Could be in the loop above but
-		team := shared.ClientID(team)
+	for _, team := range c.getAliveTeams(true) { // Could be in the loop above but
 		newGiftRequest := giftInfo{ // for consistency with other functions its here
 			requested: c.giftHistory[team].ourRequest[c.getTurn()].requested, // Amount We requested
 			offered:   receivedOffers[team],                                  // Amount offered TO US
@@ -143,8 +139,7 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 // COMPULSORY, you need to implement this method
 
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
-	for team := range c.getAliveTeams(false) {
-		team := shared.ClientID(team)
+	for _, team := range c.getAliveTeams(true) {
 		newGiftRequest := giftInfo{
 			requested: c.giftHistory[team].theirRequest[c.getTurn()].requested, // Amount THEY requested
 			offered:   c.giftHistory[team].theirRequest[c.getTurn()].offered,   // Amount WE offered them
@@ -177,7 +172,7 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 		requested:      c.giftHistory[toTeam].theirRequest[c.getTurn()].requested, // Amount We requested
 		offered:        c.giftHistory[toTeam].theirRequest[c.getTurn()].offered,   // Amount offered TO US
 		response:       c.giftHistory[toTeam].theirRequest[c.getTurn()].response,  // Amount and reason WE accepted
-		actualRecieved: giftOffer,                                                 // Amount they ACTUALLY recieve
+		actualReceived: giftOffer,                                                 // Amount they ACTUALLY recieve
 	}
 	c.giftHistory[toTeam].theirRequest[c.getTurn()] = newGiftRequest
 
@@ -200,7 +195,7 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 		requested:      c.giftHistory[to].theirRequest[c.getTurn()].requested, // Amount We requested
 		offered:        c.giftHistory[to].theirRequest[c.getTurn()].offered,   // Amount offered TO US
 		response:       c.giftHistory[to].theirRequest[c.getTurn()].response,  // Amount and reason WE accepted
-		actualRecieved: sent,                                                  // Amount they actually recieve according to server
+		actualReceived: sent,                                                  // Amount they actually recieve according to server
 	}
 	c.giftHistory[to].theirRequest[c.getTurn()] = newGiftRequest
 }
@@ -215,7 +210,7 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 		requested:      c.giftHistory[from].ourRequest[c.getTurn()].requested, // Amount We requested
 		offered:        c.giftHistory[from].ourRequest[c.getTurn()].offered,   // Amount offered TO US
 		response:       c.giftHistory[from].ourRequest[c.getTurn()].response,  // Amount and reason WE accepted
-		actualRecieved: received,                                              // Amount they actually GAVE us
+		actualReceived: received,                                              // Amount they actually GAVE us
 	}
 	c.giftHistory[from].ourRequest[c.getTurn()] = newGiftRequest
 

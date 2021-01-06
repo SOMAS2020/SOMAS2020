@@ -131,7 +131,7 @@ func (c *client) giftOpinions() {
 		}
 
 		// If we ACTUALLY get LESS than they OFFERED us
-		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualRecieved) <
+		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) <
 			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) {
 			c.opinions[team].score -= 0.10
 		}
@@ -146,15 +146,15 @@ func (c *client) giftOpinions() {
 
 		// ======================= Good =======================
 		// If they GIVE MORE than OFFERED then increase it a bit (can be abused)
-		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualRecieved) >
+		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) >
 			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) {
 			c.opinions[team].score += 0.025
 		}
 
-		// If we RECIEVE MORE than WE REQUESTED and they OFFERED
-		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualRecieved) >
+		// If we RECEIVE MORE than WE REQUESTED and they OFFERED
+		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) >
 			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) &&
-			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualRecieved) >
+			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) >
 				shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].requested) {
 			c.opinions[team].score += 0.2
 		}

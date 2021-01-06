@@ -51,7 +51,7 @@ type giftInfo struct {
 	requested      shared.GiftRequest  // How much was requested
 	offered        shared.GiftOffer    // How much offered
 	response       shared.GiftResponse // Response to offer
-	actualRecieved shared.Resources    // How much was actually recieved
+	actualReceived shared.Resources    // How much was actually received
 }
 
 //giftExchange offers the two sides of gifting
