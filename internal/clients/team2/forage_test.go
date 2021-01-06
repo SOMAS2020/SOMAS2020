@@ -20,5 +20,7 @@ func TestOtherHunters(t *testing.T) {
 		}
 	}
 	print(HuntNum)
-	t.Error("Fail")
+	if HuntNum != 2.4 {
+		t.Error("Otherhunters does calculate the average number of hunters correctly")
+	}
 }
