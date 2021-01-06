@@ -27,7 +27,7 @@ func (j *BaseJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIG
 // OPTIONAL: override to pay the President less than the full amount.
 func (j *BaseJudge) PayPresident() (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
-	PresidentSalaryRule, ok := rules.AvailableRules["salary_cycle_president"]
+	PresidentSalaryRule, ok := rules.RulesInPlay["salary_cycle_president"]
 	var PresidentSalary shared.Resources = 0
 	if ok {
 		PresidentSalary = shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
