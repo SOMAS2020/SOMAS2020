@@ -1931,16 +1931,15 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 func defaultInitJudiciary() judiciary {
 	return judiciary{
 		JudgeID:               0,
-		presidentSalary:       0,
 		evaluationResults:     map[shared.ClientID]roles.EvaluationReturn{},
 		clientJudge:           &baseclient.BaseJudge{},
-		presidentTurnsInPower: 0,
 		sanctionRecord:        map[shared.ClientID]roles.IIGOSanctionScore{},
 		sanctionThresholds:    map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{},
 		ruleViolationSeverity: map[string]roles.IIGOSanctionScore{},
 		localSanctionCache:    map[int][]roles.Sanction{},
 		localHistoryCache:     map[int][]shared.Accountability{},
 		gameConf:              &config.IIGOConfig{},
+		monitoring:            &monitor{},
 		gameState: &gamestate.GameState{
 			CommonPool: 999,
 			IIGORolesBudget: map[shared.Role]shared.Resources{
