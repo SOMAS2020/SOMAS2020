@@ -30,6 +30,10 @@ type clientConfig struct {
 	// How much to request when we are dying
 	middleGiftRequestAmount shared.Resources
 
+	//How much to boost gifts based on opinion
+	giftBoosting shared.Resources
+	giftReduct   shared.Resources
+
 	// Disasters and IIFO
 	forecastTrustTreshold opinionScore // min opinion score of another team to consider their forecast in creating ours
 	maxForecastVariance   float64      // maximum tolerable variance in historical forecast values
@@ -59,6 +63,8 @@ func getClientConfig() clientConfig {
 		dyingGiftRequestAmount:    10,
 		imperialGiftRequestAmount: 5,
 		middleGiftRequestAmount:   2,
+		giftBoosting:              1.4,
+		giftReduct:                0.5,
 
 		// Disasters and IIFO
 		forecastTrustTreshold: 0.0, // neutral opinion
