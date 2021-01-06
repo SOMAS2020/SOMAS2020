@@ -6,11 +6,9 @@ import (
 )
 
 type judge struct {
-    *baseclient.BaseJudge
-    //c *client comment out right now because we'll just use the baseSpeaker implementation 
+	*baseclient.BaseJudge
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	//c.Logf("Team 5 became judge")
 	return &c.team5Judge
 }

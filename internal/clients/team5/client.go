@@ -101,8 +101,8 @@ func (c *client) updateResourceHistory(resourceHistory resourceHistory) {
 	c.Logf("[Debug] - Current round amount: %v", currentResources)
 }
 
-func (c *client) gameState() gamestate.ClientGameState {
-	return c.BaseClient.ServerReadHandle.GetGameState()
+func (c client) gameState() gamestate.ClientGameState {
+	return c.ServerReadHandle.GetGameState()
 }
 
 //================================================================

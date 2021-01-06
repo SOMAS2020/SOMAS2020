@@ -51,7 +51,7 @@ func (o opinion) String() string {
 
 // "Normalize" opinion to keep it in range -1 and 1
 func (c *client) normalizeOpinion() {
-	for clientID, _ := range c.opinions {
+	for clientID := range c.opinions {
 		if c.opinions[clientID].score < -1.0 {
 			c.opinions[clientID].score = -1
 		} else if c.opinions[clientID].score > 1.0 {
@@ -69,7 +69,7 @@ func (c *client) evaluateRoles() {
 	//compute total budget
 	budget := c.ServerReadHandle.GetGameState().IIGORolesBudget
 	var totalBudget shared.Resources = 0
-	for role, _ := range budget {
+	for role := range budget {
 		totalBudget += budget[role]
 	}
 	// compute total maximum tax to cp
