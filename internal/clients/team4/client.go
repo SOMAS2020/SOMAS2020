@@ -109,7 +109,6 @@ type personality struct {
 
 //Overriding the Initialise method of the BaseClient to initilise the trust matrix too
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
-	c.ServerReadHandle = serverReadHandle
 	c.BaseClient.Initialise(serverReadHandle)
 
 	//custom things below, trust matrix initilised to values of 1

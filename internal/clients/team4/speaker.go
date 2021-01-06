@@ -11,6 +11,8 @@ type speaker struct {
 	parent *client
 }
 
+//s.parent.ServerReadHandle.GetGameConfig()
+
 // PayJudge is used for paying judge for his service
 /*func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 	JudgeSalaryRule, ok := rules.RulesInPlay["salary_cycle_judge"]
