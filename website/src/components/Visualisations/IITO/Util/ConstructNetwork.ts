@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 // Construct a network of nodes and links from the processed Transaction Data
-function constructNetwork(data) {
+function constructNetwork(data: JSON) {
     let nodes = [];
     let links = [];
 
