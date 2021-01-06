@@ -149,9 +149,7 @@ func copyLink(inp rules.RuleLink) rules.RuleLink {
 
 func copyRequiredVariables(inp []rules.VariableFieldName) []rules.VariableFieldName {
 	targetList := make([]rules.VariableFieldName, len(inp))
-	for index, entry := range inp {
-		targetList[index] = entry
-	}
+	copy(targetList, inp)
 	return targetList
 }
 
