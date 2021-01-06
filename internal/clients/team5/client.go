@@ -25,10 +25,13 @@ func createClient() *client {
 		forecastHistory:         forecastHistory{},
 		receivedForecastHistory: receivedForecastHistory{},
 		disasterHistory:         disasterHistory{},
+		cpResourceHistory:       cpResourceHistory{0: 0},
 
-		taxAmount:  0,
-		allocation: 0,
-		config:     getClientConfig(),
+		taxAmount:      0,
+		allocation:     0,
+		sanctionAmount: 0,
+
+		config: getClientConfig(),
 	}
 }
 
