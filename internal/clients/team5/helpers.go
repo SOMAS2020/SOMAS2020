@@ -1,6 +1,8 @@
 package team5
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 // shorthand to get current turn as it's needed often
 func (c client) getTurn() uint {

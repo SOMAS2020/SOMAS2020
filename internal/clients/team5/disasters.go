@@ -1,6 +1,10 @@
 package team5
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+import (
+	"sort"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+)
 
 // stores all information pertaining to a disaster
 type disasterInfo struct {
@@ -19,4 +23,17 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 		effects: effects,
 		season:  c.getSeason(),
 	}
+}
+
+func (d disasterHistory) sortKeys() []uint {
+	keys := make([]int, len(d))
+	for k := range d {
+		keys = append(keys, int(k))
+	}
+	sort.Ints(keys)
+	finalKeys := make([]uint, len(d))
+	for k := range keys {
+		finalKeys = append(finalKeys, uint(k))
+	}
+	return finalKeys
 }

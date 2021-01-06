@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"gonum.org/v1/gonum/stat"
 )
 
 type forecastInfo struct {
@@ -21,7 +22,7 @@ type forecastHistory map[uint]forecastInfo // stores history of past disasters
 // COMPULSORY, you need to implement this method
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
-	meanDisaster := c.getMeanDisasterInfo()
+	meanDisaster := c.getHistoricalForecast()
 	prediction := shared.DisasterPrediction{
 		CoordinateX: meanDisaster.epiX,
 		CoordinateY: meanDisaster.epiY,
@@ -53,7 +54,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 }
 
 // averages observations over history to get 'mean' disaster
-func (c client) getMeanDisasterInfo() forecastInfo {
+func (c client) getHistoricalForecast() forecastInfo {
 	sumX, sumY, sumMag := 0.0, 0.0, 0.0
 
 	for _, dInfo := range c.disasterHistory {
@@ -75,46 +76,43 @@ func (c client) getMeanDisasterInfo() forecastInfo {
 }
 
 func (c client) getLastDisasterTurn() uint {
-	n = len(c.disasterHistory)
-	if n > 0 {
-		lastT := uint(0)
-		for t := range c.disasterHistory { // TODO: find nicer way of getting largest key (turn)
-			if t > lastT {
-				lastT = t
-			}
-		}
-		return lastT
+	sortedTurns := c.disasterHistory.sortKeys()
+	l := len(sortedTurns)
+	if l > 0 {
+		return sortedTurns[l-1]
 	}
 	return 0
 }
 
 func (c *client) analyseDisasterPeriod() (period uint, conf float64) {
-	periods := []uint{0}
-	periodDiffs := []int{}
-	i := 1
+	if len(c.disasterHistory) == 0 {
+		return 0, 0 // we can't make any predictions with no disaster history!
+	}
+	periods := []float64{0} // use float so we can use stat.Variance() later
+	periodSum := 0.0
 	for turn := range c.disasterHistory {
-		periods = append(periods, turn-periods[i-1]) // period = no. turns between successive disasters
-		if len(periods) > 2 {
-			periodDiffs = append(periodDiffs, int(periods[i]-periods[i-1]))
-		}
-		i++
+		periods = append(periods, float64(turn)-periods[len(periods)-1]) // period = no. turns between successive disasters
+		periodSum += periods[len(periods)-1]
 	}
 	periods = periods[1:] // remove leading 0
-	diffSum := 0.0        // sum of differences in periods between disasters
-	for _, pd := range periodDiffs {
-		diffSum += math.Abs(float64(pd))
+	if len(periods) == 1 {
+		return uint(periods[0]), 50.0 // if we only have one past observation. Best we can do is estimate that period again.
 	}
-	if diffSum == 0 { // perfectly cyclical - consistent period
-		return periods[0], 100.0
-	}
-	// if not consisten, return mean period we've seen so far
-	return uint(diffSum / float64(len(periodDiffs))), 65.0
+	// if we have more than 1 observation
+	v := stat.Variance(periods, nil)
+
+	meanPeriod := periodSum / float64(len(periods))
+	varThresh := meanPeriod / 2
+	varianceRatio := math.Max(v/varThresh, 1.0) // should be between 0 (min var) and 1 (max var)
+	conf = (1 - varianceRatio) * 100
+	// if not consistent, return mean period we've seen so far
+	return uint(meanPeriod), conf
 }
 
 func (c *client) determineForecastConfidence() float64 {
 	totalDisaster := forecastInfo{}
 	sqDiff := func(x, meanX float64) float64 { return math.Pow(x-meanX, 2) }
-	meanInfo := c.getMeanDisasterInfo()
+	meanInfo := c.getHistoricalForecast()
 	// Find the sum of the square of the difference between the actual and mean, for each field
 	for _, d := range c.forecastHistory {
 		totalDisaster.epiX += sqDiff(d.epiX, meanInfo.epiX)
@@ -163,8 +161,4 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	}
 
 	c.Logf("Final Prediction: [%v]", finalPrediction)
-}
-
-func (c *client) analysePastDisasters() {
-
 }
