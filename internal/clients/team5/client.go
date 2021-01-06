@@ -53,6 +53,8 @@ func (c *client) StartOfTurn() {
 
 	// Print the level of wealth we are at
 	c.Logf("[Debug] - [Start of Turn] Class: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
+	c.Logf("[Debug] - opinion: %v", c.opinions)
+	c.Logf("[Debug] - get vote for election: %v", c.GetVoteForElection(shared.President))
 
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {

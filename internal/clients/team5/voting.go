@@ -70,6 +70,9 @@ func (c *client) evaluateRoles() {
 	speakerID := c.ServerReadHandle.GetGameState().SpeakerID
 	judgeID := c.ServerReadHandle.GetGameState().JudgeID
 	presidentID := c.ServerReadHandle.GetGameState().PresidentID
+	c.Logf("[DEBUG] - Speaker ID: %v ", speakerID)
+	c.Logf("[DEBUG] - judgeID: %v", judgeID)
+	c.Logf("[DEBUG] - presidentID: %v", presidentID)
 	//compute total budget
 	budget := c.ServerReadHandle.GetGameState().IIGORolesBudget
 	var totalBudget shared.Resources = 0
@@ -84,9 +87,12 @@ func (c *client) evaluateRoles() {
 	}
 	// Not corrupt
 	if totalBudget <= totalTax {
+		c.Logf("[DEBUG] - opinion score before evaluating: %v ", c.opinions[speakerID].getScore())
 		c.opinions[speakerID].updateOpinion(generalBasis, 0.1) //arbitrary number
 		c.opinions[judgeID].updateOpinion(generalBasis, 0.1)
 		c.opinions[presidentID].updateOpinion(generalBasis, 0.1)
+		c.Logf("[DEBUG] - opinion score after evaluating: %v ", c.opinions[speakerID].getScore())
+
 	} else {
 		c.opinions[speakerID].updateOpinion(generalBasis, -0.1) //arbitrary number
 		c.opinions[judgeID].updateOpinion(generalBasis, -0.1)
