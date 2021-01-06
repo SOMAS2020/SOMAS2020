@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import VisualisationsNavbar from "./VisualisationsNavbar"
 import { Button, Alert } from "react-bootstrap"
 import { useHistory, Route, Switch } from "react-router-dom";
-import { gamevisualisation, visualisations, iifovisualisation, iigovisualisation, iitovisualisation, resourcesvisualisation, rolesvisualisation } from "../../consts/paths";
+import { gamevisualisation, visualisations, iifovisualisation, iigovisualisation, iitovisualisation, resourcesvisualisation, rolesvisualisation, achievementsvisualisation } from "../../consts/paths";
 import { OutputJSONType } from "../../consts/types";
 import { GitHash } from "../../consts/info";
 import { initialLoadingState, useLoadingState } from "../../contexts/loadingState";
@@ -13,6 +13,7 @@ import IITO from './IITO/IITO'
 import IIGO from './IIGO/IIGO'
 import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
+import Achievements from './Achievements/Achievements'
 import FourOhFour from "../FourOhFour/FourOhFour";
 
 const Visualisations = () => {
@@ -132,6 +133,7 @@ const Visualisations = () => {
             <Route path={iifovisualisation} exact component={() => <IIFO output={output} />} />
             <Route path={rolesvisualisation} exact component={() => <Roles output={output} />} />
             <Route path={resourcesvisualisation} exact component={() => <Resources output={output} />} />
+            <Route path={achievementsvisualisation} exact component={() => <Achievements output={output} />} />
             <Route component={FourOhFour}/>
           </Switch>
           :

@@ -7,3 +7,4 @@ export const iitovisualisation = `/visualisation/iito`
 export const iifovisualisation = `/visualisation/iifo`
 export const rolesvisualisation = `/visualisation/roles`
 export const resourcesvisualisation = `/visualisation/resources`
+export const achievementsvisualisation = `/visualisation/achievements`

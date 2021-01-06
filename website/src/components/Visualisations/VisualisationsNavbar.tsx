@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Navbar, Nav } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
-import { gamevisualisation, iigovisualisation, iitovisualisation, iifovisualisation, rolesvisualisation, resourcesvisualisation, visualisations } from "../../consts/paths";
+import { gamevisualisation, iigovisualisation, iitovisualisation, iifovisualisation, rolesvisualisation, resourcesvisualisation, achievementsvisualisation, visualisations } from "../../consts/paths";
 
 const VisualisationsNavbar = (props: { reset: () => any }) => {
   const [navExpanded, setNavExpanded] = useState(false);
@@ -35,6 +35,7 @@ const VisualisationsNavbar = (props: { reset: () => any }) => {
             {getNavLink("IIFO", iifovisualisation)}
             {getNavLink("Roles", rolesvisualisation)}
             {getNavLink("Resources", resourcesvisualisation)}
+            {getNavLink("Achievements", achievementsvisualisation)}
           </Nav>
           <Nav>
             <LinkContainer exact={true} to={visualisations} onClick={handleReset}>
