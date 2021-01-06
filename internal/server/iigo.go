@@ -20,13 +20,14 @@ func (s *SOMASServer) runIIGO() error {
 	return nil
 }
 
-func (s *SOMASServer) updateIIGOTurnHistory(clientID shared.ClientID, pairs []rules.VariableValuePair) {
+func (s *SOMASServer) updateIIGOHistoryAndRules(clientID shared.ClientID, pairs []rules.VariableValuePair) {
 	s.gameState.IIGOHistory[s.gameState.Turn] = append(s.gameState.IIGOHistory[s.gameState.Turn],
 		shared.Accountability{
 			ClientID: clientID,
 			Pairs:    pairs,
 		},
 	)
+	s.gameState.CurrentRulesInPlay = rules.RulesInPlay
 }
 
 func (s *SOMASServer) runIIGOTax() error {
@@ -55,7 +56,7 @@ func (s *SOMASServer) runIIGOTax() error {
 			sanctionPaid = sanction
 		}
 
-		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
+		s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.IslandTaxContribution,
 				Values:       []float64{float64(taxPaid)},
@@ -65,7 +66,7 @@ func (s *SOMASServer) runIIGOTax() error {
 				Values:       []float64{float64(iigointernal.TaxAmountMapExport[clientID])},
 			},
 		})
-		s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
+		s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{
 			{
 				VariableName: rules.SanctionPaid,
 				Values:       []float64{float64(sanctionPaid)},
@@ -91,7 +92,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 			s.giveResources(clientID, allocation, "allocation")
 			s.gameState.CommonPool -= allocation
 
-			s.updateIIGOTurnHistory(clientID, []rules.VariableValuePair{
+			s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{
 				{
 					VariableName: rules.IslandAllocation,
 					Values:       []float64{float64(allocation)},

@@ -36,6 +36,7 @@ func (e *executive) loadClientPresident(clientPresidentPointer roles.President) 
 	e.clientPresident = clientPresidentPointer
 }
 
+// syncWithGame sets internal game state and configuration. Used to populate the executive struct for testing
 func (e *executive) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	e.gameState = gameState
 	e.gameConf = gameConf
@@ -51,12 +52,6 @@ func (e *executive) setRuleProposals(rulesProposals []rules.RuleMatrix) {
 // Called by orchestration
 func (e *executive) setAllocationRequest(resourceRequests map[shared.ClientID]shared.Resources) {
 	e.ResourceRequests = resourceRequests
-}
-
-// setGameState is used for setting the game state of the executive branch
-// Called for testing.
-func (e *executive) setGameState(g *gamestate.GameState) {
-	e.gameState = g
 }
 
 // Get rules to be voted on to Speaker
@@ -112,16 +107,23 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		if !e.incurServiceCharge(e.gameConf.BroadcastTaxationActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 		}
-		for islandID, resourceAmount := range taxMapReturn.ResourceMap {
+		TaxAmountMapExport = taxMapReturn.ResourceMap
+		for islandID, amount := range taxMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
-				d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(resourceAmount)}
-				data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-				data[shared.TaxAmount] = d
-				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+				e.sendDecision(islandID, amount, shared.IIGOTaxDecision)
 			}
 		}
+<<<<<<< HEAD
 		e.Logf("Tax: %v", taxMapReturn.ResourceMap)
+=======
+	} else {
+		// default case when president doesn't take an action. send tax = 0
+		for _, islandID := range aliveIslands {
+			e.sendNoDecision(islandID, shared.IIGOTaxDecision)
+		}
+>>>>>>> main
 	}
+
 	return nil
 }
 
@@ -153,17 +155,19 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 	}
 	returnContent := e.getAllocationRequests(commonPool)
 	allocationsMade := false
-	if returnContent.ActionTaken {
+	if returnContent.ActionTaken && returnContent.ContentType == shared.PresidentAllocation {
 		if !e.incurServiceCharge(e.gameConf.ReplyAllocationRequestsActionCost) {
 			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
-		allocationsMade = true
 		e.Logf("Resource Allocation: %v", returnContent.ResourceMap)
-		for _, island := range getIslandAlive() {
-			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(returnContent.ResourceMap[shared.ClientID(int(island))])}
-			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
-			data[shared.AllocationAmount] = d
-			communicateWithIslands(shared.TeamIDs[int(island)], shared.TeamIDs[int(e.PresidentID)], data)
+		allocationsMade = true
+		AllocationAmountMapExport = returnContent.ResourceMap
+		for islandID, amount := range returnContent.ResourceMap {
+			e.sendDecision(islandID, amount, shared.IIGOAllocationDecision)
+		}
+	} else {
+		for islandID := range e.ResourceRequests {
+			e.sendNoDecision(islandID, shared.IIGOAllocationDecision)
 		}
 	}
 	return allocationsMade, nil
@@ -275,4 +279,42 @@ func (e *executive) incurServiceCharge(cost shared.Resources) bool {
 		}
 	}
 	return ok
+}
+
+func (e *executive) sendDecision(islandID shared.ClientID, value shared.Resources, communicationType shared.CommunicationFieldName) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	var expected rules.VariableValuePair
+	var decided rules.VariableValuePair
+
+	if communicationType == shared.IIGOTaxDecision {
+		expected = rules.MakeVariableValuePair(rules.ExpectedTaxContribution, []float64{float64(value)})
+		decided = rules.MakeVariableValuePair(rules.TaxDecisionMade, []float64{boolToFloat(true)})
+	} else {
+		expected = rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{float64(value)})
+		decided = rules.MakeVariableValuePair(rules.AllocationMade, []float64{boolToFloat(true)})
+	}
+
+	allocationToSend := shared.ValueDecision{
+		Amount:       value,
+		DecisionMade: decided,
+		Expected:     expected,
+	}
+
+	data[communicationType] = shared.CommunicationContent{T: shared.CommunicationIIGOValue, IIGOValueData: allocationToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+}
+
+func (e *executive) sendNoDecision(islandID shared.ClientID, communicationType shared.CommunicationFieldName) {
+	data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
+	var decided rules.VariableValuePair
+	if communicationType == shared.IIGOTaxDecision {
+		decided = rules.MakeVariableValuePair(rules.TaxDecisionMade, []float64{boolToFloat(false)})
+	} else {
+		decided = rules.MakeVariableValuePair(rules.AllocationMade, []float64{boolToFloat(false)})
+	}
+	allocationToSend := shared.ValueDecision{
+		DecisionMade: decided,
+	}
+	data[communicationType] = shared.CommunicationContent{T: shared.CommunicationIIGOValue, IIGOValueData: allocationToSend}
+	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 }
