@@ -163,6 +163,141 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 	}
 }
 
+// Internal function that evaluates the performance of the judge for the purposes of opinion formation.
+// This is called AFTER IIGO FINISHES.
+func (c *client) evalJudgePerformance() {
+	previousJudgeID := c.iigoInfo.startOfTurnJudgeID
+	previousPresidentID := c.iigoInfo.startOfTurnPresidentID
+	evalOfJudge := float64(c.judgePerformance[previousJudgeID])
+
+	// If the judge didn't evaluate the speaker, the judge didn't do a good job
+	if c.iigoInfo.monitoringDeclared[shared.Speaker] == false {
+		evalOfJudge -= c.trustScore[previousJudgeID] * c.params.sensitivity
+	}
+
+	// Use the president's evaluation of the judge to determine how well the judge performed
+	var presidentEvalOfJudge bool
+	if c.iigoInfo.monitoringDeclared[shared.Judge] == true {
+		presidentEvalOfJudge = c.iigoInfo.monitoringOutcomes[shared.Judge]
+	}
+	if presidentEvalOfJudge == true {
+		evalOfJudge += c.trustScore[previousPresidentID] * c.params.sensitivity
+	} else {
+		evalOfJudge -= c.trustScore[previousPresidentID] * c.params.sensitivity
+	}
+
+	// Did the judge support our vote for president?
+	ourVoteForPresident := c.GetVoteForElection(shared.President)
+	electedPresident := c.ServerReadHandle.GetGameState().PresidentID
+	var ourRankingChosen int
+	for index, islandID := range ourVoteForPresident {
+		if islandID == electedPresident {
+			ourRankingChosen = index
+		}
+	}
+	// If our third choice was voted in (ourRankingChosen == 2), no effect on Judge Performance.
+	// Anything better/worse than third is rewarded/penalized proportionally.
+	evalOfJudge += c.params.sensitivity * float64((2 - ourRankingChosen))
+
+	// Did the judge sanction us?
+	sanctionAmount := c.iigoInfo.sanctions.ourSanction
+	evalOfJudge -= float64(sanctionAmount) * c.params.sensitivity
+
+}
+
+// Internal function that evaluates the performance of the president for the purposes of opinion formation.
+// This is called AFTER IIGO FINISHES.
+func (c *client) evalPresidentPerformance() {
+	previousSpeakerID := c.iigoInfo.startOfTurnSpeakerID
+	previousPresidentID := c.iigoInfo.startOfTurnPresidentID
+	evalOfPresident := float64(c.presidentPerformance[previousPresidentID])
+
+	// If the president didn't evaluate the judge, the president didn't do a good job
+	if c.iigoInfo.monitoringDeclared[shared.Judge] == false {
+		evalOfPresident -= c.trustScore[previousPresidentID] * c.params.sensitivity
+	}
+
+	// Use the speaker's evaluation of the president to determine how well the president performed
+	var speakerEvalofPresident bool
+	if c.iigoInfo.monitoringDeclared[shared.President] == true {
+		speakerEvalofPresident = c.iigoInfo.monitoringOutcomes[shared.President]
+	}
+	if speakerEvalofPresident == true {
+		evalOfPresident += c.trustScore[previousSpeakerID] * c.params.sensitivity
+	} else {
+		evalOfPresident -= c.trustScore[previousSpeakerID] * c.params.sensitivity
+	}
+
+	evalOfPresident += float64(c.iigoInfo.commonPoolAllocation-c.CommonPoolResourceRequest()) * c.params.sensitivity
+
+	// if c.ourPresident.PickRuleToVote() == c.ruleVotedOn {
+	// 	evalOfPresident += c.params.sensitivity
+	// } else {
+	// 	evalOfPresident -= c.params.sensitivity
+	// }
+
+	// evalOfPresident += (SetTaxationAmount() - c.iigoInfo.taxationAmount) * c.params.sensitivity
+
+	// Did the president support our vote for speaker?
+	ourVoteForSpeaker := c.GetVoteForElection(shared.Speaker)
+	electedSpeaker := c.ServerReadHandle.GetGameState().SpeakerID
+	var ourRankingChosen int
+	for index, islandID := range ourVoteForSpeaker {
+		if islandID == electedSpeaker {
+			ourRankingChosen = index
+		}
+	}
+	// If our third choice was voted in (ourRankingChosen == 2), no effect on President Performance.
+	// Anything better/worse than third is rewarded/penalized proportionally.
+	evalOfPresident += c.params.sensitivity * float64((2 - ourRankingChosen))
+}
+
+// Internal function that evaluates the performance of the speaker for the purposes of opinion formation.
+// This is called AFTER IIGO FINISHES.
+func (c *client) evalSpeakerPerformance() {
+	previousJudgeID := c.iigoInfo.startOfTurnJudgeID
+	previousSpeakerID := c.iigoInfo.startOfTurnJudgeID
+	evalOfSpeaker := float64(c.speakerPerformance[previousSpeakerID])
+
+	// If the speaker didn't evaluate the president, the speaker didn't do a good job
+	if c.iigoInfo.monitoringDeclared[shared.President] == false {
+		evalOfSpeaker -= c.trustScore[previousSpeakerID] * c.params.sensitivity
+	}
+
+	// Use the judge's evaluation of the speaker to determine how well the speaker performed
+	var judgeEvalofSpeaker bool
+
+	if c.iigoInfo.monitoringDeclared[shared.Speaker] == true {
+		judgeEvalofSpeaker = c.iigoInfo.monitoringOutcomes[shared.Speaker]
+	}
+
+	if judgeEvalofSpeaker == true {
+		evalOfSpeaker += c.trustScore[previousJudgeID] * c.params.sensitivity
+	} else {
+		evalOfSpeaker -= c.trustScore[previousJudgeID] * c.params.sensitivity
+	}
+
+	ruleVoteInfo := *c.iigoInfo.ruleVotingResults[c.ruleVotedOn]
+	if ruleVoteInfo.ourVote != ruleVoteInfo.result {
+		evalOfSpeaker += c.params.sensitivity
+	} else {
+		evalOfSpeaker -= c.params.sensitivity
+	}
+
+	// Did the speaker support our vote for judge?
+	ourVoteForJudge := c.GetVoteForElection(shared.Judge)
+	electedJudge := c.ServerReadHandle.GetGameState().JudgeID
+	var ourRankingChosen int
+	for index, islandID := range ourVoteForJudge {
+		if islandID == electedJudge {
+			ourRankingChosen = index
+		}
+	}
+	// If our third choice was voted in (ourRankingChosen == 2), no effect on President Performance.
+	// Anything better/worse than third is rewarded/penalized proportionally.
+	evalOfSpeaker += c.params.sensitivity * float64((2 - ourRankingChosen))
+}
+
 //updateCriticalThreshold updates our predicted value of what is the resources threshold of critical state
 // it uses estimated resources to find these bound. isIncriticalState is a boolean to indicate if the island
 // is in the critical state and the estimated resources is our estimated resources of the island i.e.

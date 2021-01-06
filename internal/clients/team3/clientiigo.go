@@ -44,12 +44,16 @@ func (c *client) GetClientPresidentPointer() roles.President {
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
 func (c *client) resetIIGOInfo() {
+	c.iigoInfo.ourRole = nil // TODO unused, remove
 	c.clientPrint("IIGO cache from previous turn: %+v", c.iigoInfo)
 	c.clientPrint("IIGO sanction info from previous turn: %+v", c.iigoInfo.sanctions)
 	c.iigoInfo.commonPoolAllocation = 0
 	c.iigoInfo.taxationAmount = 0
 	c.iigoInfo.monitoringOutcomes = make(map[shared.Role]bool)
 	c.iigoInfo.monitoringDeclared = make(map[shared.Role]bool)
+	c.iigoInfo.startOfTurnJudgeID = c.ServerReadHandle.GetGameState().JudgeID
+	c.iigoInfo.startOfTurnPresidentID = c.ServerReadHandle.GetGameState().PresidentID
+	c.iigoInfo.startOfTurnSpeakerID = c.ServerReadHandle.GetGameState().SpeakerID
 	c.iigoInfo.sanctions = &sanctionInfo{
 		tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
 		rulePenalties:   make(map[string]roles.IIGOSanctionScore),
@@ -59,6 +63,19 @@ func (c *client) resetIIGOInfo() {
 	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
 	c.iigoInfo.ourRequest = 0
 	c.iigoInfo.ourDeclaredResources = 0
+}
+
+func (c *client) getOurRole() string {
+	if c.iigoInfo.startOfTurnJudgeID == c.BaseClient.GetID() {
+		return "Judge"
+	}
+	if c.iigoInfo.startOfTurnPresidentID == c.BaseClient.GetID() {
+		return "President"
+	}
+	if c.iigoInfo.startOfTurnSpeakerID == c.BaseClient.GetID() {
+		return "Speaker"
+	}
+	return "None"
 }
 
 func (c *client) GetTaxContribution() shared.Resources {
@@ -128,6 +145,34 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			c.iigoInfo.sanctions.ourSanction = roles.IIGOSanctionScore(content.IntegerData)
 		}
 	}
+}
+
+func (c *client) GetVoteForRule(ruleName string) bool {
+
+	newRulesInPlay := make(map[string]rules.RuleMatrix)
+
+	for key, value := range rules.RulesInPlay {
+		newRulesInPlay[key] = value
+	}
+
+	if _, ok := rules.RulesInPlay[ruleName]; ok {
+		delete(newRulesInPlay, ruleName)
+	} else {
+		newRulesInPlay[ruleName] = rules.AvailableRules[ruleName]
+	}
+
+	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
+
+	// distancetoRulesInPlay = CalculateDistanceFromRuleSpace(rules.RulesInPlay, position)
+	// distancetoNewRulesInPlay = CalculateDistanceFromRuleSpace(newRulesInPlay, position)
+
+	// if distancetoRulesInPlay < distancetoNewRulesInPlay {
+	//  return false
+	// } else {
+	//  return true
+	// }
+
+	return true
 }
 
 func (c *client) RuleProposal() string {
