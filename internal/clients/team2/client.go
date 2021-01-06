@@ -158,8 +158,12 @@ func criticalStatus(c *client) bool {
 
 //TODO: how does this work?
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
+	if c.disasterHistory == nil {
+		c.disasterHistory = make(DisasterHistory)
+	}
 	currDisaster := DisasterOccurence{
-		Turn:   c.gameState().Turn,
+		Turn: c.gameState().Turn,
+
 		Report: report,
 	}
 	c.disasterHistory = append(c.disasterHistory, currDisaster)

@@ -27,10 +27,14 @@ const (
 	Max bool = true
 )
 
+// Define a global variable that holds the last prediction we shared
+var LastPredictionMade shared.DisasterPredictionInfo
+var CombinedPrediction shared.DisasterPrediction
+
 // GetIslandDVPs is used to calculate the disaster vulnerability parameter of each island in the game.
 // This only needs to be run at the start of the game because island's positions do not change
 func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) DisasterVulnerabilityParametersDict {
-	islandDVPs := DisasterVulnerabilityParametersDict{}
+	islandDVPs := make(DisasterVulnerabilityParametersDict)
 	archipelagoCentre := CartesianCoordinates{
 		X: archipelagoGeography.XMin + (archipelagoGeography.XMax-archipelagoGeography.XMin)/2,
 		Y: archipelagoGeography.YMin + (archipelagoGeography.YMax-archipelagoGeography.YMin)/2,
@@ -104,7 +108,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	confidencePrediction := GetConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
 
 	// Get trusted islands NOTE: CURRENTLY JUST ALL ISLANDS
-	trustedislands := GetTrustedIslands()
+	islandsToShareWith := GetIslandsToShareWith()
 
 	// Put everything together and return the whole prediction we have made and teams to share with
 	disasterPrediction := shared.DisasterPrediction{
@@ -116,8 +120,9 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	}
 	disasterPredictionInfo := shared.DisasterPredictionInfo{
 		PredictionMade: disasterPrediction,
-		TeamsOfferedTo: trustedislands,
+		TeamsOfferedTo: islandsToShareWith,
 	}
+	LastPredictionMade = disasterPredictionInfo
 	return disasterPredictionInfo
 }
 
@@ -193,18 +198,19 @@ func GetConfidencePrediction(confidenceTimeRemaining shared.PredictionConfidence
 	return (confidenceTimeRemaining + confidenceMagnitude) / 2
 }
 
-// GetTrustedIslands returns a slice of the islands we want to share our prediction with.
-// NOTE: CURRENTLY THIS JUST RETURNS ALL ISLANDS.
-func GetTrustedIslands() []shared.ClientID {
-	trustedIslands := make([]shared.ClientID, len(shared.TeamIDs))
+// islandsToShareWith returns a slice of the islands we want to share our prediction with.
+// We decided to always share our prediction with all islands to improve arhcipelago decisions as a whole.
+func GetIslandsToShareWith() []shared.ClientID {
+	islandsToShareWith := make([]shared.ClientID, len(shared.TeamIDs))
 	for index, id := range shared.TeamIDs {
-		trustedIslands[index] = id
+		islandsToShareWith[index] = id
 	}
-	return trustedIslands
+	return islandsToShareWith
 }
 
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,
-// that they have been granted access to see
+// that they have been granted access to see.
+// We use this function to combine all predictions into one final prediction (CombinedPrediction) to use for decisions.
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
 	for _, prediction := range receivedPredictions {
 		currPrediction := PredictionInfo{
@@ -212,5 +218,79 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 			Turn:       c.gameState().Turn + uint(prediction.PredictionMade.TimeLeft),
 		}
 		c.predictionHist[prediction.SharedFrom] = append(c.predictionHist[prediction.SharedFrom], currPrediction)
+	UpdatePredictionHistory(c, receivedPredictions)
+
+	// Get the confidence in each island's prediction making ability
+	// CARLA TO INSERT AND REPLACE HERE
+	islandConfidences := map[shared.ClientID]int{
+		0: 0,
+		1: 1,
+		2: 2,
 	}
+
+	// Combine each islands prediction
+	finalPrediction := CombinePredictions(c, receivedPredictions, islandConfidences)
+	CombinedPrediction = finalPrediction
+}
+
+// UpdatePredictionHistory updates the history of predictions we have recieved from other islands with
+// those recieved this turn.
+func UpdatePredictionHistory(c *client, receivedPredictions shared.ReceivedDisasterPredictionsDict) {
+	if c.predictionHist == nil {
+		c.predictionHist = make(PredictionsHist)
+		for _, id := range shared.TeamIDs {
+			c.predictionHist[id] = make([]shared.DisasterPrediction, 0)
+		}
+	}
+
+	// Add the prediction to the history
+	for island, prediction := range receivedPredictions {
+		updatedHist := append(c.predictionHist[island], prediction.PredictionMade)
+		c.predictionHist[island] = updatedHist
+	}
+}
+
+// CombinePredictions combines the predictions recieved from all the islands (including ours) to get
+// one final disaster prediction.
+// Use our confidence in an island as well as that island's confidence in their prediction to do this
+func CombinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPredictionsDict, islandConfidences map[shared.ClientID]int) shared.DisasterPrediction {
+	// Add our own prediction to those recieved
+	receivedPredictions[c.GetID()] = shared.ReceivedDisasterPredictionInfo{
+		PredictionMade: LastPredictionMade.PredictionMade,
+		SharedFrom:     c.GetID(),
+	}
+
+	// Get the sum of our confidences in other islands
+	islandConfidencesSum := 0.0
+	for _, confidence := range islandConfidences {
+		islandConfidencesSum += float64(confidence)
+	}
+
+	// For each recieved prediction, we need the weighted sum (ws) of sub-predictions
+	// Confidence must be treated slightly differently however
+	wsCoordinateX, wsCoordinateY, wsMagnitude, wsTimeLeft, combinationConfidenceSum := 0.0, 0.0, 0.0, 0.0, 0.0
+	for islandID, prediction := range receivedPredictions {
+
+		// Get the combination confidence = (our confidence in island x their confidence in their prediction)/100
+		combinationConfidence := (float64(islandConfidences[islandID]) * prediction.PredictionMade.Confidence) / 100
+
+		// Get the weighted sum for each sub-prediction (except confidence)
+		wsCoordinateX += combinationConfidence * prediction.PredictionMade.CoordinateX
+		wsCoordinateY += combinationConfidence * prediction.PredictionMade.CoordinateY
+		wsMagnitude += combinationConfidence * prediction.PredictionMade.Magnitude
+		wsTimeLeft += combinationConfidence * float64(prediction.PredictionMade.TimeLeft)
+
+		// Need sum of combination confidence also (sum of weights)
+		combinationConfidenceSum += combinationConfidence
+	}
+
+	// Finally get the combined prediction by taking the weighted average of each sub-prediction
+	finalPrediction := shared.DisasterPrediction{
+		CoordinateX: wsCoordinateX / combinationConfidenceSum,
+		CoordinateY: wsCoordinateY / combinationConfidenceSum,
+		Magnitude:   wsMagnitude / combinationConfidenceSum,
+		TimeLeft:    int((wsTimeLeft / combinationConfidenceSum) + 0.5),
+		Confidence:  combinationConfidenceSum / (islandConfidencesSum * 100),
+	}
+	return finalPrediction
 }
