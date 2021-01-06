@@ -21,10 +21,6 @@ func (c *client) opinionSortByTeam() (opnionSortByTeam []opinionScore) {
 	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team1].getScore(), c.opinions[shared.Team2].getScore())
 	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team3].getScore(), c.opinions[shared.Team4].getScore())
 	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team5].getScore(), c.opinions[shared.Team6].getScore())
-func (c *client) opinionSortByTeam() (opnionSortByTeam []wrappedOpininon) {
-	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team1], *c.opinions[shared.Team2])
-	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team3], *c.opinions[shared.Team4])
-	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team5], *c.opinions[shared.Team6])
 	return
 }
 
@@ -74,9 +70,6 @@ func (c *client) evaluateRoles() {
 	speakerID := c.ServerReadHandle.GetGameState().SpeakerID
 	judgeID := c.ServerReadHandle.GetGameState().JudgeID
 	presidentID := c.ServerReadHandle.GetGameState().PresidentID
-	c.Logf("[DEBUG] - Speaker ID: %v ", speakerID)
-	c.Logf("[DEBUG] - judgeID: %v", judgeID)
-	c.Logf("[DEBUG] - presidentID: %v", presidentID)
 	//compute total budget
 	budget := c.ServerReadHandle.GetGameState().IIGORolesBudget
 	var totalBudget shared.Resources = 0
@@ -91,11 +84,9 @@ func (c *client) evaluateRoles() {
 	}
 	// Not corrupt
 	if totalBudget <= totalTax {
-		c.Logf("[DEBUG] - opinion score before evaluating: %v ", c.opinions[speakerID].getScore())
 		c.opinions[speakerID].updateOpinion(generalBasis, 0.1) //arbitrary number
 		c.opinions[judgeID].updateOpinion(generalBasis, 0.1)
 		c.opinions[presidentID].updateOpinion(generalBasis, 0.1)
-		c.Logf("[DEBUG] - opinion score after evaluating: %v ", c.opinions[speakerID].getScore())
 
 	} else {
 		c.opinions[speakerID].updateOpinion(generalBasis, -0.1) //arbitrary number
