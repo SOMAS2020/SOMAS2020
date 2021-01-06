@@ -17,6 +17,11 @@ func (c client) getCP() shared.Resources {
 	return c.gameState().CommonPool
 }
 
+// shorthand to get our current life status
+func (c client) getLifeStatus() shared.ClientLifeStatus {
+	return c.gameState().ClientInfo.LifeStatus
+}
+
 func (c client) getAliveTeams(includeUs bool) (aliveTeams []shared.ClientID) {
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 		if status == shared.Alive {
