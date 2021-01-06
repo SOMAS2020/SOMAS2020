@@ -1,9 +1,18 @@
 package team4
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
 )
+
+func (c *client) GetClientJudgePointer() roles.Judge {
+	return &c.clientJudge
+}
+
+func (c *client) GetClientSpeakerPointer() roles.Speaker {
+	return &c.clientSpeaker
+}
 
 func (c *client) RequestAllocation() shared.Resources {
 	allocationGranted := c.obs.iigoObs.allocationGranted
@@ -41,9 +50,9 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	// TODO parse sanction info
 	for contentType, content := range data {
 		switch contentType {
-		case shared.TaxAmount:
+		case shared.IIGOTaxDecision:
 			c.obs.iigoObs.taxDemanded = shared.Resources(content.IntegerData)
-		case shared.AllocationAmount:
+		case shared.IIGOAllocationDecision:
 			c.obs.iigoObs.allocationGranted = shared.Resources(content.IntegerData)
 		case shared.RuleName:
 			// currentRuleID := content.TextData
@@ -75,7 +84,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 			numClientAlive++
 		}
 	}
-
+	// TODO: add zero division check
 	resNeeded := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
 
 	if ourLifeStatus == shared.Critical {

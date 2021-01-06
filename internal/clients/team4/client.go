@@ -12,17 +12,30 @@ import (
 const id = shared.Team4
 
 func init() {
-	baseclient.RegisterClient(id, &client{BaseClient: baseclient.NewClient(id)})
+	team4client := client{
+		BaseClient: baseclient.NewClient(id),
+		clientJudge: judge{
+			BaseJudge: &baseclient.BaseJudge{},
+			t:         nil,
+		},
+		clientSpeaker: speaker{
+			BaseSpeaker: &baseclient.BaseSpeaker{},
+		},
+	}
+	team4client.clientSpeaker.parent = &team4client
+
+	baseclient.RegisterClient(id, &team4client)
 }
 
 type client struct {
 	*baseclient.BaseClient //client struct has access to methods and fields of the BaseClient struct which implements implicitly the Client interface.
+	clientJudge            judge
+	clientSpeaker          speaker
 
 	//custom fields
 	yes           string              //this field is just for testing
 	obs           *observation        //observation is the raw input into our client
 	internalParam *internalParameters //internal parameter store the useful parameters for the our agent
-
 }
 
 // Store extra information which is not in the server and is helpful for our client
@@ -96,7 +109,7 @@ type personality struct {
 
 //Overriding the Initialise method of the BaseClient to initilise the trust matrix too
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
-	c.ServerReadHandle = serverReadHandle
+	c.BaseClient.Initialise(serverReadHandle)
 
 	//custom things below, trust matrix initilised to values of 1
 
