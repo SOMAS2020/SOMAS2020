@@ -64,7 +64,7 @@ func (e *executive) setGameState(g *gamestate.GameState) {
 func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 	if !CheckEnoughInCommonPool(e.gameConf.GetRuleForSpeakerActionCost, e.gameState) {
 		return shared.PresidentReturnContent{ContentType: shared.PresidentRuleProposal, ProposedRuleMatrix: rules.RuleMatrix{}, ActionTaken: false},
-			errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+			errors.Errorf("Insufficient Budget in common Pool: getRuleForSpeaker")
 	}
 
 	returnRule := e.clientPresident.PickRuleToVote(e.RulesProposals)
@@ -120,6 +120,7 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 				communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
 			}
 		}
+		e.Logf("Tax: %v", taxMapReturn.ResourceMap)
 	}
 	return nil
 }
@@ -157,6 +158,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
 		allocationsMade = true
+		e.Logf("Resource Allocation: %v", returnContent.ResourceMap)
 		for _, island := range getIslandAlive() {
 			d := shared.CommunicationContent{T: shared.CommunicationInt, IntegerData: int(returnContent.ResourceMap[shared.ClientID(int(island))])}
 			data := make(map[shared.CommunicationFieldName]shared.CommunicationContent)
@@ -195,6 +197,7 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		variablesToCache := []rules.VariableFieldName{rules.AppointmentMatchesVote}
 		valuesToCache := [][]float64{{boolToFloat(appointmentMatchesVote)}}
 		e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
+		e.Logf("Result of election for new Speaker: %v", appointedSpeaker)
 	} else {
 		appointedSpeaker = currentSpeaker
 	}
@@ -234,7 +237,7 @@ func (e *executive) getTaxMap(islandsResources map[shared.ClientID]shared.Resour
 //requestRuleProposal asks each island alive for its rule proposal.
 func (e *executive) requestRuleProposal() error { //TODO: add checks for if immutable rules are changed(not allowed), if rule variables fields are changed(not allowed)
 	if !e.incurServiceCharge(e.gameConf.RequestRuleProposalActionCost) {
-		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
+		return errors.Errorf("Insufficient Budget in common Pool: requestRuleProposal")
 	}
 
 	var ruleProposals []rules.RuleMatrix
