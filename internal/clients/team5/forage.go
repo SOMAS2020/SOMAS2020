@@ -49,17 +49,19 @@ func (c *client) InitialForage() shared.ForageDecision {
 	// Figure out how much the cost of livin per turn is
 	// Instead of looking at history we can just store the first foraging amount
 	//=============================================================================
-	if c.getTurn() == 2 { // On turn 2
-		var turncost shared.Resources
-		for _, outcomes := range c.forageHistory { // For each foraging type find the outcome
-			for _, returns := range outcomes { // For each outcome find the returns
-				turncost += returns.input // cumlative sum of the return on investment (should only be 1 return from foraging)
-				c.Logf("[DEBUG] %v - %v + %v", c.resourceHistory[1], c.resourceHistory[2], returns.input)
-			}
-		}
-		costOfTurn1 := c.resourceHistory[1] - c.resourceHistory[2] + turncost
-		c.Logf("[Debug] Cost per turn to live %v = %v - %v + %v", costOfTurn1, c.resourceHistory[1], c.resourceHistory[2], turncost)
-	}
+
+	// if c.getTurn() == 2 { // On turn 2
+	// 	var turncost shared.Resources
+	// 	for _, outcomes := range c.forageHistory { // For each foraging type find the outcome
+	// 		for _, returns := range outcomes { // For each outcome find the returns
+	// 			turncost += returns.input // cumlative sum of the return on investment (should only be 1 return from foraging)
+	// 			c.Logf("[DEBUG] %v - %v + %v", c.resourceHistory[1], c.resourceHistory[2], returns.input)
+	// 		}
+	// 	}
+	// 	costOfTurn1 := c.resourceHistory[1] - c.resourceHistory[2] + turncost
+	// 	c.Logf("[Debug] Cost per turn to live %v = %v - %v + %v", costOfTurn1, c.resourceHistory[1], c.resourceHistory[2], turncost)
+	// }
+
 	// =============================================================================
 
 	var forageType shared.ForageType
@@ -265,7 +267,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output share
 		input:  forageDecision.Contribution,
 		output: output,
 	})
-
+	c.Logf("FORAGEHISTORY", c.forageHistory)
 	c.Logf(
 		"[Debug] - [Update Forage History]: Type %v | Input %v | Profit %v | Real RoI %v",
 		forageDecision.Type,
