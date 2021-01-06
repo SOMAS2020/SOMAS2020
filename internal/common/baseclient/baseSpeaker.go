@@ -12,7 +12,7 @@ type BaseSpeaker struct {
 func (s *BaseSpeaker) PayJudge() shared.SpeakerReturnContent {
 	return shared.SpeakerReturnContent{
 		ContentType: shared.SpeakerJudgeSalary,
-		JudgeSalary: 10,
+		JudgeSalary: s.GetJudgeSalary(),
 		ActionTaken: true,
 	}
 }

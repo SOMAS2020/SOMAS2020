@@ -75,7 +75,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 func (p *BasePresident) PaySpeaker() shared.PresidentReturnContent {
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
-		SpeakerSalary: 10,
+		SpeakerSalary: p.GetSpeakerSalary(),
 		ActionTaken:   true,
 	}
 }
