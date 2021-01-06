@@ -17,7 +17,8 @@ func init() {
 
 type judge struct {
 	*baseclient.BaseJudge
-	t *testing.T
+	parent *client
+	t      *testing.T
 }
 
 // GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
@@ -33,16 +34,36 @@ type judge struct {
 
 // InspectHistory is the base implementation of evaluating islands choices the last turn.
 // OPTIONAL: override if you want to evaluate the history log differently.
+// type judgeHistoryInfo struct {
+// 	rules.VariableFieldName
+// }
+
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	//outputMap := map[shared.ClientID]roles.EvaluationReturn{}
-	dump("./Historymap.txt", "HistoryMap: %v \n", iigoHistory)
+
+	// current turn
+	// currentTurn := j.parent.getTurn()
+
+	// store := map[int]map[shared.ClientID]map[rules.Variable]{}
+
+	// j.logf(store)
 
 	// Check who is lying about private resources
 	// How many resources an island has
 
 	// ExpectedTaxContribution vs IslandTaxContribution
 
-	return j.BaseJudge.InspectHistory(iigoHistory, turnsAgo)
+	// Check which rules are in place
+	outputmap, state := j.BaseJudge.InspectHistory(iigoHistory, turnsAgo)
+	dump("./Historymap.txt", "iigoHistory: %v \n", outputmap)
+
+	// Choose to lie about state
+	// Track if any rules wore broken by looking at the output map
+
+	// t := outputmap[shared.Team1]
+	//dump("./Outputmap.txt", "Outputmap: %v \n", outputmap)
+
+	return outputmap, state
 }
 
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
