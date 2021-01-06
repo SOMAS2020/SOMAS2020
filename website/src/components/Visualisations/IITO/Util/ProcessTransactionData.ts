@@ -1,1 +1,1 @@
-// This file needs to construct a network from the transaction data
+// Process Output JSON to extract Transaction data (inc. Gifts and common pool interactions)

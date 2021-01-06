@@ -17,5 +17,7 @@ export function ForceGraph({ linksData, nodesData, nodeHoverTooltip }) {
         return destroyFn;
     }, []);
 
-    return <div ref={containerRef} className={styles.container} />;
+    return (
+        <div ref= { containerRef } className = { styles.container } />;
+    );
 }

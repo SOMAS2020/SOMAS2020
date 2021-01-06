@@ -1,5 +1,6 @@
 const fs = require('fs');
 
+// Construct a network of nodes and links from the processed Transaction Data
 function constructNetwork(data) {
     let nodes = [];
     let links = [];
@@ -12,8 +13,7 @@ function constructNetwork(data) {
         let node = { id, title, paperAbstract, authors }
         nodes.push(node);
 
-        // map through incitations
-        // console.log(node.inCitations);
+        // map through incitations -> will be transactions in
         element.inCitations.forEach(inCitation => {
             let link = {};
             link.source = inCitation;
@@ -24,6 +24,7 @@ function constructNetwork(data) {
             }
         })
 
+        // map through incitations -> will be transactions out
         element.outCitations.forEach(outCitation => {
             let link = {};
             link.source = outCitation;
@@ -35,19 +36,13 @@ function constructNetwork(data) {
         })
     });
 
-    // remove link source target pairs that reference nodes ids not in nodes
-
+    // TODO: remove link source target pairs that reference nodes ids not in nodes
     let newArr = { nodes, links };
 
     // convert JSON object to string
-    const newData = JSON.stringify(newArr);
+    const networkData = JSON.stringify(newArr);
 
-    fs.writeFile('cleaned.json', newData, (err) => {
-        if (err) {
-            throw err;
-        }
-        console.log("JSON data is saved.");
-    });
+    return networkData;
 }
 
 module.exports = {
