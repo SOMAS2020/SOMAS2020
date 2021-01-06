@@ -189,7 +189,7 @@ var (
 		50,
 		"Common pool threshold value for disaster to be mitigated",
 	)
-	disasterPeriodStochastic = flag.Bool(
+	disasterStochasticPeriod = flag.Bool(
 		"disasterStochasticPeriod",
 		false,
 		"If true, period between disasters becomes random. If false, it will be consistent (deterministic)",
@@ -198,6 +198,16 @@ var (
 		"disasterCommonpoolThresholdVisible",
 		false,
 		"Whether disasterCommonpoolThreshold is visible to agents",
+	)
+	disasterPeriodVisible = flag.Bool(
+		"disasterPeriodVisible",
+		true,
+		"Whether disasterPeriod is visible to agents",
+	)
+	disasterStochasticPeriodVisible = flag.Bool(
+		"disasterStochasticPeriodVisible",
+		true,
+		"Whether stochasticPeriod is visible to agents",
 	)
 
 	// config.IIGOConfig - Executive branch
@@ -288,28 +298,34 @@ var (
 		"IIGO action cost for appointNextJudge action",
 	)
 
-	iigoSanctionCacheDepth = flag.Int(
+	iigoSanctionCacheDepth = flag.Uint(
 		"iigoSanctionCacheDepth",
 		3,
 		"Turn depth of sanctions to be applied or pardoned",
 	)
 
-	iigoHistoryCacheDepth = flag.Int(
+	iigoHistoryCacheDepth = flag.Uint(
 		"iigoHistoryCacheDepth",
 		3,
 		"Turn depth of history cache for events to be evaluated",
 	)
 
-	iigoAssumedResourcesNoReport = flag.Int(
+	iigoAssumedResourcesNoReport = flag.Uint(
 		"iigoAssumedResourcesNoReport",
 		500,
 		"If an island doesn't report usaged this value is assumed for sanction calculations",
 	)
 
-	iigoSanctionLength = flag.Int(
+	iigoSanctionLength = flag.Uint(
 		"iigoSanctionLength",
 		2,
 		"Sanction length for all sanctions",
+	)
+
+	startWithRulesInPlay = flag.Bool(
+		"startWithRulesInPlay",
+		true,
+		"Pull all available rules into play at start of run",
 	)
 )
 
@@ -375,10 +391,12 @@ func parseConfig() (config.Config, error) {
 		Period:                      *disasterPeriod,
 		SpatialPDFType:              parsedDisasterSpatialPDFType,
 		MagnitudeLambda:             *disasterMagnitudeLambda,
-		StochasticPeriod:            *disasterPeriodStochastic,
+		StochasticPeriod:            *disasterStochasticPeriod,
 		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
 		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
 		CommonpoolThresholdVisible:  *disasterCommonpoolThresholdVisible,
+		PeriodVisible:               *disasterPeriodVisible,
+		StochasticPeriodVisible:     *disasterStochasticPeriodVisible,
 	}
 
 	iigoConf := config.IIGOConfig{
@@ -404,6 +422,7 @@ func parseConfig() (config.Config, error) {
 		AnnounceVotingResultActionCost: shared.Resources(*iigoAnnounceVotingResultActionCost),
 		UpdateRulesActionCost:          shared.Resources(*iigoUpdateRulesActionCost),
 		AppointNextJudgeActionCost:     shared.Resources(*iigoAppointNextJudgeActionCost),
+		StartWithRulesInPlay:           *startWithRulesInPlay,
 	}
 
 	return config.Config{
