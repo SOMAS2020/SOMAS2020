@@ -189,7 +189,7 @@ var (
 		50,
 		"Common pool threshold value for disaster to be mitigated",
 	)
-	disasterPeriodStochastic = flag.Bool(
+	disasterStochasticPeriod = flag.Bool(
 		"disasterStochasticPeriod",
 		false,
 		"If true, period between disasters becomes random. If false, it will be consistent (deterministic)",
@@ -198,6 +198,16 @@ var (
 		"disasterCommonpoolThresholdVisible",
 		false,
 		"Whether disasterCommonpoolThreshold is visible to agents",
+	)
+	disasterPeriodVisible = flag.Bool(
+		"disasterPeriodVisible",
+		true,
+		"Whether disasterPeriod is visible to agents",
+	)
+	disasterStochasticPeriodVisible = flag.Bool(
+		"disasterStochasticPeriodVisible",
+		true,
+		"Whether stochasticPeriod is visible to agents",
 	)
 
 	// config.IIGOConfig - Executive branch
@@ -387,10 +397,12 @@ func parseConfig() (config.Config, error) {
 		Period:                      *disasterPeriod,
 		SpatialPDFType:              parsedDisasterSpatialPDFType,
 		MagnitudeLambda:             *disasterMagnitudeLambda,
-		StochasticPeriod:            *disasterPeriodStochastic,
+		StochasticPeriod:            *disasterStochasticPeriod,
 		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
 		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
 		CommonpoolThresholdVisible:  *disasterCommonpoolThresholdVisible,
+		PeriodVisible:               *disasterPeriodVisible,
+		StochasticPeriodVisible:     *disasterStochasticPeriodVisible,
 	}
 
 	iigoConf := config.IIGOConfig{

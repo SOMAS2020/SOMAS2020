@@ -40,6 +40,8 @@ type ClientIIGOConfig struct {
 // ClientDisasterConfig contains disaster config information visible to clients.
 type ClientDisasterConfig struct {
 	CommonpoolThreshold SelectivelyVisibleResources
+	DisasterPeriod      SelectivelyVisibleUint
+	StochasticDisasters SelectivelyVisibleBool // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
 }
 
 // GetClientConfig gets ClientConfig.
@@ -59,6 +61,14 @@ func (c DisasterConfig) GetClientDisasterConfig() ClientDisasterConfig {
 		CommonpoolThreshold: getSelectivelyVisibleResources(
 			c.CommonpoolThreshold,
 			c.CommonpoolThresholdVisible,
+		),
+		DisasterPeriod: getSelectivelyVisibleUint(
+			c.Period,
+			c.PeriodVisible,
+		),
+		StochasticDisasters: getSelectivelyVisibleBool(
+			c.StochasticPeriod,
+			c.StochasticPeriodVisible,
 		),
 	}
 }
