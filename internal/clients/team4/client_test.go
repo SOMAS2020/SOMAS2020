@@ -9,8 +9,9 @@ import (
 
 func TestGetJudgePointer(t *testing.T) {
 	c := client{
-		BaseClient:  baseclient.NewClient(id),
-		clientJudge: Judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
+		BaseClient:    baseclient.NewClient(id),
+		clientJudge:   Judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
+		clientSpeaker: ourSpeaker{},
 	}
 
 	judge := c.GetClientJudgePointer()

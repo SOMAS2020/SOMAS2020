@@ -10,6 +10,10 @@ func (c *client) GetClientJudgePointer() roles.Judge {
 	return &c.clientJudge
 }
 
+func (c *client) GetClientSpeakerPointer() roles.Speaker {
+	return &c.clientSpeaker
+}
+
 func (c *client) RequestAllocation() shared.Resources {
 	allocationGranted := c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0

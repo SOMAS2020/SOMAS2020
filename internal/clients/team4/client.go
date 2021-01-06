@@ -18,6 +18,8 @@ func init() {
 type client struct {
 	*baseclient.BaseClient //client struct has access to methods and fields of the BaseClient struct which implements implicitly the Client interface.
 	clientJudge            Judge
+	clientSpeaker          ourSpeaker
+
 	//custom fields
 	yes           string              //this field is just for testing
 	obs           *observation        //observation is the raw input into our client
