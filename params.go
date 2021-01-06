@@ -189,7 +189,7 @@ var (
 		50,
 		"Common pool threshold value for disaster to be mitigated",
 	)
-	disasterPeriodStochastic = flag.Bool(
+	disasterStochasticPeriod = flag.Bool(
 		"disasterStochasticPeriod",
 		false,
 		"If true, period between disasters becomes random. If false, it will be consistent (deterministic)",
@@ -391,7 +391,7 @@ func parseConfig() (config.Config, error) {
 		Period:                      *disasterPeriod,
 		SpatialPDFType:              parsedDisasterSpatialPDFType,
 		MagnitudeLambda:             *disasterMagnitudeLambda,
-		StochasticPeriod:            *disasterPeriodStochastic,
+		StochasticPeriod:            *disasterStochasticPeriod,
 		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
 		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
 		CommonpoolThresholdVisible:  *disasterCommonpoolThresholdVisible,
