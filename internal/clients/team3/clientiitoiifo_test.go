@@ -182,7 +182,6 @@ func TestGetGiftOffers(t *testing.T) {
 					localPoolThreshold:      150,
 					trustParameter:          0.5,
 					trustConstantAdjustor:   0.5,
-					giftOfferEquity:         1.1, //TODO needs to be adjusted
 					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
@@ -235,7 +234,6 @@ func TestGetGiftOffers(t *testing.T) {
 					localPoolThreshold:      150,
 					trustParameter:          0.5,
 					trustConstantAdjustor:   0.5,
-					giftOfferEquity:         1.1, //TODO needs to be adjusted
 					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
@@ -290,7 +288,6 @@ func TestGetGiftOffers(t *testing.T) {
 					localPoolThreshold:      150,
 					trustParameter:          0.5,
 					trustConstantAdjustor:   0.5,
-					giftOfferEquity:         1.1, //TODO needs to be adjusted
 					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
@@ -345,7 +342,6 @@ func TestGetGiftOffers(t *testing.T) {
 					localPoolThreshold:      150,
 					trustParameter:          0.5,
 					trustConstantAdjustor:   0.5,
-					giftOfferEquity:         1.1, //TODO needs to be adjusted
 					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
