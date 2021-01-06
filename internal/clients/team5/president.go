@@ -154,15 +154,15 @@ func (pres *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID
 	oparray := []opinionScore{}
 	for id, opinion := range pres.c.opinions { //stores scores except team 5's in an array
 		if id != ourClientID {
-			oparray = append(oparray, opinion.score)
+			oparray = append(oparray, opinion.getScore())
 		}
 	}
 	_, max := pres.c.minmaxOpinion(oparray) //calculates mas score from the array of opinion scores
 
 	if max > 0.0 {
 		for client, op := range pres.c.opinions { //matches highest score to the id of the island and returns that island as the speaker
-			if op.score == max {
-				pres.c.Logf("Opinion on team %v is %v", client, op.score)
+			if op.getScore() == max {
+				pres.c.Logf("Opinion on team %v is %v", client, op.getScore())
 				return shared.ClientID(client)
 			}
 

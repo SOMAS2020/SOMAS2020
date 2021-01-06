@@ -97,7 +97,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 
 	// Add other island's predictions using their confidence values
 	for rxTeam, pred := range receivedPredictions {
-		rep := float64(c.opinions[rxTeam].forecastReputation) + 1 // our notion of another island's forecasting reputation
+		rep := float64(c.opinions[rxTeam].getForecastingRep()) + 1 // our notion of another island's forecasting reputation
 		sumX += pred.PredictionMade.Confidence * pred.PredictionMade.CoordinateX * rep
 		sumY += pred.PredictionMade.Confidence * pred.PredictionMade.CoordinateY * rep
 		sumMag += pred.PredictionMade.Confidence * pred.PredictionMade.Magnitude * rep

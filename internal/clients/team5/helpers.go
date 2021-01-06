@@ -1,6 +1,10 @@
 package team5
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"math"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 // shorthand to get current turn as it's needed often
 func (c client) getTurn() uint {
@@ -41,4 +45,11 @@ func (c client) isClientAlive(id shared.ClientID) bool {
 		}
 	}
 	return false
+}
+
+func minMaxCap(val, absThresh float64) float64 {
+	if val > 0 {
+		return math.Min(val, absThresh)
+	}
+	return math.Max(val, absThresh*-1)
 }
