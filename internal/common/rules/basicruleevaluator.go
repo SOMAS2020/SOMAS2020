@@ -13,13 +13,12 @@ func createVarList(variables []VariableFieldName, varCache map[VariableFieldName
 		if val, varOk := varCache[v]; varOk {
 			variableVect = append(variableVect, val.Values...)
 		} else {
-			return nil, errors.Errorf("Variable: '%v' not found in global variable cache", v)
+			return nil, errors.Errorf("Variable: '%v' not found in variable cache %v", v, varCache)
 		}
 	}
 
 	variableVect = append(variableVect, 1)
 	return variableVect, nil
-
 }
 
 func ruleMul(variableVect []float64, ApplicableMatrix mat.Dense) *mat.VecDense {

@@ -4,7 +4,9 @@ package gamestate
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"gonum.org/v1/gonum/mat"
 )
 
 // GameState represents the game's state.
@@ -26,11 +28,18 @@ type GameState struct {
 	// Foraging History
 	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
 
+	// Rules in play
+	CurrentRulesInPlay map[string]rules.RuleMatrix
+
 	// IIGO History: indexed by turn
 	IIGOHistory map[uint][]shared.Accountability
 
 	// IIGO roles budget (initialised in orchestration.go)
 	IIGORolesBudget map[shared.Role]shared.Resources
+
+	// IIGO turns in power (incremented and set by monitoring)
+	IIGOTurnsInPower map[shared.Role]uint
+
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
 
@@ -50,8 +59,10 @@ func (g GameState) Copy() GameState {
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
 	ret.ForagingHistory = copyForagingHistory(g.ForagingHistory)
+	ret.CurrentRulesInPlay = copyRulesInPlay(g.CurrentRulesInPlay)
 	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
+	ret.IIGOTurnsInPower = copyTurnsInPower(g.IIGOTurnsInPower)
 	return ret
 }
 
@@ -73,6 +84,7 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		JudgeID:            g.JudgeID,
 		PresidentID:        g.PresidentID,
 		IIGORolesBudget:    copyRolesBudget(g.IIGORolesBudget),
+		IIGOTurnsInPower:   copyTurnsInPower(g.IIGOTurnsInPower),
 	}
 }
 
@@ -92,12 +104,53 @@ func copyRolesBudget(m map[shared.Role]shared.Resources) map[shared.Role]shared.
 	return ret
 }
 
+func copyTurnsInPower(m map[shared.Role]uint) map[shared.Role]uint {
+	ret := make(map[shared.Role]uint, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
 func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]shared.Accountability {
 	targetMap := make(map[uint][]shared.Accountability)
 	for key, value := range iigoHistory {
 		targetMap[key] = copySingleIIGOEntry(value)
 	}
 	return targetMap
+}
+
+func copyRulesInPlay(rulesInPlay map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
+	targetMap := make(map[string]rules.RuleMatrix)
+	for key, value := range rulesInPlay {
+		targetMap[key] = copySingleRuleMatrix(value)
+	}
+	return targetMap
+}
+
+func copySingleRuleMatrix(inp rules.RuleMatrix) rules.RuleMatrix {
+	return rules.RuleMatrix{
+		RuleName:          inp.RuleName,
+		RequiredVariables: copyRequiredVariables(inp.RequiredVariables),
+		ApplicableMatrix:  *mat.DenseCopyOf(&inp.ApplicableMatrix),
+		AuxiliaryVector:   *mat.VecDenseCopyOf(&inp.AuxiliaryVector),
+		Mutable:           inp.Mutable,
+		Link:              copyLink(inp.Link),
+	}
+}
+
+func copyLink(inp rules.RuleLink) rules.RuleLink {
+	return rules.RuleLink{
+		Linked:     inp.Linked,
+		LinkType:   inp.LinkType,
+		LinkedRule: inp.LinkedRule,
+	}
+}
+
+func copyRequiredVariables(inp []rules.VariableFieldName) []rules.VariableFieldName {
+	targetList := make([]rules.VariableFieldName, len(inp))
+	copy(targetList, inp)
+	return targetList
 }
 
 func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability {
