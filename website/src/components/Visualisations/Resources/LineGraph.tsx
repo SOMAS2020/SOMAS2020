@@ -12,8 +12,9 @@ import {
     Legend, 
     Surface, 
     Symbols, 
-    ReferenceLine } 
-from 'recharts';
+    ReferenceLine,
+    ReferenceArea
+} from 'recharts';
 import { OutputJSONType } from "../../../consts/types";
 import _ from "lodash";
 
@@ -23,7 +24,7 @@ interface IProps {
 
 class LineRechartComponent extends React.Component<IProps, any> {
 
-    constructor(props) {
+    constructor(props: IProps | Readonly<IProps>) {
         super(props);
         this.state = {
             disabled: [],
@@ -47,10 +48,10 @@ class LineRechartComponent extends React.Component<IProps, any> {
         };
     }
 
-    handleClick = dataKey => {
+    handleClick = (dataKey: any) => {
         this.setState({
             disabled: this.state.disabled.includes(dataKey)
-              ? this.state.disabled.filter((obj) => obj !== dataKey)
+              ? this.state.disabled.filter((obj: any) => obj !== dataKey)
               : this.state.disabled.concat(dataKey),
           });
       
@@ -133,6 +134,13 @@ class LineRechartComponent extends React.Component<IProps, any> {
                             strokeDasharray="3 3"
                         />
                     ))}
+                    <ReferenceArea 
+                        y1={0} 
+                        y2={this.state.chartData.Config.MinimumResourceThreshold} 
+                        label='Critical'
+                        stroke="blue" 
+                        strokeOpacity={0.1} 
+                    />
                     <Legend
                         verticalAlign="top"
                         align="center"
