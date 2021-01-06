@@ -23,7 +23,7 @@ func (c client) getLifeStatus() shared.ClientLifeStatus {
 }
 
 func (c client) getAliveTeams(includeUs bool) (aliveTeams []shared.ClientID) {
-	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+	for team, status := range c.gameState().ClientLifeStatuses {
 		if status == shared.Alive {
 			if includeUs || team != ourClientID {
 				aliveTeams = append(aliveTeams, team)

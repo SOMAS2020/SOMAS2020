@@ -168,9 +168,8 @@ func (pres *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID
 
 		}
 		return shared.ClientID(rand.Intn(5)) //this should never be trigerred, just here for completeness
-	} else {
-		return shared.ClientID(rand.Intn(5)) //triggered if max<0 and thus it's better to randomize speaker selection
 	}
+	return shared.ClientID(rand.Intn(5)) //triggered if max<0 and thus it's better to randomize speaker selection
 }
 
 //This function takes in an array of opinions when called and outputs the minimum and maximum scores

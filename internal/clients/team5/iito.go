@@ -164,13 +164,11 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 		} else if c.wealth() == 1 { //When Imperial Student fulfill all offers but divide Team 3's by 3
 			if toTeam == shared.Team3 {
 				return (giftOffer / 3)
-			} else {
-				return giftOffer // Return all offers if we are in imperial class but Team 3 / 3
 			}
+			return giftOffer // Return all offers if we are in imperial class but Team 3 / 3
 		} else {
 			return 0 // Reject all offers if we are in critical state
 		}
-	} else { //Reject all offers if we have less than we did last round
-		return 0
 	}
+	return 0
 }
