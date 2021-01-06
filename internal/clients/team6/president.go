@@ -105,7 +105,9 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	}
 }
 
-func (p *president) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
+func (p *president) PaySpeaker() shared.PresidentReturnContent {
+	salary := shared.Resources(0.0)
+
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
 		SpeakerSalary: salary,

@@ -19,8 +19,8 @@ func (j *judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSan
 	return j.BaseJudge.GetSanctionThresholds()
 }
 
-func (j *judge) PayPresident(salary shared.Resources) (shared.Resources, bool) {
-	return j.BaseJudge.PayPresident(salary)
+func (j *judge) PayPresident() (shared.Resources, bool) {
+	return j.BaseJudge.PayPresident()
 }
 
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
