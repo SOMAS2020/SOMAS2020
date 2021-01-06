@@ -26,13 +26,13 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 }
 
 func (d disasterHistory) sortKeys() []uint {
-	keys := make([]int, len(d))
+	keys := make([]int, 0)
 	for k := range d {
 		keys = append(keys, int(k))
 	}
 	sort.Ints(keys)
-	finalKeys := make([]uint, len(d))
-	for k := range keys {
+	finalKeys := make([]uint, 0)
+	for _, k := range keys {
 		finalKeys = append(finalKeys, uint(k))
 	}
 	return finalKeys
