@@ -23,15 +23,23 @@ type receivedForecastHistory map[uint]shared.ReceivedDisasterPredictionsDict // 
 // COMPULSORY, you need to implement this method
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
-	meanDisaster := c.getHistoricalForecast()
-	prediction := shared.DisasterPrediction{
-		CoordinateX: meanDisaster.epiX,
-		CoordinateY: meanDisaster.epiY,
-		Magnitude:   meanDisaster.mag,
-		TimeLeft:    int(meanDisaster.turn - c.getTurn()),
-	}
+	spatialMagPred := c.estimateSpatialAndMag() // estimate for x,y coords and magnitude
+	estPeriod, periodConf := c.estimateDisasterPeriod()
 
-	prediction.Confidence = c.determineForecastConfidence()
+	lastDisasterTurn := c.getLastDisasterTurn()
+
+	prediction := shared.DisasterPrediction{
+		CoordinateX: spatialMagPred.epiX,
+		CoordinateY: spatialMagPred.epiY,
+		Magnitude:   spatialMagPred.mag,
+		TimeLeft:    int(lastDisasterTurn + estPeriod - c.getTurn()),
+	}
+	pBias := c.config.periodConfidenceBias
+	if math.Abs(pBias) > 1 {
+		c.Logf("WARNING: Invalid period confidence bias value of %v. Setting default value of 0.5.", pBias)
+		pBias = 0.5 // assign default if out of range
+	}
+	prediction.Confidence = periodConf*pBias + (1-pBias)*spatialMagPred.confidence
 	trustedIslandIDs := []shared.ClientID{}
 	trustThresh := c.config.forecastTrustTreshold
 	for id := range c.getTrustedTeams(trustThresh, false, forecastingBasis) {
@@ -46,34 +54,13 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	c.lastDisasterPrediction = prediction
 	// update forecast history
 	c.forecastHistory[c.getTurn()] = forecastInfo{
-		epiX: prediction.CoordinateX,
-		epiY: prediction.CoordinateY,
-		mag:  prediction.Magnitude,
-		turn: uint(prediction.TimeLeft) + c.getTurn(),
+		epiX:       prediction.CoordinateX,
+		epiY:       prediction.CoordinateY,
+		mag:        prediction.Magnitude,
+		turn:       uint(prediction.TimeLeft) + c.getTurn(),
+		confidence: prediction.Confidence,
 	}
 	return predictionInfo
-}
-
-// averages observations over history to get 'mean' disaster
-func (c client) getHistoricalForecast() forecastInfo {
-	sumX, sumY, sumMag := 0.0, 0.0, 0.0
-
-	for _, dInfo := range c.disasterHistory {
-		sumX += dInfo.report.X
-		sumY += dInfo.report.Y
-		sumMag += dInfo.report.Y
-	}
-	n := float64(len(c.forecastHistory))
-	period, conf := c.analyseDisasterPeriod()
-
-	meanDisaster := forecastInfo{
-		epiX:       sumX / n,
-		epiY:       sumY / n,
-		mag:        sumMag / n,
-		turn:       c.getLastDisasterTurn() + period,
-		confidence: conf,
-	}
-	return meanDisaster
 }
 
 func (c client) getLastDisasterTurn() uint {
@@ -85,17 +72,23 @@ func (c client) getLastDisasterTurn() uint {
 	return 0
 }
 
-func (c *client) analyseDisasterPeriod() (period uint, conf float64) {
+// provides estimate of *when* next disaster will occur and associated conf
+func (c *client) estimateDisasterPeriod() (period uint, conf float64) {
+
+	c.Logf("DH: %v", c.disasterHistory)
+
 	if len(c.disasterHistory) == 0 {
 		return 0, 0 // we can't make any predictions with no disaster history!
 	}
-	periods := []float64{0} // use float so we can use stat.Variance() later
-	periodSum := 0.0
+	periods := []float64{} // use float so we can use stat.Variance() later
+	periodSum := 0.0       // to offset this from average
+	prevTurn := float64(startTurn)
 	for turn := range c.disasterHistory {
-		periods = append(periods, float64(turn)-periods[len(periods)-1]) // period = no. turns between successive disasters
+		periods = append(periods, float64(turn)-prevTurn) // period = no. turns between successive disasters
 		periodSum += periods[len(periods)-1]
+		prevTurn = float64(turn)
 	}
-	periods = periods[1:] // remove leading 0
+	c.Logf("Periods final: %v", periods)
 	if len(periods) == 1 {
 		return uint(periods[0]), 50.0 // if we only have one past observation. Best we can do is estimate that period again.
 	}
@@ -103,22 +96,37 @@ func (c *client) analyseDisasterPeriod() (period uint, conf float64) {
 	v := stat.Variance(periods, nil)
 
 	meanPeriod := periodSum / float64(len(periods))
-	varThresh := meanPeriod / 2
-	varianceRatio := math.Max(v/varThresh, 1.0) // should be between 0 (min var) and 1 (max var)
+	varThresh := meanPeriod
+	varianceRatio := math.Min(v/varThresh, 1.0) // should be between 0 (min var) and 1 (max var)
+
 	conf = (1 - varianceRatio) * 100
 	// if not consistent, return mean period we've seen so far
 	return uint(meanPeriod), conf
 }
 
-func (c *client) determineForecastConfidence() float64 {
+// gets confidence of x,y coord and magnitude estimates
+func (c *client) estimateSpatialAndMag() forecastInfo {
+	sumX, sumY, sumMag := 0.0, 0.0, 0.0
+
+	for _, dInfo := range c.disasterHistory {
+		sumX += dInfo.report.X
+		sumY += dInfo.report.Y
+		sumMag += dInfo.report.Y
+	}
+	n := float64(len(c.disasterHistory))
+	historicalInfo := forecastInfo{
+		epiX: sumX / n,
+		epiY: sumY / n,
+		mag:  sumMag / n,
+		turn: uint(n), // this will be updated by period forecast
+	}
 	totalDisaster := forecastInfo{}
-	sqDiff := func(x, meanX float64) float64 { return math.Pow(x-meanX, 2) }
-	meanInfo := c.getHistoricalForecast()
+	sqDiff := func(a, b float64) float64 { return math.Pow(a-b, 2) }
 	// Find the sum of the square of the difference between the actual and mean, for each field
 	for _, d := range c.forecastHistory {
-		totalDisaster.epiX += sqDiff(d.epiX, meanInfo.epiX)
-		totalDisaster.epiY += sqDiff(d.epiY, meanInfo.epiY)
-		totalDisaster.mag += sqDiff(d.mag, meanInfo.mag)
+		totalDisaster.epiX += sqDiff(d.epiX, historicalInfo.epiX)
+		totalDisaster.epiY += sqDiff(d.epiY, historicalInfo.epiY)
+		totalDisaster.mag += sqDiff(d.mag, historicalInfo.mag)
 	}
 
 	// TODO: find a better method of calculating confidence
@@ -126,7 +134,8 @@ func (c *client) determineForecastConfidence() float64 {
 	variance := (totalDisaster.epiX + totalDisaster.epiY + totalDisaster.mag) / float64(len(c.forecastHistory))
 	variance = math.Min(c.config.maxForecastVariance, variance)
 
-	return c.config.maxForecastVariance - variance
+	historicalInfo.confidence = c.config.maxForecastVariance - variance
+	return historicalInfo
 }
 
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,

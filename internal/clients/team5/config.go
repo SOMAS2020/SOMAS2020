@@ -37,6 +37,7 @@ type clientConfig struct {
 	// Disasters and IIFO
 	forecastTrustTreshold opinionScore // min opinion score of another team to consider their forecast in creating ours
 	maxForecastVariance   float64      // maximum tolerable variance in historical forecast values
+	periodConfidenceBias  float64      // value between 0 and 1. Greater than 0.5 => weight period confidence more than mag. and spatial in overall conf
 }
 
 // set param values here. In order to add a new value, you need to add a definition in struct above.
