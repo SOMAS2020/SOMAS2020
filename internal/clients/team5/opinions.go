@@ -58,12 +58,12 @@ func (o opinion) String() string {
 func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) {
 	op := wo.opinion
 	switch basis {
+	case generalBasis:
+		newScore := float64(op.score) + increment
+		op.score = opinionScore(minMaxCap(newScore, 1.0))
 	case forecastingBasis:
 		newScore := float64(op.forecastReputation) + increment
 		op.forecastReputation = opinionScore(minMaxCap(newScore, 1.0))
-	default:
-		newScore := float64(op.score) + increment
-		op.score = opinionScore(minMaxCap(newScore, 1.0))
 	}
 	wo.opinion = op // update opinion
 }
