@@ -21,6 +21,8 @@ type client struct {
 	acceptedGifts        map[shared.ClientID]int
 	requestedGiftAmounts map[shared.ClientID]shared.GiftRequest
 	receivedResponses    []shared.GiftResponse
+	sentGiftHistory      map[shared.ClientID]shared.Resources
+	giftOpinions         map[shared.ClientID]int
 
 	// ## Trust ##
 

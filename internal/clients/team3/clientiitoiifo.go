@@ -35,17 +35,17 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 	requests := shared.GiftRequestDict{}
 
-	localPool := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	localPool := c.getLocalResources()
 
 	resourcesNeeded := c.params.localPoolThreshold - float64(localPool)
-	fmt.Println("resources needed: ", resourcesNeeded)
+	//fmt.Println("resources needed: ", resourcesNeeded)
 	if resourcesNeeded > 0 {
 		resourcesNeeded *= (1 + c.params.giftInflationPercentage)
 		totalRequestAmt = resourcesNeeded
 	} else {
 		totalRequestAmt = c.params.giftInflationPercentage * c.params.localPoolThreshold
 	}
-	fmt.Println("total request amount: ", totalRequestAmt)
+	//fmt.Println("total request amount: ", totalRequestAmt)
 
 	avgRequestAmt := totalRequestAmt / float64(c.getIslandsAlive()-c.getIslandsCritical())
 
@@ -57,7 +57,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			requests[island] = shared.GiftRequest(0.0)
 		} else {
 			var requestAmt float64
-			requestAmt = avgRequestAmt*math.Pow(c.trustScore[island], c.params.trustParameter) + c.params.trustConstantAdjustor
+			requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.trustParameter) * c.params.trustConstantAdjustor
 			requests[island] = shared.GiftRequest(requestAmt)
 		}
 	}
@@ -96,8 +96,9 @@ func findAvgExclMinMax(Requests shared.GiftRequestDict) shared.GiftRequest {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 
-	islandStatus := c.ServerReadHandle.GetGameState().ClientLifeStatuses[shared.Team3]
-	if islandStatus == shared.Critical {
+	islandStatusCritical := c.isClientStatusCritical(shared.Team3)
+
+	if islandStatusCritical {
 		for island := range receivedRequests {
 			offers[island] = 0.0
 		}
@@ -111,34 +112,43 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	var totalRequestedAmt float64
 	var sumRequest shared.GiftRequest
 
-	// 1, 2, 5
 	for island, request := range receivedRequests {
 		sumRequest += request
 		amounts[island] = request * shared.GiftRequest(math.Pow(c.trustScore[island], c.params.trustParameter)+c.params.trustConstantAdjustor)
+		//amounts[island] = request * shared.GiftRequest(1+math.Tanh(c.trustScore[island]-50))
 	}
 
-	// fmt.Println("original amounts: ", amounts)
+	//fmt.Println("original amounts: ", amounts)
 
-	// 4
 	for _, island := range c.getAliveIslands() {
-		if island == c.BaseClient.GetID() {
-			continue
-		} else if amounts[island] == 0.0 {
+		if island != c.BaseClient.GetID() && amounts[island] == 0.0 {
 			amounts[island] = shared.GiftRequest(c.trustScore[island] * c.params.NoRequestGiftParam)
 		}
 	}
 
-	fmt.Println("amounts: ", amounts)
+	// for _, island := range c.getAliveIslands() {
+
+	// 	if island == c.BaseClient.GetID() {
+	// 		continue
+	// 	} else if _, ok := amounts[island]; ok {
+	// 		continue
+	// 	} else {
+	// 		amounts[island] = shared.GiftRequest(c.trustScore[island] * c.params.NoRequestGiftParam)
+	// 	}
+	// }
+
+	//fmt.Println("amounts: ", amounts)
 
 	avgRequest := findAvgExclMinMax(receivedRequests)
 	avgAmount := findAvgExclMinMax(amounts)
 
 	for island, amount := range amounts {
 		allocations[island] = float64(avgRequest) + c.params.giftOfferEquity*float64((avgAmount-amount)+(receivedRequests[island]-avgRequest))
+		fmt.Printf("allocation for island %v is %v", island, allocations[island])
 		allocations[island] = math.Max(float64(receivedRequests[island]), allocations[island])
 	}
 
-	fmt.Println("allocations: ", allocations)
+	//fmt.Println("allocations: ", allocations)
 
 	for _, alloc := range allocations {
 		allocSum += alloc
@@ -151,13 +161,11 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		totalRequestedAmt += float64(requests)
 	}
 
-	localPool := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	localPool := c.getLocalResources()
 
-	testParam := 2000.0 //TODO needs to be taken out and replaced with a diff threshold
+	giftBudget := (float64(localPool) + totalRequestedAmt) * ((1 - c.params.selfishness) / 2)
 
-	//giftBudget := c.params.localPoolThreshold - (float64(localPool) + totalRequestedAmt)
-
-	giftBudget := testParam - (float64(localPool) + totalRequestedAmt)
+	fmt.Println("gift budged amount: ", giftBudget)
 
 	for island := range receivedRequests {
 		if float64(sumRequest) < giftBudget {
@@ -191,20 +199,48 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 }
 
 // UpdateGiftInfo receives responses from each island from the offers that our island made earlier.
-// Strategy: This function is first used to update our localPool with the accepted offer amount,
-// and then used to adjust the trust score based on if they accepted or not. However, if an island
-// is in critical state then they are exempt from trust score changes if they didn't offer full amount.
+// Strategy: The strategy is to update giftOpinion map on the reasons that gifts are declined or
+// ignored for.
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	for clientID, response := range receivedResponses {
-		trustAdjustor := response.AcceptedAmount - shared.Resources(c.requestedGiftAmounts[clientID])
-		newTrustScore := 10 + (trustAdjustor * 0.2)
-		if trustAdjustor >= 0 {
-			c.updatetrustMapAgg(clientID, float64(newTrustScore))
-		} else {
-			if c.isClientStatusCritical(clientID) {
-				continue
-			}
-			c.updatetrustMapAgg(clientID, -float64(newTrustScore))
+		if response.Reason == shared.DeclineDontLikeYou {
+			c.giftOpinions[clientID] -= 2
+		} else if response.Reason == shared.Ignored {
+			c.giftOpinions[clientID]--
 		}
 	}
+}
+
+// SentGift is executed at the end of each turn and notifies clients that
+// their gift was successfully sent, along with offer details.
+// We store the gift history for the previous turn.
+func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
+	c.sentGiftHistory = map[shared.ClientID]shared.Resources{}
+	for island, amount := range c.sentGiftHistory {
+		c.sentGiftHistory[island] = amount
+	}
+
+}
+
+// ReceivedGift will inform us how much amount we have received from the specific islands
+// and trust scores are then incremented and decremented based on the received difference.
+func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
+
+	requestedFromIsland := c.requestedGiftAmounts[from]
+	trustAdjustor := received - shared.Resources(requestedFromIsland)
+	newTrustScore := 10 + (trustAdjustor * 0.2)
+	if trustAdjustor >= 0 {
+		c.updatetrustMapAgg(from, float64(newTrustScore))
+	} else {
+		if c.isClientStatusCritical(from) {
+			return
+		}
+		c.updatetrustMapAgg(from, -float64(newTrustScore))
+	}
+}
+
+// DecideGiftAmount is executed at the end of each turn and asks clients how much
+// they wish to fulfill a gift offer they have previously made.
+func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
+	return giftOffer
 }
