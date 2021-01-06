@@ -113,15 +113,12 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 				e.sendDecision(islandID, amount, shared.IIGOTaxDecision)
 			}
 		}
-<<<<<<< HEAD
 		e.Logf("Tax: %v", taxMapReturn.ResourceMap)
-=======
 	} else {
 		// default case when president doesn't take an action. send tax = 0
 		for _, islandID := range aliveIslands {
 			e.sendNoDecision(islandID, shared.IIGOTaxDecision)
 		}
->>>>>>> main
 	}
 
 	return nil
