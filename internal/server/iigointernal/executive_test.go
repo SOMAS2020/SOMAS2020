@@ -383,6 +383,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
+				monitoring:      &monitor{},
 			},
 			expected: []rules.RuleMatrix{{RuleName: ""}},
 		},
@@ -394,6 +395,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
+				monitoring:      &monitor{},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "test"}},
 		},
@@ -405,6 +407,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
+				monitoring:      &monitor{},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
@@ -416,6 +419,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
+				monitoring:      &monitor{},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
@@ -427,6 +431,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
+				monitoring:      &monitor{},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
@@ -435,7 +440,19 @@ func TestGetRuleForSpeaker(t *testing.T) {
 	wantPresidentReturnType := shared.PresidentRuleProposal
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			fakeGameConfig := config.IIGOConfig{
+				GetRuleForSpeakerActionCost: 1,
+			}
+			fakeGameState := gamestate.GameState{
+				CommonPool: 100,
+				IIGORolesBudget: map[shared.Role]shared.Resources{
+					shared.President: 10,
+					shared.Speaker:   10,
+					shared.Judge:     10,
+				},
+			}
 
+			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
 			got, _ := tc.bPresident.getRuleForSpeaker()
 
 			if got.ContentType != wantPresidentReturnType {
@@ -660,6 +677,9 @@ func TestReplyAllocationRequest(t *testing.T) {
 		},
 	}
 
+	rules.PullRuleIntoPlay("allocation_decision")
+	rules.PullRuleIntoPlay("check_allocation_rule")
+
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
@@ -672,29 +692,58 @@ func TestReplyAllocationRequest(t *testing.T) {
 					shared.Judge:     10,
 				},
 			}
+			fakeGameConfig := config.IIGOConfig{
+				ReplyAllocationRequestsActionCost: 1,
+			}
+			fakeServer := fakeServerHandle{
+				PresidentID: tc.bPresident.PresidentID,
+			}
 
 			aliveID := []shared.ClientID{}
 
 			for clientID := range tc.clientRequests {
 				aliveID = append(aliveID, clientID)
-				fakeClientMap[clientID] = baseclient.NewClient(clientID)
+				newClient := baseclient.NewClient(clientID)
+				newClient.Initialise(fakeServer)
+				fakeClientMap[clientID] = newClient
 			}
 
 			setIIGOClients(&fakeClientMap)
-			tc.bPresident.setGameState(&fakeGameState)
+			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
 			tc.bPresident.replyAllocationRequest(tc.commonPool)
 
 			for clientID, expectedAllocation := range tc.expected {
-				communicationGot := *(fakeClientMap[clientID]).GetCommunications()
-				communicationExpected := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{
-					tc.bPresident.PresidentID: {
-						{shared.AllocationAmount: {T: shared.CommunicationInt, IntegerData: int(expectedAllocation)}},
-					},
+				communicationsGot := *(fakeClientMap[clientID]).GetCommunications()
+				presidentCommunication := communicationsGot[tc.bPresident.PresidentID][0]
+
+				allocation := presidentCommunication[shared.IIGOAllocationDecision].IIGOValueData
+				allocationAmount := allocation.Amount
+				expectedAllocVar := allocation.Expected
+				decidedVar := allocation.DecisionMade
+
+				if presidentCommunication[shared.IIGOAllocationDecision].T != shared.CommunicationIIGOValue {
+					t.Errorf("Allocation failed for client %v. Rule type is %v", clientID, presidentCommunication[shared.IIGOAllocationDecision].T)
 				}
-				if !reflect.DeepEqual(communicationGot, communicationExpected) {
-					t.Errorf("Allocation request failed. Expected communication: %v,\n Got communication : %v", communicationExpected, communicationGot)
+
+				if reflect.DeepEqual(expectedAllocVar, rules.VariableValuePair{}) {
+					t.Errorf("Allocation failed for client %v. Expected Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
 				}
+
+				if reflect.DeepEqual(decidedVar, rules.VariableValuePair{}) {
+					t.Errorf("Allocation failed for client %v. Decided Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
+				}
+
+				if allocationAmount != expectedAllocation {
+					t.Errorf("Allocation failed for client %v. Expected tax: %v, evaluated tax: %v", clientID, expectedAllocation, allocationAmount)
+				}
+
+				allocationRequest := fakeClientMap[clientID].RequestAllocation()
+
+				if allocationRequest != expectedAllocation {
+					t.Errorf("Allocation failed for client %v. Expected allocation request <= %v , got allocation request: %v", clientID, expectedAllocation, allocationRequest)
+				}
+
 			}
 		})
 	}
@@ -779,4 +828,147 @@ func TestPresidentIncurServiceCharge(t *testing.T) {
 			}
 		})
 	}
+}
+
+func expectedTax(r shared.ResourcesReport) shared.Resources {
+	if r.Reported {
+		return 0.1 * r.ReportedAmount
+	} else {
+		return 15
+	}
+}
+
+func TestBroadcastTaxation(t *testing.T) {
+	cases := []struct {
+		name          string
+		bPresident    executive // base
+		commonPool    shared.Resources
+		clientReports map[shared.ClientID]shared.ResourcesReport
+	}{
+		{
+			name: "Simple test",
+			bPresident: executive{
+				PresidentID:     shared.Team4,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientReports: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {ReportedAmount: 30, Reported: true},
+				shared.Team2: {ReportedAmount: 9, Reported: true},
+				shared.Team3: {ReportedAmount: 15, Reported: true},
+				shared.Team4: {ReportedAmount: 20, Reported: true},
+				shared.Team5: {ReportedAmount: 25, Reported: true},
+				shared.Team6: {ReportedAmount: 40, Reported: true},
+			},
+			commonPool: 150,
+		},
+		{
+			name: "Some non-reports test",
+			bPresident: executive{
+				PresidentID:     shared.Team1,
+				clientPresident: &baseclient.BasePresident{},
+			},
+			clientReports: map[shared.ClientID]shared.ResourcesReport{
+				shared.Team1: {ReportedAmount: 30, Reported: true},
+				shared.Team2: {Reported: false},
+				shared.Team3: {ReportedAmount: 15, Reported: true},
+				shared.Team4: {Reported: false},
+				shared.Team5: {ReportedAmount: 25, Reported: true},
+				shared.Team6: {Reported: false},
+			},
+			commonPool: 150,
+		},
+	}
+
+	rules.PullRuleIntoPlay("tax_decision")
+	rules.PullRuleIntoPlay("check_taxation_rule")
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			fakeClientMap := map[shared.ClientID]baseclient.Client{}
+			fakeGameState := gamestate.GameState{
+				CommonPool: tc.commonPool,
+				IIGORolesBudget: map[shared.Role]shared.Resources{
+					shared.President: 10,
+					shared.Speaker:   10,
+					shared.Judge:     10,
+				},
+			}
+			fakeGameConfig := config.IIGOConfig{
+				ReplyAllocationRequestsActionCost: 1,
+				BroadcastTaxationActionCost:       1,
+			}
+			fakeServer := fakeServerHandle{
+				PresidentID: tc.bPresident.PresidentID,
+			}
+
+			aliveID := []shared.ClientID{}
+
+			for clientID := range tc.clientReports {
+				aliveID = append(aliveID, clientID)
+				newClient := baseclient.NewClient(clientID)
+				newClient.Initialise(fakeServer)
+				fakeClientMap[clientID] = newClient
+			}
+
+			setIIGOClients(&fakeClientMap)
+			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
+
+			tc.bPresident.broadcastTaxation(tc.clientReports, aliveID)
+
+			for clientID, resources := range tc.clientReports {
+				communicationsGot := *(fakeClientMap[clientID]).GetCommunications()
+				presidentCommunication := communicationsGot[tc.bPresident.PresidentID][0]
+
+				taxDecision := presidentCommunication[shared.IIGOTaxDecision].IIGOValueData
+				taxAmount := taxDecision.Amount
+				taxExpectedVar := taxDecision.Expected
+				decided := taxDecision.DecisionMade
+
+				if presidentCommunication[shared.IIGOTaxDecision].T != shared.CommunicationIIGOValue {
+					t.Errorf("Taxation failed for client %v. Rule type is %v", clientID, presidentCommunication[shared.IIGOTaxDecision].T)
+				}
+
+				if reflect.DeepEqual(taxExpectedVar, rules.VariableValuePair{}) {
+					t.Errorf("Taxation failed for client %v. Expected Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
+				}
+
+				if reflect.DeepEqual(decided, rules.VariableValuePair{}) {
+					t.Errorf("Taxation failed for client %v. Decided Tax Variable entry is empty. Got communication : %v", clientID, communicationsGot)
+				}
+
+				expectedTax := expectedTax(resources)
+
+				if taxAmount != expectedTax {
+					t.Errorf("Taxation failed for client %v. Expected tax: %v, evaluated tax: %v", clientID, expectedTax, taxAmount)
+				}
+
+				// Check client return
+				paidTax := fakeClientMap[clientID].GetTaxContribution()
+
+				if expectedTax != paidTax {
+					t.Errorf("Taxation failed for client %v. expected to pay at least %v, got tax contribution %v", clientID, expectedTax, paidTax)
+				}
+			}
+
+		})
+	}
+}
+
+type fakeServerHandle struct {
+	PresidentID shared.ClientID
+	JudgeID     shared.ClientID
+	SpeakerID   shared.ClientID
+}
+
+func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
+	return gamestate.ClientGameState{
+		SpeakerID:   s.SpeakerID,
+		JudgeID:     s.JudgeID,
+		PresidentID: s.PresidentID,
+	}
+}
+
+func (s fakeServerHandle) GetGameConfig() config.ClientConfig {
+	return config.ClientConfig{}
 }

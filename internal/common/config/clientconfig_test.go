@@ -23,6 +23,9 @@ func TestGetClientConfig(t *testing.T) {
 					CommonpoolThreshold:        6,
 					CommonpoolThresholdVisible: true,
 					Period:                     4, // not visible
+					PeriodVisible:              true,
+					StochasticPeriod:           true,
+					StochasticPeriodVisible:    true,
 				},
 				IIGOConfig: IIGOConfig{
 					GetRuleForSpeakerActionCost:        50,
@@ -53,6 +56,14 @@ func TestGetClientConfig(t *testing.T) {
 				DisasterConfig: ClientDisasterConfig{
 					CommonpoolThreshold: SelectivelyVisibleResources{
 						Value: 6,
+						Valid: true,
+					},
+					DisasterPeriod: SelectivelyVisibleUint{
+						Value: 4,
+						Valid: true,
+					},
+					StochasticDisasters: SelectivelyVisibleBool{
+						Value: true,
 						Valid: true,
 					},
 				},
