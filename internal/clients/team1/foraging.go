@@ -111,8 +111,6 @@ func (c client) regressionForage() (shared.ForageDecision, error) {
 	return decision, nil
 }
 
-const flipScale = 0.3
-
 // flipDecider does the opposite of what the mass did the previous turn. It
 // forages deer, with an amount inversely proportional to the sum of contributed
 // resources
@@ -141,7 +139,7 @@ func (c client) flipForage() shared.ForageDecision {
 	totalROI := totalRevenueLastTurn / totalContributionLastTurn
 	averageContribution := totalContributionLastTurn / shared.Resources(totalHuntersLastTurn)
 
-	contribution := flipScale * totalROI * averageContribution
+	contribution := shared.Resources(c.config.flipForageScale) * totalROI * averageContribution
 	contribution = shared.Resources(math.Min(
 		float64(0.2*c.gameState().ClientInfo.Resources),
 		float64(contribution),

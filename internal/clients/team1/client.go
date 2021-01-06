@@ -60,6 +60,9 @@ type clientConfig struct {
 	// maxOpinion is the boundary where we either give resources without questioning
 	// or we refuse to give them resources.
 	maxOpinion int
+
+	// flipForageScale scales the amount contributed by flipForage
+	flipForageScale float64
 }
 
 // client is Lucy.
@@ -95,6 +98,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			forageContributionCapPercent:   0.2,
 			forageContributionNoisePercent: 0.01,
 			maxOpinion:                     10,
+			flipForageScale:                0.3,
 		},
 	}
 }
