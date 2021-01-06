@@ -40,11 +40,7 @@ func TestUpdateOpinion(t *testing.T) {
 
 func TestOpinionCapping(t *testing.T) {
 	op1 := opinions[shared.Team1]
-	err := op1.updateOpinion(generalBasis, 100)
 
-	if err == nil {
-		t.Errorf("Expected non-nil error after invalid increment > 1 but got nil")
-	}
 	op1.updateOpinion(generalBasis, -0.9)
 	op1.updateOpinion(generalBasis, -0.9)
 

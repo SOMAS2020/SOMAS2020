@@ -2,10 +2,8 @@ package team5
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/pkg/errors"
 )
 
 type opinionScore float64
@@ -57,11 +55,8 @@ func (o opinion) String() string {
 	return fmt.Sprintf("opinion{score: %.2f, forecastReputation: %.2f}", o.score, o.forecastReputation)
 }
 
-func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) error {
+func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) {
 	op := wo.opinion
-	if math.Abs(increment) > 1 {
-		return errors.Errorf("invalid increment: absolute incr is larger than max opinion value")
-	}
 	switch basis {
 	case forecastingBasis:
 		newScore := float64(op.forecastReputation) + increment
@@ -71,7 +66,6 @@ func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) 
 		op.score = opinionScore(minMaxCap(newScore, 1.0))
 	}
 	wo.opinion = op // update opinion
-	return nil
 }
 
 // creates initial opinions of clients and creates
