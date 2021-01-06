@@ -61,6 +61,8 @@ func createSOMASServer(
 
 	if gameConfig.IIGOConfig.StartWithRulesInPlay {
 		for ruleName := range rules.AvailableRules {
+			// Result is ignored since we know that the RulesInPlay cache cannot contain any of
+			// these rules (the only error case)
 			_ = rules.PullRuleIntoPlay(ruleName)
 		}
 	}
