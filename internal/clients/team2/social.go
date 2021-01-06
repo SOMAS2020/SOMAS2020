@@ -30,7 +30,9 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 		sum += (situationHist[i-1]) * i
 		div += i
 	}
-
+	if div == 0 {
+		div++
+	}
 	average := sum / div
 
 	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
