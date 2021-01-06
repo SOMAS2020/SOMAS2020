@@ -25,7 +25,7 @@ func (st EmotionalState) String() string {
 	if st >= 0 && int(st) < len(strings) {
 		return strings[st]
 	}
-	return fmt.Sprintf("UNKNOWN ForageType '%v'", int(st))
+	return fmt.Sprintf("UNKNOWN EmotionalState '%v'", int(st))
 }
 
 func init() {
