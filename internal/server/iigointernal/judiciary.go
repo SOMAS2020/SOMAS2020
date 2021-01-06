@@ -127,9 +127,8 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 				j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 				j.evaluationResults = finalResults
 				return j.evaluationResults, success
-			} else {
-				return nil, false
 			}
+			return nil, false
 		}
 		for turnsAgo, v := range j.localHistoryCache {
 			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)

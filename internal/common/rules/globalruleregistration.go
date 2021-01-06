@@ -414,7 +414,7 @@ func registerRulesByMass() {
 			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
-			Linked: false,
+			Linked:  false,
 		},
 		{
 			Name: "increment_budget_speaker",

@@ -86,9 +86,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	}
 
 	//Increment the turns in Power for each role
-	g.IIGOTurnsInPower[shared.President] += 1
-	g.IIGOTurnsInPower[shared.Speaker] += 1
-	g.IIGOTurnsInPower[shared.Judge] += 1
+	g.IIGOTurnsInPower[shared.President]++
+	g.IIGOTurnsInPower[shared.Speaker]++
+	g.IIGOTurnsInPower[shared.Judge]++
 
 	// Pass in gamestate and IIGO configs
 	// So that we don't have to pass gamestate as arguments in every function in roles
