@@ -89,15 +89,6 @@ func (j *judiciary) sendPresidentSalary() error {
 // inspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
 func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-<<<<<<< HEAD
-	j.budget -= serviceCharge
-	finalResults := getBaseEvalResults(shared.TeamIDs) //aiding comment: empty evalresult map of all clients
-	if j.clientJudge.HistoricalRetributionEnabled() {
-		for turnsAgo, v := range j.localHistoryCache {
-			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)
-			if rsuccess { //aiding comment: if rsucess is false, then it only checks the latest history, i.e. turnago = 0
-				for key, accounts := range res { //aiding comment: appending the newly evaluated rule and its result to the existing rules and results lists
-=======
 	if !CheckEnoughInCommonPool(j.gameConf.InspectHistoryActionCost, j.gameState) {
 		return nil, false
 	}
@@ -143,7 +134,6 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)
 			if rsuccess {
 				for key, accounts := range res {
->>>>>>> main
 					curr := finalResults[key]
 					curr.Evaluations = append(curr.Evaluations, accounts.Evaluations...)
 					curr.Rules = append(curr.Rules, accounts.Rules...)
