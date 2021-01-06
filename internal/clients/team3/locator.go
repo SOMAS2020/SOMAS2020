@@ -90,6 +90,8 @@ func (l *locator) switchDetermineFunction(name rules.VariableFieldName, recommen
 		return l.idealIslandTaxContribution(recommendedVal)
 	case rules.IslandAllocation:
 		return l.idealIslandAllocation(recommendedVal)
+	case rules.SanctionPaid:
+		return l.idealIslandSanctionPaid(recommendedVal)
 	default:
 		return []float64{}, false
 	}
@@ -174,6 +176,22 @@ func (l *locator) idealIslandAllocation(recommendedVal []float64) ([]float64, bo
 		return []float64{3 * recommendedVal[0]}, true
 	}
 	return []float64{0}, false
+}
+
+func (l *locator) idealIslandSanctionPaid(recommendedVal []float64) ([]float64, bool) {
+	if len(recommendedVal) == 0 {
+		return recommendedVal, false
+	}
+	if l.locationStrategy.lawful {
+		return recommendedVal, true
+	}
+	if l.locationStrategy.fury {
+		return []float64{0}, true
+	}
+	if l.locationStrategy.independent {
+		return []float64{recommendedVal[rules.SingleValueVariableEntry] * 0.5}, true
+	}
+	return recommendedVal, false
 }
 
 func (l *locator) calcNumberOfAliveIslands() float64 {

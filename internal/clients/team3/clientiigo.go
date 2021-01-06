@@ -304,6 +304,25 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 
 func (c *client) GetSanctionPayment() shared.Resources {
 	if value, ok := c.LocalVariableCache[rules.SanctionExpected]; ok {
+		idealVal, available := c.locationService.switchDetermineFunction(rules.SanctionPaid, value.Values)
+		if available {
+			variablesChanged := map[rules.VariableFieldName]rules.VariableValuePair{
+				rules.SanctionPaid: {
+					rules.SanctionPaid,
+					idealVal,
+				},
+				rules.SanctionExpected: {
+					rules.SanctionExpected,
+					c.LocalVariableCache[rules.SanctionExpected].Values,
+				},
+			}
+
+			recommendedValues := c.dynamicAssistedResult(variablesChanged)
+			if c.params.complianceLevel > 80 {
+				return shared.Resources(recommendedValues[rules.SanctionPaid].Values[rules.SingleValueVariableEntry])
+			}
+			return shared.Resources(idealVal[rules.SingleValueVariableEntry])
+		}
 		return shared.Resources(value.Values[rules.SingleValueVariableEntry])
 	}
 	return 0
