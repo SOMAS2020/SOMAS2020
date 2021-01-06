@@ -71,14 +71,10 @@ type client struct {
 
 	forageHistory        ForageHistory
 	expectedForageReward shared.Resources
-	taxAmount            shared.Resources
 
 	// IITO/Gifts
 	opinionTeams  []opinionOnTeam
 	receivedOffer map[shared.ClientID]shared.Resources
-
-	// allocation is the president's response to your last common pool resource request
-	allocation shared.Resources
 
 	config clientConfig
 }
@@ -87,8 +83,6 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
 		BaseClient:    baseclient.NewClient(clientID),
 		forageHistory: ForageHistory{},
-		taxAmount:     0,
-		allocation:    0,
 		config: clientConfig{
 			randomForageTurns:              0,
 			anxietyThreshold:               20,
