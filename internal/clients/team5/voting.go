@@ -13,9 +13,6 @@ func (c *client) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
 	opinionSortByTeam := c.opinionSortByTeam()
 	opinionSortByScore := c.opinionSortByScore()
 	sortedTeamByOpinion := c.sortedMapOfOpinion(findIndexOfScore(opinionSortByScore, opinionSortByTeam))
-	c.Logf("opinionSortByTeam(): %v", opinionSortByTeam)
-	c.Logf("opinionSortByScore(): %v", opinionSortByScore)
-	c.Logf("sortedTeamByOpinion(): %v", sortedTeamByOpinion)
 	return sortedTeamByOpinion
 }
 
