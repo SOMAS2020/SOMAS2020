@@ -45,7 +45,10 @@ func TestRegression(t *testing.T) {
 		})
 	}
 
-	gotRegression := outcomeRegression(outcomes)
+	gotRegression, err := outcomeRegression(outcomes)
+	if err != nil {
+		t.Errorf("Regression error: %v", err)
+	}
 
 	for i, expectedCoeff := range expectCoeffs {
 		gotCoeff := gotRegression.Coeff(i)

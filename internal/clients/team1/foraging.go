@@ -78,17 +78,25 @@ func (c client) roiForage() shared.ForageDecision {
 	return forageDecision
 }
 
-func (c client) regressionForage() shared.ForageDecision {
+func (c client) regressionForage() (shared.ForageDecision, error) {
 	bestReward := shared.Resources(0)
 	var decision shared.ForageDecision
 
 	for forageType := range c.forageHistory {
-		r := outcomeRegression(c.forageHistory[forageType])
+		r, err := outcomeRegression(c.forageHistory[forageType])
+		if err != nil {
+			return shared.ForageDecision{}, err
+		}
+
 		contribution := c.regressionOptimalContribution(r)
 		if contribution > c.gameState().ClientInfo.Resources {
 			contribution = c.gameState().ClientInfo.Resources
 		}
-		expectedRewardF, _ := r.Predict([]float64{float64(contribution)})
+
+		expectedRewardF, err := r.Predict([]float64{float64(contribution)})
+		if err != nil {
+			return shared.ForageDecision{}, err
+		}
 		expectedReward := shared.Resources(expectedRewardF)
 
 		if expectedReward > bestReward {
@@ -100,7 +108,7 @@ func (c client) regressionForage() shared.ForageDecision {
 		}
 	}
 
-	return decision
+	return decision, nil
 }
 
 const flipScale = 0.3
@@ -121,7 +129,7 @@ func (c client) flipForage() shared.ForageDecision {
 		}
 	}
 
-	if totalContributionLastTurn == shared.Resources(0) {
+	if totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0 {
 		// Big contribution
 		return shared.ForageDecision{
 			Contribution: 0.3 * c.gameState().ClientInfo.Resources,
@@ -155,7 +163,7 @@ func (c client) constantForage(resourcePercent float64) shared.ForageDecision {
 	return decision
 }
 
-func outcomeRegression(history []ForageOutcome) regression.Regression {
+func outcomeRegression(history []ForageOutcome) (regression.Regression, error) {
 	r := new(regression.Regression)
 	r.SetObserved("Team1 reward")
 	r.SetVar(0, "Team1 contribution")
@@ -165,20 +173,17 @@ func outcomeRegression(history []ForageOutcome) regression.Regression {
 	}
 
 	r.AddCross(regression.PowCross(0, 2))
-	r.Run()
+	err := r.Run()
 
-	return *r
+	return *r, err
 }
 
 func (c *client) regressionOptimalContribution(r regression.Regression) shared.Resources {
-	if r.Coeff(2) > 0 {
+	if r.Coeff(2) >= 0 {
 		// Curves up, mo money is mo money
 		return 0.4 * c.gameState().ClientInfo.Resources
 	}
-
-	// Curves down, mo money is not always mo money
-	// c.Logf("%v x^2 + %v x + %v", r.Coeff(2), r.Coeff(1), r.Coeff(0))
-	// c.Logf("%v / %v = %v ", -r.Coeff(1), 2*r.Coeff(2), shared.Resources(-r.Coeff(1)/(2*r.Coeff(2))))
+	// r.Coeff(2) < 0. Curves down, mo money is not always mo money
 	return shared.Resources(-r.Coeff(1) / (2 * r.Coeff(2)))
 }
 
@@ -244,6 +249,10 @@ func bestROIForageType(forageHistory ForageHistory) shared.ForageType {
 			if outcome.contribution != 0 {
 				ROIsum += outcome.ROI()
 			}
+		}
+
+		if len(outcomes) == 0 {
+			panic("Empty history for forageType in team1's forageHistory")
 		}
 
 		averageROI := ROIsum / float64(len(outcomes))
