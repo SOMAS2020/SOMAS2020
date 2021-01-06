@@ -131,7 +131,7 @@ func registerRulesByMass() {
 		{
 			Name: "islands_allowed_to_vote_rule",
 			ReqVar: []VariableFieldName{
-				IslandsAlive,
+				NumberOfIslandsAlive,
 				IslandsAllowedToVote,
 			},
 			Values:  []float64{1, -1, 0},
