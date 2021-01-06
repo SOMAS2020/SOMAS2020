@@ -10,6 +10,7 @@ import (
 // This function asking permission from the President to take resource from the commonpool legally
 // The President will reply with an allocation amount
 func (c *client) CommonPoolResourceRequest() shared.Resources {
+	c.evaluateRoles()
 	// Initially, request the minimum
 	reqAmount := c.config.imperialThreshold
 	turn := c.getTurn()

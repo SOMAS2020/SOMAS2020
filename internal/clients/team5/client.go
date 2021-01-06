@@ -9,7 +9,12 @@ import (
 )
 
 func init() {
-	c := client{
+	clientPtr := createClient()
+	baseclient.RegisterClient(ourClientID, clientPtr)
+}
+
+func createClient() *client {
+	return &client{
 		BaseClient:              baseclient.NewClient(ourClientID),
 		cpRequestHistory:        cpRequestHistory{},
 		cpAllocationHistory:     cpAllocationHistory{},
@@ -25,8 +30,6 @@ func init() {
 		allocation: 0,
 		config:     getClientConfig(),
 	}
-
-	baseclient.RegisterClient(ourClientID, &c)
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
@@ -64,11 +67,6 @@ func (c *client) StartOfTurn() {
 	//update cpResourceHistory
 	turn := c.getTurn()
 	c.cpResourceHistory[turn] = c.getCP()
-
-	// update opinion score of current roles. Ideally at startOfTurns but for some reasons it doesn't update opinion score here
-	// move to GetVoteForElection() for now
-	//c.evaluateRoles()
-
 }
 
 //================================================================
