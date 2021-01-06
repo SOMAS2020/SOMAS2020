@@ -267,7 +267,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output share
 		input:  forageDecision.Contribution,
 		output: output,
 	})
-	c.Logf("FORAGEHISTORY", c.forageHistory)
+	c.Logf("FORAGEHISTORY %v", c.forageHistory)
 	c.Logf(
 		"[Debug] - [Update Forage History]: Type %v | Input %v | Profit %v | Real RoI %v",
 		forageDecision.Type,

@@ -38,18 +38,9 @@ import (
 // 	}
 // }
 
-func TestbestHistoryForaging(t *testing.T) {
+func TestBestHistoryForaging(t *testing.T) {
 	// Check foraging method
-
-	type forageOutcome struct {
-		team   shared.ClientID
-		turn   uint
-		input  shared.Resources
-		output shared.Resources
-	}
-
-	type forageHistory map[shared.ForageType][]forageOutcome
-
+	c := createClient()
 	cases := []struct {
 		name              string
 		expectedVal       shared.ForageType
@@ -98,7 +89,7 @@ func TestbestHistoryForaging(t *testing.T) {
 	for _, tc := range cases {
 		foragingHistory := tc.forageHistoryTest
 		t.Run(tc.name, func(t *testing.T) {
-			ans := bestHistoryForaging(foragingHistory)
+			ans := c.bestHistoryForaging(foragingHistory)
 			if ans != tc.expectedVal {
 				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, ans)
 			}
