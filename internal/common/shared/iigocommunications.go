@@ -56,12 +56,13 @@ type ValueDecision struct {
 
 // CommunicationContent is a general datastructure used for communications
 type CommunicationContent struct {
-	T             CommunicationContentType
-	IntegerData   int
-	TextData      string
-	BooleanData   bool
-	IIGORoleData  Role
-	IIGOValueData ValueDecision
+	T              CommunicationContentType
+	IntegerData    int
+	TextData       string
+	BooleanData    bool
+	IIGORoleData   Role
+	IIGOValueData  ValueDecision
+	RuleMatrixData rules.RuleMatrix
 }
 
 type CommunicationFieldName int

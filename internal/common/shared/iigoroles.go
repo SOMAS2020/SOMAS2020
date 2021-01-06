@@ -9,12 +9,22 @@ import (
 // Role provides enumerated type for IIGO roles (President, Speaker and Judge)
 type Role int
 
-// Roles
+// RuleVoteType provides enumerated values for Approving, Rejecting or Abstaining from a vote.
 const (
 	President Role = iota
 	Speaker
 	Judge
 )
+
+//Rule vote types
+type RuleVoteType int
+
+const (
+	Approve = iota
+	Reject
+	Abstain
+)
+
 
 func (r Role) String() string {
 	strs := [...]string{"President", "Speaker", "Judge"}
