@@ -61,6 +61,12 @@ func FindClosestApproach(ruleMatrix rules.RuleMatrix, namedInputs map[rules.Vari
 			immutableInputs := selectInputs(namedInputs, immutables)
 			// Calculate all the extra dynamics
 			extraDynamics, success2 := constructAllImmutableDynamics(immutableInputs, ruleMatrix, fullSize)
+			if triggerZeroCheck(namedInputs) {
+				laced, success := zeroSatisfyCheck(ruleMatrix, namedInputs)
+				if success {
+					return laced
+				}
+			}
 			if success2 {
 				// Append the restrictions to the dynamics
 				selectedDynamics = append(selectedDynamics, extraDynamics...)
@@ -101,6 +107,33 @@ func findClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dy
 		ySlice := dynamics[indexOfSmall+1:]
 		return findClosestApproachInSubspace(matrixOfRules, append(xSlice, ySlice...), closestApproach)
 	}
+}
+
+func triggerZeroCheck(namedInputs map[rules.VariableFieldName]Input) bool {
+	for _, inp := range namedInputs {
+		if !inp.ClientAdjustable {
+			if inp.Value[rules.SingleValueVariableEntry] == 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func zeroSatisfyCheck(ruleMatrix rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) (map[rules.VariableFieldName]Input, bool) {
+	newMap := make(map[rules.VariableFieldName][]float64)
+	for keys, values := range namedInputs {
+		if values.ClientAdjustable {
+			newMap[keys] = generateEmpty(len(values.Value))
+		} else {
+			newMap[keys] = values.Value
+		}
+	}
+	if ruleevaluation.RuleEvaluation(ruleMatrix, *DecodeValues(ruleMatrix, newMap)) {
+		laced := laceOutputs(*DecodeValues(ruleMatrix, newMap), ruleMatrix, DropAllInputStructs(namedInputs), namedInputs)
+		return laced, true
+	}
+	return map[rules.VariableFieldName]Input{}, false
 }
 
 func copySelectedDynamics(orig []dynamic) []dynamic {

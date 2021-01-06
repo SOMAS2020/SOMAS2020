@@ -179,7 +179,7 @@ func (c *client) RuleProposal() string {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
 	internalMap := copyRulesMap(rules.RulesInPlay)
-	inputMap := c.locationService.TranslateCommunications(c.localVariableCache)
+	inputMap := c.locationService.TranslateToInputs(c.localVariableCache)
 	c.localInputsCache = inputMap
 	shortestSoFar := -2.0
 	selectedRule := ""
@@ -236,8 +236,21 @@ func (c *client) RequestAllocation() shared.Resources {
 		ourAllocation = shared.Resources(0)
 	}
 	c.clientPrint("Taking %f from common pool", ourAllocation)
-	return ourAllocation
 
+	variablesChanged := map[rules.VariableFieldName]rules.VariableValuePair{
+		rules.IslandAllocation: {
+			rules.IslandAllocation,
+			[]float64{float64(ourAllocation)},
+		},
+		rules.ExpectedAllocation: {
+			rules.ExpectedAllocation,
+			c.LocalVariableCache[rules.ExpectedAllocation].Values,
+		},
+	}
+	c.LocalVariableCache = c.locationService.UpdateCache(c.LocalVariableCache, variablesChanged)
+	// For testing using available rules
+	recommendedValues := c.locationService.GetRecommendations(variablesChanged, rules.AvailableRules, c.LocalVariableCache)
+	return shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
 }
 
 // CommonPoolResourceRequest is called by the President in IIGO to

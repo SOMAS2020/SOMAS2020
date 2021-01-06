@@ -3,7 +3,6 @@ package team3
 import (
 	"math"
 	"sort"
-  "fmt"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
