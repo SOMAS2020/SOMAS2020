@@ -114,8 +114,8 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 	for island, request := range receivedRequests {
 		sumRequest += request
-		amounts[island] = request * shared.GiftRequest(math.Pow(c.trustScore[island], c.params.trustParameter)+c.params.trustConstantAdjustor)
-		//amounts[island] = request * shared.GiftRequest(1+math.Tanh(c.trustScore[island]-50))
+		//amounts[island] = request * shared.GiftRequest(math.Pow(c.trustScore[island], c.params.trustParameter)+c.params.trustConstantAdjustor)
+		amounts[island] = request * shared.GiftRequest(1+(math.Tanh(c.trustScore[island]-50)/100))
 	}
 
 	//fmt.Println("original amounts: ", amounts)
@@ -126,18 +126,9 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		}
 	}
 
-	// for _, island := range c.getAliveIslands() {
+	// delete(amounts, c.GetID())
 
-	// 	if island == c.BaseClient.GetID() {
-	// 		continue
-	// 	} else if _, ok := amounts[island]; ok {
-	// 		continue
-	// 	} else {
-	// 		amounts[island] = shared.GiftRequest(c.trustScore[island] * c.params.NoRequestGiftParam)
-	// 	}
-	// }
-
-	//fmt.Println("amounts: ", amounts)
+	fmt.Println("length of amounts map: ", len(amounts))
 
 	avgRequest := findAvgExclMinMax(receivedRequests)
 	avgAmount := findAvgExclMinMax(amounts)
@@ -167,7 +158,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 	fmt.Println("gift budged amount: ", giftBudget)
 
-	for island := range receivedRequests {
+	for island := range amounts {
 		if float64(sumRequest) < giftBudget {
 			offers[island] = shared.GiftOffer(allocWeights[island] * float64(sumRequest))
 		} else {
