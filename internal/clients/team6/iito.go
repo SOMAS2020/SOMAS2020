@@ -182,13 +182,11 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 }
 
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	giftAmount := shared.Resources(0.0)
+	giftAmount := giftOffer
 
 	if c.ServerReadHandle.GetGameState().ClientLifeStatuses[toTeam] == shared.Critical {
 		if giftOffer < c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold {
 			giftAmount = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
-		} else {
-			giftAmount = giftOffer
 		}
 	}
 

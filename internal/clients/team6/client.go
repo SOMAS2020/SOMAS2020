@@ -26,24 +26,26 @@ type client struct {
 }
 
 func init() {
-	baseclient.RegisterClient(
-		id,
-		&client{
-			BaseClient:            baseclient.NewClient(id),
-			friendship:            friendship,
-			giftsSentHistory:      giftsSentHistory,
-			giftsReceivedHistory:  giftsReceivedHistory,
-			giftsRequestedHistory: giftsRequestedHistory,
-			forageHistory:         forageHistory,
-			favourRules:           favourRules,
-			clientConfig:          clientConfig,
-		},
-	)
+	baseclient.RegisterClient(id, NewClient(id))
 }
 
 // ########################
 // ######  General  #######
 // ########################
+
+// NewClient creates a client objects for our island
+func NewClient(clientID shared.ClientID) baseclient.Client {
+	return &client{
+		BaseClient:            baseclient.NewClient(clientID),
+		friendship:            friendship,
+		giftsSentHistory:      giftsSentHistory,
+		giftsReceivedHistory:  giftsReceivedHistory,
+		giftsRequestedHistory: giftsRequestedHistory,
+		forageHistory:         forageHistory,
+		favourRules:           favourRules,
+		clientConfig:          clientConfig,
+	}
+}
 
 // ------ TODO: OPTIONAL ------
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
