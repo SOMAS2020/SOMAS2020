@@ -44,18 +44,19 @@ type client struct {
 	speakerPerformance   map[shared.ClientID]int
 	presidentPerformance map[shared.ClientID]int
 
+	// ## IIGO ##
+	ruleVotedOn string
+
 	// ## Game state & History ##
 	criticalStatePrediction criticalStatePrediction
-
-	// unused or replaced by getter functions
-	// currentIteration iterationInfo
-	// islandsAlive uint
-	// localPool float64
 
 	// declaredResources is a map of all declared island resources
 	declaredResources map[shared.ClientID]shared.Resources
 	//disasterPredictions gives a list of predictions by island for each turn
 	disasterPredictions []map[shared.ClientID]shared.DisasterPrediction
+	// Final disaster prediction obtained by our prediction and other islands' prediction weighted by trust and confidence
+	globalDisasterPredictions []shared.DisasterPrediction
+	pastDisastersList         baseclient.PastDisastersList
 
 	// ## Compliance ##
 
@@ -95,12 +96,12 @@ type islandParams struct {
 	selfishness                 float64
 	minimumRequest              shared.Resources
 	disasterPredictionWeighting float64
-	DesiredRuleSet              []string
 	recidivism                  float64
 	riskFactor                  float64
 	friendliness                float64
 	anger                       float64
 	aggression                  float64
+	sensitivity                 float64
 	salaryThreshold             float64
   localPoolThreshold          float64
 	giftInflationPercentage     float64
@@ -109,17 +110,7 @@ type islandParams struct {
 	giftOfferEquity             float64
 	NoRequestGiftParam          float64
 	laziness                    float64
-}
-
-type sanctionInfo struct {
-	// tierInfo provides tiers and sanction score required to get to that tier
-	tierInfo map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
-	// rulePenalties provides sanction score given for breaking each rule
-	rulePenalties map[string]roles.IIGOSanctionScore
-	// islandSanctions stores sanction tier of each island (but not score)
-	islandSanctions map[shared.ClientID]roles.IIGOSanctionTier
-	// ourSanction is the sanction score for our island
-	ourSanction roles.IIGOSanctionScore
+	//minimumInvestment			float64	// When fish foraging is implemented
 }
 
 type ruleVoteInfo struct {
@@ -131,8 +122,9 @@ type ruleVoteInfo struct {
 }
 
 type iigoCommunicationInfo struct {
+	// ourRole stores our current role in the IIGO
+	ourRole *shared.Role
 	// Retrieved fully from communications
-
 	// commonPoolAllocation gives resources allocated by president from requests
 	commonPoolAllocation shared.Resources
 	// taxationAmount gives tax amount decided by president
@@ -143,6 +135,11 @@ type iigoCommunicationInfo struct {
 	monitoringOutcomes map[shared.Role]bool
 	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
 	monitoringDeclared map[shared.Role]bool
+	//Role IDs at the start of the turn
+	startOfTurnPresidentID shared.ClientID
+	startOfTurnJudgeID     shared.ClientID
+	startOfTurnSpeakerID   shared.ClientID
+
 	// Struct containing sanction information
 	sanctions *sanctionInfo
 
@@ -154,4 +151,15 @@ type iigoCommunicationInfo struct {
 	ourRequest shared.Resources
 	// ourDeclaredResources stores how much we said we had to the president
 	ourDeclaredResources shared.Resources
+}
+
+type sanctionInfo struct {
+	// tierInfo provides tiers and sanction score required to get to that tier
+	tierInfo map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+	// rulePenalties provides sanction score given for breaking each rule
+	rulePenalties map[string]roles.IIGOSanctionScore
+	// islandSanctions stores sanction tier of each island (but not score)
+	islandSanctions map[shared.ClientID]roles.IIGOSanctionTier
+	// ourSanction is the sanction score for our island
+	ourSanction roles.IIGOSanctionScore
 }
