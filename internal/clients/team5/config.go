@@ -52,11 +52,11 @@ func getClientConfig() clientConfig {
 		JBForagePercentage:      0.10, // % of our resources when JB is Normal< X < JB
 
 		// Deciding foraging type
-		RandomChanceToSwitch:         0.1,
-		IncreasePerHunterLastTurn:    0.1, // Percentage
-		IncreasePerFisherMenLastTurn: 0.1,
-		DeerTurnsToLookBack:          5, // Number of turns to look back at for deer (not including last)
-		DecreasePerHunterInLookBack:  0.05,
+		RandomChanceToSwitch:         0.1,  // Chacne to switch to Hunting/Fishing
+		IncreasePerHunterLastTurn:    0.1,  // % increase for each Hunter
+		IncreasePerFisherMenLastTurn: 0.1,  // % incrase for each Fisher
+		DeerTurnsToLookBack:          5,    // Number of turns to look back at for deer (not including last)
+		DecreasePerHunterInLookBack:  0.05, // % decrease for Hunters in previous turns
 
 		// Normal Forage
 		SkipForage:           1,

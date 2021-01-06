@@ -142,7 +142,9 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 	prevTurnsHunters := make(map[uint]uint)
 	totalHunters := uint(0)
 	for _, returns := range forageHistory[shared.DeerForageType] { // finds Number of hunters  for each turn
-		prevTurnsHunters[returns.turn] = prevTurnsHunters[returns.turn] + 1
+		if returns.input > 1 { // They have to actually have inputted something
+			prevTurnsHunters[returns.turn] = prevTurnsHunters[returns.turn] + 1
+		}
 	}
 	for i := c.getTurn() - c.config.DeerTurnsToLookBack; i < c.getTurn()-1; i++ {
 		totalHunters += prevTurnsHunters[i] // Sum of all the hunters in the previous 5 turns
