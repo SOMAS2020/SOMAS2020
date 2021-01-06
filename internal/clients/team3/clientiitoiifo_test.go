@@ -41,9 +41,21 @@ func TestGetGiftRequests(t *testing.T) {
 					shared.Team5: 50,
 					shared.Team6: 50,
 				},
-				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{},
+				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
+					shared.Team1: 11.785113019775793,
+					shared.Team2: 11.785113019775793,
+					shared.Team4: 11.785113019775793,
+					shared.Team5: 11.785113019775793,
+					shared.Team6: 11.785113019775793,
+				},
 			},
-			expectedVal: shared.GiftRequestDict{},
+			expectedVal: shared.GiftRequestDict{
+				shared.Team1: 11.785113019775793,
+				shared.Team2: 11.785113019775793,
+				shared.Team4: 11.785113019775793,
+				shared.Team5: 11.785113019775793,
+				shared.Team6: 11.785113019775793,
+			},
 		},
 		{
 			name: "Basic test: Half islands are critical, other half are dead and trusted equally",
@@ -114,19 +126,19 @@ func TestGetGiftRequests(t *testing.T) {
 					shared.Team6: 90,
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
-					shared.Team1: 0,
-					shared.Team2: 0,
-					shared.Team4: 0,
-					shared.Team5: 0,
-					shared.Team6: 0,
+					shared.Team1: 116.67261889578037,
+					shared.Team2: 127.80845042484479,
+					shared.Team4: 138.0489043781225,
+					shared.Team5: 147.58048651498615,
+					shared.Team6: 156.5327441783348,
 				},
 			},
 			expectedVal: shared.GiftRequestDict{
-				shared.Team1: 0,
-				shared.Team2: 0,
-				shared.Team4: 0,
-				shared.Team5: 0,
-				shared.Team6: 0,
+				shared.Team1: 116.67261889578037,
+				shared.Team2: 127.80845042484479,
+				shared.Team4: 138.0489043781225,
+				shared.Team5: 147.58048651498615,
+				shared.Team6: 156.5327441783348,
 			},
 		},
 	}
@@ -148,6 +160,7 @@ func TestGetGiftOffers(t *testing.T) {
 		name             string
 		ourClient        client
 		receivedRequests shared.GiftRequestDict
+		giftBudget       shared.GiftOffer
 		expectedVal      shared.GiftOfferDict
 	}{
 		{
@@ -193,6 +206,7 @@ func TestGetGiftOffers(t *testing.T) {
 				shared.Team2: 500,
 				shared.Team4: 50,
 			},
+			giftBudget: 376.25,
 			expectedVal: shared.GiftOfferDict{
 				shared.Team1: 0,
 				shared.Team2: 0,
@@ -247,6 +261,7 @@ func TestGetGiftOffers(t *testing.T) {
 				shared.Team5: 100,
 				shared.Team6: 100,
 			},
+			giftBudget: 376.25,
 			expectedVal: shared.GiftOfferDict{
 				shared.Team1: 0,
 				shared.Team2: 0,
@@ -301,6 +316,7 @@ func TestGetGiftOffers(t *testing.T) {
 				shared.Team5: 100,
 				shared.Team6: 100,
 			},
+			giftBudget: 376.25,
 			expectedVal: shared.GiftOfferDict{
 				shared.Team1: 0,
 				shared.Team2: 0,
@@ -353,6 +369,7 @@ func TestGetGiftOffers(t *testing.T) {
 				shared.Team4: 100,
 				shared.Team6: 100,
 			},
+			giftBudget: 376.25,
 			expectedVal: shared.GiftOfferDict{
 				shared.Team1: 0,
 				shared.Team2: 0,
@@ -364,9 +381,13 @@ func TestGetGiftOffers(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			var sum shared.GiftOffer
 			res := tc.ourClient.GetGiftOffers(tc.receivedRequests)
-			if !reflect.DeepEqual(res, tc.expectedVal) {
-				t.Errorf("Teams requested for: %v, but we offered them: %v", tc.receivedRequests, res)
+			for _, ans := range res {
+				sum += ans
+			}
+			if sum > tc.giftBudget {
+				t.Errorf("Total sum of offered gifts (%f) is greater gift budget (%f)", sum, tc.giftBudget)
 			}
 		})
 	}
