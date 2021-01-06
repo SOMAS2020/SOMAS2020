@@ -20,14 +20,14 @@ type Client interface {
 	StartOfTurn()
 	Logf(format string, a ...interface{})
 
-	GetVoteForRule(ruleName string) bool
+	VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType
 	VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID
 	ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent)
 	GetCommunications() *map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent
 
 	CommonPoolResourceRequest() shared.Resources
 	ResourceReport() shared.ResourcesReport
-	RuleProposal() string
+	RuleProposal() rules.RuleMatrix
 	GetClientPresidentPointer() roles.President
 	GetClientJudgePointer() roles.Judge
 	GetClientSpeakerPointer() roles.Speaker
@@ -130,9 +130,10 @@ func (c *BaseClient) Logf(format string, a ...interface{}) {
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
-func (c *BaseClient) GetVoteForRule(ruleName string) bool {
+
+func (c *BaseClient) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
 	// TODO implement decision on voting that considers the rule
-	return true
+	return shared.Approve
 }
 
 // GetVoteForElection returns the client's Borda vote for the role to be elected.
@@ -165,16 +166,12 @@ func (c *BaseClient) InspectCommunication(data map[shared.CommunicationFieldName
 	}
 	for fieldName, dataPoint := range data {
 		switch fieldName {
-		case shared.TaxAmount:
-			c.LocalVariableCache[rules.ExpectedTaxContribution] = rules.VariableValuePair{
-				VariableName: rules.ExpectedTaxContribution,
-				Values:       []float64{float64(dataPoint.IntegerData)},
-			}
-		case shared.AllocationAmount:
-			c.LocalVariableCache[rules.ExpectedAllocation] = rules.VariableValuePair{
-				VariableName: rules.ExpectedAllocation,
-				Values:       []float64{float64(dataPoint.IntegerData)},
-			}
+		case shared.IIGOTaxDecision:
+			c.LocalVariableCache[rules.ExpectedTaxContribution] = dataPoint.IIGOValueData.Expected
+			c.LocalVariableCache[rules.TaxDecisionMade] = dataPoint.IIGOValueData.DecisionMade
+		case shared.IIGOAllocationDecision:
+			c.LocalVariableCache[rules.ExpectedAllocation] = dataPoint.IIGOValueData.Expected
+			c.LocalVariableCache[rules.AllocationMade] = dataPoint.IIGOValueData.DecisionMade
 		case shared.SanctionAmount:
 			c.LocalVariableCache[rules.SanctionExpected] = rules.VariableValuePair{
 				VariableName: rules.SanctionExpected,
@@ -182,7 +179,7 @@ func (c *BaseClient) InspectCommunication(data map[shared.CommunicationFieldName
 			}
 		// TODO: Extend according to new rules added by Team 4
 		default:
-			c.Logf("Communication variable doesn't have associated val %v", fieldName)
+			return
 		}
 
 	}
