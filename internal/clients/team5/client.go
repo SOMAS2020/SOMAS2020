@@ -32,6 +32,25 @@ func createClient() *client {
 	}
 }
 
+func NewTestClient(clientID shared.ClientID) baseclient.Client {
+	return &client{
+		BaseClient:              baseclient.NewClient(ourClientID),
+		cpRequestHistory:        cpRequestHistory{},
+		cpAllocationHistory:     cpAllocationHistory{},
+		forageHistory:           forageHistory{},
+		resourceHistory:         resourceHistory{},
+		team5president:          president{},
+		giftHistory:             map[shared.ClientID]giftExchange{},
+		forecastHistory:         forecastHistory{},
+		receivedForecastHistory: receivedForecastHistory{},
+		disasterHistory:         disasterHistory{},
+
+		taxAmount:  0,
+		allocation: 0,
+		config:     getClientConfig(),
+	}
+}
+
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle // don't change this
 	c.LocalVariableCache = rules.CopyVariableMap()

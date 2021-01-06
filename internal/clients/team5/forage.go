@@ -117,52 +117,63 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 		}
 	}
 	// We have the best foragine method according to the pervious turns
+	if bestForagingMethod != shared.ForageType(-1) { // If RoI < 0 then dont bother look at the history
+		//=============================================================================
+		// Looking at other islands amount of hunters last turn
+		deerHunters := int(0)                                     // Number of Hunters
+		fisherMen := int(0)                                       // Number of fishMen
+		probDeerHunting := float64(c.config.RandomChanceToSwitch) // Base probaility to add some randomness
+		probFishHunting := float64(c.config.RandomChanceToSwitch) // So we dont always go for the best type
 
-	// Looking at other islands to see how to introduce randomness
-	//=============================================================================
-	deerHunters := int(0)                                     // Number of Hunters
-	fisherMen := int(0)                                       // Number of fishMen
-	probDeerHunting := float64(c.config.RandomChanceToSwitch) // Base probaility to add some randomness
-	probFishHunting := float64(c.config.RandomChanceToSwitch) // So we dont always go for the best type
-
-	for forageType, FOutcome := range forageHistory { // For the whole foraging history
-		for _, returns := range FOutcome {
-			if forageType == shared.DeerForageType && //Deer Hunters
-				returns.turn == c.getTurn()-1 && // Last turn
-				returns.team != shared.Team5 { // Not including us
-				deerHunters++                                         // Increment number of hunters
-				probDeerHunting += c.config.IncreasePerHunterLastTurn // Incremenet the probabilty we hunt
-			} else if forageType == shared.FishForageType &&
-				returns.turn == c.getTurn()-1 &&
-				returns.team != shared.Team5 {
-				fisherMen++
-				probFishHunting += c.config.IncreasePerFisherMenLastTurn
+		for forageType, FOutcome := range forageHistory { // For the whole foraging history
+			for _, returns := range FOutcome {
+				if forageType == shared.DeerForageType && //Deer Hunters
+					returns.turn == c.getTurn()-1 && // Last turn
+					returns.team != shared.Team5 { // Not including us
+					deerHunters++                                         // Increment number of hunters
+					probDeerHunting += c.config.IncreasePerHunterLastTurn // Incremenet the probabilty we hunt
+				} else if forageType == shared.FishForageType &&
+					returns.turn == c.getTurn()-1 &&
+					returns.team != shared.Team5 {
+					fisherMen++
+					probFishHunting += c.config.IncreasePerFisherMenLastTurn
+				}
 			}
 		}
-	}
-	// Check the previous 5 turns (not including previous), to see if people have foraged deer
-	prevTurnsHunters := make(map[uint]uint)
-	totalHunters := uint(0)
-	for _, returns := range forageHistory[shared.DeerForageType] { // finds Number of hunters  for each turn
-		if returns.input > 1 { // They have to actually have inputted something
-			prevTurnsHunters[returns.turn] = prevTurnsHunters[returns.turn] + 1
+		//=============================================================================
+		// Check the previous 5 turns to see how many hunted deer
+		prevTurnsHunters := make(map[uint]uint)
+		totalHunters := uint(0)
+		for _, returns := range forageHistory[shared.DeerForageType] { // finds Number of hunters  for each turn
+			if returns.input > 1 { // They have to actually have inputted something
+				prevTurnsHunters[returns.turn] = prevTurnsHunters[returns.turn] + 1
+			}
 		}
-	}
-	for i := c.getTurn() - c.config.DeerTurnsToLookBack; i < c.getTurn()-1; i++ {
-		totalHunters += prevTurnsHunters[i] // Sum of all the hunters in the previous 5 turns
-	}
-	probDeerHunting -= float64(totalHunters) * c.config.DecreasePerHunterInLookBack
 
-	if bestForagingMethod == shared.FishForageType { // Fishing is best but 3 Deer hunters last turn
-		bDeer := distuv.Bernoulli{P: 1 - probDeerHunting}     // P(1)[Fishing]=0.6 (1-0.1+0.3*3) if 3 deer hunter
-		bestForagingMethod *= shared.ForageType(bDeer.Rand()) // Multipy the 0 in if Deer Hunting was picked in randomness
-	} else if bestForagingMethod == shared.DeerForageType { // Deer hunting is the best choice but 3 Fishers
-		bFish := distuv.Bernoulli{P: probFishHunting}         // P(1)[Fishing]= 0.1 + 0.1*3 = 0.4
-		bestForagingMethod += shared.ForageType(bFish.Rand()) // +1 [makes it fishing] if Fishing was picked in randomness
-	}
-	// ================================================================
-	// If best foraging was none of the 2 above then return shared.ForageType(-1)
-	c.Logf("Chance to Hunt %v | Chance to Fish %v", probDeerHunting, probFishHunting)
+		// Case that turns < number of look backs
+		if c.getTurn() <= c.config.DeerTurnsToLookBack {
+			for i := uint(0); i <= c.getTurn(); i++ {
+				totalHunters += prevTurnsHunters[i] // Sum of all the hunters in the previous 5 turns
+			}
+		}
+		for i := c.getTurn() - c.config.DeerTurnsToLookBack; i < c.getTurn(); i++ {
+			totalHunters += prevTurnsHunters[i] // Sum of all the hunters in the previous 5 turns
+		}
+
+		probDeerHunting -= float64(totalHunters) * c.config.DecreasePerHunterInLookBack
+		c.Logf("History %v", c.forageHistory)
+		c.Logf("PrevTurnsHunters %v, TotalHunters %v", prevTurnsHunters, totalHunters)
+		// ================================================================
+		// If best foraging was none of the 2 above then return shared.ForageType(-1)
+		if bestForagingMethod == shared.FishForageType { // Fishing is best but 3 Deer hunters last turn
+			bDeer := distuv.Bernoulli{P: 1 - probDeerHunting}     // P(1)[Fishing]=0.6 (1-0.1+0.3*3) if 3 deer hunter
+			bestForagingMethod *= shared.ForageType(bDeer.Rand()) // Multipy the 0 in if Deer Hunting was picked in randomness
+		} else if bestForagingMethod == shared.DeerForageType { // Deer hunting is the best choice but 3 Fishers
+			bFish := distuv.Bernoulli{P: probFishHunting}         // P(1)[Fishing]= 0.1 + 0.1*3 = 0.4
+			bestForagingMethod += shared.ForageType(bFish.Rand()) // +1 [makes it fishing] if Fishing was picked in randomness
+		}
+		c.Logf("Chance to Hunt %v | Chance to Fish %v", probDeerHunting, probFishHunting)
+	} // If both methods are less than 0 RoI then return SharedType(-1)
 	return bestForagingMethod
 }
 
@@ -267,7 +278,6 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output share
 		input:  forageDecision.Contribution,
 		output: output,
 	})
-	c.Logf("FORAGEHISTORY %v", c.forageHistory)
 	c.Logf(
 		"[Debug] - [Update Forage History]: Type %v | Input %v | Profit %v | Real RoI %v",
 		forageDecision.Type,
@@ -343,4 +353,19 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 
 	c.Logf("Sharing forage info: %v", forageInfo)
 	return forageInfo
+}
+
+func (c *client) initForageHist() {
+	c.forageHistory = forageHistory{}
+
+	Outcomes := forageOutcome{
+		turn:   0,
+		team:   0,
+		input:  0,
+		output: 0,
+	}
+
+	c.forageHistory[shared.DeerForageType] = append(c.forageHistory[shared.DeerForageType], Outcomes)
+	c.forageHistory[shared.FishForageType] = append(c.forageHistory[shared.DeerForageType], Outcomes)
+
 }

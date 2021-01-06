@@ -36,8 +36,8 @@ type resourceHistory resourceHistoryType
 
 // forageOutcome records the ROI on a foraging session
 type forageOutcome struct {
-	team   shared.ClientID
 	turn   uint
+	team   shared.ClientID
 	input  shared.Resources
 	output shared.Resources
 }

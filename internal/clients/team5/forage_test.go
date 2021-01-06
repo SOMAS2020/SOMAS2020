@@ -3,6 +3,7 @@ package team5
 import (
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -40,7 +41,18 @@ import (
 
 func TestBestHistoryForaging(t *testing.T) {
 	// Check foraging method
-	c := createClient()
+	c := createClient(gamestate.ClientGameState{
+		Turn: 10,
+		ClientInfo: gamestate.ClientInfo{
+			LifeStatus: shared.Critical,
+		},
+	})
+	// c := MakeTestClient(gamestate.ClientGameState{
+	// 	Turn: 10,
+	// 	ClientInfo: gamestate.ClientInfo{
+	// 		LifeStatus: shared.Critical,
+	// 	},
+	// })
 	cases := []struct {
 		name              string
 		expectedVal       shared.ForageType
@@ -49,47 +61,46 @@ func TestBestHistoryForaging(t *testing.T) {
 		{
 			name:        "Basic test",
 			expectedVal: shared.ForageType(-1), // Nul
-			forageHistoryTest: map[shared.ForageType][]forageOutcome{
+			forageHistoryTest: forageHistory{
 				shared.DeerForageType: {
-					{team: 5, turn: 1, input: shared.Resources(20), output: shared.Resources(1)},
+					{team: 4, turn: 10, input: shared.Resources(20), output: shared.Resources(1)},
 				}, // End of Shared.DeerForageType data
 				shared.FishForageType: {
-					{team: 5, turn: 2, input: shared.Resources(20), output: shared.Resources(1)},
+					{team: 5, turn: 11, input: shared.Resources(20), output: shared.Resources(1)},
 				}, // End of Shared.FishForageType data
 			}, // End of Foraging History
 		}, // End of Basic Test
 
-		{
-			name:        "Deer Test",
-			expectedVal: shared.ForageType(0), // Deer
-			forageHistoryTest: map[shared.ForageType][]forageOutcome{
-				shared.DeerForageType: {
-					{team: 5, turn: 1, input: shared.Resources(1), output: shared.Resources(20)},
-				}, // End of Shared.DeerForageType data
-				shared.FishForageType: {
-					{team: 5, turn: 2, input: shared.Resources(20), output: shared.Resources(1)},
-				}, // End of Shared.FishForageType data
-			}, // End of Foraging History
-		}, // End of Basic
+		// {
+		// 	name:        "Deer Test",
+		// 	expectedVal: shared.ForageType(0), // Deer
+		// 	forageHistoryTest: forageHistory{
+		// 		shared.DeerForageType: {
+		// 			{team: 4, turn: 10, input: shared.Resources(1), output: shared.Resources(20)},
+		// 		}, // End of Shared.DeerForageType data
+		// 		shared.FishForageType: {
+		// 			{team: 5, turn: 11, input: shared.Resources(20), output: shared.Resources(1)},
+		// 		}, // End of Shared.FishForageType data
+		// 	}, // End of Foraging History
+		// }, // End of Basic
 
-		{
-			name:        "Fish Test",
-			expectedVal: shared.ForageType(1), // Fish
-			forageHistoryTest: map[shared.ForageType][]forageOutcome{
-				shared.DeerForageType: {
-					{team: 5, turn: 1, input: shared.Resources(20), output: shared.Resources(1)},
-				}, // End of Shared.DeerForageType data
-				shared.FishForageType: {
-					{team: 5, turn: 2, input: shared.Resources(1), output: shared.Resources(1)},
-				}, // End of Shared.FishForageType data
-			}, // End of Foraging History
-		}, // End of Basic
+		// {
+		// 	name:        "Fish Test",
+		// 	expectedVal: shared.ForageType(1), // Fish
+		// 	forageHistoryTest: forageHistory{
+		// 		shared.DeerForageType: {
+		// 			{team: 5, turn: 10, input: shared.Resources(20), output: shared.Resources(1)},
+		// 		}, // End of Shared.DeerForageType data
+		// 		shared.FishForageType: {
+		// 			{team: 1, turn: 11, input: shared.Resources(1), output: shared.Resources(20)},
+		// 		}, // End of Shared.FishForageType data
+		// 	}, // End of Foraging History
+		// }, // End of Basic
 
 	} // End of test data
 	for _, tc := range cases {
-		foragingHistory := tc.forageHistoryTest
 		t.Run(tc.name, func(t *testing.T) {
-			ans := c.bestHistoryForaging(foragingHistory)
+			ans := c.bestHistoryForaging(tc.forageHistoryTest)
 			if ans != tc.expectedVal {
 				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, ans)
 			}
