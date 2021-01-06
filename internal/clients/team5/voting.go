@@ -12,7 +12,7 @@ func (c *client) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
 	c.evaluateRoles() //temporarily. Not ideal because election don't happen everyday
 	opinionSortByTeam := c.opinionSortByTeam()
 	opinionSortByScore := c.opinionSortByScore()
-	sortedTeamByOpinion := c.sortedMapOfOpinion(findIndexOfScore(opinionSortByScore, opinionSortByTeam))
+	sortedTeamByOpinion := sortedMapOfOpinion(findIndexOfScore(opinionSortByScore, opinionSortByTeam))
 	return sortedTeamByOpinion
 }
 
@@ -47,8 +47,7 @@ func findIndexOfScore(opinionSortByScore []opinionScore, opinionSortByTeam []opi
 }
 
 // translate int to shared.clientID but put our ID first and someone last
-func (c *client) sortedMapOfOpinion(rank []int) (sortedMap []shared.ClientID) {
-	c.Logf("rank: %v", rank)
+func sortedMapOfOpinion(rank []int) (sortedMap []shared.ClientID) {
 	sortedMap = append(sortedMap, shared.Team5)
 	for i := 0; i < len(rank); i++ {
 		if rank[i] == 0 {
