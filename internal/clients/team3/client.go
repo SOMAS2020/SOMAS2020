@@ -2,8 +2,10 @@
 package team3
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -68,6 +70,12 @@ type client struct {
 	locationService locator
 	// iigoInfo caches information regarding iigo in the current turn
 	iigoInfo iigoCommunicationInfo
+
+	localVariableCache map[rules.VariableFieldName]rules.VariableValuePair
+
+	localInputsCache map[rules.VariableFieldName]dynamics.Input
+	// last sanction score cache to determine wheter or not we have been caugth in the last turn
+	lastSanction roles.IIGOSanctionScore
 }
 
 type criticalStatePrediction struct {
