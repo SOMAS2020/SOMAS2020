@@ -216,3 +216,51 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 
 	c.giftOpinions()
 }
+
+func (c *client) giftOpinions() {
+	for team := range c.gameState().ClientLifeStatuses { // for each ID
+		// ======================= Bad =======================
+		// If we get OFFERED LESS than we Requested
+		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) <
+			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].requested) {
+			c.opinions[team].updateOpinion(generalBasis, -0.05)
+		}
+
+		// If we ACTUALLY get LESS than they OFFERED us
+		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) <
+			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) {
+			c.opinions[team].updateOpinion(generalBasis, -0.1)
+		}
+
+		// If they REQUEST the MOST compared to other islands
+		highestRequest := shared.Team1
+		if c.giftHistory[highestRequest].theirRequest[c.getTurn()].requested <
+			c.giftHistory[team].theirRequest[c.getTurn()].requested {
+			highestRequest = team
+		}
+		c.opinions[highestRequest].updateOpinion(generalBasis, -0.05)
+
+		// ======================= Good =======================
+		// If they GIVE MORE than OFFERED then increase it a bit (can be abused)
+		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) >
+			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) {
+			c.opinions[team].updateOpinion(generalBasis, 0.025)
+		}
+
+		// If we RECEIVE MORE than WE REQUESTED and they OFFERED
+		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) >
+			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) &&
+			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) >
+				shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].requested) {
+			c.opinions[team].updateOpinion(generalBasis, 0.02)
+		}
+
+		// If they REQUEST the LEAST compared to other islands
+		lowestRequest := shared.Team1
+		if c.giftHistory[lowestRequest].theirRequest[c.getTurn()].requested >
+			c.giftHistory[team].theirRequest[c.getTurn()].requested {
+			lowestRequest = team
+		}
+		c.opinions[lowestRequest].updateOpinion(generalBasis, 0.05)
+	}
+}
