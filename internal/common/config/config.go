@@ -82,9 +82,13 @@ type DisasterConfig struct {
 	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
 	StochasticPeriod            bool                  // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
 	CommonpoolThresholdVisible  bool                  // whether CommonpoolThreshold is visible to clients
+	PeriodVisible               bool                  // whether DisasterPeriod should be visible to clients
+	StochasticPeriodVisible     bool                  // whether StochasticPeriod should be visible to clients
 }
 
 type IIGOConfig struct {
+	// IIGO term lengths (set by config)
+	IIGOTermLengths map[shared.Role]uint
 	// Executive branch
 	GetRuleForSpeakerActionCost        shared.Resources
 	BroadcastTaxationActionCost        shared.Resources
@@ -93,14 +97,15 @@ type IIGOConfig struct {
 	RequestRuleProposalActionCost      shared.Resources
 	AppointNextSpeakerActionCost       shared.Resources
 	// Judiciary branch
-	InspectHistoryActionCost       shared.Resources
-	InspectBallotActionCost        shared.Resources
-	InspectAllocationActionCost    shared.Resources
-	AppointNextPresidentActionCost shared.Resources
-	SanctionCacheDepth             uint
-	HistoryCacheDepth              uint
-	AssumedResourcesNoReport       shared.Resources
-	SanctionLength                 uint
+	InspectHistoryActionCost        shared.Resources
+	HistoricalRetributionActionCost shared.Resources
+	InspectBallotActionCost         shared.Resources
+	InspectAllocationActionCost     shared.Resources
+	AppointNextPresidentActionCost  shared.Resources
+	SanctionCacheDepth              uint
+	HistoryCacheDepth               uint
+	AssumedResourcesNoReport        shared.Resources
+	SanctionLength                  uint
 	// Legislative branch
 	SetVotingResultActionCost      shared.Resources
 	SetRuleToVoteActionCost        shared.Resources
