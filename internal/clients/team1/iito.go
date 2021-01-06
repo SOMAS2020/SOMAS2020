@@ -67,7 +67,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 // This will first iterate through a sorted array of opinionTeams starting from most favoured -> least favoured.
 // + If the opinion of that team is large enough, we just give resources and don't question it.
 // + If the opinion of that team is too low, we don't give resources :)
-// + If the opinion of that team is inbetween, we give resources if they are critical.
+// + If the opinion of that team is in between, we give resources if they are critical.
 // 					''						 and our resources is large enough, we give a the maximum
 //   amount of resources freely depending on our anxiety.
 // + Else, ignore.
@@ -157,7 +157,7 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 
 // DecideGiftAmount is executed at the end of each turn and asks clients how much
 // they want to fulfill a gift offer they have made.
-// Very similar to GetGiftOffers(). Only difference is the inbetween opinionated teams.
+// Very similar to GetGiftOffers(). Only difference is the in between opinionated teams.
 // Resources given will be different to the promised offers since this depends on how
 // much resources we currently have.
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
