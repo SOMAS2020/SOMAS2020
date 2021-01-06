@@ -6,12 +6,13 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-type ourSpeaker struct {
+type speaker struct {
 	*baseclient.BaseSpeaker
+	parent *client
 }
 
 // PayJudge is used for paying judge for his service
-/*func (s *ourSpeaker) PayJudge() shared.SpeakerReturnContent {
+/*func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 	JudgeSalaryRule, ok := rules.RulesInPlay["salary_cycle_judge"]
 	var JudgeSalary shared.Resources = 0
 	if ok {
@@ -35,7 +36,7 @@ type ourSpeaker struct {
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
 
-func (s *ourSpeaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
+func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
 	return shared.SpeakerReturnContent{
 		ContentType:  shared.SpeakerAnnouncement,
 		RuleMatrix:   ruleMatrix,
@@ -46,7 +47,7 @@ func (s *ourSpeaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool
 
 // CallJudgeElection is called by the legislature to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
-/*func (s *ourSpeaker) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+/*func (s *speaker) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{

@@ -10,12 +10,12 @@ import (
 func TestGetJudgePointer(t *testing.T) {
 	c := client{
 		BaseClient:    baseclient.NewClient(id),
-		clientJudge:   Judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
-		clientSpeaker: ourSpeaker{},
+		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
+		clientSpeaker: speaker{},
 	}
 
-	judge := c.GetClientJudgePointer()
-	winner := judge.DecideNextPresident(shared.Team1)
+	j := c.GetClientJudgePointer()
+	winner := j.DecideNextPresident(shared.Team1)
 
 	if winner != id {
 		t.Errorf("Got wrong judge pointer. Winner is %v", winner)

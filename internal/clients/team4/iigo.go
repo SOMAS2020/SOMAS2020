@@ -84,7 +84,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 			numClientAlive++
 		}
 	}
-
+	// TODO: add zero division check
 	resNeeded := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
 
 	if ourLifeStatus == shared.Critical {

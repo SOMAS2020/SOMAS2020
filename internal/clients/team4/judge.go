@@ -15,7 +15,7 @@ func init() {
 	os.Remove("./Historymap.txt")
 }
 
-type Judge struct {
+type judge struct {
 	*baseclient.BaseJudge
 	t *testing.T
 }
@@ -33,7 +33,7 @@ type Judge struct {
 
 // InspectHistory is the base implementation of evaluating islands choices the last turn.
 // OPTIONAL: override if you want to evaluate the history log differently.
-func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
+func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	//outputMap := map[shared.ClientID]roles.EvaluationReturn{}
 	dump("./Historymap.txt", "HistoryMap: %v \n", iigoHistory)
 
@@ -50,13 +50,13 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 // HistoricalRetributionEnabled allows you to punish more than the previous turns transgressions
 // OPTIONAL: override if you want to punish historical transgressions
-func (j *Judge) HistoricalRetributionEnabled() bool {
+func (j *judge) HistoricalRetributionEnabled() bool {
 	return false
 }
 
 // CallPresidentElection is called by the judiciary to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
-func (j *Judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
@@ -75,13 +75,13 @@ func (j *Judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 
 // DecideNextPresident returns the ID of chosen next President
 // OPTIONAL: override to manipulate the result of the election
-func (j *Judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
+func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	// overloaded
 	j.logf("hello world %v", winner)
 	return id
 }
 
-func (j *Judge) logf(format string, a ...interface{}) {
+func (j *judge) logf(format string, a ...interface{}) {
 	if j.t != nil {
 		j.t.Log(fmt.Sprintf(format, a...))
 	}
