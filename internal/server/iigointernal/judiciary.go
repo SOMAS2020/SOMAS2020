@@ -185,7 +185,6 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 
 	if electionSettings.HoldElection {
 		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
-			j.Logf("Insufficient Budget in common Pool: appointNextPresident")
 			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 		}
 		election.ProposeElection(shared.President, electionSettings.VotingMethod)
