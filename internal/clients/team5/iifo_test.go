@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 var c = initClient()
@@ -37,6 +38,50 @@ func TestAnalyseDisasterPeriod(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUpdateForecastingReputations(t *testing.T) {
+	receivedPreds := shared.ReceivedDisasterPredictionsDict{
+		shared.Team1: shared.ReceivedDisasterPredictionInfo{
+			PredictionMade: shared.DisasterPrediction{
+				Confidence: 60,
+			},
+			SharedFrom: shared.Team1,
+		},
+		shared.Team2: shared.ReceivedDisasterPredictionInfo{
+			PredictionMade: shared.DisasterPrediction{
+				Confidence: 20,
+			},
+			SharedFrom: shared.Team2,
+		},
+		shared.Team3: shared.ReceivedDisasterPredictionInfo{
+			PredictionMade: shared.DisasterPrediction{
+				Confidence: 100,
+			},
+			SharedFrom: shared.Team3,
+		},
+	}
+	c.opinions = opinionMap{
+		shared.Team1: &wrappedOpininon{opinion{forecastReputation: 0.0}},
+		shared.Team2: &wrappedOpininon{opinion{forecastReputation: 0.0}},
+		shared.Team3: &wrappedOpininon{opinion{forecastReputation: 0.0}},
+	}
+	c.disasterHistory = disasterHistory{} // no disasters recorded
+	c.updateForecastingReputations(receivedPreds)
+	if c.opinions[shared.Team1].getForecastingRep() >= 0 {
+		t.Error("Received prediction with confidence > 50 percent with no disasters")
+	}
+
+	if c.opinions[shared.Team2].getForecastingRep() < 0 {
+		t.Error("Expected no negative change to reputation after sensible prediction")
+	}
+	c.disasterHistory = disasterHistory{1: disasterInfo{}, 5: disasterInfo{}} // no disasters recorded
+	c.updateForecastingReputations(receivedPreds)
+
+	if c.opinions[shared.Team3].getForecastingRep() >= 0 {
+		t.Error("Received perfectly confident prediction. Expected rep. to decrease.")
+	}
+
 }
 
 func initClient() *client {
