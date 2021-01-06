@@ -111,33 +111,3 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 func (c *client) GetSanctionPayment() shared.Resources {
 	return c.sanctionAmount
 }
-
-//Evaluate if the roles are corrupted or not based on their budget spending versus total tax paid to common pool
-//Either everyone is corrupted or not
-func (c *client) evaluateRoles() {
-	speakerID := c.ServerReadHandle.GetGameState().SpeakerID
-	judgeID := c.ServerReadHandle.GetGameState().JudgeID
-	presidentID := c.ServerReadHandle.GetGameState().PresidentID
-	//compute total budget
-	budget := c.ServerReadHandle.GetGameState().IIGORolesBudget
-	var totalBudget shared.Resources = 0
-	for role := range budget {
-		totalBudget += budget[role]
-	}
-	// compute total maximum tax to cp
-	var totalTax shared.Resources
-	numberAliveTeams := len(c.getAliveTeams(true)) //include us
-	for i := 0; i < numberAliveTeams; i++ {
-		totalTax += c.taxAmount
-	}
-	// Not corrupt
-	if totalBudget <= totalTax {
-		c.opinions[speakerID].updateOpinion(generalBasis, 0.1) //arbitrary number
-		c.opinions[judgeID].updateOpinion(generalBasis, 0.1)
-		c.opinions[presidentID].updateOpinion(generalBasis, 0.1)
-	} else {
-		c.opinions[speakerID].updateOpinion(generalBasis, -0.1) //arbitrary number
-		c.opinions[judgeID].updateOpinion(generalBasis, -0.1)
-		c.opinions[presidentID].updateOpinion(generalBasis, -0.1)
-	}
-}

@@ -123,6 +123,8 @@ func (c *client) ReceiveCommunication(
 			c.taxAmount = shared.Resources(content.IntegerData)
 		case shared.AllocationAmount:
 			c.allocation = shared.Resources(content.IntegerData)
+		case shared.SanctionAmount:
+			c.sanctionAmount = shared.Resources(content.IntegerData)
 		}
 	}
 }
