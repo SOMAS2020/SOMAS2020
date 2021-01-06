@@ -82,6 +82,8 @@ type DisasterConfig struct {
 	CommonpoolThreshold         shared.Resources      // threshold for min CP resources for disaster mitigation
 	StochasticPeriod            bool                  // if true, period between disasters becomes random. If false, it will be consistent (deterministic)
 	CommonpoolThresholdVisible  bool                  // whether CommonpoolThreshold is visible to clients
+	PeriodVisible               bool                  // whether DisasterPeriod should be visible to clients
+	StochasticPeriodVisible     bool                  // whether StochasticPeriod should be visible to clients
 }
 
 type IIGOConfig struct {
@@ -97,16 +99,18 @@ type IIGOConfig struct {
 	InspectBallotActionCost        shared.Resources
 	InspectAllocationActionCost    shared.Resources
 	AppointNextPresidentActionCost shared.Resources
-	SanctionCacheDepth             int
-	HistoryCacheDepth              int
+	SanctionCacheDepth             uint
+	HistoryCacheDepth              uint
 	AssumedResourcesNoReport       shared.Resources
-	SanctionLength                 int
+	SanctionLength                 uint
 	// Legislative branch
 	SetVotingResultActionCost      shared.Resources
 	SetRuleToVoteActionCost        shared.Resources
 	AnnounceVotingResultActionCost shared.Resources
 	UpdateRulesActionCost          shared.Resources
 	AppointNextJudgeActionCost     shared.Resources
+
+	StartWithRulesInPlay bool
 }
 
 // ForagingConfig captures foraging-specific config
