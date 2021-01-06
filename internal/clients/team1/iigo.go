@@ -22,22 +22,37 @@ func (c *client) GetTaxContribution() shared.Resources {
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	switch c.emotionalState() {
 	case Anxious:
-		c.Logf("Common pool request: 20")
-		return 20
+		amount := 2 * c.ServerReadHandle.GetGameConfig().CostOfLiving
+		c.Logf("Common pool request: %v", amount)
+		return amount
 	default:
-		return 0
+		return c.gameState().CommonPool
 	}
 }
 
 func (c *client) RequestAllocation() shared.Resources {
-	allocationMade := c.BaseClient.LocalVariableCache[rules.AllocationMade].Values[0] != 0
-	allocationAmount := shared.Resources(0)
-
-	if allocationMade {
-		allocationAmount = shared.Resources(c.BaseClient.LocalVariableCache[rules.ExpectedAllocation].Values[0])
-	} else if c.emotionalState() == Desperate {
-		allocationAmount = c.config.desperateStealAmount
+	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
+		VariableName: rules.IslandAllocation,
+		Values:       []float64{float64(c.gameState().CommonPool)},
 	}
+	allocationPair, success := c.GetRecommendation(rules.IslandAllocation)
+	if !success {
+		c.Logf("Cannot determine allocation, trying to get all resources in CP.")
+		return c.gameState().CommonPool
+	}
+
+	if c.emotionalState() == Desperate {
+		allocationAmount := c.config.desperateStealAmount
+		c.Logf("Desperate for %v to stay alive.", allocationAmount)
+		return allocationAmount
+	}
+
+	allocation := allocationPair.Values[0]
+	if allocation != 0 {
+		c.Logf("Taking %v from common pool", allocation)
+	}
+	return shared.Resources(allocation)
+}
 
 	if allocationAmount != 0 {
 		c.Logf("Taking %v from common pool", allocationAmount)
