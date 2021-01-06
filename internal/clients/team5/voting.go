@@ -17,29 +17,29 @@ func (c *client) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
 }
 
 // opinion score in order of team number 1,2,3,4,5,6
-func (c *client) opinionSortByTeam() (opnionSortByTeam []opinion) {
-	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team1], *c.opinions[shared.Team2])
-	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team3], *c.opinions[shared.Team4])
-	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team5], *c.opinions[shared.Team6])
+func (c *client) opinionSortByTeam() (opnionSortByTeam []wrappedOpininon) {
+	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team1], c.opinions[shared.Team2])
+	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team3], c.opinions[shared.Team4])
+	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team5], c.opinions[shared.Team6])
 	return
 }
 
 //opinion sorted by scores from min to max
-func (c *client) opinionSortByScore() (opinionSortByScore []opinion) {
+func (c *client) opinionSortByScore() (opinionSortByScore []wrappedOpininon) {
 	opinionSortByScore = c.opinionSortByTeam()
 	sort.Slice(opinionSortByScore, func(i, j int) bool {
-		return opinionSortByScore[i].score < opinionSortByScore[j].score
+		return opinionSortByScore[i].getScore() < opinionSortByScore[j].getScore()
 	})
 	return
 }
 
 // arrange teams corresponding to their opinion score from max -> min
-func findIndexOfScore(opinionSortByScore []opinion, opinionSortByTeam []opinion) (rank []int) {
+func findIndexOfScore(opinionSortByScore []wrappedOpininon, opinionSortByTeam []wrappedOpininon) (rank []int) {
 	for i := len(opinionSortByScore) - 1; i >= 0; i-- {
 		for j := len(opinionSortByScore) - 1; j >= 0; j-- {
 			if opinionSortByTeam[j] == opinionSortByScore[i] {
 				rank = append(rank, j)
-				opinionSortByTeam[j].score = -100 // assign random number we know we won't have so it won't mixed up the index
+				opinionSortByTeam[j].updateOpinion(generalBasis, -1) // assign random number we know we won't have so it won't mixed up the index
 			}
 		}
 	}

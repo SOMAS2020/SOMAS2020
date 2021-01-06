@@ -17,6 +17,8 @@ func init() {
 		resourceHistory:     resourceHistory{},
 		team5president:      president{},
 		giftHistory:         map[shared.ClientID]giftExchange{},
+		forecastHistory:     forecastHistory{},
+		disasterHistory:     disasterHistory{},
 
 		taxAmount:  0,
 		allocation: 0,
@@ -39,6 +41,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Print the Thresholds
 	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
 		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
+
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn
