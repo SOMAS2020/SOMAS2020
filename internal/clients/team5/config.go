@@ -11,10 +11,17 @@ type clientConfig struct {
 	NormalForagePercentage  float64
 	JBForagePercentage      float64
 
-	// Normal foraging
+	// Deciding Foraging Method
+	RandomChanceToSwitch         float64
+	IncreasePerHunterLastTurn    float64 // % increase per Hunter last turn
+	IncreasePerFisherMenLastTurn float64 // % increase per Fisherman last turn
+	DeerTurnsToLookBack          uint    // Find hunters in LB turns (not inlcuding pervious)
+	DecreasePerHunterInLookBack  float64 // % decrease per hunter in past LB turns
+
+	// NormalForage
+	SkipForage           uint // Skip for X turns if no positive RoI
 	NormalRandomIncrease float64
 	MaxForagePercentage  float64
-	SkipForage           uint // Skip for X turns if no positive RoI
 
 	// If resources go above this limit we are balling with money
 	jbThreshold shared.Resources
@@ -44,7 +51,14 @@ func getClientConfig() clientConfig {
 		NormalForagePercentage:  0.05,
 		JBForagePercentage:      0.10, // % of our resources when JB is Normal< X < JB
 
-		// Variables for Normal forage
+		// Deciding foraging type
+		RandomChanceToSwitch:         0.1,
+		IncreasePerHunterLastTurn:    0.1, // Percentage
+		IncreasePerFisherMenLastTurn: 0.1,
+		DeerTurnsToLookBack:          5, // Number of turns to look back at for deer (not including last)
+		DecreasePerHunterInLookBack:  0.05,
+
+		// Normal Forage
 		SkipForage:           1,
 		NormalRandomIncrease: 0.05,
 		MaxForagePercentage:  0.20,
