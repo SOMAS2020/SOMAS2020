@@ -103,8 +103,31 @@ func (c *client) GetTaxContribution() shared.Resources {
 		return c.iigoInfo.taxationAmount
 	}
 	c.clientPrint("Paying %v in tax", toPay)
+	variablesChanged := map[rules.VariableFieldName]rules.VariableValuePair{
+		rules.IslandTaxContribution: {
+			rules.IslandTaxContribution,
+			[]float64{float64(toPay)},
+		},
+		rules.ExpectedTaxContribution: {
+			rules.ExpectedTaxContribution,
+			c.LocalVariableCache[rules.ExpectedTaxContribution].Values,
+		},
+	}
+	recommendedValues := c.dynamicAssistedResult(variablesChanged)
+	if c.params.complianceLevel > 80 {
+		return shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
+	}
 	return toPay
 
+}
+
+func (c *client) dynamicAssistedResult(variablesChanged map[rules.VariableFieldName]rules.VariableValuePair) (newVals map[rules.VariableFieldName]rules.VariableValuePair) {
+	if c.LocalVariableCache != nil {
+		c.LocalVariableCache = c.locationService.UpdateCache(c.LocalVariableCache, variablesChanged)
+		// For testing using available rules
+		return c.locationService.GetRecommendations(variablesChanged, rules.AvailableRules, c.LocalVariableCache)
+	}
+	return variablesChanged
 }
 
 // ReceiveCommunication is a function called by IIGO to pass the communication sent to the client.
@@ -247,10 +270,12 @@ func (c *client) RequestAllocation() shared.Resources {
 			c.LocalVariableCache[rules.ExpectedAllocation].Values,
 		},
 	}
-	c.LocalVariableCache = c.locationService.UpdateCache(c.LocalVariableCache, variablesChanged)
-	// For testing using available rules
-	recommendedValues := c.locationService.GetRecommendations(variablesChanged, rules.AvailableRules, c.LocalVariableCache)
-	return shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
+
+	recommendedValues := c.dynamicAssistedResult(variablesChanged)
+	if c.params.complianceLevel > 80 {
+		return shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
+	}
+	return ourAllocation
 }
 
 // CommonPoolResourceRequest is called by the President in IIGO to
@@ -275,6 +300,13 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	// TODO request based on disaster prediction
 	c.clientPrint("Our Request: %f", request)
 	return request
+}
+
+func (c *client) GetSanctionPayment() shared.Resources {
+	if value, ok := c.LocalVariableCache[rules.SanctionExpected]; ok {
+		return shared.Resources(value.Values[rules.SingleValueVariableEntry])
+	}
+	return 0
 }
 
 func copyRulesMap(inp map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
