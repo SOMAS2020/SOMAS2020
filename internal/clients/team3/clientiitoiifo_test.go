@@ -197,6 +197,8 @@ func TestGetGiftOffers(t *testing.T) {
 				shared.Team1: 0,
 				shared.Team2: 0,
 				shared.Team4: 0,
+				shared.Team5: 0,
+				shared.Team6: 0,
 			},
 		},
 
@@ -225,10 +227,10 @@ func TestGetGiftOffers(t *testing.T) {
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
-					shared.Team2: 50,
-					shared.Team4: 50,
-					shared.Team5: 50,
-					shared.Team6: 50,
+					shared.Team2: 60,
+					shared.Team4: 75,
+					shared.Team5: 85,
+					shared.Team6: 100,
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
 					shared.Team1: 15,

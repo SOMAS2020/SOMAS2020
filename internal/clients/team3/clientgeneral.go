@@ -26,6 +26,10 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c *client) StartOfTurn() {
 	c.clientPrint("Start of turn!")
 
+	// update Trust Scores at the start of every turn
+	c.updateTrustScore(c.trustMapAgg)
+	c.updateTheirTrustScore(c.theirTrustMapAgg)
+
 	// Initialise trustMap and theirtrustMap local cache to empty maps
 	c.inittrustMapAgg()
 	c.inittheirtrustMapAgg()
@@ -50,8 +54,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourSpeaker = speaker{c: c}
 	c.ourJudge = judge{c: c}
 	c.ourPresident = president{c: c}
-  
-  c.initgiftOpinions()
+
+	c.initgiftOpinions()
 
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)
