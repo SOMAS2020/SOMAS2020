@@ -2,6 +2,7 @@ package team6
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -43,7 +44,7 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 }
 
 // ------ TODO: COMPULSORY -----
-func (c *client) RuleProposal() string {
+func (c *client) RuleProposal() rules.RuleMatrix {
 	return c.BaseClient.RuleProposal()
 }
 
