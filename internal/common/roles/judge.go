@@ -40,7 +40,6 @@ const (
 // Judge is the decision interface for the judiciary branch of IIGO
 type Judge interface {
 	PayPresident() (shared.Resources, bool)
-	GetPresidentSalary() shared.Resources
 	InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]EvaluationReturn, bool)
 	CallPresidentElection(shared.MonitorResult, int, []shared.ClientID) shared.ElectionSettings
 	DecideNextPresident(shared.ClientID) shared.ClientID

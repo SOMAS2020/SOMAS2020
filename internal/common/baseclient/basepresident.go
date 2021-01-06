@@ -73,17 +73,16 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 
 // PaySpeaker pays the speaker a salary.
 func (p *BasePresident) PaySpeaker() shared.PresidentReturnContent {
+	SpeakerSalaryRule, ok := rules.AvailableRules["salary_cycle_speaker"]
+	var SpeakerSalary shared.Resources = 0
+	if ok {
+		SpeakerSalary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
+	}
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
-		SpeakerSalary: p.GetSpeakerSalary(),
+		SpeakerSalary: SpeakerSalary,
 		ActionTaken:   true,
 	}
-}
-
-// GetSpeakerSalary gets the speaker's salary from the rules.
-func (p *BasePresident) GetSpeakerSalary() shared.Resources {
-	SpeakerSalaryRule := rules.AvailableRules["salary_cycle_speaker"]
-	return shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
 }
 
 // CallSpeakerElection is called by the executive to decide on power-transfer

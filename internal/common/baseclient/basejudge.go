@@ -27,13 +27,12 @@ func (j *BaseJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIG
 // OPTIONAL: override to pay the President less than the full amount.
 func (j *BaseJudge) PayPresident() (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
-	return j.GetPresidentSalary(), true
-}
-
-// GetPresidentSalary gets the President's salary from the rules.
-func (j *BaseJudge) GetPresidentSalary() shared.Resources {
-	PresidentSalaryRule := rules.AvailableRules["salary_cycle_president"]
-	return shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
+	PresidentSalaryRule, ok := rules.AvailableRules["salary_cycle_president"]
+	var PresidentSalary shared.Resources = 0
+	if ok {
+		PresidentSalary = shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
+	}
+	return PresidentSalary, true
 }
 
 // InspectHistory is the base implementation of evaluating islands choices the last turn.

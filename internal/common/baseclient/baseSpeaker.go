@@ -10,17 +10,16 @@ type BaseSpeaker struct {
 
 // PayJudge is used for paying judge for his service
 func (s *BaseSpeaker) PayJudge() shared.SpeakerReturnContent {
+	JudgeSalaryRule, ok := rules.RulesInPlay["salary_cycle_judge"]
+	var JudgeSalary shared.Resources = 0
+	if ok {
+		JudgeSalary = shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
+	}
 	return shared.SpeakerReturnContent{
 		ContentType: shared.SpeakerJudgeSalary,
-		JudgeSalary: s.GetJudgeSalary(),
+		JudgeSalary: JudgeSalary,
 		ActionTaken: true,
 	}
-}
-
-// GetJudgeSalary gets the Judge's salary from the rules.
-func (s *BaseSpeaker) GetJudgeSalary() shared.Resources {
-	JudgeSalaryRule := rules.AvailableRules["salary_cycle_judge"]
-	return shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
 }
 
 //DecideAgenda the interface implementation and example of a well behaved Speaker

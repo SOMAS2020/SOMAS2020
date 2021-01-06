@@ -6,7 +6,6 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 // optionally implemented by individual islands.
 type Speaker interface {
 	PayJudge() shared.SpeakerReturnContent
-	GetJudgeSalary() shared.Resources
 	DecideAgenda(string) shared.SpeakerReturnContent
 	DecideVote(string, []shared.ClientID) shared.SpeakerReturnContent
 	DecideAnnouncement(string, bool) shared.SpeakerReturnContent
