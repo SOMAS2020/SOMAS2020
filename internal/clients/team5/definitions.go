@@ -87,14 +87,15 @@ type client struct {
 	cpAllocationHistory cpAllocationHistory
 	cpResourceHistory   cpResourceHistory
 	opinionHistory      opinionHistory
-	disasterHistory     disasterHistory
+	forecastHistory     forecastHistory // history of forecasted disasters
+	disasterHistory     disasterHistory // history of actual disasters
 
 	// current states
-	opinions             opinionMap // opinions of each team
-	taxAmount            shared.Resources
-	allocation           shared.Resources
-	sanctionAmount       shared.Resources
-	lastDisasterForecast shared.DisasterPrediction // stores our most recent disaster forecast
+	opinions               opinionMap // opinions of each team
+	taxAmount              shared.Resources
+	allocation             shared.Resources
+	sanctionAmount         shared.Resources
+	lastDisasterPrediction shared.DisasterPrediction
 
 	config clientConfig
 }

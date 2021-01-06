@@ -17,6 +17,8 @@ func init() {
 		resourceHistory:     resourceHistory{},
 		team5president:      president{},
 		giftHistory:         map[shared.ClientID]giftExchange{},
+		forecastHistory:     forecastHistory{},
+		disasterHistory:     disasterHistory{},
 
 		taxAmount:  0,
 		allocation: 0,
