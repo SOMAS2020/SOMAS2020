@@ -17,18 +17,18 @@ func (c *client) GetClientSpeakerPointer() roles.Speaker {
 func (c *client) RequestAllocation() shared.Resources {
 	allocationGranted := c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0
-	importance := mat.NewVecDense(4, []float64{
-		5.0, 1.0, 0.0, -1.0, 5.0, 0.0,
+	importance := mat.NewVecDense(5, []float64{
+		5.0, 1.0, 0.0, -1.0, 5.0, //0.0,
 		// TODO: add multiplier for the 0.0 ones
 	})
 
-	parameters := mat.NewVecDense(4, []float64{
+	parameters := mat.NewVecDense(5, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[0], // TODO: index properly based on president in that turn
+		//c.internalParam.agentsTrust[0], // TODO: index properly based on president in that turn. This VecDense can only store float64 as an element
 	})
 
 	uncomplianceLevel := mat.Dot(importance, parameters) - uncomplianceThreshold
@@ -95,18 +95,18 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	// TODO: define how much we want -> resNeeded
 	greedyThreshold := 2.5
 
-	importance := mat.NewVecDense(4, []float64{
-		5.0, 1.0, -1.0, -1.0, 1.0, 0.0,
+	importance := mat.NewVecDense(5, []float64{
+		5.0, 1.0, -1.0, -1.0, 1.0, //0.0,
 		// TODO: add multiplier for the 0.0 ones
 	})
 
-	parameters := mat.NewVecDense(4, []float64{
+	parameters := mat.NewVecDense(5, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[0], // TODO: index properly based on president in that turn
+		// c.internalParam.agentsTrust[0], // TODO: index properly based on president in that turn. this VecDense can only store float64 as an element
 	})
 	greedyLevel := mat.Dot(importance, parameters) - greedyThreshold
 
@@ -130,21 +130,21 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	}
 
 	// Initialise importance vector and parameters vector.
-	importance := mat.NewVecDense(4, []float64{
-		5.0, 5.0, -5.0, -5.0, 1.0, 5.0,
+	importance := mat.NewVecDense(5, []float64{
+		5.0, 5.0, -5.0, -5.0, 1.0, //5.0,
 		// TODO: add multiplier for the 0.0 ones.
 	})
 
-	parameters := mat.NewVecDense(4, []float64{
+	parameters := mat.NewVecDense(5, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[0], // TODO: index properly based on president and judge: respectively
+		// c.internalParam.agentsTrust[0], // TODO: index properly based on president and judge: respectively
 		// to measure your trust on the fairness of the tax you will get/how
 		// much you trust that agent with this info and how much you think the
-		// judge is likely to inspect you.
+		// judge is likely to inspect you. Also this VecDense can only store float64 as an element, we need to think of a way
 	})
 
 	// lyingLevel will be positive when agent is inclined to lie.

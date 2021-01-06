@@ -112,6 +112,19 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.BaseClient.Initialise(serverReadHandle)
 
 	//custom things below, trust matrix initilised to values of 1
+	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
+	c.internalParam = &internalParameters{agentsTrust: make([]float64, numClient)}
+	iigoObs := &iigoObservation{
+		allocationGranted: shared.Resources(0),
+		taxDemanded:       shared.Resources(0),
+	}
+	iifoObs := &iifoObservation{}
+	iitoObs := &iitoObservation{}
+	c.obs = &observation{
+		iigoObs: iigoObs,
+		iifoObs: iifoObs,
+		iitoObs: iitoObs,
+	}
 
 	// numClient := len(shared.TeamIDs)
 	// v := make([]float64, numClient*numClient)
