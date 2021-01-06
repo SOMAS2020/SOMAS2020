@@ -36,6 +36,15 @@ class LineRechartComponent extends React.Component<IProps, any> {
                 team5: "#FFBB28",
                 team6: "#FF8042",
             },
+            legendColours: {
+                team1: "#0095FF",
+                team2: "#FF0000",
+                team3: "#802FF0",
+                team4: "#00C49F",
+                team5: "#FFBB28",
+                team6: "#FF8042",
+                CriticalThreshold: "#e6eeff",
+            },
             datapaths: {
                 team1: "ClientInfos.Team1.Resources",
                 team2: "ClientInfos.Team2.Resources",
@@ -134,19 +143,23 @@ class LineRechartComponent extends React.Component<IProps, any> {
                             strokeDasharray="3 3"
                         />
                     ))}
-                    <ReferenceArea 
-                        y1={0} 
-                        y2={this.state.chartData.Config.MinimumResourceThreshold} 
-                        label='Critical'
-                        stroke="blue" 
-                        strokeOpacity={0.1} 
-                    />
+                    {_.toPairs<string>({CriticalThreshold: "#e6eeff"})
+                        .filter(refArea => !_.includes(this.state.disabled, refArea[0]))
+                        .map(refArea => (
+                        <ReferenceArea 
+                            y1={0} 
+                            y2={this.state.chartData.Config.MinimumResourceThreshold} 
+                            label={refArea[0]}
+                            stroke={refArea[1]}
+                            strokeOpacity={0.1} 
+                        />
+                        ))}   
                     <Legend
                         verticalAlign="top"
                         align="center"
                         height={20}
                         wrapperStyle={{ top: 0, left: 25, right: 0, width: 'auto' }}
-                        payload={_.toPairs<string>(this.state.lineColours).map(pair => ({
+                        payload={_.toPairs<string>(this.state.legendColours).map(pair => ({
                             value: pair[0],
                             color: pair[1], 
                             type: "circle",
