@@ -3,15 +3,8 @@ package team5
 import (
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
-
-type testServerHandle struct {
-	clientGameState  gamestate.ClientGameState
-	clientGameConfig config.ClientConfig
-}
 
 func TestCommonPoolResourceRequest(t *testing.T) {
 	// test submit request to president when we are poor & current CP has nothing

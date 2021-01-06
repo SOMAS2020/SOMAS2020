@@ -6,12 +6,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-var c = initClient()
-
-func initClient() *client {
-	c := createClient()
-	return c
-}
 func TestGetVoteForElection(t *testing.T) {
 	c.opinions = opinionMap{
 		shared.Team1: &wrappedOpininon{opinion{score: 0.2}},
