@@ -14,7 +14,7 @@ type ForagingResults struct {
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	// implement a normal distribution which shifts closer to hunt or fish
-	var Threshold float64 = decideThreshold(c) //number from 0 to 1
+	var Threshold float64 = c.decideHuntingLikelihood() //number from 0 to 1
 	var forageDecision shared.ForageType
 	if rand.Float64() > Threshold { //we fish when above the threshold
 		forageDecision = 1
@@ -33,10 +33,10 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 	if criticalStatus(c) {
 		return 0
 	}
-	if ourResources < internalThreshold(c) && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
-		return (ourResources - determineThreshold(c)) / 2 //tune divisor
+	if ourResources < c.internalThreshold() && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
+		return (ourResources - c.internalThreshold()) / 2 //tune divisor
 	}
-	resourcesForForaging := (ourResources - internalThreshold(c))
+	resourcesForForaging := (ourResources - c.internalThreshold())
 	return resourcesForForaging
 }
 
@@ -65,11 +65,12 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 // }
 
 //being the only agent to hunt is undesirable, having one hunting partner is the desirable, the more hunters after that the less we want to hunt
-func decideThreshold(c *client) float64 { //will move the threshold, higher value means more likely to hunt
-	if Otheragentinfo(c) == 1 { //in the case when one other person only is hunting
+func (c *client) decideHuntingLikelihood() float64 { //will move the threshold, higher value means more likely to hunt
+	hunters := c.otherHunters()
+	if hunters == 1.0 { //in the case when one other person only is hunting
 		return 0.95
-	} else if Otheragentinfo(c) > 1 { //if no one is likely to hunt then we do default probability
-		return 0.95 - (Otheragentinfo(c) * 0.15) //default hunt probability is 10%, the less people hunting the more likely we do it
+	} else if hunters > 1 { //if no one is likely to hunt then we do default probability
+		return 0.95 - (hunters * 0.15) //default hunt probability is 10%, the less people hunting the more likely we do it
 
 	} else {
 		return 0.1 //when no one is likely to hunt we have a default 10% chance of hunting just in the off chance another person hunts
@@ -77,15 +78,13 @@ func decideThreshold(c *client) float64 { //will move the threshold, higher valu
 }
 
 //EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
-func Otheragentinfo(c *client) float64 { //will return a value of how many agents will likely hunt
+func (c *client) otherHunters() float64 { //will return a value of how many agents will likely hunt
 
 	HuntNum := 0.00                                                //this the average number of likely hunters
-	totalDecisions := 0.00                                         //this is for finding the average
 	for id, lifeStatus := range c.gameState().ClientLifeStatuses { //loop through every agent
 		if lifeStatus != shared.Dead { //client is dead ignore their decisions
 			for _, forageInfo := range c.foragingReturnsHist[id] { //loop through the agents array and add their average to HuntNum
-				HuntNum = (HuntNum + float64(forageInfo.DecisionMade.Type)) / totalDecisions //add the agents decision to HuntNum and then average
-				totalDecisions++
+				HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(c.foragingReturnsHist[id])) //add the agents decision to HuntNum and then average
 			}
 		}
 	}
