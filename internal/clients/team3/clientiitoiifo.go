@@ -171,7 +171,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	avgRequestAmt := totalRequestAmt / float64(c.getIslandsAlive()-c.getIslandsCritical())
 
 	for island, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if island == shared.Team3 {
+		if island == id {
 			continue
 		}
 		if status == shared.Critical || status == shared.Dead {
