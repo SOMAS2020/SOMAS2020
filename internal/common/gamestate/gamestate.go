@@ -35,6 +35,9 @@ type GameState struct {
 	// IIGO turns in power (incremented and set by monitoring)
 	IIGOTurnsInPower map[shared.Role]uint
 
+	//IIGO Role Action Cache
+	IIGOCache []shared.Accountability
+
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
 
@@ -57,6 +60,7 @@ func (g GameState) Copy() GameState {
 	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	ret.IIGOTurnsInPower = copyTurnsInPower(g.IIGOTurnsInPower)
+	ret.IIGOCache = copyIIGOCache(g.IIGOCache)
 	return ret
 }
 
@@ -80,6 +84,12 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		IIGORolesBudget:    copyRolesBudget(g.IIGORolesBudget),
 		IIGOTurnsInPower:   copyTurnsInPower(g.IIGOTurnsInPower),
 	}
+}
+
+func copyIIGOCache(c []shared.Accountability) []shared.Accountability {
+	ret := make([]shared.Accountability, len(c))
+	copy(ret, c)
+	return ret
 }
 
 func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]ClientInfo {
