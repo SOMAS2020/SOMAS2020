@@ -29,7 +29,7 @@ func TestAnalyseDisasterPeriod(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			c.disasterHistory = tc.dh
-			ansPeriod, ansConf := c.analyseDisasterPeriod()
+			ansPeriod, ansConf := c.estimateDisasterPeriod()
 			if ansPeriod != tc.wantPeriod {
 				t.Errorf("period: got %d, want %d", ansPeriod, tc.wantPeriod)
 			}
