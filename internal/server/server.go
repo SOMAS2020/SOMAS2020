@@ -9,6 +9,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
@@ -58,6 +59,14 @@ func createSOMASServer(
 		forageHistory[t] = make([]foraging.ForagingReport, 0)
 	}
 
+	if gameConfig.IIGOConfig.StartWithRulesInPlay {
+		for ruleName := range rules.AvailableRules {
+			// Result is ignored since we know that the RulesInPlay cache cannot contain any of
+			// these rules (the only error case)
+			_ = rules.PullRuleIntoPlay(ruleName)
+		}
+	}
+
 	server := &SOMASServer{
 		clientMap:  clientMap,
 		gameConfig: gameConfig,
@@ -73,12 +82,19 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
-			SpeakerID:   shared.Team1,
-			JudgeID:     shared.Team2,
-			PresidentID: shared.Team3,
-			CommonPool:  gameConfig.InitialCommonPool,
+			IIGOTurnsInPower: map[shared.Role]uint{
+				shared.President: 0,
+				shared.Judge:     0,
+				shared.Speaker:   0,
+			},
+			SpeakerID:          shared.Team1,
+			JudgeID:            shared.Team2,
+			PresidentID:        shared.Team3,
+			CommonPool:         gameConfig.InitialCommonPool,
+			CurrentRulesInPlay: rules.RulesInPlay,
 		},
 	}
+
 	server.gameState.DeerPopulation = foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig, server.logf)
 
 	for _, client := range clientMap {

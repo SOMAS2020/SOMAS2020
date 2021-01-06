@@ -51,12 +51,48 @@ var StaticVariables = []VariableValuePair{
 		Values:       []float64{50},
 	},
 	{
+		VariableName: SpeakerPayment,
+		Values:       []float64{50},
+	},
+	{
+		VariableName: SpeakerPaid,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: SpeakerBudgetIncrement,
+		Values:       []float64{100},
+	},
+	{
 		VariableName: JudgeSalary,
 		Values:       []float64{50},
 	},
 	{
+		VariableName: JudgePayment,
+		Values:       []float64{50},
+	},
+	{
+		VariableName: JudgePaid,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: JudgeBudgetIncrement,
+		Values:       []float64{100},
+	},
+	{
 		VariableName: PresidentSalary,
 		Values:       []float64{50},
+	},
+	{
+		VariableName: PresidentPayment,
+		Values:       []float64{50},
+	},
+	{
+		VariableName: PresidentPaid,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: PresidentBudgetIncrement,
+		Values:       []float64{100},
 	},
 	{
 		VariableName: ExpectedTaxContribution,
@@ -112,6 +148,94 @@ var StaticVariables = []VariableValuePair{
 	},
 	{
 		VariableName: JudgeInspectionPerformed,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleAnnounce,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleDecideToMonitor,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleEvalResult,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: MonitorRoleEvalResultDecide,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: VoteResultAnnounced,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandsAllowedToVote,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: SpeakerProposedPresidentRule,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: PresidentRuleProposal,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: RuleChosenFromProposalList,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: AnnouncementRuleMatchesVote,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: AnnouncementResultMatchesVote,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: PresidentLeftoverBudget,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: SpeakerLeftoverBudget,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: JudgeLeftoverBudget,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandsProposedRules,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: HasIslandReportPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandActualPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: IslandReportedPrivateResources,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: JudgeHistoricalRetributionPerformed,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: TermEnded,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: ElectionHeld,
+		Values:       []float64{0},
+	},
+	{
+		VariableName: AppointmentMatchesVote,
 		Values:       []float64{0},
 	},
 }
