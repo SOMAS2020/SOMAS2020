@@ -24,9 +24,9 @@ export const processRulesData = (data: OutputJSONType) :RuleType[]=> {
     // return a list of rules of RuleType
     let rulesDict:any = {}
     // each season, do...
-    data.GameStates.map((episode) => {
+    data.GameStates.forEach((episode) => {
         // each rules in season, do...
-        Object.keys(episode.CurrentRulesInPlay).map((rules) => {
+        Object.keys(episode.CurrentRulesInPlay).forEach((rules) => {
             // add history
             let history_:any = []
             rulesInSeasons.forEach((item) => {
