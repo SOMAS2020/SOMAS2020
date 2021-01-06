@@ -21,6 +21,11 @@ type executive struct {
 	RulesProposals   []rules.RuleMatrix
 	ResourceRequests map[shared.ClientID]shared.Resources
 	monitoring       *monitor
+	logger           shared.Logger
+}
+
+func (e *executive) Logf(format string, a ...interface{}) {
+	e.logger("[EXECUTIVE]: %v", fmt.Sprintf(format, a...))
 }
 
 // loadClientPresident checks client pointer is good and if not panics

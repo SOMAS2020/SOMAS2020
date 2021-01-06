@@ -33,6 +33,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		evaluationResults:  nil,
 		localSanctionCache: defaultInitLocalSanctionCache(3),
 		localHistoryCache:  defaultInitLocalHistoryCache(3),
+		logger:             logger,
 	}
 
 	// featureSpeaker is an instantiation of the Speaker interface
@@ -44,6 +45,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		ruleToVote:   rules.RuleMatrix{},
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
+		logger:       logger,
 	}
 
 	// featurePresident is an instantiation of the President interface
@@ -53,6 +55,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		gameConf:         nil,
 		PresidentID:      0,
 		ResourceRequests: nil,
+		logger:           logger,
 	}
 	var monitoring = monitor{
 		speakerID:         g.SpeakerID,

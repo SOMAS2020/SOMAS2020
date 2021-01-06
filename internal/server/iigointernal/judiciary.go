@@ -24,6 +24,11 @@ type judiciary struct {
 	localSanctionCache    map[int][]roles.Sanction
 	localHistoryCache     map[int][]shared.Accountability
 	monitoring            *monitor
+	logger                shared.Logger
+}
+
+func (j *judiciary) Logf(format string, a ...interface{}) {
+	j.logger("[JUDICIARY]: %v", fmt.Sprintf(format, a...))
 }
 
 // Loads ruleViolationSeverity and sanction thresholds

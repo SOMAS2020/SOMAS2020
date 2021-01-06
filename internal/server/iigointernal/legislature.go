@@ -22,6 +22,11 @@ type legislature struct {
 	votingResult  bool
 	clientSpeaker roles.Speaker
 	monitoring    *monitor
+	logger        shared.Logger
+}
+
+func (l *legislature) Logf(format string, a ...interface{}) {
+	l.logger("[LEGISLATURE]: %v", fmt.Sprintf(format, a...))
 }
 
 // loadClientSpeaker checks client pointer is good and if not panics
