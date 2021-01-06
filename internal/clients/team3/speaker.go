@@ -3,6 +3,7 @@ package team3
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -15,16 +16,16 @@ type speaker struct {
 
 // Override functions here, see president.go for examples
 
-func (s *speaker) PayJudge(salary shared.Resources) shared.SpeakerReturnContent {
+func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 	// Use the base implementation
-	return s.BaseSpeaker.PayJudge(salary)
+	return s.BaseSpeaker.PayJudge()
 }
 
-func (s *speaker) DecideAgenda(ruleID string) shared.SpeakerReturnContent {
-	return s.BaseSpeaker.DecideAgenda(ruleID)
+func (s *speaker) DecideAgenda(ruleMat rules.RuleMatrix) shared.SpeakerReturnContent {
+	return s.BaseSpeaker.DecideAgenda(ruleMat)
 }
 
-func (s *speaker) DecideVote(ruleID string, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
+func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
 	var chosenClients []shared.ClientID
 	for _, islandID := range aliveClients {
 		if s.c.iigoInfo.sanctions.islandSanctions[islandID] != roles.NoSanction {
@@ -42,22 +43,22 @@ func (s *speaker) DecideVote(ruleID string, aliveClients []shared.ClientID) shar
 	return shared.SpeakerReturnContent{
 		ContentType:          shared.SpeakerVote,
 		ParticipatingIslands: chosenClients,
-		RuleID:               ruleID,
+		RuleMatrix: 		  ruleMatrix,
 		ActionTaken:          true,
 	}
 
 }
 
-func (s *speaker) DecideAnnouncement(ruleID string, result bool) shared.SpeakerReturnContent {
+func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
 	if s.c.shouldICheat() {
-		result = s.c.GetVoteForRule(ruleID)
+		result = s.c.GetVoteForRule(ruleMatrix)
 	}
 
 	return shared.SpeakerReturnContent{
-		ContentType:  shared.SpeakerAnnouncement,
-		RuleID:       ruleID,
-		VotingResult: result,
-		ActionTaken:  true,
+		ContentType:  	shared.SpeakerAnnouncement,
+		RuleMatrix: 	ruleMatrix,
+		VotingResult: 	result,
+		ActionTaken:  	true,
 	}
 
 }

@@ -15,10 +15,10 @@ type judge struct {
 }
 
 // PayPresident pays the president's salary
-func (j *judge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
+func (j *judge) PayPresident() (shared.Resources, bool) {
 
 	// Strategy: Pay the president the amount they are owed, no changing amount.
-	return presidentSalary, true
+	return j.BaseJudge.PayPresident()
 }
 
 // InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
@@ -89,7 +89,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 // CallPresidentElection sets the election settings for the next president election
 func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	var electionsettings = shared.ElectionSettings{
-		VotingMethod:  shared.Plurality,
+		VotingMethod:  shared.Approval,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}

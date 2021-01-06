@@ -137,9 +137,9 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	// c.clientPrint("Received communication: %+v", data)
 	for contentType, content := range data {
 		switch contentType {
-		case shared.TaxAmount:
+		case shared.IIGOTaxDecision:
 			c.iigoInfo.taxationAmount = shared.Resources(content.IntegerData)
-		case shared.AllocationAmount:
+		case shared.IIGOAllocationDecision:
 			c.iigoInfo.commonPoolAllocation = shared.Resources(content.IntegerData)
 		case shared.RuleName:
 			currentRuleID := content.TextData
@@ -170,18 +170,22 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	}
 }
 
-func (c *client) GetVoteForRule(ruleName string) bool {
+func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 
 	newRulesInPlay := make(map[string]rules.RuleMatrix)
 
 	for key, value := range rules.RulesInPlay {
-		newRulesInPlay[key] = value
+		if key == matrix.RuleName {
+			newRulesInPlay[key] = matrix
+		} else {
+			newRulesInPlay[key] = value
+		}
 	}
 
-	if _, ok := rules.RulesInPlay[ruleName]; ok {
-		delete(newRulesInPlay, ruleName)
+	if _, ok := rules.RulesInPlay[matrix.RuleName]; ok {
+		delete(newRulesInPlay, matrix.RuleName)
 	} else {
-		newRulesInPlay[ruleName] = rules.AvailableRules[ruleName]
+		newRulesInPlay[matrix.RuleName] = rules.AvailableRules[matrix.RuleName]
 	}
 
 	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
@@ -198,11 +202,11 @@ func (c *client) GetVoteForRule(ruleName string) bool {
 	return true
 }
 
-func (c *client) RuleProposal() string {
+func (c *client) RuleProposal() rules.RuleMatrix {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
 	internalMap := copyRulesMap(rules.RulesInPlay)
-	inputMap := c.locationService.TranslateToInputs(c.localVariableCache)
+	inputMap := c.locationService.TranslateToInputs(c.LocalVariableCache)
 	c.localInputsCache = inputMap
 	shortestSoFar := -2.0
 	selectedRule := ""
@@ -214,7 +218,7 @@ func (c *client) RuleProposal() string {
 				ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
 				distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
 				if distance == -1 {
-					return key
+					return rules.AvailableRules[key]
 				}
 				if shortestSoFar == -2.0 || shortestSoFar > distance {
 					shortestSoFar = distance
@@ -232,9 +236,9 @@ func (c *client) RuleProposal() string {
 		}
 	}
 	if selectedRule == "" {
-		return "inspect_ballot_rule"
+		selectedRule = "inspect_ballot_rule"
 	}
-	return selectedRule
+	return rules.AvailableRules[selectedRule]
 }
 
 // RequestAllocation gives how much island is taking from common pool

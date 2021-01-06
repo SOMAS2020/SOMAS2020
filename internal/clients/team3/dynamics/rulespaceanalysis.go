@@ -47,9 +47,15 @@ func removeFromDistances(s []float64, i int) []float64 {
 
 func getSmallestInMap(inputMap map[int]float64) int {
 	if len(inputMap) > 0 {
-		base := inputMap[0]
+		flag := true
+		base := 0.0
 		index := 0
 		for key, val := range inputMap {
+			if flag {
+				base = val
+				index = key
+				flag = false
+			}
 			if val <= base {
 				base = val
 				index = key

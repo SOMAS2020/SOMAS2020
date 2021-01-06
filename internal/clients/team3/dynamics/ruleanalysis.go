@@ -24,6 +24,9 @@ func GetDistanceToSubspace(dynamics []dynamic, location mat.VecDense) float64 {
 		distances = append(distances, findDistanceToHyperplane(v.w, v.b, location))
 	}
 	if distances != nil {
+		if len(distances) == 0 {
+			return -1
+		}
 		return distances[getSmallest(distances)]
 	}
 	return 0.0
@@ -99,6 +102,9 @@ func findClosestApproachInSubspace(matrixOfRules rules.RuleMatrix, dynamics []dy
 	}
 
 	indexOfSmall := getSmallestNonZero(distances)
+	if indexOfSmall == -1 {
+		return location
+	}
 	closestApproach := calculateClosestApproach(dynamics[indexOfSmall], location)
 	if ruleevaluation.RuleEvaluation(matrixOfRules, closestApproach) {
 		return closestApproach

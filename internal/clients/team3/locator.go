@@ -287,8 +287,14 @@ func buildInput(pair rules.VariableValuePair) (dynamics.Input, bool) {
 			ClientAdjustable: isAdjustable,
 			Value:            pair.Values,
 		}, true
+	} else {
+		return dynamics.Input{
+			Name:             pair.VariableName,
+			ClientAdjustable: false,
+			Value:            pair.Values,
+		}, true
 	}
-	return dynamics.Input{}, false
+
 }
 
 var IsChangeable = map[rules.VariableFieldName]bool{

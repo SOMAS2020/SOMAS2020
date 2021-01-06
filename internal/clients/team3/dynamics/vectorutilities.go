@@ -17,6 +17,9 @@ func getSmallestNonZero(values []float64) int {
 }
 
 func getSmallest(values []float64) int {
+	if len(values) == 0 {
+		return -1
+	}
 	currentLowest := values[0]
 	currentLowestIndex := 0
 	for i, v := range values {
@@ -46,7 +49,12 @@ func findDistanceToHyperplane(w mat.VecDense, b float64, x mat.VecDense) float64
 }
 
 func applyDynamic(dyn dynamic, location mat.VecDense) float64 {
-	return mat.Dot(&dyn.w, &location) + dyn.b
+	nRows, _ := dyn.w.Dims()
+	pRows, _ := location.Dims()
+	if nRows == pRows{
+		return mat.Dot(&dyn.w, &location) + dyn.b
+	}
+	return 0
 }
 
 // calculateDistanceVecVec calculates the euclidean distance between two vectors
