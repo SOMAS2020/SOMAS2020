@@ -87,6 +87,8 @@ type DisasterConfig struct {
 }
 
 type IIGOConfig struct {
+	// IIGO term lengths (set by config)
+	IIGOTermLengths map[shared.Role]uint
 	// Executive branch
 	GetRuleForSpeakerActionCost        shared.Resources
 	BroadcastTaxationActionCost        shared.Resources
@@ -95,14 +97,15 @@ type IIGOConfig struct {
 	RequestRuleProposalActionCost      shared.Resources
 	AppointNextSpeakerActionCost       shared.Resources
 	// Judiciary branch
-	InspectHistoryActionCost       shared.Resources
-	InspectBallotActionCost        shared.Resources
-	InspectAllocationActionCost    shared.Resources
-	AppointNextPresidentActionCost shared.Resources
-	SanctionCacheDepth             uint
-	HistoryCacheDepth              uint
-	AssumedResourcesNoReport       shared.Resources
-	SanctionLength                 uint
+	InspectHistoryActionCost        shared.Resources
+	HistoricalRetributionActionCost shared.Resources
+	InspectBallotActionCost         shared.Resources
+	InspectAllocationActionCost     shared.Resources
+	AppointNextPresidentActionCost  shared.Resources
+	SanctionCacheDepth              uint
+	HistoryCacheDepth               uint
+	AssumedResourcesNoReport        shared.Resources
+	SanctionLength                  uint
 	// Legislative branch
 	SetVotingResultActionCost      shared.Resources
 	SetRuleToVoteActionCost        shared.Resources

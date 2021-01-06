@@ -8,7 +8,7 @@ import (
 // Speaker is an interface that is implemented by baseSpeaker but can also be
 // optionally implemented by individual islands.
 type Speaker interface {
-	PayJudge(judgeSalary shared.Resources) shared.SpeakerReturnContent
+	PayJudge() shared.SpeakerReturnContent
 	DecideAgenda(rules.RuleMatrix) shared.SpeakerReturnContent
 	DecideVote(rules.RuleMatrix, []shared.ClientID) shared.SpeakerReturnContent
 	DecideAnnouncement(rules.RuleMatrix, bool) shared.SpeakerReturnContent

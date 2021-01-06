@@ -249,6 +249,12 @@ var (
 		"IIGO action cost for inspectHistory",
 	)
 
+	historicalRetributionActionCost = flag.Float64(
+		"historicalRetributionActionCost",
+		10,
+		"IIGO action cost for inspectHistory retroactively (in turns before the last one)",
+	)
+
 	iigoInspectBallotActionCost = flag.Float64(
 		"iigoInspectBallotActionCost",
 		10,
@@ -408,14 +414,15 @@ func parseConfig() (config.Config, error) {
 		RequestRuleProposalActionCost:      shared.Resources(*iigoRequestRuleProposalActionCost),
 		AppointNextSpeakerActionCost:       shared.Resources(*iigoAppointNextSpeakerActionCost),
 		// Judiciary branch
-		InspectHistoryActionCost:       shared.Resources(*iigoInspectHistoryActionCost),
-		InspectBallotActionCost:        shared.Resources(*iigoInspectBallotActionCost),
-		InspectAllocationActionCost:    shared.Resources(*iigoInspectAllocationActionCost),
-		AppointNextPresidentActionCost: shared.Resources(*iigoAppointNextPresidentActionCost),
-		SanctionCacheDepth:             *iigoSanctionCacheDepth,
-		HistoryCacheDepth:              *iigoHistoryCacheDepth,
-		AssumedResourcesNoReport:       shared.Resources(*iigoAssumedResourcesNoReport),
-		SanctionLength:                 *iigoSanctionLength,
+		InspectHistoryActionCost:        shared.Resources(*iigoInspectHistoryActionCost),
+		HistoricalRetributionActionCost: shared.Resources(*historicalRetributionActionCost),
+		InspectBallotActionCost:         shared.Resources(*iigoInspectBallotActionCost),
+		InspectAllocationActionCost:     shared.Resources(*iigoInspectAllocationActionCost),
+		AppointNextPresidentActionCost:  shared.Resources(*iigoAppointNextPresidentActionCost),
+		SanctionCacheDepth:              *iigoSanctionCacheDepth,
+		HistoryCacheDepth:               *iigoHistoryCacheDepth,
+		AssumedResourcesNoReport:        shared.Resources(*iigoAssumedResourcesNoReport),
+		SanctionLength:                  *iigoSanctionLength,
 		// Legislative branch
 		SetVotingResultActionCost:      shared.Resources(*iigoSetVotingResultActionCost),
 		SetRuleToVoteActionCost:        shared.Resources(*iigoSetRuleToVoteActionCost),

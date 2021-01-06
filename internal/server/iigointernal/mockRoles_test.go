@@ -31,7 +31,7 @@ func (j *mockJudge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIG
 }
 
 // PayPresident pays the President a salary.
-func (j *mockJudge) PayPresident(presidentSalary shared.Resources) (shared.Resources, bool) {
+func (j *mockJudge) PayPresident() (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
 	return j.payPresidentVal, j.payPresidentChoice
 }
