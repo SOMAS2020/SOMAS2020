@@ -6,24 +6,17 @@ import (
 )
 
 func (c *client) GetTaxContribution() shared.Resources {
-	taxDecisionMade := c.BaseClient.LocalVariableCache[rules.TaxDecisionMade].Values[0] != 0
-
-	if !taxDecisionMade && c.gameState().Turn == 1 {
-		// Put in some initial resources
-		contribution := c.config.kickstartTaxPercent * c.gameState().ClientInfo.Resources
-		c.Logf("Paying initial contribution: %v", contribution)
-		return contribution
-	}
-
-	if !taxDecisionMade || c.config.evadeTaxes {
-		c.Logf("Tax decision not made")
+	contribution, success := c.GetRecommendation(rules.IslandTaxContribution)
+	if !success {
+		c.Logf("Cannot determine correct tax, paying 0")
 		return 0
 	}
-
-	// taxDecisionMade && !c.config.evadeTaxes && c.gameState().Turn > 1
-	expectedTaxContribution := shared.Resources(c.BaseClient.LocalVariableCache[rules.ExpectedTaxContribution].Values[0])
-	c.Logf("Paying tax: %v", expectedTaxContribution)
-	return expectedTaxContribution
+	if c.config.evadeTaxes {
+		c.Logf("Evading tax")
+		return 0
+	}
+	c.Logf("Paying tax: %v", contribution)
+	return shared.Resources(contribution.Values[0])
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
