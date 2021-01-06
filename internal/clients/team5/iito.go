@@ -6,49 +6,71 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	COMPULSORY:
 	GetGiftRequests() shared.GiftRequestDict
 	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
-		- allows us to make an offer to other teams if they request.
 	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
-		- allows us to consider gift offers from other teams and accept/decline
-		- need to provide reasoning for not accepting full amount if that is the case
 	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
-		- allows client to notify server of all gift responses we received. We would need to store these
-		transactions to be able to inform server when it calls this method
-	SentGift(sent shared.Resources, to shared.ClientID)
-		- notifies us that gift was successfully sent. Can use this as a time to check resource deduction.
-	ReceivedGift(sent shared.Resources, from shared.ClientID)
-		- notifies us that gift was successfully received. Can use this as a time to check resource addition.
 	DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources
-		- called by server at end of round. Allows us to choose how much of our gift offers we actually want to fulfill.
+	SentGift(sent shared.Resources, to shared.ClientID)
+	ReceivedGift(sent shared.Resources, from shared.ClientID)
+
+	For reference
+	ourRequest giftInfo
+		requested      shared.GiftRequest    - GetGiftRequest - Amount WE request 1
+		offered        shared.GiftOffer 	- GetGiftResponses - Amount offered TO US 3
+		response       shared.GiftResponse	- GetGiftResponses - Amount WE accepeted and reason 3
+		actualReceived shared.Resources		- ReceivedGift - Amount WE actually received 6
+
+	theirRequest giftInfo
+		requested      shared.GiftRequest    - GetGiftOffers - Amount THEY requested  2
+		offered        shared.GiftOffer		- GetGiftOffers - Amount WE offered 2
+		response       shared.GiftResponse 	- UpdateGiftInfo - Amount THEY accepeted and reason 4
+		actualReceived shared.Resources		- DecideGiftAmount - Amount THEY actually get 5
 */
+
+// creates initial opinions of clients and sets the values to 0 (prevents nil mapping)
+func (c *client) initGiftHist() {
+	c.giftHistory = giftHistory{}
+
+	for _, team := range c.getAliveTeams(true) {
+		ourGiftInfo := giftInfo{
+			requested:      0,
+			offered:        0,
+			response:       shared.GiftResponse{AcceptedAmount: 0, Reason: 0},
+			actualReceived: 0,
+		}
+		theirGiftInfo := giftInfo{
+			requested:      0,
+			offered:        0,
+			response:       shared.GiftResponse{AcceptedAmount: 0, Reason: 0},
+			actualReceived: 0,
+		}
+		ourReq := map[uint]giftInfo{c.getTurn(): ourGiftInfo}
+		theirReq := map[uint]giftInfo{c.getTurn(): theirGiftInfo}
+		c.giftHistory[team] = giftExchange{
+			ourRequest:   ourReq,
+			theirRequest: theirReq,
+		}
+	}
+}
 
 // GetGiftRequests we want gifts!
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
-	switch {
-	case c.gameState().ClientInfo.LifeStatus == shared.Critical: // Case we are critical
-		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-			if status == shared.Critical { // Other island are critical
-				requests[team] = shared.GiftRequest(0.0) // Dont ask for money
-			} else {
+	for team, status := range c.gameState().ClientLifeStatuses {
+		if status != shared.Critical {
+			switch {
+			case c.getLifeStatus() == shared.Critical: // Case we are critical
 				requests[team] = shared.GiftRequest(c.config.dyingGiftRequestAmount) // Ask for money cus we dying
-			}
-		}
-	case c.wealth() == imperialStudent: // We are poor
-		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-			if status == shared.Critical {
-				requests[team] = shared.GiftRequest(0.0) // Dont ask from people if they are dying
-			} else {
-				requests[team] = shared.GiftRequest(c.config.imperialGiftRequestAmount) // Ask for money
-			}
-		}
-	default:
-		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-			if status == shared.Critical {
-				requests[team] = shared.GiftRequest(0.0)
-			} else {
+			case c.wealth() == imperialStudent: // We are poor
+				requests[team] = shared.GiftRequest(c.config.imperialGiftRequestAmount)
+			case c.wealth() == middleClass:
 				requests[team] = shared.GiftRequest(c.config.middleGiftRequestAmount) // Ask for money
 			}
 		}
+		// History
+		newGiftRequest := giftInfo{
+			requested: requests[team], // Amount WE request
+		}
+		c.giftHistory[team].ourRequest[c.getTurn()] = newGiftRequest
 	}
 	return requests
 }
@@ -59,35 +81,29 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 // unless another team is critical.
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
-	if c.wealth() >= 2 { // We are >= Middle class / JB
-		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+	for team, status := range c.gameState().ClientLifeStatuses {
+		status := shared.ClientLifeStatus(status)
+		switch {
+		case c.wealth() >= 2: // case we are rich
 			if status == shared.Critical {
-				offers[team] = shared.GiftOffer(3.0) // Give 3 to dying islands
+				offers[team] = shared.GiftOffer(10.0) // Give 3 to dying islands
 			} else {
 				offers[team] = shared.GiftOffer(1.0) // gift a dollar
-			} // can we abuse the fact that they look at the amount of gifts?
-		}
-	} else { // Other cases we gift half the amount
-		for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-			if status == shared.Critical {
+			}
+		default:
+			if status == shared.Critical { // Case we are poor
 				offers[team] = shared.GiftOffer(1.5)
 			} else {
 				offers[team] = shared.GiftOffer(0.5) // can we abuse the fact that they look at the amount of gifts?
 			}
 		}
-	}
-
-	// Store the offers we gave into giftHistory
-	for team := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-
-		newGiftRequest := giftInfo{ // 	For each client create a new gift info
-			gifted: offers[team], // Store how much we offered
+		// History
+		newGiftRequest := giftInfo{
+			requested: receivedRequests[team], // Amount THEY requested
+			offered:   offers[team],           // Amount WE offered
 		}
-		ourReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
-		c.giftHistory[team] = giftExchange{OurRequest: ourReq}
+		c.giftHistory[team].theirRequest[c.getTurn()] = newGiftRequest
 	}
-
-	c.Logf("[Debug] GetGiftResponse: %v", c.giftHistory[shared.Team3].OurRequest)
 	return offers
 }
 
@@ -95,18 +111,22 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 // It also needs to provide a reasoning should it not accept the full amount.
 // COMPULSORY, you need to implement this method
 func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict {
+	// receivedOffers := shared.GiftOfferDict{}  // For future use when actually considering peoples offers
 	responses := shared.GiftResponseDict{}
 	for team, offer := range receivedOffers { // For all the clients we look at the offers
 		responses[team] = shared.GiftResponse{
 			AcceptedAmount: shared.Resources(offer), // Accept all they gave us
 			Reason:         shared.Accept,           // Accept all gifts duh
 		}
-		newGiftRequest := giftInfo{ // 	For each client create a new gift info
-			requested: c.giftHistory[team].OurRequest[c.gameState().Turn].requested, // Amount requested (from above)
-			gifted:    shared.GiftOffer(responses[team].AcceptedAmount),             // Amount accepted
-			reason:    shared.AcceptReason(responses[team].Reason),                  // Reason accepted
+	}
+	// History
+	for _, team := range c.getAliveTeams(true) { // Could be in the loop above but
+		newGiftRequest := giftInfo{ // for consistency with other functions its here
+			requested: c.giftHistory[team].ourRequest[c.getTurn()].requested, // Amount We requested
+			offered:   receivedOffers[team],                                  // Amount offered TO US
+			response:  responses[team],                                       // Amount and reason WE accepted
 		}
-		c.giftHistory[team].OurRequest[c.gameState().Turn] = newGiftRequest
+		c.giftHistory[team].ourRequest[c.getTurn()] = newGiftRequest
 	}
 	return responses
 }
@@ -119,38 +139,17 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 // COMPULSORY, you need to implement this method
 
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
-	turn := c.gameState().Turn
-
-	for team, response := range receivedResponses { // for each ID
+	for _, team := range c.getAliveTeams(true) {
 		newGiftRequest := giftInfo{
-			requested: c.giftHistory[team].TheirRequest[turn].requested,
-			gifted:    shared.GiftOffer(response.AcceptedAmount),
-			reason:    shared.AcceptReason(response.Reason),
+			requested: c.giftHistory[team].theirRequest[c.getTurn()].requested, // Amount THEY requested
+			offered:   c.giftHistory[team].theirRequest[c.getTurn()].offered,   // Amount WE offered them
+			response:  receivedResponses[team],                                 // Amount THEY accepted and REASON
 		}
-		theirReq := map[uint]giftInfo{c.gameState().Turn: newGiftRequest}
-		c.giftHistory[team] = giftExchange{TheirRequest: theirReq}
+		c.giftHistory[team].theirRequest[c.getTurn()] = newGiftRequest
 	}
-	c.Logf("[Debug] UpdateGiftInfo: %v", c.giftHistory[shared.Team3].TheirRequest[turn])
 }
 
 // ==================================== Gifting history to be made =========================================
-
-// ===================================== Has sending / recv gifts been implemented? ===============================
-// SentGift is executed at the end of each turn and notifies clients that
-// their gift was successfully sent, along with the offer details.
-// COMPULSORY, you need to implement this method
-func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
-	// You can check your updated resources like this:
-	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-}
-
-// ReceivedGift is executed at the end of each turn and notifies clients that
-// their gift was successfully received, along with the offer details.
-// COMPULSORY, you need to implement this method
-func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
-	// You can check your updated resources like this:
-	// myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-}
 
 // ===================================== Has sending / recv gifts been implemented? ===============================
 
@@ -158,27 +157,75 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 // they want to fulfill a gift offer they have made.
 // COMPULSORY, you need to implement this method
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
+	var giftOff shared.Resources
 	if c.resourceHistory[c.gameState().Turn-1] < c.gameState().ClientInfo.Resources { // if resources are higher that previous' rounds resources
 		if c.wealth() >= wealthTier(c.config.middleThreshold) { //this is only fulfilled if we are wealthy enough Mid and JB
-			if c.opinions[toTeam].score > 0 && c.opinions[toTeam].score <= 0.5 { //if twe are walthy (>=2) and our opinion on the island is between 0 and 0.5 then fulfill full offer
-				return giftOffer
-			} else if c.opinions[toTeam].score > 0.5 && c.opinions[toTeam].score <= 1 { //if we are wealthy (>=2) and we have a high opinion on the island, then boost the gift a little by 1.4
-				return giftOffer * c.config.giftBoosting
+			if c.opinions[toTeam].getScore() > 0 && c.opinions[toTeam].getScore() <= 0.5 { //if twe are walthy (>=2) and our opinion on the island is between 0 and 0.5 then fulfill full offer
+				giftOff = giftOffer
+			} else if c.opinions[toTeam].getScore() > 0.5 && c.opinions[toTeam].getScore() <= 1 { //if we are wealthy (>=2) and we have a high opinion on the island, then boost the gift a little by 1.4
+				giftOff = giftOffer * c.config.giftBoosting
 			} else {
-				return 0
+				giftOff = 0
 			}
 		} else if c.wealth() == wealthTier(c.config.imperialThreshold) { //this is only fulfilled if we are ICL students rich
-			if c.opinions[toTeam].score > 0 && c.opinions[toTeam].score <= 0.5 { //if wealth is one but opinion is between 0 and 0.5 then give half the offerr
-				return giftOffer * c.config.giftReduct
-			} else if c.opinions[toTeam].score > 0.5 && c.opinions[toTeam].score <= 1 { //if wealth is 1 and opinion is 0.5 to 1 then give fulfill whole offer
-				return giftOffer
+			if c.opinions[toTeam].getScore() > 0 && c.opinions[toTeam].getScore() <= 0.5 { //if wealth is one but opinion is between 0 and 0.5 then give half the offerr
+				giftOff = giftOffer * c.config.giftReduct
+			} else if c.opinions[toTeam].getScore() > 0.5 && c.opinions[toTeam].getScore() <= 1 { //if wealth is 1 and opinion is 0.5 to 1 then give fulfill whole offer
+				giftOff = giftOffer
 			} else {
-				return 0
+				giftOff = 0
 			}
 		} else { //Reject all offers if opinions are below zero and if wealth is below 1
-			return 0
+			giftOff = 0
 		}
 	} else { //Reject all offers if we have less than we did last round
-		return 0
+		giftOff = 0
 	}
+	// History
+	newGiftRequest := giftInfo{ // 	For each client create a new gift info
+		requested:      c.giftHistory[toTeam].theirRequest[c.getTurn()].requested, // Amount We requested
+		offered:        c.giftHistory[toTeam].theirRequest[c.getTurn()].offered,   // Amount offered TO US
+		response:       c.giftHistory[toTeam].theirRequest[c.getTurn()].response,  // Amount and reason WE accepted
+		actualReceived: giftOffer,                                                 // Amount they ACTUALLY receive
+	}
+	c.giftHistory[toTeam].theirRequest[c.getTurn()] = newGiftRequest
+
+	return giftOff
+	// Debugging for gift
+	// c.Logf("[Debug] ourRequest [%v]", c.giftHistory[toTeam].ourRequest[c.getTurn()])
+	// c.Logf("[Debug] theirRequest [%v]", c.giftHistory[toTeam].theirRequest[c.getTurn()])
+}
+
+// ===================================== Has sending / recv gifts been implemented? ===============================
+// SentGift is executed at the end of each turn and notifies clients that
+// their gift was successfully sent, along with the offer details.
+// COMPULSORY, you need to implement this method
+func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
+	// You can check your updated resources like this:
+	// myResources := c.gameState().ClientInfo.Resources
+
+	newGiftRequest := giftInfo{ // 	For each client create a new gift info
+		requested:      c.giftHistory[to].theirRequest[c.getTurn()].requested, // Amount We requested
+		offered:        c.giftHistory[to].theirRequest[c.getTurn()].offered,   // Amount offered TO US
+		response:       c.giftHistory[to].theirRequest[c.getTurn()].response,  // Amount and reason WE accepted
+		actualReceived: sent,                                                  // Amount they actually receive according to server
+	}
+	c.giftHistory[to].theirRequest[c.getTurn()] = newGiftRequest
+}
+
+// ReceivedGift is executed at the end of each turn and notifies clients that
+// their gift was successfully received, along with the offer details.
+// COMPULSORY, you need to implement this method
+func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
+	// You can check your updated resources like this:
+	// myResources := c.gameState().ClientInfo.Resources
+	newGiftRequest := giftInfo{ // 	For each client create a new gift info
+		requested:      c.giftHistory[from].ourRequest[c.getTurn()].requested, // Amount We requested
+		offered:        c.giftHistory[from].ourRequest[c.getTurn()].offered,   // Amount offered TO US
+		response:       c.giftHistory[from].ourRequest[c.getTurn()].response,  // Amount and reason WE accepted
+		actualReceived: received,                                              // Amount they actually GAVE us
+	}
+	c.giftHistory[from].ourRequest[c.getTurn()] = newGiftRequest
+
+	c.giftOpinions()
 }

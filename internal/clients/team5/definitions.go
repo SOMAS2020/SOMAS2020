@@ -46,31 +46,29 @@ type forageHistory map[shared.ForageType][]forageOutcome
 
 //================ Gifts ===========================================
 
-// giftResponse is a struct of the response and reason
-type giftResponse struct {
-	AcceptedAmount shared.Resources
-	Reason         shared.AcceptReason
-}
-
 // giftInfo holds information about the gifts
 type giftInfo struct {
-	requested shared.GiftRequest
-	gifted    shared.GiftOffer
-	reason    shared.AcceptReason
+	requested      shared.GiftRequest  // How much was requested
+	offered        shared.GiftOffer    // How much offered
+	response       shared.GiftResponse // Response to offer
+	actualReceived shared.Resources    // How much was actually received
 }
 
-//giftExchange Looks at how much they requested and we request
+//giftExchange offers the two sides of gifting
 type giftExchange struct {
 	// 							uint = turn
-	TheirRequest map[uint]giftInfo
-	OurRequest   map[uint]giftInfo
+	theirRequest map[uint]giftInfo
+	ourRequest   map[uint]giftInfo
 }
 
 //	giftHistory is the history of our gifts according to which island sent it
 type giftHistory map[shared.ClientID]giftExchange
 
-// Client Information */
-// Client is the island number
+//================================================================
+/*	Client Information
+	Client is the island number
+*/
+//=================================================================
 type client struct {
 	*baseclient.BaseClient
 
@@ -89,14 +87,15 @@ type client struct {
 	cpAllocationHistory cpAllocationHistory
 	cpResourceHistory   cpResourceHistory
 	opinionHistory      opinionHistory
-	disasterHistory     disasterHistory
+	forecastHistory     forecastHistory // history of forecasted disasters
+	disasterHistory     disasterHistory // history of actual disasters
 
 	// current states
-	opinions             opinionMap // opinions of each team
-	taxAmount            shared.Resources
-	allocation           shared.Resources
-	sanctionAmount       shared.Resources
-	lastDisasterForecast shared.DisasterPrediction // stores our most recent disaster forecast
+	opinions               opinionMap // opinions of each team
+	taxAmount              shared.Resources
+	allocation             shared.Resources
+	sanctionAmount         shared.Resources
+	lastDisasterPrediction shared.DisasterPrediction
 
 	config clientConfig
 }
