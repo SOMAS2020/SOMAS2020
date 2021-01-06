@@ -136,6 +136,9 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, int) {
 	// Get the time remaining prediction
 	expectationTd := math.Round(1 / sampleMeanX)
 	timeRemaining := expectationTd - (totalTurns - c.disasterHistory[len(c.disasterHistory)-1].Turn)
+	if timeRemaining < 0 {
+		timeRemaining = 0
+	}
 	return sampleMeanX, int(timeRemaining)
 }
 
