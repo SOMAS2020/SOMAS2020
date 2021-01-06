@@ -298,28 +298,34 @@ var (
 		"IIGO action cost for appointNextJudge action",
 	)
 
-	iigoSanctionCacheDepth = flag.Int(
+	iigoSanctionCacheDepth = flag.Uint(
 		"iigoSanctionCacheDepth",
 		3,
 		"Turn depth of sanctions to be applied or pardoned",
 	)
 
-	iigoHistoryCacheDepth = flag.Int(
+	iigoHistoryCacheDepth = flag.Uint(
 		"iigoHistoryCacheDepth",
 		3,
 		"Turn depth of history cache for events to be evaluated",
 	)
 
-	iigoAssumedResourcesNoReport = flag.Int(
+	iigoAssumedResourcesNoReport = flag.Uint(
 		"iigoAssumedResourcesNoReport",
 		500,
 		"If an island doesn't report usaged this value is assumed for sanction calculations",
 	)
 
-	iigoSanctionLength = flag.Int(
+	iigoSanctionLength = flag.Uint(
 		"iigoSanctionLength",
 		2,
 		"Sanction length for all sanctions",
+	)
+
+	startWithRulesInPlay = flag.Bool(
+		"startWithRulesInPlay",
+		true,
+		"Pull all available rules into play at start of run",
 	)
 )
 
@@ -416,6 +422,7 @@ func parseConfig() (config.Config, error) {
 		AnnounceVotingResultActionCost: shared.Resources(*iigoAnnounceVotingResultActionCost),
 		UpdateRulesActionCost:          shared.Resources(*iigoUpdateRulesActionCost),
 		AppointNextJudgeActionCost:     shared.Resources(*iigoAppointNextJudgeActionCost),
+		StartWithRulesInPlay:           *startWithRulesInPlay,
 	}
 
 	return config.Config{

@@ -8,6 +8,33 @@ type ClientConfig struct {
 	MinimumResourceThreshold    shared.Resources
 	MaxCriticalConsecutiveTurns uint
 	DisasterConfig              ClientDisasterConfig
+	IIGOClientConfig            IIGOConfig
+}
+
+// ClientIIGOConfig contains iigo config fields that is visible to clients
+type ClientIIGOConfig struct {
+	// Executive branch
+	GetRuleForSpeakerActionCost        shared.Resources
+	BroadcastTaxationActionCost        shared.Resources
+	ReplyAllocationRequestsActionCost  shared.Resources
+	RequestAllocationRequestActionCost shared.Resources
+	RequestRuleProposalActionCost      shared.Resources
+	AppointNextSpeakerActionCost       shared.Resources
+	// Judiciary branch
+	InspectHistoryActionCost       shared.Resources
+	InspectBallotActionCost        shared.Resources
+	InspectAllocationActionCost    shared.Resources
+	AppointNextPresidentActionCost shared.Resources
+	SanctionCacheDepth             uint
+	HistoryCacheDepth              uint
+	AssumedResourcesNoReport       shared.Resources
+	SanctionLength                 uint
+	// Legislative branch
+	SetVotingResultActionCost      shared.Resources
+	SetRuleToVoteActionCost        shared.Resources
+	AnnounceVotingResultActionCost shared.Resources
+	UpdateRulesActionCost          shared.Resources
+	AppointNextJudgeActionCost     shared.Resources
 }
 
 // ClientDisasterConfig contains disaster config information visible to clients.
@@ -24,6 +51,7 @@ func (c Config) GetClientConfig() ClientConfig {
 		MinimumResourceThreshold:    c.MinimumResourceThreshold,
 		MaxCriticalConsecutiveTurns: c.MaxCriticalConsecutiveTurns,
 		DisasterConfig:              c.DisasterConfig.GetClientDisasterConfig(),
+		IIGOClientConfig:            c.IIGOConfig.GetClientIIGOConfig(),
 	}
 }
 
@@ -43,4 +71,9 @@ func (c DisasterConfig) GetClientDisasterConfig() ClientDisasterConfig {
 			c.StochasticPeriodVisible,
 		),
 	}
+}
+
+// GetClientIIGOConfig gets ClientIIGOConfig
+func (c IIGOConfig) GetClientIIGOConfig() IIGOConfig {
+	return c
 }
