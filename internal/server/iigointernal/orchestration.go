@@ -222,9 +222,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		return false, "Cannot pay IIGO salary"
 	}
 
-	speakerMonitored := monitoring.monitorRole(g, iigoClients[g.JudgeID])
 	presidentMonitored := monitoring.monitorRole(g, iigoClients[g.SpeakerID])
 	judgeMonitored := monitoring.monitorRole(g, iigoClients[g.PresidentID])
+	speakerMonitored := monitoring.monitorRole(g, iigoClients[g.JudgeID])
 	//Save to gameState and clear
 	g.IIGOCache = monitoring.internalIIGOCache
 	monitoring.clearCache()
