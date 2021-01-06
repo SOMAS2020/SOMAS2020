@@ -18,9 +18,9 @@ func (c *client) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
 
 // opinion score in order of team number 1,2,3,4,5,6
 func (c *client) opinionSortByTeam() (opnionSortByTeam []wrappedOpininon) {
-	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team1], c.opinions[shared.Team2])
-	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team3], c.opinions[shared.Team4])
-	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team5], c.opinions[shared.Team6])
+	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team1], *c.opinions[shared.Team2])
+	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team3], *c.opinions[shared.Team4])
+	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team5], *c.opinions[shared.Team6])
 	return
 }
 
