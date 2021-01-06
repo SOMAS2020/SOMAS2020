@@ -10,15 +10,16 @@ import (
 
 func init() {
 	c := client{
-		BaseClient:          baseclient.NewClient(ourClientID),
-		cpRequestHistory:    cpRequestHistory{},
-		cpAllocationHistory: cpAllocationHistory{},
-		forageHistory:       forageHistory{},
-		resourceHistory:     resourceHistory{},
-		team5president:      president{},
-		giftHistory:         map[shared.ClientID]giftExchange{},
-		forecastHistory:     forecastHistory{},
-		disasterHistory:     disasterHistory{},
+		BaseClient:              baseclient.NewClient(ourClientID),
+		cpRequestHistory:        cpRequestHistory{},
+		cpAllocationHistory:     cpAllocationHistory{},
+		forageHistory:           forageHistory{},
+		resourceHistory:         resourceHistory{},
+		team5president:          president{},
+		giftHistory:             map[shared.ClientID]giftExchange{},
+		forecastHistory:         forecastHistory{},
+		receivedForecastHistory: receivedForecastHistory{},
+		disasterHistory:         disasterHistory{},
 
 		taxAmount:  0,
 		allocation: 0,

@@ -21,6 +21,10 @@ func (c *client) opinionSortByTeam() (opnionSortByTeam []opinionScore) {
 	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team1].getScore(), c.opinions[shared.Team2].getScore())
 	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team3].getScore(), c.opinions[shared.Team4].getScore())
 	opnionSortByTeam = append(opnionSortByTeam, c.opinions[shared.Team5].getScore(), c.opinions[shared.Team6].getScore())
+func (c *client) opinionSortByTeam() (opnionSortByTeam []wrappedOpininon) {
+	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team1], *c.opinions[shared.Team2])
+	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team3], *c.opinions[shared.Team4])
+	opnionSortByTeam = append(opnionSortByTeam, *c.opinions[shared.Team5], *c.opinions[shared.Team6])
 	return
 }
 
