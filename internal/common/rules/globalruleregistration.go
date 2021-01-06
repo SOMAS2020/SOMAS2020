@@ -142,6 +142,7 @@ func registerRulesByMass() {
 		{
 			Name: "rule_to_vote_on_rule",
 			ReqVar: []VariableFieldName{
+
 				SpeakerProposedPresidentRule,
 			},
 			Values:  []float64{1, -1},
@@ -216,6 +217,231 @@ func registerRulesByMass() {
 				SanctionExpected,
 			},
 			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "rule_chosen_from_proposal_list",
+			ReqVar: []VariableFieldName{
+				RuleChosenFromProposalList,
+			},
+			Values:  []float64{-1, 1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "announcement_matches_vote",
+			ReqVar: []VariableFieldName{
+				AnnouncementRuleMatchesVote,
+				AnnouncementResultMatchesVote,
+			},
+			Values:  []float64{0, -1, 1, -1, 0, 1},
+			Aux:     []float64{0, 0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "president_over_budget",
+			ReqVar: []VariableFieldName{
+				PresidentLeftoverBudget,
+			},
+			Values:  []float64{1, 0},
+			Aux:     []float64{2},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "speaker_over_budget",
+			ReqVar: []VariableFieldName{
+				SpeakerLeftoverBudget,
+			},
+			Values:  []float64{1, 0},
+			Aux:     []float64{2},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "judge_over_budget",
+			ReqVar: []VariableFieldName{
+				JudgeLeftoverBudget,
+			},
+			Values:  []float64{1, 0},
+			Aux:     []float64{2},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "obl_to_propose_rule_if_some_are_given",
+			ReqVar: []VariableFieldName{
+				IslandsProposedRules,
+				RuleSelected,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "iigo_monitor_rule_permission_1",
+			ReqVar: []VariableFieldName{
+				MonitorRoleDecideToMonitor,
+				MonitorRoleAnnounce,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "iigo_monitor_rule_permission_2",
+			ReqVar: []VariableFieldName{
+				MonitorRoleEvalResult,
+				MonitorRoleEvalResultDecide,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: true,
+		},
+		{
+			Name: "island_must_report_private_resource",
+			ReqVar: []VariableFieldName{
+				HasIslandReportPrivateResources,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "island_must_report_actual_private_resource",
+			ReqVar: []VariableFieldName{
+				IslandActualPrivateResources,
+				IslandReportedPrivateResources,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "salary_cycle_speaker",
+			ReqVar: []VariableFieldName{
+				SpeakerPayment,
+			},
+			Values:  []float64{-1, 10},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "salary_cycle_judge",
+			ReqVar: []VariableFieldName{
+				JudgePayment,
+			},
+			Values:  []float64{-1, 10},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "salary_cycle_president",
+			ReqVar: []VariableFieldName{
+				PresidentPayment,
+			},
+			Values:  []float64{-1, 10},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "salary_paid_speaker",
+			ReqVar: []VariableFieldName{
+				SpeakerPaid,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "salary_paid_judge",
+			ReqVar: []VariableFieldName{
+				JudgePaid,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "salary_paid_president",
+			ReqVar: []VariableFieldName{
+				PresidentPaid,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "judge_historical_retribution_permission",
+			ReqVar: []VariableFieldName{
+				JudgeHistoricalRetributionPerformed,
+			},
+			Values:  []float64{1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "roles_must_hold_election",
+			ReqVar: []VariableFieldName{
+				TermEnded,
+				ElectionHeld,
+			},
+			Values:  []float64{1, -1, 0},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "must_appoint_elected_island",
+			ReqVar: []VariableFieldName{
+				AppointmentMatchesVote,
+			},
+			Values:  []float64{1, -1},
+			Aux:     []float64{0},
+			Mutable: false,
+			Linked:  false,
+		},
+		{
+			Name: "increment_budget_speaker",
+			ReqVar: []VariableFieldName{
+				SpeakerBudgetIncrement,
+			},
+			Values:  []float64{-1, 100},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "increment_budget_judge",
+			ReqVar: []VariableFieldName{
+				JudgeBudgetIncrement,
+			},
+			Values:  []float64{-1, 100},
+			Aux:     []float64{0},
+			Mutable: true,
+			Linked:  false,
+		},
+		{
+			Name: "increment_budget_president",
+			ReqVar: []VariableFieldName{
+				PresidentBudgetIncrement,
+			},
+			Values:  []float64{-1, 100},
 			Aux:     []float64{0},
 			Mutable: true,
 			Linked:  false,

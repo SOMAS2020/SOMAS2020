@@ -8,7 +8,7 @@ import (
 // President is an interface that is implemented by basePresident but can also be
 // optionally implemented by individual islands.
 type President interface {
-	PaySpeaker(speakerSalary shared.Resources) shared.PresidentReturnContent
+	PaySpeaker() shared.PresidentReturnContent
 	SetTaxationAmount(map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent
 	EvaluateAllocationRequests(map[shared.ClientID]shared.Resources, shared.Resources) shared.PresidentReturnContent
 	PickRuleToVote([]rules.RuleMatrix) shared.PresidentReturnContent

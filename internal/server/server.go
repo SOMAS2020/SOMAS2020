@@ -74,6 +74,11 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
+			IIGOTurnsInPower: map[shared.Role]uint{
+				shared.President: 0,
+				shared.Judge:     0,
+				shared.Speaker:   0,
+			},
 			SpeakerID:   shared.Team1,
 			JudgeID:     shared.Team2,
 			PresidentID: shared.Team3,
