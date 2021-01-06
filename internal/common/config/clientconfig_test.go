@@ -37,13 +37,13 @@ func TestGetClientConfig(t *testing.T) {
 						Value: 6,
 						Valid: true,
 					},
-					DisasterPeriod: SelectivelyVisibleDisasterPeriod{
-						Period: 4,
-						Valid:  true,
+					DisasterPeriod: SelectivelyVisibleUint{
+						Value: 4,
+						Valid: true,
 					},
-					StochasticDisasters: SelectivelyVisibleStochasticDisaster{
-						Stochastic: true,
-						Valid:      true,
+					StochasticDisasters: SelectivelyVisibleBool{
+						Value: true,
+						Valid: true,
 					},
 				},
 			},

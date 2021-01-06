@@ -25,14 +25,14 @@ type SelectivelyVisibleResources struct {
 	Valid bool
 }
 
-type SelectivelyVisibleDisasterPeriod struct {
-	Period uint
-	Valid  bool
+type SelectivelyVisibleUint struct {
+	Value uint
+	Valid bool
 }
 
-type SelectivelyVisibleStochasticDisaster struct {
-	Stochastic bool
-	Valid      bool
+type SelectivelyVisibleBool struct {
+	Value bool
+	Valid bool
 }
 
 func getSelectivelyVisibleResources(value shared.Resources, valid bool) SelectivelyVisibleResources {
@@ -45,23 +45,23 @@ func getSelectivelyVisibleResources(value shared.Resources, valid bool) Selectiv
 		Valid: valid,
 	}
 }
-func getSelectivelyVisibleDisasterPeriod(period uint, valid bool) SelectivelyVisibleDisasterPeriod {
-	var p uint
+func getSelectivelyVisibleUint(value uint, valid bool) SelectivelyVisibleUint {
+	var val uint
 	if valid {
-		p = period
+		val = value
 	}
-	return SelectivelyVisibleDisasterPeriod{
-		Period: p,
-		Valid:  valid,
+	return SelectivelyVisibleUint{
+		Value: val,
+		Valid: valid,
 	}
 }
-func getSelectivelyVisibleStochasticDisaster(stochastic bool, valid bool) SelectivelyVisibleStochasticDisaster {
-	var s bool
+func getSelectivelyVisibleBool(value bool, valid bool) SelectivelyVisibleBool {
+	var val bool
 	if valid {
-		s = stochastic
+		val = value
 	}
-	return SelectivelyVisibleStochasticDisaster{
-		Stochastic: s,
-		Valid:      valid,
+	return SelectivelyVisibleBool{
+		Value: val,
+		Valid: valid,
 	}
 }

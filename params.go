@@ -169,16 +169,6 @@ var (
 		15,
 		"Period T between disasters in deterministic case and E[T] in stochastic case.",
 	)
-	disasterPeriodVisible = flag.Bool(
-		"disasterPeriodVisible",
-		true,
-		"Whether disasterPeriod is visible to agents",
-	)
-	disasterStochasticPeriodVisible = flag.Bool(
-		"disasterStochasticPeriodVisible",
-		true,
-		"Whether stochasticPeriod is visible to agents",
-	)
 	disasterSpatialPDFType = flag.Int(
 		"disasterSpatialPDFType",
 		0,
@@ -208,6 +198,16 @@ var (
 		"disasterCommonpoolThresholdVisible",
 		false,
 		"Whether disasterCommonpoolThreshold is visible to agents",
+	)
+	disasterPeriodVisible = flag.Bool(
+		"disasterPeriodVisible",
+		true,
+		"Whether disasterPeriod is visible to agents",
+	)
+	disasterStochasticPeriodVisible = flag.Bool(
+		"disasterStochasticPeriodVisible",
+		true,
+		"Whether stochasticPeriod is visible to agents",
 	)
 
 	// config.IIGOConfig - Executive branch
