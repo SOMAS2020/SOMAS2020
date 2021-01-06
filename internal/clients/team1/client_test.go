@@ -1,20 +1,25 @@
 package team1
 
 import (
-//	"github.com/sajari/regression"
 	"math"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 type testServerHandle struct {
-	clientGameState gamestate.ClientGameState
+	clientGameState  gamestate.ClientGameState
+	clientGameConfig config.ClientConfig
 }
 
 func (h testServerHandle) GetGameState() gamestate.ClientGameState {
 	return h.clientGameState
+}
+
+func (h testServerHandle) GetGameConfig() config.ClientConfig {
+	return h.clientGameConfig
 }
 
 func MakeTestClient(gamestate gamestate.ClientGameState) client {
