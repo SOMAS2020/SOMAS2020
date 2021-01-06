@@ -26,10 +26,15 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c *client) StartOfTurn() {
 	c.clientPrint("Start of turn!")
 
+	// Initialise trustMap and theirtrustMap local cache to empty maps
+	c.inittrustMapAgg()
+	c.inittheirtrustMapAgg()
+
 	if c.checkIfCaught() {
 		c.clientPrint("We've been caught")
 		c.timeSinceCaught = 0
 	}
+
 	c.updateCompliance()
 	c.lastSanction = c.iigoInfo.sanctions.ourSanction
 
@@ -45,14 +50,22 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourSpeaker = speaker{c: c}
 	c.ourJudge = judge{c: c}
 	c.ourPresident = president{c: c}
+  
+  c.initgiftOpinions()
+
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)
 	c.theirTrustScore = make(map[shared.ClientID]float64)
 	//c.localVariableCache = rules.CopyVariableMap()
 	for _, islandID := range shared.TeamIDs {
+		// Initialise trust scores for all islands except our own
+		if islandID == c.BaseClient.GetID() {
+			continue
+		}
 		c.trustScore[islandID] = 50
 		c.theirTrustScore[islandID] = 50
 	}
+
 	// Set our trust in ourselves to 100
 	c.theirTrustScore[id] = 100
 
@@ -80,23 +93,37 @@ func (c *client) updatetheirtrustMapAgg(ClientID shared.ClientID, amount float64
 
 // inittrustMapAgg initialises the trustMapAgg to empty list values ready for each turn
 func (c *client) inittrustMapAgg() {
-	c.trustMapAgg = map[shared.ClientID][]float64{
-		0: []float64{},
-		1: []float64{},
-		3: []float64{},
-		4: []float64{},
-		5: []float64{},
+	c.trustMapAgg = map[shared.ClientID][]float64{}
+
+	for _, islandID := range shared.TeamIDs {
+		if islandID+1 == c.BaseClient.GetID() {
+			continue
+		}
+		c.trustMapAgg[islandID] = []float64{}
 	}
 }
 
 // inittheirtrustMapAgg initialises the theirTrustMapAgg to empty list values ready for each turn
 func (c *client) inittheirtrustMapAgg() {
-	c.theirTrustMapAgg = map[shared.ClientID][]float64{
-		0: []float64{},
-		1: []float64{},
-		3: []float64{},
-		4: []float64{},
-		5: []float64{},
+	c.theirTrustMapAgg = map[shared.ClientID][]float64{}
+
+	for _, islandID := range shared.TeamIDs {
+		if islandID+1 == c.BaseClient.GetID() {
+			continue
+		}
+		c.theirTrustMapAgg[islandID] = []float64{}
+	}
+}
+
+// inittheirtrustMapAgg initialises the theirTrustMapAgg to empty list values ready for each turn
+func (c *client) initgiftOpinions() {
+	c.giftOpinions = map[shared.ClientID]int{}
+
+	for _, islandID := range shared.TeamIDs {
+		if islandID+1 == c.BaseClient.GetID() {
+			continue
+		}
+		c.giftOpinions[islandID] = 10
 	}
 }
 

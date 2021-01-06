@@ -26,8 +26,10 @@ type client struct {
 	// ## Gifting ##
 
 	acceptedGifts        map[shared.ClientID]int
-	requestedGiftAmounts map[shared.ClientID]int
+	requestedGiftAmounts map[shared.ClientID]shared.GiftRequest
 	receivedResponses    []shared.GiftResponse
+	sentGiftHistory      map[shared.ClientID]shared.Resources
+	giftOpinions         map[shared.ClientID]int
 
 	// ## Trust ##
 
@@ -47,11 +49,6 @@ type client struct {
 
 	// ## Game state & History ##
 	criticalStatePrediction criticalStatePrediction
-
-	// unused or replaced by getter functions
-	// currentIteration iterationInfo
-	// islandsAlive uint
-	// localPool int
 
 	// declaredResources is a map of all declared island resources
 	declaredResources map[shared.ClientID]shared.Resources
@@ -99,13 +96,19 @@ type islandParams struct {
 	selfishness                 float64
 	minimumRequest              shared.Resources
 	disasterPredictionWeighting float64
-	DesiredRuleSet              []string //Kunal and Victor don't need this btw, delete if it was for them
 	recidivism                  float64
 	riskFactor                  float64
 	friendliness                float64
 	anger                       float64
 	aggression                  float64
 	sensitivity                 float64
+	salaryThreshold             float64
+  localPoolThreshold          float64
+	giftInflationPercentage     float64
+	trustConstantAdjustor       float64
+	trustParameter              float64
+	giftOfferEquity             float64
+	NoRequestGiftParam          float64
 	laziness                    float64
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
