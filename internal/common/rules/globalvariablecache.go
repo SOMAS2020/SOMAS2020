@@ -64,8 +64,17 @@ const (
 	AllocationMade
 	IslandsAlive
 	SpeakerSalary
+	SpeakerPayment
+	SpeakerPaid
+	SpeakerBudgetIncrement
 	JudgeSalary
+	JudgePayment
+	JudgePaid
+	JudgeBudgetIncrement
 	PresidentSalary
+	PresidentPayment
+	PresidentPaid
+	PresidentBudgetIncrement
 	RuleSelected
 	VoteCalled
 	ExpectedTaxContribution
@@ -80,9 +89,28 @@ const (
 	TestVariable
 	JudgeInspectionPerformed
 	TaxDecisionMade
+	MonitorRoleAnnounce
+	MonitorRoleDecideToMonitor
+	MonitorRoleEvalResult
+	MonitorRoleEvalResultDecide
 	VoteResultAnnounced
 	IslandsAllowedToVote
 	SpeakerProposedPresidentRule
+	PresidentRuleProposal
+	RuleChosenFromProposalList
+	AnnouncementRuleMatchesVote
+	AnnouncementResultMatchesVote
+	PresidentLeftoverBudget
+	SpeakerLeftoverBudget
+	JudgeLeftoverBudget
+	IslandsProposedRules
+	HasIslandReportPrivateResources
+	IslandActualPrivateResources
+	IslandReportedPrivateResources
+	JudgeHistoricalRetributionPerformed
+	TermEnded
+	ElectionHeld
+	AppointmentMatchesVote
 )
 
 func (v VariableFieldName) String() string {
@@ -98,8 +126,17 @@ func (v VariableFieldName) String() string {
 		"AllocationMade",
 		"IslandsAlive",
 		"SpeakerSalary",
+		"SpeakerPayment",
+		"SpeakerPaid",
+		"SpeakerBudgetIncrement",
 		"JudgeSalary",
+		"JudgePayment",
+		"JudgePaid",
+		"JudgeBudgetIncrement",
 		"PresidentSalary",
+		"PresidentPayment",
+		"PresidentPaid",
+		"PresidentBudgetIncrement",
 		"RuleSelected",
 		"VoteCalled",
 		"ExpectedTaxContribution",
@@ -114,9 +151,28 @@ func (v VariableFieldName) String() string {
 		"TestVariable",
 		"JudgeInspectionPerformed",
 		"TaxDecisionMade",
+		"MonitorRoleAnnounce",
+		"MonitorRoleDecideToMonitor",
+		"MonitorRoleEvalResult",
+		"MonitorRoleEvalResultDecide",
 		"VoteResultAnnounced",
 		"IslandsAllowedToVote",
 		"SpeakerProposedPresidentRule",
+		"PresidentRuleProposal",
+		"RuleChosenFromProposalList",
+		"AnnouncementRuleMatchesVote",
+		"AnnouncementResultMatchesVote",
+		"PresidentLeftoverBudget",
+		"SpeakerLeftoverBudget",
+		"JudgeLeftoverBudget",
+		"IslandsProposedRules",
+		"HasIslandReportPrivateResources",
+		"IslandActualPrivateResources",
+		"IslandReportedPrivateResources",
+		"JudgeHistoricalRetributionPerformed",
+		"TermEnded",
+		"ElectionHeld",
+		"AppointmentMatchesVote",
 	}
 	if v >= 0 && int(v) < len(strs) {
 		return strs[v]

@@ -30,7 +30,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		gameState:          nil,
 		gameConf:           nil,
 		JudgeID:            0,
-		presidentSalary:    0,
 		evaluationResults:  nil,
 		localSanctionCache: defaultInitLocalSanctionCache(3),
 		localHistoryCache:  defaultInitLocalHistoryCache(3),
@@ -42,7 +41,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		gameState:    nil,
 		gameConf:     nil,
 		SpeakerID:    0,
-		judgeSalary:  0,
 		ruleToVote:   rules.RuleMatrix{},
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
@@ -54,7 +52,6 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		gameState:        nil,
 		gameConf:         nil,
 		PresidentID:      0,
-		speakerSalary:    0,
 		ResourceRequests: nil,
 	}
 
@@ -63,6 +60,7 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		presidentID:       g.PresidentID,
 		judgeID:           g.JudgeID,
 		internalIIGOCache: []shared.Accountability{},
+		TermLengths:       gameConf.IIGOConfig.IIGOTermLengths,
 	}
 	executiveBranch.monitoring = &monitoring
 	legislativeBranch.monitoring = &monitoring
@@ -70,11 +68,27 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	iigoClients = *clientMap
 
-	// Increments the budget by a constant 100
-	// TODO:- the constant should be retrieved from the rules
-	g.IIGORolesBudget[shared.President] += 100
-	g.IIGORolesBudget[shared.Judge] += 100
-	g.IIGORolesBudget[shared.Speaker] += 100
+	// Increments the budget according to increment_budget_role rules
+	PresidentIncRule, ok := rules.RulesInPlay["increment_budget_president"]
+	if ok {
+		PresidentBudgetInc := PresidentIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.President] += shared.Resources(PresidentBudgetInc)
+	}
+	JudgeIncRule, ok := rules.RulesInPlay["increment_budget_judge"]
+	if ok {
+		JudgeBudgetInc := JudgeIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.Judge] += shared.Resources(JudgeBudgetInc)
+	}
+	SpeakerIncRule, ok := rules.RulesInPlay["increment_budget_speaker"]
+	if ok {
+		SpeakerBudgetInc := SpeakerIncRule.ApplicableMatrix.At(0, 1)
+		g.IIGORolesBudget[shared.Speaker] += shared.Resources(SpeakerBudgetInc)
+	}
+
+	//Increment the turns in Power for each role
+	g.IIGOTurnsInPower[shared.President]++
+	g.IIGOTurnsInPower[shared.Speaker]++
+	g.IIGOTurnsInPower[shared.Judge]++
 
 	// Pass in gamestate and IIGO configs
 	// So that we don't have to pass gamestate as arguments in every function in roles
@@ -101,18 +115,12 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 
 	// 1 Judge action - inspect history
 	judicialBranch.loadSanctionConfig()
-	historyInspected := true
 	if g.Turn > 0 {
-		_, historyInspected = judicialBranch.inspectHistory(g.IIGOHistory[g.Turn-1])
+		//TODO: handle return types, quit IIGO if no moneyz
+		judicialBranch.inspectHistory(g.IIGOHistory[g.Turn-1])
 		judicialBranch.updateSanctionScore()
 		judicialBranch.applySanctions()
 	}
-
-	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
-	valuesToCache := [][]float64{{boolToFloat(historyInspected)}}
-	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
-
-	judgeMonitored := monitoring.monitorRole(iigoClients[g.PresidentID])
 
 	// 2 President actions
 	resourceReports := map[shared.ClientID]shared.ResourcesReport{}
@@ -121,6 +129,26 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		if clientGameState.LifeStatus != shared.Dead {
 			aliveClientIds = append(aliveClientIds, clientID)
 			resourceReports[clientID] = iigoClients[clientID].ResourceReport()
+
+			// Update Variables in Rules (updateIIGOTurnHistory)
+			g.IIGOHistory[g.Turn] = append(g.IIGOHistory[g.Turn],
+				shared.Accountability{
+					ClientID: clientID,
+					Pairs: []rules.VariableValuePair{
+						{
+							VariableName: rules.HasIslandReportPrivateResources,
+							Values:       []float64{boolToFloat(resourceReports[clientID].Reported)},
+						},
+						{
+							VariableName: rules.IslandReportedPrivateResources,
+							Values:       []float64{float64(resourceReports[clientID].ReportedAmount)},
+						},
+						{
+							VariableName: rules.IslandActualPrivateResources,
+							Values:       []float64{float64(g.ClientInfos[clientID].Resources)},
+						},
+					},
+				})
 		}
 	}
 
@@ -160,11 +188,9 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 		ruleSelected = true
 	}
 
-	variablesToCache = []rules.VariableFieldName{rules.AllocationMade}
-	valuesToCache = [][]float64{{boolToFloat(allocationsMade)}}
+	variablesToCache := []rules.VariableFieldName{rules.AllocationMade}
+	valuesToCache := [][]float64{{boolToFloat(allocationsMade)}}
 	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
-
-	presidentMonitored := monitoring.monitorRole(iigoClients[g.SpeakerID])
 
 	// 3 Speaker actions
 
@@ -186,34 +212,10 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
 	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+
 	variablesToCache = []rules.VariableFieldName{rules.VoteCalled, rules.VoteResultAnnounced}
 	valuesToCache = [][]float64{{boolToFloat(voteCalled)}, {boolToFloat(resultAnnounced)}}
 	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
-
-	speakerMonitored := monitoring.monitorRole(iigoClients[g.JudgeID])
-
-	// TODO:- at the moment, these are action (and cost resources) but should they?
-	var appointJudgeError, appointSpeakerError, appointPresidentError error
-	// Get new Judge ID
-	actionCost := gameConf.IIGOConfig
-	costOfElection := actionCost.AppointNextSpeakerActionCost + actionCost.AppointNextJudgeActionCost + actionCost.AppointNextPresidentActionCost
-	if !CheckEnoughInCommonPool(costOfElection, g) {
-		return false, "Insufficient budget to run IIGO elections"
-	}
-	g.JudgeID, appointJudgeError = legislativeBranch.appointNextJudge(judgeMonitored, g.JudgeID, aliveClientIds)
-	if appointJudgeError != nil {
-		return false, "Judge was not apointed by the Speaker. Insufficient budget"
-	}
-	// Get new Speaker ID
-	g.SpeakerID, appointSpeakerError = executiveBranch.appointNextSpeaker(speakerMonitored, g.SpeakerID, aliveClientIds)
-	if appointSpeakerError != nil {
-		return false, "Speaker was not apointed by the President. Insufficient budget"
-	}
-	// Get new President ID
-	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
-	if appointPresidentError != nil {
-		return false, "President was not apointed by the Judge. Insufficient budget"
-	}
 
 	// Pay salaries into budgets
 	errorJudicial := judicialBranch.sendPresidentSalary()
@@ -222,6 +224,60 @@ func RunIIGO(g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.C
 	// Return false only after attempting to pay all roles their salary
 	if errorJudicial != nil || errorLegislative != nil || errorExecutive != nil {
 		return false, "Cannot pay IIGO salary"
+	}
+
+	speakerMonitored := monitoring.monitorRole(g, iigoClients[g.JudgeID])
+	presidentMonitored := monitoring.monitorRole(g, iigoClients[g.SpeakerID])
+	judgeMonitored := monitoring.monitorRole(g, iigoClients[g.PresidentID])
+	monitoring.clearCache()
+
+	// TODO:- at the moment, these are action (and cost resources) but should they?
+	// Get new Judge ID
+	actionCost := gameConf.IIGOConfig
+	costOfElection := actionCost.AppointNextSpeakerActionCost + actionCost.AppointNextJudgeActionCost + actionCost.AppointNextPresidentActionCost
+	if !CheckEnoughInCommonPool(costOfElection, g) {
+		return false, "Insufficient budget to run IIGO elections"
+	}
+	appointedJudge, appointJudgeError := legislativeBranch.appointNextJudge(judgeMonitored, g.JudgeID, aliveClientIds)
+	if appointJudgeError != nil {
+		return false, "Judge was not apointed by the Speaker. Insufficient budget"
+	}
+	// Get new Speaker ID
+	appointedSpeaker, appointSpeakerError := executiveBranch.appointNextSpeaker(speakerMonitored, g.SpeakerID, aliveClientIds)
+	if appointSpeakerError != nil {
+		return false, "Speaker was not apointed by the President. Insufficient budget"
+	}
+	// Get new President ID
+	appointedPresident, appointPresidentError := judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
+	if appointPresidentError != nil {
+		return false, "President was not apointed by the Judge. Insufficient budget"
+	}
+
+	//Monitor again for election fraud
+	speakerMonitored = monitoring.monitorRole(g, iigoClients[g.JudgeID])
+	presidentMonitored = monitoring.monitorRole(g, iigoClients[g.SpeakerID])
+	judgeMonitored = monitoring.monitorRole(g, iigoClients[g.PresidentID])
+	monitoring.clearCache()
+
+	// Get new Judge ID
+	actionCost = gameConf.IIGOConfig
+	costOfElection = actionCost.AppointNextSpeakerActionCost + actionCost.AppointNextJudgeActionCost + actionCost.AppointNextPresidentActionCost
+	if !CheckEnoughInCommonPool(costOfElection, g) {
+		return false, "Insufficient budget to run IIGO elections"
+	}
+	g.JudgeID, appointJudgeError = legislativeBranch.appointNextJudge(judgeMonitored, appointedJudge, aliveClientIds)
+	if appointJudgeError != nil {
+		return false, "Judge was not apointed by the Speaker. Insufficient budget"
+	}
+	// Get new Speaker ID
+	g.SpeakerID, appointSpeakerError = executiveBranch.appointNextSpeaker(speakerMonitored, appointedSpeaker, aliveClientIds)
+	if appointSpeakerError != nil {
+		return false, "Speaker was not apointed by the President. Insufficient budget"
+	}
+	// Get new President ID
+	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(presidentMonitored, appointedPresident, aliveClientIds)
+	if appointPresidentError != nil {
+		return false, "President was not apointed by the Judge. Insufficient budget"
 	}
 
 	return true, "IIGO Run Successful"
