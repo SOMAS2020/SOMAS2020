@@ -16,6 +16,7 @@ func (s *SOMASServer) islandDeplete(cpMitigatedEffect map[shared.ClientID]float6
 			} else {
 				ci.Resources -= deduction
 			}
+			s.gameState.ClientInfos[id] = ci
 			s.logf("[DISASTER]: %v reduced to %v resources due to disaster damage of %v", clientID, ci.Resources, deduction)
 		}
 	}
