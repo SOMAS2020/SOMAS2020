@@ -102,7 +102,7 @@ func registerRulesByMass() {
 				ExpectedAllocation,
 			},
 			Values:  []float64{1, -1, 0},
-			Aux:     []float64{0},
+			Aux:     []float64{2},
 			Mutable: false,
 			Linked:  false,
 		},
@@ -445,6 +445,32 @@ func registerRulesByMass() {
 			Aux:     []float64{0},
 			Mutable: true,
 			Linked:  false,
+		},
+		{
+			Name: "tax_decision",
+			ReqVar: []VariableFieldName{
+				TaxDecisionMade,
+				IslandTaxContribution,
+			},
+			Values:     []float64{1, 0, -1},
+			Aux:        []float64{0},
+			Mutable:    false,
+			Linked:     true,
+			LinkType:   ParentFailAutoRulePass,
+			LinkedRule: "check_taxation_rule",
+		},
+		{
+			Name: "allocation_decision",
+			ReqVar: []VariableFieldName{
+				AllocationMade,
+				IslandAllocation,
+			},
+			Values:     []float64{1, 0, -1},
+			Aux:        []float64{0},
+			Mutable:    false,
+			Linked:     true,
+			LinkType:   ParentFailAutoRulePass,
+			LinkedRule: "check_allocation_rule",
 		},
 	}
 

@@ -9,9 +9,12 @@ import (
 // variable cache they want to feed from
 func ComplianceCheck(rule RuleMatrix, variables map[VariableFieldName]VariableValuePair) (compliant bool, ruleError error) {
 	if checkAllVariablesAvailable(rule.RequiredVariables, variables) {
-		evalResult := EvaluateRuleFromCaches(rule.RuleName, map[string]RuleMatrix{
-			rule.RuleName: rule,
-		}, variables)
+		ruleCache := map[string]RuleMatrix{}
+		ruleCache[rule.RuleName] = rule
+		if rule.Link.Linked {
+			ruleCache[rule.Link.LinkedRule] = RulesInPlay[rule.Link.LinkedRule]
+		}
+		evalResult := EvaluateRuleFromCaches(rule.RuleName, ruleCache, variables)
 		return evalResult.RulePasses, evalResult.EvalError
 	}
 	return false, &RuleError{

@@ -88,6 +88,7 @@ const (
 	SanctionExpected
 	TestVariable
 	JudgeInspectionPerformed
+	TaxDecisionMade
 	MonitorRoleAnnounce
 	MonitorRoleDecideToMonitor
 	MonitorRoleEvalResult
@@ -149,6 +150,7 @@ func (v VariableFieldName) String() string {
 		"SanctionExpected",
 		"TestVariable",
 		"JudgeInspectionPerformed",
+		"TaxDecisionMade",
 		"MonitorRoleAnnounce",
 		"MonitorRoleDecideToMonitor",
 		"MonitorRoleEvalResult",
