@@ -50,6 +50,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourSpeaker = speaker{c: c}
 	c.ourJudge = judge{c: c}
 	c.ourPresident = president{c: c}
+  
+  c.initgiftOpinions()
 
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)
@@ -110,6 +112,18 @@ func (c *client) inittheirtrustMapAgg() {
 			continue
 		}
 		c.theirTrustMapAgg[islandID] = []float64{}
+	}
+}
+
+// inittheirtrustMapAgg initialises the theirTrustMapAgg to empty list values ready for each turn
+func (c *client) initgiftOpinions() {
+	c.giftOpinions = map[shared.ClientID]int{}
+
+	for _, islandID := range shared.TeamIDs {
+		if islandID+1 == c.BaseClient.GetID() {
+			continue
+		}
+		c.giftOpinions[islandID] = 10
 	}
 }
 
