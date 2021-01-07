@@ -6,7 +6,6 @@ import { LoadingStateProvider } from './contexts/loadingState'
 import Loading from './components/Loading/Loading'
 
 function App() {
-  const a = 'aoeu'
   return (
     <LoadingStateProvider>
       <Loading />

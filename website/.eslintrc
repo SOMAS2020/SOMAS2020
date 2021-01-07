@@ -55,7 +55,10 @@
     "react/destructuring-assignment": "off",
     "no-plusplus": "off",
     "max-classes-per-file": "off",
-    "@typescript-eslint/ban-ts-comment": "off"
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-inferrable-types": "off",
+    "react/jsx-curly-newline": "off",
+    "no-param-reassign": "off"
   },
   "settings": {
     "import/resolver": {
