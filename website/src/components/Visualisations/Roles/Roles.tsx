@@ -18,9 +18,10 @@ type CustomTooltipProps = {
   payload: [{ name: string; value: number; unit: string }];
   label: string;
   data: ProcessedRoleData;
+  colors: Map<string, string>;
 };
 
-const CustomTooltip = ({ active, label, data }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, label, data, colors }: CustomTooltipProps) => {
   const getTurnsAsTeams = (role: RoleName): TeamAndTurns =>
     data
       .find((elem) => elem.role === role)
@@ -40,7 +41,11 @@ const CustomTooltip = ({ active, label, data }: CustomTooltipProps) => {
       <div className={styles.customTooltip}>
         <p className={styles.label}>{newLabel}</p>
         {turnsAsTeams.map((team, turns) => (
-          <p className={styles.content} key={team}>
+          <p
+            className={styles.content}
+            key={team}
+            style={{ color: colors.get(team) }}
+          >
             Turns as {team}: {turns} ({((turns * 100) / totalTurns).toFixed(1)}
             %)
           </p>
@@ -83,7 +88,7 @@ const Roles = (props: { output: OutputJSONType }) => {
           />
           <Tooltip
             content={(props: CustomTooltipProps) =>
-              CustomTooltip({ ...props, data })
+              CustomTooltip({ ...props, data, colors })
             }
           />
           <Legend
