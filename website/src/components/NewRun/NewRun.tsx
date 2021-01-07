@@ -126,6 +126,13 @@ const NewRun = () => {
     <h1>New Run</h1>
 
     {
+      runError &&
+      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible className="custom-alert">
+        <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
+        <p>{runError}</p>
+      </Alert>
+    }
+    {
       !output &&
       <div>
         <Button variant="success" size="lg" onClick={run} disabled={flags === undefined}>Run</Button>
@@ -139,13 +146,6 @@ const NewRun = () => {
           {getFlagForms(flags)}
         </Row>
       </div>
-    }
-    {
-      runError &&
-      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible className="custom-alert">
-        <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
-        <p>{runError}</p>
-      </Alert>
     }
     {
       output &&
