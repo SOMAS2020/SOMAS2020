@@ -3,11 +3,12 @@ package team1
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	// "github.com/SOMAS2020/SOMAS2020/internal/clients/team1/foraging"
 )
 
 const id = shared.Team1
@@ -76,6 +77,18 @@ type client struct {
 	opinionTeams  []opinionOnTeam
 	receivedOffer map[shared.ClientID]shared.Resources
 
+	// allocation is the president's response to your last common pool resource request
+	allocation shared.Resources
+	// Disaster
+	// A map of Turns -> DisasterInfo
+	disasterInfo disaster
+
+	// aliveClients
+	aliveClients []shared.ClientID
+
+	// For foraging
+	switchType bool
+
 	config clientConfig
 }
 
@@ -113,6 +126,17 @@ func (c *client) StartOfTurn() {
 	c.Logf("Emotional state: %v", c.emotionalState())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
 
+	// This should only happen at the start of the game.
+	if c.gameState().Turn == 1 {
+		c.disasterInfo.meanDisaster = disasters.DisasterReport{}
+		c.switchType = false
+		if c.ServerReadHandle.GetGameConfig().DisasterConfig.DisasterPeriod.Valid == true {
+			c.disasterInfo.estimatedDDay = c.ServerReadHandle.GetGameConfig().DisasterConfig.DisasterPeriod.Value
+		} else {
+			c.disasterInfo.estimatedDDay = uint(rand.Intn(10))
+		}
+	}
+
 	// if opinionTeams is empty. Initialise it.
 	if len(c.opinionTeams) <= 0 {
 		for _, clientID := range shared.TeamIDs {
@@ -124,6 +148,14 @@ func (c *client) StartOfTurn() {
 	c.receivedOffer = nil
 	if c.receivedOffer == nil {
 		c.receivedOffer = make(map[shared.ClientID]shared.Resources)
+	}
+
+	// Reset alive list
+	c.aliveClients = nil
+	for clientID, status := range c.gameState().ClientLifeStatuses {
+		if status != shared.Dead && clientID != c.GetID() {
+			c.aliveClients = append(c.aliveClients, clientID)
+		}
 	}
 
 	for clientID, status := range c.gameState().ClientLifeStatuses {
