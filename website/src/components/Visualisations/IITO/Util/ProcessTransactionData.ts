@@ -13,7 +13,8 @@ type Transaction = {
 // TODO: Extract summary metric for bubble size from transactions[] and islandGifts[]
 type Node = {
     id: number,
-    magnitude: number
+    magnitude: number,
+    color: string
 }
 
 type Link = {
@@ -116,6 +117,7 @@ function processTransactionData(data: OutputJSONType) {
     ).map((mag, teamNo) => {
         return {
             id: teamNo,
+            color: mag < 0 ? "red" : "green",
             magnitude: Math.max(0, mag)
         }
     })

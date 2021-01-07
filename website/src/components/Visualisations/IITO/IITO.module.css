@@ -17,7 +17,9 @@
     height: 50vh;
     position: relative;
     background-color: white;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.6);
+    border: black;
+    border-width: 2px;
+    /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.6); */
 }
 
 .container svg {
@@ -26,10 +28,14 @@
     height: 100%;
 }
   
-.bubble {
-    fill: rgb(22, 130, 218);
+.bubblePositive {
+    fill: green;
 }
-    
+
+.bubbleNegative {
+    fill: red;
+}
+
 .node text {
     font: 12px sans-serif;
 }

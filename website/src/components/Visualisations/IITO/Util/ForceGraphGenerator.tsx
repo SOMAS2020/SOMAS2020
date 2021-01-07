@@ -20,12 +20,12 @@ export function runForceGraph(
     const height = containerRect.height;
     const width = containerRect.width;
 
-    const color = () => { return "#9D00A0"; };
+    const color = (d) => { return d.color };
 
     // size the bubbles by their magnitude 
     // TODO: scale the bubble sizes for the visualisation here
     const bubbleSize = (d: any) => {
-        return d.magnitude;
+        return 5;
     }
 
     const getClass = (d: any) => {
