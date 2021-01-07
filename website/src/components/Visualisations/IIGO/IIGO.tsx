@@ -93,11 +93,11 @@ function Row(props: { row: RuleType }) {
 
 const IIGO = (props: { output: OutputJSONType }) => {
 
-  const rows:RuleType[] = processRulesData(props.output);
+    const rows:RuleType[] = processRulesData(props.output);
 
-  return (
-    <div className={styles.root}>
-      <p className={styles.text}>Rules</p>
+    return (
+        <div className={styles.root}>
+            <p className={styles.text}>Rules</p>
             <TableContainer style={{maxHeight: 500, overflow: 'auto'}} component={Paper}>
                 <Table aria-label="collapsible table">
                     <TableHead>
@@ -114,10 +114,8 @@ const IIGO = (props: { output: OutputJSONType }) => {
                         ))}
                     </TableBody>
                 </Table>
-
             </TableContainer>
-
-    </div>
+        </div>
   );
 }
 

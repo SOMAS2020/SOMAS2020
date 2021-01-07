@@ -9,11 +9,11 @@ export type RuleType = {
     history: {season: number; turn: number}[];
 };
 
-export const processRulesData = (data: OutputJSONType) :RuleType[]=> {
+export const processRulesData = (data: OutputJSONType): RuleType[]=> {
     if (data.GameStates.length === 0) return []
 
     // return CurrentRulesInPlay keys in term of seasons
-    let rulesInSeasons = data.GameStates.map((episode) => {
+    const rulesInSeasons = data.GameStates.map((episode) => {
         return {
             season: episode.Season,
             turn: episode.Turn,
@@ -22,7 +22,7 @@ export const processRulesData = (data: OutputJSONType) :RuleType[]=> {
     })
 
     // return a list of rules of RuleType
-    let rulesDict:any = {}
+    let rulesDict = {}
     // each season, do...
     data.GameStates.forEach((episode) => {
         // each rules in season, do...
