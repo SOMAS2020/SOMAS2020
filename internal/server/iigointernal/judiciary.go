@@ -241,7 +241,7 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 			} else {
 				totalIslandTurnScore += roles.IIGOSanctionScore(1)
 			}
-			j.Logf("Rule: %v, broken by %v", ruleBroken, islandID)
+			j.Logf("Rule: %v, broken by: %v", ruleBroken, islandID)
 		}
 		j.sanctionRecord[islandID] += totalIslandTurnScore
 	}
