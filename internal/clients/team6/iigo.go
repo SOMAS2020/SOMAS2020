@@ -2,7 +2,6 @@ package team6
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -18,23 +17,41 @@ func (c *client) GetClientSpeakerPointer() roles.Speaker {
 	return &speaker{client: c}
 }
 
-// ------ TODO: COMPULSORY ------
-func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
-	c.BaseClient.ReceiveCommunication(sender, data)
-}
+// func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+// 	for fieldName, content := range data {
+// 		switch fieldName {
+// 		case shared.TaxAmount:
+// 			c.config.payingTax = shared.Resources(content.IntegerData)
+// 		} //add sth else
+// 	}
+// }
 
-// ------ TODO: COMPULSORY -----
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
-	return c.BaseClient.MonitorIIGORole(roleName)
+	return false
 }
 
-// ------ TODO: COMPULSORY -----
 func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
-	return c.BaseClient.DecideIIGOMonitoringAnnouncement(monitoringResult)
+	resultToShare = monitoringResult
+	announce = true
+	return
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	return c.BaseClient.CommonPoolResourceRequest()
+	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+	ownResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	if ownResources > minThreshold { //if current resource > threshold, our agent skip to request resource from common pool
+		return 0
+	}
+	return minThreshold - ownResources
+}
+
+func (c *client) RequestAllocation() shared.Resources {
+	//we will take 10% of the common pool when we are critical or dying
+	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+	if ourStatus == shared.Critical || ourStatus == shared.Dead {
+		return c.ServerReadHandle.GetGameState().CommonPool / 10
+	}
+	return 0
 }
 
 func (c *client) ResourceReport() shared.ResourcesReport {
@@ -53,20 +70,15 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	return c.BaseClient.ResourceReport()
 }
 
-// ------ TODO: COMPULSORY -----
-func (c *client) RuleProposal() rules.RuleMatrix {
-	return c.BaseClient.RuleProposal()
-}
-
-// ------ TODO: COMPULSORY -----
 func (c *client) GetTaxContribution() shared.Resources {
-	return c.BaseClient.GetTaxContribution()
+	ourPersonality := c.getPersonality()
+	if ourPersonality == Selfish { //evade tax when we are selfish
+		return 0
+	}
+	return c.clientConfig.payingTax
 }
 
+// ------ TODO: COMPULSORY -----
 func (c *client) GetSanctionPayment() shared.Resources {
-	return c.BaseClient.GetSanctionPayment()
-}
-
-func (c *client) RequestAllocation() shared.Resources {
-	return c.BaseClient.RequestAllocation()
+	return 0
 }
