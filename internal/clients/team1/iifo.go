@@ -24,11 +24,7 @@ type disaster struct {
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	var shareTo []shared.ClientID
 
-	for id, status := range c.gameState().ClientLifeStatuses {
-		if status != shared.Dead {
-			shareTo = append(shareTo, id)
-		}
-	}
+	shareTo = c.aliveClients
 
 	lastDecisionTurn := -1
 	var lastDecision shared.ForageDecision
