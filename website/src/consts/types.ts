@@ -1,6 +1,30 @@
 import outputJSONData from '../output/output.json'
 
-export type OutputJSONType = typeof outputJSONData
+export type OutputJSONType = GameStatesType & typeof outputJSONData
+// export type OutputJSONType =  typeof outputJSONData
+
+type GameStatesType = {
+    GameStates: {
+      IIGOHistory: {
+        [turn: string]: {
+          ClientID: string
+          Pairs: {
+            VariableName: string
+            Values: number[]
+          }[]
+        }[]
+      }
+      IITOTransactions: {
+          [team in Team]: {
+              [team in Team]?: {
+                  AcceptedAmount: number,
+                  Reason: number,
+              }
+          }
+      }
+    }[]
+  }
+
 
 // TODO: what if there are more islands - dynamic typing
 export enum Team {
