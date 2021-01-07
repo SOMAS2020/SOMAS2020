@@ -23,6 +23,9 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 	// requests gifts from all islands if we are in critical status
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+		if team == c.GetID() {
+			continue
+		}
 		if ourStatus == shared.Critical {
 			if criticalCounter == maxCriticalCounter-uint(1) {
 				// EMERGENCY!! will try to get a minimum number so that we can survive
@@ -82,6 +85,9 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 		amountOffer := shared.GiftOffer(0.0)
 
+		if team == c.GetID() {
+			continue
+		}
 		if status == shared.Critical {
 			// offers a minimum resources to all islands which are in critical status
 			offers[team] = shared.GiftOffer(minThreshold)

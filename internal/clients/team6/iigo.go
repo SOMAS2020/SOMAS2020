@@ -54,19 +54,21 @@ func (c *client) RequestAllocation() shared.Resources {
 	return 0
 }
 
-//Optional
 func (c *client) ResourceReport() shared.ResourcesReport {
+	// if we are selfish, will report 1/2 of the actual resources
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	return shared.ResourcesReport{
-		ReportedAmount: ourResources,
+	ourPersonality := c.getPersonality()
+	fakeReport := shared.ResourcesReport{
+		ReportedAmount: shared.Resources(float64(1/2) * float64(ourResources)),
 		Reported:       true,
 	}
-}
 
-// ------ TODO: COMPULSORY -----
-// func (c *client) RuleProposal() string {
-// 	return c.BaseClient.RuleProposal()
-// }
+	if ourPersonality == Selfish {
+		return fakeReport
+	}
+
+	return c.BaseClient.ResourceReport()
+}
 
 func (c *client) GetTaxContribution() shared.Resources {
 	ourPersonality := c.getPersonality()
