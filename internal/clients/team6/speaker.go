@@ -11,10 +11,6 @@ type speaker struct {
 	*client
 }
 
-func (s *speaker) PayJudge() shared.SpeakerReturnContent {
-	return s.BaseSpeaker.PayJudge()
-}
-
 func (s *speaker) DecideAgenda(ruleID rules.RuleMatrix) shared.SpeakerReturnContent {
 	return s.BaseSpeaker.DecideAgenda(ruleID)
 }
