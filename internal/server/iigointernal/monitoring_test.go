@@ -99,6 +99,7 @@ func TestEvaluateCache(t *testing.T) {
 			expectedVal: true,
 		},
 	}
+	var logging shared.Logger = func(format string, a ...interface{}) {}
 	ruleStore := registerMonitoringTestRule()
 	tempCache := rules.AvailableRules
 	rules.AvailableRules = ruleStore
@@ -106,6 +107,7 @@ func TestEvaluateCache(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			monitoring := &monitor{
 				internalIIGOCache: tc.iigoCache,
+				logger:            logging,
 			}
 			res := monitoring.evaluateCache(tc.roleID, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
