@@ -13,3 +13,14 @@ TBC
 | | Ethan Sarif-Kattan | es5017 | EthanSK |
 | | Emily Mac | em2717 | E-Mac27 |
 | | Darrick Lau | dl5215 | Darrekt |
+
+# Strategy
+## Foraging
+
+Assumptions
+* Total resources out are proportional to total contributions
+* There is an upper limit to a hunt's rewards
+* Number of participants does not matter for total utility, only total
+  contribution matters
+* We don't know the split of resources to contributors
+* There is a population of deer that changes depending on hunting intensity
