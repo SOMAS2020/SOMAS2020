@@ -354,18 +354,3 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	c.Logf("Sharing forage info: %v", forageInfo)
 	return forageInfo
 }
-
-func (c *client) initForageHist() {
-	c.forageHistory = forageHistory{}
-
-	Outcomes := forageOutcome{
-		turn:   0,
-		team:   0,
-		input:  0,
-		output: 0,
-	}
-
-	c.forageHistory[shared.DeerForageType] = append(c.forageHistory[shared.DeerForageType], Outcomes)
-	c.forageHistory[shared.FishForageType] = append(c.forageHistory[shared.DeerForageType], Outcomes)
-
-}
