@@ -37,6 +37,7 @@ type resourceHistory resourceHistoryType
 // forageOutcome records the ROI on a foraging session
 type forageOutcome struct {
 	turn   uint
+	team   shared.ClientID
 	input  shared.Resources
 	output shared.Resources
 }
@@ -73,7 +74,7 @@ type client struct {
 	*baseclient.BaseClient
 
 	// Roles
-	team5president president
+	team5President president
 
 	// Roles
 	team5Speaker speaker

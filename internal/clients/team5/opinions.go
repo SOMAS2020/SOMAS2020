@@ -51,10 +51,6 @@ func (wo wrappedOpininon) getForecastingRep() opinionScore {
 	return wo.opinion.forecastReputation
 }
 
-func (o opinion) String() string {
-	return fmt.Sprintf("opinion{score: %.2f, forecastReputation: %.2f}", o.score, o.forecastReputation)
-}
-
 func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) {
 	op := wo.opinion
 	switch basis {
@@ -77,6 +73,10 @@ func (c *client) initOpinions() {
 	}
 	c.opinionHistory[startTurn] = c.opinions // 0th turn is how we start before the game starts - our initial bias
 	c.Logf("Opinions at first turn (turn %v): %v", startTurn, c.opinionHistory)
+}
+
+func (o opinion) String() string {
+	return fmt.Sprintf("opinion{score: %.2f}", o.score)
 }
 
 // getTrustedTeams finds teams whose opinion scores (our opinion of them) exceed a threshold `trustThresh`. Furthermore,

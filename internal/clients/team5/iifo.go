@@ -143,6 +143,11 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	// If we assume that we trust each island equally (including ourselves), then take the final prediction
 	// of disaster as being the weighted mean of predictions according to confidence
 
+	if len(receivedPredictions) == 0 {
+		c.Logf("[turn %v]: Nobody wanna share forecasts with us :((", c.getTurn())
+		return
+	}
+
 	sumX, sumY, sumMag, sumConf := 0.0, 0.0, 0.0, 0.0
 	sumTime := 0
 
