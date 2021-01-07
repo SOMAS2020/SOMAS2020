@@ -75,15 +75,13 @@ func (c client) getLastDisasterTurn() uint {
 // provides estimate of *when* next disaster will occur and associated conf
 func (c *client) estimateDisasterPeriod() (period uint, conf float64) {
 
-	c.Logf("DH: %v", c.disasterHistory)
-
 	if len(c.disasterHistory) == 0 {
 		return 0, 0 // we can't make any predictions with no disaster history!
 	}
 	periods := []float64{} // use float so we can use stat.Variance() later
 	periodSum := 0.0       // to offset this from average
 	prevTurn := float64(startTurn)
-	for turn := range c.disasterHistory {
+	for _, turn := range c.disasterHistory.sortKeys() { // TODO: find instances where assumption of ordered map keys is relied upon
 		periods = append(periods, float64(turn)-prevTurn) // period = no. turns between successive disasters
 		periodSum += periods[len(periods)-1]
 		prevTurn = float64(turn)
