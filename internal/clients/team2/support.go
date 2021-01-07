@@ -114,8 +114,26 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	for contentType, content := range data {
 		switch contentType {
 		case shared.IIGOTaxDecision:
+			var commonPool CommonPoolInfo
+			if val, ok := c.commonPoolHist[c.gameState().Turn]; ok {
+				val.tax = shared.Resources(content.IntegerData)
+			} else {
+				commonPool = CommonPoolInfo{
+					tax: shared.Resources(content.IntegerData),
+				}
+			}
+			c.commonPoolHist[c.gameState().Turn] = commonPool
 			c.taxAmount = shared.Resources(content.IntegerData)
 		case shared.IIGOAllocationDecision:
+			var commonPool CommonPoolInfo
+			if val, ok := c.commonPoolHist[c.gameState().Turn]; ok {
+				val.allocatedByPres = shared.Resources(content.IntegerData)
+			} else {
+				commonPool = CommonPoolInfo{
+					allocatedByPres: shared.Resources(content.IntegerData),
+				}
+			}
+			c.commonPoolHist[c.gameState().Turn] = commonPool
 			c.commonPoolAllocation = shared.Resources(content.IntegerData)
 		// case shared.RuleName:
 		// 	currentRuleID := content.TextData
@@ -166,17 +184,17 @@ func (p TierList) Less(i, j int) bool { return p[i] < p[j] }
 
 func (c *client) checkSanctionTier(score roles.IIGOSanctionScore) roles.IIGOSanctionTier {
 
-	keys := make([]roles.IIGOSanctionTier, 0, len(c.TierLevels))
-	for k := range c.TierLevels {
+	var keys TierList
+	for k := range c.tierLevels {
 		keys = append(keys, k)
 	}
 
 	sort.Sort(keys)
 
 	for tier := range keys {
-		if score >= c.TierLevel[tier] {
-			return tier
+		if score >= c.tierLevels[roles.IIGOSanctionTier(tier)] {
+			return roles.IIGOSanctionTier(tier)
 		}
 	}
-	return IIGOSanctionTier.NoSanction
+	return roles.NoSanction
 }

@@ -190,3 +190,7 @@ func (c *client) credibility(situation Situation, otherIsland shared.ClientID) i
 	// performance (how well they are doing)
 	return 0
 }
+
+func (c *client) updatePresidentTrust() {
+
+}
