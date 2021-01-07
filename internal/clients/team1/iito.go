@@ -55,7 +55,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 		for clientID, status := range c.gameState().ClientLifeStatuses {
 			if status != shared.Dead && clientID != c.GetID() {
 				// TODO: Probably best to request a portion of Living Cost + Tax?
-				requests[clientID] = shared.GiftRequest(25.0)
+				requests[clientID] = shared.GiftRequest(2 * c.gameConfig().CostOfLiving)
 			}
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -103,7 +104,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			randomForageTurns:              0,
 			anxietyThreshold:               20,
 			desperateStealAmount:           30,
-			evadeTaxes:                     true,
+			evadeTaxes:                     false,
 			kickstartTaxPercent:            0,
 			forageContributionCapPercent:   0.2,
 			forageContributionNoisePercent: 0.01,
@@ -133,8 +134,8 @@ func (c *client) StartOfTurn() {
 	if c.gameState().Turn == 1 {
 		c.disasterInfo.meanDisaster = disasters.DisasterReport{}
 		c.switchType = false
-		if c.ServerReadHandle.GetGameConfig().DisasterConfig.DisasterPeriod.Valid == true {
-			c.disasterInfo.estimatedDDay = c.ServerReadHandle.GetGameConfig().DisasterConfig.DisasterPeriod.Value
+		if c.gameConfig().DisasterConfig.DisasterPeriod.Valid == true {
+			c.disasterInfo.estimatedDDay = c.gameConfig().DisasterConfig.DisasterPeriod.Value
 		} else {
 			c.disasterInfo.estimatedDDay = uint(rand.Intn(10))
 		}
@@ -164,13 +165,9 @@ func (c *client) StartOfTurn() {
 		}
 	}
 
-	for clientID, status := range c.gameState().ClientLifeStatuses {
-		if status != shared.Dead && clientID != c.GetID() {
-			return
-		}
+	if len(c.aliveClients) == 0 {
+		c.Logf("I'm all alone :c")
 	}
-
-	c.Logf("I'm all alone :c")
 }
 
 /********************/
@@ -193,12 +190,6 @@ func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
 }
 
-func (c *client) livingClients() (livingClients []shared.ClientID) {
-	ids := []shared.ClientID{}
-	for id, livingState := range c.gameState().ClientLifeStatuses {
-		if livingState == shared.Alive {
-			ids = append(ids, id)
-		}
-	}
-	return ids
+func (c *client) gameConfig() config.ClientConfig {
+	return c.BaseClient.ServerReadHandle.GetGameConfig()
 }

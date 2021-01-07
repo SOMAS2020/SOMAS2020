@@ -146,7 +146,7 @@ func (c client) flipForage() shared.ForageDecision {
 	if totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0 || c.switchType == false {
 		// Big contribution
 		return shared.ForageDecision{
-			Contribution: shared.Resources(math.Min(float64(0.3*c.gameState().ClientInfo.Resources), float64(3*c.ServerReadHandle.GetGameConfig().CostOfLiving))),
+			Contribution: shared.Resources(math.Min(float64(0.3*c.gameState().ClientInfo.Resources), float64(3*c.gameConfig().CostOfLiving))),
 			Type:         shared.DeerForageType,
 		}
 	}
@@ -239,7 +239,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 		participant:  c.GetID(),
 	})
 
-	notEnoughMoney := revenue < 2*c.ServerReadHandle.GetGameConfig().CostOfLiving
+	notEnoughMoney := revenue < 2*c.gameConfig().CostOfLiving
 	if notEnoughMoney || revenue/forageDecision.Contribution < 1 {
 		c.switchType = !c.switchType
 	}
