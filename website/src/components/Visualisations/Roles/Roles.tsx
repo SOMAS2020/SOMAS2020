@@ -78,16 +78,10 @@ const getNewColors = (teams: string[]): Map<string, string> => {
     return colorMap;
 }
 
-const mapToPairs = (m: Map<string, string>): [string, string][] => {
-    const retArr: [string, string][] = [];
-    m.forEach((key, val) => retArr.push([key, val]));
-    return retArr;
-}
-
 const Roles = (props: { output: OutputJSONType }) => {
 
     const data = processRoleData(props.output);
-    const teams = props.output.AuxInfo.TeamIDs;
+    const teams = [ "Team1", "Team2", "Team3", "Team4", "Team5", "Team6" ];
     const colors = getNewColors(teams);
 
     console.log(data);
@@ -104,43 +98,15 @@ const Roles = (props: { output: OutputJSONType }) => {
                             CustomTooltip({ ...props, data })
                         }
                     /> */}
-                    {/* <Legend
+                    <Legend
                         verticalAlign="top"
-                        payload={[
-                            {
-                                value: "President",
-                                type: "square",
-                                id: "ID01",
-                                color: colors.get("president"),
-                            },
-                            {
-                                value: "Judge",
-                                type: "square",
-                                id: "ID02",
-                                color: colors.get("judge"),
-                            },
-                            {
-                                value: "Speaker",
-                                type: "square",
-                                id: "ID03",
-                                color: colors.get("speaker"),
-                            },
-                            {
-                                value: "None",
-                                type: "square",
-                                id: "ID04",
-                                color: colors.get("none"),
-                            },
-                        ]}
-                    /> */}
-                    {/* {data[0].turnsInRoles.map((a, i) => (
-                        <Bar
-                            dataKey={`turnsInRoles[${i}].turns`}
-                            stackId="a"
-                            key={`${a}${i}`}
-                            shape={(props) => CustomBar({rectangleProps: props, colors: colors})}
-                        />
-                    ))} */}
+                        payload={teams.map((team, i) => ({
+                            value: team,
+                            type: "square",
+                            id: `${team}${i}`,
+                            color: colors.get(team)
+                        }))}
+                    />
                     {data[0].occupied.map((a, i) => [
                         teams.map((team) => (
                             <Bar
