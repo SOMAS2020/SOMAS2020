@@ -1,6 +1,7 @@
 package team2
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -65,7 +66,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 //determineTax returns how much tax we have to pay
 func determineTax(c *client) shared.Resources {
-	return shared.Resources(shared.TaxAmount) //TODO: not sure if this is correct tax amount to use
+	return shared.Resources(c.BaseClient.LocalVariableCache[rules.ExpectedTaxContribution].Values[0]) //TODO: not sure if this is correct tax amount to use
 }
 
 //internalThreshold determines our internal threshold for survival, allocationrec is the output of the function AverageCommonPool which determines which role we will be
@@ -124,7 +125,7 @@ func (c *client) determineThreshold() shared.Resources {
 		return ourResources / 4 //TODO: tune initial threshold guess when we start playing
 	}
 	baseThreshold := c.resourceLevelHistory[1] / 4
-	if season == 1 { //keep threshold from first turn
+	if season == 1 || sampleMeanM == 0.0 { //keep threshold from first turn
 		return baseThreshold
 	}
 	if checkForDisaster(c) {
