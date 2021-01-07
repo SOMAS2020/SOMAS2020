@@ -26,12 +26,12 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 	sum := 0
 	div := 0
 	// TODO: change list iteration to just look at the turns we have info abt
+	if len(situationHist) == 0 {
+		return 50
+	}
 	for i := len(situationHist); i > 0; i-- {
 		sum += (situationHist[i-1]) * i
 		div += i
-	}
-	if div == 0 {
-		div++
 	}
 	average := sum / div
 

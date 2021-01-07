@@ -214,9 +214,6 @@ func GetIslandsToShareWith() []shared.ClientID {
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
 	UpdatePredictionHistory(c, receivedPredictions)
 	// Get the confidence in each island's prediction making ability
-	if c.disasterHistory != nil {
-		c.updateDisasterConf()
-	}
 	islandConfidences := make(map[shared.ClientID]int)
 	for island, _ := range c.opinionHist {
 		conf := c.confidence("DisasterPred", island)
