@@ -24,27 +24,27 @@ export function runForceGraph(
 
     // size the bubbles by their magnitude 
     // TODO: scale the bubble sizes for the visualisation here
-    const bubbleSize = (d) => {
+    const bubbleSize = (d: any) => {
         return d.magnitude;
     }
 
-    const getClass = (d) => {
+    const getClass = (d: any) => {
         return styles.bubble;
     };
 
     const drag = (simulation) => {
-        const dragstarted = (event, d) => {
+        const dragstarted = (event: any, d: any) => {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
         };
 
-        const dragged = (event, d) => {
+        const dragged = (event: any, d: any) => {
             d.fx = event.x;
             d.fy = event.y;
         };
 
-        const dragended = (event, d) => {
+        const dragended = (event: any, d: any) => {
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
@@ -109,7 +109,7 @@ export function runForceGraph(
         .selectAll("line")
         .data(links)
         .join("line")
-        .attr("strokeWidth", d => Math.sqrt(d.value));
+        .attr("strokeWidth", d => Math.sqrt(d.magnitude)); // was d.value
 
     const node = svg
         .append("g")
@@ -145,20 +145,20 @@ export function runForceGraph(
     simulation.on("tick", () => {
         //update link positions
         link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
+            .attr("x1", (d: any) => d.source.x)
+            .attr("y1", (d: any) => d.source.y)
+            .attr("x2", (d: any) => d.target.x)
+            .attr("y2", (d: any) => d.target.y);
 
         // update node positions
         node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
+            .attr("cx", (d: any) => d.x)
+            .attr("cy", (d: any) => d.y);
 
         // update label positions
         label
-            .attr("x", d => { return d.x; })
-            .attr("y", d => { return d.y; })
+            .attr("x", (d: any) => d.x)
+            .attr("y", (d: any) => d.y)
     });
 
     return {

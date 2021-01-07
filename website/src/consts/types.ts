@@ -4,13 +4,13 @@ export type OutputJSONType = typeof outputJSONData
 
 // TODO: what if there are more islands - dynamic typing
 export enum Team {
-    CommonPool,
-    Team1,
-    Team2,
-    Team3,
-    Team4,
-    Team5,
-    Team6,
+    "CommonPool",
+    "Team1",
+    "Team2",
+    "Team3",
+    "Team4",
+    "Team5",
+    "Team6",
 }
 
 type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;

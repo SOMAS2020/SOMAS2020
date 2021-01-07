@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { runForceGraph } from "./ForceGraphGenerator";
-import styles from "./forceGraph.module.css";
+import styles from "../IITO.module.css";
 
 const ForceGraph = ({ linksData, nodesData, nodeHoverTooltip }) => {
     const containerRef = useRef(null);
@@ -16,7 +16,7 @@ const ForceGraph = ({ linksData, nodesData, nodeHoverTooltip }) => {
         return destroyFn;
     }, []);
 
-    return <div ref={ containerRef } className = { styles.container } />;
+    return <div ref={containerRef} className={styles.container} />;
 }
 
 export default ForceGraph;
