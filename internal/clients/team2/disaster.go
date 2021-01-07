@@ -213,6 +213,7 @@ func GetIslandsToShareWith() []shared.ClientID {
 // We use this function to combine all predictions into one final prediction (CombinedPrediction) to use for decisions.
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
 	UpdatePredictionHistory(c, receivedPredictions)
+
 	// Get the confidence in each island's prediction making ability
 	islandConfidences := make(map[shared.ClientID]int)
 	for island, _ := range c.opinionHist {
@@ -253,6 +254,18 @@ func UpdatePredictionHistory(c *client, receivedPredictions shared.ReceivedDisas
 // one final disaster prediction.
 // Use our confidence in an island as well as that island's confidence in their prediction to do this
 func CombinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPredictionsDict, islandConfidences map[shared.ClientID]int) shared.DisasterPrediction {
+	// If confidence in island is zero OR islands confidence in their prediction is zero, for all islands,
+	// then take the combined prediction to be our prediction instead
+	numZeroTerms := 0
+	for islandID, confidence := range islandConfidences {
+		if confidence == 0 || receivedPredictions[islandID].PredictionMade.Confidence == 0 {
+			numZeroTerms++
+		}
+	}
+	if numZeroTerms == len(islandConfidences) {
+		return LastPredictionMade.PredictionMade
+	}
+
 	// Add our own prediction to those recieved
 	receivedPredictions[c.GetID()] = shared.ReceivedDisasterPredictionInfo{
 		PredictionMade: LastPredictionMade.PredictionMade,

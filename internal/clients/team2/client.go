@@ -156,14 +156,14 @@ func criticalStatus(c *client) bool {
 	return false
 }
 
-//TODO: how does this work?
+// DisasterNotification notifiues each team if a disaster occurs. Each team recieves a  report on the disaster
+// and the effect on them
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
 	if c.disasterHistory == nil {
 		c.disasterHistory = make(DisasterHistory, 0)
 	}
 	currDisaster := DisasterOccurence{
-		Turn: c.gameState().Turn,
-
+		Turn:   c.gameState().Turn,
 		Report: report,
 	}
 	c.disasterHistory = append(c.disasterHistory, currDisaster)
