@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -22,6 +23,7 @@ func init() {
 		savedHistory:  map[uint]map[shared.ClientID]judgeHistoryInfo{},
 	}
 	team4client.clientSpeaker.parent = &team4client
+	team4client.clientJudge.parent = &team4client
 
 	baseclient.RegisterClient(id, &team4client)
 }
@@ -109,7 +111,9 @@ type personality struct {
 
 //Overriding the Initialise method of the BaseClient to initilise the trust matrix too
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
-	c.BaseClient.Initialise(serverReadHandle)
+	// c.BaseClient.Initialise(serverReadHandle)
+	c.ServerReadHandle = serverReadHandle
+	c.LocalVariableCache = rules.CopyVariableMap()
 
 	//custom things below, trust matrix initilised to values of 1
 	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
