@@ -72,21 +72,13 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 }
 
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	//outputMap := map[shared.ClientID]roles.EvaluationReturn{}
-
-	// Check who is lying about private resources
-	// How many resources an island has
-
-	// ExpectedTaxContribution vs IslandTaxContribution
-
-	// Check which rules are in place
 
 	outputmap, state := j.BaseJudge.InspectHistory(iigoHistory, turnsAgo)
-	dump("./Historymap.txt", "saved history: %v \n", j.parent.savedHistory)
 
 	turn := j.parent.getTurn() - uint(turnsAgo)
 	lieCounts := map[shared.ClientID]int{}
 
+	// Check number of times clients lied
 	for client, eval := range outputmap {
 		lieCount := 0
 		for _, rulePasses := range eval.Evaluations {
@@ -98,12 +90,6 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 	}
 
 	j.saveHistoryInfo(&iigoHistory, &lieCounts, turn)
-
-	// Choose to lie about state
-	// Track if any rules wore broken by looking at the output map
-
-	// t := outputmap[shared.Team1]
-	//dump("./Outputmap.txt", "Outputmap: %v \n", outputmap)
 
 	return outputmap, state
 }

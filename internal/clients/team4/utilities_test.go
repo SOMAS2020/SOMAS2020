@@ -98,11 +98,9 @@ func TestBuildHistoryInfo(t *testing.T) {
 
 			if ok != tc.ok {
 				t.Errorf("Function was expected to return %v, returned %v", tc.ok, ok)
-			} else {
-				if ok {
-					if !reflect.DeepEqual(got, tc.expected) {
-						t.Errorf("Function was expected to return %v, returned %v", tc.expected, got)
-					}
+			} else if ok {
+				if !reflect.DeepEqual(got, tc.expected) {
+					t.Errorf("Function was expected to return %v, returned %v", tc.expected, got)
 				}
 			}
 
