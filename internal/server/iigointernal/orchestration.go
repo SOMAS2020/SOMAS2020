@@ -28,6 +28,7 @@ var monitoring monitor
 func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
+	monitoring.logger = logger
 	var judicialBranch = judiciary{
 		gameState:          nil,
 		gameConf:           nil,
