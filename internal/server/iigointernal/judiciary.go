@@ -12,26 +12,18 @@ import (
 	"github.com/pkg/errors"
 )
 
-// to be moved to paramters
-const sanctionCacheDepth = 3
-const historyCacheDepth = 3
-
-// to be changed
-const sanctionLength = 2
-
 type judiciary struct {
 	gameState             *gamestate.GameState
 	gameConf              *config.IIGOConfig
 	JudgeID               shared.ClientID
-	presidentSalary       shared.Resources
 	evaluationResults     map[shared.ClientID]roles.EvaluationReturn
 	clientJudge           roles.Judge
-	presidentTurnsInPower int
 	sanctionRecord        map[shared.ClientID]roles.IIGOSanctionScore
 	sanctionThresholds    map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
 	ruleViolationSeverity map[string]roles.IIGOSanctionScore
 	localSanctionCache    map[int][]roles.Sanction
 	localHistoryCache     map[int][]shared.Accountability
+	monitoring            *monitor
 }
 
 // Loads ruleViolationSeverity and sanction thresholds
@@ -44,6 +36,16 @@ func (j *judiciary) loadSanctionConfig() {
 func (j *judiciary) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	j.gameState = gameState
 	j.gameConf = gameConf
+	j.resetCaches()
+}
+
+func (j *judiciary) resetCaches() {
+	if len(j.localSanctionCache) != int(j.gameConf.SanctionCacheDepth) {
+		j.localSanctionCache = defaultInitLocalSanctionCache(int(j.gameConf.SanctionCacheDepth))
+	}
+	if len(j.localHistoryCache) != int(j.gameConf.HistoryCacheDepth) {
+		j.localHistoryCache = defaultInitLocalHistoryCache(int(j.gameConf.HistoryCacheDepth))
+	}
 }
 
 func (j *judiciary) broadcastSanctionConfig() {
@@ -62,17 +64,24 @@ func (j *judiciary) loadClientJudge(clientJudgePointer roles.Judge) {
 // sendPresidentSalary conduct the transaction based on amount from client implementation
 func (j *judiciary) sendPresidentSalary() error {
 	if j.clientJudge != nil {
-		amount, presidentPaid := j.clientJudge.PayPresident(j.presidentSalary)
+		amountReturn, presidentPaid := j.clientJudge.PayPresident()
 		if presidentPaid {
 			// Subtract from common resources po
-			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amount, j.gameState)
+			amountWithdraw, withdrawSuccess := WithdrawFromCommonPool(amountReturn, j.gameState)
 
 			if withdrawSuccess {
 				// Pay into the client private resources pool
 				depositIntoClientPrivatePool(amountWithdraw, j.gameState.PresidentID, j.gameState)
+
+				variablesToCache := []rules.VariableFieldName{rules.PresidentPayment}
+				valuesToCache := [][]float64{{float64(amountWithdraw)}}
+				j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 				return nil
 			}
 		}
+		variablesToCache := []rules.VariableFieldName{rules.PresidentPaid}
+		valuesToCache := [][]float64{{boolToFloat(presidentPaid)}}
+		j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 	}
 	return errors.Errorf("Cannot perform sendJudgeSalary")
 }
@@ -84,13 +93,46 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 		return nil, false
 	}
 	finalResults := getBaseEvalResults(shared.TeamIDs)
-	if j.clientJudge.HistoricalRetributionEnabled() {
+	tempResults, success := j.clientJudge.InspectHistory(iigoHistory, 0)
+
+	//Log rule: "Judge has the obligation to inspect history"
+	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
+	valuesToCache := [][]float64{{boolToFloat(success)}}
+	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+
+	if success {
+		//Quit if taking resources goes wrong
+		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
+			return nil, false
+		}
+	}
+
+	//Quit early if CP does not have enough resources for historical Retribution
+	if success && !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
+		finalResults = mergeEvaluationReturn(tempResults, finalResults)
+		entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+		j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
+		j.evaluationResults = finalResults
+		return j.evaluationResults, success
+	}
+
+	//Perform historical checking
+	decisionOfHistoricalRetribution := j.clientJudge.HistoricalRetributionEnabled()
+	if decisionOfHistoricalRetribution {
+		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
+			//Quit if taking resources goes wrong
+			if success {
+				finalResults = mergeEvaluationReturn(tempResults, finalResults)
+				entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+				j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
+				j.evaluationResults = finalResults
+				return j.evaluationResults, success
+			}
+			return nil, false
+		}
 		for turnsAgo, v := range j.localHistoryCache {
 			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)
 			if rsuccess {
-				if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
-					return nil, false
-				}
 				for key, accounts := range res {
 					curr := finalResults[key]
 					curr.Evaluations = append(curr.Evaluations, accounts.Evaluations...)
@@ -99,12 +141,17 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 				}
 			}
 		}
-		j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
+		j.localHistoryCache = defaultInitLocalHistoryCache(int(j.gameConf.HistoryCacheDepth))
 	}
-	tempResults, success := j.clientJudge.InspectHistory(iigoHistory, 0)
+
+	//Log rule: "Judge is not allowed to perform historical retribution"
+	variablesToCache = []rules.VariableFieldName{rules.JudgeHistoricalRetributionPerformed}
+	valuesToCache = [][]float64{{boolToFloat(decisionOfHistoricalRetribution)}}
+	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+
 	finalResults = mergeEvaluationReturn(tempResults, finalResults)
 	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
-	j.cycleHistoryCache(entryForHistoryCache)
+	j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 	j.evaluationResults = finalResults
 	return j.evaluationResults, success
 }
@@ -122,29 +169,46 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 // appointNextPresident returns the island ID of the island appointed to be President in the next turn
 func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, currentPresident shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
 	var election voting.Election
-	var nextPresident shared.ClientID
-	electionsettings := j.clientJudge.CallPresidentElection(monitoring, j.presidentTurnsInPower, allIslands)
-	if electionsettings.HoldElection {
+	var appointedPresident shared.ClientID
+	electionSettings := j.clientJudge.CallPresidentElection(monitoring, int(j.gameState.IIGOTurnsInPower[shared.President]), allIslands)
+
+	//Log election rule
+	termCondition := j.gameState.IIGOTurnsInPower[shared.President] > j.gameConf.IIGOTermLengths[shared.President]
+	variablesToCache := []rules.VariableFieldName{rules.TermEnded, rules.ElectionHeld}
+	valuesToCache := [][]float64{{boolToFloat(termCondition)}, {boolToFloat(electionSettings.HoldElection)}}
+	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+
+	if electionSettings.HoldElection {
 		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
 			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 		}
-		election.ProposeElection(shared.President, electionsettings.VotingMethod)
-		election.OpenBallot(electionsettings.IslandsToVote)
+		election.ProposeElection(shared.President, electionSettings.VotingMethod)
+		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
 		election.Vote(iigoClients)
-		j.presidentTurnsInPower = 0
-		nextPresident = election.CloseBallot()
-		nextPresident = j.clientJudge.DecideNextPresident(nextPresident)
+		j.gameState.IIGOTurnsInPower[shared.President] = 0
+		electedPresident := election.CloseBallot(iigoClients)
+		appointedPresident = j.clientJudge.DecideNextPresident(electedPresident)
+
+		//Log rule: Must appoint elected role
+		appointmentMatchesVote := appointedPresident == electedPresident
+		variablesToCache := []rules.VariableFieldName{rules.AppointmentMatchesVote}
+		valuesToCache := [][]float64{{boolToFloat(appointmentMatchesVote)}}
+		j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 	} else {
-		j.presidentTurnsInPower++
-		nextPresident = currentPresident
+		appointedPresident = currentPresident
 	}
-	return nextPresident, nil
+	return appointedPresident, nil
 }
 
 func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
 	_, ok := WithdrawFromCommonPool(cost, j.gameState)
 	if ok {
 		j.gameState.IIGORolesBudget[shared.Judge] -= cost
+		if j.monitoring != nil {
+			variablesToCache := []rules.VariableFieldName{rules.JudgeLeftoverBudget}
+			valuesToCache := [][]float64{{float64(j.gameState.IIGORolesBudget[shared.Judge])}}
+			j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+		}
 	}
 	return ok
 }
@@ -178,14 +242,14 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 
 // applySanctions uses RulesInPlay and it's versions of the sanction rules to work out how much to sanction an island
 func (j *judiciary) applySanctions() {
-	j.cycleSanctionCache()
+	j.cycleSanctionCache(int(j.gameConf.SanctionCacheDepth))
 	var currentSanctions []roles.Sanction
 	for islandID, sanctionScore := range j.sanctionRecord {
 		islandSanctionTier := getIslandSanctionTier(sanctionScore, j.sanctionThresholds)
 		sanctionEntry := roles.Sanction{
 			ClientID:     islandID,
 			SanctionTier: islandSanctionTier,
-			TurnsLeft:    sanctionLength,
+			TurnsLeft:    int(j.gameConf.SanctionLength),
 		}
 		currentSanctions = append(currentSanctions, sanctionEntry)
 		broadcastToAllIslands(j.JudgeID, createBroadcastForSanction(islandID, islandSanctionTier))
@@ -194,14 +258,14 @@ func (j *judiciary) applySanctions() {
 }
 
 // sanctionEvaluate allows the clients to effectively pardon islands, levy and communicate sanctions
-func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID]shared.Resources) {
+func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID]shared.ResourcesReport) {
 	pardons := j.clientJudge.GetPardonedIslands(j.localSanctionCache)
 	pardonsValid, newSanctionMap, communications := implementPardons(j.localSanctionCache, pardons, shared.TeamIDs)
 	if pardonsValid {
 		broadcastPardonCommunications(j.JudgeID, communications)
 	}
 	j.localSanctionCache = newSanctionMap
-	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay)
+	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay, j.gameConf.AssumedResourcesNoReport)
 	SanctionAmountMapExport = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
 		communicateWithIslands(j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
@@ -214,8 +278,8 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 	j.localSanctionCache = decrementSanctionTime(j.localSanctionCache)
 }
 
-// cycleSanctionCache rolls the sanction cahce one turn forward (effectively dropping any sanctions longer than the depth)
-func (j *judiciary) cycleSanctionCache() {
+// cycleSanctionCache rolls the sanction cache one turn forward (effectively dropping any sanctions longer than the depth)
+func (j *judiciary) cycleSanctionCache(sanctionCacheDepth int) {
 	oldMap := j.localSanctionCache
 	delete(oldMap, sanctionCacheDepth-1)
 	newMapReturn := defaultInitLocalSanctionCache(sanctionCacheDepth)
@@ -227,7 +291,7 @@ func (j *judiciary) cycleSanctionCache() {
 }
 
 // cycleHistoryCache rolls the history cache (for retributive justice) forward
-func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
+func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability, historyCacheDepth int) {
 	oldMap := j.localHistoryCache
 	delete(oldMap, historyCacheDepth-1)
 	newMapReturn := defaultInitLocalHistoryCache(historyCacheDepth)
@@ -236,11 +300,6 @@ func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability) {
 	}
 	newMapReturn[0] = iigoHistory
 	j.localHistoryCache = newMapReturn
-}
-
-// clearHistoryCache wipes the history cache (when retributive justice has happened)
-func (j *judiciary) clearHistoryCache() {
-	j.localHistoryCache = defaultInitLocalHistoryCache(historyCacheDepth)
 }
 
 // Helper functions //
@@ -299,27 +358,32 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSa
 }
 
 // runEvaluationRulesOnSanctions uses the custom sanction evaluator calculate how much each island should be paying in sanctions
-func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.Resources, rulesCache map[string]rules.RuleMatrix) map[shared.ClientID]shared.Resources {
+func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.ResourcesReport, rulesCache map[string]rules.RuleMatrix, maxNoReport shared.Resources) map[shared.ClientID]shared.Resources {
 	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
 	for _, sanctionList := range localSanctionCache {
 		for _, sanction := range sanctionList {
 			ruleName := getTierSanctionMap()[sanction.SanctionTier]
-			ruleMat := rulesCache[ruleName]
-			sanctionVal := evaluateSanction(ruleMat, map[rules.VariableFieldName]rules.VariableValuePair{
-				rules.IslandReportedResources: {
-					VariableName: rules.IslandReportedResources,
-					Values:       []float64{float64(reportedIslandResources[sanction.ClientID])},
-				},
-				rules.ConstSanctionAmount: {
-					VariableName: rules.ConstSanctionAmount,
-					Values:       []float64{0},
-				},
-				rules.TurnsLeftOnSanction: {
-					VariableName: rules.TurnsLeftOnSanction,
-					Values:       []float64{float64(sanction.TurnsLeft)},
-				},
-			})
-			totalSanctionPerAgent[sanction.ClientID] += sanctionVal
+			if ruleMat, ok := rulesCache[ruleName]; ok {
+				resources := maxNoReport
+				if reportedIslandResources[sanction.ClientID].Reported {
+					resources = reportedIslandResources[sanction.ClientID].ReportedAmount
+				}
+				sanctionVal := evaluateSanction(ruleMat, map[rules.VariableFieldName]rules.VariableValuePair{
+					rules.IslandReportedResources: {
+						VariableName: rules.IslandReportedResources,
+						Values:       []float64{float64(resources)},
+					},
+					rules.ConstSanctionAmount: {
+						VariableName: rules.ConstSanctionAmount,
+						Values:       []float64{0},
+					},
+					rules.TurnsLeftOnSanction: {
+						VariableName: rules.TurnsLeftOnSanction,
+						Values:       []float64{float64(sanction.TurnsLeft)},
+					},
+				})
+				totalSanctionPerAgent[sanction.ClientID] += sanctionVal
+			} // TODO: When logger PR is available, pass through here and log the missing sanction
 		}
 	}
 	return totalSanctionPerAgent

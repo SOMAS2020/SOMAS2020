@@ -1,6 +1,11 @@
 package server
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+import (
+	"math"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 // probeDisaster checks if a disaster occurs this turn
 func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
@@ -8,7 +13,7 @@ func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 	defer s.logf("finish probeDisaster")
 
 	e := s.gameState.Environment
-	e = e.SampleForDisaster() // update env instance with sampled disaster info
+	e = e.SampleForDisaster(s.gameConfig.DisasterConfig, s.gameState.Turn) // update env instance with sampled disaster info
 
 	disasterReport := e.DisplayReport(s.gameState.CommonPool, s.gameConfig.DisasterConfig) // displays disaster info and effects
 	s.logf(disasterReport)
@@ -23,5 +28,8 @@ func (s *SOMASServer) applyDisasterEffects() {
 
 	e := s.gameState.Environment
 	effects := e.ComputeDisasterEffects(s.gameState.CommonPool, s.gameConfig.DisasterConfig) // get disaster effects - absolute, proportional and CP-mitigated
-	s.islandDeplete(effects.CommonPoolMitigated)                                             //island's resource will be depleted by disaster only when disaster happens and cp cannot fully mitigate
+	totalResourceImpact := disasters.GetDisasterResourceImpact(s.gameState.CommonPool, effects, s.gameConfig.DisasterConfig)
+	s.islandDeplete(effects.CommonPoolMitigated)
+	s.logf("*** impact: %v, CP: %v, conf: %+v", totalResourceImpact, s.gameState.CommonPool, s.gameConfig.DisasterConfig) //island's resource will be depleted by disaster only when disaster happens and cp cannot fully mitigate
+	s.gameState.CommonPool = shared.Resources(math.Max(float64(s.gameState.CommonPool)-float64(totalResourceImpact), 0))  // deduct disaster damage from CP
 }
