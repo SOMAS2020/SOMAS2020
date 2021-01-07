@@ -193,3 +193,11 @@ func (c *client) gameState() gamestate.ClientGameState {
 func (c *client) gameConfig() config.ClientConfig {
 	return c.BaseClient.ServerReadHandle.GetGameConfig()
 }
+
+func (c *client) addToOpinion(clientID shared.ClientID, opinionChange int) {
+	for idx, opinion := range c.opinionTeams {
+		if opinion.clientID == clientID {
+			c.opinionTeams[idx].opinion += opinionChange
+		}
+	}
+}

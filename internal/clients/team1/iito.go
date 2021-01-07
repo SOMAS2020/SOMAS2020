@@ -122,12 +122,8 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 // that you will implement yourself below. This allows for opinion formation.
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	for id, response := range receivedResponses {
-		for i, team := range c.opinionTeams {
-			if team.clientID == id {
-				if response.Reason == shared.DeclineDontLikeYou {
-					c.opinionTeams[i].opinion--
-				}
-			}
+		if response.Reason == shared.DeclineDontLikeYou {
+			c.addToOpinion(id, -1)
 		}
 	}
 }
