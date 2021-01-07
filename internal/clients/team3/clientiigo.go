@@ -42,6 +42,19 @@ func (c *client) GetClientPresidentPointer() roles.President {
 	return &c.ourPresident
 }
 
+func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
+	candidates := map[int]shared.ClientID{}
+	for i := 0; i < len(candidateList); i++ {
+		candidates[i] = candidateList[i]
+	}
+	// Recombine map, in shuffled order
+	var returnList []shared.ClientID
+	for _, v := range candidates {
+		returnList = append(returnList, v)
+	}
+	return returnList
+}
+
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
 func (c *client) resetIIGOInfo() {
 	c.iigoInfo.ourRole = nil // TODO unused, remove
@@ -114,7 +127,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 		},
 	}
 	recommendedValues := c.dynamicAssistedResult(variablesChanged)
-	resolve := shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
+	resolve := shared.Resources(recommendedValues[rules.IslandTaxContribution].Values[rules.SingleValueVariableEntry])
 	if c.params.complianceLevel > 80 {
 		return resolve
 	}

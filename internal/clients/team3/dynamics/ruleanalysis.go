@@ -126,7 +126,7 @@ func translateDynamic(inputDyn dynamic) []float64 {
 	nRows, _ := w.Dims()
 	outputVect := []float64{}
 	for i := 0; i < nRows; i++ {
-		outputVect = append(outputVect)
+		outputVect = append(outputVect, w.AtVec(i))
 	}
 	outputVect = append(outputVect, inputDyn.b)
 	return outputVect
