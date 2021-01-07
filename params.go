@@ -72,12 +72,12 @@ var (
 	)
 	foragingDeerInputScaler = flag.Float64(
 		"foragingDeerInputScaler",
-		12,
+		15,
 		"scalar value that adjusts deer input resources to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerOutputScaler = flag.Float64(
 		"foragingDeerOutputScaler",
-		40,
+		20,
 		"scalar value that adjusts deer returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerDistributionStrategy = flag.Int(
@@ -102,7 +102,7 @@ var (
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",
-		0.2,
+		0.5,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
 
@@ -114,7 +114,7 @@ var (
 	)
 	foragingFishingIncrementalInputDecay = flag.Float64(
 		"foragingFishingIncrementalInputDecay",
-		0.8,
+		0.6,
 		"Determines decay of incremental input cost of catching more fish.",
 	)
 	foragingFishingMean = flag.Float64(
@@ -134,12 +134,12 @@ var (
 	)
 	foragingFishingOutputScaler = flag.Float64(
 		"foragingFishingOutputScaler",
-		5,
+		15,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(
 		"foragingFishingDistributionStrategy",
-		int(shared.EqualSplit),
+		int(shared.InputProportionalSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
 
@@ -181,7 +181,7 @@ var (
 	)
 	disasterMagnitudeResourceMultiplier = flag.Float64(
 		"disasterMagnitudeResourceMultiplier",
-		500,
+		100,
 		"Multiplier to map disaster magnitude to CP resource deductions",
 	)
 	disasterCommonpoolThreshold = flag.Float64(
