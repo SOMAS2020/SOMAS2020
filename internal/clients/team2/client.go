@@ -42,7 +42,7 @@ const (
 	President     Situation = "President"
 	Judge         Situation = "Judge"
 	Speaker       Situation = "Speaker"
-	Foraging      Situation = "Foraging"
+	Foraging      Situation = "DisasterPred"
 	GiftWeRequest Situation = "Gifts"
 )
 
@@ -68,8 +68,13 @@ type GiftExchange struct {
 }
 
 type DisasterOccurence struct {
-	Turn   float64
+	Turn   uint
 	Report disasters.DisasterReport
+}
+
+type PredictionInfo struct {
+	Prediction shared.DisasterPrediction
+	Turn       uint
 }
 
 // Currently what want to use to get archipelago geography but talking to Yannis to get this fixed
@@ -78,7 +83,7 @@ type DisasterOccurence struct {
 
 // A set of constants that define tuning parameters
 const (
-	// Disasters
+	// Disasters (0, infinity]
 	TuningParamK             float64 = 1
 	VarianceCapTimeRemaining float64 = 10000
 	TuningParamG             float64 = 1
@@ -86,10 +91,10 @@ const (
 )
 
 type OpinionHist map[shared.ClientID]Opinion
-type PredictionsHist map[shared.ClientID][]shared.DisasterPrediction
+type PredictionsHist map[shared.ClientID][]PredictionInfo
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo
 type GiftHist map[shared.ClientID]GiftExchange
-type DisasterHistory map[int]DisasterOccurence
+type DisasterHistory []DisasterOccurence
 
 // we have to initialise our client somehow
 type client struct {
@@ -152,12 +157,24 @@ func criticalStatus(c *client) bool {
 	return false
 }
 
-//TODO: how does this work?
+// DisasterNotification notifiues each team if a disaster occurs. Each team recieves a  report on the disaster
+// and the effect on them
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
-	c.disasterHistory[len(c.disasterHistory)] = DisasterOccurence{
-		Turn:   float64(c.gameState().Turn),
+	if c.disasterHistory == nil {
+		c.disasterHistory = make(DisasterHistory, 0)
+	}
+	currDisaster := DisasterOccurence{
+		Turn:   c.gameState().Turn,
 		Report: report,
 	}
+	c.disasterHistory = append(c.disasterHistory, currDisaster)
+	c.updateDisasterConf()
+
+	// Check this actually resets the values stored in PredictionsHist
+	for island, predictions := range c.predictionHist {
+		c.predictionHist[island] = predictions[:0]
+	}
+
 }
 
 //checkOthersCrit checks if anyone else is critical

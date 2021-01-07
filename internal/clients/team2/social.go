@@ -1,6 +1,7 @@
 package team2
 
 import (
+	"math"
 	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -25,11 +26,13 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 	sum := 0
 	div := 0
 	// TODO: change list iteration to just look at the turns we have info abt
+	if len(situationHist) == 0 {
+		return 50
+	}
 	for i := len(situationHist); i > 0; i-- {
 		sum += (situationHist[i-1]) * i
 		div += i
 	}
-
 	average := sum / div
 
 	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
@@ -189,4 +192,49 @@ func (c *client) credibility(situation Situation, otherIsland shared.ClientID) i
 	// how they acted during a role
 	// performance (how well they are doing)
 	return 0
+}
+
+// disasters:
+
+// how accurate they were -- once a disaster happens
+// 	magnitude and time remaining until disaster
+
+// check avg of their predictions over that season vs magnitude that actually occurred
+// number of turns off
+// confidence
+
+//This function is called when a disaster occurs to update our confidence on others' predictions
+func (c *client) updateDisasterConf() {
+	disasterMag := c.disasterHistory[len(c.disasterHistory)-1].Report.Magnitude
+	disasterTurn := c.disasterHistory[len(c.disasterHistory)-1].Turn
+	for island, predictions := range c.predictionHist {
+		avgMag := 0.0
+		avgConf := 0.0
+		avgTurn := 0
+		for _, prediction := range predictions {
+			avgMag += prediction.Prediction.Magnitude
+			avgConf += prediction.Prediction.Confidence
+			avgTurn += int(prediction.Turn)
+		}
+
+		// The three metrics we will assess an island by
+		avgTurn = avgTurn / len(predictions)
+		avgMag = avgMag / float64(len(predictions))
+		avgConf = avgConf / float64(len(predictions))
+
+		magError := int(100 * math.Abs(avgMag-disasterMag) / disasterMag)                    // percentage error
+		turnError := int(100 * math.Abs(float64((uint(avgTurn)-disasterTurn)/disasterTurn))) // percentage error
+
+		predError := int(avgConf) * (magError + turnError)
+
+		predConf := 100 - setLimits(predError)
+
+		c.opinionHist[island].Performances["DisasterPred"] = ExpectationReality{
+			real: predConf,
+		}
+
+		c.confidenceRestrospect("DisasterPred", island)
+
+	}
+
 }
