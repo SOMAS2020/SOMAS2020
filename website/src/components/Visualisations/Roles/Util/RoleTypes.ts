@@ -1,110 +1,173 @@
-type Role = "president" | "judge" | "speaker" | "none";
+export type RoleName = "Pres" | "Judge" | "Speaker";
 
-export class TurnsInRoles {
-    president: number;
-    judge: number;
-    speaker: number;
-    none: number;
+export class TeamAndTurns {
+    Team1: number;
+    Team2: number;
+    Team3: number;
+    Team4: number;
+    Team5: number;
+    Team6: number;
 
     constructor(
-        president?: number,
-        judge?: number,
-        speaker?: number,
-        none?: number
+        team1: number = 0,
+        team2: number = 0,
+        team3: number = 0,
+        team4: number = 0,
+        team5: number = 0,
+        team6: number = 0
     ) {
-        this.president = president || 0;
-        this.judge = judge || 0;
-        this.speaker = speaker || 0;
-        this.none = none || 0;
+        this.Team1 = team1;
+        this.Team2 = team2;
+        this.Team3 = team3;
+        this.Team4 = team4;
+        this.Team5 = team5;
+        this.Team6 = team6;
     }
 
-    set(role: Role, val: number) {
-        switch (role) {
-            case "president": {
-                this.president = val;
+    set(key: string, val: number) {
+        switch (key) {
+            case "Team1": {
+                this.Team1 = val;
                 break;
             }
-            case "judge": {
-                this.judge = val;
+            case "Team2": {
+                this.Team2 = val;
                 break;
             }
-            case "speaker": {
-                this.speaker = val;
+            case "Team3": {
+                this.Team3 = val;
                 break;
             }
-            case "none": {
-                this.none = val;
+            case "Team4": {
+                this.Team4 = val;
+                break;
+            }
+            case "Team5": {
+                this.Team5 = val;
+                break;
+            }
+            case "Team6": {
+                this.Team6 = val;
                 break;
             }
         }
     }
 
-    increment(role: Role) {
-        switch (role) {
-            case "president": {
-                this.president += 1;
+    get(key: string): number {
+        switch (key) {
+            case "Team1":
+                return this.Team1;
+            case "Team2":
+                return this.Team2;
+            case "Team3":
+                return this.Team3;
+            case "Team4":
+                return this.Team4;
+            case "Team5":
+                return this.Team5;
+            case "Team6":
+                return this.Team6;
+            default:
+                return 0;
+        }
+    }
+
+    has(key: string): boolean {
+        switch (key) {
+            case "Team1":
+                return this.Team1 !== 0;
+            case "Team2":
+                return this.Team2 !== 0;
+            case "Team3":
+                return this.Team3 !== 0;
+            case "Team4":
+                return this.Team4 !== 0;
+            case "Team5":
+                return this.Team5 !== 0;
+            case "Team6":
+                return this.Team6 !== 0;
+            default:
+                return false;
+        }
+    }
+
+    increment(key: string, val: number = 1) {
+        switch (key) {
+            case "Team1": {
+                this.Team1 += val;
                 break;
             }
-            case "judge": {
-                this.judge += 1;
+            case "Team2": {
+                this.Team2 += val;
                 break;
             }
-            case "speaker": {
-                this.speaker += 1;
+            case "Team3": {
+                this.Team3 += val;
                 break;
             }
-            case "none": {
-                this.none += 1;
+            case "Team4": {
+                this.Team4 += val;
+                break;
+            }
+            case "Team5": {
+                this.Team5 += val;
+                break;
+            }
+            case "Team6": {
+                this.Team6 += val;
                 break;
             }
         }
     }
 
-    get(role: Role) {
-        switch (role) {
-            case "president": {
-                return this.president;
-            }
-            case "judge": {
-                return this.judge;
-            }
-            case "speaker": {
-                return this.speaker;
-            }
-            case "none": {
-                return this.none;
-            }
-        }
+    touched(): boolean {
+        return (
+            this.Team1 !== 0 ||
+            this.Team2 !== 0 ||
+            this.Team3 !== 0 ||
+            this.Team4 !== 0 ||
+            this.Team5 !== 0 ||
+            this.Team6 !== 0
+        );
     }
 
-    toPairs(): [string, number][] {
+    turns(): number {
+        return (
+            this.Team1 +
+            this.Team2 +
+            this.Team3 +
+            this.Team4 +
+            this.Team5 +
+            this.Team6
+        );
+    }
+
+    add(teamAndTurns: TeamAndTurns): TeamAndTurns {
+        return new TeamAndTurns(
+            this.Team1 + teamAndTurns.Team1,
+            this.Team2 + teamAndTurns.Team2,
+            this.Team3 + teamAndTurns.Team3,
+            this.Team4 + teamAndTurns.Team4,
+            this.Team5 + teamAndTurns.Team5,
+            this.Team6 + teamAndTurns.Team6
+        );
+    }
+
+    map<T>(func: (team: string, turns: number) => T): T[] {
         return [
-            ["President", this.president],
-            ["Judge", this.judge],
-            ["Speaker", this.speaker],
-            ["None", this.none],
+            func("Team1", this.Team1),
+            func("Team2", this.Team2),
+            func("Team3", this.Team3),
+            func("Team4", this.Team4),
+            func("Team5", this.Team5),
+            func("Team6", this.Team6),
         ];
     }
 }
 
-export class ProcessedRoleElement {
-    name: string;
-    roles: TurnsInRoles[];
+export type ProcessedRoleElem = {
+    role: RoleName;
+    occupied: TeamAndTurns[];
+};
 
-    constructor(name: string, roles: TurnsInRoles[] = [new TurnsInRoles()]) {
-        this.name = name;
-        this.roles = roles;
-    }
-
-    increment(role: Role) {
-        if (this.roles.length > 0 && this.roles[this.roles.length - 1].get(role) !== 0) {
-            this.roles[this.roles.length - 1].increment(role);
-        } else {
-            const newTurnsInRoles = new TurnsInRoles();
-            newTurnsInRoles.increment(role);
-            this.roles.push(newTurnsInRoles);
-        }
-    }
-}
-
-export type ProcessedRoleData = ProcessedRoleElement[];
+export type ProcessedRoleData = ProcessedRoleElem[];
