@@ -18,6 +18,8 @@ const emptyMetrics = (): metricsType => ({
     Team6: 0,
 });
 
+const teamNames = [ "Team1", "Team2", "Team3", "Team4", "Team5", "Team6" ];
+
 export type AcheivementEntry = {
     title: string,
     description: string,
@@ -26,16 +28,20 @@ export type AcheivementEntry = {
 };
 
 const peakResourcesMetricCollection = (data: OutputJSONType): metricsType => (
-    data.GameStates.reduce((metrics, gameState) => {
-        return metrics
-    }, emptyMetrics())
+    data.GameStates.reduce((metrics: metricsType, gameState) => (
+        teamNames.reduce((metAcc, teamName) => {
+            const teamResources: number = gameState.ClientInfos[teamName].Resources
+            metAcc[teamName] = teamResources > metAcc[teamName] ? teamResources : metAcc[teamName]
+            return metAcc
+        }, metrics)
+    ), emptyMetrics())
 );
 
 const acheivementList: AcheivementEntry[] = [
     {
         title: "Jackpot!",
         description: "Island with the highest peak resources",
-        collectMetrics: peakResourcesMetricCollection, //TODO: implement
+        collectMetrics: peakResourcesMetricCollection,
         evalLargest: true,
     },
     {
