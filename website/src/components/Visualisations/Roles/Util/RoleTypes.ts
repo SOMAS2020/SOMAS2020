@@ -107,6 +107,37 @@ export class TeamAndTurns {
             || this.Team5 !== 0
             || this.Team6 !== 0;
     }
+
+    turns(): number {
+        return this.Team1
+            + this.Team2
+            + this.Team3
+            + this.Team4
+            + this.Team5
+            + this.Team6;
+    }
+
+    add(teamAndTurns: TeamAndTurns): TeamAndTurns {
+        return new TeamAndTurns(
+            this.Team1 + teamAndTurns.Team1,
+            this.Team2 + teamAndTurns.Team2,
+            this.Team3 + teamAndTurns.Team3,
+            this.Team4 + teamAndTurns.Team4,
+            this.Team5 + teamAndTurns.Team5,
+            this.Team6 + teamAndTurns.Team6,
+        );
+    }
+
+    map<T>(func: (team: string, turns: number) => T): T[] {
+        return [
+            func("Team1", this.Team1),
+            func("Team2", this.Team2),
+            func("Team3", this.Team3),
+            func("Team4", this.Team4),
+            func("Team5", this.Team5),
+            func("Team6", this.Team6),
+        ];
+    }
 };
 
 export type ProcessedRoleElem = {
