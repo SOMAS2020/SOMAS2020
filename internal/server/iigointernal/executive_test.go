@@ -593,6 +593,7 @@ func TestGetAllocationRequests(t *testing.T) {
 }
 
 func TestReplyAllocationRequest(t *testing.T) {
+	var logging shared.Logger = func(format string, a ...interface{}) {}
 	cases := []struct {
 		name           string
 		bPresident     executive // base
@@ -606,6 +607,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				PresidentID:     5,
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
+				logger:          logging,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 5,
@@ -631,6 +633,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				PresidentID:     1,
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
+				logger:          logging,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 5,
@@ -656,6 +659,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				PresidentID:     3,
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
+				logger:          logging,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 0,
@@ -839,6 +843,7 @@ func expectedTax(r shared.ResourcesReport) shared.Resources {
 }
 
 func TestBroadcastTaxation(t *testing.T) {
+	var logging shared.Logger = func(format string, a ...interface{}) {}
 	cases := []struct {
 		name          string
 		bPresident    executive // base
@@ -850,6 +855,7 @@ func TestBroadcastTaxation(t *testing.T) {
 			bPresident: executive{
 				PresidentID:     shared.Team4,
 				clientPresident: &baseclient.BasePresident{},
+				logger:          logging,
 			},
 			clientReports: map[shared.ClientID]shared.ResourcesReport{
 				shared.Team1: {ReportedAmount: 30, Reported: true},
@@ -866,6 +872,7 @@ func TestBroadcastTaxation(t *testing.T) {
 			bPresident: executive{
 				PresidentID:     shared.Team1,
 				clientPresident: &baseclient.BasePresident{},
+				logger:          logging,
 			},
 			clientReports: map[shared.ClientID]shared.ResourcesReport{
 				shared.Team1: {ReportedAmount: 30, Reported: true},
