@@ -238,4 +238,8 @@ var StaticVariables = []VariableValuePair{
 		VariableName: AppointmentMatchesVote,
 		Values:       []float64{0},
 	},
+	{
+		VariableName: TaxDecisionMade,
+		Values:       []float64{1},
+	},
 }
