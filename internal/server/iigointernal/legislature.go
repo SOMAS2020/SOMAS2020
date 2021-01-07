@@ -112,7 +112,9 @@ func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.Cl
 		return voting.BallotBox{}
 	}
 	l.Logf("Rule vote with islands %v allowed to vote", clientIDs)
-	ruleVote := voting.RuleVote{}
+	ruleVote := voting.RuleVote{
+		Logger: l.logger,
+	}
 
 	//TODO: check if rule is valid, otherwise return empty ballot, raise error?
 	ruleVote.SetRule(ruleMatrix)
@@ -227,7 +229,9 @@ func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn boo
 
 // appointNextJudge returns the island ID of the island appointed to be Judge in the next turn
 func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJudge shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
-	var election voting.Election
+	var election = voting.Election{
+		Logger: l.logger,
+	}
 	var appointedJudge shared.ClientID
 	electionSettings := l.clientSpeaker.CallJudgeElection(monitoring, int(l.gameState.IIGOTurnsInPower[shared.Judge]), allIslands)
 
