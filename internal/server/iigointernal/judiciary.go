@@ -24,6 +24,11 @@ type judiciary struct {
 	localSanctionCache    map[int][]roles.Sanction
 	localHistoryCache     map[int][]shared.Accountability
 	monitoring            *monitor
+	logger                shared.Logger
+}
+
+func (j *judiciary) Logf(format string, a ...interface{}) {
+	j.logger("[JUDICIARY]: %v", fmt.Sprintf(format, a...))
 }
 
 // Loads ruleViolationSeverity and sanction thresholds
@@ -168,7 +173,9 @@ func searchForRule(ruleName string, listOfRuleMatrices []rules.RuleMatrix) (int,
 
 // appointNextPresident returns the island ID of the island appointed to be President in the next turn
 func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, currentPresident shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
-	var election voting.Election
+	var election = voting.Election{
+		Logger: j.logger,
+	}
 	var appointedPresident shared.ClientID
 	electionSettings := j.clientJudge.CallPresidentElection(monitoring, int(j.gameState.IIGOTurnsInPower[shared.President]), allIslands)
 
@@ -194,6 +201,7 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		variablesToCache := []rules.VariableFieldName{rules.AppointmentMatchesVote}
 		valuesToCache := [][]float64{{boolToFloat(appointmentMatchesVote)}}
 		j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+		j.Logf("Result of election for new President: %v", appointedPresident)
 	} else {
 		appointedPresident = currentPresident
 	}
@@ -235,6 +243,7 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 			} else {
 				totalIslandTurnScore += roles.IIGOSanctionScore(1)
 			}
+			j.Logf("Rule: %v, broken by: %v", ruleBroken, islandID)
 		}
 		j.sanctionRecord[islandID] += totalIslandTurnScore
 	}

@@ -1,6 +1,8 @@
 package voting
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -12,11 +14,17 @@ type RuleVote struct {
 	voterList  []shared.ClientID
 	//Held by RuleVote
 	ballots []shared.RuleVoteType
+	Logger  shared.Logger
 }
 
 type BallotBox struct {
 	VotesInFavour uint
 	VotesAgainst  uint
+}
+
+// Logf is the rule vote logger
+func (v *RuleVote) Logf(format string, a ...interface{}) {
+	v.Logger("[RULE VOTE]: %v", fmt.Sprintf(format, a...))
 }
 
 // SetRule is called by baseSpeaker to set the rule to be voted on.
@@ -38,6 +46,7 @@ func (v *RuleVote) GatherBallots(clientMap map[shared.ClientID]baseclient.Client
 			v.ballots = append(v.ballots, clientMap[v.voterList[i]].VoteForRule(v.ruleToVote))
 		}
 	}
+	v.Logf("Votes: %v", v.ballots)
 }
 
 //GetBallotBox is called by baseSpeaker and
@@ -46,7 +55,7 @@ func (v *RuleVote) GetBallotBox() BallotBox {
 	//The following is in accordance with anonymous voting
 	//Abstentions will not be considered(vote[1]==true)
 	var outcome BallotBox
-	for i:=0;i<len(v.ballots);i++ {
+	for i := 0; i < len(v.ballots); i++ {
 		if v.ballots[i] == shared.Approve {
 			outcome.VotesInFavour += 1
 		} else if v.ballots[i] == shared.Reject {

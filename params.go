@@ -12,12 +12,12 @@ var (
 	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
-		10,
+		100,
 		"The maximum number of 1-indexed seasons to run the game.",
 	)
 	maxTurns = flag.Uint(
 		"maxTurns",
-		10,
+		100,
 		"The maximum numbers of 1-indexed turns to run the game.",
 	)
 	initialResources = flag.Float64(
@@ -328,6 +328,24 @@ var (
 		"Sanction length for all sanctions",
 	)
 
+	iigoTermLengthPresident = flag.Uint(
+		"iigoTermLengthPresident",
+		4,
+		"Length of the term for the President",
+	)
+
+	iigoTermLengthSpeaker = flag.Uint(
+		"iigoTermLengthSpeaker",
+		4,
+		"Length of the term for the Speaker",
+	)
+
+	iigoTermLengthJudge = flag.Uint(
+		"iigoTermLengthJudge",
+		4,
+		"Length of the term for the Judge",
+	)
+
 	startWithRulesInPlay = flag.Bool(
 		"startWithRulesInPlay",
 		true,
@@ -406,6 +424,9 @@ func parseConfig() (config.Config, error) {
 	}
 
 	iigoConf := config.IIGOConfig{
+		IIGOTermLengths: map[shared.Role]uint{shared.President: *iigoTermLengthPresident,
+			shared.Speaker: *iigoTermLengthSpeaker,
+			shared.Judge:   *iigoTermLengthJudge},
 		// Executive branch
 		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
 		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),

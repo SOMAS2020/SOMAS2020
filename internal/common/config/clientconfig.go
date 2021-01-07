@@ -13,6 +13,7 @@ type ClientConfig struct {
 
 // ClientIIGOConfig contains iigo config fields that is visible to clients
 type ClientIIGOConfig struct {
+	IIGOTermLengths map[shared.Role]uint
 	// Executive branch
 	GetRuleForSpeakerActionCost        shared.Resources
 	BroadcastTaxationActionCost        shared.Resources
