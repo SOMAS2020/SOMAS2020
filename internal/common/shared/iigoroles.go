@@ -20,11 +20,10 @@ const (
 type RuleVoteType int
 
 const (
-	Approve = iota
+	Approve RuleVoteType = iota
 	Reject
 	Abstain
 )
-
 
 func (r Role) String() string {
 	strs := [...]string{"President", "Speaker", "Judge"}
