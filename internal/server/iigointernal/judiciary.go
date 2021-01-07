@@ -24,6 +24,11 @@ type judiciary struct {
 	localSanctionCache    map[int][]roles.Sanction
 	localHistoryCache     map[int][]shared.Accountability
 	monitoring            *monitor
+	logger                shared.Logger
+}
+
+func (j *judiciary) Logf(format string, a ...interface{}) {
+	j.logger("[JUDICIARY]: %v", fmt.Sprintf(format, a...))
 }
 
 // Loads ruleViolationSeverity and sanction thresholds
@@ -194,6 +199,7 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		variablesToCache := []rules.VariableFieldName{rules.AppointmentMatchesVote}
 		valuesToCache := [][]float64{{boolToFloat(appointmentMatchesVote)}}
 		j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
+		j.Logf("Result of election for new President: %v", appointedPresident)
 	} else {
 		appointedPresident = currentPresident
 	}
@@ -235,6 +241,7 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 			} else {
 				totalIslandTurnScore += roles.IIGOSanctionScore(1)
 			}
+			j.Logf("Rule: %v, broken by: %v", ruleBroken, islandID)
 		}
 		j.sanctionRecord[islandID] += totalIslandTurnScore
 	}
