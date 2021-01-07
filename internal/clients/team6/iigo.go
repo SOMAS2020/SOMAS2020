@@ -67,7 +67,10 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 		return fakeReport
 	}
 
-	return c.BaseClient.ResourceReport()
+	return shared.ResourcesReport{
+		ReportedAmount: ourResources,
+		Reported:       true,
+	}
 }
 
 func (c *client) GetTaxContribution() shared.Resources {
