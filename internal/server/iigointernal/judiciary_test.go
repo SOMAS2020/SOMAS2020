@@ -1929,6 +1929,7 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 }
 
 func defaultInitJudiciary() judiciary {
+	var logging shared.Logger = func(format string, a ...interface{}) {}
 	return judiciary{
 		JudgeID:               0,
 		evaluationResults:     map[shared.ClientID]roles.EvaluationReturn{},
@@ -1948,6 +1949,7 @@ func defaultInitJudiciary() judiciary {
 				shared.Judge:     10,
 			},
 		},
+		logger: logging,
 	}
 }
 
