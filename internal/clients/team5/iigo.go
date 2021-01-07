@@ -15,9 +15,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	turn := c.getTurn()
 	currentCP := c.getCP()
 
-	if turn == 1 && c.getSeason() == 1 {
-		reqAmount = c.config.imperialThreshold
-	} else if c.wealth() == imperialStudent || c.wealth() == dying {
+	if c.wealth() == imperialStudent || c.wealth() == dying {
 		// If we are as poor as imperial student, request more resource from cp (whichever number is higher)
 		reqAmount = shared.Resources(math.Max(float64(c.config.imperialThreshold), float64(currentCP/6)))
 
