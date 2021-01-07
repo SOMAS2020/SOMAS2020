@@ -3,7 +3,9 @@ package team4
 
 import (
 	"fmt"
+	"math"
 	"reflect"
+	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -34,10 +36,11 @@ type client struct {
 	clientSpeaker          speaker
 
 	//custom fields
-	yes           string              //this field is just for testing
-	obs           *observation        //observation is the raw input into our client
-	internalParam *internalParameters //internal parameter store the useful parameters for the our agent
-	savedHistory  map[uint]map[shared.ClientID]judgeHistoryInfo
+	yes                string              //this field is just for testing
+	obs                *observation        //observation is the raw input into our client
+	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
+	idealRulesCachePtr *map[string]rules.RuleMatrix
+	savedHistory       map[uint]map[shared.ClientID]judgeHistoryInfo
 }
 
 // Store extra information which is not in the server and is helpful for our client
@@ -109,7 +112,7 @@ type personality struct {
 
 /////////////////////////
 
-//Overriding the Initialise method of the BaseClient to initilise the trust matrix too
+//Overriding and extending the Initialise method of the BaseClient to initilise our client
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// c.BaseClient.Initialise(serverReadHandle)
 	c.ServerReadHandle = serverReadHandle
@@ -130,6 +133,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 		iitoObs: iitoObs,
 	}
 
+	c.idealRulesCachePtr = deepCopyRulesCache(rules.AvailableRules)
+
 	// numClient := len(shared.TeamIDs)
 	// v := make([]float64, numClient*numClient)
 	// for i := range v {
@@ -138,6 +143,14 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// c.internalParam = &internalParameters{
 	// 	trustMatrix: mat.NewDense(numClient, numClient, v),
 	// }
+}
+
+func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
+	idealRulesCache := map[string]rules.RuleMatrix{}
+	for k, v := range AvailableRules {
+		idealRulesCache[k] = v
+	}
+	return &idealRulesCache
 }
 
 //Overriding the StartOfTurn method of the BaseClient
@@ -149,4 +162,85 @@ func (c *client) StartOfTurn() {
 	================================================`)
 	c.Logf("this is a %v for you ", c.yes)
 	fmt.Println(reflect.TypeOf(c))
+}
+
+// GetVoteForRule returns the client's vote in favour of or against a rule.
+// COMPULSORY: vote to represent your island's opinion on a rule
+func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
+	// TODO implement decision on voting that considers the rule
+	ruleDistance := c.decideRuleDistance(ruleMatrix)
+	if ruleDistance < 5 { // TODO: calibrate the distance ranges
+		return shared.Reject
+	} else if ruleDistance < 15 {
+		return shared.Abstain
+	} else if ruleDistance >= 15 {
+		return shared.Approve
+	}
+	return shared.Abstain
+}
+
+// decideRuleDistance returns the evaluated distance for the rule given in the argument
+func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
+	// link rules
+	// rules with 0(==) as auxiliary vector element(s)
+
+	// find rule correspondent to the rule that you need to evaluate
+	idealRuleMatrix := (*c.idealRulesCachePtr)[ruleMatrix.RuleName]
+
+	// calculate a distance and a distance
+	distance := 0.0
+	for i := 0; i < ruleMatrix.AuxiliaryVector.Len(); i++ {
+		currentAuxValue := ruleMatrix.AuxiliaryVector.AtVec(i)
+		for j := range ruleMatrix.RequiredVariables {
+
+			idealValue := idealRuleMatrix.ApplicableMatrix.At(i, j)
+			actualValue := ruleMatrix.ApplicableMatrix.At(i, j)
+
+			if currentAuxValue == 0 {
+				// ==0 condition
+				distance += math.Abs(idealValue-actualValue) / idealValue
+			} else if currentAuxValue == 1 {
+				// TODO: ACTUALLY IMPLEMENT THESE CONDITIONS
+				// >0 condition
+				distance += 10000
+			} else if currentAuxValue == 2 {
+				// >=0 condition
+				distance += 10000
+			} else if currentAuxValue == 3 {
+				// !=0 condition
+				distance += math.Abs(idealValue-actualValue) / idealValue
+			} else if currentAuxValue == 4 {
+				distance += 10000
+				// it returns the value of the calculation
+			}
+		}
+
+	}
+
+	return distance
+}
+
+// GetVoteForElection returns the client's Borda vote for the role to be elected.
+// COMPULSORY: use opinion formation to decide a rank for islands for the role
+func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
+
+	trustToID := map[float64]shared.ClientID{}
+	trustList := []float64{}
+	returnList := []shared.ClientID{}
+	for i := 0; i < len(candidateList); i++ {
+		trustScore := c.internalParam.agentsTrust[candidateList[i]]
+		trustToID[trustScore] = candidateList[i]
+		trustList = append(trustList, trustScore)
+	}
+	sort.Float64s(trustList)
+
+	for i := len(trustList) - 1; i >= 0; i-- {
+		// The idea is to have the very untrusted island to split the points in order
+		// to increase the gap with good islands that we include and that we want to be elected.
+		if trustList[i] > 0.25 { //TODO: calibrate the trustScore so we don't always not rank
+			returnList = append(returnList, trustToID[trustList[i]])
+		}
+	}
+
+	return returnList
 }

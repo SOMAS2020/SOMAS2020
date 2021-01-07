@@ -16,15 +16,15 @@ const (
 	Judge
 )
 
-//Rule vote types
+//RuleVoteType is the type of vote for each ballot
 type RuleVoteType int
 
+// type of vote for each ballot
 const (
-	Approve = iota
+	Approve RuleVoteType = iota
 	Reject
 	Abstain
 )
-
 
 func (r Role) String() string {
 	strs := [...]string{"President", "Speaker", "Judge"}
