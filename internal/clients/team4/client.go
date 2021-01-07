@@ -13,14 +13,13 @@ const id = shared.Team4
 
 func init() {
 	team4client := client{
-		BaseClient: baseclient.NewClient(id),
-		clientJudge: judge{
-			BaseJudge: &baseclient.BaseJudge{},
-			t:         nil,
-		},
-		clientSpeaker: speaker{
-			BaseSpeaker: &baseclient.BaseSpeaker{},
-		},
+		BaseClient:    baseclient.NewClient(id),
+		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
+		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		yes:           "",
+		obs:           &observation{},
+		internalParam: &internalParameters{},
+		savedHistory:  map[uint]map[shared.ClientID]judgeHistoryInfo{},
 	}
 	team4client.clientSpeaker.parent = &team4client
 
@@ -36,6 +35,7 @@ type client struct {
 	yes           string              //this field is just for testing
 	obs           *observation        //observation is the raw input into our client
 	internalParam *internalParameters //internal parameter store the useful parameters for the our agent
+	savedHistory  map[uint]map[shared.ClientID]judgeHistoryInfo
 }
 
 // Store extra information which is not in the server and is helpful for our client
