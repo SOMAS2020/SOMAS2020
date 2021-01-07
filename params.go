@@ -328,6 +328,24 @@ var (
 		"Sanction length for all sanctions",
 	)
 
+	iigoTermLenghtPresident = flag.Uint(
+		"iigoTermLenghtPresident",
+		4,
+		"Length of the term for the President",
+	)
+
+	iigoTermLenghtSpeaker = flag.Uint(
+		"iigoTermLenghtSpeaker",
+		4,
+		"Length of the term for the Speaker",
+	)
+
+	iigoTermLenghtJudge = flag.Uint(
+		"iigoTermLenghtJudge",
+		4,
+		"Length of the term for the Judge",
+	)
+
 	startWithRulesInPlay = flag.Bool(
 		"startWithRulesInPlay",
 		true,
@@ -406,6 +424,9 @@ func parseConfig() (config.Config, error) {
 	}
 
 	iigoConf := config.IIGOConfig{
+		IIGOTermLengths: map[shared.Role]uint{shared.President: *iigoTermLenghtPresident,
+			shared.Speaker: *iigoTermLenghtSpeaker,
+			shared.Judge:   *iigoTermLenghtJudge},
 		// Executive branch
 		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
 		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),
