@@ -88,8 +88,10 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 				ret := rules.EvaluateRule(rule)
 				if ret.EvalError == nil {
 					performedRoleCorrectly = ret.RulePasses && performedRoleCorrectly
+					if !ret.RulePasses {
+						m.Logf("Rule: %v , broken by: %v", rule, roleToMonitorID)
+					}
 				}
-				m.Logf("Rule: %v , broken by: %v", rule, roleToMonitorID)
 			}
 		}
 	}
