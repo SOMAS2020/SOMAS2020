@@ -13,8 +13,8 @@ export function runForceGraph(
     const links = linksData.map((d) => Object.assign({}, d));
     const nodes = nodesData.map((d) => Object.assign({}, d));
 
-    // console.log({ links });
-    // console.log({ nodes });
+    console.log({ links });
+    console.log({ nodes });
 
     const containerRect = container.getBoundingClientRect();
     const height = containerRect.height;

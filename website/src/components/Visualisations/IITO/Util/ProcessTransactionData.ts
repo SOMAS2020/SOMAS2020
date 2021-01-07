@@ -25,8 +25,7 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
     let acc: Transaction[] = []
     let IIGOHistories = Object.entries(data.GameStates[data.GameStates.length - 1].IIGOHistory)
     IIGOHistories.map(([_, exchanges]: [string, any]) => {
-
-        if (exchanges)
+        if (exchanges) {
             exchanges.map(teamAction => {
                 let type = teamAction.Pairs[0].VariableName
                 let transaction: Transaction;
@@ -48,6 +47,7 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
                 }
                 transaction.amount ? acc.push(transaction) : console.log("no bueno");
             })
+        }
     })
     return acc;
 }
@@ -106,6 +106,8 @@ function processTransactionData(data: OutputJSONType) {
     //         curr.to === team ? (acc + curr.amount) : (acc - curr.amount), 0)
     // )
 
+    // TODO: fix logic error here
+    // TODO: absolute it and make them green or red
     nodes = bubbleIds.map(team =>
         allTransactions.filter(
             transaction => (transaction.from === team) || (transaction.to === team)
@@ -118,7 +120,8 @@ function processTransactionData(data: OutputJSONType) {
         }
     })
 
-    return [nodes, links]
+    console.log({ nodes });
+    return { nodes, links }
 }
 
 export default processTransactionData;

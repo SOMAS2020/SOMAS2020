@@ -10,7 +10,7 @@ const IITO = (props: { output: OutputJSONType }) => {
     return `<div>${node.name}</div>`;
   }, []);
 
-  const [links, nodes] = processTransactionData(props.output)
+  const { links, nodes } = processTransactionData(props.output)
 
   return (
     <div className={styles.root} style={{ width: '90%', textAlign: 'center' }}>
