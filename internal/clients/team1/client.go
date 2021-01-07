@@ -79,9 +79,12 @@ type client struct {
 
 	// allocation is the president's response to your last common pool resource request
 	allocation shared.Resources
+
 	// Disaster
-	// A map of Turns -> DisasterInfo
-	disasterInfo disaster
+	disasterInfo             disaster
+	othersDisasterPrediction shared.ReceivedDisasterPredictionsDict
+	// The lower the score, the more trustworthy they are
+	trustTeams map[shared.ClientID]float64
 
 	// aliveClients
 	aliveClients []shared.ClientID
@@ -100,7 +103,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			randomForageTurns:              0,
 			anxietyThreshold:               20,
 			desperateStealAmount:           30,
-			evadeTaxes:                     false,
+			evadeTaxes:                     true,
 			kickstartTaxPercent:            0,
 			forageContributionCapPercent:   0.2,
 			forageContributionNoisePercent: 0.01,
@@ -135,6 +138,9 @@ func (c *client) StartOfTurn() {
 		} else {
 			c.disasterInfo.estimatedDDay = uint(rand.Intn(10))
 		}
+
+		c.trustTeams = make(map[shared.ClientID]float64)
+		c.othersDisasterPrediction = make(shared.ReceivedDisasterPredictionsDict)
 	}
 
 	// if opinionTeams is empty. Initialise it.

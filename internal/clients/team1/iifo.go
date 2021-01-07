@@ -10,6 +10,7 @@ import (
 
 type disaster struct {
 	meanDisaster        disasters.DisasterReport
+	allDisaster         []disasters.DisasterReport
 	disasterTurnCounter uint
 	numberOfDisasters   uint
 	meanDisasterTurn    float64
@@ -79,8 +80,37 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 /*** 		 Disasters 		  */
 /******************************/
 
+// findConfidence is only called when a disaster has happened. Therefore len(disasterHistory) > 0
+func (c client) findConfidence() float64 {
+	disasterHistory := c.disasterInfo.allDisaster
+	meanDisaster := c.disasterInfo.meanDisaster
+	totalDisaster := disasters.DisasterReport{}
+	for _, disaster := range disasterHistory {
+		totalDisaster.X += math.Pow(disaster.X-meanDisaster.X, 2)
+		totalDisaster.Y += math.Pow(disaster.Y-meanDisaster.Y, 2)
+		totalDisaster.Magnitude += math.Pow(disaster.Magnitude-meanDisaster.Magnitude, 2)
+	}
+
+	disasterHistorySize := float64(len(disasterHistory))
+	sqrtDisasterHistory := math.Sqrt(disasterHistorySize)
+	xSD := math.Sqrt(totalDisaster.X / disasterHistorySize)
+	ySD := math.Sqrt(totalDisaster.Y / disasterHistorySize)
+	magSD := math.Sqrt(totalDisaster.Magnitude / disasterHistorySize)
+
+	// 1.645 is Z value for 90% Confidence Interval
+	// See link: https://www.mathsisfun.com/data/confidence-interval.html
+	confidenceIntervalX := 1.645 * xSD / (sqrtDisasterHistory * meanDisaster.X)
+	confidenceIntervalY := 1.645 * ySD / (sqrtDisasterHistory * meanDisaster.Y)
+	confidenceIntervalM := 1.645 * magSD / (sqrtDisasterHistory * meanDisaster.Magnitude)
+
+	// Return average
+	return (confidenceIntervalX + confidenceIntervalY + confidenceIntervalM) / 3
+}
+
 func (c *client) DisasterNotification(disaster disasters.DisasterReport, effect disasters.DisasterEffects) {
+	turnCounter := c.disasterInfo.disasterTurnCounter
 	if disaster.Magnitude != 0 {
+		c.disasterInfo.allDisaster = append(c.disasterInfo.allDisaster, disaster)
 		if c.disasterInfo.numberOfDisasters == 0 {
 			c.disasterInfo.meanDisaster = disaster
 			c.disasterInfo.numberOfDisasters++
@@ -97,11 +127,16 @@ func (c *client) DisasterNotification(disaster disasters.DisasterReport, effect 
 		c.disasterInfo.estimatedDDay = c.gameState().Turn + uint(c.disasterInfo.meanDisasterTurn)
 		c.disasterInfo.disasterTurnCounter = 0
 	}
+
+	for id, team := range c.othersDisasterPrediction {
+		timeDistance := team.PredictionMade.TimeLeft
+		if timeDistance == 0 {
+			c.trustTeams[id] += float64(turnCounter) * team.PredictionMade.Confidence
+		}
+	}
 }
 
 // MakeDisasterPrediction evaluates the mean of X, Y, Magnitude, Turn
-// Confidence doesn't mean much.
-// If there is nothing in Disaster
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	c.disasterInfo.disasterTurnCounter++
 	currTurn := c.gameState().Turn
@@ -125,36 +160,41 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 			Confidence:  0 + confidence,
 			TimeLeft:    timeLeft,
 		}
-		c.Logf("[DISASTER INFO] is empty. Creating random prediction: %v", disasterPrediction)
 		return shared.DisasterPredictionInfo{
 			PredictionMade: disasterPrediction,
 			TeamsOfferedTo: c.aliveClients,
 		}
 	}
 
-	if timeLeft < 0 {
-		confidence = -float64(timeLeft) / math.Pow(float64(c.disasterInfo.meanDisasterTurn), 2)
-	}
-
-	// TODO: Calculate SD (confidence) for CoordinateX and CoordinateY and sum to confidence
 	disasterPrediction := shared.DisasterPrediction{
 		CoordinateX: c.disasterInfo.meanDisaster.X + rand.Float64(),
 		CoordinateY: c.disasterInfo.meanDisaster.Y + rand.Float64(),
 		Magnitude:   c.disasterInfo.meanDisaster.Magnitude,
 		TimeLeft:    timeLeft,
-		Confidence:  0.25 + confidence,
+		// TODO: Add timeLeft to confidence level
+		Confidence: c.findConfidence(),
 	}
-	c.Logf("[DISASTER INFO] Creating prediction: %v", disasterPrediction)
+
+	// Store own disasterPrediction for evaluation in DisasterNotification
+	c.othersDisasterPrediction[c.GetID()] = shared.ReceivedDisasterPredictionInfo{
+		PredictionMade: disasterPrediction,
+		SharedFrom:     c.GetID(),
+	}
+
 	return shared.DisasterPredictionInfo{
 		PredictionMade: disasterPrediction,
 		TeamsOfferedTo: c.aliveClients,
 	}
 }
 
-// TODO: Store all prediction. Based on their confidence, create a trustworthy map of other islands.
-// Those who are more trustworthy (including us), we use their prediction.
-// Trustworthy is a point/score system
-// Calculated the distance from timeLeft and the currTurn where disaster happened, take into account
-// confidence level,
-func (c client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
+func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
+	for id, predictions := range receivedPredictions {
+		if predictions.PredictionMade.TimeLeft+1 != c.othersDisasterPrediction[id].PredictionMade.TimeLeft {
+			c.trustTeams[id] -= 1
+		}
+	}
+
+	for id, predictions := range receivedPredictions {
+		c.othersDisasterPrediction[id] = predictions
+	}
 }
