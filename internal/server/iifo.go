@@ -49,7 +49,7 @@ func (s *SOMASServer) getPredictions() shared.DisasterPredictionInfoDict {
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
 		disasterPrediction := c.MakeDisasterPrediction()
-		if math.IsNaN(disasterPrediction.PredictionMade.Confidence) || disasterPrediction.PredictionMade.TimeLeft == -9223372036854775808 || math.IsNaN(disasterPrediction.PredictionMade.Magnitude) || math.IsNaN(disasterPrediction.PredictionMade.CoordinateY) || math.IsNaN(disasterPrediction.PredictionMade.CoordinateX) {
+		if math.IsNaN(disasterPrediction.PredictionMade.Confidence) || math.IsNaN(disasterPrediction.PredictionMade.Magnitude) || math.IsNaN(disasterPrediction.PredictionMade.CoordinateY) || math.IsNaN(disasterPrediction.PredictionMade.CoordinateX) {
 			continue
 		}
 		islandPredictionsDict[id] = disasterPrediction
