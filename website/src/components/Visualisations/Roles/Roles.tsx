@@ -56,7 +56,7 @@ const Roles = (props: { output: OutputJSONType }) => {
   const [data, setData] = useState(processRoleData(props.output));
 
   useEffect(() => {
-    setData(processRoleData(props.output))
+    setData(processRoleData(props.output));
   }, [props.output]);
 
   const teams = ["Team1", "Team2", "Team3", "Team4", "Team5", "Team6"];
