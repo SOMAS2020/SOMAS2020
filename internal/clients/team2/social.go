@@ -93,6 +93,13 @@ func max(numbers map[uint]GiftInfo) uint {
 	}
 	return maxNumber
 }
+func MinInt(a, b int) int {
+	if a < b {
+		return a
+	} else {
+		return b
+	}
+}
 
 // this just means the confidence we have in others while requesting gifts, not the trust we have on them
 // Updates the confidence of an island regarding gifts
@@ -132,6 +139,8 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	// Take running average of the interactions
 	// The individual turn values will be scaled wrt to the "distance" from the current turn
 	// ie transactions further in the past are valued less
+	bufferLen = MinInt(bufferLen, MinInt(len(ourKeys), len(theirKeys)))
+	c.Logf("Bufferlen %v", bufferLen)
 	for i := 0; i < bufferLen; i++ {
 		// Get the transaction distance to the previous transaction
 		theirTransDist := turn - uint(theirKeys[i])

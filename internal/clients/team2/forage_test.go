@@ -24,3 +24,11 @@ func TestOtherHunters(t *testing.T) {
 		t.Error("Otherhunters does calculate the average number of hunters correctly")
 	}
 }
+
+func TestMinInt(t *testing.T) {
+	bufferLen := MinInt(0, MinInt(5, 3))
+	print("Bufferlen %v", bufferLen)
+	if bufferLen != 0 {
+		t.Error()
+	}
+}
