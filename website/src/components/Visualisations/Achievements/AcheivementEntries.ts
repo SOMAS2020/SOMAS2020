@@ -20,7 +20,7 @@ const emptyMetrics = (): MetricsType => ({
 
 type TeamName = 'Team1' | 'Team2' | 'Team3' | 'Team4' | 'Team5' | 'Team6'
 
-const teamNames: TeamName[] = [
+const teamNames = (): TeamName[] => [
     'Team1',
     'Team2',
     'Team3',
@@ -36,10 +36,30 @@ export type AcheivementEntry = {
     evalLargest: boolean
 }
 
+export const evaluateMetrics = (
+    data: OutputJSONType,
+    aEntry: AcheivementEntry
+): TeamName[] => {
+    const metrics = aEntry.collectMetrics(data)
+    return teamNames().reduce(
+        (maxTeams: { max: number; teams: TeamName[] }, team: TeamName) => {
+            if (metrics[team] > maxTeams[0])
+                return { max: metrics[team], teams: [team] }
+
+            if (metrics[team] === maxTeams.max) {
+                maxTeams.max = metrics[team]
+                maxTeams.teams.push(team)
+            }
+            return maxTeams
+        },
+        { max: 0, teams: [] }
+    ).teams
+}
+
 const peakResourcesMetricCollection = (data: OutputJSONType): MetricsType =>
     data.GameStates.reduce(
         (metrics: MetricsType, gameState) =>
-            teamNames.reduce((metAcc, teamName) => {
+            teamNames().reduce((metAcc, teamName) => {
                 const teamResources: number =
                     gameState.ClientInfos[teamName].Resources
                 metAcc[teamName] =
