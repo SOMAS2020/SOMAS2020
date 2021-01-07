@@ -275,6 +275,7 @@ func sameIslandIDSlice(x, y []shared.ClientID) bool {
 	}
 	diff := make(map[shared.ClientID]int, len(x))
 	for _, _x := range x {
+		//Count instances of _x
 		diff[_x]++
 	}
 	for _, _y := range y {
