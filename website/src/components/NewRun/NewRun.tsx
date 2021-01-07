@@ -139,7 +139,7 @@ const NewRun = () => {
       </div>
     }
     {
-      flags &&
+      flags && (output === undefined) &&
       <div>
         <Button variant="danger" size="lg" onClick={resetFlags} disabled={output !== undefined} style={{ marginTop: 24 }}>Reset Flags</Button>
         <Row style={{ marginLeft: `5vw`, marginRight: `5vw`, marginTop: 48, marginBottom: 48 }}>
