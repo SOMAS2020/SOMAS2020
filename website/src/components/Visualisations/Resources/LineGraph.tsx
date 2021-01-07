@@ -110,7 +110,7 @@ class LineRechartComponent extends React.Component<IProps, any> {
 
   render() {
     return (
-      <ResponsiveContainer height={330} width="95%">
+      <ResponsiveContainer height={330} width="100%">
         <LineChart
           data={this.state.chartData.GameStates}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
