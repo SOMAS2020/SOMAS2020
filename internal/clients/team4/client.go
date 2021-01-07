@@ -111,7 +111,7 @@ type personality struct {
 
 /////////////////////////
 
-//Overriding and extending the Initialise method of the BaseClient to initilise
+//Overriding and extending the Initialise method of the BaseClient to initilise our client
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.BaseClient.Initialise(serverReadHandle)
 
@@ -155,7 +155,7 @@ func (c *client) StartOfTurn() {
 	c.yes = "yes"
 	c.Logf(`what are you doing?
 	=========================================
-	=====ClientID=========================================
+	==============================================
 	================================================`)
 	c.Logf("this is a %v for you ", c.yes)
 	fmt.Println(reflect.TypeOf(c))
@@ -165,12 +165,12 @@ func (c *client) StartOfTurn() {
 // COMPULSORY: vote to represent your island's opinion on a rule
 func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
 	// TODO implement decision on voting that considers the rule
-	ruledistance := c.decideRuleDistance(ruleMatrix)
-	if ruledistance < 5 { // TODO: calibrate the distance ranges
+	ruleDistance := c.decideRuleDistance(ruleMatrix)
+	if ruleDistance < 5 { // TODO: calibrate the distance ranges
 		return shared.Reject
-	} else if ruledistance < 15 {
+	} else if ruleDistance < 15 {
 		return shared.Abstain
-	} else if ruledistance >= 15 {
+	} else if ruleDistance >= 15 {
 		return shared.Approve
 	}
 	return shared.Abstain
@@ -188,7 +188,7 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 	distance := 0.0
 	for i := 0; i < ruleMatrix.AuxiliaryVector.Len(); i++ {
 		currentAuxValue := ruleMatrix.AuxiliaryVector.AtVec(i)
-		for j, _ := range ruleMatrix.RequiredVariables {
+		for j := range ruleMatrix.RequiredVariables {
 
 			idealValue := idealRuleMatrix.ApplicableMatrix.At(i, j)
 			actualValue := ruleMatrix.ApplicableMatrix.At(i, j)
