@@ -13,7 +13,7 @@ import {
     Surface, 
     Symbols, 
     ReferenceLine,
-    ReferenceArea
+    ReferenceArea,
 } from 'recharts';
 import { OutputJSONType } from "../../../consts/types";
 import _ from "lodash";
@@ -43,7 +43,7 @@ class LineRechartComponent extends React.Component<IProps, any> {
                 team4: "#00C49F",
                 team5: "#FFBB28",
                 team6: "#FF8042",
-                CriticalThreshold: "#e6eeff",
+                CriticalThreshold: "#B7B4B0",
             },
             datapaths: {
                 team1: "ClientInfos.Team1.Resources",
@@ -63,7 +63,6 @@ class LineRechartComponent extends React.Component<IProps, any> {
               ? this.state.disabled.filter((obj: any) => obj !== dataKey)
               : this.state.disabled.concat(dataKey),
           });
-      
     };
 
     renderCustomizedLegend = ({ payload }: LegendProps) => {
