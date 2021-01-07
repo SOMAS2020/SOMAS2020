@@ -116,7 +116,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			bestForagingMethod = forageType
 		}
 	}
-	// We have the best foraging method according to the pervious turns
+	// We have the best foragine method according to the pervious turns
 	if bestForagingMethod != shared.ForageType(-1) { // If RoI < 0 then dont bother look at the history
 		//=============================================================================
 		// Looking at other islands amount of hunters last turn
