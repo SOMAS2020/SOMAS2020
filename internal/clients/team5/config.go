@@ -50,7 +50,7 @@ type clientConfig struct {
 // set param values here. In order to add a new value, you need to add a definition in struct above.
 func getClientConfig() clientConfig {
 	return clientConfig{
-		//Variables for Intial forage
+		//Variables for initial forage
 		InitialForageTurns:      5,
 		MinimumForagePercentage: 0.01,
 		NormalForagePercentage:  0.05,

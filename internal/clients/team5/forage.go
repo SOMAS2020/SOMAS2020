@@ -42,7 +42,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 /* InitialForage() (Risk for wealth if we have wealth or conserve if we dont)
 Born in the middle class
 Roll randomly
-If we suceed we are JB and will risk more to gain more
+If we succeed we are JB and will risk more to gain more
 If we lose again then we are in the Imperial class and we fish to try to get back to middle class
 */
 func (c *client) InitialForage() shared.ForageDecision {
@@ -116,7 +116,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			bestForagingMethod = forageType
 		}
 	}
-	// We have the best foragine method according to the pervious turns
+	// We have the best foraging method according to the pervious turns
 	if bestForagingMethod != shared.ForageType(-1) { // If RoI < 0 then dont bother look at the history
 		//=============================================================================
 		// Looking at other islands amount of hunters last turn
@@ -161,8 +161,10 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 		}
 
 		probDeerHunting -= float64(totalHunters) * c.config.DecreasePerHunterInLookBack
-		c.Logf("History %v", c.forageHistory)
-		c.Logf("PrevTurnsHunters %v, TotalHunters %v", prevTurnsHunters, totalHunters)
+		// Logger
+		// c.Logf("History %v", c.forageHistory)
+		// c.Logf("PrevTurnsHunters %v, TotalHunters %v", prevTurnsHunters, totalHunters)
+
 		// ================================================================
 		// If best foraging was none of the 2 above then return shared.ForageType(-1)
 		if bestForagingMethod == shared.FishForageType { // Fishing is best but 3 Deer hunters last turn
@@ -324,10 +326,9 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 			shareTo = append(shareTo, team)
 		}
 	}
-
-	lastTurn := c.getTurn() - 1 // value of the last turn
-	if lastTurn < 0 {           // No previous foraging
-		shareTo = []shared.ClientID{}
+	lastTurn := c.getTurn()
+	if c.getTurn() > 1 {
+		lastTurn--
 	}
 
 	var contribution shared.ForageDecision

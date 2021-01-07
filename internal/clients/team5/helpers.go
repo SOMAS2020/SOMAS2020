@@ -2,7 +2,6 @@ package team5
 
 import (
 	"math"
-	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -48,23 +47,10 @@ func (c client) isClientAlive(id shared.ClientID) bool {
 	return false
 }
 
-func minMaxCap(val, absThresh float64) float64 {
+// caps magnitude of val to absThresh
+func absoluteCap(val, absThresh float64) float64 {
 	if val > 0 {
 		return math.Min(val, absThresh)
 	}
 	return math.Max(val, absThresh*-1)
-}
-
-// returns a slice of sorted keys for maps with uint keys
-func sortUintSlice(m []uint) []uint {
-	keys := make([]int, len(m))
-	for k := range m {
-		keys = append(keys, int(k))
-	}
-	sort.Ints(keys)
-	finalKeys := make([]uint, len(m))
-	for k := range keys {
-		finalKeys = append(finalKeys, uint(k))
-	}
-	return finalKeys
 }

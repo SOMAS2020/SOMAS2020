@@ -2,10 +2,8 @@ package team5
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"github.com/pkg/errors"
 )
 
 type opinionScore float64
@@ -34,21 +32,15 @@ type wrappedOpininon struct {
 	opinion opinion
 }
 
-func (wo wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) error {
-	op := wo.opinion
-	if math.Abs(increment) > 1 {
-		return errors.Errorf("invalid increment: absolute incr is larger than max opinion value")
-	}
-	switch basis {
-	case forecastingBasis:
-		newScore := float64(op.forecastReputation) + increment
-		op.forecastReputation = opinionScore(minMaxCap(newScore, 1.0))
-	default:
-		newScore := float64(op.score) + increment
-		op.score = opinionScore(minMaxCap(newScore, 1.0))
-	}
-	wo.opinion = op // update opinion
-	return nil
+// opinions of each team. Need opinion as a pointer so we can modify it
+type opinionMap map[shared.ClientID]*wrappedOpininon
+
+// history of opinionMaps (opinions per team) across turns
+type opinionHistory map[uint]opinionMap // key is turn, value is opinion
+
+// String implements Stringer
+func (wo wrappedOpininon) String() string {
+	return fmt.Sprintf("wrappedOpinion{opinion: %v}", wo.opinion)
 }
 
 func (wo wrappedOpininon) getScore() opinionScore {
@@ -59,18 +51,25 @@ func (wo wrappedOpininon) getForecastingRep() opinionScore {
 	return wo.opinion.forecastReputation
 }
 
-// opinions of each team. Need opinion as a pointer so we can modify it
-type opinionMap map[shared.ClientID]wrappedOpininon
-
-// history of opinionMaps (opinions per team) across turns
-type opinionHistory map[uint]opinionMap // key is turn, value is opinion
+func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) {
+	op := wo.opinion
+	switch basis {
+	case generalBasis:
+		newScore := float64(op.score) + increment
+		op.score = opinionScore(absoluteCap(newScore, 1.0))
+	case forecastingBasis:
+		newScore := float64(op.forecastReputation) + increment
+		op.forecastReputation = opinionScore(absoluteCap(newScore, 1.0))
+	}
+	wo.opinion = op // update opinion
+}
 
 // creates initial opinions of clients and creates
 func (c *client) initOpinions() {
 	c.opinionHistory = opinionHistory{}
 	c.opinions = opinionMap{}
 	for _, team := range c.getAliveTeams(true) { // true to include our team if alive
-		c.opinions[team] = wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}} // start with neutral opinion score
+		c.opinions[team] = &wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}} // start with neutral opinion score
 	}
 	c.opinionHistory[startTurn] = c.opinions // 0th turn is how we start before the game starts - our initial bias
 	c.Logf("Opinions at first turn (turn %v): %v", startTurn, c.opinionHistory)
