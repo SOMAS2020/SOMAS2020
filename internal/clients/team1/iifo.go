@@ -104,9 +104,13 @@ func (c *client) DisasterNotification(disaster disasters.DisasterReport, effect 
 // If there is nothing in Disaster
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	c.disasterInfo.disasterTurnCounter++
-	currTurn := int(c.gameState().Turn)
+	currTurn := c.gameState().Turn
 
-	timeLeft := int(c.disasterInfo.estimatedDDay) - currTurn
+	timeLeft := c.disasterInfo.estimatedDDay - currTurn
+	if c.disasterInfo.estimatedDDay < currTurn {
+		timeLeft = 0
+	}
+
 	// TODO: If timeLeft is less than 0, increase confidence
 	var confidence float64
 
