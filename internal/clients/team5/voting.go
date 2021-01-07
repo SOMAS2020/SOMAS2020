@@ -8,10 +8,11 @@ import (
 
 // Generate borda vote based on opinion score for roles
 // Team 5 will always be top
-func (c *client) GetVoteForElection(roleToElect shared.Role) []shared.ClientID {
+func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
 	opinionSortByTeam := c.opinionSortByTeam()
 	opinionSortByScore := c.opinionSortByScore()
-	sortedTeamByOpinion := sortedMapOfOpinion(findIndexOfScore(opinionSortByScore, opinionSortByTeam))
+	sortedTeamByOpinion := c.sortedMapOfOpinion(findIndexOfScore(opinionSortByScore, opinionSortByTeam))
+	c.Logf("[DEBUG] - Ballot: %v", sortedTeamByOpinion)
 	return sortedTeamByOpinion
 }
 
@@ -46,7 +47,7 @@ func findIndexOfScore(opinionSortByScore []opinionScore, opinionSortByTeam []opi
 }
 
 // translate int to shared.clientID but put our ID first and someone last
-func sortedMapOfOpinion(rank []int) (sortedMap []shared.ClientID) {
+func (c *client) sortedMapOfOpinion(rank []int) (sortedMap []shared.ClientID) {
 	sortedMap = append(sortedMap, shared.Team5)
 	for i := 0; i < len(rank); i++ {
 		if rank[i] == 0 {
@@ -69,6 +70,9 @@ func (c *client) evaluateRoles() {
 	speakerID := c.ServerReadHandle.GetGameState().SpeakerID
 	judgeID := c.ServerReadHandle.GetGameState().JudgeID
 	presidentID := c.ServerReadHandle.GetGameState().PresidentID
+	c.Logf("[DEBUG] - speakerID: %v", speakerID)
+	c.Logf("[DEBUG] - judgeID: %v", judgeID)
+	c.Logf("[DEBUG] - presidentID: %v", presidentID)
 	//compute total budget
 	budget := c.ServerReadHandle.GetGameState().IIGORolesBudget
 	var totalBudget shared.Resources = 0
