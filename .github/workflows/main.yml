@@ -31,3 +31,5 @@ jobs:
         npm i -g yarn
         yarn install
         yarn build
+    - name: Lint website
+      run: yarn lint
