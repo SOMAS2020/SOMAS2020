@@ -114,8 +114,15 @@ func (c *client) GetTaxContribution() shared.Resources {
 		},
 	}
 	recommendedValues := c.dynamicAssistedResult(variablesChanged)
+	resolve := shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
 	if c.params.complianceLevel > 80 {
-		return shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
+		return resolve
+	}
+	if toPay != resolve {
+		affectedRules, success := rules.PickUpRulesByVariable(rules.IslandTaxContribution, rules.RulesInPlay, c.LocalVariableCache)
+		if success {
+			c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
+		}
 	}
 	return toPay
 
@@ -170,7 +177,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	}
 }
 
-func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
+func (c *client) VoteForRule(matrix rules.RuleMatrix) shared.RuleVoteType {
 
 	newRulesInPlay := make(map[string]rules.RuleMatrix)
 
@@ -190,16 +197,14 @@ func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 
 	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
 
-	// distancetoRulesInPlay = CalculateDistanceFromRuleSpace(rules.RulesInPlay, position)
-	// distancetoNewRulesInPlay = CalculateDistanceFromRuleSpace(newRulesInPlay, position)
+	distancetoRulesInPlay := dynamics.CalculateDistanceFromRuleSpace(dynamics.CollapseRuleMap(rules.RulesInPlay), c.locationService.TranslateToInputs(c.LocalVariableCache))
+	distancetoNewRulesInPlay := dynamics.CalculateDistanceFromRuleSpace(dynamics.CollapseRuleMap(newRulesInPlay), c.locationService.TranslateToInputs(c.LocalVariableCache))
 
-	// if distancetoRulesInPlay < distancetoNewRulesInPlay {
-	//  return false
-	// } else {
-	//  return true
-	// }
-
-	return true
+	if distancetoRulesInPlay < distancetoNewRulesInPlay {
+		return shared.Reject
+	} else {
+		return shared.Approve
+	}
 }
 
 func (c *client) RuleProposal() rules.RuleMatrix {
@@ -210,6 +215,12 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 	c.localInputsCache = inputMap
 	shortestSoFar := -2.0
 	selectedRule := ""
+	if c.params.intelligence {
+		newMat, success := c.intelligentShift()
+		if success {
+			return newMat
+		}
+	}
 	for key, rule := range rules.AvailableRules {
 		if _, ok := rules.RulesInPlay[key]; !ok {
 			reqInputs := dynamics.SourceRequiredInputs(rule, inputMap)
@@ -239,6 +250,15 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 		selectedRule = "inspect_ballot_rule"
 	}
 	return rules.AvailableRules[selectedRule]
+}
+
+func (c *client) intelligentShift() (rules.RuleMatrix, bool) {
+	if len(c.oldBrokenRules) == 0 {
+		return rules.RuleMatrix{}, false
+	}
+	luckyRule := c.oldBrokenRules[0]
+	inputMap := c.locationService.TranslateToInputs(c.LocalVariableCache)
+	return dynamics.Shift(rules.RulesInPlay[luckyRule], inputMap)
 }
 
 // RequestAllocation gives how much island is taking from common pool
@@ -276,8 +296,15 @@ func (c *client) RequestAllocation() shared.Resources {
 	}
 
 	recommendedValues := c.dynamicAssistedResult(variablesChanged)
+	resolve := shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
 	if c.params.complianceLevel > 80 {
-		return shared.Resources(recommendedValues[rules.IslandAllocation].Values[rules.SingleValueVariableEntry])
+		return resolve
+	}
+	if ourAllocation != resolve {
+		affectedRules, success := rules.PickUpRulesByVariable(rules.IslandAllocation, rules.RulesInPlay, c.LocalVariableCache)
+		if success {
+			c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
+		}
 	}
 	return ourAllocation
 }
@@ -322,8 +349,15 @@ func (c *client) GetSanctionPayment() shared.Resources {
 			}
 
 			recommendedValues := c.dynamicAssistedResult(variablesChanged)
+			resolve := shared.Resources(recommendedValues[rules.SanctionPaid].Values[rules.SingleValueVariableEntry])
 			if c.params.complianceLevel > 80 {
-				return shared.Resources(recommendedValues[rules.SanctionPaid].Values[rules.SingleValueVariableEntry])
+				return resolve
+			}
+			if shared.Resources(idealVal[rules.SingleValueVariableEntry]) != resolve {
+				affectedRules, success := rules.PickUpRulesByVariable(rules.SanctionPaid, rules.RulesInPlay, c.LocalVariableCache)
+				if success {
+					c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
+				}
 			}
 			return shared.Resources(idealVal[rules.SingleValueVariableEntry])
 		}

@@ -74,6 +74,9 @@ type client struct {
 	// iigoInfo caches information regarding iigo in the current turn
 	iigoInfo iigoCommunicationInfo
 
+	// Last broken rules
+	oldBrokenRules []string
+
 	localVariableCache map[rules.VariableFieldName]rules.VariableValuePair
 
 	localInputsCache map[rules.VariableFieldName]dynamics.Input
@@ -109,6 +112,7 @@ type islandParams struct {
 	trustParameter              float64
 	NoRequestGiftParam          float64
 	laziness                    float64
+	intelligence                bool
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
 
