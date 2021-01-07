@@ -6,7 +6,7 @@ import { OutputJSONType } from "../../../consts/types";
 
 const Game = (props: { output: OutputJSONType }) => {
   return (
-    <div>
+    <div className={styles.root}>
       <img src={logo} className={styles.appLogo} alt="logo" />
       <h1>Game Visualisation</h1>
       {/* <SampleVis data={[1, 2, 3]} /> */}
