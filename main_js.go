@@ -79,6 +79,9 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 		},
 	}
 	outputJSON, err = getOutputJSON(o)
+	if err != nil {
+		log.Printf("Output marshalling failed. Output:\n%#v", o)
+	}
 
 	return js.ValueOf(map[string]interface{}{
 		"output": outputJSON,
