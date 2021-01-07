@@ -117,6 +117,7 @@ export function prettifyParamLabel(str: string) {
     output = output.replaceAll('Iigo', 'IIGO')
     output = output.replaceAll('Iifo', 'IIFO')
     output = output.replaceAll('Iito', 'IITO')
+    output = output.replaceAll('P D F', 'PDF')
 
     return output
 }
