@@ -35,3 +35,54 @@ func getSelectivelyVisibleResources(value shared.Resources, valid bool) Selectiv
 		Valid: valid,
 	}
 }
+// SelectivelyVisibleUint represents a wrapped Uint whose value is valid only if the Valid flag is set to true
+type SelectivelyVisibleUint struct {
+	Value uint
+	Valid bool
+}
+
+func getSelectivelyVisibleUint(value uint, valid bool) SelectivelyVisibleUint {
+	var val uint
+	if valid {
+		val = value
+	}
+	return SelectivelyVisibleUint{
+		Value: val,
+		Valid: valid,
+	}
+}
+
+// SelectivelyVisibleBool represents a wrapped boolean whose value is valid only if the Valid flag is set to true
+type SelectivelyVisibleBool struct {
+	Value bool
+	Valid bool
+}
+
+func getSelectivelyVisibleBool(value bool, valid bool) SelectivelyVisibleBool {
+	var val bool
+	if valid {
+		val = value
+	}
+	return SelectivelyVisibleBool{
+		Value: val,
+    Valid: valid,
+	}
+}
+
+
+// SelectivelyVisibleInt represents a wrapped int whose value is valid only if the Valid flag is set to true
+type SelectivelyVisibleInt struct {
+	Value int
+	Valid bool
+}
+
+func getSelectivelyVisibleInt(value int, valid bool) SelectivelyVisibleInt {
+	var res int
+	if valid {
+		res = value
+	}
+	return SelectivelyVisibleInt{
+		Value: res,
+		Valid: valid,
+	}
+}

@@ -50,6 +50,11 @@ func TestGetClientGameStateCopy(t *testing.T) {
 			shared.President: shared.Resources(30),
 			shared.Speaker:   shared.Resources(40),
 		},
+		IIGOTurnsInPower: map[shared.Role]uint{
+			shared.Judge:     2,
+			shared.President: 3,
+			shared.Speaker:   4,
+		},
 		CommonPool: 20,
 	}
 
@@ -71,6 +76,7 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				CommonPool:         gameState.CommonPool,
 				Geography:          gameState.Environment.Geography,
 				IIGORolesBudget:    gameState.IIGORolesBudget,
+				IIGOTurnsInPower:   gameState.IIGOTurnsInPower,
 			}
 
 			gotClientGS := gameState.GetClientGameStateCopy(tc)
