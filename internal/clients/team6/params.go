@@ -8,7 +8,7 @@ import (
 // FriendshipLevel measures the friendship levels
 type FriendshipLevel float64
 
-// Trustrank indicates our trust rank on each other islands
+// TrustRank indicates our trust rank on each other islands
 type TrustRank map[shared.ClientID]float64
 
 // Friendship is the friendship level between us and another island
