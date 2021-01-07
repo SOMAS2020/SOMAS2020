@@ -26,10 +26,11 @@ var monitoring monitor
 
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
-	// featureJudge is an instantiation of the Judge interface
-	// with both the Base Judge features and a reference to client judges
+
+	removeDeadBodiesFromOffice(g)
+
 	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
-	monitoring.logger = logger
+
 	var judicialBranch = judiciary{
 		gameState:          nil,
 		gameConf:           nil,
@@ -40,8 +41,6 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		logger:             logger,
 	}
 
-	// featureSpeaker is an instantiation of the Speaker interface
-	// with both the baseSpeaker features and a reference to client speakers
 	var legislativeBranch = legislature{
 		gameState:    nil,
 		gameConf:     nil,
@@ -52,8 +51,6 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		logger:       logger,
 	}
 
-	// featurePresident is an instantiation of the President interface
-	// with both the basePresident features and a reference to client presidents
 	var executiveBranch = executive{
 		gameState:        nil,
 		gameConf:         nil,
@@ -61,6 +58,9 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		ResourceRequests: nil,
 		logger:           logger,
 	}
+
+	monitoring.logger = logger
+
 	executiveBranch.monitoring = &monitoring
 	legislativeBranch.monitoring = &monitoring
 	judicialBranch.monitoring = &monitoring

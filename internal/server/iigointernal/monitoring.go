@@ -44,7 +44,9 @@ func (m *monitor) monitorRole(g *gamestate.GameState, roleAccountable baseclient
 		if decideToMonitor {
 			evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
 		}
+
 		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)
+
 		evaluationResultAnnounce, announce := roleAccountable.DecideIIGOMonitoringAnnouncement(evaluationResult)
 
 		//announce == decideToMonitor
