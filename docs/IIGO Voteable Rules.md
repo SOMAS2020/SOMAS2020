@@ -14,9 +14,7 @@ Rule names that include |rolename| indicate that there are 3 rules, one for each
 - speaker_over_budget
 - judge_over_budget
 
-Logic:
-
-|rolename|LeftoverBudget >= 0
+Logic: |rolename|LeftoverBudget >= 0
 
 When to check: Every function where the agent decides to perform an IIGO action with a cost. You can find the costs of IIGO budget in the exposed config. You can find the remaining budget in the client gamestate. The functions affected by costs are:
 
@@ -36,6 +34,8 @@ When to check: Every function where the agent decides to perform an IIGO action 
 - AnnounceVotingResult
 - UpdateRulesAction
 - AppointNextJudge
+
+Note: In situations of two rules clashing (you are obliged to do an action & you are not permitted to do that action) this rule (the no permission rule) takes priority (the other will not be checked). 
 
 ------
 
