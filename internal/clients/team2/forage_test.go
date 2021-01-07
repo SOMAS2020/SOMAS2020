@@ -26,9 +26,19 @@ func TestOtherHunters(t *testing.T) {
 }
 
 func TestMinInt(t *testing.T) {
-	bufferLen := MinInt(0, MinInt(5, 3))
-	print("Bufferlen %v", bufferLen)
-	if bufferLen != 0 {
-		t.Error()
+	if MinInt(5, 3) != 3 {
+		t.Errorf("Min (5,3) should be 3 is %v ", MinInt(5, 3))
+	}
+	if MinInt(3, 3) != 3 {
+		t.Errorf("Min (3,3) should be 3 is %v ", MinInt(3, 3))
+	}
+	if MinInt(0, 0) != 0 {
+		t.Errorf("Min (0,0) should be 0 is %v ", MinInt(0, 0))
+	}
+	if MinInt(5, 0) != 0 {
+		t.Errorf("Min (5,0) should be 0 is %v ", MinInt(5, 0))
+	}
+	if MinInt(10, MinInt(5, 0)) != 0 {
+		t.Errorf("Min(10,Min(5,0)) should be 0, is %v", MinInt(10, MinInt(5, 0)))
 	}
 }
