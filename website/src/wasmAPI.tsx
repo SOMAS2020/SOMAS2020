@@ -72,6 +72,12 @@ export const runGame = async (flags: Flag[]): Promise<RunGameReturnType> => {
 
     const result = runGameWASM(args)
     if (result.error.length > 0) {
+        if (result.output) {
+            console.debug(result.output)
+        }
+        if (result.logs) {
+            console.debug(result.logs)
+        }
         throw new Error(result.error)
     }
     if (result.output === undefined || result.logs === undefined) {
