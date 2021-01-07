@@ -31,7 +31,7 @@ export const processRoleData = (data: OutputJSONType): ProcessedRoleData => {
 
     let retData: ProcessedRoleData = [
         {
-            role: "President",
+            role: "Pres",
             occupied: [],
         },
         {
@@ -47,7 +47,7 @@ export const processRoleData = (data: OutputJSONType): ProcessedRoleData => {
     return standardise(retData.map((elem) => {
         elem.occupied = data.GameStates.reduce((acc, gameState) => {
             switch(elem.role) {
-                case "President": {
+                case "Pres": {
                     elem.occupied = increment(elem.occupied, gameState.PresidentID);
                     break;
                 }

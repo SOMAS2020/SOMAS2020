@@ -35,9 +35,11 @@ const CustomTooltip = ({
         const turnsAsTeams = getTurnsAsTeams(label as RoleName);
         const totalTurns = data[0].occupied.reduce((acc, elem) => (acc + elem.turns()), 0);
 
+        const newLabel = label === "Pres" ? "President" : label;
+
         return (
             <div className={styles.customTooltip}>
-                <p className={styles.label}>{label}</p>
+                <p className={styles.label}>{newLabel}</p>
                 {turnsAsTeams.map((team, turns) => (
                     <p className={styles.content} key={team} >
                         Turns as {team}: {turns} ({((turns * 100) / totalTurns).toFixed(1)}%)

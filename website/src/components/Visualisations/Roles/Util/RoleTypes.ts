@@ -1,4 +1,4 @@
-export type RoleName = "President" | "Judge" | "Speaker";
+export type RoleName = "Pres" | "Judge" | "Speaker";
 
 export class TeamAndTurns {
     Team1: number;
