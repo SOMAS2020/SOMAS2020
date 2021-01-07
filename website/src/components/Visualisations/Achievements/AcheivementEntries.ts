@@ -36,24 +36,33 @@ export type AcheivementEntry = {
     evalLargest: boolean
 }
 
+const turnsAlive = (data: OutputJSONType, team: TeamName): number =>
+    data.GameStates.filter(
+        (gameState) => gameState.ClientInfos[team].LifeStatus !== 'Dead'
+    ).length
+
 export const evaluateMetrics = (
     data: OutputJSONType,
     aEntry: AcheivementEntry
 ): TeamName[] => {
     const metrics = aEntry.collectMetrics(data)
-    return teamNames().reduce(
-        (maxTeams: { max: number; teams: TeamName[] }, team: TeamName) => {
-            if (metrics[team] > maxTeams[0])
-                return { max: metrics[team], teams: [team] }
+    const ret = teamNames().reduce(
+        (maxTeams: { val: number; teams: TeamName[] }, team: TeamName) => {
+            if (aEntry.evalLargest && metrics[team] > maxTeams.val)
+                return { val: metrics[team], teams: [team] }
 
-            if (metrics[team] === maxTeams.max) {
-                maxTeams.max = metrics[team]
+            if (!aEntry.evalLargest && metrics[team] < maxTeams.val)
+                return { val: metrics[team], teams: [team] }
+
+            if (metrics[team] === maxTeams.val) {
+                maxTeams.val = metrics[team]
                 maxTeams.teams.push(team)
             }
             return maxTeams
         },
-        { max: 0, teams: [] }
+        { val: aEntry.evalLargest ? 0 : Number.MAX_VALUE, teams: [] }
     ).teams
+    return ret
 }
 
 const peakResourcesMetricCollection = (data: OutputJSONType): MetricsType =>
@@ -71,6 +80,49 @@ const peakResourcesMetricCollection = (data: OutputJSONType): MetricsType =>
         emptyMetrics()
     )
 
+const averageResourcesMetricCollection = (
+    data: OutputJSONType
+): MetricsType => {
+    const retMetrics = data.GameStates.reduce(
+        (metrics: MetricsType, gameState) =>
+            teamNames().reduce((metAcc, teamName) => {
+                metAcc[teamName] += gameState.ClientInfos[teamName].Resources
+                return metAcc
+            }, metrics),
+        emptyMetrics()
+    )
+    teamNames().forEach((team) => {
+        retMetrics[team] /= turnsAlive(data, team)
+    })
+    return retMetrics
+}
+
+const returnsFromCriticalMetricCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    teamNames().forEach((team) => {
+        metrics[team] = data.GameStates.reduce(
+            (status, gameState) => {
+                const lifeStatus = gameState.ClientInfos[team].LifeStatus
+                if (status.prev === 'Critical' && lifeStatus === 'Alive')
+                    return {
+                        prev: lifeStatus,
+                        occurred: status.occurred + 1,
+                    }
+                return {
+                    ...status,
+                    prev: lifeStatus,
+                }
+            },
+            {
+                prev: 'Alive',
+                occurred: 0,
+            }
+        ).occurred
+    })
+    console.log(metrics)
+    return metrics
+}
+
 const acheivementList: AcheivementEntry[] = [
     {
         title: 'Jackpot!',
@@ -81,13 +133,13 @@ const acheivementList: AcheivementEntry[] = [
     {
         title: 'Baller',
         description: 'Island with the highest average resources',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: averageResourcesMetricCollection,
         evalLargest: true,
     },
     {
         title: 'Broke',
         description: 'Island with the lowest average resources',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: averageResourcesMetricCollection,
         evalLargest: false,
     },
     {
@@ -99,7 +151,7 @@ const acheivementList: AcheivementEntry[] = [
     {
         title: 'Back to Life',
         description: 'Island who returned from critical the most',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: returnsFromCriticalMetricCollection,
         evalLargest: true,
     },
     {
