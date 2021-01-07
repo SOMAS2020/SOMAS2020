@@ -62,7 +62,11 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 		}
 
 		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Left) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
-		islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
+		if areaOfArchipelago != 0 {
+			islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
+		} else {
+			islandDVPs[islandID] = areaOfOverlap
+		}
 	}
 	return islandDVPs
 }
@@ -149,7 +153,7 @@ func GetLocationPrediction(c *client) CartesianCoordinates {
 
 // GetTimeRemainingPrediction returns a prediction about the time remaining until the next disaster and the sample mean
 // of the RV X. The prediction is 1/sample mean of the Bernoulli RV, minus the turns since the last disaster.
-func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, int) {
+func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, uint) {
 	totalDisasters := float64(len(c.disasterHistory))
 	sampleMeanX := totalDisasters / totalTurns
 
@@ -160,6 +164,7 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, int) {
 		timeRemaining = 0
 	}
 	return sampleMeanX, int(timeRemaining)
+
 }
 
 // GetTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is

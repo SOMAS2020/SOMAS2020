@@ -25,14 +25,19 @@ func (c *BaseClient) ResourceReport() shared.ResourcesReport {
 	}
 }
 
-// RuleProposal is called by the President in IIGO to propose a
-// rule to be voted on.
-func (c *BaseClient) RuleProposal() string {
+// RuleProposal is for an island to propose a rule to be voted on. It is called
+// by the President in IIGO. If the returned ruleMatrix is one of the rules
+// in AvailableRules cache with unchanged content, then the proposal is for
+// putting the rule in/out of play. However, if the returned ruleMatrix is
+// one of the rules in AvailableRules cache with changed content, the proposal
+// is then for modifying the rule's content only, it won't put the rule in/out of
+// play. Only a mutable rule's content can be modified.
+func (c *BaseClient) RuleProposal() rules.RuleMatrix {
 	allRules := rules.AvailableRules
-	for k := range allRules {
-		return k
+	for _, ruleMatrix := range allRules {
+		return ruleMatrix
 	}
-	return ""
+	return rules.RuleMatrix{}
 }
 
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role
@@ -57,7 +62,6 @@ func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
 // The tax is the minimum contribution, you can pay more if you want to
 // COMPULSORY
 func (c *BaseClient) GetTaxContribution() shared.Resources {
-	// TODO: Implement common pool contribution greater than or equal to tax.
 	valToBeReturned := shared.Resources(0)
 	c.LocalVariableCache[rules.IslandTaxContribution] = rules.VariableValuePair{
 		VariableName: rules.IslandTaxContribution,
@@ -66,15 +70,20 @@ func (c *BaseClient) GetTaxContribution() shared.Resources {
 	isCompliant := c.CheckCompliance(rules.IslandTaxContribution)
 	if isCompliant {
 		// TODO: with this compliance check, agents can see whether they'd like to continue returning this value
-		valToBeReturned = 0
+		return valToBeReturned
 	}
-	// Use the toolkit to recommend a value
-	newVal, success := c.GetRecommendation(rules.IslandTaxContribution)
-	if success {
-		// TODO: Choose whether to use this compliant value
-		valToBeReturned = shared.Resources(newVal.Values[rules.SingleValueVariableEntry])
+
+	decisionMade := c.LocalVariableCache[rules.TaxDecisionMade].Values[len(c.LocalVariableCache[rules.TaxDecisionMade].Values)-1] > 0
+	if decisionMade {
+		// Use the toolkit to recommend a value
+		newVal, success := c.GetRecommendation(rules.IslandTaxContribution) //evaluate only the linked rule
+		if success {
+			// TODO: Choose whether to use this compliant value
+			valToBeReturned = shared.Resources(newVal.Values[rules.SingleValueVariableEntry])
+		}
 	}
 	return valToBeReturned
+
 }
 
 // GetSanctionPayment is called at the end of turn to pay any sanctions that have been
@@ -106,7 +115,7 @@ func (c *BaseClient) GetSanctionPayment() shared.Resources {
 // COMPULSORY
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
-	valToBeReturned := shared.Resources(0)
+	valToBeReturned := c.ServerReadHandle.GetGameState().CommonPool
 	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
 		VariableName: rules.IslandAllocation,
 		Values:       []float64{float64(valToBeReturned)},
@@ -116,13 +125,19 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 		// TODO: with this compliance check, agents can see whether they'd like to continue returning this value
 		return valToBeReturned
 	}
-	// Use the toolkit to recommend a value
-	newVal, success := c.GetRecommendation(rules.IslandAllocation)
-	if success {
-		// TODO: Choose whether to use this compliant value
-		valToBeReturned = shared.Resources(newVal.Values[rules.SingleValueVariableEntry])
+
+	decisionMade := c.LocalVariableCache[rules.AllocationMade].Values[len(c.LocalVariableCache[rules.AllocationMade].Values)-1] > 0
+	if decisionMade {
+		// Use the toolkit to recommend a value
+		newVal, success := c.GetRecommendation(rules.IslandAllocation)
+		if success {
+			// TODO: Choose whether to use this compliant value
+			valToBeReturned = shared.Resources(newVal.Values[rules.SingleValueVariableEntry])
+		}
 	}
+
 	return valToBeReturned
+
 }
 
 // CheckCompliance provides clients with an easy interface to feed a variable and check whether it is compliant
@@ -146,7 +161,7 @@ func (c *BaseClient) CheckCompliance(variable rules.VariableFieldName) bool {
 }
 
 // GetRecommendation provides clients with a way of working out (in reasonably simple cases) what value
-// a given variable must be to ensure compliance
+// a given variable must be to ensure compliance. Recomendations are only made for unlinked rules!
 // OPTIONAL
 func (c *BaseClient) GetRecommendation(variable rules.VariableFieldName) (compliantValue rules.VariableValuePair, success bool) {
 	rulesAffected, found := rules.PickUpRulesByVariable(variable, rules.RulesInPlay, c.LocalVariableCache)
@@ -154,9 +169,12 @@ func (c *BaseClient) GetRecommendation(variable rules.VariableFieldName) (compli
 		return c.LocalVariableCache[variable], false
 	}
 	for _, ruleName := range rulesAffected {
-		newMap, ok := rules.ComplianceRecommendation(rules.RulesInPlay[ruleName], c.LocalVariableCache)
-		if ok {
-			return newMap[variable], ok
+		ruleToConsider := rules.RulesInPlay[ruleName]
+		if !ruleToConsider.Link.Linked {
+			newMap, ok := rules.ComplianceRecommendation(ruleToConsider, c.LocalVariableCache)
+			if ok {
+				return newMap[variable], ok
+			}
 		}
 	}
 	return c.LocalVariableCache[variable], false

@@ -499,7 +499,7 @@ func TestApplySanctions(t *testing.T) {
 			judiciaryInst := defaultInitJudiciary()
 			judiciaryInst.sanctionRecord = tc.sanctionRecord
 			judiciaryInst.sanctionThresholds = tc.sanctionThresholds
-			judiciaryInst.gameConf.SanctionLength = tc.sanctionLength
+			judiciaryInst.gameConf.SanctionLength = uint(tc.sanctionLength)
 			judiciaryInst.applySanctions()
 			if !checkListOfSanctionEquals(tc.expectedSanctions, judiciaryInst.localSanctionCache[0]) {
 				t.Errorf("Expected %v got %v", tc.expectedSanctions, judiciaryInst.localSanctionCache[0])
@@ -1929,18 +1929,18 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 }
 
 func defaultInitJudiciary() judiciary {
+	var logging shared.Logger = func(format string, a ...interface{}) {}
 	return judiciary{
 		JudgeID:               0,
-		presidentSalary:       0,
 		evaluationResults:     map[shared.ClientID]roles.EvaluationReturn{},
 		clientJudge:           &baseclient.BaseJudge{},
-		presidentTurnsInPower: 0,
 		sanctionRecord:        map[shared.ClientID]roles.IIGOSanctionScore{},
 		sanctionThresholds:    map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{},
 		ruleViolationSeverity: map[string]roles.IIGOSanctionScore{},
 		localSanctionCache:    map[int][]roles.Sanction{},
 		localHistoryCache:     map[int][]shared.Accountability{},
 		gameConf:              &config.IIGOConfig{},
+		monitoring:            &monitor{},
 		gameState: &gamestate.GameState{
 			CommonPool: 999,
 			IIGORolesBudget: map[shared.Role]shared.Resources{
@@ -1949,6 +1949,7 @@ func defaultInitJudiciary() judiciary {
 				shared.Judge:     10,
 			},
 		},
+		logger: logging,
 	}
 }
 

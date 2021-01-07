@@ -32,4 +32,7 @@ type ClientGameState struct {
 
 	// IIGO roles budget (initialised in orchestration.go)
 	IIGORolesBudget map[shared.Role]shared.Resources
+
+	// IIGO turns in power (incremented and set by monitoring)
+	IIGOTurnsInPower map[shared.Role]uint
 }

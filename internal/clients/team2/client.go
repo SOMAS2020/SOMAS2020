@@ -3,6 +3,7 @@ package team2
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -190,6 +191,10 @@ func (c *client) gameState() gamestate.ClientGameState {
 	return c.BaseClient.ServerReadHandle.GetGameState()
 }
 
+func (c *client) gameConfig() config.ClientConfig {
+	return c.BaseClient.ServerReadHandle.GetGameConfig()
+}
+
 // Initialise initialises the base client.
 // OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
 // You will need it to access the game state through its GetGameStateMethod.
@@ -197,7 +202,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
 	c.LocalVariableCache = rules.CopyVariableMap()
 	// loop through each island (there might not be 6)
-	for clientID, _ := range c.gameState().ClientLifeStatuses {
+	for clientID := range c.gameState().ClientLifeStatuses {
 		// set the confidence to 50 and initialise any other stuff
 		Histories := make(map[Situation][]int)
 		Histories["President"] = []int{50}
