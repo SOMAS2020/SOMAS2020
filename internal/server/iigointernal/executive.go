@@ -21,6 +21,11 @@ type executive struct {
 	RulesProposals   []rules.RuleMatrix
 	ResourceRequests map[shared.ClientID]shared.Resources
 	monitoring       *monitor
+	logger           shared.Logger
+}
+
+func (e *executive) Logf(format string, a ...interface{}) {
+	e.logger("[EXECUTIVE]: %v", fmt.Sprintf(format, a...))
 }
 
 // loadClientPresident checks client pointer is good and if not panics
@@ -108,6 +113,7 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 				e.sendDecision(islandID, amount, shared.IIGOTaxDecision)
 			}
 		}
+		e.Logf("Tax: %v", taxMapReturn.ResourceMap)
 	} else {
 		// default case when president doesn't take an action. send tax = 0
 		for _, islandID := range aliveIslands {
@@ -150,6 +156,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 		if !e.incurServiceCharge(e.gameConf.ReplyAllocationRequestsActionCost) {
 			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
+		e.Logf("Resource Allocation: %v", returnContent.ResourceMap)
 		allocationsMade = true
 		AllocationAmountMapExport = returnContent.ResourceMap
 		for islandID, amount := range returnContent.ResourceMap {
@@ -191,6 +198,7 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		variablesToCache := []rules.VariableFieldName{rules.AppointmentMatchesVote}
 		valuesToCache := [][]float64{{boolToFloat(appointmentMatchesVote)}}
 		e.monitoring.addToCache(e.PresidentID, variablesToCache, valuesToCache)
+		e.Logf("Result of election for new Speaker: %v", appointedSpeaker)
 	} else {
 		appointedSpeaker = currentSpeaker
 	}
