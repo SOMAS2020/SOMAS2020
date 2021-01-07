@@ -4,13 +4,8 @@
 }
 
 .root {
-    margin: 0;
-    width: 75%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
+    width: 75vw;
+    padding: 5vh 0;
 }
 
 .customTooltip {
