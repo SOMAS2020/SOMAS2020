@@ -290,13 +290,13 @@ const acheivementList: AcheivementEntry[] = [
     {
         title: 'Judge Judy',
         description: 'Island who spent the most time as Judge',
-        collectMetrics: turnsAsJudgeMetricCollection, // TODO: implement
+        collectMetrics: turnsAsJudgeMetricCollection,
         evalLargest: true,
     },
     {
         title: 'Speak Now or Forever Hold Your Peace',
         description: 'Island who spent the most time as Speaker',
-        collectMetrics: turnsAsSpeakerMetricCollection, // TODO: implement
+        collectMetrics: turnsAsSpeakerMetricCollection,
         evalLargest: true,
     },
 ]
