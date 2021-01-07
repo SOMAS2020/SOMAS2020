@@ -33,13 +33,22 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 	return c.BaseClient.DecideIIGOMonitoringAnnouncement(monitoringResult)
 }
 
-// ------ TODO: COMPULSORY -----
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	return c.BaseClient.CommonPoolResourceRequest()
+
 }
 
-// ------ TODO: COMPULSORY -----
 func (c *client) ResourceReport() shared.ResourcesReport {
+	// if we are selfish, will report 1/2 of the actual resources
+	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	fakeReport := shared.ResourcesReport{
+		ReportedAmount: (1 / 2) * ourResources,
+		Reported:       true,
+	}
+
+	if c.getPersonality() == Selfish {
+		return fakeReport
+	}
+
 	return c.BaseClient.ResourceReport()
 }
 
@@ -53,7 +62,6 @@ func (c *client) GetTaxContribution() shared.Resources {
 	return c.BaseClient.GetTaxContribution()
 }
 
-// ------ TODO: COMPULSORY -----
 func (c *client) GetSanctionPayment() shared.Resources {
 	return c.BaseClient.GetSanctionPayment()
 }
