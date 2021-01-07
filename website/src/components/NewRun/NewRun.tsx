@@ -216,7 +216,7 @@ const NewRun = () => {
           </div>
         </div>
       )}
-      {flags && (
+      {flags && output === undefined && (
         <div>
           <Button
             variant="danger"
