@@ -123,6 +123,14 @@ const returnsFromCriticalMetricCollection = (data: OutputJSONType) => {
     return metrics
 }
 
+const turnsAliveMetricCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    teamNames().forEach((team) => {
+        metrics[team] = turnsAlive(data, team)
+    })
+    return metrics
+}
+
 const acheivementList: AcheivementEntry[] = [
     {
         title: 'Jackpot!',
@@ -181,13 +189,13 @@ const acheivementList: AcheivementEntry[] = [
     {
         title: 'I Will Survive',
         description: 'Island alive the longest',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: turnsAliveMetricCollection,
         evalLargest: true,
     },
     {
         title: 'F',
         description: 'First island to die',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: turnsAliveMetricCollection,
         evalLargest: false,
     },
     {
