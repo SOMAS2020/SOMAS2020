@@ -59,7 +59,8 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 
 	for clientID, clientReport := range islandsResources {
 		if clientReport.Reported {
-			taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * rand.Float64())
+			taxRate := 0.1
+			taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * taxRate)
 		} else {
 			taxAmountMap[clientID] = 15 //flat tax rate
 		}
@@ -72,11 +73,15 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 }
 
 // PaySpeaker pays the speaker a salary.
-func (p *BasePresident) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
-	// TODO : Implement opinion based salary payment. Salary should be set by a rule
+func (p *BasePresident) PaySpeaker() shared.PresidentReturnContent {
+	SpeakerSalaryRule, ok := rules.RulesInPlay["salary_cycle_speaker"]
+	var SpeakerSalary shared.Resources = 0
+	if ok {
+		SpeakerSalary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
+	}
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
-		SpeakerSalary: 0,
+		SpeakerSalary: SpeakerSalary,
 		ActionTaken:   true,
 	}
 }
