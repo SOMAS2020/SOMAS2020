@@ -65,16 +65,29 @@ export const getIITOTransactions = (data: OutputJSONType) => {
   return data.GameStates.map((turnState) => {
     // Guard to prevent crashing on the first turn where it's undefined
     if (turnState.IITOTransactions) {
-      return Object.entries(turnState.IITOTransactions).map(
-        ([fromTeam, giftResponse], toTeam: Team) => {
-          return {
-            from: fromTeam,
-            to: toTeam,
-            amount: giftResponse.AcceptedAmount,
-          };
-        }
-      );
+      // map over the IITO transactions in this turn
+      return Object.entries(turnState.IITOTransactions)
+        .map(
+          // map over each giftResponseDict for this team's offers
+          ([toTeam, giftResponseDict]) => {
+            let transactionsForThisIsland: Transaction[] = [];
+            // iterate over the giftResponseDict and push Transactions to an accumulator
+            Object.entries(giftResponseDict).forEach(([fromTeam, response]) => {
+              if (response) {
+                transactionsForThisIsland.push({
+                  from: Team[fromTeam as keyof typeof Team],
+                  to: Team[toTeam as keyof typeof Team],
+                  amount: response.AcceptedAmount,
+                });
+              }
+            });
+            return transactionsForThisIsland
+          }
+        )
+        // fold the island transaction lists together for this turn
+        .reduce((acc, nextLst) => acc.concat(nextLst));
     } else return [];
+    // fold all turns together once more to get the whole game
   }).reduce((acc, nextLst) => acc.concat(nextLst));
 };
 
