@@ -42,7 +42,20 @@
       { "extensions": [".js", ".jsx", ".ts", ".tsx"] }
     ],
     "no-use-before-define": "off",
-    "@typescript-eslint/no-use-before-define": ["error"]
+    "@typescript-eslint/no-use-before-define": ["error"],
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "react/no-unescaped-entities": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "react/jsx-wrap-multilines": "off",
+    "react/jsx-one-expression-per-line": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-console": "off",
+    "jsx-a11y/label-has-associated-control": "off",
+    "react/no-unused-prop-types": "off",
+    "react/destructuring-assignment": "off",
+    "no-plusplus": "off",
+    "max-classes-per-file": "off",
+    "@typescript-eslint/ban-ts-comment": "off"
   },
   "settings": {
     "import/resolver": {

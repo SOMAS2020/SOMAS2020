@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { RunGameReturnType, Flag } from '../../wasmAPI'
 import {
   Alert,
   Button,
@@ -9,6 +8,7 @@ import {
   Tooltip,
   Form,
 } from 'react-bootstrap'
+import { RunGameReturnType, Flag } from '../../wasmAPI'
 import {
   useLoadingState,
   initialLoadingState,
@@ -45,7 +45,7 @@ const FlagForm = (props: FlagFormProps) => {
               placement="top"
               overlay={
                 <Tooltip id={flag.Name}>
-                  {flag.Usage} (Type: {flag.Type}, Default: {flag.DefValue})
+                  {flag.Usage} (Type:{flag.Type}, Default:{flag.DefValue})
                 </Tooltip>
               }
             >
@@ -69,11 +69,6 @@ const NewRun = () => {
   const [runError, setRunError] = useState<string | undefined>(undefined)
   const [flags, setFlags] = useState<Map<string, Flag> | undefined>(undefined)
 
-  useEffect(() => {
-    onDidMount()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   const onDidMount = async () => {
     setLoading({
       loading: true,
@@ -94,6 +89,10 @@ const NewRun = () => {
     }
     setLoading(initialLoadingState)
   }
+
+  useEffect(() => {
+    onDidMount()
+  }, [])
 
   const setFlag = async (flagName: string, val: string) => {
     try {
@@ -133,11 +132,11 @@ const NewRun = () => {
   }
 
   const getFlagForms = (fs: Map<string, Flag>): JSX.Element[] => {
-    let ret: JSX.Element[] = []
+    const ret: JSX.Element[] = []
     fs.forEach((f, n) => {
       ret.push(
         <FlagForm
-          key={n}
+          key={n.toString()}
           setFlag={(val) => setFlag(n, val)}
           flag={f}
           disabled={output !== undefined}
