@@ -39,9 +39,9 @@ type Situation string
 // others -> us: GiftWeRequest
 
 const (
-	President     Situation = "President"
-	Judge         Situation = "Judge"
-	Speaker       Situation = "Speaker"
+	PresidentOp   Situation = "President"
+	JudgeOp       Situation = "Judge"
+	SpeakerOp     Situation = "Speaker"
 	Foraging      Situation = "Foraging"
 	GiftWeRequest Situation = "Gifts"
 )
@@ -104,6 +104,10 @@ type client struct {
 	foragingReturnsHist  ForagingReturnsHist
 	giftHist             GiftHist
 	disasterHistory      DisasterHistory
+
+	currPresident President
+	currJudge     Judge
+	currSpeaker   Speaker
 }
 
 func init() {
@@ -178,6 +182,21 @@ func (c *client) gameConfig() config.ClientConfig {
 	return c.BaseClient.ServerReadHandle.GetGameConfig()
 }
 
+func (c *client) getAliveClients() []shared.ClientID {
+	clientStatuses := c.gameState().ClientLifeStatuses
+	aliveClients := make([]shared.ClientID, 0)
+	for island, status := range clientStatuses {
+		if status != shared.Dead {
+			aliveClients = append(aliveClients, island)
+		}
+	}
+	return aliveClients
+}
+
+func (c *client) getNumAliveClients() int {
+	return len(c.getAliveClients())
+}
+
 // Initialise initialises the base client.
 // OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
 // You will need it to access the game state through its GetGameStateMethod.
@@ -201,4 +220,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 			OurRequest: map[uint]GiftInfo{},
 		}
 	}
+	c.currSpeaker = Speaker{c: c}
+	c.currJudge = Judge{c: c}
+	c.currPresident = President{c: c}
 }

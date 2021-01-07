@@ -166,6 +166,7 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 	//var decreasing_pool float64 //records for how many turns the common pool is decreasing
 	var no_freeride float64 = 3 //how many turns at the beginning we cannot free ride for
 	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
+	var altfactor float64 = 5   //what factor the common pool must drop by for us to consider altruist
 
 	if turn == 1 { //if there is no historical data then use default strategy
 		return shared.Resources(default_strat)
@@ -176,15 +177,15 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 
 	prevTurn := turn - 1
 	prevTurn2 := turn - 2
-	if ResourceHistory[prevTurn] > ResourceHistory[turn] { //decreasing common pool means consider altruist
-		if ResourceHistory[prevTurn2] > ResourceHistory[prevTurn] {
+	if ResourceHistory[prevTurn] > (ResourceHistory[turn] * altfactor) { //decreasing common pool means consider altruist
+		if ResourceHistory[prevTurn2] > (ResourceHistory[prevTurn] * altfactor) {
 			return shared.Resources(altruist)
 		}
 	}
 
 	if float64(turn) > no_freeride { //we will not allow ourselves to use free riding at the start of the game
-		if ResourceHistory[prevTurn] < (ResourceHistory[turn] * freeride) {
-			if ResourceHistory[prevTurn2] < (ResourceHistory[prevTurn] * freeride) { //two large jumps then we free ride
+		if (ResourceHistory[prevTurn] * freeride) < ResourceHistory[turn] {
+			if (ResourceHistory[prevTurn2] * freeride) < ResourceHistory[prevTurn] { //two large jumps then we free ride
 				return 0
 			}
 		}
@@ -198,7 +199,7 @@ func (c *client) determine_altruist(turn uint) float64 { //identical to fair sha
 	for j := turn; j > 0; j-- { //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / 6) * tune_alt
+			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(getNumAliveClients())) * tune_alt
 		}
 	}
 	return 0
@@ -210,7 +211,7 @@ func (c *client) determine_fair(turn uint) float64 { //can make more sophisticat
 	for j := turn; j > 0; j-- {  //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / 6) * tune_average //make 6 variable for no of agents
+			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(getNumAliveClients())) * tune_average //make 6 variable for no of agents
 		}
 	}
 	return 0
