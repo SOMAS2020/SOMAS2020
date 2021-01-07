@@ -2,17 +2,47 @@ name: golangci-lint
 
 on:
   pull_request:
-    branches: [ team6-agent ]
+    branches: [ main ]
 
 jobs:
   golangci-lint:
     name: golangci-lint
     runs-on: ubuntu-20.04
     steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v1
+        with: 
+          tool_name: golangci-lint
+          fail_on_error: true
       - name: golint
         uses: reviewdog/action-golangci-lint@v1
         with:
           golangci_lint_flags: "--disable-all -E golint"
           tool_name: golint 
           level: warning 
-          golint-path: './internal/clients/team6/...'
+      - name: misspell
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          golangci_lint_flags: "--disable-all -E misspell"
+          tool_name: misspell
+          level: warning
+      - name: exhaustive
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          golangci_lint_flags: "--disable-all -E exhaustive"
+          tool_name: exhaustive 
+          fail_on_error: true
+      - name: exhaustivestruct
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          golangci_lint_flags: "--disable-all -E exhaustivestruct"
+          tool_name: exhaustivestruct
+          level: warning
+      - name: goimports
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          golangci_lint_flags: "--disable-all -E goimports"
+          tool_name: goimports 
+          fail_on_error: true
