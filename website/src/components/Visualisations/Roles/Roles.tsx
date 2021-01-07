@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./Roles.module.css";
 import {
   BarChart,
@@ -53,7 +53,12 @@ const CustomTooltip = ({ active, label, data }: CustomTooltipProps) => {
 };
 
 const Roles = (props: { output: OutputJSONType }) => {
-  const data = processRoleData(props.output);
+  const [data, setData] = useState(processRoleData(props.output));
+
+  useEffect(() => {
+    setData(processRoleData(props.output))
+  }, [props.output]);
+
   const teams = ["Team1", "Team2", "Team3", "Team4", "Team5", "Team6"];
   const colors = new Map([
     ["Team1", "#0095FF"],
@@ -63,8 +68,6 @@ const Roles = (props: { output: OutputJSONType }) => {
     ["Team5", "#FFBB28"],
     ["Team6", "#FF8042"],
   ]);
-
-  console.log(data);
 
   return (
     <div className={styles.root}>
