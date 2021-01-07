@@ -87,6 +87,12 @@ func (l *legislature) setVotingResult(clientIDs []shared.ClientID) (bool, error)
 	}
 
 	returnVote := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
+
+	//log rule: All islands must participate in voting
+	variablesToCache := []rules.VariableFieldName{rules.AllIslandsAllowedToVote}
+	valuesToCache := [][]float64{{boolToFloat(sameIslandIDSlice(returnVote.ParticipatingIslands, clientIDs))}}
+	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+
 	if returnVote.ActionTaken && returnVote.ContentType == shared.SpeakerVote {
 		if !l.incurServiceCharge(l.gameConf.SetVotingResultActionCost) {
 			return voteCalled, errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
@@ -121,17 +127,13 @@ func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.Cl
 	//TODO: log of clientIDs vs islandsAllowedToVote
 	//TODO: log of ruleMatrix vs s.RuleToVote
 
-	variablesToCache := []rules.VariableFieldName{rules.IslandsAllowedToVote}
-	valuesToCache := [][]float64{{float64(len(clientIDs))}}
-	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
-
 	rulesEqual := false
 	if reflect.DeepEqual(ruleMatrix, l.ruleToVote) {
 		rulesEqual = true
 	}
 
-	variablesToCache = []rules.VariableFieldName{rules.SpeakerProposedPresidentRule}
-	valuesToCache = [][]float64{{boolToFloat(rulesEqual)}}
+	variablesToCache := []rules.VariableFieldName{rules.SpeakerProposedPresidentRule}
+	valuesToCache := [][]float64{{boolToFloat(rulesEqual)}}
 
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
@@ -265,4 +267,30 @@ func (l *legislature) incurServiceCharge(cost shared.Resources) bool {
 		}
 	}
 	return ok
+}
+
+func sameIslandIDSlice(x, y []shared.ClientID) bool {
+	if len(x) != len(y) {
+		return false
+	}
+	// create a map of string -> int
+	diff := make(map[shared.ClientID]int, len(x))
+	for _, _x := range x {
+		// 0 value for int is 0, so just increment a counter for the string
+		diff[_x]++
+	}
+	for _, _y := range y {
+		// If the string _y is not in diff bail out early
+		if _, ok := diff[_y]; !ok {
+			return false
+		}
+		diff[_y] -= 1
+		if diff[_y] == 0 {
+			delete(diff, _y)
+		}
+	}
+	if len(diff) == 0 {
+		return true
+	}
+	return false
 }

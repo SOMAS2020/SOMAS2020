@@ -51,10 +51,12 @@ func (m *monitor) monitorRole(g *gamestate.GameState, roleAccountable baseclient
 			valuesToCache := [][]float64{{boolToFloat(evaluationResult)}, {boolToFloat(evaluationResultAnnounce)}}
 			m.addToCache(roleAccountable.GetID(), variablesToCache, valuesToCache)
 
-			message := generateMonitoringMessage(roleName, evaluationResult)
+			message := generateMonitoringMessage(roleName, evaluationResultAnnounce)
 			broadcastToAllIslands(roleAccountable.GetID(), message)
 
-			g.IIGOTurnsInPower[roleName] = m.TermLengths[roleName] + 1
+			if !evaluationResultAnnounce {
+				g.IIGOTurnsInPower[roleName] = m.TermLengths[roleName] + 1
+			}
 		}
 
 		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}

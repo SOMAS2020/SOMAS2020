@@ -53,6 +53,7 @@ type RawRuleSpecification struct {
 func registerRulesByMass() {
 	ruleSpecs := []RawRuleSpecification{
 		{
+			//Deprecated
 			Name: "inspect_ballot_rule",
 			ReqVar: []VariableFieldName{
 				NumberOfIslandsAlive,
@@ -66,10 +67,9 @@ func registerRulesByMass() {
 		{
 			Name: "allocations_made_rule",
 			ReqVar: []VariableFieldName{
-				AllocationRequestsMade,
 				AllocationMade,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
 			Linked:  false,
@@ -131,10 +131,9 @@ func registerRulesByMass() {
 		{
 			Name: "islands_allowed_to_vote_rule",
 			ReqVar: []VariableFieldName{
-				IslandsAlive,
-				IslandsAllowedToVote,
+				AllIslandsAllowedToVote,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
 			Linked:  false,
