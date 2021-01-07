@@ -36,6 +36,14 @@ export type AcheivementEntry = {
     evalLargest: boolean
 }
 
+const addMetrics = (metArr: MetricsType[]) =>
+    metArr.reduce((metrics, currMet) => {
+        teamNames().forEach((team) => {
+            metrics[team] += currMet[team]
+        })
+        return metrics
+    }, emptyMetrics())
+
 const turnsAlive = (data: OutputJSONType, team: TeamName): number =>
     data.GameStates.filter(
         (gameState) => gameState.ClientInfos[team].LifeStatus !== 'Dead'
@@ -130,6 +138,37 @@ const turnsAliveMetricCollection = (data: OutputJSONType) => {
     })
     return metrics
 }
+
+const turnsAsPresMetricCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    data.GameStates.forEach((gameState) => {
+        metrics[gameState.PresidentID]++
+    })
+    return metrics
+}
+
+const turnsAsJudgeMetricCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    data.GameStates.forEach((gameState) => {
+        metrics[gameState.JudgeID]++
+    })
+    return metrics
+}
+
+const turnsAsSpeakerMetricCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    data.GameStates.forEach((gameState) => {
+        metrics[gameState.SpeakerID]++
+    })
+    return metrics
+}
+
+const turnsInPowerMetricCollection = (data: OutputJSONType) =>
+    addMetrics([
+        turnsAsPresMetricCollection(data),
+        turnsAsJudgeMetricCollection(data),
+        turnsAsSpeakerMetricCollection(data),
+    ])
 
 const acheivementList: AcheivementEntry[] = [
     {
@@ -239,25 +278,25 @@ const acheivementList: AcheivementEntry[] = [
     {
         title: 'Power Hungry',
         description: 'Island who spent the most time in power',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: turnsInPowerMetricCollection,
         evalLargest: true,
     },
     {
         title: 'The Donald',
         description: 'Island who spent the most time as President',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: turnsAsPresMetricCollection,
         evalLargest: true,
     },
     {
         title: 'Judge Judy',
         description: 'Island who spent the most time as Judge',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: turnsAsJudgeMetricCollection, // TODO: implement
         evalLargest: true,
     },
     {
         title: 'Speak Now or Forever Hold Your Peace',
         description: 'Island who spent the most time as Speaker',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
+        collectMetrics: turnsAsSpeakerMetricCollection, // TODO: implement
         evalLargest: true,
     },
 ]
