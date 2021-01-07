@@ -67,7 +67,9 @@ func (c *BaseClient) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 func getMeanDisaster(pastDisastersList PastDisastersList) DisasterInfo {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	numberDisastersPassed := float64(len(pastDisastersList))
-
+	if numberDisastersPassed == 0 {
+		return DisasterInfo{0, 0, 0, 1000}
+	}
 	for _, disaster := range pastDisastersList {
 		totalCoordinateX += disaster.CoordinateX
 		totalCoordinateY += disaster.CoordinateY
