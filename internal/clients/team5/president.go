@@ -18,7 +18,7 @@ type president struct {
 func (c *client) GetClientPresidentPointer() roles.President {
 	c.Logf("Team 5 is now the President, Shalom to all")
 
-	return &c.team5president
+	return &c.team5President
 }
 
 func (pres *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {

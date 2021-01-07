@@ -74,7 +74,7 @@ type client struct {
 	*baseclient.BaseClient
 
 	// Roles
-	team5president president
+	team5President president
 
 	// Roles
 	team5Speaker speaker
