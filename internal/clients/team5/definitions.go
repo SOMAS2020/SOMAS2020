@@ -123,7 +123,7 @@ func (wt wealthTier) String() string {
 	if wt >= 0 && int(wt) < len(strings) {
 		return strings[wt]
 	}
-	return fmt.Sprintf("Unkown wealth state '%v'", int(wt))
+	return fmt.Sprintf("Unknown wealth state '%v'", int(wt))
 }
 
 // GoString implements GoStringer

@@ -42,7 +42,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 /* InitialForage() (Risk for wealth if we have wealth or conserve if we dont)
 Born in the middle class
 Roll randomly
-If we suceed we are JB and will risk more to gain more
+If we succeed we are JB and will risk more to gain more
 If we lose again then we are in the Imperial class and we fish to try to get back to middle class
 */
 func (c *client) InitialForage() shared.ForageDecision {
@@ -126,7 +126,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 		for _, returns := range FOutcome {
 			if forageType == shared.DeerForageType && returns.turn == c.gameState().Turn-1 { // If someone foraged for deer last turn
 				deerHunters++          // Increment number of hunters
-				probDeerHunting += 0.1 // Incremenet the probabilty we hunt
+				probDeerHunting += 0.1 // Incremenet the probability we hunt
 			} else if forageType == shared.FishForageType && returns.turn == c.gameState().Turn-1 {
 				fishHunters++
 				probFishHunting += 0.1
@@ -147,7 +147,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 
 	if bestForagingMethod == shared.FishForageType { // Fishing is best but 3 Deer hunters last turn
 		bDeer := distuv.Bernoulli{P: 1 - probDeerHunting}     // P(1)[Fishing]=0.6 (1-0.1+0.3*3) if 3 deer hunter
-		bestForagingMethod *= shared.ForageType(bDeer.Rand()) // Multipy the 0 in if Deer Hunting was picked in randomness
+		bestForagingMethod *= shared.ForageType(bDeer.Rand()) // Multiply the 0 in if Deer Hunting was picked in randomness
 	} else if bestForagingMethod == shared.DeerForageType { // Deer hunting is the best choice but 3 Fishers
 		bFish := distuv.Bernoulli{P: probFishHunting}         // P(1)[Fishing]= 0.1 + 0.1*3 = 0.4
 		bestForagingMethod += shared.ForageType(bFish.Rand()) // +1 [makes it fishing] if Fishing was picked in randomness
