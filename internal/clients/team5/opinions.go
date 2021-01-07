@@ -34,30 +34,7 @@ type wrappedOpininon struct {
 	opinion opinion
 }
 
-// opinions of each team. Need opinion as a pointer so we can modify it
-type opinionMap map[shared.ClientID]*wrappedOpininon
-
-// history of opinionMaps (opinions per team) across turns
-type opinionHistory map[uint]opinionMap // key is turn, value is opinion
-
-// String implements Stringer
-func (wo wrappedOpininon) String() string {
-	return fmt.Sprintf("wrappedOpinion{opinion: %v}", wo.opinion)
-}
-
-func (wo wrappedOpininon) getScore() opinionScore {
-	return wo.opinion.score
-}
-
-func (wo wrappedOpininon) getForecastingRep() opinionScore {
-	return wo.opinion.forecastReputation
-}
-
-func (o opinion) String() string {
-	return fmt.Sprintf("opinion{score: %.2f, forecastReputation: %.2f}", o.score, o.forecastReputation)
-}
-
-func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) error {
+func (wo wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) error {
 	op := wo.opinion
 	if math.Abs(increment) > 1 {
 		return errors.Errorf("invalid increment: absolute incr is larger than max opinion value")
@@ -74,15 +51,33 @@ func (wo *wrappedOpininon) updateOpinion(basis opinionBasis, increment float64) 
 	return nil
 }
 
+func (wo wrappedOpininon) getScore() opinionScore {
+	return wo.opinion.score
+}
+
+func (wo wrappedOpininon) getForecastingRep() opinionScore {
+	return wo.opinion.forecastReputation
+}
+
+// opinions of each team. Need opinion as a pointer so we can modify it
+type opinionMap map[shared.ClientID]wrappedOpininon
+
+// history of opinionMaps (opinions per team) across turns
+type opinionHistory map[uint]opinionMap // key is turn, value is opinion
+
 // creates initial opinions of clients and creates
 func (c *client) initOpinions() {
 	c.opinionHistory = opinionHistory{}
 	c.opinions = opinionMap{}
 	for _, team := range c.getAliveTeams(true) { // true to include our team if alive
-		c.opinions[team] = &wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}} // start with neutral opinion score
+		c.opinions[team] = wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}} // start with neutral opinion score
 	}
 	c.opinionHistory[startTurn] = c.opinions // 0th turn is how we start before the game starts - our initial bias
 	c.Logf("Opinions at first turn (turn %v): %v", startTurn, c.opinionHistory)
+}
+
+func (o opinion) String() string {
+	return fmt.Sprintf("opinion{score: %.2f}", o.score)
 }
 
 // getTrustedTeams finds teams whose opinion scores (our opinion of them) exceed a threshold `trustThresh`. Furthermore,
