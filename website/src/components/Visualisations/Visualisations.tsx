@@ -29,6 +29,7 @@ const Visualisations = () => {
   }, [])
 
   const onDidMount = async () => {
+    window.scrollTo(0, 0);
     setLoading({ loading: true, loadingText: `We're hard at work!` })
     try {
       const o = await loadLocalVisOutput()
