@@ -16,18 +16,20 @@ type president struct {
 
 func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
 	var requestSum shared.Resources
-	var setStrategy string = "normal"
+	var setStrategy string = "egoistic"
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
 	var otherIslandsRequests shared.Resources = 0.0
 	var multiplier shared.Resources = 0.75
 	var multiplierForOtherIslands shared.Resources = 0.75
 
-	/*
-		// When to use which strategy?
-		if p.ServerReadHandle.GetGameState().ClientInfo.Resources < p.ServerReadHandle.GetGameConfig().MinimumResourceThreshold+p.ServerReadHandle.GetGameConfig().CostOfLiving {
-			setStrategy := "egoistic"
-		}
-	*/
+	// When to use which strategy?
+	// TODO
+	if p.client.ServerReadHandle.GetGameState().ClientInfo.Resources < p.client.ServerReadHandle.GetGameConfig().MinimumResourceThreshold {
+		//if 0.5 > rand.Float64() {
+		setStrategy = "egoistic"
+	} else {
+		setStrategy = "normal"
+	}
 
 	if setStrategy == "normal" {
 		for _, request := range resourceRequest {
@@ -42,12 +44,20 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 			}
 		}
 	} else if setStrategy == "egoistic" {
+		// Sum of requests from all islands
+		for _, request := range resourceRequest {
+			requestSum += request
+		}
+
+		// Sum of requests from other islands except ourselves
 		for id, request := range resourceRequest {
 			if id != shared.Team6 {
 				otherIslandsRequests += request
 			}
+		}
 
-			multiplierForOtherIslands = otherIslandsRequests / (multiplier * (availCommonPool - resourceAllocation[shared.Team6]))
+		if multiplier*availCommonPool > resourceAllocation[shared.Team6] {
+			multiplierForOtherIslands = (multiplier*availCommonPool - resourceAllocation[shared.Team6]) / otherIslandsRequests
 
 			for id, request := range resourceRequest {
 				resourceAllocation[id] = multiplierForOtherIslands * availCommonPool * request / requestSum
@@ -55,8 +65,11 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 					resourceAllocation[id] = request
 				}
 			}
+		} else {
+			for id, request := range resourceRequest {
+				resourceAllocation[id] = multiplier * availCommonPool * request / requestSum
+			}
 		}
-
 	}
 
 	return shared.PresidentReturnContent{
@@ -74,7 +87,7 @@ func (p *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.Pre
 	// if some rules were proposed
 	if len(rulesProposals) != 0 {
 		proposedRule = ""
-		// 		rulesProposals[rand.Intn(len(rulesProposals))]
+		//rulesProposals[rand.Intn(len(rulesProposals))]
 		actionTaken = true
 	}
 
@@ -105,6 +118,7 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	}
 }
 
+/*
 func (p *president) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
 	return shared.PresidentReturnContent{
 		ContentType:   shared.PresidentSpeakerSalary,
@@ -112,6 +126,7 @@ func (p *president) PaySpeaker(salary shared.Resources) shared.PresidentReturnCo
 		ActionTaken:   true,
 	}
 }
+*/
 
 func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	// example implementation calls an election if monitoring was performed and the result was negative
