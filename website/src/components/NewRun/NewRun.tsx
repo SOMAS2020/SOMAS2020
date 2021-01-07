@@ -1,16 +1,33 @@
-import React, { useState, useEffect } from "react"
-import { RunGameReturnType, Flag } from "../../wasmAPI"
-import { Alert, Button, Row, Col, OverlayTrigger, Tooltip, Form } from 'react-bootstrap'
-import { useLoadingState, initialLoadingState } from "../../contexts/loadingState"
+import React, { useState, useEffect } from 'react'
+import { RunGameReturnType, Flag } from '../../wasmAPI'
+import {
+  Alert,
+  Button,
+  Row,
+  Col,
+  OverlayTrigger,
+  Tooltip,
+  Form,
+} from 'react-bootstrap'
+import {
+  useLoadingState,
+  initialLoadingState,
+} from '../../contexts/loadingState'
 import Artifacts from '../Artifacts/Artifacts'
-import { clearLocalOutput, loadFlags, loadLocalOutput, runGameHelper, setFlagHelper, clearLocalFlags } from './utils'
-import VisualiseButton from "../VisualiseButton/VisualiseButton"
-
+import {
+  clearLocalOutput,
+  loadFlags,
+  loadLocalOutput,
+  runGameHelper,
+  setFlagHelper,
+  clearLocalFlags,
+} from './utils'
+import VisualiseButton from '../VisualiseButton/VisualiseButton'
 
 type FlagFormProps = {
-  flag: Flag,
-  setFlag: (val: string) => Promise<void>,
-  disabled: boolean,
+  flag: Flag
+  setFlag: (val: string) => Promise<void>
+  disabled: boolean
 }
 
 const FlagForm = (props: FlagFormProps) => {
@@ -19,25 +36,31 @@ const FlagForm = (props: FlagFormProps) => {
   const handleChange = async (event: React.ChangeEvent<any>) => {
     await setFlag(event.target.value)
   }
-  return <Col xs={4}>
-    <Form>
-      <Form.Group>
-        <Form.Label>
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip id={flag.Name}>
-                {flag.Usage} (Type: {flag.Type}, Default: {flag.DefValue})
-              </Tooltip>
-            }
-          >
-            <span style={{ wordBreak: `break-all` }}>{flag.Name}</span>
-          </OverlayTrigger >
-        </Form.Label>
-        <Form.Control value={flag.Value} onChange={handleChange} readOnly={disabled} />
-      </Form.Group>
-    </Form>
-  </Col >
+  return (
+    <Col xs={4}>
+      <Form>
+        <Form.Group>
+          <Form.Label>
+            <OverlayTrigger
+              placement="top"
+              overlay={
+                <Tooltip id={flag.Name}>
+                  {flag.Usage} (Type: {flag.Type}, Default: {flag.DefValue})
+                </Tooltip>
+              }
+            >
+              <span style={{ wordBreak: `break-all` }}>{flag.Name}</span>
+            </OverlayTrigger>
+          </Form.Label>
+          <Form.Control
+            value={flag.Value}
+            onChange={handleChange}
+            readOnly={disabled}
+          />
+        </Form.Group>
+      </Form>
+    </Col>
+  )
 }
 
 const NewRun = () => {
@@ -52,7 +75,10 @@ const NewRun = () => {
   }, [])
 
   const onDidMount = async () => {
-    setLoading({ loading: true, loadingText: `We're finding the archipelago...` })
+    setLoading({
+      loading: true,
+      loadingText: `We're finding the archipelago...`,
+    })
     try {
       const fs = await loadFlags()
       setFlags(fs)
@@ -63,8 +89,7 @@ const NewRun = () => {
       }
 
       setRunError(undefined)
-    }
-    catch (err) {
+    } catch (err) {
       setRunError(err.message)
     }
     setLoading(initialLoadingState)
@@ -75,8 +100,7 @@ const NewRun = () => {
       const newFlags = await setFlagHelper(flags, flagName, val)
       setFlags(newFlags)
       setRunError(undefined)
-    }
-    catch (err) {
+    } catch (err) {
       setRunError(err.message)
     }
   }
@@ -87,10 +111,13 @@ const NewRun = () => {
   }
 
   const run = async () => {
-    setLoading({ loading: true, loadingText: `Minions in your computer are running the agents!` })
+    setLoading({
+      loading: true,
+      loadingText: `Minions in your computer are running the agents!`,
+    })
 
     // sleep for 100ms for stability
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 100))
 
     try {
       if (!flags) {
@@ -99,8 +126,7 @@ const NewRun = () => {
       const res = await runGameHelper(flags)
       setOutput(res)
       setRunError(undefined)
-    }
-    catch (err) {
+    } catch (err) {
       setRunError(err.message)
     }
     setLoading(initialLoadingState)
@@ -110,7 +136,12 @@ const NewRun = () => {
     let ret: JSX.Element[] = []
     fs.forEach((f, n) => {
       ret.push(
-        <FlagForm key={n} setFlag={(val) => setFlag(n, val)} flag={f} disabled={output !== undefined} />
+        <FlagForm
+          key={n}
+          setFlag={(val) => setFlag(n, val)}
+          flag={f}
+          disabled={output !== undefined}
+        />
       )
     })
     return ret
@@ -122,47 +153,73 @@ const NewRun = () => {
     setFlags(fs)
   }
 
-  return <div style={{ paddingTop: 24 }}>
-    <h1>New Run</h1>
+  return (
+    <div style={{ paddingTop: 24 }}>
+      <h1>New Run</h1>
 
-    {
-      !output &&
-      <div>
-        <Button variant="success" size="lg" onClick={run} disabled={flags === undefined}>Run</Button>
-      </div>
-    }
-    {
-      flags &&
-      <div>
-        <Button variant="danger" size="lg" onClick={resetFlags} disabled={output !== undefined} style={{ marginTop: 24 }}>Reset Flags</Button>
-        <Row style={{ marginLeft: `5vw`, marginRight: `5vw`, marginTop: 48, marginBottom: 48 }}>
-          {getFlagForms(flags)}
-        </Row>
-      </div>
-    }
-    {
-      runError &&
-      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible className="custom-alert">
-        <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
-        <p>{runError}</p>
-      </Alert>
-    }
-    {
-      output &&
-      <div style={{ marginTop: 48 }}>
+      {!output && (
         <div>
-          <Button variant="danger" size="lg" onClick={reset}>Reset Run</Button>
+          <Button
+            variant="success"
+            size="lg"
+            onClick={run}
+            disabled={flags === undefined}
+          >
+            Run
+          </Button>
         </div>
+      )}
+      {flags && (
+        <div>
+          <Button
+            variant="danger"
+            size="lg"
+            onClick={resetFlags}
+            disabled={output !== undefined}
+            style={{ marginTop: 24 }}
+          >
+            Reset Flags
+          </Button>
+          <Row
+            style={{
+              marginLeft: `5vw`,
+              marginRight: `5vw`,
+              marginTop: 48,
+              marginBottom: 48,
+            }}
+          >
+            {getFlagForms(flags)}
+          </Row>
+        </div>
+      )}
+      {runError && (
+        <Alert
+          variant="danger"
+          onClose={() => setRunError(undefined)}
+          dismissible
+          className="custom-alert"
+        >
+          <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
+          <p>{runError}</p>
+        </Alert>
+      )}
+      {output && (
+        <div style={{ marginTop: 48 }}>
+          <div>
+            <Button variant="danger" size="lg" onClick={reset}>
+              Reset Run
+            </Button>
+          </div>
 
-        <h3 style={{ marginTop: 24 }}>Artifacts</h3>
-        <Artifacts output={output.output} logs={output.logs} />
+          <h3 style={{ marginTop: 24 }}>Artifacts</h3>
+          <Artifacts output={output.output} logs={output.logs} />
 
-        <h3 style={{ marginTop: 24 }}>Visualise</h3>
-        <VisualiseButton output={output.output} />
-      </div>
-    }
-  </div>
-
+          <h3 style={{ marginTop: 24 }}>Visualise</h3>
+          <VisualiseButton output={output.output} />
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default NewRun
