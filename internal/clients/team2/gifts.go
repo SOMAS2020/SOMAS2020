@@ -229,8 +229,8 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 	return shared.Resources(0.0)
 }
 
-func methodConfGift(c *client) float64 {
-	var modeMult float64
+func methodConfGift(c *client) shared.Resources {
+	var modeMult shared.Resources
 	switch c.MethodOfPlay() {
 	case 0:
 		modeMult = 0.8 //we do not want to take from the pool as it is struggling, request the majority from gifts

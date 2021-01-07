@@ -12,6 +12,11 @@ type Judge struct {
 	c *client
 }
 
+//opinion places
+//LNE 51
+//LINE 84
+//LINE 124
+
 //pay default
 func (j *Judge) PayPresident() (shared.Resources, bool) {
 	return j.BaseJudge.PayPresident()
@@ -43,7 +48,7 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			}
 		}
 
-		// If the island's trustwothiness is above the threshold, then return true for all rule evaluations
+		// If the island's trustworthiness is above the threshold, then return true for all rule evaluations
 		if j.c.trustworthiness[clientID] > 80 {
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {

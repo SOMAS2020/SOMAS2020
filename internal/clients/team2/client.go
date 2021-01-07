@@ -14,7 +14,7 @@ const id = shared.Team2
 type CommonPoolHistory map[uint]float64
 type ResourcesLevelHistory map[uint]shared.Resources
 
-// Type for Empathy level assigned to each other team
+// IType for Empathy level assigned to each other team
 type EmpathyLevel int
 
 const (
@@ -77,6 +77,13 @@ type IslandSanctionInfo struct {
 	Amount roles.IIGOSanctionScore
 }
 
+type CommonPoolInfo struct {
+	tax             shared.Resources
+	requestedToPres shared.Resources
+	allocatedByPres shared.Resources
+	takenFromCP     shared.Resources
+}
+
 // Currently what want to use to get archipelago geography but talking to Yannis to get this fixed
 // Because it doesn't work atm
 //archipelagoGeography := c.gamestate().Environment.Geography
@@ -97,7 +104,8 @@ type GiftHist map[shared.ClientID]GiftExchange
 type DisasterHistory map[int]DisasterOccurence
 type IslandSanctions map[shared.ClientID][]IslandSanctionInfo
 type TierLevels map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
-type SanctionHist []SanctionReceived
+type SanctionHist []IslandSanctionInfo
+type CommonPoolHist map[uint]CommonPoolInfo
 
 // we have to initialise our client somehow
 type client struct {
@@ -123,6 +131,8 @@ type client struct {
 	tierLevels           TierLevels
 	sanctionHist         SanctionHist
 
+	commonPoolHist CommonPoolHist
+
 	//TODO: copied in from team3
 	declaredResources   map[shared.ClientID]shared.Resources
 	disasterPredictions []map[shared.ClientID]shared.DisasterPrediction
@@ -145,15 +155,19 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		foragingReturnsHist:  ForagingReturnsHist{},
 		giftHist:             GiftHist{},
 		islandEmpathies:      IslandEmpathies{},
+		sanctionHist:         SanctionHist{},
+		tierLevels:           TierLevels{},
+		islandSanctions:      IslandSanctions{},
+		commonPoolHist:       CommonPoolHist{},
 
 		//TODO: implement config to gather all changeable parameters in one place
 	}
 }
 
-
 // Initialise initialises the base client.
 // OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
 // You will need it to access the game state through its GetGameStateMethod.
+func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
 	c.LocalVariableCache = rules.CopyVariableMap()
 	// loop through each island (there might not be 6)
@@ -177,4 +191,3 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	c.currJudge = Judge{c: c}
 	c.currPresident = President{c: c}
 }
-

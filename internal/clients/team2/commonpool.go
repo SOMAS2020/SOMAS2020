@@ -17,12 +17,12 @@ func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHis
 }
 
 //determines how much to request from the pool
+// How much we ask the President for
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	return determineAllocation(c) * methodConfPool(c)
+	return determineAllocation(c) * shared.Resources(methodConfPool(c))
 }
 
 //TODO:Update to consider IIGO allocated amount, opinion on pres -> whether we take the allocated amount
-//determines how many resources you actually take - currrently going to take however much we say (playing nicely)
 func determineAllocation(c *client) shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
 	if criticalStatus(c) {
@@ -35,6 +35,8 @@ func determineAllocation(c *client) shared.Resources {
 	return 0
 }
 
+//determines how many resources you actually take - currrently going to take however much we say (playing nicely)
+// How much we request the server (we're given as much as there is in the CP)
 func (c *client) RequestAllocation() shared.Resources {
 	return determineAllocation(c) * shared.Resources(methodConfPool(c))
 }
@@ -89,7 +91,7 @@ func (c *client) agentThreshold() shared.Resources {
 			disasterMagProtection = baseThreshold
 		}
 		disasterBasedAdjustment := 0
-		if checkForDisaster(c) {
+		if c.checkForDisaster() {
 			if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] { //no resources taken by disaster
 				if disasterBasedAdjustment > 5 {
 					disasterBasedAdjustment -= 5
@@ -120,7 +122,7 @@ func (c *client) agentThreshold() shared.Resources {
 }
 
 //Checks if there was a disaster in the previous turn
-func checkForDisaster(c *client) bool {
+func (c *client) checkForDisaster() bool {
 	var prevSeason uint
 	if c.gameState().Turn == 1 {
 		prevSeason = 1
@@ -151,22 +153,22 @@ func checkForDisaster(c *client) bool {
 func AverageCommonPoolDilemma(c *client) shared.Resources {
 	ResourceHistory := c.commonPoolHistory
 	turn := c.gameState().Turn
-	var default_strat float64 = 50 //this parameter will determine how much we contribute on the first turn when there is no data to make a decision
+	var defaultStrat float64 = 50 //this parameter will determine how much we contribute on the first turn when there is no data to make a decision
 
-	var fair_sharer float64 //this is how much we contribute when we are a fair sharer and altruist
+	var fairSharer float64 //this is how much we contribute when we are a fair sharer and altruist
 	var altruist float64
 
 	//var decreasing_pool float64 //records for how many turns the common pool is decreasing
-	var no_freeride float64 = 3 //how many turns at the beginning we cannot free ride for
-	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
-	var altfactor float64 = 5   //what factor the common pool must drop by for us to consider altruist
+	var noFreeride float64 = 3 //how many turns at the beginning we cannot free ride for
+	var freeride float64 = 5   //what factor the common pool must increase by for us to considered free riding
+	var altfactor float64 = 5  //what factor the common pool must drop by for us to consider altruist
 
 	if turn == 1 { //if there is no historical data then use default strategy
-		return shared.Resources(default_strat)
+		return shared.Resources(defaultStrat)
 	}
 
-	altruist = c.determine_altruist(turn) //determines altruist amount
-	fair_sharer = c.determine_fair(turn)  //determines fair sharer amount
+	altruist = c.determineAltruist(turn) //determines altruist amount
+	fairSharer = c.determineFair(turn)   //determines fair sharer amount
 
 	prevTurn := turn - 1
 	prevTurn2 := turn - 2
@@ -176,35 +178,35 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 		}
 	}
 
-	if float64(turn) > no_freeride { //we will not allow ourselves to use free riding at the start of the game
+	if float64(turn) > noFreeride { //we will not allow ourselves to use free riding at the start of the game
 		if (ResourceHistory[prevTurn] * freeride) < ResourceHistory[turn] {
 			if (ResourceHistory[prevTurn2] * freeride) < ResourceHistory[prevTurn] { //two large jumps then we free ride
 				return 0
 			}
 		}
 	}
-	return shared.Resources(fair_sharer) //by default we contribute a fair share
+	return shared.Resources(fairSharer) //by default we contribute a fair share
 }
 
-func (c *client) determine_altruist(turn uint) float64 { //identical to fair sharing but a larger factor to multiple the average contribution by
+func (c *client) determineAltruist(turn uint) float64 { //identical to fair sharing but a larger factor to multiple the average contribution by
 	ResourceHistory := c.commonPoolHistory
-	var tune_alt float64 = 2    //what factor of the average to contribute when being altruistic, will be much higher than fair sharing
+	var tuneAlt float64 = 2     //what factor of the average to contribute when being altruistic, will be much higher than fair sharing
 	for j := turn; j > 0; j-- { //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tune_alt
+			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tuneAlt
 		}
 	}
 	return 0
 }
 
-func (c *client) determine_fair(turn uint) float64 { //can make more sophisticated! Right now just contribute the average, default matters the most
+func (c *client) determineFair(turn uint) float64 { //can make more sophisticated! Right now just contribute the average, default matters the most
 	ResourceHistory := c.commonPoolHistory
-	var tune_average float64 = 1 //what factor of the average to contribute when fair sharing, default is 1 to give the average
-	for j := turn; j > 0; j-- {  //we are trying to find the most recent instance of the common pool increasing and then use that value
+	var tuneAverage float64 = 1 //what factor of the average to contribute when fair sharing, default is 1 to give the average
+	for j := turn; j > 0; j-- { //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tune_average //make 6 variable for no of agents
+			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tuneAverage //make 6 variable for no of agents
 		}
 	}
 	return 0
