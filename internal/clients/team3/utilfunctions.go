@@ -9,6 +9,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
+//------------------------- Mock Server Read Handle ----------------------------
 // A mock server handle used for tests
 type mockServerReadHandle struct {
 	gameState  gamestate.ClientGameState
@@ -23,6 +24,10 @@ func (m mockServerReadHandle) GetGameConfig() config.ClientConfig {
 	return m.gameConfig
 }
 
+// -----------------------------------------------------------------------------
+
+// clientPrint is a wrapper for team3 Logf function, that only prints when
+// printTeam3Logs == true
 func (c *client) clientPrint(format string, a ...interface{}) {
 	if printTeam3Logs {
 		c.Logf("%v", fmt.Sprintf(format, a...))
@@ -35,8 +40,8 @@ func (c *client) getLocalResources() shared.Resources {
 	return currentState.ClientInfo.Resources
 }
 
-// getIslandsAlive retrives number of islands still alive
-func (c *client) getIslandsAlive() int {
+// getIslandsAliveCount retrives number of islands still alive
+func (c *client) getIslandsAliveCount() int {
 	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
 	var aliveCount int
 
@@ -52,13 +57,10 @@ func (c *client) getIslandsAlive() int {
 
 // areWeCritical returns whether our client is critical or not
 func (c *client) areWeCritical() bool {
-	currentStatus := c.BaseClient.ServerReadHandle.GetGameState().ClientLifeStatuses
-	if currentStatus[c.GetID()] == shared.Critical {
-		return true
-	}
-	return false
+	return c.ServerReadHandle.GetGameState().ClientInfo.Resources == shared.Resources(shared.Critical)
 }
 
+// getAliveIslands returns list of alive islands
 func (c *client) getAliveIslands() []shared.ClientID {
 	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
 	var aliveIslands = []shared.ClientID{}
@@ -73,8 +75,8 @@ func (c *client) getAliveIslands() []shared.ClientID {
 	return aliveIslands
 }
 
-// getIslandsCritical retrives number of islands that are critical
-func (c *client) getIslandsCritical() int {
+// getIslandsCriticalCount retrives number of islands that are critical
+func (c *client) getIslandsCriticalCount() int {
 	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
 	var criticalCount int
 
@@ -131,15 +133,7 @@ func leastTrusted(values map[shared.ClientID]float64) shared.ClientID {
 	return leastTrustedClient
 }
 
-// getIslandsAlive retrives number of islands still alive
+// isClientStatusCritical returns whether or not the ClientID is critical
 func (c *client) isClientStatusCritical(ClientID shared.ClientID) bool {
-	var lifeStatuses map[shared.ClientID]shared.ClientLifeStatus
-
-	currentState := c.BaseClient.ServerReadHandle.GetGameState()
-	lifeStatuses = currentState.ClientLifeStatuses
-
-	if lifeStatuses[ClientID] == shared.Critical {
-		return true
-	}
-	return false
+	return c.ServerReadHandle.GetGameState().ClientLifeStatuses[ClientID] == shared.Critical
 }

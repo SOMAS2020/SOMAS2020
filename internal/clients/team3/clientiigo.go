@@ -95,7 +95,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 		}
 	}
 	toPay := (totalToPay / shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
-	targetResources := shared.Resources(2-c.params.riskFactor) * (c.criticalStatePrediction.upperBound)
+	targetResources := shared.Resources(2-c.params.riskFactor) * (c.criticalThreshold)
 	if c.getLocalResources()-toPay <= targetResources {
 		toPay = shared.Resources(math.Max(float64(c.getLocalResources()-targetResources), 0.0))
 	}
@@ -246,7 +246,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	ourAllocation := c.iigoInfo.commonPoolAllocation
 	currentState := c.BaseClient.ServerReadHandle.GetGameState()
 	escapeCritical := c.params.escapeCritcaIsland && currentState.ClientInfo.LifeStatus == shared.Critical
-	distCriticalThreshold := ((c.criticalStatePrediction.upperBound + c.criticalStatePrediction.lowerBound) / 2) - ourAllocation
+	distCriticalThreshold := c.criticalThreshold - ourAllocation
 
 	if escapeCritical && (ourAllocation < distCriticalThreshold) {
 		// Get enough to save ourselves
@@ -290,7 +290,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	currentState := c.BaseClient.ServerReadHandle.GetGameState()
 	ourResources := currentState.ClientInfo.Resources
 	escapeCritical := c.params.escapeCritcaIsland && currentState.ClientInfo.LifeStatus == shared.Critical
-	distCriticalThreshold := ((c.criticalStatePrediction.upperBound + c.criticalStatePrediction.lowerBound) / 2) - ourResources
+	distCriticalThreshold := c.criticalThreshold - ourResources
 
 	request = shared.Resources(c.params.minimumRequest)
 	if escapeCritical {

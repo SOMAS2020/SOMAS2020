@@ -48,7 +48,8 @@ type client struct {
 	ruleVotedOn string
 
 	// ## Game state & History ##
-	criticalStatePrediction criticalStatePrediction
+	// Minimum value for island to avoid critical
+	criticalThreshold shared.Resources
 
 	// declaredResources is a map of all declared island resources
 	declaredResources map[shared.ClientID]shared.Resources
@@ -82,8 +83,10 @@ type client struct {
 }
 
 type criticalStatePrediction struct {
+	serverSet  bool
 	upperBound shared.Resources
 	lowerBound shared.Resources
+	midValue   shared.Resources
 }
 
 type islandParams struct {

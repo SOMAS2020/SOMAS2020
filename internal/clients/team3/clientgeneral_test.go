@@ -204,43 +204,6 @@ func TestUpdateTrustScore(t *testing.T) {
 	}
 }
 
-func TestUpdateCriticalThreshold(t *testing.T) {
-	cases := []struct {
-		name              string
-		ourClient         client
-		islandState       shared.ClientLifeStatus
-		estimatedResource shared.Resources
-		expected          criticalStatePrediction
-	}{
-		{
-			name: "in Critical Test",
-			ourClient: client{
-				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30}},
-			islandState:       shared.Critical,
-			estimatedResource: shared.Resources(40),
-			expected:          criticalStatePrediction{upperBound: 70, lowerBound: 40},
-		},
-		{
-			name: "Not in Critical Test",
-			ourClient: client{
-				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30}},
-			islandState:       shared.Alive,
-			estimatedResource: shared.Resources(60),
-			expected:          criticalStatePrediction{upperBound: 60, lowerBound: 30},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.ourClient.updateCriticalThreshold(tc.islandState, tc.estimatedResource)
-			ans := tc.ourClient.criticalStatePrediction
-			if ans != tc.expected {
-				t.Errorf("got %f-%f, want %f-%f", ans.lowerBound, ans.upperBound, tc.expected.lowerBound, tc.expected.upperBound)
-			}
-		})
-	}
-}
-
 func TestUpdateCompliance(t *testing.T) {
 	cases := []struct {
 		name        string

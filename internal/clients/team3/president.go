@@ -98,8 +98,8 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	commonPoolThreshold = float64(availCommonPool) * (1.0 - p.c.params.riskFactor)
 	if p.c.params.saveCriticalIsland {
 		for island := range resourceRequest {
-			if resources[island] < p.c.criticalStatePrediction.lowerBound {
-				finalAllocations[island] = shared.Resources(math.Max((allocWeights[island] * commonPoolThreshold), float64(p.c.criticalStatePrediction.lowerBound-resources[island])))
+			if resources[island] < p.c.criticalThreshold {
+				finalAllocations[island] = shared.Resources(math.Max((allocWeights[island] * commonPoolThreshold), float64(p.c.criticalThreshold-resources[island])))
 			} else {
 				finalAllocations[island] = 0
 			}
@@ -151,8 +151,6 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		adjustedResource := resource * shared.Resources(math.Pow(p.c.params.resourcesSkew, (100-p.c.trustScore[island])/100))
 		adjustedResources = append(adjustedResources, float64(adjustedResource))
 		adjustedResourcesMap[island] = adjustedResource
-		//update criticalThreshold
-		p.c.updateCriticalThreshold(p.c.ServerReadHandle.GetGameState().ClientLifeStatuses[island], shared.Resources(adjustedResource))
 	}
 
 	AveAdjustedResources := getAverage(adjustedResources)

@@ -24,9 +24,9 @@ func TestEvaluateAllocationRequests(t *testing.T) {
 			ourClient: client{
 				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
 					ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Critical}}}},
-				criticalStatePrediction: criticalStatePrediction{lowerBound: 30},
-				iigoInfo:                iigoCommunicationInfo{commonPoolAllocation: shared.Resources(10)},
-				params:                  islandParams{resourcesSkew: 1.3, selfishness: 0.3, equity: 0.1, riskFactor: 0.2, saveCriticalIsland: false},
+				criticalThreshold: 30,
+				iigoInfo:          iigoCommunicationInfo{commonPoolAllocation: shared.Resources(10)},
+				params:            islandParams{resourcesSkew: 1.3, selfishness: 0.3, equity: 0.1, riskFactor: 0.2, saveCriticalIsland: false},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 1,
 					shared.Team2: 1,
@@ -87,8 +87,8 @@ func TestSetTaxationAmount(t *testing.T) {
 					},
 					CommonPool: shared.Resources(40),
 				}}},
-				criticalStatePrediction: criticalStatePrediction{upperBound: 10, lowerBound: 0},
-				params:                  islandParams{escapeCritcaIsland: true, selfishness: 0.3, riskFactor: 0.5, resourcesSkew: 1.3},
+				criticalThreshold: 10,
+				params:            islandParams{escapeCritcaIsland: true, selfishness: 0.3, riskFactor: 0.5, resourcesSkew: 1.3},
 				trustScore: map[shared.ClientID]float64{
 					0: 50,
 					1: 50,
