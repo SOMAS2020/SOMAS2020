@@ -10,16 +10,9 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName) (history []shared.Accountability, expected map[shared.ClientID]judgeHistoryInfo) {
+func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName, lieCounts map[shared.ClientID]int) (history []shared.Accountability, expected map[shared.ClientID]judgeHistoryInfo) {
 	history = []shared.Accountability{}
-	expected = map[shared.ClientID]judgeHistoryInfo{
-		shared.Team1: {},
-		shared.Team2: {},
-		shared.Team3: {},
-		shared.Team4: {},
-		shared.Team5: {},
-		shared.Team6: {},
-	}
+	expected = map[shared.ClientID]judgeHistoryInfo{}
 	for client, vars := range clientVars {
 		pairs := []rules.VariableValuePair{}
 		for _, v := range vars {
@@ -34,6 +27,7 @@ func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName) (hist
 		}
 		got, ok := buildHistoryInfo(pairs)
 		if ok {
+			got.Lied = lieCounts[client]
 			expected[client] = got
 		}
 	}
@@ -101,56 +95,6 @@ func TestSaveHistoryInfo(t *testing.T) {
 				shared.Team3: 0,
 			},
 			turn: 1,
-			reps: 1,
-		},
-		{
-			name: "Single client empty",
-			clientVariables: map[shared.ClientID][]rules.VariableFieldName{
-				shared.Team1: {
-					rules.IslandReportedPrivateResources,
-					rules.IslandActualPrivateResources,
-					rules.IslandTaxContribution,
-					rules.ExpectedTaxContribution,
-					rules.IslandAllocation,
-				},
-			},
-			lieCounts: map[shared.ClientID]int{
-				shared.Team1: 6,
-			},
-			turn: 12,
-			reps: 1,
-		},
-		{
-			name: "Multiple clients empty",
-			clientVariables: map[shared.ClientID][]rules.VariableFieldName{
-				shared.Team1: {
-					rules.IslandReportedPrivateResources,
-					rules.IslandActualPrivateResources,
-					rules.IslandTaxContribution,
-					rules.ExpectedTaxContribution,
-					rules.ExpectedAllocation,
-				},
-				shared.Team2: {
-					rules.IslandReportedPrivateResources,
-					rules.IslandTaxContribution,
-					rules.ExpectedTaxContribution,
-					rules.IslandAllocation,
-					rules.ExpectedAllocation,
-				},
-				shared.Team3: {
-					rules.IslandReportedPrivateResources,
-					rules.IslandActualPrivateResources,
-					rules.IslandTaxContribution,
-					rules.ExpectedTaxContribution,
-					rules.IslandAllocation,
-				},
-			},
-			lieCounts: map[shared.ClientID]int{
-				shared.Team1: 1,
-				shared.Team2: 7,
-				shared.Team3: 22,
-			},
-			turn: 112,
 			reps: 1,
 		},
 		{
@@ -243,24 +187,23 @@ func TestSaveHistoryInfo(t *testing.T) {
 				savedHistory:  map[uint]map[shared.ClientID]judgeHistoryInfo{},
 			}
 			testClient.clientJudge.parent = &testClient
-
 			j := testClient.clientJudge
 
 			wholeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
 
 			for i := uint(0); i < tc.reps; i++ {
-				fakeHistory, expected := makeHistory(tc.clientVariables)
+				fakeHistory, expected := makeHistory(tc.clientVariables, tc.lieCounts)
 				turn := tc.turn + i
 				wholeHistory[turn] = expected
 
 				j.saveHistoryInfo(&fakeHistory, &tc.lieCounts, turn)
 
-				if reflect.DeepEqual(expected, testClient.savedHistory[turn]) {
-					t.Errorf("Single history failed: %v", testClient.savedHistory[turn])
+				if !reflect.DeepEqual(expected, testClient.savedHistory[turn]) {
+					t.Errorf("Single history failed. expected %v,\n got %v", expected, testClient.savedHistory[turn])
 				}
 			}
 
-			if reflect.DeepEqual(wholeHistory, testClient.savedHistory) {
+			if !reflect.DeepEqual(wholeHistory, testClient.savedHistory) {
 				t.Errorf("Whole history comparison failed. Saved history: %v", testClient.savedHistory)
 			}
 

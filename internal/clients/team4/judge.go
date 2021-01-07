@@ -61,7 +61,8 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 	for client, pairs := range accountabilityMap {
 		clientInfo, ok := buildHistoryInfo(pairs)
 		if ok {
-			clientInfo.Lied = (*lieCounts)[client]
+			clientLied := (*lieCounts)[client]
+			clientInfo.Lied = clientLied
 			if j.parent.savedHistory[turn] != nil {
 				j.parent.savedHistory[turn][client] = clientInfo
 			} else {
@@ -151,4 +152,5 @@ func dump(filename string, format string, v ...interface{}) {
 	if err2 != nil {
 		log.Fatal(err2)
 	}
+
 }
