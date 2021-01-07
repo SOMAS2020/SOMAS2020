@@ -16,6 +16,7 @@ import {
   Surface,
   Symbols,
   ReferenceLine,
+  ReferenceArea,
 } from 'recharts'
 import _ from 'lodash'
 import { OutputJSONType } from '../../../consts/types'
@@ -25,45 +26,43 @@ interface IProps {
 }
 
 class LineRechartComponent extends React.Component<IProps, any> {
-
-    constructor(props: IProps | Readonly<IProps>) {
-        super(props);
-        this.state = {
-            disabled: [],
-            lineColours: {
-                team1: "#0095FF",
-                team2: "#FF0000",
-                team3: "#802FF0",
-                team4: "#00C49F",
-                team5: "#FFBB28",
-                team6: "#FF8042",
-            },
-            legendColours: {
-                team1: "#0095FF",
-                team2: "#FF0000",
-                team3: "#802FF0",
-                team4: "#00C49F",
-                team5: "#FFBB28",
-                team6: "#FF8042",
-                CriticalThreshold: "#B7B4B0",
-            },
-            datapaths: {
-                team1: "ClientInfos.Team1.Resources",
-                team2: "ClientInfos.Team2.Resources",
-                team3: "ClientInfos.Team3.Resources",
-                team4: "ClientInfos.Team4.Resources",
-                team5: "ClientInfos.Team5.Resources",
-                team6: "ClientInfos.Team6.Resources",
-            },
-            chartData: this.props.output
-        };
+  constructor(props: IProps | Readonly<IProps>) {
+    super(props)
+    this.state = {
+      disabled: [],
+      lineColours: {
+        team1: '#0095FF',
+        team2: '#FF0000',
+        team3: '#802FF0',
+        team4: '#00C49F',
+        team5: '#FFBB28',
+        team6: '#FF8042',
+      },
+      legendColours: {
+        team1: '#0095FF',
+        team2: '#FF0000',
+        team3: '#802FF0',
+        team4: '#00C49F',
+        team5: '#FFBB28',
+        team6: '#FF8042',
+        CriticalThreshold: '#B7B4B0',
+      },
+      datapaths: {
+        team1: 'ClientInfos.Team1.Resources',
+        team2: 'ClientInfos.Team2.Resources',
+        team3: 'ClientInfos.Team3.Resources',
+        team4: 'ClientInfos.Team4.Resources',
+        team5: 'ClientInfos.Team5.Resources',
+        team6: 'ClientInfos.Team6.Resources',
+      },
+      chartData: this.props.output,
     }
   }
 
-  handleClick = (dataKey) => {
+  handleClick = (dataKey: any) => {
     this.setState({
       disabled: this.state.disabled.includes(dataKey)
-        ? this.state.disabled.filter((obj) => obj !== dataKey)
+        ? this.state.disabled.filter((obj: any) => obj !== dataKey)
         : this.state.disabled.concat(dataKey),
     })
   }
@@ -159,17 +158,30 @@ class LineRechartComponent extends React.Component<IProps, any> {
               strokeDasharray="3 3"
             />
           ))}
+          {_.toPairs<string>({ CriticalThreshold: '#e6eeff' })
+            .filter((refArea) => !_.includes(this.state.disabled, refArea[0]))
+            .map((refArea) => (
+              <ReferenceArea
+                y1={0}
+                y2={this.state.chartData.Config.MinimumResourceThreshold}
+                label={refArea[0]}
+                stroke={refArea[1]}
+                strokeOpacity={0.1}
+              />
+            ))}
           <Legend
             verticalAlign="top"
             align="center"
             height={20}
             wrapperStyle={{ top: 0, left: 25, right: 0, width: 'auto' }}
-            payload={_.toPairs<string>(this.state.lineColours).map((pair) => ({
-              value: pair[0],
-              color: pair[1],
-              type: 'circle',
-              id: `${pair[0]}${pair[1]}`,
-            }))}
+            payload={_.toPairs<string>(this.state.legendColours).map(
+              (pair) => ({
+                value: pair[0],
+                color: pair[1],
+                type: 'circle',
+                id: `${pair[0]}${pair[1]}`,
+              })
+            )}
             content={this.renderCustomizedLegend}
           />
           <Brush dataKey="Turn" height={25} stroke="#2fa1c6" />
