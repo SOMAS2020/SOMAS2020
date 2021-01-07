@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Navbar, Nav } from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
-import { cioutput, newrun, visualisations } from '../../../consts/paths'
+import { about, cioutput, newrun, visualisations } from '../../../consts/paths'
 import outputJSONData from '../../../output/output.json'
 
 import logo from '../../../assets/logo/logo192.png'
@@ -55,6 +55,7 @@ const AppNavbar = () => {
         <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
           <Nav className="mr-auto" />
           <Nav>
+            {getNavLink('About', about)}
             {getNavLink('New Run', newrun)}
             {getNavLink('CI Output', cioutput)}
             {getNavLink('Visualisations', visualisations)}
