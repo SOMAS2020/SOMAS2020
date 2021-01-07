@@ -9,6 +9,7 @@ import {
   Form,
 } from 'react-bootstrap'
 import { RunGameReturnType, Flag } from '../../wasmAPI'
+
 import {
   useLoadingState,
   initialLoadingState,
@@ -45,7 +46,7 @@ const FlagForm = (props: FlagFormProps) => {
               placement="top"
               overlay={
                 <Tooltip id={flag.Name}>
-                  {flag.Usage} (Type:{flag.Type}, Default:{flag.DefValue})
+                  {flag.Usage} (Type: {flag.Type}, Default: {flag.DefValue})
                 </Tooltip>
               }
             >
@@ -89,7 +90,6 @@ const NewRun = () => {
     }
     setLoading(initialLoadingState)
   }
-
   useEffect(() => {
     onDidMount()
   }, [])
@@ -201,54 +201,6 @@ const NewRun = () => {
             {getFlagForms(flags)}
           </Row>
         </div>
-      )}
-      {output && (
-        <div style={{ marginTop: 48 }}>
-          <div>
-            <Button
-              variant="success"
-              size="lg"
-              onClick={run}
-              disabled={flags === undefined}
-            >
-              Run
-            </Button>
-          </div>
-        </div>
-      )}
-      {flags && output === undefined && (
-        <div>
-          <Button
-            variant="danger"
-            size="lg"
-            onClick={resetFlags}
-            disabled={output !== undefined}
-            style={{ marginTop: 24 }}
-          >
-            Reset Flags
-          </Button>
-          <Row
-            style={{
-              marginLeft: `5vw`,
-              marginRight: `5vw`,
-              marginTop: 48,
-              marginBottom: 48,
-            }}
-          >
-            {getFlagForms(flags)}
-          </Row>
-        </div>
-      )}
-      {runError && (
-        <Alert
-          variant="danger"
-          onClose={() => setRunError(undefined)}
-          dismissible
-          className="custom-alert"
-        >
-          <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
-          <p>{runError}</p>
-        </Alert>
       )}
       {output && (
         <div style={{ marginTop: 48 }}>

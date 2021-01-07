@@ -80,5 +80,4 @@ export const processRoleData = (data: OutputJSONType): ProcessedRoleData => {
         })
     )
 }
-
 export default processRoleData

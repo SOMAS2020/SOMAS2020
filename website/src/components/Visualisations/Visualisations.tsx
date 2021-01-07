@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Button, Alert } from 'react-bootstrap'
 import { useHistory, Route, Switch } from 'react-router-dom'
 import VisualisationsNavbar from './VisualisationsNavbar'
+
 import {
   gamevisualisation,
   visualisations,
@@ -53,10 +54,6 @@ const Visualisations = () => {
     setLoading(initialLoadingState)
   }
 
-  useEffect(() => {
-    onDidMount()
-  }, [])
-
   const handleReset = async () => {
     setLoading({ loading: true, loadingText: `Cleaning up your mess!` })
     setOutput(undefined)
@@ -66,7 +63,9 @@ const Visualisations = () => {
     setError(undefined)
     setWarning(undefined)
   }
-
+  useEffect(() => {
+    onDidMount()
+  }, [])
   useEffect(() => {
     if (output) {
       try {
@@ -90,8 +89,8 @@ const Visualisations = () => {
     setLoading({ loading: true, loadingText: `Reading your file!` })
 
     try {
-      const { files } = event.target
-      const file: Blob | null = files !== null ? files[0] : null
+      // @ts-ignore silence, typechecker
+      const file: Blob | null = event.target.files[0]
       if (!file || !(file instanceof Blob)) {
         throw new Error('No or unsupported file uploaded')
       }

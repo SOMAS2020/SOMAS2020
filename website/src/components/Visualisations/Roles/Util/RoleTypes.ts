@@ -124,6 +124,7 @@ export class TeamAndTurns {
                 this.Team6 += val
                 break
             }
+
             default:
                 break
         }
