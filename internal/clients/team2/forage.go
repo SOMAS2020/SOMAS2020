@@ -33,36 +33,12 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 	if criticalStatus(c) {
 		return 0
 	}
-	if ourResources < c.internalThreshold() && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
-		return (ourResources - c.internalThreshold()) / 2 //tune divisor
+	if ourResources < c.agentThreshold() && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
+		return (ourResources - c.agentThreshold()) / 2 //tune divisor
 	}
-	resourcesForForaging := (ourResources - c.internalThreshold())
+	resourcesForForaging := (ourResources - c.agentThreshold())
 	return resourcesForForaging
 }
-
-// 	if rand.Float64() > Threshold { //we fish when above the threshold
-// 		ft := 1
-// 	} else { // we hunt when below the threshold
-// 		ft := 0
-// 	}
-// 	return shared.ForageDecision{
-// 		Type:         shared.ForageType(ft),
-// 		Contribution: shared.Resources(20), //contribute fixed amount for now
-// 	}, nil
-// }
-
-// //Decide amount of resources to put into foraging
-// func (c *client) DecideForageAmount(foragingDecisionThreshold) shared.Resources {
-// 	ourResources := c.gameState().ClientInfo.Resources // we have given to the pool already by this point in the turn
-// 	if criticalStatus(c) {
-// 		return 0
-// 	}
-// 	if ourResources < internalThreshold(c) && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
-// 		return (ourResources - determineThreshold(c)) / 2 //tune divisor
-// 	}
-// 	resourcesForForaging := (ourResources - internalThreshold)
-// 	return resourcesForForaging
-// }
 
 //being the only agent to hunt is undesirable, having one hunting partner is the desirable, the more hunters after that the less we want to hunt
 func (c *client) decideHuntingLikelihood() float64 { //will move the threshold, higher value means more likely to hunt

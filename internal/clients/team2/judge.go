@@ -12,36 +12,16 @@ type Judge struct {
 	c *client
 }
 
-// GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
-// If a rule is not named here, the default sanction value added is 1
-// OPTIONAL: override to set custom sanction severities for specific rules
-func (j *Judge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
-	return map[string]roles.IIGOSanctionScore{}
-}
-
-// GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
-// For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
-// OPTIONAL: override to set custom sanction thresholds
-func (j *Judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
-	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{}
-}
-
-// PayPresident pays the President a salary.
-// OPTIONAL: override to pay the President less than the full amount.
+//pay default
 func (j *Judge) PayPresident() (shared.Resources, bool) {
-	// TODO Implement opinion based salary payment.
-	PresidentSalaryRule, ok := rules.RulesInPlay["salary_cycle_president"]
-	var PresidentSalary shared.Resources = 0
-	if ok {
-		PresidentSalary = shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
-	}
-	return PresidentSalary, true
+	return j.BaseJudge.PayPresident()
 }
 
-// InspectHistory is the base implementation of evaluating islands choices the last turn.
-// OPTIONAL: override if you want to evaluate the history log differently.
+//TODO: insert trustworthiness
+// InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
 func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
+	outMap := map[shared.ClientID]roles.EvaluationReturn{}
+
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
@@ -56,41 +36,51 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 				return map[shared.ClientID]roles.EvaluationReturn{}, false
 			}
 		}
-		if _, ok := outputMap[clientID]; !ok {
-			outputMap[clientID] = roles.EvaluationReturn{
+		if _, ok := outMap[clientID]; !ok {
+			outMap[clientID] = roles.EvaluationReturn{
 				Rules:       []rules.RuleMatrix{},
 				Evaluations: []bool{},
 			}
 		}
-		tempReturn := outputMap[clientID]
-		for _, rule := range rulesAffected {
-			ret := rules.EvaluateRule(rule)
-			if ret.EvalError != nil {
-				return outputMap, false
+
+		// If the island's trustwothiness is above the threshold, then return true for all rule evaluations
+		if j.c.trustworthiness[clientID] > 80 {
+			tempReturn := outMap[clientID]
+			for _, rule := range rulesAffected {
+				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
+				tempReturn.Evaluations = append(tempReturn.Evaluations, true)
 			}
-			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
-			tempReturn.Evaluations = append(tempReturn.Evaluations, ret.RulePasses)
+			outMap[clientID] = tempReturn
+		} else {
+			// All other islands will be evaluated fairly using base implementation.
+			tempReturn := outMap[clientID]
+			for _, rule := range rulesAffected {
+				evaluation := rules.EvaluateRule(rule)
+				if evaluation.EvalError != nil {
+					return outMap, false
+				}
+				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
+				tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation.RulePasses)
+			}
+			outMap[clientID] = tempReturn
 		}
-		outputMap[clientID] = tempReturn
 	}
-	return outputMap, true
+	return outMap, true
 }
 
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
-// Random Justice: there is a 33% chance each turn an island is forgiven
-//TODO: change this strategy, an agent is forgiven after paying the sanction
 //TODO: add the trustworthiness and state consideration
 func (j *Judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
 	Pardoned := make(map[int][]bool)
 	for i, List := range currentSanctions {
 		List2 := make([]bool, len(List))
-		pardons[i] = List2
+		Pardoned[i] = List2
 		for index, sanction := range List {
-			if j.c.trustworthiness[sanction.ClientID] > 80 && MethodOfPlay() != 1 {
-				e
-				pardons[i][index] = true
+			if j.c.trustworthiness[sanction.ClientID] > 80 && j.c.MethodOfPlay() != 1 {
+
+				Pardoned[i][index] = true
 			} else {
-				pardons[i][index] = false
+				Pardoned[i][index] = false
 			}
 		}
 	}
@@ -98,9 +88,8 @@ func (j *Judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) ma
 }
 
 // HistoricalRetributionEnabled allows you to punish more than the previous turns transgressions
-// OPTIONAL: override if you want to punish historical transgressions
 func (j *Judge) HistoricalRetributionEnabled() bool {
-	return false
+	return true
 }
 
 // CallPresidentElection is called by the judiciary to decide on power-transfer
@@ -122,8 +111,29 @@ func (j *Judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 	return electionsettings
 }
 
-// DecideNextPresident returns the ID of chosen next President
-// OPTIONAL: override to manipulate the result of the election
+//TODO: add our trustworthiness
 func (j *Judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
+	// If the election winner's trust score is okay, we will declare them as the next President.
+	// If not, we will replace it with the island who's trust score is higher
+	if j.c.trustworthiness[winner] < 30 {
+		for island := range j.c.trustworthiness {
+			if j.c.trustworthiness[island] > j.c.trustworthiness[winner] { //this only replaces the winner with someone with a higher trust
+				winner = island
+			}
+		}
+	}
 	return winner
+}
+
+// GetRuleViolationSeverity returns a custom map of named rules and
+// how severe the sanction should be for transgressing them
+// If a rule is not named here, the default sanction value added is 1
+func (j *Judge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
+	return map[string]roles.IIGOSanctionScore{}
+}
+
+// GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
+// For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
+func (j *Judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+	return j.BaseJudge.GetSanctionThresholds()
 }

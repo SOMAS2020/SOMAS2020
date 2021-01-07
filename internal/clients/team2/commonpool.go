@@ -18,27 +18,25 @@ func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHis
 
 //determines how much to request from the pool
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	return determineAllocation(c) * 0.6
+	return determineAllocation(c) * methodConfPool(c)
 }
 
+//TODO:Update to consider IIGO allocated amount, opinion on pres -> whether we take the allocated amount
 //determines how many resources you actually take - currrently going to take however much we say (playing nicely)
 func determineAllocation(c *client) shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
 	if criticalStatus(c) {
-		return c.determineThreshold() //not sure about this amount
+		return c.agentThreshold() //not sure about this amount
 	}
-	if determineTax(c)+c.determineThreshold() > ourResources {
-		return (determineTax(c) - ourResources)
-	}
-	if c.gameState().ClientInfo.Resources < c.internalThreshold() {
-		return (c.internalThreshold() - ourResources)
+	if c.gameState().ClientInfo.Resources < c.agentThreshold() {
+		return (c.agentThreshold() - ourResources)
 	}
 	//TODO: maybe separate standard gameplay when no-one is critical vs when others are critical
 	return 0
 }
 
 func (c *client) RequestAllocation() shared.Resources {
-	return determineAllocation(c) * 0.6
+	return determineAllocation(c) * shared.Resources(methodConfPool(c))
 }
 
 //GetTaxContribution determines how much we put into pool
@@ -47,16 +45,13 @@ func (c *client) GetTaxContribution() shared.Resources {
 	Taxmin := determineTax(c)
 	allocation := AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
 	if criticalStatus(c) {
-		return 0 //tax evasion
+		return 0 //tax evasion by necessity
 	}
-	if determineTax(c)+c.determineThreshold() > ourResources {
-		return 0 //tax evasion
-	}
-	if ourResources < c.internalThreshold() {
+	if ourResources < c.agentThreshold() {
 		return Taxmin
 	}
 	if checkOthersCrit(c) {
-		return (ourResources - c.internalThreshold() - Taxmin) / 2
+		return (ourResources - c.agentThreshold() - Taxmin) / 2
 	}
 
 	allocation = AverageCommonPoolDilemma(c) + Taxmin
@@ -65,29 +60,63 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 //determineTax returns how much tax we have to pay
 func determineTax(c *client) shared.Resources {
-	return shared.Resources(shared.TaxAmount) //TODO: not sure if this is correct tax amount to use
+	return c.taxAmount //TODO: not sure if this is correct tax amount to use
 }
 
-//internalThreshold determines our internal threshold for survival, allocationrec is the output of the function AverageCommonPool which determines which role we will be
-func (c *client) internalThreshold() shared.Resources {
-	gameThreshold := c.determineThreshold()
-	allocationrec := AverageCommonPoolDilemma(c)
-	ourVulnerability := GetIslandDVPs(c.gameState().Geography)[c.GetID()] //TODO: get value from init function
-	//turnsLeftUntilDisaster := 3           //TODO: get this value when known
-	totalTurns := float64(c.gameState().Turn)
-	sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, totalTurns)
-	turnsLeftConfidence := GetTimeRemainingConfidence(totalTurns, sampleMeanX)
-	//TODO: Update these to be functions more specific to our island rather than general mag
-	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
-	confidenceMagnitude := GetMagnitudeConfidence(totalTurns, sampleMeanM)
+//Determines esources we need to be above critical, pay tax and cost of living, put resources aside proportional to incoming disaster
+func (c *client) agentThreshold() shared.Resources {
+	criticaThreshold := c.gameConfig().MinimumResourceThreshold
+	tax := c.taxAmount
+	costOfLiving := c.gameConfig().CostOfLiving
+	basicCosts := criticaThreshold + tax + costOfLiving
+	vulnerability := GetIslandDVPs(c.gameState().Geography)[c.GetID()] //0.25 to 1 (1 being the most vulnerable)
+	vulnerabilityMultiplier := 0.75 + vulnerability
+	//add resources based on expected/predicted disaster magnitude
 
-	if magnitudePrediction > sampleMeanM { //larger mag than average expected
-		return (gameThreshold + allocationrec) * shared.Resources((confidenceMagnitude/10)*(1+ourVulnerability)) //tune
+	turn := c.gameState().Turn
+	var disasterMagProtection float64
+	if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid { //resources for disaster needed known
+		disasterMagProtection = float64(c.gameConfig().DisasterConfig.CommonpoolThreshold.Value) / float64(c.getNumAliveClients())
+	} else { //resources for disaster needed not known
+		sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, float64(turn))
+
+		if turn == 1 {
+			disasterMagProtection = float64(c.gameState().ClientInfo.Resources / 4) //initial disaster threshold guess when we start playing
+			//TODO: tune
+		}
+		baseThreshold := float64(c.resourceLevelHistory[1] / 4) //TODO: tune
+		if c.gameState().Season == 1 {                          //keep threshold from first turn
+			disasterMagProtection = baseThreshold
+		}
+		disasterBasedAdjustment := 0
+		if checkForDisaster(c) {
+			if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] { //no resources taken by disaster
+				if disasterBasedAdjustment > 5 {
+					disasterBasedAdjustment -= 5
+				}
+			}
+			//disaster took our resources
+			disasterBasedAdjustment += 5
+		}
+		//change factor by if next mag > or < prev mag
+		disasterMagProtection = (baseThreshold)*(magnitudePrediction/sampleMeanM) + float64(disasterBasedAdjustment)
 	}
-	if timeRemainingPrediction < 3 { //tune
-		return (gameThreshold + allocationrec) * shared.Resources((turnsLeftConfidence/10)*(1+ourVulnerability)) //tune
+
+	var timeRemaining float64
+	//add extra when disaster is soon
+	if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
+		period := c.gameConfig().DisasterConfig.DisasterPeriod.Value
+		timeRemaining = float64(period - (c.gameState().Turn % period))
+	} else {
+		sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, float64(turn))
+		turnsLeftConfidence := GetTimeRemainingConfidence(float64(turn), sampleMeanX)
+		timeRemaining = float64(timeRemainingPrediction) * (turnsLeftConfidence / 100)
 	}
-	return gameThreshold + allocationrec
+	disasterTimeProtectionMultiplier := float64(1)
+	if timeRemaining < 3 {
+		disasterTimeProtectionMultiplier = float64(1.2) //TODO:tune
+	}
+	return basicCosts + shared.Resources(disasterTimeProtectionMultiplier*disasterMagProtection*vulnerabilityMultiplier)
 }
 
 //Checks if there was a disaster in the previous turn
@@ -102,42 +131,6 @@ func checkForDisaster(c *client) bool {
 		return true
 	}
 	return false
-}
-
-//Finds the game threshold if this information is available or works it out based on history of turns
-func (c *client) determineThreshold() shared.Resources {
-	costOfLiving := c.gameConfig().CostOfLiving
-	if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid {
-		var threshold = (c.gameConfig().DisasterConfig.CommonpoolThreshold.Value) / 6
-		return threshold*1.1 + costOfLiving //*1.1 as threshold may not always be enough
-	}
-	ourResources := c.gameState().ClientInfo.Resources
-	turn := c.gameState().Turn
-	season := c.gameState().Season
-	var disasterBasedAdjustment float64
-	ourVulnerability := GetIslandDVPs(c.gameState().Geography)[c.GetID()] //TODO: get value from init function
-	//turnsLeftUntilDisaster := 3           //TODO: get this value when available in client config
-	totalTurns := float64(c.gameState().Turn)
-	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
-
-	if turn == 1 {
-		return ourResources / 4 //TODO: tune initial threshold guess when we start playing
-	}
-	baseThreshold := c.resourceLevelHistory[1] / 4
-	if season == 1 { //keep threshold from first turn
-		return baseThreshold
-	}
-	if checkForDisaster(c) {
-		if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] { //no resources taken by disaster
-			if disasterBasedAdjustment > 5 {
-				disasterBasedAdjustment -= 5
-			}
-		}
-		//disaster took our resources
-		disasterBasedAdjustment += 5
-	}
-	//change factor by if next mag > or < prev mag
-	return shared.Resources(float64(baseThreshold)*(magnitudePrediction/sampleMeanM)*(1+ourVulnerability)+disasterBasedAdjustment) + costOfLiving
 }
 
 //this function determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers etc
@@ -199,7 +192,7 @@ func (c *client) determine_altruist(turn uint) float64 { //identical to fair sha
 	for j := turn; j > 0; j-- { //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(getNumAliveClients())) * tune_alt
+			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tune_alt
 		}
 	}
 	return 0
@@ -211,8 +204,21 @@ func (c *client) determine_fair(turn uint) float64 { //can make more sophisticat
 	for j := turn; j > 0; j-- {  //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(getNumAliveClients())) * tune_average //make 6 variable for no of agents
+			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tune_average //make 6 variable for no of agents
 		}
 	}
 	return 0
+}
+
+func methodConfPool(c *client) float64 {
+	var modeMult float64
+	switch c.MethodOfPlay() {
+	case 0:
+		modeMult = 0.4 //when the pool is struggling, we will forage less to hav emo
+	case 1:
+		modeMult = 0.6 //default
+	case 2:
+		modeMult = 1.2 //when free riding we mostly take from the pool
+	}
+	return modeMult
 }

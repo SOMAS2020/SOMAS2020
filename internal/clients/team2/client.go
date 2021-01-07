@@ -3,9 +3,8 @@ package team2
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -41,7 +40,7 @@ type Situation string
 const (
 	PresidentOp   Situation = "President"
 	JudgeOp       Situation = "Judge"
-	SpeakerOp     Situation = "Speaker"
+	RoleOpinion   Situation = "RoleOpinion"
 	Foraging      Situation = "Foraging"
 	GiftWeRequest Situation = "Gifts"
 )
@@ -72,6 +71,12 @@ type DisasterOccurence struct {
 	Report disasters.DisasterReport
 }
 
+type IslandSanctionInfo struct {
+	Turn   uint
+	Tier   roles.IIGOSanctionTier
+	Amount roles.IIGOSanctionScore
+}
+
 // Currently what want to use to get archipelago geography but talking to Yannis to get this fixed
 // Because it doesn't work atm
 //archipelagoGeography := c.gamestate().Environment.Geography
@@ -90,6 +95,9 @@ type PredictionsHist map[shared.ClientID][]shared.DisasterPrediction
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo
 type GiftHist map[shared.ClientID]GiftExchange
 type DisasterHistory map[int]DisasterOccurence
+type IslandSanctions map[shared.ClientID][]IslandSanctionInfo
+type TierLevels map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+type SanctionHist []SanctionReceived
 
 // we have to initialise our client somehow
 type client struct {
@@ -108,6 +116,16 @@ type client struct {
 	currPresident President
 	currJudge     Judge
 	currSpeaker   Speaker
+
+	taxAmount            shared.Resources
+	commonPoolAllocation shared.Resources
+	islandSanctions      IslandSanctions
+	tierLevels           TierLevels
+	sanctionHist         SanctionHist
+
+	//TODO: copied in from team3
+	declaredResources   map[shared.ClientID]shared.Resources
+	disasterPredictions []map[shared.ClientID]shared.DisasterPrediction
 }
 
 func init() {
@@ -132,75 +150,10 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	}
 }
 
-func (c *client) islandEmpathyLevel() EmpathyLevel {
-	clientInfo := c.gameState().ClientInfo
-
-	// switch statement to toggle between three levels
-	// change our state based on these cases
-	switch {
-	case clientInfo.LifeStatus == shared.Critical:
-		return Selfish
-		// replace with some expression
-	case (true):
-		return Altruist
-	default:
-		return FairSharer
-	}
-}
-
-func criticalStatus(c *client) bool {
-	clientInfo := c.gameState().ClientInfo
-	if clientInfo.LifeStatus == shared.Critical { //not sure about shared.Critical
-		return true
-	}
-	return false
-}
-
-//TODO: how does this work?
-func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
-	c.disasterHistory[len(c.disasterHistory)] = DisasterOccurence{
-		Turn:   float64(c.gameState().Turn),
-		Report: report,
-	}
-}
-
-//checkOthersCrit checks if anyone else is critical
-func checkOthersCrit(c *client) bool {
-	for clientID, status := range c.gameState().ClientLifeStatuses {
-		if status == shared.Critical && clientID != c.GetID() {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *client) gameState() gamestate.ClientGameState {
-	return c.BaseClient.ServerReadHandle.GetGameState()
-}
-
-func (c *client) gameConfig() config.ClientConfig {
-	return c.BaseClient.ServerReadHandle.GetGameConfig()
-}
-
-func (c *client) getAliveClients() []shared.ClientID {
-	clientStatuses := c.gameState().ClientLifeStatuses
-	aliveClients := make([]shared.ClientID, 0)
-	for island, status := range clientStatuses {
-		if status != shared.Dead {
-			aliveClients = append(aliveClients, island)
-		}
-	}
-	return aliveClients
-}
-
-func (c *client) getNumAliveClients() int {
-	return len(c.getAliveClients())
-}
 
 // Initialise initialises the base client.
 // OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
 // You will need it to access the game state through its GetGameStateMethod.
-func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
 	c.LocalVariableCache = rules.CopyVariableMap()
 	// loop through each island (there might not be 6)
@@ -208,7 +161,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 		// set the confidence to 50 and initialise any other stuff
 		Histories := make(map[Situation][]int)
 		Histories["President"] = []int{50}
-		Histories["Speaker"] = []int{50}
+		Histories["RoleOpinion"] = []int{50}
 		Histories["Judge"] = []int{50}
 		Histories["Foraging"] = []int{50}
 		Histories["Gifts"] = []int{50}
@@ -224,3 +177,4 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.currJudge = Judge{c: c}
 	c.currPresident = President{c: c}
 }
+
