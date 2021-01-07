@@ -23,15 +23,11 @@ type GiftsReceivedHistory map[shared.ClientID]shared.Resources
 // GiftsRequestedHistory stores what gifts we have requested
 type GiftsRequestedHistory map[shared.ClientID]shared.Resources
 
-
 // DisastersHistory records the sequences of disastered happened
 type DisastersHistory []baseclient.DisasterInfo
 
 // DisasterPredictions records the disasater disasters from other islands
 type DisasterPredictions map[shared.ClientID]shared.DisasterPrediction
-
-// Personality enumerate our personality
-type Personality int
 
 // Personality enumerate our personality
 type Personality int
@@ -85,7 +81,6 @@ var (
 	forageHistory         = ForageHistory{}
 	disastersHistory      = DisastersHistory{}
 	disasterPredictions   = DisasterPredictions{}
-	favourRules           = FavourRules{}
 	clientConfig          = ClientConfig{
 		minFriendship:          0.0,
 		maxFriendship:          100.0,

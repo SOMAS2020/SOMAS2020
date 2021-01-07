@@ -70,16 +70,6 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	c.Logf("Final Prediction: [%v]", finalPrediction)
 }
 
-// ------ TODO: OPTIONAL ------
-func (c *client) MakeForageInfo() shared.ForageShareInfo {
-	return c.BaseClient.MakeForageInfo()
-}
-
-// ------ TODO: OPTIONAL ------
-func (c *client) ReceiveForageInfo(forageInfo []shared.ForageShareInfo) {
-	c.BaseClient.ReceiveForageInfo(forageInfo)
-}
-
 func getMeanDisaster(pastDisastersList baseclient.PastDisastersList) baseclient.DisasterInfo {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	numberDisastersPassed := float64(len(pastDisastersList))

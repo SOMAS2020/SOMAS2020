@@ -31,4 +31,3 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 
 	return preferenceList
 }
->>>>>>> main

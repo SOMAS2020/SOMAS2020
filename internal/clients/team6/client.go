@@ -22,7 +22,6 @@ type client struct {
 	disastersHistory      DisastersHistory
 	disasterPredictions   DisasterPredictions
 	forageHistory         ForageHistory
-	favourRules           FavourRules
 	payingTax             shared.Resources
 
 	clientConfig ClientConfig
@@ -48,7 +47,6 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		forageHistory:         forageHistory,
 		disastersHistory:      disastersHistory,
 		disasterPredictions:   disasterPredictions,
-		favourRules:           favourRules,
 		clientConfig:          clientConfig,
 	}
 }
