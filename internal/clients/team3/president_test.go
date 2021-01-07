@@ -100,12 +100,12 @@ func TestSetTaxationAmount(t *testing.T) {
 				compliance: 1,
 			}},
 			declaredResources: map[shared.ClientID]shared.ResourcesReport{
-				0: {100, true},
-				1: {100, true},
-				2: {100, true},
-				3: {100, true},
-				4: {100, true},
-				5: {100, true},
+				0: {ReportedAmount: 100, Reported: true},
+				1: {ReportedAmount: 100, Reported: true},
+				2: {ReportedAmount: 100, Reported: true},
+				3: {ReportedAmount: 100, Reported: true},
+				4: {ReportedAmount: 100, Reported: true},
+				5: {ReportedAmount: 100, Reported: true},
 			},
 			expected: map[shared.ClientID]shared.Resources{
 				0: 7,
