@@ -140,9 +140,9 @@ func (c *client) ReceiveCommunication(
 ) {
 	for field, content := range data {
 		switch field {
-		case shared.TaxAmount:
+		case shared.IIGOTaxDecision:
 			c.taxAmount = shared.Resources(content.IntegerData)
-		case shared.AllocationAmount:
+		case shared.IIGOAllocationDecision:
 			c.allocation = shared.Resources(content.IntegerData)
 		case shared.SanctionAmount:
 			c.sanctionAmount = shared.Resources(content.IntegerData)

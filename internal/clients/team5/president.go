@@ -6,6 +6,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -54,21 +55,22 @@ func (pres *president) EvaluateAllocationRequests(resourceRequest map[shared.Cli
 
 //TODO: NEED TO LOOK AT THE RULES
 // PickRuleToVote chooses a rule proposal from all the proposals
-func (pres *president) PickRuleToVote(rulesProposals []string) shared.PresidentReturnContent {
+func (pres *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.PresidentReturnContent {
 	// DefaulContentType: No rules were proposed by the islands
-	proposedRule := ""
+
+	// proposedRule := ""
 	actionTaken := false
 
 	// if some rules were proposed
 	if len(rulesProposals) != 0 {
-		proposedRule = rulesProposals[rand.Intn(len(rulesProposals))]
+		// proposedRule = rulesProposals[rand.Intn(len(rulesProposals))]
 		actionTaken = true
 	}
 
 	return shared.PresidentReturnContent{
-		ContentType:  shared.PresidentRuleProposal,
-		ProposedRule: proposedRule,
-		ActionTaken:  actionTaken,
+		ContentType: shared.PresidentRuleProposal,
+		// ProposedRuleMatrix: proposedRule,
+		ActionTaken: actionTaken,
 	}
 }
 
@@ -103,7 +105,14 @@ func (pres *president) SetTaxationAmount(islandsResources map[shared.ClientID]sh
 
 //For this, whenever we are presidents, the salary of the speaker comes in hand with our own wealth state
 //this is for the sake of everyone paying less, thus having a higher chance of our island to recover
-func (pres *president) PaySpeaker(salary shared.Resources) shared.PresidentReturnContent {
+func (pres *president) PaySpeaker() shared.PresidentReturnContent {
+
+	SpeakerSalaryRule, ok := rules.RulesInPlay["salary_cycle_speaker"]
+	var salary shared.Resources = 0
+	if ok {
+		salary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
+	}
+
 	if pres.c.wealth() == jeffBezos {
 		return shared.PresidentReturnContent{
 			ContentType:   shared.PresidentSpeakerSalary,
