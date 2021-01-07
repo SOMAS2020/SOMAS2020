@@ -1,6 +1,7 @@
 package team2
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -221,4 +222,25 @@ func methodConfPool(c *client) float64 {
 		modeMult = 1.2 //when free riding we mostly take from the pool
 	}
 	return modeMult
+}
+
+func (c *client) SanctionHopeful() shared.Resources {
+	return 0
+}
+
+//Checks the sanction amount aginst what we expect
+func (c *client) GetSanctionPayment() shared.Resources {
+	if value, ok := c.LocalVariableCache[rules.SanctionExpected]; ok {
+		if c.gameState().ClientLifeStatuses[c.GetID()] != shared.Critical {
+			if shared.Resources(value.Values[0]) <= c.SanctionHopeful() {
+				return shared.Resources(value.Values[0])
+			} else {
+				// TODO: make switch case on agent mode.
+				return c.SanctionHopeful()
+			}
+		} else {
+			return 0
+		}
+	}
+	return 0
 }
