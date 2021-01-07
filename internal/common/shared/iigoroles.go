@@ -16,9 +16,10 @@ const (
 	Judge
 )
 
-//Rule vote types
+//RuleVoteType is the type of vote for each ballot
 type RuleVoteType int
 
+// type of vote for each ballot
 const (
 	Approve RuleVoteType = iota
 	Reject
