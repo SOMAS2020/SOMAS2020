@@ -6,7 +6,7 @@ type DisasterPrediction struct {
 	CoordinateX Coordinate
 	CoordinateY Coordinate
 	Magnitude   Magnitude
-	TimeLeft    int
+	TimeLeft    uint
 	Confidence  PredictionConfidence
 }
 

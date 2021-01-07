@@ -1,6 +1,8 @@
 package iigointernal
 
 import (
+	"math/rand"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -65,4 +67,23 @@ func boolToFloat(input bool) float64 {
 		return 1
 	}
 	return 0
+}
+
+// if an IIGO role is dead, it is replaced with a random living island
+func removeDeadBodiesFromOffice(g *gamestate.GameState) {
+	aliveClientIds := []shared.ClientID{}
+	for clientID, clientGameState := range g.ClientInfos {
+		if clientGameState.LifeStatus != shared.Dead {
+			aliveClientIds = append(aliveClientIds, clientID)
+		}
+	}
+	if g.ClientInfos[g.PresidentID].LifeStatus == shared.Dead {
+		g.PresidentID = aliveClientIds[rand.Intn(len(aliveClientIds))]
+	}
+	if g.ClientInfos[g.JudgeID].LifeStatus == shared.Dead {
+		g.JudgeID = aliveClientIds[rand.Intn(len(aliveClientIds))]
+	}
+	if g.ClientInfos[g.SpeakerID].LifeStatus == shared.Dead {
+		g.SpeakerID = aliveClientIds[rand.Intn(len(aliveClientIds))]
+	}
 }
