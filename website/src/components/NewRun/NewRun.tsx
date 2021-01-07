@@ -126,26 +126,26 @@ const NewRun = () => {
     <h1>New Run</h1>
 
     {
+      runError &&
+      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible className="custom-alert">
+        <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
+        <p>{runError}</p>
+      </Alert>
+    }
+    {
       !output &&
       <div>
         <Button variant="success" size="lg" onClick={run} disabled={flags === undefined}>Run</Button>
       </div>
     }
     {
-      flags &&
+      flags && (output === undefined) &&
       <div>
         <Button variant="danger" size="lg" onClick={resetFlags} disabled={output !== undefined} style={{ marginTop: 24 }}>Reset Flags</Button>
         <Row style={{ marginLeft: `5vw`, marginRight: `5vw`, marginTop: 48, marginBottom: 48 }}>
           {getFlagForms(flags)}
         </Row>
       </div>
-    }
-    {
-      runError &&
-      <Alert variant="danger" onClose={() => setRunError(undefined)} dismissible className="custom-alert">
-        <Alert.Heading>Oh reeeeeeeeee!</Alert.Heading>
-        <p>{runError}</p>
-      </Alert>
     }
     {
       output &&

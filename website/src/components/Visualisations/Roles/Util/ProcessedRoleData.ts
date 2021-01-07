@@ -1,52 +1,80 @@
 import { OutputJSONType } from "../../../../consts/types";
-import {
-    ProcessedRoleData,
-    ProcessedRoleElement,
-    TurnsInRoles,
-} from "./RoleTypes";
+import { ProcessedRoleData, TeamAndTurns } from "./RoleTypes";
 
-const standardise = (allRoles: ProcessedRoleData): ProcessedRoleData => {
-    const maxLength = allRoles.reduce(
-        (acc, allRoleElem) =>
-            allRoleElem.roles.length > acc ? allRoleElem.roles.length : acc,
+const standardise = (data: ProcessedRoleData): ProcessedRoleData => {
+    let maxLength = data.reduce(
+        (max, curr) =>
+            curr.occupied.length > max ? curr.occupied.length : max,
         0
     );
 
-    return allRoles.map((allRolesElem) => {
-        for (let i = 0; i <= maxLength - allRolesElem.roles.length; i++) {
-            allRolesElem.roles.push(new TurnsInRoles());
+    return data.map((elem) => {
+        const length = elem.occupied.length;
+        for (let i = 0; i < maxLength - length; i++) {
+            elem.occupied.push(new TeamAndTurns());
         }
-        return allRolesElem;
+        return elem;
     });
 };
 
-export const processRoleData = (data: OutputJSONType) => {
+const increment = (occupied: TeamAndTurns[], team: string): TeamAndTurns[] => {
+    if (occupied.length > 0 && occupied[occupied.length - 1].has(team)) {
+        occupied[occupied.length - 1].increment(team);
+    } else {
+        const teamAndTurns = new TeamAndTurns();
+        teamAndTurns.set(team, 1);
+        occupied.push(teamAndTurns);
+    }
+    return occupied;
+};
+
+export const processRoleData = (data: OutputJSONType): ProcessedRoleData => {
     if (data.GameStates.length === 0) return [];
 
-    let allRoles: ProcessedRoleData = [];
+    let retData: ProcessedRoleData = [
+        {
+            role: "Pres",
+            occupied: [],
+        },
+        {
+            role: "Judge",
+            occupied: [],
+        },
+        {
+            role: "Speaker",
+            occupied: [],
+        },
+    ];
 
-    data.AuxInfo.TeamIDs.map((id) =>
-        allRoles.push(new ProcessedRoleElement(id))
-    );
-
-    if (allRoles.length === 0) return [];
-
-    allRoles = data.GameStates.reduce(
-        (allRolesNew, gameState) =>
-            allRolesNew.map((allRolesElem) => {
-                if (allRolesElem.name === gameState.PresidentID) {
-                    allRolesElem.increment("president");
-                } else if (allRolesElem.name === gameState.JudgeID) {
-                    allRolesElem.increment("judge");
-                } else if (allRolesElem.name === gameState.SpeakerID) {
-                    allRolesElem.increment("speaker");
-                } else {
-                    allRolesElem.increment("none");
+    return standardise(
+        retData.map((elem) => {
+            elem.occupied = data.GameStates.reduce((acc, gameState) => {
+                switch (elem.role) {
+                    case "Pres": {
+                        elem.occupied = increment(
+                            elem.occupied,
+                            gameState.PresidentID
+                        );
+                        break;
+                    }
+                    case "Judge": {
+                        elem.occupied = increment(
+                            elem.occupied,
+                            gameState.JudgeID
+                        );
+                        break;
+                    }
+                    case "Speaker": {
+                        elem.occupied = increment(
+                            elem.occupied,
+                            gameState.SpeakerID
+                        );
+                        break;
+                    }
                 }
-                return allRolesElem;
-            }),
-        allRoles
+                return acc;
+            }, elem.occupied);
+            return elem;
+        })
     );
-
-    return standardise(allRoles);
 };
