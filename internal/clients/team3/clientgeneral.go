@@ -26,6 +26,10 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 func (c *client) StartOfTurn() {
 	c.clientPrint("Start of turn!")
 
+	// update Trust Scores at the start of every turn
+	c.updateTrustScore(c.trustMapAgg)
+	c.updateTheirTrustScore(c.theirTrustMapAgg)
+
 	// Initialise trustMap and theirtrustMap local cache to empty maps
 	c.inittrustMapAgg()
 	c.inittheirtrustMapAgg()
@@ -50,8 +54,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourSpeaker = speaker{c: c}
 	c.ourJudge = judge{c: c}
 	c.ourPresident = president{c: c}
-  
-  c.initgiftOpinions()
+
+	c.initgiftOpinions()
 
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)
@@ -183,7 +187,7 @@ func (c *client) evalJudgePerformance() {
 	}
 
 	// Did the judge support our vote for president?
-	ourVoteForPresident := c.GetVoteForElection(shared.President)
+	ourVoteForPresident := c.VoteForElection(shared.President, c.getAliveIslands())
 	electedPresident := c.ServerReadHandle.GetGameState().PresidentID
 	var ourRankingChosen int
 	for index, islandID := range ourVoteForPresident {
@@ -235,7 +239,7 @@ func (c *client) evalPresidentPerformance() {
 	// evalOfPresident += (SetTaxationAmount() - c.iigoInfo.taxationAmount) * c.params.sensitivity
 
 	// Did the president support our vote for speaker?
-	ourVoteForSpeaker := c.GetVoteForElection(shared.Speaker)
+	ourVoteForSpeaker := c.VoteForElection(shared.Speaker, c.getAliveIslands())
 	electedSpeaker := c.ServerReadHandle.GetGameState().SpeakerID
 	var ourRankingChosen int
 	for index, islandID := range ourVoteForSpeaker {
@@ -281,7 +285,7 @@ func (c *client) evalSpeakerPerformance() {
 	}
 
 	// Did the speaker support our vote for judge?
-	ourVoteForJudge := c.GetVoteForElection(shared.Judge)
+	ourVoteForJudge := c.VoteForElection(shared.Judge, c.getAliveIslands())
 	electedJudge := c.ServerReadHandle.GetGameState().JudgeID
 	var ourRankingChosen int
 	for index, islandID := range ourVoteForJudge {
