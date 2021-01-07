@@ -1,7 +1,6 @@
 package team1
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -53,10 +52,4 @@ func (c *client) RequestAllocation() shared.Resources {
 		c.Logf("Taking %v from common pool", allocation)
 	}
 	return shared.Resources(allocation)
-}
-
-	if allocationAmount != 0 {
-		c.Logf("Taking %v from common pool", allocationAmount)
-	}
-	return allocationAmount
 }
