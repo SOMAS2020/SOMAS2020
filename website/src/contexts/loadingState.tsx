@@ -1,20 +1,23 @@
 import React from 'react'
 
-const { createContext, useReducer, useContext } = React;
+const { createContext, useReducer, useContext } = React
 
 export type LoadingState = {
   loading: boolean
   loadingText?: string | undefined
 }
 
-export type LoadingStateDispatchType = (values: LoadingState) => void;
+export type LoadingStateDispatchType = (values: LoadingState) => void
 
-export const initialLoadingState: LoadingState =
-  { loading: false, loadingText: undefined }
+export const initialLoadingState: LoadingState = {
+  loading: false,
+  loadingText: undefined,
+}
 
 const LoadingStateContext = createContext(initialLoadingState)
-const DispatchLoadingStateContext = createContext({} as LoadingStateDispatchType)
-
+const DispatchLoadingStateContext = createContext(
+  {} as LoadingStateDispatchType
+)
 
 export const LoadingStateProvider = ({ children }: { children: any }) => {
   const [state, dispatch] = useReducer(
@@ -35,6 +38,6 @@ export const LoadingStateProvider = ({ children }: { children: any }) => {
 export const useLoadingState = (): [LoadingState, LoadingStateDispatchType] => {
   return [
     useContext(LoadingStateContext),
-    useContext(DispatchLoadingStateContext)
+    useContext(DispatchLoadingStateContext),
   ]
-} 
+}
