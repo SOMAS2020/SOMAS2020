@@ -15,7 +15,7 @@ type clientConfig struct {
 	RandomChanceToSwitch         float64
 	IncreasePerHunterLastTurn    float64 // % increase per Hunter last turn
 	IncreasePerFisherMenLastTurn float64 // % increase per Fisherman last turn
-	DeerTurnsToLookBack          uint    // Find hunters in LB turns (not inlcuding pervious)
+	DeerTurnsToLookBack          uint    // Find hunters in LB turns (not includding pervious)
 	DecreasePerHunterInLookBack  float64 // % decrease per hunter in past LB turns
 
 	// NormalForage

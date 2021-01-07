@@ -116,7 +116,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			bestForagingMethod = forageType
 		}
 	}
-	// We have the best foragine method according to the pervious turns
+	// We have the best foragine method according to the previous turns
 	if bestForagingMethod != shared.ForageType(-1) { // If RoI < 0 then dont bother look at the history
 		//=============================================================================
 		// Looking at other islands amount of hunters last turn
@@ -131,7 +131,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 					returns.turn == c.getTurn()-1 && // Last turn
 					returns.team != shared.Team5 { // Not including us
 					deerHunters++                                         // Increment number of hunters
-					probDeerHunting += c.config.IncreasePerHunterLastTurn // Incremenet the probabilty we hunt
+					probDeerHunting += c.config.IncreasePerHunterLastTurn // Incremenet the probability we hunt
 				} else if forageType == shared.FishForageType &&
 					returns.turn == c.getTurn()-1 &&
 					returns.team != shared.Team5 {
@@ -169,7 +169,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 		// If best foraging was none of the 2 above then return shared.ForageType(-1)
 		if bestForagingMethod == shared.FishForageType { // Fishing is best but 3 Deer hunters last turn
 			bDeer := distuv.Bernoulli{P: 1 - probDeerHunting}     // P(1)[Fishing]=0.6 (1-0.1+0.3*3) if 3 deer hunter
-			bestForagingMethod *= shared.ForageType(bDeer.Rand()) // Multipy the 0 in if Deer Hunting was picked in randomness
+			bestForagingMethod *= shared.ForageType(bDeer.Rand()) // Multiply the 0 in if Deer Hunting was picked in randomness
 		} else if bestForagingMethod == shared.DeerForageType { // Deer hunting is the best choice but 3 Fishers
 			bFish := distuv.Bernoulli{P: probFishHunting}         // P(1)[Fishing]= 0.1 + 0.1*3 = 0.4
 			bestForagingMethod += shared.ForageType(bFish.Rand()) // +1 [makes it fishing] if Fishing was picked in randomness
