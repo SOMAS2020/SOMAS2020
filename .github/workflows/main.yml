@@ -36,7 +36,9 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
     - name: Install Dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      run: yarn install            
+      run: |
+        cd website
+        yarn install            
     - name: Test build website
       run: |
         cd website
