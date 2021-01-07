@@ -34,18 +34,19 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-
+	return c.BaseClient.CommonPoolResourceRequest()
 }
 
 func (c *client) ResourceReport() shared.ResourcesReport {
 	// if we are selfish, will report 1/2 of the actual resources
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	ourPersonality := c.getPersonality()
 	fakeReport := shared.ResourcesReport{
-		ReportedAmount: (1 / 2) * ourResources,
+		ReportedAmount: shared.Resources(float64(1/2) * float64(ourResources)),
 		Reported:       true,
 	}
 
-	if c.getPersonality() == Selfish {
+	if ourPersonality == Selfish {
 		return fakeReport
 	}
 

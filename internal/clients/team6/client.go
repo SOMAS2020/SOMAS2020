@@ -15,9 +15,12 @@ type client struct {
 	*baseclient.BaseClient
 
 	friendship            Friendship
+	trustRank             TrustRank
 	giftsSentHistory      GiftsSentHistory
 	giftsReceivedHistory  GiftsReceivedHistory
 	giftsRequestedHistory GiftsRequestedHistory
+	disastersHistory      DisastersHistory
+	disasterPredictions   DisasterPredictions
 	forageHistory         ForageHistory
 	favourRules           FavourRules
 	payingTax             shared.Resources
@@ -38,10 +41,13 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
 		BaseClient:            baseclient.NewClient(clientID),
 		friendship:            friendship,
+		trustRank:             trustRank,
 		giftsSentHistory:      giftsSentHistory,
 		giftsReceivedHistory:  giftsReceivedHistory,
 		giftsRequestedHistory: giftsRequestedHistory,
 		forageHistory:         forageHistory,
+		disastersHistory:      disastersHistory,
+		disasterPredictions:   disasterPredictions,
 		favourRules:           favourRules,
 		clientConfig:          clientConfig,
 	}
@@ -106,7 +112,20 @@ func (c *client) updateFriendship() {
 	}
 }
 
-// ------ TODO: OPTIONAL ------
 func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disasters.DisasterEffects) {
-	c.BaseClient.DisasterNotification(dR, effects)
+	// TODO: effects may be recorded
+	currTurn := c.ServerReadHandle.GetGameState().Turn
+
+	disasterhappening := baseclient.DisasterInfo{
+		CoordinateX: dR.X,
+		CoordinateY: dR.Y,
+		Magnitude:   dR.Magnitude,
+		Turn:        currTurn,
+	}
+
+	//for team, prediction := range c.receivedDisasterPredictions {
+	// TODO: increases the trust rank based on the predictions
+	//}
+
+	c.disastersHistory = append(c.disastersHistory, disasterhappening)
 }
