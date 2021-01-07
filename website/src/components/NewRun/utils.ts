@@ -94,3 +94,29 @@ export const clearLocalFlags = async () => {
         .then(() => console.debug(`Clear local flags`))
         .catch((err: any) => console.error(err))
 }
+
+export function prettifyParamLabel(str: string) {
+    let output = ''
+    const len = str.length
+    let char = ''
+
+    for (let i = 0; i < len; i++) {
+        char = str.charAt(i)
+
+        if (i === 0) {
+            output += char.toUpperCase()
+        } else if (char !== char.toLowerCase() && char === char.toUpperCase()) {
+            output += ` ${char}`
+        } else if (char === '-' || char === '_') {
+            output += ' '
+        } else {
+            output += char
+        }
+    }
+
+    output = output.replaceAll('Iigo', 'IIGO')
+    output = output.replaceAll('Iifo', 'IIFO')
+    output = output.replaceAll('Iito', 'IITO')
+
+    return output
+}
