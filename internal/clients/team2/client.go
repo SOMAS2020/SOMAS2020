@@ -2,12 +2,10 @@
 package team2
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -97,29 +95,6 @@ type DisasterHistory map[int]DisasterOccurence
 type client struct {
 	// should this have a * in front?
 	*baseclient.BaseClient
-
-	ourSpeaker   speaker
-	ourJudge     judge
-	ourPresident president
-
-	judgePerformance     map[shared.ClientID]int
-	speakerPerformance   map[shared.ClientID]int
-	presidentPerformance map[shared.ClientID]int
-
-	// ## IIGO ##
-	ruleVotedOn string
-
-	// allVotes stores the votes of each island for/against each rule
-	allVotes map[string]map[shared.ClientID]bool
-
-	// iigoInfo caches information regarding iigo in the current turn
-	iigoInfo iigoCommunicationInfo
-
-	localVariableCache map[rules.VariableFieldName]rules.VariableValuePair
-
-	localInputsCache map[rules.VariableFieldName]dynamics.Input
-	// last sanction score cache to determine wheter or not we have been caugth in the last turn
-	lastSanction roles.IIGOSanctionScore
 
 	islandEmpathies      IslandEmpathies
 	commonPoolHistory    CommonPoolHistory
@@ -226,55 +201,4 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 			OurRequest: map[uint]GiftInfo{},
 		}
 	}
-}
-
-type ruleVoteInfo struct {
-	// ourVote needs to be updated accordingly
-	ourVote         bool
-	resultAnnounced bool
-	// true -> yes, false -> no
-	result bool
-}
-
-type iigoCommunicationInfo struct {
-	// ourRole stores our current role in the IIGO
-	ourRole *shared.Role
-	// Retrieved fully from communications
-	// commonPoolAllocation gives resources allocated by president from requests
-	commonPoolAllocation shared.Resources
-	// taxationAmount gives tax amount decided by president
-	taxationAmount shared.Resources
-	// monitoringOutcomes stores the outcome of the monitoring of an island.
-	// key is the role being monitored.
-	// true -> correct performance, false -> incorrect performance.
-	monitoringOutcomes map[shared.Role]bool
-	// monitoringDeclared stores as key the role being monitored and whether it was actually monitored.
-	monitoringDeclared map[shared.Role]bool
-	//Role IDs at the start of the turn
-	startOfTurnPresidentID shared.ClientID
-	startOfTurnJudgeID     shared.ClientID
-	startOfTurnSpeakerID   shared.ClientID
-
-	// Struct containing sanction information
-	sanctions *sanctionInfo
-
-	// Below need to be at least partially updated by our functions
-
-	// ruleVotingResults is a map of rules and the corresponding info
-	ruleVotingResults map[string]*ruleVoteInfo
-	// ourRequest stores how much we requested from commonpool
-	ourRequest shared.Resources
-	// ourDeclaredResources stores how much we said we had to the president
-	ourDeclaredResources shared.Resources
-}
-
-type sanctionInfo struct {
-	// tierInfo provides tiers and sanction score required to get to that tier
-	tierInfo map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
-	// rulePenalties provides sanction score given for breaking each rule
-	rulePenalties map[string]roles.IIGOSanctionScore
-	// islandSanctions stores sanction tier of each island (but not score)
-	islandSanctions map[shared.ClientID]roles.IIGOSanctionTier
-	// ourSanction is the sanction score for our island
-	ourSanction roles.IIGOSanctionScore
 }
