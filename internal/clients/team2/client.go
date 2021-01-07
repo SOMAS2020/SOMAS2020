@@ -210,7 +210,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
 	c.LocalVariableCache = rules.CopyVariableMap()
 	// loop through each island (there might not be 6)
-	for clientID, _ := range c.gameState().ClientLifeStatuses {
+	for clientID := range c.gameState().ClientLifeStatuses {
 		// set the confidence to 50 and initialise any other stuff
 		Histories := make(map[Situation][]int)
 		Histories["President"] = []int{50}

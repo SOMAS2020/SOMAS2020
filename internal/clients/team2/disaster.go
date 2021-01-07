@@ -58,7 +58,11 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 		}
 
 		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Left) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
-		islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
+		if areaOfArchipelago != 0 {
+			islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
+		} else {
+			islandDVPs[islandID] = areaOfOverlap
+		}
 	}
 	return islandDVPs
 }
