@@ -100,6 +100,10 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	legislativeBranch.SpeakerID = g.SpeakerID
 	executiveBranch.PresidentID = g.PresidentID
 
+	monitoring.judgeID = g.JudgeID
+	monitoring.presidentID = g.PresidentID
+	monitoring.speakerID = g.SpeakerID
+
 	// Set judgePointer
 	judgePointer := iigoClients[g.JudgeID].GetClientJudgePointer()
 	// Set speakerPointer
