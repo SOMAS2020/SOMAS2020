@@ -50,35 +50,18 @@ const CustomTooltip = ({
     return null;
 };
 
-const getRandomColor = () => {
-    var letters = "0123456789ABCDEF";
-    var color = "#";
-    for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
-
-const getNewColors = (teams: string[]): Map<string, string> => {
-    let colorMap = new Map<string, string>();
-
-    teams.map((team) => {
-        if (colorMap.has(team)) {
-            return team;
-        } else {
-            colorMap.set(team, getRandomColor());
-            return team;
-        }
-    });
-
-    return colorMap;
-}
-
 const Roles = (props: { output: OutputJSONType }) => {
 
     const data = processRoleData(props.output);
     const teams = [ "Team1", "Team2", "Team3", "Team4", "Team5", "Team6" ];
-    const colors = getNewColors(teams);
+    const colors = new Map([
+        [ "Team1", "#0095FF" ],
+        [ "Team2", "#FF0000" ],
+        [ "Team3", "#802FF0" ],
+        [ "Team4", "#00C49F" ],
+        [ "Team5", "#FFBB28" ],
+        [ "Team6", "#FF8042" ],
+    ]);
 
     console.log(data);
 
