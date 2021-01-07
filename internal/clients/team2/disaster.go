@@ -133,14 +133,14 @@ func GetLocationPrediction(c *client) CartesianCoordinates {
 
 // GetTimeRemainingPrediction returns a prediction about the time remaining until the next disaster and the sample mean
 // of the RV X. The prediction is 1/sample mean of the Bernoulli RV, minus the turns since the last disaster.
-func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, int) {
+func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, uint) {
 	totalDisasters := float64(len(c.disasterHistory))
 	sampleMeanX := totalDisasters / totalTurns
 
 	// Get the time remaining prediction
 	expectationTd := math.Round(1 / sampleMeanX)
 	timeRemaining := expectationTd - (totalTurns - c.disasterHistory[len(c.disasterHistory)-1].Turn)
-	return sampleMeanX, int(timeRemaining)
+	return sampleMeanX, uint(timeRemaining)
 }
 
 // GetTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is
