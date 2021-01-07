@@ -23,11 +23,23 @@ jobs:
       run: go run .
     - name: Output output.json
       run: cat output/output.json
+    - name: Install yarn 
+      run: npm i -g yarn        
+    - name: Cache node_modules #speed things up significantly
+      id: cache-node-modules
+      uses: actions/cache@v2
+      with:
+        path: |
+          **/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+    - name: Install Dependencies
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: |
+        cd website
+        yarn install      
     - name: Build website
       run: |
         cd website
-        npm i -g yarn
-        yarn install
         yarn build
     - name: Deploy website
       uses: Cecilapp/GitHub-Pages-deploy@v3
