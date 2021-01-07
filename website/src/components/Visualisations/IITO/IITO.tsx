@@ -3,8 +3,7 @@ import logo from "../../../assets/logo/logo512.png";
 import styles from "./IITO.module.css";
 import { OutputJSONType } from "../../../consts/types";
 
-import { ProcessTransactionData } from "./Util/ProcessTransactionData"
-import { ConstructNetwork } from "./Util/ConstructNetwork"
+import processTransactionData from "./Util/ProcessTransactionData"
 import { ForceGraph } from "./Util/ForceGraph";
 
 const IITO = (props: { output: OutputJSONType }) => {
@@ -13,9 +12,8 @@ const IITO = (props: { output: OutputJSONType }) => {
   }, []);
 
   function processOutput(output: OutputJSONType) {
-    const transactionData = ProcessTransactionData(output)
-    const networkData = ConstructNetwork(transactionData)
-    return networkData
+    const transactionData = processTransactionData(output)
+    return transactionData;
   }
 
   const data = processOutput(props.output);

@@ -1,3 +1,5 @@
+// @ts-nocheck
+// TypeScript does not work nicely at all with d3 so need to come back and fix these
 import * as d3 from "d3";
 import styles from "../IITO.module.css";
 
@@ -7,11 +9,12 @@ export function runForceGraph(
     nodesData,
     nodeHoverTooltip
 ) {
+    // Assuming we get the links and nodes as expected
     const links = linksData.map((d) => Object.assign({}, d));
     const nodes = nodesData.map((d) => Object.assign({}, d));
 
-    console.log({ links });
-    console.log({ nodes });
+    // console.log({ links });
+    // console.log({ nodes });
 
     const containerRect = container.getBoundingClientRect();
     const height = containerRect.height;
@@ -19,12 +22,14 @@ export function runForceGraph(
 
     const color = () => { return "#9D00A0"; };
 
+    // size the bubbles by their magnitude 
+    // TODO: scale the bubble sizes for the visualisation here
     const bubbleSize = (d) => {
-        return 5;
+        return d.magnitude;
     }
 
     const getClass = (d) => {
-        return styles.male;
+        return styles.bubble;
     };
 
     const drag = (simulation) => {
