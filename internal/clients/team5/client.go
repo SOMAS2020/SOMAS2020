@@ -146,6 +146,8 @@ func (c *client) ReceiveCommunication(
 			c.allocation = shared.Resources(content.IntegerData)
 		case shared.SanctionAmount:
 			c.sanctionAmount = shared.Resources(content.IntegerData)
+		default:
+			c.Logf("Received unhandled communication of type: %v, value: %v", field, content)
 		}
 	}
 }
