@@ -30,11 +30,11 @@ export default function runForceGraph(
 
   // size the bubbles by their magnitude
   // TODO: scale the bubble sizes for the visualisation here
-  const bubbleSize = (d: any) => {
+  const bubbleSize = (d: Node) => {
     return d.magnitude
   }
 
-  const getClass = (d: any) => {
+  const getClass = (d: Node) => {
     return styles.bubble
   }
 
@@ -101,11 +101,6 @@ export default function runForceGraph(
     .select(container)
     .append('svg')
     .attr('viewBox', [-width / 2, -height / 2, width, height])
-    .call(
-      d3.zoom().on('zoom', (event) => {
-        svg.attr('transform', event.transform)
-      })
-    )
 
   const link = svg
     .append('g')
@@ -137,7 +132,7 @@ export default function runForceGraph(
     .attr('text-anchor', 'middle')
     .attr('dominant-baseline', 'central')
     .attr('class', (d) => `fa ${getClass(d)}`)
-    // .text(d => { return icon(d); })
+    .text((d: Node) => d.id)
     .call(drag(simulation))
 
   label
