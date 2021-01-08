@@ -473,6 +473,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 }
 
 func TestGetAllocationRequests(t *testing.T) {
+	fakeClientMap := map[shared.ClientID]baseclient.Client{}
 	cases := []struct {
 		name       string
 		bPresident executive // base
@@ -492,6 +493,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team6: 30,
 				},
 				clientPresident: &baseclient.BasePresident{},
+				iigoClients:     fakeClientMap,
 			},
 			input: 100,
 			expected: map[shared.ClientID]shared.Resources{
@@ -516,6 +518,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team6: 30,
 				},
 				clientPresident: &baseclient.BasePresident{},
+				iigoClients:     fakeClientMap,
 			},
 			input: 150,
 			expected: map[shared.ClientID]shared.Resources{
@@ -539,6 +542,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team6: 30,
 				},
 				clientPresident: &baseclient.BasePresident{},
+				iigoClients:     fakeClientMap,
 			},
 			input: 100,
 			expected: map[shared.ClientID]shared.Resources{
@@ -562,6 +566,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team5: 25,
 					shared.Team6: 30},
 				clientPresident: &baseclient.BasePresident{},
+				iigoClients:     fakeClientMap,
 			},
 			input: 150,
 			expected: map[shared.ClientID]shared.Resources{
@@ -593,6 +598,7 @@ func TestGetAllocationRequests(t *testing.T) {
 }
 
 func TestReplyAllocationRequest(t *testing.T) {
+	fakeClientMap := map[shared.ClientID]baseclient.Client{}
 	var logging shared.Logger = func(format string, a ...interface{}) {}
 	cases := []struct {
 		name           string
@@ -608,6 +614,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
 				logger:          logging,
+				iigoClients:     fakeClientMap,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 5,
@@ -634,6 +641,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
 				logger:          logging,
+				iigoClients:     fakeClientMap,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 5,
@@ -660,6 +668,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
 				logger:          logging,
+				iigoClients:     fakeClientMap,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 0,
@@ -711,8 +720,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				newClient.Initialise(fakeServer)
 				fakeClientMap[clientID] = newClient
 			}
-
-			setIIGOClients(&fakeClientMap)
+			tc.bPresident.iigoClients = fakeClientMap
 			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
 			tc.bPresident.replyAllocationRequest(tc.commonPool)
@@ -918,9 +926,8 @@ func TestBroadcastTaxation(t *testing.T) {
 				fakeClientMap[clientID] = newClient
 			}
 
-			setIIGOClients(&fakeClientMap)
+			tc.bPresident.iigoClients = fakeClientMap
 			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
-
 			tc.bPresident.broadcastTaxation(tc.clientReports, aliveID)
 
 			for clientID, resources := range tc.clientReports {
