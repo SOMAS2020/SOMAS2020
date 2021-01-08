@@ -49,13 +49,13 @@ type judgeHistoryInfo struct {
 
 func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts *map[shared.ClientID]int, turn uint) {
 	accountabilityMap := map[shared.ClientID][]rules.VariableValuePair{}
+	for _, clientID := range shared.TeamIDs {
+		accountabilityMap[clientID] = []rules.VariableValuePair{}
+	}
+
 	for _, acc := range *iigoHistory {
 		client := acc.ClientID
-		if accountabilityMap[client] != nil {
-			accountabilityMap[client] = append(accountabilityMap[client], acc.Pairs...)
-		} else {
-			accountabilityMap[client] = acc.Pairs
-		}
+		accountabilityMap[client] = append(accountabilityMap[client], acc.Pairs...)
 	}
 
 	for client, pairs := range accountabilityMap {
