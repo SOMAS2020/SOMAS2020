@@ -68,8 +68,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	return request
 }
 
-//GetTaxContribution determines how much we put into pool
-func (c *client) GetTaxContribution() shared.Resources {
+func (c *client) calculateContribution() shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
 	Taxmin := determineTax(c)
 	allocation := AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
@@ -84,6 +83,12 @@ func (c *client) GetTaxContribution() shared.Resources {
 	}
 
 	allocation = AverageCommonPoolDilemma(c) + Taxmin
+	return allocation
+}
+
+//GetTaxContribution determines how much we put into pool
+func (c *client) GetTaxContribution() shared.Resources {
+	allocation := c.calculateContribution()
 	c.updatePresidentTrust()
 	c.confidenceRestrospect("President", c.gameState().PresidentID)
 	return allocation
@@ -273,4 +278,22 @@ func (c *client) GetSanctionPayment() shared.Resources {
 		}
 	}
 	return 0
+}
+
+func (c *client) ShareIntendedContribution() shared.IntendedContribution {
+	shareWith := make([]shared.ClientID, 0)
+	aliveClients := c.getAliveClients()
+	for _, island := range aliveClients {
+		if c.confidence("Gifts", island) > 30 {
+			shareWith = append(shareWith, island)
+		}
+	}
+	intendedContribution := shared.IntendedContribution{
+		Contribution:   c.calculateContribution(),
+		TeamsOfferedTo: shareWith,
+	}
+	return intendedContribution
+}
+func (c *client) ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict) {
+
 }
