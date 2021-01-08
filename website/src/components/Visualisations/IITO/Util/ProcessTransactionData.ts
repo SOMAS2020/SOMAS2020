@@ -11,14 +11,11 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
 
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
-    const IIGOHistories = Object.entries(
+    const IIGOHistory = Object.entries(
         data.GameStates[data.GameStates.length - 1].IIGOHistory
     )
     // For each of these arrayed tuples, we have [turnNumber: <"pair events">[]]
-    IIGOHistories.filter((turnHistory) => {
-        let nothing
-        return typeof nothing !== typeof turnHistory[1]
-    }).forEach(([_, exchanges]) => {
+    IIGOHistory.forEach(([_, exchanges]) => {
         if (exchanges) {
             exchanges.forEach((teamAction) => {
                 const type = teamAction.Pairs[0].VariableName
@@ -83,26 +80,27 @@ export const getIITOTransactions = (data: OutputJSONType) => {
                                     }
                                 }
                             )
-
                             return transactionsForThisIsland
                         }
                     )
                     // fold the island transaction lists together for this turn
-                    .reduce((acc, nextLst) => acc.concat(nextLst))
+                    .reduce((acc, nextLst) => acc.concat(nextLst), [])
             )
         }
 
         return []
         // fold all turns together once more to get the whole game
-    }).reduce((acc, nextLst) => acc.concat(nextLst))
+    }).reduce((acc, nextLst) => acc.concat(nextLst), [])
 }
 
 function processTransactionData(data: OutputJSONType) {
     let nodes: Node[] = []
     let links: Link[] = []
 
-    // let allTransactions = getIIGOTransactions(data).concat(getIITOTransactions(data));
-    const allTransactions = getIIGOTransactions(data)
+    const allTransactions = getIIGOTransactions(data).concat(
+        getIITOTransactions(data)
+    )
+    // const allTransactions = getIIGOTransactions(data)
 
     if (allTransactions) {
         links = allTransactions.map((item) => {
@@ -113,8 +111,6 @@ function processTransactionData(data: OutputJSONType) {
         })
     }
 
-    // TODO: fix logic error here
-    // TODO: absolute it and make them green or red
     // input range: 0 - 1000
     // output range: 10 - 100
     function normaliseMag(val, xMax, xMin, yMax, yMin) {

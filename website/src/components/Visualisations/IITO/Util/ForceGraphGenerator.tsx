@@ -2,16 +2,21 @@
 // TypeScript does not work nicely at all with d3 so need to come back and fix these
 import * as d3 from 'd3'
 import styles from '../IITO.module.css'
+import { Link, Node } from '../../../../consts/types'
 
 export default function runForceGraph(
-  container,
-  linksData,
-  nodesData,
-  nodeHoverTooltip
+  container: any,
+  linksData: Link[],
+  nodesData: Node[],
+  nodeHoverTooltip: any
 ) {
   // Assuming we get the links and nodes as expected
-  const links = linksData.map((d) => Object.assign(...d))
-  const nodes = nodesData.map((d) => Object.assign(...d))
+  const links = linksData.map((d) => {
+    return { ...d }
+  })
+  const nodes = nodesData.map((d) => {
+    return { ...d }
+  })
 
   console.log({ links })
   console.log({ nodes })
@@ -88,7 +93,7 @@ export default function runForceGraph(
       'link',
       d3.forceLink(links).id((d) => d.id)
     )
-    .force('charge', d3.forceManyBody().strength(-10000)) // changes the central force
+    .force('charge', d3.forceManyBody().strength(-6500)) // changes the central force
     .force('x', d3.forceX())
     .force('y', d3.forceY())
 
@@ -97,7 +102,7 @@ export default function runForceGraph(
     .append('svg')
     .attr('viewBox', [-width / 2, -height / 2, width, height])
     .call(
-      d3.zoom().on('zoom', function (event) {
+      d3.zoom().on('zoom', (event) => {
         svg.attr('transform', event.transform)
       })
     )
