@@ -77,7 +77,7 @@ var (
 	)
 	foragingDeerOutputScaler = flag.Float64(
 		"foragingDeerOutputScaler",
-		40,
+		18,
 		"scalar value that adjusts deer returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerDistributionStrategy = flag.Int(
@@ -328,6 +328,24 @@ var (
 		"Sanction length for all sanctions",
 	)
 
+	iigoTermLengthPresident = flag.Uint(
+		"iigoTermLengthPresident",
+		4,
+		"Length of the term for the President",
+	)
+
+	iigoTermLengthSpeaker = flag.Uint(
+		"iigoTermLengthSpeaker",
+		4,
+		"Length of the term for the Speaker",
+	)
+
+	iigoTermLengthJudge = flag.Uint(
+		"iigoTermLengthJudge",
+		4,
+		"Length of the term for the Judge",
+	)
+
 	startWithRulesInPlay = flag.Bool(
 		"startWithRulesInPlay",
 		true,
@@ -406,6 +424,9 @@ func parseConfig() (config.Config, error) {
 	}
 
 	iigoConf := config.IIGOConfig{
+		IIGOTermLengths: map[shared.Role]uint{shared.President: *iigoTermLengthPresident,
+			shared.Speaker: *iigoTermLengthSpeaker,
+			shared.Judge:   *iigoTermLengthJudge},
 		// Executive branch
 		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
 		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),
