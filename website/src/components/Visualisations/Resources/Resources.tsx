@@ -1,7 +1,7 @@
 import React from 'react'
 import styles from './Resources.module.css'
 import { OutputJSONType } from '../../../consts/types'
-import LineRechartComponent from './LineGraph'
+import LineRechartComponent from './ResourceGraph'
 
 const Resources = (props: { output: OutputJSONType }) => {
   return (
