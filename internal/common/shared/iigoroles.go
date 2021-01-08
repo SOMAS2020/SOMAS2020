@@ -15,9 +15,6 @@ const (
 	Judge
 )
 
-<<<<<<< HEAD
-//RuleVoteType is the type of vote for each ballot
-=======
 func (r Role) String() string {
 	strs := [...]string{"President", "Speaker", "Judge"}
 	if r >= 0 && int(r) < len(strs) {
@@ -42,7 +39,6 @@ func (r Role) MarshalJSON() ([]byte, error) {
 }
 
 // RuleVoteType provides enumerated values for Approving, Rejecting or Abstaining from a vote.
->>>>>>> main
 type RuleVoteType int
 
 // type of vote for each ballot
@@ -52,13 +48,8 @@ const (
 	Abstain
 )
 
-<<<<<<< HEAD
-func (r Role) String() string {
-	strs := [...]string{"President", "Speaker", "Judge"}
-=======
 func (r RuleVoteType) String() string {
 	strs := [...]string{"Approve", "Reject", "Abstain"}
->>>>>>> main
 	if r >= 0 && int(r) < len(strs) {
 		return strs[r]
 	}
