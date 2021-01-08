@@ -35,4 +35,7 @@ type ClientGameState struct {
 
 	// IIGO turns in power (incremented and set by monitoring)
 	IIGOTurnsInPower map[shared.Role]uint
+
+	// RuleInfo contains the global rules information for clients to access
+	RulesInfo RulesContext
 }

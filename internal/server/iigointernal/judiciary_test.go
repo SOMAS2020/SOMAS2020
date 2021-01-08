@@ -95,6 +95,11 @@ func TestLoadSanctionConfig(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			judiciaryInst := judiciary{
 				clientJudge: tc.clientJudge,
+				gameState: &gamestate.GameState{
+					RulesInfo: gamestate.RulesContext{
+						VariableMap: generateDummyVariableCache(),
+					},
+				},
 			}
 			judiciaryInst.loadSanctionConfig()
 
@@ -1707,6 +1712,14 @@ func getStaticVariables() []rules.VariableValuePair {
 		},
 		{
 			VariableName: rules.SanctionExpected,
+			Values:       []float64{0},
+		},
+		{
+			VariableName: rules.RuleSelected,
+			Values:       []float64{0},
+		},
+		{
+			VariableName: rules.VoteCalled,
 			Values:       []float64{0},
 		},
 	}

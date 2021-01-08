@@ -28,8 +28,8 @@ type GameState struct {
 	// Foraging History
 	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
 
-	// Rules in play
-	CurrentRulesInPlay map[string]rules.RuleMatrix
+	// All global rules information
+	RulesInfo RulesContext
 
 	// IIGO History: indexed by turn
 	IIGOHistory map[uint][]shared.Accountability
@@ -40,8 +40,17 @@ type GameState struct {
 	// IIGO turns in power (incremented and set by monitoring)
 	IIGOTurnsInPower map[shared.Role]uint
 
-	//IIGO Role Action Cache
+	// IIGO Role Action Cache
 	IIGOCache []shared.Accountability
+
+	// IIGO Tax Amount Map
+	IIGOTaxAmount map[shared.ClientID]shared.Resources
+
+	// IIGO Allocation Amount Map
+	IIGOAllocationMap map[shared.ClientID]shared.Resources
+
+	// IIGO Sanction Amount Map
+	IIGOSanctionMap map[shared.ClientID]shared.Resources
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
@@ -62,11 +71,15 @@ func (g GameState) Copy() GameState {
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
 	ret.ForagingHistory = copyForagingHistory(g.ForagingHistory)
-	ret.CurrentRulesInPlay = copyRulesInPlay(g.CurrentRulesInPlay)
+	ret.RulesInfo = copyRulesContext(g.RulesInfo)
 	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	ret.IIGOTurnsInPower = copyTurnsInPower(g.IIGOTurnsInPower)
 	ret.IIGOCache = copyIIGOCache(g.IIGOCache)
+	ret.IIGOTaxAmount = copyIIGOClientIDResourceMap(g.IIGOTaxAmount)
+	ret.IIGOAllocationMap = copyIIGOClientIDResourceMap(g.IIGOAllocationMap)
+	ret.IIGOSanctionMap = copyIIGOClientIDResourceMap(g.IIGOSanctionMap)
+	ret.IITOTransactions = copyIITOTransactions(g.IITOTransactions)
 	return ret
 }
 
@@ -89,6 +102,7 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		PresidentID:        g.PresidentID,
 		IIGORolesBudget:    copyRolesBudget(g.IIGORolesBudget),
 		IIGOTurnsInPower:   copyTurnsInPower(g.IIGOTurnsInPower),
+		RulesInfo:          copyRulesContext(g.RulesInfo),
 	}
 }
 
@@ -130,10 +144,29 @@ func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]sh
 	return targetMap
 }
 
-func copyRulesInPlay(rulesInPlay map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
+func copyRulesContext(oldContext RulesContext) RulesContext {
+	return RulesContext{
+		VariableMap:        copyVariableMap(oldContext.VariableMap),
+		CurrentRulesInPlay: copyRulesMap(oldContext.CurrentRulesInPlay),
+		AvailableRules:     copyRulesMap(oldContext.AvailableRules),
+	}
+}
+
+func copyRulesMap(rulesMap map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
 	targetMap := make(map[string]rules.RuleMatrix)
-	for key, value := range rulesInPlay {
+	for key, value := range rulesMap {
 		targetMap[key] = copySingleRuleMatrix(value)
+	}
+	return targetMap
+}
+
+func copyVariableMap(varMap map[rules.VariableFieldName]rules.VariableValuePair) map[rules.VariableFieldName]rules.VariableValuePair {
+	targetMap := make(map[rules.VariableFieldName]rules.VariableValuePair)
+	for key, value := range varMap {
+		targetMap[key] = rules.VariableValuePair{
+			VariableName: value.VariableName,
+			Values:       value.Values,
+		}
 	}
 	return targetMap
 }
@@ -169,6 +202,26 @@ func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability 
 	return ret
 }
 
+func copyIIGOClientIDResourceMap(m map[shared.ClientID]shared.Resources) map[shared.ClientID]shared.Resources {
+	ret := make(map[shared.ClientID]shared.Resources, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
+func copyIITOTransactions(iitoHistory map[shared.ClientID]shared.GiftResponseDict) map[shared.ClientID]shared.GiftResponseDict {
+	targetMap := make(map[shared.ClientID]shared.GiftResponseDict)
+	for key, giftResponseDict := range iitoHistory {
+		giftResponses := make(shared.GiftResponseDict)
+		for clientID, giftResponse := range giftResponseDict {
+			giftResponses[clientID] = giftResponse
+		}
+		targetMap[key] = giftResponses
+	}
+	return targetMap
+}
+
 func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) map[shared.ForageType][]foraging.ForagingReport {
 	ret := make(map[shared.ForageType][]foraging.ForagingReport, len(fHist))
 	for k, v := range fHist { // iterate over different foraging types
@@ -198,4 +251,16 @@ type ClientInfo struct {
 func (c ClientInfo) Copy() ClientInfo {
 	ret := c
 	return ret
+}
+
+// RulesContext contains the global rules information at any given time
+type RulesContext struct {
+	// Map of global variable values
+	VariableMap map[rules.VariableFieldName]rules.VariableValuePair
+
+	//Map of All available rules
+	AvailableRules map[string]rules.RuleMatrix
+
+	// Rules Currently In Play
+	CurrentRulesInPlay map[string]rules.RuleMatrix
 }
