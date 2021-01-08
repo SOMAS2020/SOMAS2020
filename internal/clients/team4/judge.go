@@ -63,11 +63,13 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 		if ok {
 			clientLied := (*lieCounts)[client]
 			clientInfo.Lied = clientLied
-			if j.parent.savedHistory[turn] != nil {
-				j.parent.savedHistory[turn][client] = clientInfo
+			savedHistory := *j.parent.savedHistory
+			if savedHistory[turn] != nil {
+				savedHistory[turn][client] = clientInfo
 			} else {
-				j.parent.savedHistory[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
+				savedHistory[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
 			}
+			j.parent.savedHistory = &savedHistory
 		}
 	}
 }

@@ -184,7 +184,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 				yes:           "",
 				obs:           &observation{},
 				internalParam: &internalParameters{},
-				savedHistory:  map[uint]map[shared.ClientID]judgeHistoryInfo{},
+				savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
 			}
 			testClient.clientJudge.parent = &testClient
 			j := testClient.clientJudge
@@ -198,13 +198,15 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 				j.saveHistoryInfo(&fakeHistory, &tc.lieCounts, turn)
 
-				if !reflect.DeepEqual(expected, testClient.savedHistory[turn]) {
-					t.Errorf("Single history failed. expected %v,\n got %v", expected, testClient.savedHistory[turn])
+				clientHistory := *testClient.savedHistory
+
+				if !reflect.DeepEqual(expected, clientHistory[turn]) {
+					t.Errorf("Single history failed. expected %v,\n got %v", expected, clientHistory[turn])
 				}
 			}
 
-			if !reflect.DeepEqual(wholeHistory, testClient.savedHistory) {
-				t.Errorf("Whole history comparison failed. Saved history: %v", testClient.savedHistory)
+			if !reflect.DeepEqual(wholeHistory, *testClient.savedHistory) {
+				t.Errorf("Whole history comparison failed. Saved history: %v", *testClient.savedHistory)
 			}
 
 		})

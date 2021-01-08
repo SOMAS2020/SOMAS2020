@@ -22,7 +22,7 @@ func init() {
 		yes:           "",
 		obs:           &observation{},
 		internalParam: &internalParameters{},
-		savedHistory:  map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
 	}
 	team4client.clientSpeaker.parent = &team4client
 	team4client.clientJudge.parent = &team4client
@@ -40,7 +40,7 @@ type client struct {
 	obs                *observation        //observation is the raw input into our client
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
-	savedHistory       map[uint]map[shared.ClientID]judgeHistoryInfo
+	savedHistory       *map[uint]map[shared.ClientID]judgeHistoryInfo
 }
 
 // Store extra information which is not in the server and is helpful for our client
