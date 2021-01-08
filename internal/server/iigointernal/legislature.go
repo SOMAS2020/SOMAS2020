@@ -220,7 +220,7 @@ func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn boo
 		}
 	} else { //if the proposed ruleMatrix has different content to the rule with the same name in AvailableRules, the proposal is for modifying the rule in the rule caches. It doesn't put a rule in/out of play.
 		if ruleIsVotedIn {
-			err := rules.ModifyRule(ruleMatrix.RuleName, ruleMatrix.ApplicableMatrix, ruleMatrix.AuxiliaryVector)
+			err := rules.ModifyRuleInternal(ruleMatrix.RuleName, ruleMatrix.ApplicableMatrix, ruleMatrix.AuxiliaryVector, l.gameState.RulesInfo.AvailableRules, l.gameState.RulesInfo.CurrentRulesInPlay)
 			return err
 		}
 	}
