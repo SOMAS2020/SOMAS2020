@@ -21,7 +21,7 @@ func (result ForageResults) calcROI() float64 {
 }
 
 func (c client) changeMultiplier() float64 {
-	for _, results := range forageHistory {
+	for _, results := range c.forageHistory {
 		var lastRoi float64 = 0
 		var lastlastRoi float64 = 0
 		for _, result := range results {

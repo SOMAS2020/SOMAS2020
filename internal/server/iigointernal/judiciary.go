@@ -3,6 +3,7 @@ package iigointernal
 import (
 	"fmt"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -23,6 +24,7 @@ type judiciary struct {
 	ruleViolationSeverity map[string]roles.IIGOSanctionScore
 	localSanctionCache    map[int][]roles.Sanction
 	localHistoryCache     map[int][]shared.Accountability
+	iigoClients           map[shared.ClientID]baseclient.Client
 	monitoring            *monitor
 	logger                shared.Logger
 }
@@ -54,8 +56,8 @@ func (j *judiciary) resetCaches() {
 }
 
 func (j *judiciary) broadcastSanctionConfig() {
-	broadcastGeneric(j.JudgeID, createBroadcastsForSanctionThresholds(j.sanctionThresholds))
-	broadcastGeneric(j.JudgeID, createBroadcastsForRuleViolationPenalties(j.ruleViolationSeverity))
+	broadcastGeneric(j.iigoClients, j.JudgeID, createBroadcastsForSanctionThresholds(j.sanctionThresholds))
+	broadcastGeneric(j.iigoClients, j.JudgeID, createBroadcastsForRuleViolationPenalties(j.ruleViolationSeverity))
 }
 
 // loadClientJudge checks client pointer is good and if not panics
@@ -185,9 +187,9 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		}
 		election.ProposeElection(shared.President, electionSettings.VotingMethod)
 		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
-		election.Vote(iigoClients)
+		election.Vote(j.iigoClients)
 		j.gameState.IIGOTurnsInPower[shared.President] = 0
-		electedPresident := election.CloseBallot(iigoClients)
+		electedPresident := election.CloseBallot(j.iigoClients)
 		appointedPresident = j.clientJudge.DecideNextPresident(electedPresident)
 
 		//Log rule: Must appoint elected role
@@ -255,7 +257,7 @@ func (j *judiciary) applySanctions() {
 			TurnsLeft:    int(j.gameConf.SanctionLength),
 		}
 		currentSanctions = append(currentSanctions, sanctionEntry)
-		broadcastToAllIslands(j.JudgeID, createBroadcastForSanction(islandID, islandSanctionTier))
+		broadcastToAllIslands(j.iigoClients, j.JudgeID, createBroadcastForSanction(islandID, islandSanctionTier))
 	}
 	j.localSanctionCache[0] = currentSanctions
 }
@@ -265,13 +267,13 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 	pardons := j.clientJudge.GetPardonedIslands(j.localSanctionCache)
 	pardonsValid, newSanctionMap, communications := implementPardons(j.localSanctionCache, pardons, shared.TeamIDs)
 	if pardonsValid {
-		broadcastPardonCommunications(j.JudgeID, communications)
+		broadcastPardonCommunications(j.iigoClients, j.JudgeID, communications)
 	}
 	j.localSanctionCache = newSanctionMap
 	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay, j.gameConf.AssumedResourcesNoReport)
-	SanctionAmountMapExport = totalSanctionPerAgent
+	j.gameState.IIGOSanctionMap = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
-		communicateWithIslands(j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
+		communicateWithIslands(j.iigoClients, j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
 			shared.SanctionAmount: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(sanctionedResources),
@@ -307,9 +309,9 @@ func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability, histo
 
 // Helper functions //
 
-func broadcastGeneric(judgeID shared.ClientID, itemsForbroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func broadcastGeneric(clients map[shared.ClientID]baseclient.Client, judgeID shared.ClientID, itemsForbroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	for _, item := range itemsForbroadcast {
-		broadcastToAllIslands(judgeID, item)
+		broadcastToAllIslands(clients, judgeID, item)
 	}
 }
 
@@ -392,10 +394,10 @@ func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, 
 	return totalSanctionPerAgent
 }
 
-func broadcastPardonCommunications(judgeID shared.ClientID, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func broadcastPardonCommunications(clients map[shared.ClientID]baseclient.Client, judgeID shared.ClientID, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	for _, communicationList := range communications {
 		for _, v := range communicationList {
-			broadcastToAllIslands(judgeID, v)
+			broadcastToAllIslands(clients, judgeID, v)
 		}
 	}
 }
