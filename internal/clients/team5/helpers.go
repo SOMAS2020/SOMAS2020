@@ -54,3 +54,17 @@ func absoluteCap(val, absThresh float64) float64 {
 	}
 	return math.Max(val, absThresh*-1)
 }
+
+func (c client) getMood() float64 {
+	switch c.wealth() {
+	case dying:
+		return 3
+	case imperialStudent:
+		return 2
+	case jeffBezos:
+		return 0.5
+	default:
+		return 1
+	}
+
+}

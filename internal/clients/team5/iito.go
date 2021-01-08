@@ -84,12 +84,12 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 					requests[team] = shared.GiftRequest(
 						c.config.imperialGiftRequestAmount /
 							float64(c.opinions[team].getScore()) *
-							c.config.opinionRequestMultiplier) // Scale down the request if we like them
+							c.config.opinionRequestMultiplier) // Scale up the request if dont like them
 				case middleClass:
 					requests[team] = shared.GiftRequest(
 						c.config.middleGiftRequestAmount /
 							float64(c.opinions[team].getScore()) *
-							c.config.opinionRequestMultiplier) // Scale down the request if we like them
+							c.config.opinionRequestMultiplier) // Scale up the request if we dont like them
 				default:
 					requests[team] = shared.GiftRequest(0)
 				}
@@ -98,9 +98,9 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 				case dying: // Case we are Critical
 					requests[team] = shared.GiftRequest(c.config.dyingGiftRequestAmount)
 				case imperialStudent:
-					requests[team] = shared.GiftRequest(c.config.imperialGiftRequestAmount) // Scale down the request if we like them
+					requests[team] = shared.GiftRequest(c.config.imperialGiftRequestAmount) // No scale
 				case middleClass:
-					requests[team] = shared.GiftRequest(c.config.middleGiftRequestAmount) // Scale down the request if we like them
+					requests[team] = shared.GiftRequest(c.config.middleGiftRequestAmount) // No scale
 				default:
 					requests[team] = shared.GiftRequest(0)
 				}
@@ -123,19 +123,22 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 	for team, status := range c.gameState().ClientLifeStatuses {
+		// if receivedRequests[team] < 0.1 {
+
+		// }
 		status := shared.ClientLifeStatus(status)
 		switch {
 		case c.wealth() >= 2: // case we are rich
 			if status == shared.Critical && c.opinions[team].getScore() <= 0 { //If we have a low opinion we still give something
 				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands) // give an amount to dying islands
 			} else if status == shared.Critical && c.opinions[team].getScore() > 0 { //if we have a higher opinion we give more to critical islands
-				offers[team] = shared.GiftOffer(c.config.offertoDyingIslandsWeLike) // give higher amount to dying islands we like
+				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands * 1.5) // give higher amount to dying islands we like
 			}
 		default: //if we are poor
 			if status == shared.Critical && c.opinions[team].getScore() <= 0 { //if we are poor we halve our gifts to critical islands based on opinion
 				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands / 2) // give an amount to dying islands/2
 			} else if status == shared.Critical && c.opinions[team].getScore() > 0 {
-				offers[team] = shared.GiftOffer(c.config.offertoDyingIslandsWeLike / 2) // give higher amount to dying islands we like/2
+				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands * 0.75) // give higher amount to dying islands we like/2
 			} else {
 				offers[team] = shared.GiftOffer(c.config.normalGift) // This is what offer in case islands are not in critical condition (1 resource)
 			}

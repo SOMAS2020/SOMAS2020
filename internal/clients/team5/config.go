@@ -21,9 +21,9 @@ type clientConfig struct {
 	DecreasePerHunterInLookBack  float64 // % decrease per hunter in past LB turns
 
 	// NormalForage
-	SkipForage           uint // Skip for X turns if no positive RoI
-	NormalRandomIncrease float64
-	MaxForagePercentage  float64
+	SkipForage          uint // Skip for X turns if no positive RoI
+	NormalRandomChange  float64
+	MaxForagePercentage float64
 
 	//==================== Thresholds ====================
 	// Thresholds for the amount of money we have
@@ -57,23 +57,23 @@ type clientConfig struct {
 func getClientConfig() clientConfig {
 	return clientConfig{
 		//Variables for initial forage
-		InitialForageTurns:      5,
-		MinimumForagePercentage: 0.05,
-		NormalForagePercentage:  0.10,
-		JBForagePercentage:      0.20, // % of our resources when JB is Normal< X < JB
+		InitialForageTurns:      3,
+		MinimumForagePercentage: 0.10,
+		NormalForagePercentage:  0.20,
+		JBForagePercentage:      0.30, // % of our resources when JB is Normal< X < JB
 
 		// Deciding foraging type
-		RandomChanceToFish:           0.2, // Chacne to switch to Hunting/Fishing
-		RandomChanceToHunt:           0.2,
-		IncreasePerHunterLastTurn:    0.05, // % increase for each Hunter
-		IncreasePerFisherMenLastTurn: 0.05, // % incrase for each Fisher
-		DeerTurnsToLookBack:          5,    // Number of turns to look back at for deer (not including last)
+		RandomChanceToFish:           0.1, // Chacne to switch to Hunting/Fishing
+		RandomChanceToHunt:           0.1,
+		IncreasePerHunterLastTurn:    0.00, // % increase for each Hunter
+		IncreasePerFisherMenLastTurn: 0.00, // % incrase for each Fisher
+		DeerTurnsToLookBack:          3,    // Number of turns to look back at for deer (not including last)
 		DecreasePerHunterInLookBack:  0.03, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
 
 		// Normal Forage
-		SkipForage:           1,
-		NormalRandomIncrease: 0.10,
-		MaxForagePercentage:  0.35,
+		SkipForage:          1,
+		NormalRandomChange:  0.05,
+		MaxForagePercentage: 0.40,
 
 		// Threshold for wealth as multiplier
 		jbThreshold:       2.0,
