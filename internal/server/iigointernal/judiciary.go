@@ -117,7 +117,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 	//Quit early if CP does not have enough resources for historical Retribution
 	if success && !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
 		finalResults = mergeEvaluationReturn(tempResults, finalResults)
-		entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+		entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, j.gameState.RulesInfo.CurrentRulesInPlay, j.gameState.RulesInfo.VariableMap)
 		j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 		j.evaluationResults = finalResults
 		return j.evaluationResults, success
@@ -130,7 +130,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 			//Quit if taking resources goes wrong
 			if success {
 				finalResults = mergeEvaluationReturn(tempResults, finalResults)
-				entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+				entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, j.gameState.RulesInfo.CurrentRulesInPlay, rules.VariableMap)
 				j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 				j.evaluationResults = finalResults
 				return j.evaluationResults, success
@@ -157,7 +157,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 
 	finalResults = mergeEvaluationReturn(tempResults, finalResults)
-	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, j.gameState.RulesInfo.CurrentRulesInPlay, rules.VariableMap)
 	j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 	j.evaluationResults = finalResults
 	return j.evaluationResults, success

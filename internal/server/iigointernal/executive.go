@@ -246,7 +246,7 @@ func (e *executive) requestRuleProposal() error { //TODO: add checks for if immu
 	}
 
 	var ruleProposals []rules.RuleMatrix
-	for _, island := range getIslandAlive() {
+	for _, island := range e.getIslandAlive() {
 		proposedRuleMatrix := e.iigoClients[shared.ClientID(int(island))].RuleProposal()
 		if checkRuleIsValid(proposedRuleMatrix.RuleName, rules.AvailableRules) {
 			ruleProposals = append(ruleProposals, proposedRuleMatrix)
@@ -262,8 +262,8 @@ func checkRuleIsValid(ruleName string, rulesCache map[string]rules.RuleMatrix) b
 	return valid
 }
 
-func getIslandAlive() []float64 {
-	return rules.VariableMap[rules.IslandsAlive].Values
+func (e *executive) getIslandAlive() []float64 {
+	return e.gameState.RulesInfo.VariableMap[rules.IslandsAlive].Values
 }
 
 // incur charges in both budget and commonpool for performing an actions

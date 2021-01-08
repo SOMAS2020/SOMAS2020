@@ -19,7 +19,7 @@ func TestRegisterNewRule(t *testing.T) {
 func TestPullRuleIntoPlay(t *testing.T) {
 	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
-	_ = pullRuleIntoPlayInternal("Kinda Test Rule 2", AvailableRulesTesting, RulesInPlayTesting)
+	_ = PullRuleIntoPlayInternal("Kinda Test Rule 2", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
 		name          string
 		rule          string
@@ -46,7 +46,7 @@ func TestPullRuleIntoPlay(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := pullRuleIntoPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
+			err := PullRuleIntoPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
 
 			if tc.errorExpected {
 				if ruleErr, ok := err.(*RuleError); ok {
@@ -66,7 +66,7 @@ func TestPullRuleIntoPlay(t *testing.T) {
 func TestPullRuleOutOfPlay(t *testing.T) {
 	AvailableRulesTesting, RulesInPlayTesting := generateRulesTestStores()
 	registerTestRule(AvailableRulesTesting)
-	_ = pullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
+	_ = PullRuleIntoPlayInternal("Kinda Test Rule", AvailableRulesTesting, RulesInPlayTesting)
 	cases := []struct {
 		name          string
 		rule          string
@@ -87,7 +87,7 @@ func TestPullRuleOutOfPlay(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := pullRuleOutOfPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
+			err := PullRuleOutOfPlayInternal(tc.rule, AvailableRulesTesting, RulesInPlayTesting)
 
 			if tc.errorExpected {
 				if ruleErr, ok := err.(*RuleError); ok {
@@ -167,7 +167,7 @@ func TestModifyRule(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := modifyRuleInternal(tc.rule, tc.modifiedMatrix, tc.modifiedAux, AvailableRulesTesting, RulesInPlayTesting)
+			err := ModifyRuleInternal(tc.rule, tc.modifiedMatrix, tc.modifiedAux, AvailableRulesTesting, RulesInPlayTesting)
 
 			if tc.errorExpected {
 				if ruleErr, ok := err.(*RuleError); ok {
@@ -262,7 +262,7 @@ func registerTestRule(rulesStore map[string]RuleMatrix) {
 	aux := []float64{2, 3, 3, 2}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, err := registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, false, RuleLink{
+	_, err := RegisterNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, false, RuleLink{
 		Linked: false,
 	})
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
@@ -272,7 +272,7 @@ func registerTestRule(rulesStore map[string]RuleMatrix) {
 	}
 	name = "Kinda Test Rule 2"
 
-	_, err = registerNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, true, RuleLink{
+	_, err = RegisterNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, rulesStore, true, RuleLink{
 		Linked: false,
 	})
 	if err != nil {
