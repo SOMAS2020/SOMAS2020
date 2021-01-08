@@ -43,7 +43,6 @@ func (j *judiciary) loadSanctionConfig() {
 func (j *judiciary) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	j.gameState = gameState
 	j.gameConf = gameConf
-	j.resetCaches()
 }
 
 func (j *judiciary) resetCaches() {
@@ -113,7 +112,6 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 			return nil, false
 		}
 	}
-
 
 	rulesInPlay := j.gameState.RulesInfo.CurrentRulesInPlay
 	if !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
