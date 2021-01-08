@@ -31,14 +31,23 @@ type SOMASServer struct {
 	// We don't store this in gameState--gameState is shared to clients and should
 	// not contain pointers to other clients!
 	clientMap map[shared.ClientID]baseclient.Client
+
+	// prevent the same instance from being run twice
+	ran bool
 }
 
 // NewSOMASServer returns an instance of the main server we use.
 func NewSOMASServer(gameConfig config.Config) Server {
+	registeredClients := make(map[shared.ClientID]baseclient.Client, len(baseclient.RegisteredClientFactories))
+	for id, factory := range baseclient.RegisteredClientFactories {
+		registeredClients[id] = factory()
+	}
+
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(
-		baseclient.RegisteredClients,
+		registeredClients,
 		gameConfig.InitialResources,
 	)
+
 	return createSOMASServer(clientInfos, clientMap, gameConfig)
 }
 
@@ -97,6 +106,7 @@ func createSOMASServer(
 				VariableMap:        rules.InitialVarRegistration(),
 			},
 		},
+		ran: false,
 	}
 
 	server.gameState.DeerPopulation = foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig, server.logf)
@@ -114,6 +124,11 @@ func createSOMASServer(
 // EntryPoint function that returns a list of historic gamestate.GameState until the
 // game ends.
 func (s *SOMASServer) EntryPoint() ([]gamestate.GameState, error) {
+	if s.ran {
+		return nil, errors.Errorf("Please create a new server instance to run a new simulation!")
+	}
+	s.ran = true
+
 	states := []gamestate.GameState{s.gameState.Copy()}
 
 	for !s.gameOver(s.gameConfig.MaxTurns, s.gameConfig.MaxSeasons) {
