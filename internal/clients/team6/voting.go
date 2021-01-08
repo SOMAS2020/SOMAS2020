@@ -15,7 +15,7 @@ func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
 	//Sort candidates according to friendship level as a preference list
 	//Every Island votes for itself first
-	friendship[id] = c.clientConfig.maxFriendship
+	c.friendship[id] = c.clientConfig.maxFriendship
 	for i := 0; i < len(candidateList); i++ {
 		for j := i; j < len(candidateList); j++ {
 			if c.friendship[candidateList[j]] > c.friendship[candidateList[i]] {
