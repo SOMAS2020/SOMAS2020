@@ -46,8 +46,7 @@ func (c *client) RequestAllocation() shared.Resources {
 // this function is used to receive tax amount, allocation amount rule name etc from the server. Use this to receive information
 // and store it inside our agent's observation
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
-	c.InspectCommunication(data)
-	c.Communications[sender] = append(c.Communications[sender], data)
+	c.BaseClient.ReceiveCommunication(sender, data)
 	// TODO parse sanction info
 	for contentType, content := range data {
 		switch contentType {

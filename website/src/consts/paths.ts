@@ -1,3 +1,4 @@
+export const about = `/about`
 export const cioutput = `/cioutput`
 export const newrun = `/newrun`
 export const visualisations = `/visualisation`

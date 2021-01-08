@@ -9,6 +9,12 @@ import (
 )
 
 var (
+	// output folder
+	outputFolderName = flag.String(
+		"output",
+		"output",
+		"The relative path (to the current working directory) to store output.json and logs in.",
+	)
 	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
@@ -328,6 +334,24 @@ var (
 		"Sanction length for all sanctions",
 	)
 
+	iigoTermLengthPresident = flag.Uint(
+		"iigoTermLengthPresident",
+		4,
+		"Length of the term for the President",
+	)
+
+	iigoTermLengthSpeaker = flag.Uint(
+		"iigoTermLengthSpeaker",
+		4,
+		"Length of the term for the Speaker",
+	)
+
+	iigoTermLengthJudge = flag.Uint(
+		"iigoTermLengthJudge",
+		4,
+		"Length of the term for the Judge",
+	)
+
 	startWithRulesInPlay = flag.Bool(
 		"startWithRulesInPlay",
 		true,
@@ -406,6 +430,9 @@ func parseConfig() (config.Config, error) {
 	}
 
 	iigoConf := config.IIGOConfig{
+		IIGOTermLengths: map[shared.Role]uint{shared.President: *iigoTermLengthPresident,
+			shared.Speaker: *iigoTermLengthSpeaker,
+			shared.Judge:   *iigoTermLengthJudge},
 		// Executive branch
 		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
 		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),

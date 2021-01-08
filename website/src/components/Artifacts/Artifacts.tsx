@@ -1,12 +1,12 @@
-import React from "react"
-import { Table } from "react-bootstrap"
+import React from 'react'
+import { Table } from 'react-bootstrap'
 
 import styles from './Artifacts.module.css'
 import outputJSON from '../../output/output.json'
 
 type Props = {
-  output: typeof outputJSON,
-  logs: string,
+  output: typeof outputJSON
+  logs: string
 }
 
 type Item = {
@@ -18,17 +18,16 @@ type Item = {
 const DownloadLink = (props: { item: Item }) => {
   const { item } = props
   const blob = new Blob([item.content], { type: `text/plain` })
-  return <a 
-    download={item.fileName} href={URL.createObjectURL(blob)}
-    >
+  return (
+    <a download={item.fileName} href={URL.createObjectURL(blob)}>
       Download
-  </a>
+    </a>
+  )
 }
 
 const Artifacts = (props: Props) => {
   const { output, logs } = props
   const outputTxt = JSON.stringify(output, null, `\t`)
-
 
   const items: Item[] = [
     {
@@ -43,30 +42,35 @@ const Artifacts = (props: Props) => {
     },
   ]
 
-  return <div style={{ textAlign: `left`, padding: `0 3vw` }} className={styles.root}>
-    <Table striped bordered hover>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-          <th>Download</th>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          items.map((item, idx) =>
+  return (
+    <div
+      style={{ textAlign: `left`, padding: `0 3vw` }}
+      className={styles.root}
+    >
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item, idx) => (
             <tr id={idx.toString()}>
               <td>
                 <span className={styles.code}>{item.fileName}</span>
               </td>
               <td>{item.description}</td>
-              <td><DownloadLink item={item}/></td>
+              <td>
+                <DownloadLink item={item} />
+              </td>
             </tr>
-          )
-        }
-      </tbody>
-    </Table>
-  </div>
+          ))}
+        </tbody>
+      </Table>
+    </div>
+  )
 }
 
-export default Artifacts 
+export default Artifacts
