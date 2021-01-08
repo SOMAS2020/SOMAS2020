@@ -141,7 +141,6 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		TimeLeft:    uint((float64(totalTimeLeft) / totalConfidence) + 0.5),
 		Confidence:  totalConfidence / numberOfPredictions,
 	})
-
 	c.Logf("Final Prediction: [%v]", c.globalDisasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1])
 
 	// TODO: compare other islands predictions to disaster when info is received and update their trust score

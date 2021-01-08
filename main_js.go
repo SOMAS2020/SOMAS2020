@@ -6,10 +6,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"syscall/js"
 	"time"
@@ -40,11 +42,23 @@ func main() {
 // RunGame runs the game.
 // args[0] are optional arguments to set flag values
 // The format is `arg1=value,arg2=value,...`
-func RunGame(this js.Value, args []js.Value) interface{} {
+func RunGame(this js.Value, args []js.Value) (ret interface{}) {
 	// log into a buffer
 	logBuf := bytes.Buffer{}
 	log.SetOutput(logger.NewLogWriter([]io.Writer{&logBuf}))
 
+	defer func() {
+		// try to recover in case some code panicked
+		if panicErr := recover(); panicErr != nil {
+			errStr := fmt.Sprintf("Panicked: %v.\n%v", panicErr, string(debug.Stack()))
+			fmt.Println(errStr)
+			log.Println(errStr)
+			ret = js.ValueOf(map[string]interface{}{
+				"logs":  logBuf.String(),
+				"error": fmt.Sprintf("Panicked: %v. See console for more info.", panicErr),
+			})
+		}
+	}()
 	timeStart := time.Now()
 	gameConfig, err := getConfigFromArgs(args)
 	if err != nil {
@@ -57,6 +71,7 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 
 	var o output
 	var outputJSON string
+
 	gameStates, err := s.EntryPoint()
 	if err != nil {
 		return js.ValueOf(map[string]interface{}{

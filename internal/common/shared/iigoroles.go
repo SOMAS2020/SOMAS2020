@@ -9,22 +9,11 @@ import (
 // Role provides enumerated type for IIGO roles (President, Speaker and Judge)
 type Role int
 
-// RuleVoteType provides enumerated values for Approving, Rejecting or Abstaining from a vote.
 const (
 	President Role = iota
 	Speaker
 	Judge
 )
-
-//Rule vote types
-type RuleVoteType int
-
-const (
-	Approve = iota
-	Reject
-	Abstain
-)
-
 
 func (r Role) String() string {
 	strs := [...]string{"President", "Speaker", "Judge"}
@@ -46,6 +35,38 @@ func (r Role) MarshalText() ([]byte, error) {
 
 // MarshalJSON implements RawMessage
 func (r Role) MarshalJSON() ([]byte, error) {
+	return miscutils.MarshalJSONForString(r.String())
+}
+
+// RuleVoteType provides enumerated values for Approving, Rejecting or Abstaining from a vote.
+type RuleVoteType int
+
+const (
+	Approve = iota
+	Reject
+	Abstain
+)
+
+func (r RuleVoteType) String() string {
+	strs := [...]string{"Approve", "Reject", "Abstain"}
+	if r >= 0 && int(r) < len(strs) {
+		return strs[r]
+	}
+	return fmt.Sprintf("UNKNOWN RuleVoteType '%v'", int(r))
+}
+
+// GoString implements GoStringer
+func (r RuleVoteType) GoString() string {
+	return r.String()
+}
+
+// MarshalText implements TextMarshaler
+func (r RuleVoteType) MarshalText() ([]byte, error) {
+	return miscutils.MarshalTextForString(r.String())
+}
+
+// MarshalJSON implements RawMessage
+func (r RuleVoteType) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(r.String())
 }
 

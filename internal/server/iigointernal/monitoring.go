@@ -1,6 +1,8 @@
 package iigointernal
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -14,6 +16,11 @@ type monitor struct {
 	presidentID       shared.ClientID
 	internalIIGOCache []shared.Accountability
 	TermLengths       map[shared.Role]uint
+	logger            shared.Logger
+}
+
+func (m *monitor) Logf(format string, a ...interface{}) {
+	m.logger("[MONITORING]: %v", fmt.Sprintf(format, a...))
 }
 
 func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.VariableFieldName, values [][]float64) {
@@ -37,6 +44,8 @@ func (m *monitor) monitorRole(g *gamestate.GameState, roleAccountable baseclient
 		if decideToMonitor {
 			evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
 		}
+
+		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)
 
 		evaluationResultAnnounce, announce := roleAccountable.DecideIIGOMonitoringAnnouncement(evaluationResult)
 
@@ -81,6 +90,9 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 				ret := rules.EvaluateRule(rule)
 				if ret.EvalError == nil {
 					performedRoleCorrectly = ret.RulePasses && performedRoleCorrectly
+					if !ret.RulePasses {
+						m.Logf("Rule: %v , broken by: %v", rule, roleToMonitorID)
+					}
 				}
 			}
 		}
