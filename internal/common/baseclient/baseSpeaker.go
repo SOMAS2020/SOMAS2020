@@ -9,10 +9,15 @@ type BaseSpeaker struct {
 }
 
 // PayJudge is used for paying judge for his service
-func (s *BaseSpeaker) PayJudge(salary shared.Resources) shared.SpeakerReturnContent {
+func (s *BaseSpeaker) PayJudge() shared.SpeakerReturnContent {
+	JudgeSalaryRule, ok := rules.RulesInPlay["salary_cycle_judge"]
+	var JudgeSalary shared.Resources = 0
+	if ok {
+		JudgeSalary = shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
+	}
 	return shared.SpeakerReturnContent{
 		ContentType: shared.SpeakerJudgeSalary,
-		JudgeSalary: salary,
+		JudgeSalary: JudgeSalary,
 		ActionTaken: true,
 	}
 }

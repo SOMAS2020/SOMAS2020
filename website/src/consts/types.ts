@@ -5,25 +5,25 @@ export type OutputJSONType = GameStatesType & typeof outputJSONData
 
 type GameStatesType = {
     GameStates: {
-      IIGOHistory: {
-        [turn: string]: {
-          ClientID: string
-          Pairs: {
-            VariableName: string
-            Values: number[]
-          }[]
-        }[]
-      }
-      IITOTransactions: {
-          [team in Team]: {
-              [team in Team]?: {
-                  AcceptedAmount: number,
-                  Reason: number,
-              }
-          }
-      }
+        IIGOHistory: {
+            [turn: string]: {
+                ClientID: string
+                Pairs: {
+                    VariableName: string
+                    Values: number[]
+                }[]
+            }[]
+        }
+        IITOTransactions: {
+            [team in Team]: {
+                [team in Team]?: {
+                    AcceptedAmount: number,
+                    Reason: number,
+                }
+            }
+        }
     }[]
-  }
+}
 
 
 // TODO: what if there are more islands - dynamic typing

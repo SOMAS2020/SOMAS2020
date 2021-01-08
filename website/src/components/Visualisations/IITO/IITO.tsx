@@ -16,7 +16,7 @@ const IITO = (props: { output: OutputJSONType }) => {
     <div className={styles.root} style={{ width: '90%', textAlign: 'center' }}>
       <ForceGraph linksData={links} nodesData={nodes} nodeHoverTooltip={nodeHoverTooltip} />
     </div>
-  );
-};
+  )
+}
 
-export default IITO;
+export default IITO
