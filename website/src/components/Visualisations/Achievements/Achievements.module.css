@@ -7,22 +7,33 @@
   padding: 5vh 0;
 }
 
-.appLogo {
-  height: 40vmin;
-  pointer-events: none;
+.achieveContainer {
+  display: flex;
+  justify-content: center;
+  margin: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .appLogo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.achieveContainer .innerContainer {
+  max-width: 600px;
+  width: 75vw;
+  min-height: 60px;
+  background-color: #e0e0e0;
+  border-radius: 15px;
+  padding: 25px 20px 17px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  box-shadow: 3px 5px #707070;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.innerContainer .leftColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.innerContainer .rightColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
