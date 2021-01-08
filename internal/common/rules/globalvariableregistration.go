@@ -2,17 +2,18 @@ package rules
 
 import (
 	"fmt"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 )
 
 // init Registers all variables defined in Static variables list
-func initialRegistration(state gamestate.GameState) {
+func InitialVarRegistration() map[VariableFieldName]VariableValuePair {
+	baseCache := make(map[VariableFieldName]VariableValuePair)
 	for _, v := range StaticVariables {
-		e := state.RegisterNewVariable(v)
+		e := RegisterNewVariableInternal(v, baseCache)
 		if e != nil {
 			panic(fmt.Sprintf("variable registration gone wrong, variable: '%v' has been registered multiple times", v.VariableName))
 		}
 	}
+	return baseCache
 }
 
 // StaticVariables holds all globally defined variables

@@ -42,9 +42,10 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
+		copyOfGlobalVarCache := rules.CopyVariableMap(j.c.ServerReadHandle.GetGameState().RulesInfo.VariableMap)
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, j.c.LocalVariableCache)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, copyOfGlobalVarCache)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
@@ -73,7 +74,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			// All other islands will be evaluated fairly using base implementation.
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
-				evaluation := rules.EvaluateRule(rule)
+				evaluation := rules.EvaluateRuleFromCaches(rule, rules.RulesInPlay, copyOfGlobalVarCache)
 				if evaluation.EvalError != nil {
 					return outMap, false
 				}

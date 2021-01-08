@@ -41,16 +41,17 @@ func (j *BaseJudge) PayPresident() (shared.Resources, bool) {
 // OPTIONAL: override if you want to evaluate the history log differently.
 func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
+	copyOfVarCache := rules.CopyVariableMap(j.gameState.RulesInfo.VariableMap)
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, j.gameState.RulesInfo.VariableMap)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, copyOfVarCache)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
-			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, j.gameState.RulesInfo.VariableMap)
+			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, copyOfVarCache)
 			if !updatedVariable {
 				return map[shared.ClientID]roles.EvaluationReturn{}, false
 			}
@@ -63,7 +64,7 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo
 		}
 		tempReturn := outputMap[clientID]
 		for _, rule := range rulesAffected {
-			ret := rules.EvaluateRule(rule)
+			ret := rules.EvaluateRuleFromCaches(rule, rules.RulesInPlay, copyOfVarCache)
 			if ret.EvalError != nil {
 				return outputMap, false
 			}
