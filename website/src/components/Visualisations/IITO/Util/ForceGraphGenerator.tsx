@@ -10,15 +10,14 @@ export default function runForceGraph(
   nodeHoverTooltip
 ) {
   // Assuming we get the links and nodes as expected
-  const links = linksData.map((d) => Object.assign({}, d))
-  const nodes = nodesData.map((d) => Object.assign({}, d))
+  const links = linksData.map((d) => Object.assign(...d))
+  const nodes = nodesData.map((d) => Object.assign(...d))
 
   console.log({ links })
   console.log({ nodes })
 
   const containerRect = container.getBoundingClientRect()
-  const height = containerRect.height
-  const width = containerRect.width
+  const { height, width } = containerRect
 
   const color = (d) => {
     return d.color
@@ -146,7 +145,7 @@ export default function runForceGraph(
     })
 
   simulation.on('tick', () => {
-    //update link positions
+    // update link positions
     link
       .attr('x1', (d: any) => d.source.x)
       .attr('y1', (d: any) => d.source.y)
