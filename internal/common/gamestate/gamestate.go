@@ -169,13 +169,7 @@ func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability 
 	copy(ret, input)
 	return ret
 }
-func copyGiftResponseDict(input shared.GiftResponseDict) shared.GiftResponseDict {
-	targetMap := make(shared.GiftResponseDict)
-	for key, value := range input {
-		targetMap[key] = value
-	}
-	return targetMap
-}
+
 func copyIITOTransactions(iitoHistory map[shared.ClientID]shared.GiftResponseDict) map[shared.ClientID]shared.GiftResponseDict {
 	targetMap := make(map[shared.ClientID]shared.GiftResponseDict)
 	for key, giftResponseDict := range iitoHistory {
