@@ -1,41 +1,40 @@
-// Process Output JSON to extract Transaction data (inc. Gifts and common pool interactions)
-// JSON parse the output here
-import { OutputJSONType, Team, GiftResponse } from "../../../../consts/types";
+import { OutputJSONType, Team, GiftResponse } from '../../../../consts/types'
 
 // TODO: transactions can also be with the common pool so they should not be teams - maybe more appropriate to rename entities
 type Transaction = {
-    from: Team;
-    to: Team;
-    amount: number;
-};
+    from: Team
+    to: Team
+    amount: number
+}
 
 // TODO: Decide on node structure (i.e. what determines bubble size)
 // TODO: Extract summary metric for bubble size from transactions[] and islandGifts[]
+// TODO: might be cool to have max and min resources of each entity as a summary metric in the tooltip
 type Node = {
-    id: number;
-    magnitude: number;
-    color: string;
-};
+    id: number
+    magnitude: number
+    color: string
+}
 
 type Link = {
-    source: number;
-    target: number;
-};
+    source: number
+    target: number
+}
 
 export const getIIGOTransactions = (data: OutputJSONType) => {
-    let acc: Transaction[] = [];
+    let acc: Transaction[] = []
 
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
     let IIGOHistories = Object.entries(
         data.GameStates[data.GameStates.length - 1].IIGOHistory
-    );
+    )
     // For each of these arrayed tuples, we have [turnNumber: <"pair events">[]]
     IIGOHistories.forEach(([_, exchanges]) => {
         if (exchanges) {
             exchanges.forEach((teamAction) => {
-                let type = teamAction.Pairs[0].VariableName;
-                let transaction: Transaction;
+                let type = teamAction.Pairs[0].VariableName
+                let transaction: Transaction
                 // There are three types of transactions
                 // the target could be the client id depending on the type of team action
                 // else accounts for SanctionPaid and IslandTaxContribution

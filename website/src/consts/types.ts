@@ -3,6 +3,17 @@ import outputJSONData from '../output/output.json'
 export type OutputJSONType = GameStatesType & typeof outputJSONData
 // export type OutputJSONType =  typeof outputJSONData
 
+// TODO: what if there are more islands - dynamic typing
+export enum Team {
+    'CommonPool',
+    'Team1',
+    'Team2',
+    'Team3',
+    'Team4',
+    'Team5',
+    'Team6',
+}
+
 type GameStatesType = {
     GameStates: {
         IIGOHistory: {
@@ -17,29 +28,23 @@ type GameStatesType = {
         IITOTransactions: {
             [team in Team]: {
                 [team in Team]?: {
-                    AcceptedAmount: number,
-                    Reason: number,
+                    AcceptedAmount: number
+                    Reason: number
                 }
             }
         }
     }[]
 }
 
+type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U
 
-// TODO: what if there are more islands - dynamic typing
-export enum Team {
-    "CommonPool",
-    "Team1",
-    "Team2",
-    "Team3",
-    "Team4",
-    "Team5",
-    "Team6",
-}
-
-type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
-
-type StrongTypedGameState = Overwrite<typeof outputJSONData.GameStates, { IIGOHistory: IIGOHistory, IITOTransactions: IITOTransactions }>
+type StrongTypedGameState = Overwrite<
+    typeof outputJSONData.GameStates,
+    {
+        IIGOHistory: IIGOHistory
+        IITOTransactions: IITOTransactions
+    }
+>
 
 type StrongTypedOutputJSONData = Overwrite<OutputJSONType, StrongTypedGameState>
 
@@ -48,22 +53,22 @@ type StrongTypedOutputJSONData = Overwrite<OutputJSONType, StrongTypedGameState>
 // IIGOHistory will be at most data.Config.Maxturns long, containing an "Accountability" occurrence for a given client.
 // Returns undefined if the accessing an unavailable key
 export type IIGOHistory = {
-    [key: number]: Accountability,
+    [key: number]: Accountability
 }
 
 export type Accountability = {
-    ClientID: Team,
+    ClientID: Team
     Pairs: VariableValuePair[]
 }
 
 export type VariableValuePair = {
-    VariableName: string,
-    Values: number[],
+    VariableName: string
+    Values: number[]
 }
 
 // IITO Types
 export type IITOTransactions = {
-    [key: number]: GiftResponseDict,
+    [key: number]: GiftResponseDict
 }
 
 export type GiftResponseDict = {
@@ -71,6 +76,6 @@ export type GiftResponseDict = {
 }
 
 export type GiftResponse = {
-    AcceptedAmount: number,
-    Reason: number,
+    AcceptedAmount: number
+    Reason: number
 }
