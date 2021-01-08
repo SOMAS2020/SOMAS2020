@@ -2,6 +2,7 @@ package foraging
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -64,7 +65,7 @@ func utilityTier(input shared.Resources, maxNumberPerHunt uint, decay, inputScal
 func (f ForagingReport) Display() string {
 	out, err := json.Marshal(f)
 	if err != nil {
-		return ""
+		return fmt.Sprintf("Failed to marshal ForagingReport to json: %v", err)
 	}
 	return string(out)
 }
