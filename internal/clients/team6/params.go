@@ -56,38 +56,16 @@ type ClientConfig struct {
 	friendshipChangingRate FriendshipLevel
 	selfishThreshold       shared.Resources
 	normalThreshold        shared.Resources
-	payingTax              shared.Resources
 	multiplier             float64
 }
 
-var (
-	friendship = Friendship{
-		shared.Team1: 50.0,
-		shared.Team2: 50.0,
-		shared.Team3: 50.0,
-		shared.Team4: 50.0,
-		shared.Team5: 50.0,
-	}
-	trustRank = TrustRank{
-		shared.Team1: 0.5,
-		shared.Team2: 0.5,
-		shared.Team3: 0.5,
-		shared.Team4: 0.5,
-		shared.Team5: 0.5,
-	}
-	giftsSentHistory      = GiftsSentHistory{}
-	giftsReceivedHistory  = GiftsReceivedHistory{}
-	giftsRequestedHistory = GiftsRequestedHistory{}
-	forageHistory         = ForageHistory{}
-	disastersHistory      = DisastersHistory{}
-	disasterPredictions   = DisasterPredictions{}
-	clientConfig          = ClientConfig{
+func getClientConfig() ClientConfig {
+	return ClientConfig{
 		minFriendship:          0.0,
 		maxFriendship:          100.0,
 		friendshipChangingRate: 20.0,
 		selfishThreshold:       50.0,
 		normalThreshold:        150.0,
-		payingTax:              15.0,
 		multiplier:             0.2,
 	}
-)
+}
