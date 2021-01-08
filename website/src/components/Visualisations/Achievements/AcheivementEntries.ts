@@ -18,7 +18,7 @@ const emptyMetrics = (): MetricsType => ({
     Team6: 0,
 })
 
-type TeamName = 'Team1' | 'Team2' | 'Team3' | 'Team4' | 'Team5' | 'Team6'
+export type TeamName = 'Team1' | 'Team2' | 'Team3' | 'Team4' | 'Team5' | 'Team6'
 
 const teamNames = (): TeamName[] => [
     'Team1',
@@ -127,7 +127,6 @@ const returnsFromCriticalMetricCollection = (data: OutputJSONType) => {
             }
         ).occurred
     })
-    console.log(metrics)
     return metrics
 }
 
