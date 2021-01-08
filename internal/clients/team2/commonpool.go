@@ -20,7 +20,12 @@ func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHis
 //determines how much to request from the pool
 // How much we ask the President for
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	return determineAllocation(c) * shared.Resources(methodConfPool(c))
+	totalAlloc := determineAllocation(c)
+
+	if c.gameState().ClientLifeStatuses[c.GetID()] == shared.Critical {
+		return totalAlloc * shared.Resources(1.2)
+	}
+	return totalAlloc * shared.Resources(methodConfPool(c))
 }
 
 //TODO:Update to consider IIGO allocated amount, opinion on pres -> whether we take the allocated amount
@@ -39,14 +44,38 @@ func determineAllocation(c *client) shared.Resources {
 //determines how many resources you actually take - currrently going to take however much we say (playing nicely)
 // How much we request the server (we're given as much as there is in the CP)
 func (c *client) RequestAllocation() shared.Resources {
-	return determineAllocation(c) * shared.Resources(methodConfPool(c))
+
+	totalAlloc := determineAllocation(c)
+
+	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
+		VariableName: rules.IslandAllocation,
+		Values:       []float64{float64(c.gameState().CommonPool)},
+	}
+	allocationPair, success := c.GetRecommendation(rules.IslandAllocation)
+
+	if !success { // when not sure we try to get all the resources from commonpool
+		return c.gameState().CommonPool
+	}
+
+	//in critical we want, the resources to survive and more
+	if c.gameState().ClientLifeStatuses[c.GetID()] == shared.Critical {
+		return totalAlloc * shared.Resources(2)
+	}
+
+	allocation := allocationPair.Values[0]
+
+	return determineAllocation(c)*shared.Resources(methodConfPool(c)) + shared.Resources(allocation)
 }
 
 //GetTaxContribution determines how much we put into pool
 func (c *client) GetTaxContribution() shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
 	Taxmin := determineTax(c)
+	contribution, success := c.GetRecommendation(rules.IslandTaxContribution)
 	allocation := AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
+	if !success {
+		return 0 //tax not determined correctly by our check
+	}
 	if criticalStatus(c) {
 		return 0 //tax evasion by necessity
 	}
@@ -58,22 +87,29 @@ func (c *client) GetTaxContribution() shared.Resources {
 	}
 
 	allocation = AverageCommonPoolDilemma(c) + Taxmin
-	return allocation
+
+	//if asked tax less than our calculation
+	if allocation < shared.Resources(contribution.Values[0]) {
+		return allocation
+	}
+
+	return shared.Resources(contribution.Values[0])
+
 }
 
 //determineTax returns how much tax we have to pay
 func determineTax(c *client) shared.Resources {
-	return c.taxAmount //TODO: not sure if this is correct tax amount to use
+	return shared.Resources(0) //TODO: not sure if this is correct tax amount to use
 }
 
 //Determines esources we need to be above critical, pay tax and cost of living, put resources aside proportional to incoming disaster
 func (c *client) agentThreshold() shared.Resources {
 	criticaThreshold := c.gameConfig().MinimumResourceThreshold
-	tax := c.taxAmount
+	tax := shared.Resources(0)
 	costOfLiving := c.gameConfig().CostOfLiving
 	basicCosts := criticaThreshold + tax + costOfLiving
 	vulnerability := GetIslandDVPs(c.gameState().Geography)[c.GetID()] //0.25 to 1 (1 being the most vulnerable)
-	vulnerabilityMultiplier := 0.75 + vulnerability
+	vulnerabilityMultiplier := 0.75 + vulnerability                    //1 to 1.75
 	//add resources based on expected/predicted disaster magnitude
 
 	turn := c.gameState().Turn
@@ -236,13 +272,63 @@ func (c *client) GetSanctionPayment() shared.Resources {
 		if c.gameState().ClientLifeStatuses[c.GetID()] != shared.Critical {
 			if shared.Resources(value.Values[0]) <= c.SanctionHopeful() {
 				return shared.Resources(value.Values[0])
-			} else {
-				// TODO: make switch case on agent mode.
-				return c.SanctionHopeful()
 			}
-		} else {
-			return 0
+			// TODO: make switch case on agent mode.
+			return c.SanctionHopeful()
+
 		}
+		return 0
 	}
 	return 0
 }
+
+//***********HELPER FUNCTIONS************************
+// DELETE FROM FINAL CODE
+
+// func (c *client) UpdateCache(oldCache map[rules.VariableFieldName]rules.VariableValuePair, newValues map[rules.VariableFieldName]rules.VariableValuePair) map[rules.VariableFieldName]rules.VariableValuePair {
+// 	for key, val := range newValues {
+// 		oldCache[key] = val
+// 	}
+// 	return oldCache
+// }
+
+// func (c *client) dynamicAssistedResult(variablesChanged map[rules.VariableFieldName]rules.VariableValuePair) (newVals map[rules.VariableFieldName]rules.VariableValuePair) {
+// 	if c.LocalVariableCache != nil {
+// 		c.LocalVariableCache = c.UpdateCache(c.LocalVariableCache, variablesChanged)
+// 		// For testing using available rules
+// 		return c.BaseClient.GetRecommendation(rules.IslandAllocation)
+// 	}
+// 	return variablesChanged
+// }
+
+// func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
+
+// 	newRulesInPlay := make(map[string]rules.RuleMatrix)
+
+// 	for key, value := range rules.RulesInPlay {
+// 		if key == matrix.RuleName {
+// 			newRulesInPlay[key] = matrix
+// 		} else {
+// 			newRulesInPlay[key] = value
+// 		}
+// 	}
+
+// 	if _, ok := rules.RulesInPlay[matrix.RuleName]; ok {
+// 		delete(newRulesInPlay, matrix.RuleName)
+// 	} else {
+// 		newRulesInPlay[matrix.RuleName] = rules.AvailableRules[matrix.RuleName]
+// 	}
+
+// 	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
+
+// 	// distancetoRulesInPlay = CalculateDistanceFromRuleSpace(rules.RulesInPlay, position)
+// 	// distancetoNewRulesInPlay = CalculateDistanceFromRuleSpace(newRulesInPlay, position)
+
+// 	// if distancetoRulesInPlay < distancetoNewRulesInPlay {
+// 	//  return false
+// 	// } else {
+// 	//  return true
+// 	// }
+
+// 	return true
+// }
