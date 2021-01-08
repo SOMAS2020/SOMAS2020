@@ -78,7 +78,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 	if ourPersonality == Selfish { //evade tax when we are selfish
 		return 0
 	}
-	return c.clientConfig.payingTax
+	return c.payingTax
 }
 
 // ------ TODO: COMPULSORY -----

@@ -23,7 +23,7 @@ func (c mockClientForage) DecideForage() (shared.ForageDecision, error) {
 	return c.forageDecision, nil
 }
 
-func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, resources shared.Resources) {
+func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, resources shared.Resources, numberCaught uint) {
 	c.forageUpdateCalled = true
 	c.gotForageDecision = forageDecision
 }
