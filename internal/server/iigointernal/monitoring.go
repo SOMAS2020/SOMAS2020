@@ -83,7 +83,7 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 				if foundRules {
 					rulesAffected = append(rulesAffected, valuesToBeAdded...)
 				}
-				rules.UpdateVariableInternal(variable.VariableName, variable, m.gameState.RulesInfo.VariableMap)
+				m.gameState.UpdateVariable(variable.VariableName, variable)
 			}
 			for _, rule := range rulesAffected {
 				ret := rules.EvaluateRuleFromCaches(rule, ruleStore, m.gameState.RulesInfo.VariableMap)
