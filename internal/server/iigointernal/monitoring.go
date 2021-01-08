@@ -14,6 +14,7 @@ type monitor struct {
 	presidentID       shared.ClientID
 	internalIIGOCache []shared.Accountability
 	TermLengths       map[shared.Role]uint
+	iigoClients       map[shared.ClientID]baseclient.Client
 }
 
 func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.VariableFieldName, values [][]float64) {
@@ -52,7 +53,7 @@ func (m *monitor) monitorRole(g *gamestate.GameState, roleAccountable baseclient
 			m.addToCache(roleAccountable.GetID(), variablesToCache, valuesToCache)
 
 			message := generateMonitoringMessage(roleName, evaluationResult)
-			broadcastToAllIslands(roleAccountable.GetID(), message)
+			broadcastToAllIslands(m.iigoClients, roleAccountable.GetID(), message)
 
 			g.IIGOTurnsInPower[roleName] = m.TermLengths[roleName] + 1
 		}

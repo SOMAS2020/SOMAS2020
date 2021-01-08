@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -20,6 +21,7 @@ type executive struct {
 	clientPresident  roles.President
 	RulesProposals   []rules.RuleMatrix
 	ResourceRequests map[shared.ClientID]shared.Resources
+	iigoClients      map[shared.ClientID]baseclient.Client
 	monitoring       *monitor
 	logger           shared.Logger
 }
@@ -137,7 +139,7 @@ func (e *executive) requestAllocationRequest(aliveIslands []shared.ClientID) err
 	}
 	allocRequests := make(map[shared.ClientID]shared.Resources)
 	for _, islandID := range aliveIslands {
-		allocRequests[islandID] = iigoClients[islandID].CommonPoolResourceRequest()
+		allocRequests[islandID] = e.iigoClients[islandID].CommonPoolResourceRequest()
 	}
 	AllocationAmountMapExport = allocRequests
 	e.setAllocationRequest(allocRequests)
@@ -188,9 +190,9 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		}
 		election.ProposeElection(shared.Speaker, electionSettings.VotingMethod)
 		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
-		election.Vote(iigoClients)
+		election.Vote(e.iigoClients)
 		e.gameState.IIGOTurnsInPower[shared.Speaker] = 0
-		electedSpeaker := election.CloseBallot(iigoClients)
+		electedSpeaker := election.CloseBallot(e.iigoClients)
 		appointedSpeaker = e.clientPresident.DecideNextSpeaker(electedSpeaker)
 
 		//Log rule: Must appoint elected role
@@ -243,7 +245,7 @@ func (e *executive) requestRuleProposal() error { //TODO: add checks for if immu
 
 	var ruleProposals []rules.RuleMatrix
 	for _, island := range getIslandAlive() {
-		proposedRuleMatrix := iigoClients[shared.ClientID(int(island))].RuleProposal()
+		proposedRuleMatrix := e.iigoClients[shared.ClientID(int(island))].RuleProposal()
 		if checkRuleIsValid(proposedRuleMatrix.RuleName, rules.AvailableRules) {
 			ruleProposals = append(ruleProposals, proposedRuleMatrix)
 		}

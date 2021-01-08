@@ -18,14 +18,14 @@ var AllocationAmountMapExport map[shared.ClientID]shared.Resources
 // SanctionAmountMapExport is a local sanction map for sanctions
 var SanctionAmountMapExport map[shared.ClientID]shared.Resources
 
-// iigoClients holds pointers to all the clients
-var iigoClients map[shared.ClientID]baseclient.Client
-
 //monitoring holds the monitoring object that is used across turns
 var monitoring monitor
 
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
+
+	iIGOClients := *clientMap
+
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
 	var judicialBranch = judiciary{
@@ -35,6 +35,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		evaluationResults:  nil,
 		localSanctionCache: defaultInitLocalSanctionCache(3),
 		localHistoryCache:  defaultInitLocalHistoryCache(3),
+		iigoClients:        iIGOClients,
 		logger:             logger,
 	}
 
@@ -47,6 +48,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		ruleToVote:   rules.RuleMatrix{},
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
+		iigoClients:  iIGOClients,
 		logger:       logger,
 	}
 
@@ -57,13 +59,12 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		gameConf:         nil,
 		PresidentID:      0,
 		ResourceRequests: nil,
+		iigoClients:      iIGOClients,
 		logger:           logger,
 	}
 	executiveBranch.monitoring = &monitoring
 	legislativeBranch.monitoring = &monitoring
 	judicialBranch.monitoring = &monitoring
-
-	iigoClients = *clientMap
 
 	// Increments the budget according to increment_budget_role rules
 	PresidentIncRule, ok := rules.RulesInPlay["increment_budget_president"]
@@ -99,11 +100,11 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	executiveBranch.PresidentID = g.PresidentID
 
 	// Set judgePointer
-	judgePointer := iigoClients[g.JudgeID].GetClientJudgePointer()
+	judgePointer := iIGOClients[g.JudgeID].GetClientJudgePointer()
 	// Set speakerPointer
-	speakerPointer := iigoClients[g.SpeakerID].GetClientSpeakerPointer()
+	speakerPointer := iIGOClients[g.SpeakerID].GetClientSpeakerPointer()
 	// Set presidentPointer
-	presidentPointer := iigoClients[g.PresidentID].GetClientPresidentPointer()
+	presidentPointer := iIGOClients[g.PresidentID].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
 	judicialBranch.loadClientJudge(judgePointer)
@@ -125,7 +126,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	for clientID, clientGameState := range g.ClientInfos {
 		if clientGameState.LifeStatus != shared.Dead {
 			aliveClientIds = append(aliveClientIds, clientID)
-			resourceReports[clientID] = iigoClients[clientID].ResourceReport()
+			resourceReports[clientID] = iIGOClients[clientID].ResourceReport()
 
 			// Update Variables in Rules (updateIIGOTurnHistory)
 			g.IIGOHistory[g.Turn] = append(g.IIGOHistory[g.Turn],
@@ -223,9 +224,9 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		return false, "Cannot pay IIGO salary"
 	}
 
-	presidentMonitored := monitoring.monitorRole(g, iigoClients[g.SpeakerID])
-	judgeMonitored := monitoring.monitorRole(g, iigoClients[g.PresidentID])
-	speakerMonitored := monitoring.monitorRole(g, iigoClients[g.JudgeID])
+	presidentMonitored := monitoring.monitorRole(g, iIGOClients[g.SpeakerID])
+	judgeMonitored := monitoring.monitorRole(g, iIGOClients[g.PresidentID])
+	speakerMonitored := monitoring.monitorRole(g, iIGOClients[g.JudgeID])
 	//Save to gameState and clear
 	g.IIGOCache = monitoring.internalIIGOCache
 	monitoring.clearCache()
