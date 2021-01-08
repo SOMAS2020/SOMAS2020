@@ -11,11 +11,6 @@ var AvailableRules = map[string]RuleMatrix{}
 // RulesInPlay is a global cache of all rules currently in effect
 var RulesInPlay = map[string]RuleMatrix{}
 
-// RegisterNewRule Creates and registers new rule based on inputs
-func RegisterNewRule(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
-	return RegisterNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules, mutable, link)
-}
-
 // RegisterNewRuleInternal provides primal register logic for any rule cache
 func RegisterNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
 	if _, ok := ruleStore[ruleName]; ok {
@@ -120,4 +115,37 @@ func checkLinking(ruleName string, availableRules map[string]RuleMatrix) (string
 		}
 	}
 	return "", false
+}
+
+func CopyRulesMap(rulesMap map[string]RuleMatrix) map[string]RuleMatrix {
+	targetMap := make(map[string]RuleMatrix)
+	for key, value := range rulesMap {
+		targetMap[key] = copySingleRuleMatrix(value)
+	}
+	return targetMap
+}
+
+func copySingleRuleMatrix(inp RuleMatrix) RuleMatrix {
+	return RuleMatrix{
+		RuleName:          inp.RuleName,
+		RequiredVariables: copyRequiredVariables(inp.RequiredVariables),
+		ApplicableMatrix:  *mat.DenseCopyOf(&inp.ApplicableMatrix),
+		AuxiliaryVector:   *mat.VecDenseCopyOf(&inp.AuxiliaryVector),
+		Mutable:           inp.Mutable,
+		Link:              copyLink(inp.Link),
+	}
+}
+
+func copyLink(inp RuleLink) RuleLink {
+	return RuleLink{
+		Linked:     inp.Linked,
+		LinkType:   inp.LinkType,
+		LinkedRule: inp.LinkedRule,
+	}
+}
+
+func copyRequiredVariables(inp []VariableFieldName) []VariableFieldName {
+	targetList := make([]VariableFieldName, len(inp))
+	copy(targetList, inp)
+	return targetList
 }

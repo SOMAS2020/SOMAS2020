@@ -33,7 +33,7 @@ func (c *BaseClient) ResourceReport() shared.ResourcesReport {
 // is then for modifying the rule's content only, it won't put the rule in/out of
 // play. Only a mutable rule's content can be modified.
 func (c *BaseClient) RuleProposal() rules.RuleMatrix {
-	allRules := rules.AvailableRules
+	allRules := c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules
 	for _, ruleMatrix := range allRules {
 		return ruleMatrix
 	}
