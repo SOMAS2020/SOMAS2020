@@ -11,21 +11,67 @@ type speaker struct {
 	parent *client
 }
 
-//s.parent.ServerReadHandle.GetGameConfig()
+//SpeakerActionPriorities indicate speaker actions in order of priority
+var SpeakerActionPriorities = []string{
+	"SetVotingResult",
+	"SetRuleToVote",
+	"AnnounceVotingResult",
+	"UpdateRules",
+	"AppointNextJudge",
+}
+
+func (s *speaker) GetSpeakerBudget() shared.Resources {
+	return s.parent.ServerReadHandle.GetGameState().IIGORolesBudget[shared.Speaker]
+}
+
+func (s *speaker) GetActionsCost(actions []string) shared.Resources {
+	gameconfig := s.parent.ServerReadHandle.GetGameConfig().IIGOClientConfig
+	costs := map[string]shared.Resources{
+		"SetVotingResult":      gameconfig.SetVotingResultActionCost,
+		"SetRuleToVote":        gameconfig.SetRuleToVoteActionCost,
+		"AnnounceVotingResult": gameconfig.AnnounceVotingResultActionCost,
+		"UpdateRules":          gameconfig.UpdateRulesActionCost,
+		"AppointNextJudge":     gameconfig.AppointNextJudgeActionCost,
+	}
+	var SumOfCosts shared.Resources = 0
+	for _, action := range actions {
+		SumOfCosts += costs[action]
+	}
+	return SumOfCosts
+}
+
+func (s *speaker) GetHigherPriorityActionsCost(baseaction string) shared.Resources {
+	actionindex := len(SpeakerActionPriorities)
+	for i, action := range SpeakerActionPriorities {
+		if action == baseaction {
+			actionindex = i
+		}
+	}
+	return s.GetActionsCost(SpeakerActionPriorities[:actionindex])
+}
 
 // PayJudge is used for paying judge for his service
-/*func (s *speaker) PayJudge() shared.SpeakerReturnContent {
+func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 	JudgeSalaryRule, ok := rules.RulesInPlay["salary_cycle_judge"]
 	var JudgeSalary shared.Resources = 0
 	if ok {
 		JudgeSalary = shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
 	}
+	HigherPriorityActionsCost := s.GetHigherPriorityActionsCost("")
+	if s.GetSpeakerBudget()-HigherPriorityActionsCost-JudgeSalary < 0 {
+		//insufficient budget: JudgeSalary + action costs uses up budget
+		JudgeSalary = s.GetSpeakerBudget() - HigherPriorityActionsCost
+		if JudgeSalary < 0 {
+			JudgeSalary = 0
+		}
+	}
+	s.parent.Logf("Judge salary: %v", JudgeSalary)
 	return shared.SpeakerReturnContent{
 		ContentType: shared.SpeakerJudgeSalary,
 		JudgeSalary: JudgeSalary,
 		ActionTaken: true,
 	}
-}*/
+}
 
 //DecideAgenda the interface implementation and example of a well behaved Speaker
 //who sets the vote to be voted on to be the rule the President provided
