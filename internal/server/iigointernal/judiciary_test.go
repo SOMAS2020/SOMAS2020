@@ -1961,6 +1961,15 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 
 func defaultInitJudiciary() judiciary {
 	var logging shared.Logger = func(format string, a ...interface{}) {}
+	gamestate := gamestate.GameState{
+		CommonPool: 999,
+		IIGORolesBudget: map[shared.Role]shared.Resources{
+			shared.President: 100,
+			shared.Speaker:   10,
+			shared.Judge:     10,
+		},
+		IIGORoleMonitoringCache: []shared.Accountability{},
+	}
 	return judiciary{
 		JudgeID:               0,
 		evaluationResults:     map[shared.ClientID]shared.EvaluationReturn{},
@@ -1969,14 +1978,9 @@ func defaultInitJudiciary() judiciary {
 		sanctionThresholds:    map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore{},
 		ruleViolationSeverity: map[string]shared.IIGOSanctionsScore{},
 		gameConf:              &config.IIGOConfig{},
-		monitoring:            &monitor{},
-		gameState: &gamestate.GameState{
-			CommonPool: 999,
-			IIGORolesBudget: map[shared.Role]shared.Resources{
-				shared.President: 100,
-				shared.Speaker:   10,
-				shared.Judge:     10,
-			},
+		gameState:             &gamestate,
+		monitoring: &monitor{
+			gameState: &gamestate,
 		},
 		logger: logging,
 	}

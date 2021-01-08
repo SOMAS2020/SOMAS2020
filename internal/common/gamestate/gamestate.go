@@ -39,9 +39,6 @@ type GameState struct {
 	// IIGO turns in power (incremented and set by monitoring)
 	IIGOTurnsInPower map[shared.Role]uint
 
-	// IIGO Role Action Cache
-	IIGOCache []shared.Accountability
-
 	// IIGO Tax Amount Map
 	IIGOTaxAmount map[shared.ClientID]shared.Resources
 
@@ -56,6 +53,9 @@ type GameState struct {
 
 	// IIGO History Cache is a record of all transgressions for historical retribution
 	IIGOHistoryCache map[int][]shared.Accountability
+
+	// IIGO Role Monitoring Cache is used in the IIGO accountability cycle
+	IIGORoleMonitoringCache []shared.Accountability
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
@@ -80,12 +80,12 @@ func (g GameState) Copy() GameState {
 	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	ret.IIGOTurnsInPower = copyTurnsInPower(g.IIGOTurnsInPower)
-	ret.IIGOCache = copyIIGOCache(g.IIGOCache)
 	ret.IIGOTaxAmount = copyIIGOClientIDResourceMap(g.IIGOTaxAmount)
 	ret.IIGOAllocationMap = copyIIGOClientIDResourceMap(g.IIGOAllocationMap)
 	ret.IIGOSanctionMap = copyIIGOClientIDResourceMap(g.IIGOSanctionMap)
 	ret.IIGOHistoryCache = copyIIGOHistoryCache(g.IIGOHistoryCache)
 	ret.IIGOSanctionCache = copyIIGOSanctionCache(g.IIGOSanctionCache)
+	ret.IIGORoleMonitoringCache = copySingleIIGOEntry(g.IIGORoleMonitoringCache)
 	ret.IITOTransactions = copyIITOTransactions(g.IITOTransactions)
 	return ret
 }
@@ -111,12 +111,6 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		IIGOTurnsInPower:   copyTurnsInPower(g.IIGOTurnsInPower),
 		RulesInfo:          copyRulesContext(g.RulesInfo),
 	}
-}
-
-func copyIIGOCache(c []shared.Accountability) []shared.Accountability {
-	ret := make([]shared.Accountability, len(c))
-	copy(ret, c)
-	return ret
 }
 
 func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]ClientInfo {
