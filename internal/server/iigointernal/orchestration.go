@@ -9,18 +9,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-// TaxAmountMapExport is a local tax amount cache for checking of rules
-var TaxAmountMapExport map[shared.ClientID]shared.Resources
-
-// AllocationAmountMapExport is a local allocation map for checking of rules
-var AllocationAmountMapExport map[shared.ClientID]shared.Resources
-
-// SanctionAmountMapExport is a local sanction map for sanctions
-var SanctionAmountMapExport map[shared.ClientID]shared.Resources
-
-//monitoring holds the monitoring object that is used across turns
-var monitoring monitor
-
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
 
@@ -28,6 +16,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 
 	removeDeadBodiesFromOffice(g)
 
+	g.IIGOMonitoring.Logger = logger
 	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
 
 	// featureJudge is an instantiation of the Judge interface
@@ -39,6 +28,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		evaluationResults:  nil,
 		localSanctionCache: defaultInitLocalSanctionCache(3),
 		localHistoryCache:  defaultInitLocalHistoryCache(3),
+		monitoring:         &g.IIGOMonitoring,
 		iigoClients:        iIGOClients,
 		logger:             logger,
 	}
@@ -50,6 +40,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		ruleToVote:   rules.RuleMatrix{},
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
+		monitoring:   &g.IIGOMonitoring,
 		iigoClients:  iIGOClients,
 		logger:       logger,
 	}
@@ -59,15 +50,10 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		gameConf:         nil,
 		PresidentID:      0,
 		ResourceRequests: nil,
+		monitoring:       &g.IIGOMonitoring,
 		iigoClients:      iIGOClients,
 		logger:           logger,
 	}
-
-	monitoring.logger = logger
-
-	executiveBranch.monitoring = &monitoring
-	legislativeBranch.monitoring = &monitoring
-	judicialBranch.monitoring = &monitoring
 
 	// Increments the budget according to increment_budget_role rules
 	PresidentIncRule, ok := rules.RulesInPlay["increment_budget_president"]
@@ -101,10 +87,6 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	judicialBranch.JudgeID = g.JudgeID
 	legislativeBranch.SpeakerID = g.SpeakerID
 	executiveBranch.PresidentID = g.PresidentID
-
-	monitoring.judgeID = g.JudgeID
-	monitoring.presidentID = g.PresidentID
-	monitoring.speakerID = g.SpeakerID
 
 	// Set judgePointer
 	judgePointer := iIGOClients[g.JudgeID].GetClientJudgePointer()
@@ -195,7 +177,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 
 	variablesToCache := []rules.VariableFieldName{rules.AllocationMade}
 	valuesToCache := [][]float64{{boolToFloat(allocationsMade)}}
-	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
+	g.IIGOMonitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
 	// 3 Speaker actions
 
@@ -216,11 +198,11 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 
 	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
 	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
-	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+	g.IIGOMonitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
 	variablesToCache = []rules.VariableFieldName{rules.VoteCalled, rules.VoteResultAnnounced}
 	valuesToCache = [][]float64{{boolToFloat(voteCalled)}, {boolToFloat(resultAnnounced)}}
-	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+	g.IIGOMonitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
 	// Pay salaries into budgets
 	errorJudicial := judicialBranch.sendPresidentSalary()
@@ -231,12 +213,12 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		return false, "Cannot pay IIGO salary"
 	}
 
-	presidentMonitored := monitoring.monitorRole(g, iIGOClients[g.SpeakerID])
-	judgeMonitored := monitoring.monitorRole(g, iIGOClients[g.PresidentID])
-	speakerMonitored := monitoring.monitorRole(g, iIGOClients[g.JudgeID])
+	presidentMonitored := g.IIGOMonitoring.monitorRole(iIGOClients[g.SpeakerID])
+	judgeMonitored := g.IIGOMonitoring.monitorRole(iIGOClients[g.PresidentID])
+	speakerMonitored := g.IIGOMonitoring.monitorRole(iIGOClients[g.JudgeID])
 	//Save to gameState and clear
-	g.IIGOCache = monitoring.internalIIGOCache
-	monitoring.clearCache()
+	g.IIGOCache = g.IIGOMonitoring.internalIIGOCache
+	g.IIGOMonitoring.clearCache()
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
 	// Get new Role ID
@@ -262,11 +244,8 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		return false, "President was not apointed by the Judge. Insufficient budget"
 	}
 
-	oldCacheSave := monitoring.internalIIGOCache
-	monitoring = monitor{
-		speakerID:         g.SpeakerID,
-		presidentID:       g.PresidentID,
-		judgeID:           g.JudgeID,
+	oldCacheSave := g.IIGOMonitoring.internalIIGOCache
+	g.IIGOMonitoring = shared.Monitor{
 		internalIIGOCache: oldCacheSave,
 		TermLengths:       gameConf.IIGOConfig.IIGOTermLengths,
 	}

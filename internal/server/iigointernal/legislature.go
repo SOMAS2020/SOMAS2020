@@ -23,7 +23,7 @@ type legislature struct {
 	votingResult  bool
 	clientSpeaker roles.Speaker
 	iigoClients   map[shared.ClientID]baseclient.Client
-	monitoring    *monitor
+	monitoring    *shared.Monitor
 	logger        shared.Logger
 }
 
