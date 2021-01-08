@@ -38,6 +38,8 @@ type clientConfig struct {
 	imperialGiftRequestAmount float64          // How much to request when we are at Imperial
 	middleGiftRequestAmount   float64          // How much to request when we are dying
 	offertoDyingIslands       shared.Resources // How much to give to islands dying 1/3 when we are poor
+	offertoDyingIslandsWeLike shared.Resources
+	normalGift                shared.Resources
 
 	//Gift modifiers for opinions
 	opinionRequestMultiplier float64
@@ -84,6 +86,8 @@ func getClientConfig() clientConfig {
 		imperialGiftRequestAmount: 10,
 		middleGiftRequestAmount:   5,
 		offertoDyingIslands:       10,
+		offertoDyingIslandsWeLike: 15,
+		normalGift:                1,
 
 		opinionThresholdRequest:  0.5, // Above opinion we request less this people
 		opinionRequestMultiplier: 0.5, // We request half as much above this threshold

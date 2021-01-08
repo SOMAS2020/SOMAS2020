@@ -126,16 +126,18 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		status := shared.ClientLifeStatus(status)
 		switch {
 		case c.wealth() >= 2: // case we are rich
-			if status == shared.Critical {
-				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands) // Give 3 to dying islands
-			} else {
-				offers[team] = shared.GiftOffer(1.0) // gift a dollar
+			if status == shared.Critical && c.opinions[team].getScore() <= 0 {
+				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands) // give an amount to dying islands
+			} else if status == shared.Critical && c.opinions[team].getScore() > 0 {
+				offers[team] = shared.GiftOffer(c.config.offertoDyingIslandsWeLike) // give higher amount to dying islands we like
 			}
-		default:
-			if status == shared.Critical { // Case we are poor
-				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands / 2) // Half the amount if we are poor
+		default: //if we are poor
+			if status == shared.Critical && c.opinions[team].getScore() <= 0 {
+				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands / 2) // give an amount to dying islands/2
+			} else if status == shared.Critical && c.opinions[team].getScore() > 0 {
+				offers[team] = shared.GiftOffer(c.config.offertoDyingIslandsWeLike / 2) // give higher amount to dying islands we like/2
 			} else {
-				offers[team] = shared.GiftOffer(0.5) // can we abuse the fact that they look at the amount of gifts?
+				offers[team] = shared.GiftOffer(c.config.normalGift) // This is what offer in case islands are not in critical condition (1 resource)
 			}
 		}
 		// History
