@@ -15,19 +15,19 @@ import (
 // 0 is neutral, Positive -> Positive Opinion, Negative -> Negative Opinion
 type opinionOnTeam struct {
 	clientID shared.ClientID
-	opinion  int
+	opinion  Opinion
 }
 
 type sortByOpinion []opinionOnTeam
-
-/**************************/
-/*** 		Helpers	 	***/
-/**************************/
 
 // implemenent sort.Interface
 func (a sortByOpinion) Len() int           { return len(a) }
 func (a sortByOpinion) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a sortByOpinion) Less(i, j int) bool { return a[i].opinion > a[j].opinion }
+
+/**************************/
+/*** 		Helpers	 	***/
+/**************************/
 
 // giveLeftoverResources finds the ratio between available resources and anxiety threshold. Using that ratio, the agent decides the max
 // amount that it is willing to give away.
@@ -75,27 +75,33 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	offers := shared.GiftOfferDict{}
 	resourcesAvailable := c.gameState().ClientInfo.Resources
 	teamStatus := c.gameState().ClientLifeStatuses
+
 	// Sort so that we go through those we like first.
-	sort.Sort(sortByOpinion(c.opinionTeams))
-	for _, teams := range c.opinionTeams {
-		for id, request := range receivedRequests {
-			if teams.clientID == id && resourcesAvailable > c.config.anxietyThreshold && resourcesAvailable > shared.Resources(request) {
-				if teams.opinion > c.config.maxOpinion {
-					offers[id] = shared.GiftOffer(request)
-					resourcesAvailable -= shared.Resources(request)
-				} else if teams.opinion < -c.config.maxOpinion {
-					// Skip the giftOffer. We don't like them >:)
-					continue
-				} else if teamStatus[id] == shared.Critical {
-					offers[id] = shared.GiftOffer(request)
-					resourcesAvailable -= shared.Resources(request)
-				} else {
-					offerResource := giveLeftoverResources(resourcesAvailable, c.config.anxietyThreshold, shared.Resources(request))
-					if offerResource != -1 {
-						offers[id] = shared.GiftOffer(offerResource)
-						resourcesAvailable -= offerResource
-					}
-				}
+	teamOpinionList := []opinionOnTeam{}
+	sort.Sort(sortByOpinion(teamOpinionList))
+
+	for _, teamOpinion := range teamOpinionList {
+		teamID := teamOpinion.clientID
+		opinion := teamOpinion.opinion
+		request, teamMadeRequest := receivedRequests[teamID]
+
+		switch {
+		case !teamMadeRequest:
+		case resourcesAvailable <= c.config.anxietyThreshold:
+		case resourcesAvailable <= shared.Resources(request):
+		case opinion < -c.config.maxOpinion:
+			// Do not make an offer
+		case opinion > c.config.maxOpinion:
+			offers[id] = shared.GiftOffer(request)
+			resourcesAvailable -= shared.Resources(request)
+		case teamStatus[id] == shared.Critical:
+			offers[id] = shared.GiftOffer(request)
+			resourcesAvailable -= shared.Resources(request)
+		default:
+			offerResource := giveLeftoverResources(resourcesAvailable, c.config.anxietyThreshold, shared.Resources(request))
+			if offerResource != -1 {
+				offers[id] = shared.GiftOffer(offerResource)
+				resourcesAvailable -= offerResource
 			}
 		}
 	}
@@ -123,7 +129,7 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	for id, response := range receivedResponses {
 		if response.Reason == shared.DeclineDontLikeYou {
-			c.addToOpinion(id, -1)
+			c.teamOpinions[id]--
 		}
 	}
 }
@@ -137,17 +143,13 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 // ReceivedGift is executed at the end of each turn and notifies clients that
 // their gift was successfully received, along with the offer details.
 func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
-	for i, teams := range c.opinionTeams {
-		if teams.clientID == from {
-			if received > shared.Resources(c.receivedOffer[from]) {
-				// We love them cause they gave more than they promised.
-				c.opinionTeams[i].opinion += c.config.maxOpinion / 5
-			} else if received > 0 {
-				c.opinionTeams[i].opinion++
-			} else if received <= 0 {
-				c.opinionTeams[i].opinion--
-			}
-		}
+	if received > shared.Resources(c.receivedOffer[from]) {
+		// We love them cause they gave more than they promised.
+		c.teamOpinions[from] += c.config.maxOpinion / 5
+	} else if received > 0 {
+		c.teamOpinions[from]++
+	} else if received <= 0 {
+		c.teamOpinions[from]--
 	}
 }
 
@@ -159,24 +161,25 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
 	resourcesAvailable := c.gameState().ClientInfo.Resources
 	teamStatus := c.gameState().ClientLifeStatuses
-	for _, teams := range c.opinionTeams {
-		if teams.clientID == id && resourcesAvailable > c.config.anxietyThreshold && resourcesAvailable > giftOffer {
-			if teams.opinion > c.config.maxOpinion {
-				return giftOffer
-			} else if teams.opinion < -c.config.maxOpinion {
-				// Skip the giftOffer. We don't like them >:)
-				return shared.Resources(0)
-			} else if teamStatus[id] == shared.Critical {
-				// We are trying to be nice.
-				return giftOffer
-			} else {
-				offerResource := giveLeftoverResources(resourcesAvailable, c.config.anxietyThreshold, giftOffer)
-				if offerResource != -1 {
-					return offerResource
-				}
-				return shared.Resources(0)
-			}
+
+	switch {
+	case resourcesAvailable <= c.config.anxietyThreshold:
+		return 0
+	case resourcesAvailable <= giftOffer:
+		return 0
+	case c.teamOpinions[toTeam] < -c.config.maxOpinion:
+		// Skip the giftOffer. We don't like them >:)
+		return 0
+	case c.teamOpinions[toTeam] > c.config.maxOpinion:
+		return giftOffer
+	case teamStatus[id] == shared.Critical:
+		// We are trying to be nice.
+		return giftOffer
+	default:
+		offerResource := giveLeftoverResources(resourcesAvailable, c.config.anxietyThreshold, giftOffer)
+		if offerResource != -1 {
+			return offerResource
 		}
+		return shared.Resources(0)
 	}
-	return shared.Resources(0)
 }

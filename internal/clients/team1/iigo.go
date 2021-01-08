@@ -17,7 +17,7 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 			// If they are not reporting their wealth, they will probably also
 			// not pay tax.
 			taxAmountMap[clientID] = 9999999
-			c.addToOpinion(clientID, -1)
+			c.teamOpinions[clientID]--
 			continue
 		}
 
@@ -47,6 +47,7 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 		ActionTaken: true,
 	}
 }
+
 
 /*************************/
 /* Taxes and allocations */
