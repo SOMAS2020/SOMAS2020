@@ -23,8 +23,7 @@ import _ from 'lodash'
 import { OutputJSONType } from '../../../consts/types'
 import styles from './Resources.module.css'
 
-const CustomTooltip = (props: TooltipProps) => {
-  const { active, label, payload } = props
+const CustomTooltip = ({ active, label, payload }: TooltipProps) => {
 
   return (
     active &&
