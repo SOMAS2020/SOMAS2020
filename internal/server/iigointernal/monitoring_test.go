@@ -109,6 +109,11 @@ func TestEvaluateCache(t *testing.T) {
 			monitoring := &monitor{
 				internalIIGOCache: tc.iigoCache,
 				logger:            logging,
+				gameState: &gamestate.GameState{
+					RulesInfo: gamestate.RulesContext{
+						VariableMap: generateDummyVariableCache(),
+					},
+				},
 			}
 			res := monitoring.evaluateCache(tc.roleID, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
