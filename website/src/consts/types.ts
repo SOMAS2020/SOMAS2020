@@ -1,8 +1,7 @@
 import outputJSONData from '../output/output.json'
 
 // TODO: what if there are more islands - dynamic typing
-// eslint-disable-next-line no-shadow
-export enum Team {
+export enum TeamName {
     'CommonPool',
     'Team1',
     'Team2',
@@ -13,8 +12,8 @@ export enum Team {
 }
 
 export type Transaction = {
-    from: Team
-    to: Team
+    from: TeamName
+    to: TeamName
     amount: number
 }
 
@@ -50,8 +49,8 @@ type GameStatesType = {
         IIGOHistory: IIGOHistory | undefined
         IITOTransactions:
             | {
-                  [offerTeam in Team]: {
-                      [receiveTeam in Team]?: {
+                  [offerTeam in TeamName]: {
+                      [receiveTeam in TeamName]?: {
                           AcceptedAmount: number
                           Reason: number
                       }
@@ -68,7 +67,7 @@ export type IIGOHistory = {
 }
 
 export type Accountability = {
-    ClientID: Team
+    ClientID: TeamName
     Pairs: VariableValuePair[]
 }
 
