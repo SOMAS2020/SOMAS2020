@@ -50,9 +50,9 @@ func (c *client) StartOfTurn() {
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
 	c.LocalVariableCache = rules.CopyVariableMap(c.ServerReadHandle.GetGameState().RulesInfo.VariableMap)
-	c.ourSpeaker = speaker{c: c, BaseSpeaker: &baseclient.BaseSpeaker{}}
+	c.ourSpeaker = speaker{c: c, BaseSpeaker: &baseclient.BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}}
 	c.ourJudge = judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
-	c.ourPresident = president{c: c, BasePresident: &baseclient.BasePresident{}}
+	c.ourPresident = president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 
 	c.initgiftOpinions()
 

@@ -12,8 +12,7 @@ const id = shared.Team3
 const printTeam3Logs = false
 
 func init() {
-	ourClient := NewClient(id)
-	baseclient.RegisterClient(id, ourClient)
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
 type client struct {

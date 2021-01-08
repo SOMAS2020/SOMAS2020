@@ -125,7 +125,7 @@ func (c *client) dynamicAssistedResult(variablesChanged map[rules.VariableFieldN
 	if c.LocalVariableCache != nil {
 		c.LocalVariableCache = c.locationService.UpdateCache(c.LocalVariableCache, variablesChanged)
 		// For testing using available rules
-		return c.locationService.GetRecommendations(variablesChanged, rules.AvailableRules, c.LocalVariableCache)
+		return c.locationService.GetRecommendations(variablesChanged, c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules, c.LocalVariableCache)
 	}
 	return variablesChanged
 }
@@ -174,7 +174,7 @@ func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 
 	newRulesInPlay := make(map[string]rules.RuleMatrix)
 
-	for key, value := range rules.RulesInPlay {
+	for key, value := range c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay {
 		if key == matrix.RuleName {
 			newRulesInPlay[key] = matrix
 		} else {
@@ -182,10 +182,10 @@ func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 		}
 	}
 
-	if _, ok := rules.RulesInPlay[matrix.RuleName]; ok {
+	if _, ok := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[matrix.RuleName]; ok {
 		delete(newRulesInPlay, matrix.RuleName)
 	} else {
-		newRulesInPlay[matrix.RuleName] = rules.AvailableRules[matrix.RuleName]
+		newRulesInPlay[matrix.RuleName] = c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[matrix.RuleName]
 	}
 
 	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
@@ -205,20 +205,20 @@ func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 func (c *client) RuleProposal() rules.RuleMatrix {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
-	internalMap := copyRulesMap(rules.RulesInPlay)
+	internalMap := copyRulesMap(c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay)
 	inputMap := c.locationService.TranslateToInputs(c.LocalVariableCache)
 	c.localInputsCache = inputMap
 	shortestSoFar := -2.0
 	selectedRule := ""
-	for key, rule := range rules.AvailableRules {
-		if _, ok := rules.RulesInPlay[key]; !ok {
+	for key, rule := range c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules {
+		if _, ok := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[key]; !ok {
 			reqInputs := dynamics.SourceRequiredInputs(rule, inputMap)
 			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule, reqInputs)
 			if valid {
 				ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
 				distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
 				if distance == -1 {
-					return rules.AvailableRules[key]
+					return c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[key]
 				}
 				if shortestSoFar == -2.0 || shortestSoFar > distance {
 					shortestSoFar = distance
@@ -238,7 +238,7 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 	if selectedRule == "" {
 		selectedRule = "inspect_ballot_rule"
 	}
-	return rules.AvailableRules[selectedRule]
+	return c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[selectedRule]
 }
 
 // RequestAllocation gives how much island is taking from common pool

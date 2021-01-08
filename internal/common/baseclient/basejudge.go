@@ -28,7 +28,7 @@ func (j *BaseJudge) GetSanctionThresholds() map[shared.IIGOSanctionsTier]shared.
 // OPTIONAL: override to pay the President less than the full amount.
 func (j *BaseJudge) PayPresident() (shared.Resources, bool) {
 	// TODO Implement opinion based salary payment.
-	PresidentSalaryRule, ok := rules.RulesInPlay["salary_cycle_president"]
+	PresidentSalaryRule, ok := j.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_president"]
 	var PresidentSalary shared.Resources = 0
 	if ok {
 		PresidentSalary = shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
@@ -46,7 +46,7 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, copyOfVarCache)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, j.GameState.RulesInfo.CurrentRulesInPlay, copyOfVarCache)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
@@ -63,11 +63,11 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo
 		}
 		tempReturn := outputMap[clientID]
 		for _, rule := range rulesAffected {
-			ret := rules.EvaluateRuleFromCaches(rule, rules.RulesInPlay, copyOfVarCache)
+			ret := rules.EvaluateRuleFromCaches(rule, j.GameState.RulesInfo.CurrentRulesInPlay, copyOfVarCache)
 			if ret.EvalError != nil {
 				return outputMap, false
 			}
-			tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
+			tempReturn.Rules = append(tempReturn.Rules, j.GameState.RulesInfo.CurrentRulesInPlay[rule])
 			tempReturn.Evaluations = append(tempReturn.Evaluations, ret.RulePasses)
 		}
 		outputMap[clientID] = tempReturn

@@ -18,7 +18,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	iIGOClients := *clientMap
 
 	removeDeadBodiesFromOffice(g)
-
+	monitoring.gameState = g
 	monitoring.logger = logger
 	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
 
@@ -57,17 +57,17 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	}
 
 	// Increments the budget according to increment_budget_role rules
-	PresidentIncRule, ok := rules.RulesInPlay["increment_budget_president"]
+	PresidentIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_president"]
 	if ok {
 		PresidentBudgetInc := PresidentIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.President] += shared.Resources(PresidentBudgetInc)
 	}
-	JudgeIncRule, ok := rules.RulesInPlay["increment_budget_judge"]
+	JudgeIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_judge"]
 	if ok {
 		JudgeBudgetInc := JudgeIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.Judge] += shared.Resources(JudgeBudgetInc)
 	}
-	SpeakerIncRule, ok := rules.RulesInPlay["increment_budget_speaker"]
+	SpeakerIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_speaker"]
 	if ok {
 		SpeakerBudgetInc := SpeakerIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.Speaker] += shared.Resources(SpeakerBudgetInc)
