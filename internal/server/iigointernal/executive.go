@@ -109,7 +109,7 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		if !e.incurServiceCharge(e.gameConf.BroadcastTaxationActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 		}
-		TaxAmountMapExport = taxMapReturn.ResourceMap
+		e.gameState.IIGOTaxAmount = taxMapReturn.ResourceMap
 		for islandID, amount := range taxMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
 				e.sendDecision(islandID, amount, shared.IIGOTaxDecision)
@@ -141,7 +141,7 @@ func (e *executive) requestAllocationRequest(aliveIslands []shared.ClientID) err
 	for _, islandID := range aliveIslands {
 		allocRequests[islandID] = e.iigoClients[islandID].CommonPoolResourceRequest()
 	}
-	AllocationAmountMapExport = allocRequests
+	e.gameState.IIGOAllocationMap = allocRequests
 	e.setAllocationRequest(allocRequests)
 	return nil
 }
@@ -160,7 +160,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 		}
 		e.Logf("Resource Allocation: %v", returnContent.ResourceMap)
 		allocationsMade = true
-		AllocationAmountMapExport = returnContent.ResourceMap
+		e.gameState.IIGOAllocationMap = returnContent.ResourceMap
 		for islandID, amount := range returnContent.ResourceMap {
 			e.sendDecision(islandID, amount, shared.IIGOAllocationDecision)
 		}

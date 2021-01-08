@@ -63,7 +63,7 @@ func (s *SOMASServer) runIIGOTax() error {
 			},
 			{
 				VariableName: rules.ExpectedTaxContribution,
-				Values:       []float64{float64(iigointernal.TaxAmountMapExport[clientID])},
+				Values:       []float64{float64(s.gameState.IIGOTaxAmount[clientID])},
 			},
 		})
 		s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{
@@ -73,7 +73,7 @@ func (s *SOMASServer) runIIGOTax() error {
 			},
 			{
 				VariableName: rules.SanctionExpected,
-				Values:       []float64{float64(iigointernal.SanctionAmountMapExport[clientID])},
+				Values:       []float64{float64(s.gameState.IIGOSanctionMap[clientID])},
 			},
 		})
 
@@ -99,7 +99,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 				},
 				{
 					VariableName: rules.ExpectedAllocation,
-					Values:       []float64{float64(iigointernal.AllocationAmountMapExport[clientID])},
+					Values:       []float64{float64(s.gameState.IIGOAllocationMap[clientID])},
 				},
 			})
 

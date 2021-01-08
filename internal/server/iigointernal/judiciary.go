@@ -277,7 +277,7 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 	}
 	j.localSanctionCache = newSanctionMap
 	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay, j.gameConf.AssumedResourcesNoReport)
-	SanctionAmountMapExport = totalSanctionPerAgent
+	j.gameState.IIGOSanctionMap = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
 		communicateWithIslands(j.iigoClients, j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
 			shared.SanctionAmount: {
