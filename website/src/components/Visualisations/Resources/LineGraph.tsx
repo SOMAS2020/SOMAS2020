@@ -30,14 +30,6 @@ class LineRechartComponent extends React.Component<IProps, any> {
     super(props)
     this.state = {
       disabled: [],
-      lineColours: {
-        team1: '#0095FF',
-        team2: '#FF0000',
-        team3: '#802FF0',
-        team4: '#00C49F',
-        team5: '#FFBB28',
-        team6: '#FF8042',
-      },
       legendColours: {
         team1: '#0095FF',
         team2: '#FF0000',
@@ -45,6 +37,7 @@ class LineRechartComponent extends React.Component<IProps, any> {
         team4: '#00C49F',
         team5: '#FFBB28',
         team6: '#FF8042',
+        CommonPool: '#ACE600',
         CriticalThreshold: '#B7B4B0',
       },
       datapaths: {
@@ -54,6 +47,7 @@ class LineRechartComponent extends React.Component<IProps, any> {
         team4: 'ClientInfos.Team4.Resources',
         team5: 'ClientInfos.Team5.Resources',
         team6: 'ClientInfos.Team6.Resources',
+        CommonPool: 'CommonPool',
       },
       chartData: this.props.output,
     }
@@ -125,7 +119,7 @@ class LineRechartComponent extends React.Component<IProps, any> {
           data={this.state.chartData.GameStates}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
         >
-          {_.toPairs<string>(this.state.lineColours)
+          {_.toPairs<string>(this.state.legendColours)
             .filter((pair) => !_.includes(this.state.disabled, pair[0]))
             .map((pair) => (
               <Line
