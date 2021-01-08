@@ -1,13 +1,15 @@
 import React from 'react'
 import logo from '../../../assets/logo/logo512.png'
 import styles from './IIFO.module.css'
+
 import { OutputJSONType } from '../../../consts/types'
+import ForagingPlot from './Util/ForagingPlot'
 
 const IIFO = (props: { output: OutputJSONType }) => {
   return (
     <div className={styles.root}>
-      <img src={logo} className={styles.appLogo} alt="logo" />
-      <p className={styles.text}>IIFO Visualisation</p>
+      <h2 className={styles.text}>Foraging Visualisation</h2>
+      <ForagingPlot />
     </div>
   )
 }
