@@ -24,6 +24,7 @@ func init() {
 		internalParam: &internalParameters{},
 		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
 	}
+	team4client.clientJudge.parent = &team4client
 	team4client.clientSpeaker.parent = &team4client
 	team4client.clientJudge.parent = &team4client
 
