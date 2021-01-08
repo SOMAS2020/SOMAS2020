@@ -15,7 +15,8 @@ func TestGetVoteForElection(t *testing.T) {
 		shared.Team5: &wrappedOpininon{opinion{score: 0.6}},
 		shared.Team6: &wrappedOpininon{opinion{score: 0.7}},
 	}
-	candidateList := append(w, shared.Team1, shared.Team2, shared.Team3,
+	var candidateList []shared.ClientID
+	candidateList = append(candidateList, shared.Team1, shared.Team2, shared.Team3,
 		shared.Team4, shared.Team5, shared.Team6)
 	ballot := c.VoteForElection(shared.President, candidateList)
 
