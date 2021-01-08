@@ -51,6 +51,12 @@ type GameState struct {
 	// IIGO Sanction Amount Map
 	IIGOSanctionMap map[shared.ClientID]shared.Resources
 
+	// IIGO Sanction Cache is a record of all sanctions
+	IIGOSanctionCache map[int][]shared.Sanction
+
+	// IIGO History Cache is a record of all transgressions for historical retribution
+	IIGOHistoryCache map[int][]shared.Accountability
+
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
 
@@ -78,6 +84,8 @@ func (g GameState) Copy() GameState {
 	ret.IIGOTaxAmount = copyIIGOClientIDResourceMap(g.IIGOTaxAmount)
 	ret.IIGOAllocationMap = copyIIGOClientIDResourceMap(g.IIGOAllocationMap)
 	ret.IIGOSanctionMap = copyIIGOClientIDResourceMap(g.IIGOSanctionMap)
+	ret.IIGOHistoryCache = copyIIGOHistoryCache(g.IIGOHistoryCache)
+	ret.IIGOSanctionCache = copyIIGOSanctionCache(g.IIGOSanctionCache)
 	ret.IITOTransactions = copyIITOTransactions(g.IITOTransactions)
 	return ret
 }
@@ -137,6 +145,24 @@ func copyTurnsInPower(m map[shared.Role]uint) map[shared.Role]uint {
 
 func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]shared.Accountability {
 	targetMap := make(map[uint][]shared.Accountability)
+	for key, value := range iigoHistory {
+		targetMap[key] = copySingleIIGOEntry(value)
+	}
+	return targetMap
+}
+
+func copyIIGOSanctionCache(m map[int][]shared.Sanction) map[int][]shared.Sanction {
+	targetMap := make(map[int][]shared.Sanction)
+	for k, v := range m {
+		entry := make([]shared.Sanction, len(v))
+		copy(entry, v)
+		targetMap[k] = entry
+	}
+	return targetMap
+}
+
+func copyIIGOHistoryCache(iigoHistory map[int][]shared.Accountability) map[int][]shared.Accountability {
+	targetMap := make(map[int][]shared.Accountability)
 	for key, value := range iigoHistory {
 		targetMap[key] = copySingleIIGOEntry(value)
 	}

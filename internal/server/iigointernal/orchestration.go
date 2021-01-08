@@ -25,15 +25,13 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
 	var judicialBranch = judiciary{
-		gameState:          nil,
-		gameConf:           nil,
-		JudgeID:            0,
-		evaluationResults:  nil,
-		localSanctionCache: defaultInitLocalSanctionCache(3),
-		localHistoryCache:  defaultInitLocalHistoryCache(3),
-		monitoring:         &monitoring,
-		iigoClients:        iIGOClients,
-		logger:             logger,
+		gameState:         nil,
+		gameConf:          nil,
+		JudgeID:           0,
+		evaluationResults: nil,
+		monitoring:        &monitoring,
+		iigoClients:       iIGOClients,
+		logger:            logger,
 	}
 
 	var legislativeBranch = legislature{

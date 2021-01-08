@@ -2,7 +2,7 @@ package team6
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 type judge struct {
@@ -10,7 +10,7 @@ type judge struct {
 	*client
 }
 
-func (j *judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
+func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
 	pardons := map[int][]bool{}
 	maxSanctionTime := int(j.client.ServerReadHandle.GetGameConfig().IIGOClientConfig.SanctionCacheDepth - 1)
 
