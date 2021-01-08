@@ -38,11 +38,6 @@ func PullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, p
 	return &RuleError{Err: errors.Errorf("Rule '%v' does not exist in available rules", rulename), ErrorType: RuleNotInAvailableRulesCache}
 }
 
-// PullRuleOutOfPlay provides disengagement logic for global rules in play cache
-func PullRuleOutOfPlay(rulename string) error {
-	return PullRuleOutOfPlayInternal(rulename, AvailableRules, RulesInPlay)
-}
-
 // PullRuleOutOfPlayInternal provides primal rule disengagement logic for any pair of caches
 func PullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {

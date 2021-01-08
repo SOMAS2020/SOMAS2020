@@ -210,7 +210,7 @@ func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn boo
 				}
 			}
 		} else {
-			err := rules.PullRuleOutOfPlay(ruleMatrix.RuleName)
+			err := rules.PullRuleOutOfPlayInternal(ruleMatrix.RuleName, l.gameState.RulesInfo.AvailableRules, l.gameState.RulesInfo.CurrentRulesInPlay)
 			if ruleErr, ok := err.(*rules.RuleError); ok {
 				if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
 					return ruleErr
