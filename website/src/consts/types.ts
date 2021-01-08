@@ -31,21 +31,41 @@ export type Link = {
 }
 
 // Custom utility type
-type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U
+// type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U
 // export type OutputJSONType = GameStatesType & typeof outputJSONData
+type ChangeKeyType<T, K extends keyof T, U> = Omit<T, K> & { [k in K]?: U }
 
-export type OverwriteGameState = Overwrite<
-    typeof outputJSONData.GameStates,
+export type OutputJSONType = ChangeKeyType<
+    typeof outputJSONData,
+    'GameStates',
     GameStatesType
 >
 
-export type OutputJSONType = Overwrite<
-    typeof outputJSONData,
-    OverwriteGameState
->
+// export type OverwriteGameState = Overwrite<
+//     typeof outputJSONData.GameStates,
+//     GameStatesType
+// >
+
+// export type OutputJSONType = Overwrite<
+//     typeof outputJSONData,
+//     OverwriteGameState
+// >
 
 type GameStatesType = {
     GameStates: {
+        Season: number
+        Turn: number
+        ClientInfos: any
+        Environment: any
+        DeerPopulation: any
+        ForagingHistory: any
+        CurrentRulesInPlay: any
+        IIGORolesBudget: any
+        IIGOTurnsInPower: any
+        IIGOCache: any
+        SpeakerID: string
+        JudgeID: string
+        PresidentID: string
         IIGOHistory: IIGOHistory | undefined
         IITOTransactions:
             | {
