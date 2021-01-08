@@ -48,6 +48,16 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
 	c.LocalVariableCache = rules.CopyVariableMap()
 
+	c.friendship = Friendship{}
+	c.trustRank = TrustRank{}
+	c.giftsSentHistory = GiftsSentHistory{}
+	c.giftsReceivedHistory = GiftsReceivedHistory{}
+	c.giftsRequestedHistory = GiftsRequestedHistory{}
+	c.disastersHistory = DisastersHistory{}
+	c.disasterPredictions = DisasterPredictions{}
+	c.forageHistory = ForageHistory{}
+	c.payingTax = 0.0
+
 	for _, team := range shared.TeamIDs {
 		if team == c.GetID() {
 			continue
@@ -56,14 +66,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 		c.friendship[team] = 50
 		c.trustRank[team] = 0.5
 	}
-
-	c.giftsSentHistory = GiftsSentHistory{}
-	c.giftsReceivedHistory = GiftsReceivedHistory{}
-	c.giftsRequestedHistory = GiftsRequestedHistory{}
-	c.disastersHistory = DisastersHistory{}
-	c.disasterPredictions = DisasterPredictions{}
-	c.forageHistory = ForageHistory{}
-	c.payingTax = 0.0
 }
 
 func (c *client) StartOfTurn() {
