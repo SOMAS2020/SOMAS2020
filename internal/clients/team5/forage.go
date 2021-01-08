@@ -65,6 +65,7 @@ func (c *client) InitialForage() shared.ForageDecision {
 	// =============================================================================
 
 	var forageType shared.ForageType
+
 	// Default contribution amount is a random amount between 1% -> 5% of out wealth
 	forageContribution := shared.Resources(c.config.MinimumForagePercentage+
 		rand.Float64()*
@@ -321,7 +322,7 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 
 	for _, forageInfo := range forageInfos {
 		if forageInfo.DecisionMade.Contribution >= 1 { // has to be meaningful forage
-			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.1)
+			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.05)
 		}
 	}
 }

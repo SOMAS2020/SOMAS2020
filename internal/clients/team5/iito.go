@@ -1,6 +1,8 @@
 package team5
 
-import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
 
 /*
 	COMPULSORY:
@@ -56,14 +58,52 @@ func (c *client) initGiftHist() {
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
 	for team, status := range c.gameState().ClientLifeStatuses {
-		if status != shared.Critical {
-			switch {
-			case c.getLifeStatus() == shared.Critical: // Case we are critical
-				requests[team] = shared.GiftRequest(c.config.dyingGiftRequestAmount) // Ask for money cus we dying
-			case c.wealth() == imperialStudent: // We are poor
-				requests[team] = shared.GiftRequest(c.config.imperialGiftRequestAmount)
-			case c.wealth() == middleClass:
-				requests[team] = shared.GiftRequest(c.config.middleGiftRequestAmount) // Ask for money
+		if status != shared.Critical { // We are not dying
+			if c.opinions[team].getScore() > c.config.opinionThresholdRequest { // They are nice people
+				switch c.wealth() { // Look at our wealth
+				case dying: // Case we are Critical (dying)
+					requests[team] = shared.GiftRequest(c.config.dyingGiftRequestAmount * 0.8) // Ask  for dying amount
+				case imperialStudent:
+					requests[team] = shared.GiftRequest( // Scale our request
+						c.config.imperialGiftRequestAmount /
+							float64(c.opinions[team].getScore()) *
+							c.config.opinionRequestMultiplier) // Scale down the request if we like them
+				case middleClass:
+					requests[team] = shared.GiftRequest(
+						c.config.middleGiftRequestAmount /
+							float64(c.opinions[team].getScore()) *
+							c.config.opinionRequestMultiplier) // Scale down the request if we like them
+				default:
+					requests[team] = shared.GiftRequest(0)
+				}
+			} else if c.opinions[team].getScore() < (-c.config.opinionThresholdRequest) { // They are trashy people
+				switch c.wealth() {
+				case dying: // Case we are Critical
+					requests[team] = shared.GiftRequest(c.config.dyingGiftRequestAmount * 1.2)
+				case imperialStudent: // Case we are Poor
+					requests[team] = shared.GiftRequest(
+						c.config.imperialGiftRequestAmount /
+							float64(c.opinions[team].getScore()) *
+							c.config.opinionRequestMultiplier) // Scale down the request if we like them
+				case middleClass:
+					requests[team] = shared.GiftRequest(
+						c.config.middleGiftRequestAmount /
+							float64(c.opinions[team].getScore()) *
+							c.config.opinionRequestMultiplier) // Scale down the request if we like them
+				default:
+					requests[team] = shared.GiftRequest(0)
+				}
+			} else { // Normal people
+				switch c.wealth() {
+				case dying: // Case we are Critical
+					requests[team] = shared.GiftRequest(c.config.dyingGiftRequestAmount)
+				case imperialStudent:
+					requests[team] = shared.GiftRequest(c.config.imperialGiftRequestAmount) // Scale down the request if we like them
+				case middleClass:
+					requests[team] = shared.GiftRequest(c.config.middleGiftRequestAmount) // Scale down the request if we like them
+				default:
+					requests[team] = shared.GiftRequest(0)
+				}
 			}
 		}
 		// History
@@ -79,6 +119,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 // It can offer multiple partial gifts.
 // COMPULSORY, you need to implement this method. This placeholder implementation offers no gifts,
 // unless another team is critical.
+
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 	for team, status := range c.gameState().ClientLifeStatuses {
@@ -86,13 +127,13 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		switch {
 		case c.wealth() >= 2: // case we are rich
 			if status == shared.Critical {
-				offers[team] = shared.GiftOffer(10.0) // Give 3 to dying islands
+				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands) // Give 3 to dying islands
 			} else {
 				offers[team] = shared.GiftOffer(1.0) // gift a dollar
 			}
 		default:
 			if status == shared.Critical { // Case we are poor
-				offers[team] = shared.GiftOffer(1.5)
+				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands / 2) // Half the amount if we are poor
 			} else {
 				offers[team] = shared.GiftOffer(0.5) // can we abuse the fact that they look at the amount of gifts?
 			}
@@ -148,8 +189,6 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 		c.giftHistory[team].theirRequest[c.getTurn()] = newGiftRequest
 	}
 }
-
-// ==================================== Gifting history to be made =========================================
 
 // ===================================== Has sending / recv gifts been implemented? ===============================
 
