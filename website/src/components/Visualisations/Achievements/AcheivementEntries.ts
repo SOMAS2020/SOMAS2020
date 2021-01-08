@@ -133,35 +133,22 @@ const turnsAliveMetricCollection = (data: OutputJSONType) => {
     return metrics
 }
 
-const turnsAsPresMetricCollection = (data: OutputJSONType) => {
+const turnsAsRoleMetricCollection = (
+    data: OutputJSONType,
+    role: 'PresidentID' | 'SpeakerID' | 'JudgeID'
+) => {
     const metrics = emptyMetrics()
     data.GameStates.forEach((gameState) => {
-        metrics[gameState.PresidentID]++
-    })
-    return metrics
-}
-
-const turnsAsJudgeMetricCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    data.GameStates.forEach((gameState) => {
-        metrics[gameState.JudgeID]++
-    })
-    return metrics
-}
-
-const turnsAsSpeakerMetricCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    data.GameStates.forEach((gameState) => {
-        metrics[gameState.SpeakerID]++
+        metrics[gameState[role]]++
     })
     return metrics
 }
 
 const turnsInPowerMetricCollection = (data: OutputJSONType) =>
     addMetrics([
-        turnsAsPresMetricCollection(data),
-        turnsAsJudgeMetricCollection(data),
-        turnsAsSpeakerMetricCollection(data),
+        turnsAsRoleMetricCollection(data, 'PresidentID'),
+        turnsAsRoleMetricCollection(data, 'JudgeID'),
+        turnsAsRoleMetricCollection(data, 'SpeakerID'),
     ])
 
 const acheivementList: AcheivementEntry[] = [
@@ -210,19 +197,21 @@ const acheivementList: AcheivementEntry[] = [
     {
         title: 'The Donald',
         description: 'Island who spent the most time as President',
-        collectMetrics: turnsAsPresMetricCollection,
+        collectMetrics: (data) =>
+            turnsAsRoleMetricCollection(data, 'PresidentID'),
         evalLargest: true,
     },
     {
         title: 'Judge Judy',
         description: 'Island who spent the most time as Judge',
-        collectMetrics: turnsAsJudgeMetricCollection,
+        collectMetrics: (data) => turnsAsRoleMetricCollection(data, 'JudgeID'),
         evalLargest: true,
     },
     {
         title: 'Speak Now or Forever Hold Your Peace',
         description: 'Island who spent the most time as Speaker',
-        collectMetrics: turnsAsSpeakerMetricCollection,
+        collectMetrics: (data) =>
+            turnsAsRoleMetricCollection(data, 'SpeakerID'),
         evalLargest: true,
     },
 ]
