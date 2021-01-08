@@ -150,7 +150,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			prevTurnsHunters := make(map[uint]uint)
 			for _, returns := range forageHistory[shared.DeerForageType] { // finds Number of hunters  for each turn
 				for i := c.getTurn() - c.config.DeerTurnsToLookBack; i < c.getTurn() && i >= c.getTurn()-c.config.DeerTurnsToLookBack; i++ {
-					if returns.input > 0 && returns.turn == i { // Significant amount put into hunting
+					if returns.output > returns.input && returns.turn == i { // Only count the ones that had positive returns (as they must have went hunting)
 						prevTurnsHunters[i] = prevTurnsHunters[i] + 1
 					}
 				}
@@ -185,12 +185,6 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 func (c *client) normalForage() shared.ForageDecision {
 	bestForagingMethod := c.bestHistoryForaging(c.forageHistory) // Find the best foragine type in based on history
 
-	// Between 1->5%
-	forageContribution := shared.Resources(c.config.MinimumForagePercentage+
-		rand.Float64()*
-			(c.config.NormalForagePercentage-c.config.MinimumForagePercentage)) *
-		c.gameState().ClientInfo.Resources
-
 	// No good returns all our history had RoI < 0 , Skip one turn
 	//=============================================================================
 	if bestForagingMethod == shared.ForageType(-1) && c.config.SkipForage > 0 {
@@ -212,7 +206,12 @@ func (c *client) normalForage() shared.ForageDecision {
 		} else {
 			forageMethod = shared.FishForageType
 		}
-		forageContribution = forageContribution / 2 // Half the amount we invested (possibly investing too much)
+		// Between 1->5%
+		forageContribution := shared.Resources(c.config.MinimumForagePercentage+
+			rand.Float64()*
+				(c.config.NormalForagePercentage-c.config.MinimumForagePercentage)) *
+			c.gameState().ClientInfo.Resources
+		forageContribution = forageContribution * 2 // Half the amount we invested (possibly investing too much)
 		return shared.ForageDecision{
 			Type:         forageMethod,
 			Contribution: forageContribution,
@@ -236,11 +235,13 @@ func (c *client) normalForage() shared.ForageDecision {
 		}
 	}
 
-	// Add a random amount 0->5% to the bestInput (max 5%)
-	bestInput += shared.Resources(rand.Float64()*c.config.NormalRandomIncrease) *
-		c.gameState().ClientInfo.Resources
+	// Add a random amount 0->5% to the bestInput (max +-5%)
+	if rand.Float64() < 0.5 { // Decrease
+		bestInput -= bestInput * shared.Resources(rand.Float64()*c.config.NormalRandomIncrease)
+	}
+	bestInput += bestInput * shared.Resources(rand.Float64()*c.config.NormalRandomIncrease)
 
-	// Pick the minimum value between the best value and 20% of our resources
+	// Pick the minimum value between the best value and x% of our resources
 	bestInput = shared.Resources(math.Min(
 		float64(bestInput),
 		float64(shared.Resources(c.config.MaxForagePercentage)*c.gameState().ClientInfo.Resources)),
@@ -250,6 +251,9 @@ func (c *client) normalForage() shared.ForageDecision {
 	forageDecision := shared.ForageDecision{
 		Type:         bestForagingMethod,
 		Contribution: bestInput,
+	}
+	if bestForagingMethod == shared.FishForageType {
+		bestInput *= bestInput
 	}
 
 	c.Logf(

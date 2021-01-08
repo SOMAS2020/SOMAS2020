@@ -70,7 +70,7 @@ func getClientConfig() clientConfig {
 
 		// Normal Forage
 		SkipForage:           1,
-		NormalRandomIncrease: 0.05,
+		NormalRandomIncrease: 0.10,
 		MaxForagePercentage:  0.35,
 
 		// Threshold for wealth as multiplier

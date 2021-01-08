@@ -155,9 +155,16 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 	// receivedOffers := shared.GiftOfferDict{}  // For future use when actually considering peoples offers
 	responses := shared.GiftResponseDict{}
 	for team, offer := range receivedOffers { // For all the clients we look at the offers
-		responses[team] = shared.GiftResponse{
-			AcceptedAmount: shared.Resources(offer), // Accept all they gave us
-			Reason:         shared.Accept,           // Accept all gifts duh
+		if offer >= 0 {
+			responses[team] = shared.GiftResponse{
+				AcceptedAmount: shared.Resources(offer), // Accept all they gave us
+				Reason:         shared.Accept,           // Accept all gifts duh
+			}
+		} else {
+			responses[team] = shared.GiftResponse{
+				AcceptedAmount: 0,                      // Accept all they gave us
+				Reason:         shared.DeclineDontNeed, // Accept all gifts duh
+			}
 		}
 	}
 	// History
