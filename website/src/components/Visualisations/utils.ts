@@ -3,7 +3,9 @@ import { VIS_OUTPUT } from '../../consts/localForage'
 import { OutputJSONType } from '../../consts/types'
 
 export const loadLocalVisOutput = async () => {
-    const got: OutputJSONType | null | undefined = await localForage.getItem(VIS_OUTPUT)
+    const got: OutputJSONType | null | undefined = await localForage.getItem(
+        VIS_OUTPUT
+    )
     if (got) return got
     return undefined
 }
