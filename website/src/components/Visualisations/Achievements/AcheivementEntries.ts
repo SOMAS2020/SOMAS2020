@@ -1,12 +1,9 @@
 import { OutputJSONType } from '../../../consts/types'
 
+export type TeamName = 'Team1' | 'Team2' | 'Team3' | 'Team4' | 'Team5' | 'Team6'
+
 type MetricsType = {
-    Team1: number
-    Team2: number
-    Team3: number
-    Team4: number
-    Team5: number
-    Team6: number
+    [key in TeamName]: number
 }
 
 const emptyMetrics = (): MetricsType => ({
@@ -17,8 +14,6 @@ const emptyMetrics = (): MetricsType => ({
     Team5: 0,
     Team6: 0,
 })
-
-export type TeamName = 'Team1' | 'Team2' | 'Team3' | 'Team4' | 'Team5' | 'Team6'
 
 const teamNames = (): TeamName[] => [
     'Team1',
