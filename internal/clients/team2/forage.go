@@ -23,7 +23,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	}
 	return shared.ForageDecision{
 		Type:         shared.ForageType(forageDecision),
-		Contribution: shared.Resources(20), //contribute fixed amount for now
+		Contribution: shared.Resources(c.DecideForageAmount(Threshold)), //contribute fixed amount for now
 	}, nil
 }
 
