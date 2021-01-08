@@ -15,7 +15,7 @@ func (c *client) GetClientSpeakerPointer() roles.Speaker {
 }
 
 // EvaluateParamVector returns the dot product of the decision matrix and the internal parameters
-func (c *client) EvaluateParamVector(decisionVector *mat.VecDense, agent int, threshold float64) float64 {
+func (c *client) evaluateParamVector(decisionVector *mat.VecDense, agent int, threshold float64) float64 {
 	parameters := mat.NewVecDense(5, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
