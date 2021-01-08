@@ -9,20 +9,18 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func broadcastToAllIslands(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func broadcastToAllIslands(clients map[shared.ClientID]baseclient.Client, sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	islandsAlive := rules.VariableMap[rules.IslandsAlive]
 	for _, v := range islandsAlive.Values {
-		communicateWithIslands(shared.TeamIDs[int(v)], sender, data)
+		communicateWithIslands(clients, shared.TeamIDs[int(v)], sender, data)
 	}
 }
 
-func setIIGOClients(clientMap *map[shared.ClientID]baseclient.Client) {
-	iigoClients = *clientMap
-}
+// func setIIGOClients(clientMap *map[shared.ClientID]baseclient.Client) {
+// 	iigoClients = *clientMap
+// }
 
-func communicateWithIslands(recipientID shared.ClientID, senderID shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
-
-	clients := iigoClients
+func communicateWithIslands(clients map[shared.ClientID]baseclient.Client, recipientID shared.ClientID, senderID shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 
 	if recipientClient, ok := clients[recipientID]; ok {
 		recipientClient.ReceiveCommunication(senderID, data)
