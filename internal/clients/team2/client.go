@@ -107,7 +107,7 @@ type client struct {
 }
 
 func init() {
-	baseclient.RegisterClient(id, NewClient(id))
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
 // TODO: are we using all of these or can they be removed

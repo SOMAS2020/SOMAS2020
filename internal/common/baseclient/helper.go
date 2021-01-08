@@ -6,15 +6,19 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// RegisteredClients contain all registered clients, exposed for the server.
-var RegisteredClients = map[shared.ClientID]Client{}
+// ClientFactory is a function that returns a new Client instance.
+type ClientFactory = func() Client
 
-// RegisterClient registers clients into RegisteredClients
-func RegisterClient(id shared.ClientID, c Client) {
+// RegisteredClientFactories contain all registered clients and their respective clientFactories exposed for
+// the server.
+var RegisteredClientFactories = map[shared.ClientID]ClientFactory{}
+
+// RegisterClientFactory registers client factories into RegisteredClientFactories
+func RegisterClientFactory(id shared.ClientID, c ClientFactory) {
 	// prevent double registrations
-	if _, ok := RegisteredClients[id]; ok {
+	if _, ok := RegisteredClientFactories[id]; ok {
 		// OK to panic here, as this is a _crucial_ step.
-		panic(fmt.Sprintf("Duplicate client ID %v in RegisterClient!", id))
+		panic(fmt.Sprintf("Duplicate client ID %v in RegisteredClientFactories!", id))
 	}
-	RegisteredClients[id] = c
+	RegisteredClientFactories[id] = c
 }
