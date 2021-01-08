@@ -117,6 +117,15 @@ function processTransactionData(data: OutputJSONType) {
         return ((val - yMin) / (yMax - yMin)) * (xMax - xMin) + xMin
     }
 
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF'
+        let color = '#'
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)]
+        }
+        return color
+    }
+
     const bubbleIds = [0, 1, 2, 3, 4, 5, 6]
 
     nodes = bubbleIds
@@ -137,7 +146,8 @@ function processTransactionData(data: OutputJSONType) {
         .map((mag, teamNo) => {
             return {
                 id: teamNo,
-                color: mag < 0 ? 'red' : 'green',
+                colorStatus: mag < 0 ? 'red' : 'green',
+                islandColor: getRandomColor(),
                 magnitude: normaliseMag(Math.abs(mag), 150, 5, 1000, 0),
             }
         })

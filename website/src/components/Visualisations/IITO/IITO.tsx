@@ -13,7 +13,14 @@ const IITO = (props: { output: OutputJSONType }) => {
   const { links, nodes } = processTransactionData(props.output)
 
   return (
-    <div className={styles.root} style={{ width: '90%', textAlign: 'center' }}>
+    <div
+      className={styles.root}
+      style={{
+        border: 'black',
+        borderWidth: '2px',
+        textAlign: 'center',
+      }}
+    >
       <ForceGraph
         linksData={links}
         nodesData={nodes}
