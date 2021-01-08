@@ -17,3 +17,13 @@ export const storeLocalVisOutput = async (o: OutputJSONType) => {
 export const clearLocalVisOutput = async () => {
     await localForage.removeItem(VIS_OUTPUT)
 }
+
+export const teamColors = new Map([
+    ['Team0', '#101D42'],
+    ['Team1', '#0095FF'],
+    ['Team2', '#FF0000'],
+    ['Team3', '#802FF0'],
+    ['Team4', '#00C49F'],
+    ['Team5', '#FFBB28'],
+    ['Team6', '#FF8042'],
+])

@@ -94,7 +94,7 @@ export default function runForceGraph(
       'link',
       d3.forceLink(links).id((d) => d.id)
     )
-    .force('charge', d3.forceManyBody().strength(-6500)) // changes the central force
+    .force('charge', d3.forceManyBody().strength(-10000)) // changes the central force
     .force('x', d3.forceX())
     .force('y', d3.forceY())
 
@@ -110,16 +110,16 @@ export default function runForceGraph(
     .selectAll('line')
     .data(links)
     .join('line')
-    .attr('strokeWidth', (d) => Math.sqrt(d.magnitude)) // was d.value
+    .attr('stroke-width', (d: Link) => Math.sqrt(d.amount))
 
   const node = svg
     .append('g')
     .selectAll('circle')
     .data(nodes)
     .join('circle')
-    .attr('r', bubbleSize) // this determines the size of the nodes
+    .attr('r', bubbleSize)
     .attr('stroke', borderColor)
-    .attr('strokeWidth', 50)
+    .attr('stroke-width', 5)
     .attr('fill', fillColor)
     .call(drag(simulation))
 
@@ -133,7 +133,8 @@ export default function runForceGraph(
     .attr('text-anchor', 'middle')
     .attr('dominant-baseline', 'central')
     .attr('class', (d) => `fa ${getClass(d)}`)
-    .text((d: Node) => d.id)
+    .style('fill', (d: Node) => (d.id === 0 ? 'white' : 'black'))
+    .text((d: Node) => (d.id === 0 ? 'Common Pool' : `${d.id}`))
     .call(drag(simulation))
 
   label

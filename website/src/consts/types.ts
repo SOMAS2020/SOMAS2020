@@ -30,6 +30,7 @@ export type Node = {
 export type Link = {
     source: number
     target: number
+    amount: number
 }
 
 // Custom utility type

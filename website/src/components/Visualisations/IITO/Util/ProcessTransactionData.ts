@@ -5,6 +5,7 @@ import {
     OutputJSONType,
     TeamName,
 } from '../../../../consts/types'
+import { teamColors } from '../../utils'
 
 export const getIIGOTransactions = (data: OutputJSONType) => {
     const acc: Transaction[] = []
@@ -107,6 +108,7 @@ function processTransactionData(data: OutputJSONType) {
             return {
                 source: item.from,
                 target: item.to,
+                amount: item.amount,
             }
         })
     }
@@ -144,11 +146,12 @@ function processTransactionData(data: OutputJSONType) {
                 )
         )
         .map((mag, teamNo) => {
+            const thisTeamColor = teamColors.get(`Team${teamNo}`)
             return {
                 id: teamNo,
                 colorStatus: mag < 0 ? 'red' : 'green',
-                islandColor: getRandomColor(),
-                magnitude: normaliseMag(Math.abs(mag), 150, 5, 1000, 0),
+                islandColor: thisTeamColor ?? '#031927',
+                magnitude: normaliseMag(Math.abs(mag), 125, 15, 1000, 0),
             }
         })
 
