@@ -265,7 +265,11 @@ type AccountabilityInfo struct {
 }
 
 func (c *client) getWeightedAverage(list []float64) int {
-	div := 0
+	if len(list) == 0 {
+		return 0
+	}
+
+	div := 1
 	total := 0
 	for i, item := range list {
 		total *= i * int(item)
@@ -311,22 +315,30 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 		if islAccInfo.ExpectedTaxContribution != nil && islAccInfo.IslandTaxContribution != nil {
 			avgExpected := c.getWeightedAverage(islAccInfo.ExpectedTaxContribution)
 			avgActual := c.getWeightedAverage(islAccInfo.IslandTaxContribution)
-			taxContribDiff = 100 * (avgExpected - avgActual) / avgActual
+			if avgActual != 0 {
+				taxContribDiff = 100 * (avgExpected - avgActual) / avgActual
+			}
 		}
 		if islAccInfo.ExpectedAllocation != nil && islAccInfo.IslandAllocation != nil {
 			avgExpected := c.getWeightedAverage(islAccInfo.ExpectedAllocation)
 			avgActual := c.getWeightedAverage(islAccInfo.IslandAllocation)
-			allocationDiff = 100 * (avgExpected - avgActual) / avgActual
+			if avgActual != 0 {
+				allocationDiff = 100 * (avgExpected - avgActual) / avgActual
+			}
 		}
 		if islAccInfo.SanctionPaid != nil && islAccInfo.SanctionExpected != nil {
 			avgExpected := c.getWeightedAverage(islAccInfo.SanctionExpected)
 			avgActual := c.getWeightedAverage(islAccInfo.SanctionPaid)
-			sanctionDiff = 100 * (avgExpected - avgActual) / avgActual
+			if avgActual != 0 {
+				sanctionDiff = 100 * (avgExpected - avgActual) / avgActual
+			}
 		}
 		if islAccInfo.IslandActualPrivateResources != nil && islAccInfo.IslandReportedPrivateResources != nil {
 			avgExpected := c.getWeightedAverage(islAccInfo.IslandReportedPrivateResources)
 			avgActual := c.getWeightedAverage(islAccInfo.IslandActualPrivateResources)
-			islandResourceDiff = 100 * (avgExpected - avgActual) / avgActual
+			if avgActual != 0 {
+				islandResourceDiff = 100 * (avgExpected - avgActual) / avgActual
+			}
 		}
 		reality := c.setLimits(100 - taxContribDiff - allocationDiff - sanctionDiff - islandResourceDiff)
 		islandSituationPerf := c.opinionHist[island].Performances["RoleOpinion"]
