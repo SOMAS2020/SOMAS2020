@@ -9,6 +9,12 @@ import (
 )
 
 var (
+	// output folder
+	outputFolderName = flag.String(
+		"output",
+		"output",
+		"The relative path (to the current working directory) to store output.json and logs in.",
+	)
 	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
@@ -134,7 +140,11 @@ var (
 	)
 	foragingFishingOutputScaler = flag.Float64(
 		"foragingFishingOutputScaler",
+<<<<<<< HEAD
 		15,
+=======
+		12,
+>>>>>>> origin/develop
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(

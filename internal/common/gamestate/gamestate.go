@@ -67,6 +67,7 @@ func (g GameState) Copy() GameState {
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	ret.IIGOTurnsInPower = copyTurnsInPower(g.IIGOTurnsInPower)
 	ret.IIGOCache = copyIIGOCache(g.IIGOCache)
+	ret.IITOTransactions = copyIITOTransactions(g.IITOTransactions)
 	return ret
 }
 
@@ -167,6 +168,18 @@ func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability 
 	ret := make([]shared.Accountability, len(input))
 	copy(ret, input)
 	return ret
+}
+
+func copyIITOTransactions(iitoHistory map[shared.ClientID]shared.GiftResponseDict) map[shared.ClientID]shared.GiftResponseDict {
+	targetMap := make(map[shared.ClientID]shared.GiftResponseDict)
+	for key, giftResponseDict := range iitoHistory {
+		giftResponses := make(shared.GiftResponseDict)
+		for clientID, giftResponse := range giftResponseDict {
+			giftResponses[clientID] = giftResponse
+		}
+		targetMap[key] = giftResponses
+	}
+	return targetMap
 }
 
 func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) map[shared.ForageType][]foraging.ForagingReport {
