@@ -692,8 +692,14 @@ func TestReplyAllocationRequest(t *testing.T) {
 
 	rulesInPlay := map[string]rules.RuleMatrix{}
 
-	rules.PullRuleIntoPlayInternal("allocation_decision", generateRuleStore(), rulesInPlay)
-	rules.PullRuleIntoPlayInternal("check_allocation_rule", generateRuleStore(), rulesInPlay)
+	err := rules.PullRuleIntoPlayInternal("allocation_decision", generateRuleStore(), rulesInPlay)
+	if err != nil {
+		t.Errorf("Unexpected Error when pulling rule into play: %v", err)
+	}
+	err = rules.PullRuleIntoPlayInternal("check_allocation_rule", generateRuleStore(), rulesInPlay)
+	if err != nil {
+		t.Errorf("Unexpected Error when pulling rule into play: %v", err)
+	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -910,8 +916,14 @@ func TestBroadcastTaxation(t *testing.T) {
 		},
 	}
 
-	rules.PullRuleIntoPlayInternal("tax_decision", generateRuleStore(), rulesInPlay)
-	rules.PullRuleIntoPlayInternal("check_taxation_rule", generateRuleStore(), rulesInPlay)
+	err := rules.PullRuleIntoPlayInternal("tax_decision", generateRuleStore(), rulesInPlay)
+	if err != nil {
+		t.Errorf("Unexpected Error when pulling rule into play: %v", err)
+	}
+	err = rules.PullRuleIntoPlayInternal("check_taxation_rule", generateRuleStore(), rulesInPlay)
+	if err != nil {
+		t.Errorf("Unexpected Error when pulling rule into play: %v", err)
+	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
