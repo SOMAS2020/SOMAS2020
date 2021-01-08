@@ -20,33 +20,60 @@ func (result ForageResults) calcROI() float64 {
 	return float64(result.forageReturn/result.forageIn) - 1
 }
 
-func (c client) changeMultiplier() float64 {
-	for _, results := range c.forageHistory {
-		var lastRoi float64 = 0
-		var lastlastRoi float64 = 0
-		for _, result := range results {
-			if result.turn == c.ServerReadHandle.GetGameState().Turn-2 {
-				lastlastRoi = result.calcROI()
-			}
-			if result.turn == c.ServerReadHandle.GetGameState().Turn-1 {
-				lastRoi = result.calcROI()
-			}
-			if lastRoi != 0 && lastlastRoi != 0 {
-				//it means last round and the round before last round are using the same forage type
-				if lastlastRoi < lastRoi {
-					c.clientConfig.multiplier += 0.1
-				} else {
-					c.clientConfig.multiplier += 0.1
-				}
-			}
+func (c *client) changeForageType() shared.ForageType {
+	var deerRoiTotal float64
+	var fishRoiTotal float64
+	var deerParticipant uint = 0
+	var fishParticipant uint = 0
+
+	var deerRoiTotal2 float64
+	var fishRoiTotal2 float64
+	var deerParticipant2 uint = 0
+	var fishParticipant2 uint = 0
+
+	var deerAverageRoi, deerAverageRoi2, fishAverageRoi, fishAverageRoi2 float64
+	for _, deerResults := range c.forageHistory[shared.DeerForageType] {
+		if deerResults.turn == c.ServerReadHandle.GetGameState().Turn-1 {
+			deerRoiTotal += deerResults.calcROI()
+			deerParticipant++
+		}
+		if deerResults.turn == c.ServerReadHandle.GetGameState().Turn-2 {
+			deerRoiTotal2 += deerResults.calcROI()
+			deerParticipant2++
 		}
 	}
-	return c.clientConfig.multiplier
-}
-func (c *client) changeForageType() shared.ForageType {
-	//fishing is a safer choice if we contributed a lot
-	if c.clientConfig.multiplier > 0.5 {
-		return shared.FishForageType
+	deerAverageRoi = deerRoiTotal / float64(deerParticipant)
+	deerAverageRoi2 = deerRoiTotal2 / float64(deerParticipant2)
+
+	for _, fishResults := range c.forageHistory[shared.FishForageType] {
+		if fishResults.turn == c.ServerReadHandle.GetGameState().Turn-1 {
+			fishRoiTotal += fishResults.calcROI()
+			fishParticipant++
+		}
+		if fishResults.turn == c.ServerReadHandle.GetGameState().Turn-2 {
+			fishRoiTotal2 += fishResults.calcROI()
+			fishParticipant2++
+		}
+	}
+
+	fishAverageRoi = fishRoiTotal / float64(fishParticipant)
+	fishAverageRoi2 = fishRoiTotal2 / float64(fishParticipant2)
+
+	if fishAverageRoi < deerAverageRoi {
+		if deerAverageRoi < deerAverageRoi2 {
+			c.clientConfig.multiplier -= 0.03
+		}
+		if deerAverageRoi > deerAverageRoi2 {
+			c.clientConfig.multiplier += 0.03
+		}
+		return shared.DeerForageType
+	}
+
+	if fishAverageRoi < fishAverageRoi2 {
+		c.clientConfig.multiplier -= 0.05
+	}
+	if fishAverageRoi > fishAverageRoi2 {
+		c.clientConfig.multiplier += 0.05
 	}
 	return shared.DeerForageType
 }
@@ -55,7 +82,7 @@ func (c *client) decideContribution() shared.Resources {
 
 	var safetyBuffer shared.Resources = 10
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	return shared.Resources(c.changeMultiplier()) * (ourResources - safetyBuffer)
+	return shared.Resources(c.clientConfig.multiplier) * (ourResources - safetyBuffer)
 }
 
 func (c *client) randomForage() shared.ForageDecision {
