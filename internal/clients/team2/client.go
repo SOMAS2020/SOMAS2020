@@ -123,6 +123,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		foragingReturnsHist:  ForagingReturnsHist{},
 		giftHist:             GiftHist{},
 		islandEmpathies:      IslandEmpathies{},
+		disasterHistory:      DisasterHistory{},
 
 		//TODO: implement config to gather all changeable parameters in one place
 	}

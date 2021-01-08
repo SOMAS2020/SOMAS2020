@@ -26,6 +26,10 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 
 	iIGOClients := *clientMap
 
+	removeDeadBodiesFromOffice(g)
+
+	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
+
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
 	var judicialBranch = judiciary{
@@ -39,8 +43,6 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		logger:             logger,
 	}
 
-	// featureSpeaker is an instantiation of the Speaker interface
-	// with both the baseSpeaker features and a reference to client speakers
 	var legislativeBranch = legislature{
 		gameState:    nil,
 		gameConf:     nil,
@@ -52,8 +54,6 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		logger:       logger,
 	}
 
-	// featurePresident is an instantiation of the President interface
-	// with both the basePresident features and a reference to client presidents
 	var executiveBranch = executive{
 		gameState:        nil,
 		gameConf:         nil,
@@ -62,6 +62,9 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		iigoClients:      iIGOClients,
 		logger:           logger,
 	}
+
+	monitoring.logger = logger
+
 	executiveBranch.monitoring = &monitoring
 	legislativeBranch.monitoring = &monitoring
 	judicialBranch.monitoring = &monitoring
@@ -98,6 +101,10 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	judicialBranch.JudgeID = g.JudgeID
 	legislativeBranch.SpeakerID = g.SpeakerID
 	executiveBranch.PresidentID = g.PresidentID
+
+	monitoring.judgeID = g.JudgeID
+	monitoring.presidentID = g.PresidentID
+	monitoring.speakerID = g.SpeakerID
 
 	// Set judgePointer
 	judgePointer := iIGOClients[g.JudgeID].GetClientJudgePointer()

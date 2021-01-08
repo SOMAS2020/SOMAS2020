@@ -174,7 +174,9 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
 func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
-	var election voting.Election
+	var election = voting.Election{
+		Logger: e.logger,
+	}
 	var appointedSpeaker shared.ClientID
 	electionSettings := e.clientPresident.CallSpeakerElection(monitoring, int(e.gameState.IIGOTurnsInPower[shared.Speaker]), allIslands)
 
@@ -300,7 +302,7 @@ func (e *executive) sendDecision(islandID shared.ClientID, value shared.Resource
 	}
 
 	data[communicationType] = shared.CommunicationContent{T: shared.CommunicationIIGOValue, IIGOValueData: allocationToSend}
-	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+	communicateWithIslands(e.iigoClients, islandID, shared.TeamIDs[e.PresidentID], data)
 }
 
 func (e *executive) sendNoDecision(islandID shared.ClientID, communicationType shared.CommunicationFieldName) {
@@ -315,5 +317,5 @@ func (e *executive) sendNoDecision(islandID shared.ClientID, communicationType s
 		DecisionMade: decided,
 	}
 	data[communicationType] = shared.CommunicationContent{T: shared.CommunicationIIGOValue, IIGOValueData: allocationToSend}
-	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+	communicateWithIslands(e.iigoClients, islandID, shared.TeamIDs[e.PresidentID], data)
 }
