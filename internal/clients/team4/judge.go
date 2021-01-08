@@ -8,6 +8,7 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -34,34 +35,64 @@ type judge struct {
 
 // InspectHistory is the base implementation of evaluating islands choices the last turn.
 // OPTIONAL: override if you want to evaluate the history log differently.
-// type judgeHistoryInfo struct {
-// 	rules.VariableFieldName
-// }
+type valuePair struct {
+	actual   shared.Resources
+	expected shared.Resources
+}
+
+type judgeHistoryInfo struct {
+	Resources  valuePair // amount of resources available and reported by the island
+	Taxation   valuePair // amount of tax paid and expected
+	Allocation valuePair // amount of allocation taken and granted
+	Lied       int       // number of times the island has lied
+}
+
+func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts *map[shared.ClientID]int, turn uint) {
+	accountabilityMap := map[shared.ClientID][]rules.VariableValuePair{}
+	for _, clientID := range shared.TeamIDs {
+		accountabilityMap[clientID] = []rules.VariableValuePair{}
+	}
+
+	for _, acc := range *iigoHistory {
+		client := acc.ClientID
+		accountabilityMap[client] = append(accountabilityMap[client], acc.Pairs...)
+	}
+
+	for client, pairs := range accountabilityMap {
+		clientInfo, ok := buildHistoryInfo(pairs)
+		if ok {
+			clientLied := (*lieCounts)[client]
+			clientInfo.Lied = clientLied
+			savedHistory := *j.parent.savedHistory
+			if savedHistory[turn] != nil {
+				savedHistory[turn][client] = clientInfo
+			} else {
+				savedHistory[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
+			}
+			j.parent.savedHistory = &savedHistory
+		}
+	}
+}
 
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	//outputMap := map[shared.ClientID]roles.EvaluationReturn{}
 
-	// current turn
-	// currentTurn := j.parent.getTurn()
-
-	// store := map[int]map[shared.ClientID]map[rules.Variable]{}
-
-	// j.logf(store)
-
-	// Check who is lying about private resources
-	// How many resources an island has
-
-	// ExpectedTaxContribution vs IslandTaxContribution
-
-	// Check which rules are in place
 	outputmap, state := j.BaseJudge.InspectHistory(iigoHistory, turnsAgo)
-	dump("./Historymap.txt", "iigoHistory: %v \n", outputmap)
 
-	// Choose to lie about state
-	// Track if any rules wore broken by looking at the output map
+	turn := j.parent.getTurn() - uint(turnsAgo)
+	lieCounts := map[shared.ClientID]int{}
 
-	// t := outputmap[shared.Team1]
-	//dump("./Outputmap.txt", "Outputmap: %v \n", outputmap)
+	// Check number of times clients lied
+	for client, eval := range outputmap {
+		lieCount := 0
+		for _, rulePasses := range eval.Evaluations {
+			if !rulePasses {
+				lieCount++
+			}
+		}
+		lieCounts[client] = lieCount
+	}
+
+	j.saveHistoryInfo(&iigoHistory, &lieCounts, turn)
 
 	return outputmap, state
 }
@@ -123,4 +154,5 @@ func dump(filename string, format string, v ...interface{}) {
 	if err2 != nil {
 		log.Fatal(err2)
 	}
+
 }
