@@ -1,29 +1,29 @@
 .text {
-    font-size: 2em;
-    font-weight: 600;
+  font-size: 2em;
+  font-weight: 600;
 }
 
 .root {
-    width: 75vw;
-    padding: 5vh 0;
+  /* width: 75vw; */
+  padding: 5vh 0;
 }
 
 .appLogo {
-    height: 40vmin;
-    pointer-events: none;
+  height: 40vmin;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .appLogo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+  .appLogo {
+    animation: App-logo-spin infinite 20s linear;
+  }
 }
 
 @keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

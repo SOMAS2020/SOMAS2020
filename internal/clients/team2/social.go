@@ -93,6 +93,13 @@ func max(numbers map[uint]GiftInfo) uint {
 	}
 	return maxNumber
 }
+func MinInt(a, b int) int {
+	if a < b {
+		return a
+	} else {
+		return b
+	}
+}
 
 // this just means the confidence we have in others while requesting gifts, not the trust we have on them
 // Updates the confidence of an island regarding gifts
@@ -132,14 +139,22 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	// Take running average of the interactions
 	// The individual turn values will be scaled wrt to the "distance" from the current turn
 	// ie transactions further in the past are valued less
-	for i := 0; i < bufferLen; i++ {
+	if MinInt(len(ourKeys), len(theirKeys)) == 0 {
+		return pastConfidence
+	}
+	c.Logf("Bufferlen %v", bufferLen)
+	for i := 0; i < MinInt(bufferLen, len(ourKeys)); i++ {
 		// Get the transaction distance to the previous transaction
-		theirTransDist := turn - uint(theirKeys[i])
 		ourTransDist := turn - uint(ourKeys[i])
 		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
-		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
 		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
 		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
+	}
+	for i := 0; i < MinInt(bufferLen, len(theirKeys)); i++ {
+		// Get the transaction distance to the previous transaction
+		theirTransDist := turn - uint(theirKeys[i])
+		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
+		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
 		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
 	}
 
