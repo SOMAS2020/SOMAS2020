@@ -242,7 +242,7 @@ func TestForageUpdate(t *testing.T) {
 	forageHistory := forageHistory{}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			c.ForageUpdate(tc.forageDecision, tc.output)
+			c.ForageUpdate(tc.forageDecision, tc.output, 1)
 			for forageType, FOutcome := range forageHistory { // For the whole foraging history
 				for _, returns := range FOutcome {
 					if !(forageType == tc.foragetype && //Deer Hunters
