@@ -720,7 +720,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				newClient.Initialise(fakeServer)
 				fakeClientMap[clientID] = newClient
 			}
-
+			tc.bPresident.iigoClients = fakeClientMap
 			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
 			tc.bPresident.replyAllocationRequest(tc.commonPool)
