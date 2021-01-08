@@ -318,3 +318,69 @@ func TestDepositIntoClientPrivatePool(t *testing.T) {
 		})
 	}
 }
+
+func TestRemoveDead(t *testing.T) {
+	clientinfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team4: {
+			LifeStatus: shared.Dead,
+		},
+		shared.Team5: {
+			LifeStatus: shared.Dead,
+		},
+	}
+	cases := []struct {
+		name          string
+		testgamestate gamestate.GameState
+	}{
+		{
+			name: "no_dead_roles",
+			testgamestate: gamestate.GameState{
+				PresidentID: shared.ClientID(1),
+				SpeakerID:   shared.ClientID(2),
+				JudgeID:     shared.ClientID(3),
+				ClientInfos: clientinfos,
+			},
+		},
+		{
+			name: "dead_president",
+			testgamestate: gamestate.GameState{
+				PresidentID: shared.ClientID(4),
+				SpeakerID:   shared.ClientID(2),
+				JudgeID:     shared.ClientID(3),
+				ClientInfos: clientinfos,
+			},
+		},
+		{
+			name: "all_dead",
+			testgamestate: gamestate.GameState{
+				PresidentID: shared.ClientID(4),
+				SpeakerID:   shared.ClientID(5),
+				JudgeID:     shared.ClientID(5),
+				ClientInfos: clientinfos,
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			removeDeadBodiesFromOffice(&tc.testgamestate)
+			if !reflect.DeepEqual(tc.testgamestate.ClientInfos[tc.testgamestate.PresidentID].LifeStatus, shared.Alive) {
+				t.Errorf("Expected President to be %v got %v", shared.Alive, tc.testgamestate.ClientInfos[tc.testgamestate.PresidentID].LifeStatus)
+			}
+			if !reflect.DeepEqual(tc.testgamestate.ClientInfos[tc.testgamestate.SpeakerID].LifeStatus, shared.Alive) {
+				t.Errorf("Expected Speaker to be %v got %v", shared.Alive, tc.testgamestate.ClientInfos[tc.testgamestate.SpeakerID].LifeStatus)
+			}
+			if !reflect.DeepEqual(tc.testgamestate.ClientInfos[tc.testgamestate.JudgeID].LifeStatus, shared.Alive) {
+				t.Errorf("Expected Judge to be %v got %v", shared.Alive, tc.testgamestate.ClientInfos[tc.testgamestate.JudgeID].LifeStatus)
+			}
+		})
+	}
+}

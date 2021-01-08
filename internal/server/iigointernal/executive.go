@@ -172,7 +172,9 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 
 // appointNextSpeaker returns the island ID of the island appointed to be Speaker in the next turn
 func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentSpeaker shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
-	var election voting.Election
+	var election = voting.Election{
+		Logger: e.logger,
+	}
 	var appointedSpeaker shared.ClientID
 	electionSettings := e.clientPresident.CallSpeakerElection(monitoring, int(e.gameState.IIGOTurnsInPower[shared.Speaker]), allIslands)
 

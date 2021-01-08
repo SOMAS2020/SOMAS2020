@@ -9,6 +9,12 @@ import (
 )
 
 var (
+	// output folder
+	outputFolderName = flag.String(
+		"output",
+		"output",
+		"The relative path (to the current working directory) to store output.json and logs in.",
+	)
 	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
