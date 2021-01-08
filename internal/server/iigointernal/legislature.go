@@ -164,7 +164,7 @@ func (l *legislature) announceVotingResult() (bool, error) {
 		}
 
 		//Perform announcement
-		broadcastToAllIslands(l.iigoClients, shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(returnAnnouncement.RuleMatrix, returnAnnouncement.VotingResult))
+		broadcastToAllIslands(l.iigoClients, shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(returnAnnouncement.RuleMatrix, returnAnnouncement.VotingResult), *l.gameState)
 		resultAnnounced = true
 
 		//log rule "must announce what was called"
