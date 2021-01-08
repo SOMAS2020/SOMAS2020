@@ -176,7 +176,8 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 				Tier:   c.checkSanctionTier(roles.IIGOSanctionScore(content.IntegerData)),
 				Amount: roles.IIGOSanctionScore(content.IntegerData),
 			}
-			c.sanctionHist = append(c.sanctionHist, sanction)
+			sanctions := c.sanctionHist[c.gameState().JudgeID]
+			c.sanctionHist[c.gameState().JudgeID] = append(sanctions, sanction)
 		}
 	}
 

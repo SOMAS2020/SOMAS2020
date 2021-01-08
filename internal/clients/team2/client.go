@@ -105,7 +105,7 @@ type GiftHist map[shared.ClientID]GiftExchange
 type DisasterHistory map[int]DisasterOccurence
 type IslandSanctions map[shared.ClientID][]IslandSanctionInfo
 type TierLevels map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
-type SanctionHist []IslandSanctionInfo
+type SanctionHist map[shared.ClientID][]IslandSanctionInfo
 type CommonPoolHist map[shared.ClientID][]CommonPoolInfo
 
 // we have to initialise our client somehow

@@ -3,6 +3,8 @@ package team2
 import (
 	"sort"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -220,5 +222,47 @@ func (c *client) updatePresidentTrust() {
 	islandSituationPerf := c.opinionHist[currPres].Performances["President"]
 	islandSituationPerf.real = reality
 	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
+
+}
+
+func (c *client) updateJudgeTrust() {
+	currJudge := c.gameState().JudgeID
+
+	prevTier := c.sanctionHist[currJudge][0].Tier
+	numConsecTier := 0
+	numDiffTiers := 0
+	avgTurnsPerTier := 0
+	runMeanScore := roles.IIGOSanctionScore(0.0)
+
+	for i, sanction := range c.sanctionHist[currJudge] {
+		turn := roles.IIGOSanctionScore(c.gameState().Turn - sanction.Turn)
+		div := roles.IIGOSanctionScore(i + 1)
+
+		runMeanScore += (sanction.Amount/turn - runMeanScore) / div
+		if prevTier == sanction.Tier {
+			numConsecTier++
+		} else {
+			numDiffTiers++
+			avgTurnsPerTier += (numConsecTier - avgTurnsPerTier) / numDiffTiers
+			prevTier = sanction.Tier
+			numConsecTier = 0
+		}
+	}
+
+	// We don't want to be sanctioned
+	// We don't want a sanction to last too long
+	// We want the judge to be "fair"
+
+	lastScore := c.sanctionHist[currJudge][len(c.sanctionHist[currJudge])-1]
+	percChangeScore := int(100 * (lastScore.Amount - runMeanScore) / runMeanScore)
+	reality := setLimits(100 - (avgTurnsPerTier * percChangeScore))
+
+	islandSituationPerf := c.opinionHist[currJudge].Performances["Judge"]
+	islandSituationPerf.real = reality
+	c.opinionHist[currJudge].Performances["Judge"] = islandSituationPerf
+
+}
+
+func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 
 }
