@@ -11,9 +11,9 @@ import (
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
 	opinionSortByTeam := c.opinionSortByTeam()
 	opinionSortByScore := c.opinionSortByScore()
-	sortedTeamByOpinion := c.sortedMapOfOpinion(findIndexOfScore(opinionSortByScore, opinionSortByTeam))
-	c.Logf("[DEBUG] - Ballot: %v", sortedTeamByOpinion)
-	return sortedTeamByOpinion
+	ballot := c.sortedMapOfOpinion(findIndexOfScore(opinionSortByScore, opinionSortByTeam))
+	c.Logf("[DEBUG] - Ballot: %v", ballot)
+	return ballot
 }
 
 // opinion score in order of team number 1,2,3,4,5,6
@@ -47,32 +47,30 @@ func findIndexOfScore(opinionSortByScore []opinionScore, opinionSortByTeam []opi
 }
 
 // translate int to shared.clientID but put our ID first and someone last
-func (c *client) sortedMapOfOpinion(rank []int) (sortedMap []shared.ClientID) {
-	sortedMap = append(sortedMap, shared.Team5)
+func (c *client) sortedMapOfOpinion(rank []int) (sortedTeamByOpinion []shared.ClientID) {
+	sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Team5)
 	for i := 0; i < len(rank); i++ {
 		if rank[i] == 0 {
-			sortedMap = append(sortedMap, shared.Team1)
+			sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Team1)
 		} else if rank[i] == 1 {
-			sortedMap = append(sortedMap, shared.Team2)
+			sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Team2)
 		} else if rank[i] == 3 {
-			sortedMap = append(sortedMap, shared.Team4)
+			sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Team4)
 		} else if rank[i] == 5 {
-			sortedMap = append(sortedMap, shared.Team6)
+			sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Team6)
 		}
 	}
-	sortedMap = append(sortedMap, shared.Team3)
-	return sortedMap
+	sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Team3)
+	return sortedTeamByOpinion
 }
 
 //Evaluate if the roles are corrupted or not based on their budget spending versus total tax paid to common pool
 //Either everyone is corrupted or not
 func (c *client) evaluateRoles() {
-	speakerID := c.ServerReadHandle.GetGameState().SpeakerID
-	judgeID := c.ServerReadHandle.GetGameState().JudgeID
-	presidentID := c.ServerReadHandle.GetGameState().PresidentID
-	c.Logf("[DEBUG] - speakerID: %v", speakerID)
-	c.Logf("[DEBUG] - judgeID: %v", judgeID)
-	c.Logf("[DEBUG] - presidentID: %v", presidentID)
+	speakerID := c.gameState().SpeakerID
+	judgeID := c.gameState().JudgeID
+	presidentID := c.gameState().PresidentID
+	c.Logf("[DEBUG] - speakerID: %v, judgeID: %v, presidentID: %v", speakerID, judgeID, presidentID)
 	//compute total budget
 	budget := c.ServerReadHandle.GetGameState().IIGORolesBudget
 	var totalBudget shared.Resources = 0
