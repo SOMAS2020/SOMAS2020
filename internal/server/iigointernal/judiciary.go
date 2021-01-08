@@ -114,10 +114,10 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 		}
 	}
 
-  if !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
+	if !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
 		if actionTakenByClient {
 			finalResults = mergeEvaluationReturn(tempResults, finalResults)
-			entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+			entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, j.gameState.RulesInfo.VariableMap)
 			j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 			j.evaluationResults = finalResults
 			return j.evaluationResults, actionTakenByClient
