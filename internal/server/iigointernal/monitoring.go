@@ -41,7 +41,7 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
 		evaluationResult := false
 		if decideToMonitor {
-			evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
+			evaluationResult = m.evaluateCache(roleToMonitor, m.gameState.RulesInfo.CurrentRulesInPlay)
 		}
 
 		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)
@@ -83,7 +83,7 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 				if foundRules {
 					rulesAffected = append(rulesAffected, valuesToBeAdded...)
 				}
-				rules.UpdateVariableInternal(variable.VariableName, variable, m.gameState.RulesInfo.VariableMap)
+				m.gameState.UpdateVariable(variable.VariableName, variable)
 			}
 			for _, rule := range rulesAffected {
 				ret := rules.EvaluateRuleFromCaches(rule, ruleStore, m.gameState.RulesInfo.VariableMap)

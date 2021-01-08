@@ -68,13 +68,7 @@ func createSOMASServer(
 		forageHistory[t] = make([]foraging.ForagingReport, 0)
 	}
 
-	if gameConfig.IIGOConfig.StartWithRulesInPlay {
-		for ruleName := range rules.AvailableRules {
-			// Result is ignored since we know that the RulesInPlay cache cannot contain any of
-			// these rules (the only error case)
-			_ = rules.PullRuleIntoPlay(ruleName)
-		}
-	}
+	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
 
 	server := &SOMASServer{
 		clientMap:  clientMap,
@@ -101,8 +95,8 @@ func createSOMASServer(
 			PresidentID: shared.Team3,
 			CommonPool:  gameConfig.InitialCommonPool,
 			RulesInfo: gamestate.RulesContext{
-				AvailableRules:     rules.AvailableRules,
-				CurrentRulesInPlay: rules.RulesInPlay,
+				AvailableRules:     availableRules,
+				CurrentRulesInPlay: rulesInPlay,
 				VariableMap:        rules.InitialVarRegistration(),
 			},
 		},
