@@ -31,7 +31,7 @@ import (
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	var predictionInfo shared.DisasterPredictionInfo
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClients))
+	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClientFactories))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
