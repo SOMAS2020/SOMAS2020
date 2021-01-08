@@ -41,16 +41,6 @@ func (j *judiciary) loadSanctionConfig() {
 func (j *judiciary) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	j.gameState = gameState
 	j.gameConf = gameConf
-	j.resetCaches()
-}
-
-func (j *judiciary) resetCaches() {
-	if len(j.gameState.IIGOSanctionCache) != int(j.gameConf.SanctionCacheDepth) {
-		j.gameState.IIGOSanctionCache = DefaultInitLocalSanctionCache(int(j.gameConf.SanctionCacheDepth))
-	}
-	if len(j.gameState.IIGOHistoryCache) != int(j.gameConf.HistoryCacheDepth) {
-		j.gameState.IIGOHistoryCache = DefaultInitLocalHistoryCache(int(j.gameConf.HistoryCacheDepth))
-	}
 }
 
 func (j *judiciary) broadcastSanctionConfig() {
