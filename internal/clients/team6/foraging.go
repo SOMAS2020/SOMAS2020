@@ -97,7 +97,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 
 }
 
-func (c *client) ForageUpdate(forageDecision shared.ForageDecision, outcome shared.Resources) {
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, outcome shared.Resources, numberCaught uint) {
 	currTurn := c.ServerReadHandle.GetGameState().Turn
 
 	c.forageHistory[forageDecision.Type] =
