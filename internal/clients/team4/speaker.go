@@ -57,15 +57,6 @@ func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 	if ok {
 		JudgeSalary = shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
 	}
-	HigherPriorityActionsCost := s.getHigherPriorityActionsCost("")
-	if s.getSpeakerBudget()-HigherPriorityActionsCost-JudgeSalary < 0 {
-		//insufficient budget: JudgeSalary + action costs uses up budget
-		JudgeSalary = s.getSpeakerBudget() - HigherPriorityActionsCost
-		if JudgeSalary < 0 {
-			JudgeSalary = 0
-		}
-	}
-	s.parent.Logf("Judge salary: %v", JudgeSalary)
 	return shared.SpeakerReturnContent{
 		ContentType: shared.SpeakerJudgeSalary,
 		JudgeSalary: JudgeSalary,
