@@ -1,5 +1,6 @@
 import React from 'react'
 import { Col, Container, Row } from 'react-bootstrap'
+import confetti from 'canvas-confetti'
 import logo from '../../../assets/logo/logo512.png'
 import styles from './Achievements.module.css'
 import { OutputJSONType } from '../../../consts/types'
@@ -19,10 +20,20 @@ const IndivAchievement = ({ title, desc, winArr }: AchievementBarProps) => {
     winArr.length === 6 || winArr.length === 0
       ? 'No winners :('
       : winArr.join(', ')
+  function handleAchievementClick() {
+    confetti({
+      particleCount: 300,
+      spread: 100,
+      origin: { y: 0.6 },
+    })
+  }
 
   return (
     <div className={styles.achieveContainer}>
-      <Container className={styles.innerContainer}>
+      <Container
+        className={styles.innerContainer}
+        onClick={handleAchievementClick}
+      >
         <Row>
           <Col className={styles.leftColumn}>
             <h4 style={{ textAlign: 'left' }}>{title}</h4>
