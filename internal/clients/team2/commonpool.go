@@ -84,6 +84,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 	}
 
 	allocation = AverageCommonPoolDilemma(c) + Taxmin
+	c.updatePresidentTrust()
+	c.confidenceRestrospect("President", c.gameState().PresidentID)
 	return allocation
 }
 

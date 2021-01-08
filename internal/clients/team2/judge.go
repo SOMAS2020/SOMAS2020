@@ -26,10 +26,12 @@ func (j *Judge) PayPresident() (shared.Resources, bool) {
 // InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
 func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outMap := map[shared.ClientID]roles.EvaluationReturn{}
+	j.c.updateRoleTrust(iigoHistory)
 
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
+		j.c.confidenceRestrospect("RoleOpinion", clientID)
 		var rulesAffected []string
 		for _, variable := range variablePairs {
 			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, rules.VariableMap)
@@ -49,7 +51,7 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		}
 
 		// If the island's trustworthiness is above the threshold, then return true for all rule evaluations
-		if j.c.trustworthiness[clientID] > 80 {
+		if j.c.confidence("RoleOpinion", clientID) > 80 {
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
 				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
@@ -70,6 +72,7 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			outMap[clientID] = tempReturn
 		}
 	}
+
 	return outMap, true
 }
 
@@ -81,7 +84,7 @@ func (j *Judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) ma
 		List2 := make([]bool, len(List))
 		Pardoned[i] = List2
 		for index, sanction := range List {
-			if j.c.trustworthiness[sanction.ClientID] > 80 && j.c.MethodOfPlay() != 1 {
+			if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 && j.c.MethodOfPlay() != 1 {
 
 				Pardoned[i][index] = true
 			} else {
@@ -120,10 +123,14 @@ func (j *Judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 func (j *Judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	// If the election winner's trust score is okay, we will declare them as the next President.
 	// If not, we will replace it with the island who's trust score is higher
-	if j.c.trustworthiness[winner] < 30 {
-		for island := range j.c.trustworthiness {
-			if j.c.trustworthiness[island] > j.c.trustworthiness[winner] { //this only replaces the winner with someone with a higher trust
+	opWinner := j.c.confidence("RoleOpinion", winner)
+	if opWinner < 30 {
+		aliveIslands := j.c.getAliveClients()
+		for _, island := range aliveIslands {
+			opIsland := j.c.confidence("RoleOpinion", island)
+			if opIsland > opWinner { //this only replaces the winner with someone with a higher trust
 				winner = island
+				opWinner = opIsland
 			}
 		}
 	}
