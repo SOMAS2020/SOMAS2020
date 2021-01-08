@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -69,6 +70,7 @@ func createSOMASServer(
 	}
 
 	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
+	initSpeaker, initJudge, initPresident := randomAssign(clientIDs)
 
 	server := &SOMASServer{
 		clientMap:  clientMap,
@@ -90,9 +92,12 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
-			SpeakerID:   shared.Team1,
-			JudgeID:     shared.Team2,
-			PresidentID: shared.Team3,
+			//SpeakerID:   shared.Team1,
+			//JudgeID:     shared.Team2,
+			//PresidentID: shared.Team3,
+			SpeakerID:   initSpeaker,
+			JudgeID:     initJudge,
+			PresidentID: initPresident,
 			CommonPool:  gameConfig.InitialCommonPool,
 			RulesInfo: gamestate.RulesContext{
 				AvailableRules:     availableRules,
@@ -167,4 +172,31 @@ func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 // GetGameConfig returns ClientConfig which is a subset of the entire Config that is visible to clients.
 func (s ServerForClient) GetGameConfig() config.ClientConfig {
 	return s.server.gameConfig.GetClientConfig()
+}
+
+func randomAssign(lst []shared.ClientID) (shared.ClientID, shared.ClientID, shared.ClientID) {
+	uniqueNumbers := make([]int, 0, 3)
+	if len(lst) < 3 {
+		return shared.Team1, shared.Team2, shared.Team3
+	}
+
+	index := 0
+	for index != 3 {
+		randomNum := rand.Intn(len(lst))
+		if !inArray(uniqueNumbers, randomNum) {
+			index++
+			uniqueNumbers = append(uniqueNumbers, randomNum)
+		}
+	}
+
+	return lst[uniqueNumbers[0]], lst[uniqueNumbers[1]], lst[uniqueNumbers[2]]
+}
+
+func inArray(lst []int, el int) bool {
+	for _, e := range lst {
+		if e == el {
+			return true
+		}
+	}
+	return false
 }
