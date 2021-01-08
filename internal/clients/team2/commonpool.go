@@ -65,7 +65,10 @@ func (c *client) RequestAllocation() shared.Resources {
 		}
 	}
 	c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
-	return request
+	if criticalStatus(c) && c.commonPoolAllocation < request {
+		return request
+	}
+	return c.commonPoolAllocation
 }
 
 func (c *client) calculateContribution() shared.Resources {
