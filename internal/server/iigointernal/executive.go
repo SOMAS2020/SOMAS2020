@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -20,6 +21,7 @@ type executive struct {
 	clientPresident  roles.President
 	RulesProposals   []rules.RuleMatrix
 	ResourceRequests map[shared.ClientID]shared.Resources
+	iigoClients      map[shared.ClientID]baseclient.Client
 	monitoring       *monitor
 	logger           shared.Logger
 }
@@ -107,7 +109,7 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		if !e.incurServiceCharge(e.gameConf.BroadcastTaxationActionCost) {
 			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 		}
-		TaxAmountMapExport = taxMapReturn.ResourceMap
+		e.gameState.IIGOTaxAmount = taxMapReturn.ResourceMap
 		for islandID, amount := range taxMapReturn.ResourceMap {
 			if Contains(aliveIslands, islandID) {
 				e.sendDecision(islandID, amount, shared.IIGOTaxDecision)
@@ -137,9 +139,9 @@ func (e *executive) requestAllocationRequest(aliveIslands []shared.ClientID) err
 	}
 	allocRequests := make(map[shared.ClientID]shared.Resources)
 	for _, islandID := range aliveIslands {
-		allocRequests[islandID] = iigoClients[islandID].CommonPoolResourceRequest()
+		allocRequests[islandID] = e.iigoClients[islandID].CommonPoolResourceRequest()
 	}
-	AllocationAmountMapExport = allocRequests
+	e.gameState.IIGOAllocationMap = allocRequests
 	e.setAllocationRequest(allocRequests)
 	return nil
 }
@@ -158,7 +160,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 		}
 		e.Logf("Resource Allocation: %v", returnContent.ResourceMap)
 		allocationsMade = true
-		AllocationAmountMapExport = returnContent.ResourceMap
+		e.gameState.IIGOAllocationMap = returnContent.ResourceMap
 		for islandID, amount := range returnContent.ResourceMap {
 			e.sendDecision(islandID, amount, shared.IIGOAllocationDecision)
 		}
@@ -190,9 +192,9 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		}
 		election.ProposeElection(shared.Speaker, electionSettings.VotingMethod)
 		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
-		election.Vote(iigoClients)
+		election.Vote(e.iigoClients)
 		e.gameState.IIGOTurnsInPower[shared.Speaker] = 0
-		electedSpeaker := election.CloseBallot(iigoClients)
+		electedSpeaker := election.CloseBallot(e.iigoClients)
 		appointedSpeaker = e.clientPresident.DecideNextSpeaker(electedSpeaker)
 
 		//Log rule: Must appoint elected role
@@ -245,7 +247,7 @@ func (e *executive) requestRuleProposal() error { //TODO: add checks for if immu
 
 	var ruleProposals []rules.RuleMatrix
 	for _, island := range getIslandAlive() {
-		proposedRuleMatrix := iigoClients[shared.ClientID(int(island))].RuleProposal()
+		proposedRuleMatrix := e.iigoClients[shared.ClientID(int(island))].RuleProposal()
 		if checkRuleIsValid(proposedRuleMatrix.RuleName, rules.AvailableRules) {
 			ruleProposals = append(ruleProposals, proposedRuleMatrix)
 		}
@@ -300,7 +302,7 @@ func (e *executive) sendDecision(islandID shared.ClientID, value shared.Resource
 	}
 
 	data[communicationType] = shared.CommunicationContent{T: shared.CommunicationIIGOValue, IIGOValueData: allocationToSend}
-	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+	communicateWithIslands(e.iigoClients, islandID, shared.TeamIDs[e.PresidentID], data)
 }
 
 func (e *executive) sendNoDecision(islandID shared.ClientID, communicationType shared.CommunicationFieldName) {
@@ -315,5 +317,5 @@ func (e *executive) sendNoDecision(islandID shared.ClientID, communicationType s
 		DecisionMade: decided,
 	}
 	data[communicationType] = shared.CommunicationContent{T: shared.CommunicationIIGOValue, IIGOValueData: allocationToSend}
-	communicateWithIslands(islandID, shared.TeamIDs[e.PresidentID], data)
+	communicateWithIslands(e.iigoClients, islandID, shared.TeamIDs[e.PresidentID], data)
 }
