@@ -57,7 +57,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 }
 
 func (c *client) StartOfTurn() {
-	defer c.Logf("There are [%v] islands left in this game", c.getNumOfAliveIslands())
+	defer c.Logf("There are %v islands left in this game", c.getNumOfAliveIslands())
 
 	c.updateConfig()
 	c.updateFriendship()
@@ -65,7 +65,7 @@ func (c *client) StartOfTurn() {
 
 // updateConfig will be called at the start of each turn to set the newest config
 func (c *client) updateConfig() {
-	defer c.Logf("Agent[%v] configuration has been updated", c.BaseClient.GetID())
+	defer c.Logf("Configuration has been updated")
 
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	criticalCounter := c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter
@@ -87,7 +87,7 @@ func (c *client) updateConfig() {
 
 // updateFriendship will be called at the start of each turn to update our friendships
 func (c *client) updateFriendship() {
-	defer c.Logf("Agent[%v] friendship information has been updated", c.BaseClient.GetID())
+	defer c.Logf("Friendship information has been updated")
 
 	for team, requested := range c.giftsRequestedHistory {
 		if c.ServerReadHandle.GetGameState().ClientLifeStatuses[team] != shared.Alive {
