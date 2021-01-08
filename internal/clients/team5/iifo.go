@@ -32,7 +32,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		CoordinateX: spatialMagPred.epiX,
 		CoordinateY: spatialMagPred.epiY,
 		Magnitude:   spatialMagPred.mag,
-		TimeLeft:    int(lastDisasterTurn + estPeriod - c.getTurn()),
+		TimeLeft:    uint(lastDisasterTurn + estPeriod - c.getTurn()),
 	}
 	pBias := c.config.periodConfidenceBias
 	if math.Abs(pBias) > 1 {
@@ -93,7 +93,7 @@ func (c *client) estimateDisasterPeriod() (period uint, conf float64) {
 	// if we have more than 1 observation
 	v := stat.Variance(periods, nil)
 
-	meanPeriod := periodSum / float64(len(periods))
+	meanPeriod := periodSum / float64(len(periods)) // will never get here if len(periods) == 0
 	varThresh := meanPeriod
 	varianceRatio := math.Min(v/varThresh, 1.0) // should be between 0 (min var) and 1 (max var)
 
@@ -149,7 +149,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	}
 
 	sumX, sumY, sumMag, sumConf := 0.0, 0.0, 0.0, 0.0
-	sumTime := 0
+	sumTime := uint(0)
 
 	c.updateForecastingReputations(receivedPredictions) // update our perceptions of other teams
 
@@ -165,7 +165,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		sumX += pred.PredictionMade.Confidence * pred.PredictionMade.CoordinateX * rep
 		sumY += pred.PredictionMade.Confidence * pred.PredictionMade.CoordinateY * rep
 		sumMag += pred.PredictionMade.Confidence * pred.PredictionMade.Magnitude * rep
-		sumTime += int(pred.PredictionMade.Confidence) * pred.PredictionMade.TimeLeft * int(rep)
+		sumTime += uint(pred.PredictionMade.Confidence * float64(pred.PredictionMade.TimeLeft) * rep)
 		sumConf += pred.PredictionMade.Confidence * rep
 	}
 
@@ -175,7 +175,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		CoordinateX: sumX / sumConf,
 		CoordinateY: sumY / sumConf,
 		Magnitude:   sumMag / sumConf,
-		TimeLeft:    int((float64(sumTime) / sumConf) + 0.5),     // +0.5 for rounding
+		TimeLeft:    uint((float64(sumTime) / sumConf) + 0.5),    // +0.5 for rounding
 		Confidence:  sumConf / float64(len(receivedPredictions)), // this len will always be >= 1
 	}
 
