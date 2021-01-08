@@ -15,6 +15,7 @@ import (
 const id = shared.Team1
 
 type EmotionalState int
+type Opinion int
 
 const (
 	Normal EmotionalState = iota
@@ -61,7 +62,7 @@ type clientConfig struct {
 
 	// maxOpinion is the boundary where we either give resources without questioning
 	// or we refuse to give them resources.
-	maxOpinion int
+	maxOpinion Opinion
 
 	// flipForageScale scales the amount contributed by flipForage
 	flipForageScale float64
@@ -75,7 +76,7 @@ type client struct {
 	expectedForageReward shared.Resources
 
 	// IITO/Gifts
-	opinionTeams  []opinionOnTeam
+	teamOpinions  map[shared.ClientID]Opinion
 	receivedOffer map[shared.ClientID]shared.Resources
 
 	// allocation is the president's response to your last common pool resource request
@@ -96,21 +97,24 @@ type client struct {
 	config clientConfig
 }
 
+func DefaultConfig() clientConfig {
+	return clientConfig{
+		randomForageTurns:              0,
+		anxietyThreshold:               20,
+		desperateStealAmount:           30,
+		evadeTaxes:                     false,
+		kickstartTaxPercent:            0,
+		forageContributionCapPercent:   0.2,
+		forageContributionNoisePercent: 0.01,
+		maxOpinion:                     10,
+		flipForageScale:                0.3,
+	}
+}
+
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
-		BaseClient:    baseclient.NewClient(clientID),
-		forageHistory: ForageHistory{},
-		config: clientConfig{
-			randomForageTurns:              0,
-			anxietyThreshold:               20,
-			desperateStealAmount:           30,
-			evadeTaxes:                     false,
-			kickstartTaxPercent:            0,
-			forageContributionCapPercent:   0.2,
-			forageContributionNoisePercent: 0.01,
-			maxOpinion:                     10,
-			flipForageScale:                0.3,
-		},
+		BaseClient: baseclient.NewClient(clientID),
+		config:     DefaultConfig(),
 	}
 }
 
@@ -145,9 +149,9 @@ func (c *client) StartOfTurn() {
 	}
 
 	// if opinionTeams is empty. Initialise it.
-	if len(c.opinionTeams) <= 0 {
+	if len(c.teamOpinions) <= 0 {
 		for _, clientID := range shared.TeamIDs {
-			c.opinionTeams = append(c.opinionTeams, opinionOnTeam{clientID: clientID, opinion: 0})
+			c.teamOpinions[clientID] = 0
 		}
 	}
 
@@ -192,12 +196,4 @@ func (c *client) gameState() gamestate.ClientGameState {
 
 func (c *client) gameConfig() config.ClientConfig {
 	return c.BaseClient.ServerReadHandle.GetGameConfig()
-}
-
-func (c *client) addToOpinion(clientID shared.ClientID, opinionChange int) {
-	for idx, opinion := range c.opinionTeams {
-		if opinion.clientID == clientID {
-			c.opinionTeams[idx].opinion += opinionChange
-		}
-	}
 }
