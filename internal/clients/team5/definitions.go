@@ -65,11 +65,6 @@ type giftExchange struct {
 //	giftHistory is the history of our gifts according to which island sent it
 type giftHistory map[shared.ClientID]giftExchange
 
-//================================================================
-/*	Client Information
-	Client is the island number
-*/
-//=================================================================
 type client struct {
 	*baseclient.BaseClient
 
@@ -98,6 +93,8 @@ type client struct {
 	allocation             shared.Resources
 	sanctionAmount         shared.Resources
 	lastDisasterPrediction shared.DisasterPrediction
+
+	disasterModel disasterModel // estimates of disaster parameters
 
 	config clientConfig
 }

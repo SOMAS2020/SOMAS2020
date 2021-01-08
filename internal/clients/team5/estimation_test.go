@@ -26,7 +26,7 @@ func TestKDE(t *testing.T) {
 		xMin := 0.0
 		xMax := 5.0
 		step := 0.1
-		result := m.getPDF(xMin, xMax, step)
+		result, _ := m.getPDF(uint(nSamples))
 
 		expSize := int(math.Round((xMax - xMin) / step))
 		if len(result) != expSize {
@@ -35,4 +35,16 @@ func TestKDE(t *testing.T) {
 		t.Logf("Result (%v samples): %v, captured variance: %v", nSamples, result, step*floats.Sum(result)/1)
 	}
 	// t.Error("Dummy error to force output log") // uncomment to see output
+}
+
+func TestKDE2(t *testing.T) {
+
+	obs := []float64{2, 2, 2, 2, 2}
+	n := len(obs)
+	m := kdeModel{observations: obs, weights: nil}
+
+	result, _ := m.getPDF(uint(n))
+
+	t.Logf("Result (%v samples): %v, exp: %v", n, result, m.getStatistics(uint(n)))
+	t.Error("Dummy error to force output log") // uncomment to see output
 }

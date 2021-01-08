@@ -27,6 +27,8 @@ func createClient() *client {
 		disasterHistory:         disasterHistory{},
 		cpResourceHistory:       cpResourceHistory{0: 0},
 
+		disasterModel: disasterModel{},
+
 		taxAmount:      0,
 		allocation:     0,
 		sanctionAmount: 0,

@@ -4,14 +4,13 @@ import (
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"gonum.org/v1/gonum/stat"
 )
 
 type forecastInfo struct {
 	epiX       shared.Coordinate // x co-ord of disaster epicentre
 	epiY       shared.Coordinate // y ""
 	mag        shared.Magnitude
-	turn       uint
+	period     uint
 	confidence float64
 }
 
@@ -23,26 +22,20 @@ type receivedForecastHistory map[uint]shared.ReceivedDisasterPredictionsDict // 
 // COMPULSORY, you need to implement this method
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
-	spatialMagPred := c.estimateSpatialAndMag() // estimate for x,y coords and magnitude
-	estPeriod, periodConf := c.estimateDisasterPeriod()
+	lastDisasterTurn := c.disasterHistory.getLastDisasterTurn()
 
-	lastDisasterTurn := c.getLastDisasterTurn()
+	fInfo := c.disasterModel.generateForecast()
 
 	prediction := shared.DisasterPrediction{
-		CoordinateX: spatialMagPred.epiX,
-		CoordinateY: spatialMagPred.epiY,
-		Magnitude:   spatialMagPred.mag,
-		TimeLeft:    uint(lastDisasterTurn + estPeriod - c.getTurn()),
+		CoordinateX: fInfo.epiX,
+		CoordinateY: fInfo.epiY,
+		Magnitude:   fInfo.mag,
+		TimeLeft:    uint(lastDisasterTurn + fInfo.period - c.getTurn()),
 	}
-	pBias := c.config.periodConfidenceBias
-	if math.Abs(pBias) > 1 {
-		c.Logf("WARNING: Invalid period confidence bias value of %v. Setting default value of 0.5.", pBias)
-		pBias = 0.5 // assign default if out of range
-	}
-	prediction.Confidence = periodConf*pBias + (1-pBias)*spatialMagPred.confidence
+
 	trustedIslandIDs := []shared.ClientID{}
 	trustThresh := c.config.forecastTrustTreshold
-	for id := range c.getTrustedTeams(trustThresh, false, forecastingBasis) {
+	for id := range c.getTrustedTeams(trustThresh, false, forecastingBasis) { // TODO: decide if this should be general or forecasting basis
 		trustedIslandIDs = append(trustedIslandIDs, id)
 	}
 
@@ -53,87 +46,35 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	}
 	c.lastDisasterPrediction = prediction
 	// update forecast history
-	c.forecastHistory[c.getTurn()] = forecastInfo{
-		epiX:       prediction.CoordinateX,
-		epiY:       prediction.CoordinateY,
-		mag:        prediction.Magnitude,
-		turn:       uint(prediction.TimeLeft) + c.getTurn(),
-		confidence: prediction.Confidence,
-	}
+	c.forecastHistory[c.getTurn()] = fInfo
 	return predictionInfo
 }
 
-func (c client) getLastDisasterTurn() uint {
-	sortedTurns := c.disasterHistory.sortKeys()
-	l := len(sortedTurns)
-	if l > 0 {
-		return sortedTurns[l-1]
+func (d *disasterModel) generateForecast() forecastInfo {
+	nSamples := d.support
+
+	if nSamples == 0 {
+		return forecastInfo{}
 	}
-	return 0
-}
+	magStats := d.magnitude.getStatistics(nSamples)
+	xStats := d.x.getStatistics(nSamples)
+	yStats := d.y.getStatistics(nSamples)
+	periodStats := d.period.getStatistics(nSamples)
 
-// provides estimate of *when* next disaster will occur and associated conf
-func (c *client) estimateDisasterPeriod() (period uint, conf float64) {
+	// pBias := c.config.periodConfidenceBias
+	// if math.Abs(pBias) > 1 {
+	// 	c.Logf("WARNING: Invalid period confidence bias value of %v. Setting default value of 0.5.", pBias)
+	// 	pBias = 0.5 // assign default if out of range
+	// }
 
-	if len(c.disasterHistory) == 0 {
-		return 0, 0 // we can't make any predictions with no disaster history!
+	f := forecastInfo{
+		epiX:       xStats.mean,
+		epiY:       yStats.mean,
+		mag:        magStats.mean,
+		period:     uint(periodStats.mean),
+		confidence: 50, // TODO: implement
 	}
-	periods := []float64{} // use float so we can use stat.Variance() later
-	periodSum := 0.0       // to offset this from average
-	prevTurn := float64(startTurn)
-	for _, turn := range c.disasterHistory.sortKeys() { // TODO: find instances where assumption of ordered map keys is relied upon
-		periods = append(periods, float64(turn)-prevTurn) // period = no. turns between successive disasters
-		periodSum += periods[len(periods)-1]
-		prevTurn = float64(turn)
-	}
-	c.Logf("Periods final: %v", periods)
-	if len(periods) == 1 {
-		return uint(periods[0]), 50.0 // if we only have one past observation. Best we can do is estimate that period again.
-	}
-	// if we have more than 1 observation
-	v := stat.Variance(periods, nil)
-
-	meanPeriod := periodSum / float64(len(periods)) // will never get here if len(periods) == 0
-	varThresh := meanPeriod
-	varianceRatio := math.Min(v/varThresh, 1.0) // should be between 0 (min var) and 1 (max var)
-
-	conf = (1 - varianceRatio) * 100
-	// if not consistent, return mean period we've seen so far
-	return uint(meanPeriod), conf
-}
-
-// gets confidence of x,y coord and magnitude estimates
-func (c *client) estimateSpatialAndMag() forecastInfo {
-	sumX, sumY, sumMag := 0.0, 0.0, 0.0
-
-	for _, dInfo := range c.disasterHistory {
-		sumX += dInfo.report.X
-		sumY += dInfo.report.Y
-		sumMag += dInfo.report.Y
-	}
-	n := float64(len(c.disasterHistory))
-	historicalInfo := forecastInfo{
-		epiX: sumX / n,
-		epiY: sumY / n,
-		mag:  sumMag / n,
-		turn: uint(n), // this will be updated by period forecast
-	}
-	totalDisaster := forecastInfo{}
-	sqDiff := func(a, b float64) float64 { return math.Pow(a-b, 2) }
-	// Find the sum of the square of the difference between the actual and mean, for each field
-	for _, d := range c.forecastHistory {
-		totalDisaster.epiX += sqDiff(d.epiX, historicalInfo.epiX)
-		totalDisaster.epiY += sqDiff(d.epiY, historicalInfo.epiY)
-		totalDisaster.mag += sqDiff(d.mag, historicalInfo.mag)
-	}
-
-	// TODO: find a better method of calculating confidence
-	// Find the sum of the variances and the average variance
-	variance := (totalDisaster.epiX + totalDisaster.epiY + totalDisaster.mag) / float64(len(c.forecastHistory))
-	variance = math.Min(c.config.maxForecastVariance, variance)
-
-	historicalInfo.confidence = c.config.maxForecastVariance - variance
-	return historicalInfo
+	return f
 }
 
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,
