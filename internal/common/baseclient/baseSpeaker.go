@@ -7,12 +7,12 @@ import (
 )
 
 type BaseSpeaker struct {
-	gameState gamestate.ClientGameState
+	GameState gamestate.ClientGameState
 }
 
 // PayJudge is used for paying judge for his service
 func (s *BaseSpeaker) PayJudge() shared.SpeakerReturnContent {
-	JudgeSalaryRule, ok := s.gameState.RulesInfo.CurrentRulesInPlay["salary_cycle_judge"]
+	JudgeSalaryRule, ok := s.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_judge"]
 	var JudgeSalary shared.Resources = 0
 	if ok {
 		JudgeSalary = shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))

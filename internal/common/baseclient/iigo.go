@@ -43,7 +43,7 @@ func (c *BaseClient) RuleProposal() rules.RuleMatrix {
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role
 // COMPULSORY: ovverride to return a pointer to your own President object
 func (c *BaseClient) GetClientPresidentPointer() roles.President {
-	return &BasePresident{}
+	return &BasePresident{GameState: c.ServerReadHandle.GetGameState()}
 }
 
 // GetClientJudgePointer is called by IIGO to get the client's implementation of the Judge Role
@@ -55,7 +55,7 @@ func (c *BaseClient) GetClientJudgePointer() roles.Judge {
 // GetClientSpeakerPointer is called by IIGO to get the client's implementation of the Speaker Role
 // COMPULSORY: ovverride to return a pointer to your own Speaker object
 func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
-	return &BaseSpeaker{}
+	return &BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}
 }
 
 // GetTaxContribution gives value of how much the island wants to pay in taxes

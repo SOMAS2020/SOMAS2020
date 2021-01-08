@@ -9,7 +9,7 @@ import (
 )
 
 type BasePresident struct {
-	gameState gamestate.ClientGameState
+	GameState gamestate.ClientGameState
 }
 
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
@@ -77,7 +77,7 @@ func (p *BasePresident) SetTaxationAmount(islandsResources map[shared.ClientID]s
 
 // PaySpeaker pays the speaker a salary.
 func (p *BasePresident) PaySpeaker() shared.PresidentReturnContent {
-	SpeakerSalaryRule, ok := p.gameState.RulesInfo.CurrentRulesInPlay["salary_cycle_speaker"]
+	SpeakerSalaryRule, ok := p.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_speaker"]
 	var SpeakerSalary shared.Resources = 0
 	if ok {
 		SpeakerSalary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
