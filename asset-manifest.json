@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.css": "/SOMAS2020/static/css/main.504d4803.chunk.css",
-    "main.js": "/SOMAS2020/static/js/main.30bffd04.chunk.js",
-    "main.js.map": "/SOMAS2020/static/js/main.30bffd04.chunk.js.map",
+    "main.css": "/SOMAS2020/static/css/main.bfc2f88f.chunk.css",
+    "main.js": "/SOMAS2020/static/js/main.893cd634.chunk.js",
+    "main.js.map": "/SOMAS2020/static/js/main.893cd634.chunk.js.map",
     "runtime-main.js": "/SOMAS2020/static/js/runtime-main.779caa23.js",
     "runtime-main.js.map": "/SOMAS2020/static/js/runtime-main.779caa23.js.map",
     "static/js/2.97213001.chunk.js": "/SOMAS2020/static/js/2.97213001.chunk.js",
@@ -10,14 +10,14 @@
     "static/js/3.e8cc9f20.chunk.js": "/SOMAS2020/static/js/3.e8cc9f20.chunk.js",
     "static/js/3.e8cc9f20.chunk.js.map": "/SOMAS2020/static/js/3.e8cc9f20.chunk.js.map",
     "index.html": "/SOMAS2020/index.html",
-    "static/css/main.504d4803.chunk.css.map": "/SOMAS2020/static/css/main.504d4803.chunk.css.map",
+    "static/css/main.bfc2f88f.chunk.css.map": "/SOMAS2020/static/css/main.bfc2f88f.chunk.css.map",
     "static/js/2.97213001.chunk.js.LICENSE.txt": "/SOMAS2020/static/js/2.97213001.chunk.js.LICENSE.txt",
     "static/media/logo512.d361aa77.png": "/SOMAS2020/static/media/logo512.d361aa77.png"
   },
   "entrypoints": [
     "static/js/runtime-main.779caa23.js",
     "static/js/2.97213001.chunk.js",
-    "static/css/main.504d4803.chunk.css",
-    "static/js/main.30bffd04.chunk.js"
+    "static/css/main.bfc2f88f.chunk.css",
+    "static/js/main.893cd634.chunk.js"
   ]
 }
