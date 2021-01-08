@@ -5,26 +5,9 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
-
-// ########################
-// ######  Testing  #######
-// ########################
-
-type stubServerReadHandle struct {
-	gameState  gamestate.ClientGameState
-	gameConfig config.ClientConfig
-}
-
-func (s stubServerReadHandle) GetGameState() gamestate.ClientGameState {
-	return s.gameState
-}
-func (s stubServerReadHandle) GetGameConfig() config.ClientConfig {
-	return s.gameConfig
-}
 
 func TestRaiseFriendshipLevel(t *testing.T) {
 	tests := []struct {
@@ -290,7 +273,6 @@ func TestGetNumOfAliveIslands(t *testing.T) {
 	}{
 		{
 			testname: "1 survivor test",
-
 			testClient: client{
 				BaseClient: &baseclient.BaseClient{
 					ServerReadHandle: stubServerReadHandle{
