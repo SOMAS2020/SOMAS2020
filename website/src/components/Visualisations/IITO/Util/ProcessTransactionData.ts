@@ -78,6 +78,7 @@ function processTransactionData(data: OutputJSONType) {
     // We want to construct the node array of Teams and their total resources traded (in/out)
     // For now this is being used to determine bubble size  
     var nodes: Node[] = [];
+    var nodesNew: Node[] = [];
     var links: Link[] = [];
 
     // sum of all transactions for each team
@@ -95,20 +96,21 @@ function processTransactionData(data: OutputJSONType) {
         })
     }
 
-    let bubbleIds = Object.values(Team);
-
-    // First we add each of the islands to the list of nodes
-    // make one for the common pool and then have the N islands
-
-    // let allMagsPerTeam = bubbleIds.map(team =>
-    //     allTransactions.filter(
-    //         transaction => (transaction.from === team) || (transaction.to === team)
-    //     ).reduce<number>((acc, curr) =>
-    //         curr.to === team ? (acc + curr.amount) : (acc - curr.amount), 0)
-    // )
 
     // TODO: fix logic error here
     // TODO: absolute it and make them green or red
+    // input range: 0 - 1000
+    // output range: 10 - 100
+
+    function normaliseMag(val, xMax, xMin, yMax, yMin) {
+        return ((val - yMin) / (yMax - yMin)) * (xMax - xMin) + xMin;
+    }
+
+    let bubbleIds = [0, 1, 2, 3, 4, 5, 6]
+
+    // Object.values(Team);
+    console.log({ bubbleIds });
+
     nodes = bubbleIds.map(team =>
         allTransactions.filter(
             transaction => (transaction.from === team) || (transaction.to === team)
@@ -118,11 +120,11 @@ function processTransactionData(data: OutputJSONType) {
         return {
             id: teamNo,
             color: mag < 0 ? "red" : "green",
-            magnitude: Math.max(0, mag)
+            magnitude: normaliseMag(Math.abs(mag), 150, 5, 1000, 0)
         }
     })
 
-    console.log({ nodes });
+    // remove the duplicate elements of zero magnitude
     return { nodes, links }
 }
 

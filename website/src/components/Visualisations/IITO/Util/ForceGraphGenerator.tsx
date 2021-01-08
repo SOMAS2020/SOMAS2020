@@ -25,7 +25,7 @@ export function runForceGraph(
     // size the bubbles by their magnitude 
     // TODO: scale the bubble sizes for the visualisation here
     const bubbleSize = (d: any) => {
-        return 5;
+        return d.magnitude;
     }
 
     const getClass = (d: any) => {
@@ -90,7 +90,7 @@ export function runForceGraph(
     const simulation = d3
         .forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id))
-        .force("charge", d3.forceManyBody().strength(-350)) // changes the central force
+        .force("charge", d3.forceManyBody().strength(-10000)) // changes the central force
         .force("x", d3.forceX())
         .force("y", d3.forceY());
 
