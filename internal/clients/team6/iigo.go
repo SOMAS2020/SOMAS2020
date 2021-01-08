@@ -7,7 +7,7 @@ import (
 )
 
 func (c *client) GetClientPresidentPointer() roles.President {
-	return &president{client: c, BasePresident: &baseclient.BasePresident{}}
+	return &president{client: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
@@ -15,7 +15,7 @@ func (c *client) GetClientJudgePointer() roles.Judge {
 }
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	return &speaker{client: c, BaseSpeaker: &baseclient.BaseSpeaker{}}
+	return &speaker{client: c, BaseSpeaker: &baseclient.BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
