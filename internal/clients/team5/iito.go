@@ -1,6 +1,8 @@
 package team5
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -56,6 +58,7 @@ func (c *client) initGiftHist() {
 
 // GetGiftRequests we want gifts!
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
+	c.updateGiftOpinions()
 	requests := shared.GiftRequestDict{}
 	for team, status := range c.gameState().ClientLifeStatuses {
 		if status != shared.Critical { // We are not dying
@@ -123,24 +126,35 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 	for team, status := range c.gameState().ClientLifeStatuses {
-		// if receivedRequests[team] < 0.1 {
-
-		// }
 		status := shared.ClientLifeStatus(status)
+
 		switch {
 		case c.wealth() >= 2: // case we are rich
-			if status == shared.Critical && c.opinions[team].getScore() <= 0 { //If we have a low opinion we still give something
-				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands) // give an amount to dying islands
-			} else if status == shared.Critical && c.opinions[team].getScore() > 0 { //if we have a higher opinion we give more to critical islands
-				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands * 1.5) // give higher amount to dying islands we like
-			}
-		default: //if we are poor
-			if status == shared.Critical && c.opinions[team].getScore() <= 0 { //if we are poor we halve our gifts to critical islands based on opinion
-				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands / 2) // give an amount to dying islands/2
-			} else if status == shared.Critical && c.opinions[team].getScore() > 0 {
-				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands * 0.75) // give higher amount to dying islands we like/2
-			} else {
+			if status == shared.Critical && c.opinions[team].getScore() >= 0 { //If Good opinion
+				amount := (1 - 0.5*float64(c.opinions[team].getScore())) * c.config.offertoDyingIslands * //  if they have an opinion of 1 take into account 50% of their request
+					(0.5 * float64(c.opinions[team].getScore())) * float64(receivedRequests[team]) //  if they have an opinion of 0 take into account 0% of their request
+				offers[team] = shared.GiftOffer(math.Min(
+					0.10*float64(c.gameState().ClientInfo.Resources), // Maximium we can give them is 10% of our resources
+					amount))
+			} else if status == shared.Critical && c.opinions[team].getScore() < 0 { // Low opinion
+				offers[team] = shared.GiftOffer(math.Min(
+					0.10*float64(c.gameState().ClientInfo.Resources), // Pick minimum of offer or 10%
+					c.config.offertoDyingIslands))
+			} else { // THEY ARE NOT CRITICAL
 				offers[team] = shared.GiftOffer(c.config.normalGift) // This is what offer in case islands are not in critical condition (1 resource)
+			}
+
+		default: // If we are poor, we cant afford to give them much
+			if status == shared.Critical && c.opinions[team].getScore() >= 0 { // Good opinion
+				offers[team] = shared.GiftOffer(math.Min(
+					0.10*float64(c.gameState().ClientInfo.Resources), // 10% of our resources
+					c.config.offertoDyingIslands*0.75))               // or 75% of the offer to dying islands
+			} else if status == shared.Critical && c.opinions[team].getScore() < 0 { // Bad opinion
+				offers[team] = shared.GiftOffer(math.Min(
+					0.10*float64(c.gameState().ClientInfo.Resources), // 10% of our resources
+					c.config.offertoDyingIslands*0.50))               // or 50% of the offer to dying islands
+			} else { // THEY ARE NOT CRITICAL
+				offers[team] = shared.GiftOffer(0) // Offer nothing if we are poor
 			}
 		}
 		// History
@@ -193,6 +207,10 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	for _, team := range c.getAliveTeams(true) {
+		if receivedResponses[team].Reason >= 2 {
+			c.opinions[team].updateOpinion(generalBasis, -0.1*c.getMood())
+		}
+
 		newGiftRequest := giftInfo{
 			requested: c.giftHistory[team].theirRequest[c.getTurn()].requested, // Amount THEY requested
 			offered:   c.giftHistory[team].theirRequest[c.getTurn()].offered,   // Amount WE offered them
@@ -278,37 +296,35 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 	}
 	c.giftHistory[from].ourRequest[c.getTurn()] = newGiftRequest
 
-	c.giftOpinions()
 }
 
-func (c *client) giftOpinions() {
-	for team := range c.gameState().ClientLifeStatuses { // for each ID
+func (c *client) updateGiftOpinions() {
+	var highestRequest shared.ClientID
+	var lowestRequest shared.ClientID
+	for _, team := range c.getAliveTeams(false) { // for each ID
 		// ======================= Bad =======================
 		// If we get OFFERED LESS than we Requested
 		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) <
 			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].requested) {
-			c.opinions[team].updateOpinion(generalBasis, -0.05)
+			c.opinions[team].updateOpinion(generalBasis, -0.025*c.getMood())
 		}
-
 		// If we ACTUALLY get LESS than they OFFERED us
 		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) <
 			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) {
-			c.opinions[team].updateOpinion(generalBasis, -0.1)
+			c.opinions[team].updateOpinion(generalBasis, -0.05*c.getMood())
 		}
 
 		// If they REQUEST the MOST compared to other islands
-		highestRequest := shared.Team1
 		if c.giftHistory[highestRequest].theirRequest[c.getTurn()].requested <
 			c.giftHistory[team].theirRequest[c.getTurn()].requested {
 			highestRequest = team
 		}
-		c.opinions[highestRequest].updateOpinion(generalBasis, -0.05)
 
 		// ======================= Good =======================
 		// If they GIVE MORE than OFFERED then increase it a bit (can be abused)
 		if shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) >
 			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) {
-			c.opinions[team].updateOpinion(generalBasis, 0.025)
+			c.opinions[team].updateOpinion(generalBasis, 0.05*c.getMood())
 		}
 
 		// If we RECEIVE MORE than WE REQUESTED and they OFFERED
@@ -316,15 +332,16 @@ func (c *client) giftOpinions() {
 			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].offered) &&
 			shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].actualReceived) >
 				shared.Resources(c.giftHistory[team].ourRequest[c.getTurn()].requested) {
-			c.opinions[team].updateOpinion(generalBasis, 0.02)
+			c.opinions[team].updateOpinion(generalBasis, 0.25*c.getMood())
 		}
 
 		// If they REQUEST the LEAST compared to other islands
-		lowestRequest := shared.Team1
 		if c.giftHistory[lowestRequest].theirRequest[c.getTurn()].requested >
 			c.giftHistory[team].theirRequest[c.getTurn()].requested {
 			lowestRequest = team
 		}
-		c.opinions[lowestRequest].updateOpinion(generalBasis, 0.05)
+		c.Logf("Opinion of teams %v", c.opinions[team].getScore())
 	}
+	c.opinions[highestRequest].updateOpinion(generalBasis, -0.05*c.getMood())
+	c.opinions[lowestRequest].updateOpinion(generalBasis, 0.05*c.getMood())
 }

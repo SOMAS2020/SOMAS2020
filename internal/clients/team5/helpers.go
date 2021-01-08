@@ -56,16 +56,10 @@ func absoluteCap(val, absThresh float64) float64 {
 }
 
 func (c client) getMood() float64 {
-	switch c.wealth() {
-	case dying:
-		return 3
-	case imperialStudent:
-		return 2
-	case jeffBezos:
-		return 0.5
-	case middleClass:
-		return 1
-	default:
-		return 1
-	}
+	return c.mapToRange(float64(c.gameState().ClientInfo.Resources),
+		float64(c.config.jbThreshold), 0, 0.5, 1.5)
+}
+
+func (c client) mapToRange(x, inMin, inMax, outMin, outMax float64) float64 {
+	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
 }

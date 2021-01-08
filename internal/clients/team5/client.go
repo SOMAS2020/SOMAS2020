@@ -75,7 +75,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 func (c *client) StartOfTurn() {
 	c.wealth()
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
-
 	c.opinionHistory[c.getTurn()] = c.opinions // assign last turn's opinions as default for this turn
 
 	// Print the level of wealth we are at
