@@ -190,39 +190,9 @@ const acheivementList: AcheivementEntry[] = [
         evalLargest: false,
     },
     {
-        title: 'Biggest G',
-        description: 'Island who gifted the most in total',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: true,
-    },
-    {
         title: 'Back to Life',
         description: 'Island who returned from critical the most',
         collectMetrics: returnsFromCriticalMetricCollection,
-        evalLargest: true,
-    },
-    {
-        title: 'Saving Grace',
-        description: 'Island who gifted the most to critical islands',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: true,
-    },
-    {
-        title: 'Hoarder',
-        description: 'Island with lowest total resource outflow',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: false,
-    },
-    {
-        title: 'Spenny',
-        description: 'Island with largest total resource outflow',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: true,
-    },
-    {
-        title: 'Greedy',
-        description: 'Island with largest total resource inflow',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
         evalLargest: true,
     },
     {
@@ -236,44 +206,6 @@ const acheivementList: AcheivementEntry[] = [
         description: 'First island to die',
         collectMetrics: turnsAliveMetricCollection,
         evalLargest: false,
-    },
-    {
-        title: 'Mother Teresa',
-        description: 'Island who gives the most with low resources',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: true,
-    },
-    {
-        title: 'Hunter Gatherer',
-        description:
-            'Island who put in the highest average resources for foraging',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: true,
-    },
-    {
-        title: 'Lazy',
-        description:
-            'Island who put in the lowest average resources for foraging',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: false,
-    },
-    {
-        title: 'Scammed',
-        description: 'Island who got the lowest average returns from foraging',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: false,
-    },
-    {
-        title: 'Lucky',
-        description: 'Island with least average damage from disasters',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: false,
-    },
-    {
-        title: 'Unlucky',
-        description: 'Island with most average damage from disasters',
-        collectMetrics: (data) => emptyMetrics(), // TODO: implement
-        evalLargest: true,
     },
     {
         title: 'Power Hungry',
