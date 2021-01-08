@@ -115,25 +115,31 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		switch contentType {
 		case shared.IIGOTaxDecision:
 			var commonPool CommonPoolInfo
-			if val, ok := c.commonPoolHist[c.gameState().Turn]; ok {
-				val.tax = shared.Resources(content.IntegerData)
+			presHist := c.commonPoolHist[c.gameState().PresidentID]
+			if len(presHist) != 0 {
+				presHist[len(presHist)-1].tax = shared.Resources(content.IntegerData)
+				presHist[len(presHist)-1].turn = c.gameState().Turn
 			} else {
 				commonPool = CommonPoolInfo{
-					tax: shared.Resources(content.IntegerData),
+					tax:  shared.Resources(content.IntegerData),
+					turn: c.gameState().Turn,
 				}
 			}
-			c.commonPoolHist[c.gameState().Turn] = commonPool
+			c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
 			c.taxAmount = shared.Resources(content.IntegerData)
 		case shared.IIGOAllocationDecision:
 			var commonPool CommonPoolInfo
-			if val, ok := c.commonPoolHist[c.gameState().Turn]; ok {
-				val.allocatedByPres = shared.Resources(content.IntegerData)
+			presHist := c.commonPoolHist[c.gameState().PresidentID]
+			if len(presHist) != 0 {
+				presHist[len(presHist)-1].allocatedByPres = shared.Resources(content.IntegerData)
+				presHist[len(presHist)-1].turn = c.gameState().Turn
 			} else {
 				commonPool = CommonPoolInfo{
 					allocatedByPres: shared.Resources(content.IntegerData),
+					turn:            c.gameState().Turn,
 				}
 			}
-			c.commonPoolHist[c.gameState().Turn] = commonPool
+			c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
 			c.commonPoolAllocation = shared.Resources(content.IntegerData)
 		// case shared.RuleName:
 		// 	currentRuleID := content.TextData

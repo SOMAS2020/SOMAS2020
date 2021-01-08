@@ -78,6 +78,7 @@ type IslandSanctionInfo struct {
 }
 
 type CommonPoolInfo struct {
+	turn            uint
 	tax             shared.Resources
 	requestedToPres shared.Resources
 	allocatedByPres shared.Resources
@@ -105,7 +106,7 @@ type DisasterHistory map[int]DisasterOccurence
 type IslandSanctions map[shared.ClientID][]IslandSanctionInfo
 type TierLevels map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
 type SanctionHist []IslandSanctionInfo
-type CommonPoolHist map[uint]CommonPoolInfo
+type CommonPoolHist map[shared.ClientID][]CommonPoolInfo
 
 // we have to initialise our client somehow
 type client struct {

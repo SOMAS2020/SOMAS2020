@@ -19,7 +19,20 @@ func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHis
 //determines how much to request from the pool
 // How much we ask the President for
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	return determineAllocation(c) * shared.Resources(methodConfPool(c))
+	request := determineAllocation(c) * shared.Resources(methodConfPool(c))
+	var commonPool CommonPoolInfo
+	presHist := c.commonPoolHist[c.gameState().PresidentID]
+	if len(presHist) != 0 {
+		presHist[len(presHist)-1].requestedToPres = request
+		presHist[len(presHist)-1].turn = c.gameState().Turn
+	} else {
+		commonPool = CommonPoolInfo{
+			requestedToPres: request,
+			turn:            c.gameState().Turn,
+		}
+	}
+	c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+	return request
 }
 
 //TODO:Update to consider IIGO allocated amount, opinion on pres -> whether we take the allocated amount
@@ -38,7 +51,20 @@ func determineAllocation(c *client) shared.Resources {
 //determines how many resources you actually take - currrently going to take however much we say (playing nicely)
 // How much we request the server (we're given as much as there is in the CP)
 func (c *client) RequestAllocation() shared.Resources {
-	return determineAllocation(c) * shared.Resources(methodConfPool(c))
+	request := determineAllocation(c) * shared.Resources(methodConfPool(c))
+	var commonPool CommonPoolInfo
+	presHist := c.commonPoolHist[c.gameState().PresidentID]
+	if len(presHist) != 0 {
+		presHist[len(presHist)-1].takenFromCP = request
+		presHist[len(presHist)-1].turn = c.gameState().Turn
+	} else {
+		commonPool = CommonPoolInfo{
+			takenFromCP: request,
+			turn:        c.gameState().Turn,
+		}
+	}
+	c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+	return request
 }
 
 //GetTaxContribution determines how much we put into pool

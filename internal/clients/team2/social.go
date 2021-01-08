@@ -192,5 +192,33 @@ func (c *client) credibility(situation Situation, otherIsland shared.ClientID) i
 }
 
 func (c *client) updatePresidentTrust() {
+	currPres := c.gameState().PresidentID
+	// Take weighted average of past turns
+
+	runMeanTax := shared.Resources(0.0)
+	runMeanWeRequest := shared.Resources(0.0)
+	runMeanWeAllocated := shared.Resources(0.0)
+	runMeanWeTake := shared.Resources(0.0)
+
+	for i, commonPool := range c.commonPoolHist[currPres] {
+		turn := shared.Resources(c.gameState().Turn - commonPool.turn)
+		div := shared.Resources(i + 1)
+
+		runMeanTax += (commonPool.tax/turn - runMeanTax) / div
+		runMeanWeRequest += (commonPool.requestedToPres/turn - runMeanWeRequest) / div
+		runMeanWeAllocated += (commonPool.allocatedByPres/turn - runMeanWeAllocated) / div
+		runMeanWeTake += (commonPool.takenFromCP/turn - runMeanWeTake) / div
+
+	}
+
+	percChangeTax := 100 * (c.taxAmount - runMeanTax) / runMeanTax
+	percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / runMeanWeAllocated // How much less we're giveen
+	percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / runMeanWeTake        // How much more we've taken
+
+	reality := setLimits(int(100 - percWeGet - percChangeTax))
+
+	islandSituationPerf := c.opinionHist[currPres].Performances["President"]
+	islandSituationPerf.real = reality
+	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
 
 }
