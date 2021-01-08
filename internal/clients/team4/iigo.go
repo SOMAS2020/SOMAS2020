@@ -14,6 +14,19 @@ func (c *client) GetClientSpeakerPointer() roles.Speaker {
 	return &c.clientSpeaker
 }
 
+// EvaluateParamVector returns the dot product of the decision matrix and the internal parameters
+func (c *client) EvaluateParamVector(decisionVector *mat.VecDense, agent int, threshold float64) float64 {
+	parameters := mat.NewVecDense(5, []float64{
+		c.internalParam.greediness,
+		c.internalParam.selfishness,
+		c.internalParam.fairness,
+		c.internalParam.collaboration,
+		c.internalParam.riskTaking,
+		c.internalParam.agentsTrust[agent],
+	})
+	return mat.Dot(decisionVector, parameters) - threshold
+}
+
 func (c *client) RequestAllocation() shared.Resources {
 	allocationGranted := c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0
