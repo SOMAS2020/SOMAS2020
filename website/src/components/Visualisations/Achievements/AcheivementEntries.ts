@@ -153,10 +153,16 @@ const turnsInPowerMetricCollection = (data: OutputJSONType) =>
 
 const acheivementList: AcheivementEntry[] = [
     {
-        title: 'Jackpot!',
-        description: 'Island with the highest peak resources',
-        collectMetrics: peakResourcesMetricCollection,
+        title: 'I Will Survive',
+        description: 'Island alive the longest',
+        collectMetrics: turnsAliveMetricCollection,
         evalLargest: true,
+    },
+    {
+        title: 'F',
+        description: 'First island to die',
+        collectMetrics: turnsAliveMetricCollection,
+        evalLargest: false,
     },
     {
         title: 'Baller',
@@ -171,27 +177,15 @@ const acheivementList: AcheivementEntry[] = [
         evalLargest: false,
     },
     {
+        title: 'Jackpot!',
+        description: 'Island with the highest peak resources',
+        collectMetrics: peakResourcesMetricCollection,
+        evalLargest: true,
+    },
+    {
         title: 'Back to Life',
         description: 'Island who returned from critical the most',
         collectMetrics: returnsFromCriticalMetricCollection,
-        evalLargest: true,
-    },
-    {
-        title: 'I Will Survive',
-        description: 'Island alive the longest',
-        collectMetrics: turnsAliveMetricCollection,
-        evalLargest: true,
-    },
-    {
-        title: 'F',
-        description: 'First island to die',
-        collectMetrics: turnsAliveMetricCollection,
-        evalLargest: false,
-    },
-    {
-        title: 'Power Hungry',
-        description: 'Island who spent the most time in power',
-        collectMetrics: turnsInPowerMetricCollection,
         evalLargest: true,
     },
     {
@@ -212,6 +206,12 @@ const acheivementList: AcheivementEntry[] = [
         description: 'Island who spent the most time as Speaker',
         collectMetrics: (data) =>
             turnsAsRoleMetricCollection(data, 'SpeakerID'),
+        evalLargest: true,
+    },
+    {
+        title: 'Power Hungry',
+        description: 'Island who spent the most time in power',
+        collectMetrics: turnsInPowerMetricCollection,
         evalLargest: true,
     },
 ]
