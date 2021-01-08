@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Alert, Row, Col } from 'react-bootstrap'
+import { Button, Alert, Row, Col, Container } from 'react-bootstrap'
 import { useHistory, Route, Switch } from 'react-router-dom'
 import VisualisationsNavbar from './VisualisationsNavbar'
 import {
@@ -142,63 +142,65 @@ const Visualisations = () => {
             <p>{warning}</p>
           </Alert>
         )}
-        <Row className="justify-content-md-center">
-          <Col md="auto">
-            {output ? (
-              <Switch>
-                <Route
-                  path={gamevisualisation}
-                  exact
-                  component={() => <Game output={output} />}
-                />
-                <Route
-                  path={iigovisualisation}
-                  exact
-                  component={() => <IIGO output={output} />}
-                />
-                <Route
-                  path={iitovisualisation}
-                  exact
-                  component={() => <IITO output={output} />}
-                />
-                <Route
-                  path={iifovisualisation}
-                  exact
-                  component={() => <IIFO output={output} />}
-                />
-                <Route
-                  path={rolesvisualisation}
-                  exact
-                  component={() => <Roles output={output} />}
-                />
-                <Route
-                  path={resourcesvisualisation}
-                  exact
-                  component={() => <Resources output={output} />}
-                />
-                <Route component={FourOhFour} />
-              </Switch>
-            ) : (
-              <>
-                <h1>Visualisations</h1>
-                <h5 style={{ marginTop: 24 }}>Upload output JSON file</h5>
-
-                <Button variant="warning">
-                  <label htmlFor="multi" style={{ margin: 0 }}>
-                    Upload
-                  </label>
-                  <input
-                    style={{ display: 'none' }}
-                    type="file"
-                    accept=".json"
-                    id="multi"
-                    onChange={onUpload}
+        <Container fluid="md">
+          <Row className="justify-content-xl-center">
+            <Col>
+              {output ? (
+                <Switch>
+                  <Route
+                    path={gamevisualisation}
+                    exact
+                    component={() => <Game output={output} />}
                   />
-                </Button>
-              </>
-            )}
-          </Col>
-        </Row>
+                  <Route
+                    path={iigovisualisation}
+                    exact
+                    component={() => <IIGO output={output} />}
+                  />
+                  <Route
+                    path={iitovisualisation}
+                    exact
+                    component={() => <IITO output={output} />}
+                  />
+                  <Route
+                    path={iifovisualisation}
+                    exact
+                    component={() => <IIFO output={output} />}
+                  />
+                  <Route
+                    path={rolesvisualisation}
+                    exact
+                    component={() => <Roles output={output} />}
+                  />
+                  <Route
+                    path={resourcesvisualisation}
+                    exact
+                    component={() => <Resources output={output} />}
+                  />
+                  <Route component={FourOhFour} />
+                </Switch>
+              ) : (
+                <>
+                  <h1>Visualisations</h1>
+                  <h5 style={{ marginTop: 24 }}>Upload output JSON file</h5>
+
+                  <Button variant="warning">
+                    <label htmlFor="multi" style={{ margin: 0 }}>
+                      Upload
+                    </label>
+                    <input
+                      style={{ display: 'none' }}
+                      type="file"
+                      accept=".json"
+                      id="multi"
+                      onChange={onUpload}
+                    />
+                  </Button>
+                </>
+              )}
+            </Col>
+          </Row>
+        </Container>
       </div>
     </>
   )
