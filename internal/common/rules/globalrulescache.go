@@ -13,11 +13,11 @@ var RulesInPlay = map[string]RuleMatrix{}
 
 // RegisterNewRule Creates and registers new rule based on inputs
 func RegisterNewRule(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
-	return registerNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules, mutable, link)
+	return RegisterNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules, mutable, link)
 }
 
-// registerNewRuleInternal provides primal register logic for any rule cache
-func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
+// RegisterNewRuleInternal provides primal register logic for any rule cache
+func RegisterNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
 	if _, ok := ruleStore[ruleName]; ok {
 		return nil, &RuleError{Err: errors.Errorf("Rule '%v' already in rule cache", ruleName), ErrorType: TriedToReRegisterRule}
 	}
@@ -29,11 +29,11 @@ func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldN
 
 // PullRuleIntoPlay provides engagement logic for global rules in play cache
 func PullRuleIntoPlay(rulename string) error {
-	return pullRuleIntoPlayInternal(rulename, AvailableRules, RulesInPlay)
+	return PullRuleIntoPlayInternal(rulename, AvailableRules, RulesInPlay)
 }
 
-// pullRuleIntoPlayInternal provides primal rule engagement logic for any pair of caches
-func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
+// PullRuleIntoPlayInternal provides primal rule engagement logic for any pair of caches
+func PullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
 			return &RuleError{Err: errors.Errorf("Rule '%v' is already in play", rulename), ErrorType: RuleIsAlreadyInPlay}
@@ -50,11 +50,11 @@ func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, p
 
 // PullRuleOutOfPlay provides disengagement logic for global rules in play cache
 func PullRuleOutOfPlay(rulename string) error {
-	return pullRuleOutOfPlayInternal(rulename, AvailableRules, RulesInPlay)
+	return PullRuleOutOfPlayInternal(rulename, AvailableRules, RulesInPlay)
 }
 
-// pullRuleOutOfPlayInternal provides primal rule disengagement logic for any pair of caches
-func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
+// PullRuleOutOfPlayInternal provides primal rule disengagement logic for any pair of caches
+func PullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
 			linkRule, linked := checkLinking(rulename, allRules)
@@ -71,10 +71,10 @@ func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, 
 
 // ModifyRule allows for rules that are flagged as mutable to be modified
 func ModifyRule(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense) error {
-	return modifyRuleInternal(rulename, newMatrix, newAuxiliary, AvailableRules, RulesInPlay)
+	return ModifyRuleInternal(rulename, newMatrix, newAuxiliary, AvailableRules, RulesInPlay)
 }
 
-func modifyRuleInternal(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense, rulesCache map[string]RuleMatrix, inPlayCache map[string]RuleMatrix) error {
+func ModifyRuleInternal(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense, rulesCache map[string]RuleMatrix, inPlayCache map[string]RuleMatrix) error {
 	if _, ok := rulesCache[rulename]; ok {
 		oldRuleMatrix := rulesCache[rulename]
 		if !oldRuleMatrix.Mutable {

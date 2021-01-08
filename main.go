@@ -25,6 +25,16 @@ import (
 const outputJSONFileName = "output.json"
 const outputLogFileName = "log.txt"
 
+// non-WASM flags.
+// see `params.go` for shared flags.
+var (
+	outputFolderName = flag.String(
+		"output",
+		"output",
+		"The relative path (to the current working directory) to store output.json and logs in.",
+	)
+)
+
 func main() {
 	timeStart := time.Now()
 	var err error
