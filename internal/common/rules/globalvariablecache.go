@@ -16,11 +16,11 @@ var VariableMap = map[VariableFieldName]VariableValuePair{}
 
 // RegisterNewVariable Registers the provided variable in the global variable cache
 func RegisterNewVariable(pair VariableValuePair) error {
-	return registerNewVariableInternal(pair, VariableMap)
+	return RegisterNewVariableInternal(pair, VariableMap)
 }
 
-// registerNewVariableInternal provides primal register logic for any variable cache
-func registerNewVariableInternal(pair VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
+// RegisterNewVariableInternal provides primal register logic for any variable cache
+func RegisterNewVariableInternal(pair VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
 	if _, ok := variableStore[pair.VariableName]; ok {
 		return errors.Errorf("attempted to re-register a variable that had already been registered")
 	}
@@ -42,9 +42,9 @@ func updateVariableInternal(variableName VariableFieldName, newValue VariableVal
 	return false
 }
 
-func CopyVariableMap() map[VariableFieldName]VariableValuePair {
+func CopyVariableMap(varMap map[VariableFieldName]VariableValuePair) map[VariableFieldName]VariableValuePair {
 	newMap := make(map[VariableFieldName]VariableValuePair)
-	for key, value := range VariableMap {
+	for key, value := range varMap {
 		newMap[key] = value
 	}
 	return newMap

@@ -44,7 +44,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, rules.VariableMap)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, j.c.ServerReadHandle.GetGameState().CurrentRulesInPlay, j.c.ServerReadHandle.GetGameState().VariableMap)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}

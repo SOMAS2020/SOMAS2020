@@ -1,12 +1,14 @@
 package baseclient
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 type BaseJudge struct {
+	gameState gamestate.ClientGameState
 }
 
 // GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
@@ -44,7 +46,7 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, rules.VariableMap)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, j.gameState.CurrentRulesInPlay, j.gameState.VariableMap)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
