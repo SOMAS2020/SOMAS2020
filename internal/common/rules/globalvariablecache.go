@@ -12,8 +12,6 @@ type VariableValuePair struct {
 	Values       []float64
 }
 
-var VariableMap = map[VariableFieldName]VariableValuePair{}
-
 // RegisterNewVariableInternal provides primal register logic for any variable cache
 func RegisterNewVariableInternal(pair VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
 	if _, ok := variableStore[pair.VariableName]; ok {
@@ -21,11 +19,6 @@ func RegisterNewVariableInternal(pair VariableValuePair, variableStore map[Varia
 	}
 	variableStore[pair.VariableName] = pair
 	return nil
-}
-
-// UpdateVariable Updates variable in global cache with new value
-func UpdateVariable(variableName VariableFieldName, newValue VariableValuePair) bool {
-	return UpdateVariableInternal(variableName, newValue, VariableMap)
 }
 
 // UpdateVariableInternal provides primal update logic for any variable cache

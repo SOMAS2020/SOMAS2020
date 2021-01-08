@@ -22,7 +22,7 @@ type executive struct {
 	RulesProposals   []rules.RuleMatrix
 	ResourceRequests map[shared.ClientID]shared.Resources
 	iigoClients      map[shared.ClientID]baseclient.Client
-	monitoring       *shared.Monitor
+	monitoring       *monitor
 	logger           shared.Logger
 }
 

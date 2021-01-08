@@ -9,6 +9,9 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
+//monitoring holds the monitoring object that is used across turns
+var monitoring monitor
+
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
 
@@ -16,7 +19,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 
 	removeDeadBodiesFromOffice(g)
 
-	g.IIGOMonitoring.Logger = logger
+	monitoring.logger = logger
 	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
 
 	// featureJudge is an instantiation of the Judge interface
@@ -28,7 +31,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		evaluationResults:  nil,
 		localSanctionCache: defaultInitLocalSanctionCache(3),
 		localHistoryCache:  defaultInitLocalHistoryCache(3),
-		monitoring:         &g.IIGOMonitoring,
+		monitoring:         &monitoring,
 		iigoClients:        iIGOClients,
 		logger:             logger,
 	}
@@ -40,7 +43,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		ruleToVote:   rules.RuleMatrix{},
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
-		monitoring:   &g.IIGOMonitoring,
+		monitoring:   &monitoring,
 		iigoClients:  iIGOClients,
 		logger:       logger,
 	}
@@ -50,7 +53,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		gameConf:         nil,
 		PresidentID:      0,
 		ResourceRequests: nil,
-		monitoring:       &g.IIGOMonitoring,
+		monitoring:       &monitoring,
 		iigoClients:      iIGOClients,
 		logger:           logger,
 	}
@@ -177,7 +180,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 
 	variablesToCache := []rules.VariableFieldName{rules.AllocationMade}
 	valuesToCache := [][]float64{{boolToFloat(allocationsMade)}}
-	g.IIGOMonitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
+	monitoring.addToCache(g.PresidentID, variablesToCache, valuesToCache)
 
 	// 3 Speaker actions
 
@@ -198,11 +201,11 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 
 	variablesToCache = []rules.VariableFieldName{rules.RuleSelected, rules.VoteCalled}
 	valuesToCache = [][]float64{{boolToFloat(ruleSelected)}, {boolToFloat(voteCalled)}}
-	g.IIGOMonitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
 	variablesToCache = []rules.VariableFieldName{rules.VoteCalled, rules.VoteResultAnnounced}
 	valuesToCache = [][]float64{{boolToFloat(voteCalled)}, {boolToFloat(resultAnnounced)}}
-	g.IIGOMonitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
+	monitoring.addToCache(g.SpeakerID, variablesToCache, valuesToCache)
 
 	// Pay salaries into budgets
 	errorJudicial := judicialBranch.sendPresidentSalary()
@@ -213,12 +216,12 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		return false, "Cannot pay IIGO salary"
 	}
 
-	presidentMonitored := g.IIGOMonitoring.monitorRole(iIGOClients[g.SpeakerID])
-	judgeMonitored := g.IIGOMonitoring.monitorRole(iIGOClients[g.PresidentID])
-	speakerMonitored := g.IIGOMonitoring.monitorRole(iIGOClients[g.JudgeID])
+	presidentMonitored := monitoring.monitorRole(iIGOClients[g.SpeakerID])
+	judgeMonitored := monitoring.monitorRole(iIGOClients[g.PresidentID])
+	speakerMonitored := monitoring.monitorRole(iIGOClients[g.JudgeID])
 	//Save to gameState and clear
-	g.IIGOCache = g.IIGOMonitoring.internalIIGOCache
-	g.IIGOMonitoring.clearCache()
+	g.IIGOCache = monitoring.internalIIGOCache
+	monitoring.clearCache()
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
 	// Get new Role ID
@@ -244,8 +247,8 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		return false, "President was not apointed by the Judge. Insufficient budget"
 	}
 
-	oldCacheSave := g.IIGOMonitoring.internalIIGOCache
-	g.IIGOMonitoring = shared.Monitor{
+	oldCacheSave := monitoring.internalIIGOCache
+	monitoring = monitor{
 		internalIIGOCache: oldCacheSave,
 		TermLengths:       gameConf.IIGOConfig.IIGOTermLengths,
 	}

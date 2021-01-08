@@ -43,9 +43,6 @@ type GameState struct {
 	// IIGO Role Action Cache
 	IIGOCache []shared.Accountability
 
-	// IIGO Internal Monitoring
-	IIGOMonitoring shared.Monitor
-
 	// IIGO Tax Amount Map
 	IIGOTaxAmount map[shared.ClientID]shared.Resources
 

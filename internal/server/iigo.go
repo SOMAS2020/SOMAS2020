@@ -28,7 +28,7 @@ func (s *SOMASServer) updateIIGOHistoryAndRules(clientID shared.ClientID, pairs 
 			Pairs:    pairs,
 		},
 	)
-	s.gameState.CurrentRulesInPlay = rules.RulesInPlay
+	s.gameState.RulesInfo.CurrentRulesInPlay = rules.RulesInPlay
 }
 
 func (s *SOMASServer) runIIGOTax() error {
