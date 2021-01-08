@@ -273,7 +273,7 @@ func (c *client) lastHopeForage() shared.ForageDecision {
 //=================================================================
 
 //ForageUpdate Updates the foraging history
-func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output shared.Resources) {
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output shared.Resources, numberCaught uint) {
 	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], forageOutcome{ // Append new data
 		team:   shared.Team5,
 		turn:   c.getTurn(),

@@ -40,7 +40,7 @@ type Client interface {
 
 	//Foraging
 	DecideForage() (shared.ForageDecision, error)
-	ForageUpdate(shared.ForageDecision, shared.Resources)
+	ForageUpdate(shared.ForageDecision, shared.Resources, uint)
 
 	//Disasters
 	DisasterNotification(disasters.DisasterReport, disasters.DisasterEffects)
