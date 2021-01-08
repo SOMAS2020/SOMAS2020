@@ -8,8 +8,10 @@ func TestGlobalRuleRegistration(t *testing.T) {
 		"Kinda Complicated Rule",
 	}
 
+	avail, _ := InitialRuleRegistration(false)
+
 	for _, v := range rulesToFind {
-		if _, ok := AvailableRules[v]; !ok {
+		if _, ok := avail[v]; !ok {
 			t.Errorf("Required rule '%v' not found", v)
 		}
 	}

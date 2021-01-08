@@ -7,12 +7,12 @@ import (
 
 // ComplianceCheck Gives a simple check for compliance to clients, they just need to feed in a RuleMatrix and the
 // variable cache they want to feed from
-func ComplianceCheck(rule RuleMatrix, variables map[VariableFieldName]VariableValuePair) (compliant bool, ruleError error) {
+func ComplianceCheck(rule RuleMatrix, variables map[VariableFieldName]VariableValuePair, inPlayRules map[string]RuleMatrix) (compliant bool, ruleError error) {
 	if checkAllVariablesAvailable(rule.RequiredVariables, variables) {
 		ruleCache := map[string]RuleMatrix{}
 		ruleCache[rule.RuleName] = rule
 		if rule.Link.Linked {
-			ruleCache[rule.Link.LinkedRule] = RulesInPlay[rule.Link.LinkedRule]
+			ruleCache[rule.Link.LinkedRule] = inPlayRules[rule.Link.LinkedRule]
 		}
 		evalResult := EvaluateRuleFromCaches(rule.RuleName, ruleCache, variables)
 		return evalResult.RulePasses, evalResult.EvalError

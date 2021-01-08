@@ -6,7 +6,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-	"gonum.org/v1/gonum/mat"
 )
 
 // GameState represents the game's state.
@@ -147,17 +146,9 @@ func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]sh
 func copyRulesContext(oldContext RulesContext) RulesContext {
 	return RulesContext{
 		VariableMap:        copyVariableMap(oldContext.VariableMap),
-		CurrentRulesInPlay: copyRulesMap(oldContext.CurrentRulesInPlay),
-		AvailableRules:     copyRulesMap(oldContext.AvailableRules),
+		CurrentRulesInPlay: rules.CopyRulesMap(oldContext.CurrentRulesInPlay),
+		AvailableRules:     rules.CopyRulesMap(oldContext.AvailableRules),
 	}
-}
-
-func copyRulesMap(rulesMap map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
-	targetMap := make(map[string]rules.RuleMatrix)
-	for key, value := range rulesMap {
-		targetMap[key] = copySingleRuleMatrix(value)
-	}
-	return targetMap
 }
 
 func copyVariableMap(varMap map[rules.VariableFieldName]rules.VariableValuePair) map[rules.VariableFieldName]rules.VariableValuePair {
@@ -169,31 +160,6 @@ func copyVariableMap(varMap map[rules.VariableFieldName]rules.VariableValuePair)
 		}
 	}
 	return targetMap
-}
-
-func copySingleRuleMatrix(inp rules.RuleMatrix) rules.RuleMatrix {
-	return rules.RuleMatrix{
-		RuleName:          inp.RuleName,
-		RequiredVariables: copyRequiredVariables(inp.RequiredVariables),
-		ApplicableMatrix:  *mat.DenseCopyOf(&inp.ApplicableMatrix),
-		AuxiliaryVector:   *mat.VecDenseCopyOf(&inp.AuxiliaryVector),
-		Mutable:           inp.Mutable,
-		Link:              copyLink(inp.Link),
-	}
-}
-
-func copyLink(inp rules.RuleLink) rules.RuleLink {
-	return rules.RuleLink{
-		Linked:     inp.Linked,
-		LinkType:   inp.LinkType,
-		LinkedRule: inp.LinkedRule,
-	}
-}
-
-func copyRequiredVariables(inp []rules.VariableFieldName) []rules.VariableFieldName {
-	targetList := make([]rules.VariableFieldName, len(inp))
-	copy(targetList, inp)
-	return targetList
 }
 
 func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability {
