@@ -103,6 +103,16 @@ export default function runForceGraph(
     .append('svg')
     .attr('viewBox', [-width / 2, -height / 2, width, height])
 
+  const borderPath = svg
+    .append('rect')
+    .attr('x', -width / 2)
+    .attr('y', -height / 2)
+    .attr('height', height)
+    .attr('width', width)
+    .style('stroke', '#B1B1B1')
+    .style('fill', 'none')
+    .style('stroke-width', 5)
+
   const link = svg
     .append('g')
     .attr('stroke', '#999')
@@ -154,10 +164,14 @@ export default function runForceGraph(
       .attr('x2', (d: any) => d.target.x)
       .attr('y2', (d: any) => d.target.y)
 
-    // update node positions
     node.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y)
 
-    // update label positions
+    borderPath
+      .attr('x', -width / 2)
+      .attr('y', -height / 2)
+      .attr('height', height)
+      .attr('width', width)
+
     label.attr('x', (d: any) => d.x).attr('y', (d: any) => d.y)
   })
 
