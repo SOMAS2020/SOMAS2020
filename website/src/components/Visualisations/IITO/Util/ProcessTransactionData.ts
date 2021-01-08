@@ -1,26 +1,10 @@
-import { OutputJSONType, Team, GiftResponse } from '../../../../consts/types'
-
-// TODO: transactions can also be with the common pool so they should not be teams - maybe more appropriate to rename entities
-type Transaction = {
-    from: Team
-    to: Team
-    amount: number
-}
-
-// TODO: Decide on link representation (do we show all links, do we collate them and use colours or thickness)
-// TODO: Decide on node structure (i.e. what determines bubble size)
-// TODO: Extract summary metric for bubble size from transactions[] and islandGifts[]
-// TODO: might be cool to have max and min resources of each entity as a summary metric in the tooltip
-type Node = {
-    id: number
-    magnitude: number
-    color: string
-}
-
-type Link = {
-    source: number
-    target: number
-}
+import {
+    Link,
+    Node,
+    Transaction,
+    OutputJSONType,
+    Team,
+} from '../../../../consts/types'
 
 export const getIIGOTransactions = (data: OutputJSONType) => {
     const acc: Transaction[] = []
