@@ -20,11 +20,11 @@ var SpeakerActionPriorities = []string{
 	"AppointNextJudge",
 }
 
-func (s *speaker) GetSpeakerBudget() shared.Resources {
+func (s *speaker) getSpeakerBudget() shared.Resources {
 	return s.parent.ServerReadHandle.GetGameState().IIGORolesBudget[shared.Speaker]
 }
 
-func (s *speaker) GetActionsCost(actions []string) shared.Resources {
+func (s *speaker) getActionsCost(actions []string) shared.Resources {
 	gameconfig := s.parent.ServerReadHandle.GetGameConfig().IIGOClientConfig
 	costs := map[string]shared.Resources{
 		"SetVotingResult":      gameconfig.SetVotingResultActionCost,
@@ -40,27 +40,27 @@ func (s *speaker) GetActionsCost(actions []string) shared.Resources {
 	return SumOfCosts
 }
 
-func (s *speaker) GetHigherPriorityActionsCost(baseaction string) shared.Resources {
+func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resources {
 	actionindex := len(SpeakerActionPriorities)
 	for i, action := range SpeakerActionPriorities {
 		if action == baseaction {
 			actionindex = i
 		}
 	}
-	return s.GetActionsCost(SpeakerActionPriorities[:actionindex])
+	return s.getActionsCost(SpeakerActionPriorities[:actionindex])
 }
 
 // PayJudge is used for paying judge for his service
 func (s *speaker) PayJudge() shared.SpeakerReturnContent {
-	JudgeSalaryRule, ok := rules.RulesInPlay["salary_cycle_judge"]
 	var JudgeSalary shared.Resources = 0
+	JudgeSalaryRule, ok := rules.RulesInPlay["salary_cycle_judge"]
 	if ok {
 		JudgeSalary = shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
 	}
-	HigherPriorityActionsCost := s.GetHigherPriorityActionsCost("")
-	if s.GetSpeakerBudget()-HigherPriorityActionsCost-JudgeSalary < 0 {
+	HigherPriorityActionsCost := s.getHigherPriorityActionsCost("")
+	if s.getSpeakerBudget()-HigherPriorityActionsCost-JudgeSalary < 0 {
 		//insufficient budget: JudgeSalary + action costs uses up budget
-		JudgeSalary = s.GetSpeakerBudget() - HigherPriorityActionsCost
+		JudgeSalary = s.getSpeakerBudget() - HigherPriorityActionsCost
 		if JudgeSalary < 0 {
 			JudgeSalary = 0
 		}
