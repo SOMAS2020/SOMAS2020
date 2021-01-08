@@ -14,11 +14,6 @@ type VariableValuePair struct {
 
 var VariableMap = map[VariableFieldName]VariableValuePair{}
 
-// RegisterNewVariable Registers the provided variable in the global variable cache
-func RegisterNewVariable(pair VariableValuePair) error {
-	return RegisterNewVariableInternal(pair, VariableMap)
-}
-
 // RegisterNewVariableInternal provides primal register logic for any variable cache
 func RegisterNewVariableInternal(pair VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
 	if _, ok := variableStore[pair.VariableName]; ok {
