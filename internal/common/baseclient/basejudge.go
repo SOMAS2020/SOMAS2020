@@ -8,7 +8,7 @@ import (
 )
 
 type BaseJudge struct {
-	gameState gamestate.ClientGameState
+	GameState gamestate.ClientGameState
 }
 
 // GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
@@ -41,7 +41,7 @@ func (j *BaseJudge) PayPresident() (shared.Resources, bool) {
 // OPTIONAL: override if you want to evaluate the history log differently.
 func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
 	outputMap := map[shared.ClientID]roles.EvaluationReturn{}
-	copyOfVarCache := rules.CopyVariableMap(j.gameState.RulesInfo.VariableMap)
+	copyOfVarCache := rules.CopyVariableMap(j.GameState.RulesInfo.VariableMap)
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID

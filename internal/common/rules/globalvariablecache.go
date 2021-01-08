@@ -30,6 +30,7 @@ func UpdateVariableInternal(variableName VariableFieldName, newValue VariableVal
 	return false
 }
 
+// CopyVariableMap easily copies variable cache
 func CopyVariableMap(varMap map[VariableFieldName]VariableValuePair) map[VariableFieldName]VariableValuePair {
 	newMap := make(map[VariableFieldName]VariableValuePair)
 	for key, value := range varMap {

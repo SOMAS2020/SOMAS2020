@@ -49,7 +49,7 @@ func (c *BaseClient) GetClientPresidentPointer() roles.President {
 // GetClientJudgePointer is called by IIGO to get the client's implementation of the Judge Role
 // COMPULSORY: ovverride to return a pointer to your own Judge object
 func (c *BaseClient) GetClientJudgePointer() roles.Judge {
-	return &BaseJudge{gameState: c.ServerReadHandle.GetGameState()}
+	return &BaseJudge{GameState: c.ServerReadHandle.GetGameState()}
 }
 
 // GetClientSpeakerPointer is called by IIGO to get the client's implementation of the Speaker Role
