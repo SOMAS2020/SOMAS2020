@@ -1,6 +1,7 @@
 import outputJSONData from '../output/output.json'
 
 // TODO: what if there are more islands - dynamic typing
+// eslint-disable-next-line no-shadow
 export enum TeamName {
     'CommonPool',
     'Team1',
@@ -33,61 +34,42 @@ export type Link = {
 // Custom utility type
 // type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U
 // export type OutputJSONType = GameStatesType & typeof outputJSONData
-type ChangeKeyType<T, K extends keyof T, U> = Omit<T, K> & { [k in K]?: U }
+type ChangeKeyType<T, K extends keyof T, U> = Omit<T, K> & { [k in K]: U }
 
 export type OutputJSONType = ChangeKeyType<
     typeof outputJSONData,
     'GameStates',
-    GameStatesType
+    GameStates
 >
 
-// export type OverwriteGameState = Overwrite<
-//     typeof outputJSONData.GameStates,
-//     GameStatesType
-// >
-
-// export type OutputJSONType = Overwrite<
-//     typeof outputJSONData,
-//     OverwriteGameState
-// >
-
-type GameStatesType = {
-    GameStates: {
-        Season: number
-        Turn: number
-        ClientInfos: any
-        Environment: any
-        DeerPopulation: any
-        ForagingHistory: any
-        CurrentRulesInPlay: any
-        IIGORolesBudget: any
-        IIGOTurnsInPower: any
-        IIGOCache: any
-        SpeakerID: string
-        JudgeID: string
-        PresidentID: string
-        IIGOHistory: IIGOHistory | undefined
-        IITOTransactions:
-            | {
-                  [offerTeam in TeamName]: {
-                      [receiveTeam in TeamName]?: {
-                          AcceptedAmount: number
-                          Reason: number
-                      }
-                  }
-              }
-            | undefined
-    }[]
+type GameStates = GameState[]
+type GameState = {
+    Season: number
+    Turn: number
+    CommonPool: number
+    ClientInfos: any
+    Environment: any
+    DeerPopulation: any
+    ForagingHistory: any
+    CurrentRulesInPlay: any
+    IIGOHistory: IIGOHistory
+    IIGOTurnsInPower: any
+    IIGOCache: any
+    IIGORolesBudget: any
+    IITOTransactions: IITOTransactions
+    SpeakerID: string
+    JudgeID: string
+    PresidentID: string
 }
 
 // IIGOHistory will be at most data.Config.Maxturns long, containing an "Accountability" occurrence for a given client.
 // Returns undefined if the accessing an unavailable key
 export type IIGOHistory = {
-    [key: number]: Accountability | undefined
+    [key: string]: Accountability[] | undefined
 }
 
 export type Accountability = {
-    ClientID: TeamName
+    ClientID: string
     Pairs: VariableValuePair[]
 }
 

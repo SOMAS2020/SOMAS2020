@@ -15,7 +15,10 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
         data.GameStates[data.GameStates.length - 1].IIGOHistory
     )
     // For each of these arrayed tuples, we have [turnNumber: <"pair events">[]]
-    IIGOHistories.forEach(([_, exchanges]) => {
+    IIGOHistories.filter((turnHistory) => {
+        let nothing
+        return typeof nothing !== typeof turnHistory[1]
+    }).forEach(([_, exchanges]) => {
         if (exchanges) {
             exchanges.forEach((teamAction) => {
                 const type = teamAction.Pairs[0].VariableName
