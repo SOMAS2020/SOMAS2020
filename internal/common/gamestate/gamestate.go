@@ -40,8 +40,17 @@ type GameState struct {
 	// IIGO turns in power (incremented and set by monitoring)
 	IIGOTurnsInPower map[shared.Role]uint
 
-	//IIGO Role Action Cache
+	// IIGO Role Action Cache
 	IIGOCache []shared.Accountability
+
+	// IIGO Tax Amount Map
+	IIGOTaxAmount map[shared.ClientID]shared.Resources
+
+	// IIGO Allocation Amount Map
+	IIGOAllocationMap map[shared.ClientID]shared.Resources
+
+	// IIGO Sanction Amount Map
+	IIGOSanctionMap map[shared.ClientID]shared.Resources
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
@@ -67,6 +76,10 @@ func (g GameState) Copy() GameState {
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	ret.IIGOTurnsInPower = copyTurnsInPower(g.IIGOTurnsInPower)
 	ret.IIGOCache = copyIIGOCache(g.IIGOCache)
+	ret.IIGOTaxAmount = copyIIGOClientIDResourceMap(g.IIGOTaxAmount)
+	ret.IIGOAllocationMap = copyIIGOClientIDResourceMap(g.IIGOAllocationMap)
+	ret.IIGOSanctionMap = copyIIGOClientIDResourceMap(g.IIGOSanctionMap)
+	ret.IITOTransactions = copyIITOTransactions(g.IITOTransactions)
 	return ret
 }
 
@@ -167,6 +180,26 @@ func copySingleIIGOEntry(input []shared.Accountability) []shared.Accountability 
 	ret := make([]shared.Accountability, len(input))
 	copy(ret, input)
 	return ret
+}
+
+func copyIIGOClientIDResourceMap(m map[shared.ClientID]shared.Resources) map[shared.ClientID]shared.Resources {
+	ret := make(map[shared.ClientID]shared.Resources, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
+func copyIITOTransactions(iitoHistory map[shared.ClientID]shared.GiftResponseDict) map[shared.ClientID]shared.GiftResponseDict {
+	targetMap := make(map[shared.ClientID]shared.GiftResponseDict)
+	for key, giftResponseDict := range iitoHistory {
+		giftResponses := make(shared.GiftResponseDict)
+		for clientID, giftResponse := range giftResponseDict {
+			giftResponses[clientID] = giftResponse
+		}
+		targetMap[key] = giftResponses
+	}
+	return targetMap
 }
 
 func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) map[shared.ForageType][]foraging.ForagingReport {

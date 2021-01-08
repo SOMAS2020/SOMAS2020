@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
@@ -99,6 +100,7 @@ func TestEvaluateCache(t *testing.T) {
 			expectedVal: true,
 		},
 	}
+	var logging shared.Logger = func(format string, a ...interface{}) {}
 	ruleStore := registerMonitoringTestRule()
 	tempCache := rules.AvailableRules
 	rules.AvailableRules = ruleStore
@@ -106,6 +108,7 @@ func TestEvaluateCache(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			monitoring := &monitor{
 				internalIIGOCache: tc.iigoCache,
+				logger:            logging,
 			}
 			res := monitoring.evaluateCache(tc.roleID, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
@@ -154,9 +157,11 @@ func TestFindRoleToMonitor(t *testing.T) {
 		},
 	}
 	monitoring := &monitor{
-		speakerID:   1,
-		presidentID: 2,
-		judgeID:     3,
+		gameState: &gamestate.GameState{
+			SpeakerID:   1,
+			PresidentID: 2,
+			JudgeID:     3,
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

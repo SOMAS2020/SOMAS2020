@@ -151,7 +151,6 @@ type giftInfo struct {
 }
 ```
 
-
 ## IIGO
 ### Common Pool
 - Don't contrib. if threshold has been met
@@ -235,8 +234,18 @@ We compare it to the maximum amount that could have been contributed by the aliv
 
 Futhermore, The teams scores will be sorted and ranked.They are sorted using the following function `sort.Slice()` which can store custom types. After sorting the teams, we will compare the new rank with the old one and their indexes(position) to establish which we trust more.
 
+### Estimation
 
-#### Future Works:
+A KDE (kernel density estimation) implementation is used to learn the distribution of random quantities from our experience. These may include learning the distribution of:
+- period, magnitude and spatial distribution for *disasters*
+- sizes of fish/deer in *foraging*. Perhaps also the prevalence - chance of catching. 
+
+Computed KDE estimates for a normal distribution for varying number of (KDE) samples are shown in the plot below. This demonstrates the efficacy of the implementation.
+
+![alt text](assets/kde_plots.png "KDE Plots")
+
+
+### Future Work:
 
 We know that the taxation is a combination of the role's budget and its salary.
 In order to evaluate whether role is corrupt or not, a future implementation would be to evaluate a role based on the combination of their budget and their salary and whether they exceed one third of the total taxation amount. As a matter of fact, the summation of all three budgets and salaries should be less or equal to the total taxation amount contributed into the common pool. In addition, we could later evaluate a role based on their given budget and their cost of action. Whether this role exceeds its budgets and take advantage of the open access to the common pool.
