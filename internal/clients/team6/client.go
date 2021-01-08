@@ -80,9 +80,9 @@ func (c *client) updateConfig() {
 	costOfLiving := c.ServerReadHandle.GetGameConfig().CostOfLiving
 
 	updatedConfig := ClientConfig{
-		minFriendship:          0.0,
-		maxFriendship:          100.0,
-		friendshipChangingRate: 20.0,
+		minFriendship:          c.clientConfig.minFriendship,
+		maxFriendship:          c.clientConfig.maxFriendship,
+		friendshipChangingRate: c.clientConfig.friendshipChangingRate,
 		selfishThreshold:       minThreshold + 3.0*costOfLiving + ourResources/10.0,
 		normalThreshold:        minThreshold + 6.0*costOfLiving + ourResources/10.0,
 		multiplier:             c.clientConfig.multiplier,
