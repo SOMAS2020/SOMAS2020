@@ -13,7 +13,7 @@ type AchievementBarProps = {
   winArr: TeamName[]
 }
 
-const AchievementBar = ({ title, desc, winArr }: AchievementBarProps) => {
+const IndivAchievement = ({ title, desc, winArr }: AchievementBarProps) => {
   return (
     <p>
       {title}: {winArr.join(',')}
@@ -21,24 +21,18 @@ const AchievementBar = ({ title, desc, winArr }: AchievementBarProps) => {
   )
 }
 
-const AcheivementList = (props: { data: OutputJSONType }) => (
-  <div>
-    {acheivementList.map((achievement) => (
-      <AchievementBar
-        key={achievement.title}
-        title={achievement.title}
-        desc={achievement.description}
-        winArr={evaluateMetrics(props.data, achievement)}
-      />
-    ))}
-  </div>
-)
-
 const Achievements = (props: { output: OutputJSONType }) => {
   return (
     <div className={styles.root}>
       <p className={styles.text}>Achievements Visualisation</p>
-      <AcheivementList data={props.output} />
+      {acheivementList.map((achievement) => (
+        <IndivAchievement
+          key={achievement.title}
+          title={achievement.title}
+          desc={achievement.description}
+          winArr={evaluateMetrics(props.output, achievement)}
+        />
+      ))}
     </div>
   )
 }
