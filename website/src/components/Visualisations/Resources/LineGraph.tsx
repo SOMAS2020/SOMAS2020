@@ -24,7 +24,6 @@ import { OutputJSONType } from '../../../consts/types'
 import styles from './Resources.module.css'
 
 const CustomTooltip = ({ active, label, payload }: TooltipProps) => {
-
   return (
     active &&
     label &&
