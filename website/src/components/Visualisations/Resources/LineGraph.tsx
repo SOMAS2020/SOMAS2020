@@ -17,9 +17,34 @@ import {
   Symbols,
   ReferenceLine,
   ReferenceArea,
+  TooltipProps,
 } from 'recharts'
 import _ from 'lodash'
 import { OutputJSONType } from '../../../consts/types'
+import styles from './Resources.module.css'
+
+const CustomTooltip = (props: TooltipProps) => {
+  const { active, label, payload } = props
+
+  return (
+    active &&
+    label &&
+    payload && (
+      <div className={styles.customTooltip}>
+        <p className={styles.label}>{label}</p>
+        {payload.map((pl) => (
+          <p
+            style={{ color: pl.color }}
+            className={styles.content}
+            key={`${pl.name}${pl.value}`}
+          >
+            {pl.name}: {(pl.value as number).toFixed(1)}
+          </p>
+        ))}
+      </div>
+    )
+  )
+}
 
 interface IProps {
   output: OutputJSONType
@@ -53,16 +78,16 @@ class LineRechartComponent extends React.Component<IProps, any> {
     }
   }
 
-  handleClick = (dataKey: any) => {
+  handleClick = (dataKey: string) => {
     this.setState({
       disabled: this.state.disabled.includes(dataKey)
-        ? this.state.disabled.filter((obj: any) => obj !== dataKey)
+        ? this.state.disabled.filter((obj: string) => obj !== dataKey)
         : this.state.disabled.concat(dataKey),
     })
   }
 
   getSeasonEnds() {
-    const seasonEnds: any[] = []
+    const seasonEnds: number[] = []
     let i
     // eslint-disable-next-line no-restricted-syntax
     for (i in this.state.chartData.GameStates) {
@@ -143,7 +168,7 @@ class LineRechartComponent extends React.Component<IProps, any> {
           <YAxis
             label={{ value: 'Resources', angle: -90, position: 'insideLeft' }}
           />
-          <Tooltip />
+          <Tooltip content={CustomTooltip} />
           {this.getSeasonEnds().map((seasonEnd) => (
             <ReferenceLine
               x={seasonEnd}
