@@ -66,6 +66,6 @@ func getClientConfig() ClientConfig {
 		friendshipChangingRate: 20.0,
 		selfishThreshold:       50.0,
 		normalThreshold:        150.0,
-		multiplier:             0.2,
+		multiplier:             0.3,
 	}
 }

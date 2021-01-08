@@ -18,14 +18,14 @@ func (c *client) GetClientSpeakerPointer() roles.Speaker {
 	return &speaker{client: c, BaseSpeaker: &baseclient.BaseSpeaker{}}
 }
 
-// func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
-// 	for fieldName, content := range data {
-// 		switch fieldName {
-// 		case shared.TaxAmount:
-// 			c.config.payingTax = shared.Resources(content.IntegerData)
-// 		} //add sth else
-// 	}
-// }
+func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	for fieldName, content := range data {
+		switch fieldName {
+		case shared.IIGOTaxDecision:
+			c.payingTax = shared.Resources(content.IIGOValueData.Amount)
+		} //add sth else
+	}
+}
 
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	return false

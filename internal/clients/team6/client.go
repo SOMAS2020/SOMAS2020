@@ -32,10 +32,6 @@ func init() {
 	baseclient.RegisterClient(id, NewClient(id))
 }
 
-// ########################
-// ######  General  #######
-// ########################
-
 // NewClient creates a client objects for our island
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
@@ -89,6 +85,7 @@ func (c *client) updateConfig() {
 		friendshipChangingRate: 20.0,
 		selfishThreshold:       minThreshold + 3.0*costOfLiving + ourResources/10.0,
 		normalThreshold:        minThreshold + 6.0*costOfLiving + ourResources/10.0,
+		multiplier:             c.clientConfig.multiplier,
 	}
 
 	c.clientConfig = ClientConfig(updatedConfig)
