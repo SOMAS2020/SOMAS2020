@@ -28,8 +28,8 @@ type GameState struct {
 	// Foraging History
 	ForagingHistory map[shared.ForageType][]foraging.ForagingReport
 
-	// Rules in play
-	CurrentRulesInPlay map[string]rules.RuleMatrix
+	// All global rules information
+	RulesInfo RulesContext
 
 	// IIGO History: indexed by turn
 	IIGOHistory map[uint][]shared.Accountability
@@ -71,7 +71,7 @@ func (g GameState) Copy() GameState {
 	ret.Environment = g.Environment.Copy()
 	ret.DeerPopulation = g.DeerPopulation.Copy()
 	ret.ForagingHistory = copyForagingHistory(g.ForagingHistory)
-	ret.CurrentRulesInPlay = copyRulesInPlay(g.CurrentRulesInPlay)
+	ret.RulesInfo = copyRulesContext(g.RulesInfo)
 	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	ret.IIGOTurnsInPower = copyTurnsInPower(g.IIGOTurnsInPower)
@@ -102,6 +102,7 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		PresidentID:        g.PresidentID,
 		IIGORolesBudget:    copyRolesBudget(g.IIGORolesBudget),
 		IIGOTurnsInPower:   copyTurnsInPower(g.IIGOTurnsInPower),
+		RulesInfo:          copyRulesContext(g.RulesInfo),
 	}
 }
 
@@ -143,10 +144,29 @@ func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]sh
 	return targetMap
 }
 
-func copyRulesInPlay(rulesInPlay map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
+func copyRulesContext(oldContext RulesContext) RulesContext {
+	return RulesContext{
+		VariableMap:        copyVariableMap(oldContext.VariableMap),
+		CurrentRulesInPlay: copyRulesMap(oldContext.CurrentRulesInPlay),
+		AvailableRules:     copyRulesMap(oldContext.AvailableRules),
+	}
+}
+
+func copyRulesMap(rulesMap map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
 	targetMap := make(map[string]rules.RuleMatrix)
-	for key, value := range rulesInPlay {
+	for key, value := range rulesMap {
 		targetMap[key] = copySingleRuleMatrix(value)
+	}
+	return targetMap
+}
+
+func copyVariableMap(varMap map[rules.VariableFieldName]rules.VariableValuePair) map[rules.VariableFieldName]rules.VariableValuePair {
+	targetMap := make(map[rules.VariableFieldName]rules.VariableValuePair)
+	for key, value := range varMap {
+		targetMap[key] = rules.VariableValuePair{
+			VariableName: value.VariableName,
+			Values:       value.Values,
+		}
 	}
 	return targetMap
 }
@@ -231,4 +251,16 @@ type ClientInfo struct {
 func (c ClientInfo) Copy() ClientInfo {
 	ret := c
 	return ret
+}
+
+// RulesContext contains the global rules information at any given time
+type RulesContext struct {
+	// Map of global variable values
+	VariableMap map[rules.VariableFieldName]rules.VariableValuePair
+
+	//Map of All available rules
+	AvailableRules map[string]rules.RuleMatrix
+
+	// Rules Currently In Play
+	CurrentRulesInPlay map[string]rules.RuleMatrix
 }
