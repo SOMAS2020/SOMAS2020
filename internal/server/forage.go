@@ -165,7 +165,7 @@ func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]s
 		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
 			Type:         huntReport.ForageType,
 			Contribution: contribution,
-		}, participantReturn)
+		}, participantReturn, huntReport.NumberCaught)
 	}
 }
 
