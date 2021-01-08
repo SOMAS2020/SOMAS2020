@@ -4,31 +4,37 @@ import { OutputJSONType, Team, GiftResponse } from "../../../../consts/types";
 
 // TODO: transactions can also be with the common pool so they should not be teams - maybe more appropriate to rename entities
 type Transaction = {
-    from: Team,
-    to: Team,
-    amount: number,
-}
+    from: Team;
+    to: Team;
+    amount: number;
+};
 
 // TODO: Decide on node structure (i.e. what determines bubble size)
 // TODO: Extract summary metric for bubble size from transactions[] and islandGifts[]
 type Node = {
-    id: number,
-    magnitude: number,
-    color: string
-}
+    id: number;
+    magnitude: number;
+    color: string;
+};
 
 type Link = {
-    source: number,
-    target: number
-}
+    source: number;
+    target: number;
+};
 
 export const getIIGOTransactions = (data: OutputJSONType) => {
-    let acc: Transaction[] = []
-    let IIGOHistories = Object.entries(data.GameStates[data.GameStates.length - 1].IIGOHistory)
-    IIGOHistories.map(([_, exchanges]: [string, any]) => {
+    let acc: Transaction[] = [];
+
+    // Since IIGOHistories is repeated, take the one from the LAST GameState and
+    // do Object.entries to make it iterable. List of array'ed tuples.
+    let IIGOHistories = Object.entries(
+        data.GameStates[data.GameStates.length - 1].IIGOHistory
+    );
+    // For each of these arrayed tuples, we have [turnNumber: <"pair events">[]]
+    IIGOHistories.forEach(([_, exchanges]) => {
         if (exchanges) {
-            exchanges.map(teamAction => {
-                let type = teamAction.Pairs[0].VariableName
+            exchanges.forEach((teamAction) => {
+                let type = teamAction.Pairs[0].VariableName;
                 let transaction: Transaction;
                 // There are three types of transactions
                 // the target could be the client id depending on the type of team action
@@ -37,39 +43,53 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
                     transaction = {
                         from: Team.CommonPool,
                         to: Team[teamAction.ClientID as keyof typeof Team],
-                        amount: teamAction.Pairs[0].Values[0]
+                        amount: teamAction.Pairs[0].Values[0],
                     };
                 } else {
                     transaction = {
                         from: Team[teamAction.ClientID as keyof typeof Team],
                         to: Team.CommonPool,
-                        amount: teamAction.Pairs[0].Values[0]
+                        amount: teamAction.Pairs[0].Values[0],
                     };
                 }
                 transaction.amount ? acc.push(transaction) : console.log("no bueno");
-            })
+            });
         }
-    })
+    });
     return acc;
-}
+};
 
 // islandGifts should get a list of IITO Transactions that happened in that turn.
 // TODO: Try getting the newly written types to fit these functions
-export const getIITOTransactions = (data: any) => {
-    return data.GameStates.map(turnState => {
+export const getIITOTransactions = (data: OutputJSONType) => {
+    return data.GameStates.map((turnState) => {
+        // Guard to prevent crashing on the first turn where it's undefined
         if (turnState.IITOTransactions) {
-            let thisIslandTransactions =
-                Object.entries(turnState.IITOTransactions).map(([fromTeam, giftResponse]: [any, any], toTeam: Team) => {
-                    return {
-                        from: fromTeam, to: toTeam, amount: giftResponse.AcceptedAmount,
+            // map over the IITO transactions in this turn
+            return Object.entries(turnState.IITOTransactions)
+                .map(
+                    // map over each giftResponseDict for this team's offers
+                    ([toTeam, giftResponseDict]) => {
+                        let transactionsForThisIsland: Transaction[] = [];
+                        // iterate over the giftResponseDict and push Transactions to an accumulator
+                        Object.entries(giftResponseDict).forEach(([fromTeam, response]) => {
+                            if (response) {
+                                transactionsForThisIsland.push({
+                                    from: Team[fromTeam as keyof typeof Team],
+                                    to: Team[toTeam as keyof typeof Team],
+                                    amount: response.AcceptedAmount,
+                                });
+                            }
+                        });
+                        return transactionsForThisIsland
                     }
-                })
-        } else {
-            let arr: Array<Transaction> = []
-            return arr;
-        }
-    })
-}
+                )
+                // fold the island transaction lists together for this turn
+                .reduce((acc, nextLst) => acc.concat(nextLst));
+        } else return [];
+        // fold all turns together once more to get the whole game
+    }).reduce((acc, nextLst) => acc.concat(nextLst));
+};
 
 // TODO: Decide on link representation (do we show all links, do we collate them and use colours or thickness)
 function processTransactionData(data: OutputJSONType) {
