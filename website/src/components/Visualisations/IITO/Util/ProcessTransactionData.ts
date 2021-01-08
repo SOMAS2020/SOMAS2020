@@ -3,7 +3,7 @@ import {
     Node,
     Transaction,
     OutputJSONType,
-    Team,
+    TeamName,
 } from '../../../../consts/types'
 
 export const getIIGOTransactions = (data: OutputJSONType) => {
@@ -25,14 +25,20 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
                 // else accounts for SanctionPaid and IslandTaxContribution
                 if (type === 'IslandAllocation') {
                     transaction = {
-                        from: Team.CommonPool,
-                        to: Team[teamAction.ClientID as keyof typeof Team],
+                        from: TeamName.CommonPool,
+                        to:
+                            TeamName[
+                                teamAction.ClientID as keyof typeof TeamName
+                            ],
                         amount: teamAction.Pairs[0].Values[0],
                     }
                 } else {
                     transaction = {
-                        from: Team[teamAction.ClientID as keyof typeof Team],
-                        to: Team.CommonPool,
+                        from:
+                            TeamName[
+                                teamAction.ClientID as keyof typeof TeamName
+                            ],
+                        to: TeamName.CommonPool,
                         amount: teamAction.Pairs[0].Values[0],
                     }
                 }
@@ -62,12 +68,12 @@ export const getIITOTransactions = (data: OutputJSONType) => {
                                     if (response) {
                                         transactionsForThisIsland.push({
                                             from:
-                                                Team[
-                                                    fromTeam as keyof typeof Team
+                                                TeamName[
+                                                    fromTeam as keyof typeof TeamName
                                                 ],
                                             to:
-                                                Team[
-                                                    toTeam as keyof typeof Team
+                                                TeamName[
+                                                    toTeam as keyof typeof TeamName
                                                 ],
                                             amount: response.AcceptedAmount,
                                         })

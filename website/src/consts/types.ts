@@ -1,7 +1,7 @@
 import outputJSONData from '../output/output.json'
 
 // TODO: what if there are more islands - dynamic typing
-export enum Team {
+export enum TeamName {
     'CommonPool',
     'Team1',
     'Team2',
@@ -13,8 +13,8 @@ export enum Team {
 
 // TODO: transactions can also be with the common pool so they should not be teams - maybe more appropriate to rename entities
 export type Transaction = {
-    from: Team
-    to: Team
+    from: TeamName
+    to: TeamName
     amount: number
 }
 
@@ -50,8 +50,8 @@ type GameStatesType = {
         }
         IITOTransactions:
             | {
-                  [offerTeam in Team]: {
-                      [receiveTeam in Team]?: {
+                  [offerTeam in TeamName]: {
+                      [receiveTeam in TeamName]?: {
                           AcceptedAmount: number
                           Reason: number
                       }
@@ -82,7 +82,7 @@ export type IIGOHistory = {
 }
 
 export type Accountability = {
-    ClientID: Team
+    ClientID: TeamName
     Pairs: VariableValuePair[]
 }
 
