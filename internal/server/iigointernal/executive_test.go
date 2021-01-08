@@ -369,6 +369,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			shared.Speaker:   10,
 			shared.Judge:     10,
 		},
+		IIGORoleMonitoringCache: []shared.Accountability{},
 	}
 	cases := []struct {
 		name       string
