@@ -1842,9 +1842,8 @@ func generateDummyRuleMatrices() []rules.RuleMatrix {
 			name: "tax_decision",
 			reqVar: []rules.VariableFieldName{
 				rules.TaxDecisionMade,
-				rules.IslandTaxContribution,
 			},
-			v:       []float64{1, 0, -1},
+			v:       []float64{1, -1},
 			aux:     []float64{0},
 			mutable: false,
 		},
@@ -1852,9 +1851,8 @@ func generateDummyRuleMatrices() []rules.RuleMatrix {
 			name: "allocation_decision",
 			reqVar: []rules.VariableFieldName{
 				rules.AllocationMade,
-				rules.IslandAllocation,
 			},
-			v:       []float64{1, 0, -1},
+			v:       []float64{1, -1},
 			aux:     []float64{0},
 			mutable: false,
 		},

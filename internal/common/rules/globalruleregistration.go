@@ -457,9 +457,8 @@ func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMa
 			Name: "tax_decision",
 			ReqVar: []VariableFieldName{
 				TaxDecisionMade,
-				IslandTaxContribution,
 			},
-			Values:     []float64{1, 0, -1},
+			Values:     []float64{1, -1},
 			Aux:        []float64{0},
 			Mutable:    false,
 			Linked:     true,
@@ -470,9 +469,8 @@ func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMa
 			Name: "allocation_decision",
 			ReqVar: []VariableFieldName{
 				AllocationMade,
-				IslandAllocation,
 			},
-			Values:     []float64{1, 0, -1},
+			Values:     []float64{1, -1},
 			Aux:        []float64{0},
 			Mutable:    false,
 			Linked:     true,

@@ -712,6 +712,9 @@ func TestReplyAllocationRequest(t *testing.T) {
 			}
 			fakeServer := fakeServerHandle{
 				PresidentID: tc.bPresident.PresidentID,
+				RuleInfo: gamestate.RulesContext{
+					CurrentRulesInPlay: rulesInPlay,
+				},
 			}
 
 			aliveID := []shared.ClientID{}
@@ -853,6 +856,7 @@ func expectedTax(r shared.ResourcesReport) shared.Resources {
 }
 
 func TestBroadcastTaxation(t *testing.T) {
+	rulesInPlay := map[string]rules.RuleMatrix{}
 	var logging shared.Logger = func(format string, a ...interface{}) {}
 	cases := []struct {
 		name          string
@@ -866,6 +870,11 @@ func TestBroadcastTaxation(t *testing.T) {
 				PresidentID:     shared.Team4,
 				clientPresident: &baseclient.BasePresident{},
 				logger:          logging,
+				gameState: &gamestate.GameState{
+					RulesInfo: gamestate.RulesContext{
+						CurrentRulesInPlay: rulesInPlay,
+					},
+				},
 			},
 			clientReports: map[shared.ClientID]shared.ResourcesReport{
 				shared.Team1: {ReportedAmount: 30, Reported: true},
@@ -883,6 +892,11 @@ func TestBroadcastTaxation(t *testing.T) {
 				PresidentID:     shared.Team1,
 				clientPresident: &baseclient.BasePresident{},
 				logger:          logging,
+				gameState: &gamestate.GameState{
+					RulesInfo: gamestate.RulesContext{
+						CurrentRulesInPlay: rulesInPlay,
+					},
+				},
 			},
 			clientReports: map[shared.ClientID]shared.ResourcesReport{
 				shared.Team1: {ReportedAmount: 30, Reported: true},
@@ -895,8 +909,6 @@ func TestBroadcastTaxation(t *testing.T) {
 			commonPool: 150,
 		},
 	}
-
-	rulesInPlay := map[string]rules.RuleMatrix{}
 
 	rules.PullRuleIntoPlayInternal("tax_decision", generateRuleStore(), rulesInPlay)
 	rules.PullRuleIntoPlayInternal("check_taxation_rule", generateRuleStore(), rulesInPlay)
@@ -919,6 +931,9 @@ func TestBroadcastTaxation(t *testing.T) {
 			}
 			fakeServer := fakeServerHandle{
 				PresidentID: tc.bPresident.PresidentID,
+				RuleInfo: gamestate.RulesContext{
+					CurrentRulesInPlay: rulesInPlay,
+				},
 			}
 
 			aliveID := []shared.ClientID{}
@@ -977,6 +992,7 @@ type fakeServerHandle struct {
 	PresidentID shared.ClientID
 	JudgeID     shared.ClientID
 	SpeakerID   shared.ClientID
+	RuleInfo    gamestate.RulesContext
 }
 
 func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
@@ -984,6 +1000,7 @@ func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
 		SpeakerID:   s.SpeakerID,
 		JudgeID:     s.JudgeID,
 		PresidentID: s.PresidentID,
+		RulesInfo:   s.RuleInfo,
 	}
 }
 

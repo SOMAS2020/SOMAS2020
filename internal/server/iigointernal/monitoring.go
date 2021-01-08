@@ -41,7 +41,7 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
 		evaluationResult := false
 		if decideToMonitor {
-			evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
+			evaluationResult = m.evaluateCache(roleToMonitor, m.gameState.RulesInfo.CurrentRulesInPlay)
 		}
 
 		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)

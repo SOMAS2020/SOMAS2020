@@ -114,10 +114,12 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 		}
 	}
 
+	rulesInPlay := j.gameState.RulesInfo.CurrentRulesInPlay
+
 	//Quit early if CP does not have enough resources for historical Retribution
 	if success && !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
 		finalResults = mergeEvaluationReturn(tempResults, finalResults)
-		entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, j.gameState.RulesInfo.VariableMap)
+		entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rulesInPlay, j.gameState.RulesInfo.VariableMap)
 		j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 		j.evaluationResults = finalResults
 		return j.evaluationResults, success
@@ -130,7 +132,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 			//Quit if taking resources goes wrong
 			if success {
 				finalResults = mergeEvaluationReturn(tempResults, finalResults)
-				entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, j.gameState.RulesInfo.VariableMap)
+				entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rulesInPlay, j.gameState.RulesInfo.VariableMap)
 				j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 				j.evaluationResults = finalResults
 				return j.evaluationResults, success
@@ -157,7 +159,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 
 	finalResults = mergeEvaluationReturn(tempResults, finalResults)
-	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, j.gameState.RulesInfo.VariableMap)
+	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rulesInPlay, j.gameState.RulesInfo.VariableMap)
 	j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 	j.evaluationResults = finalResults
 	return j.evaluationResults, success
@@ -276,7 +278,7 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 		broadcastPardonCommunications(j.iigoClients, j.JudgeID, communications, *j.gameState)
 	}
 	j.localSanctionCache = newSanctionMap
-	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay, j.gameConf.AssumedResourcesNoReport)
+	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, j.gameState.RulesInfo.CurrentRulesInPlay, j.gameConf.AssumedResourcesNoReport)
 	j.gameState.IIGOSanctionMap = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
 		communicateWithIslands(j.iigoClients, j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{

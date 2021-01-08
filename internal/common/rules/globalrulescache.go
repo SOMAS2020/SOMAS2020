@@ -5,12 +5,6 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-// AvailableRules is a global cache of all rules that are available to agents
-var AvailableRules = map[string]RuleMatrix{}
-
-// RulesInPlay is a global cache of all rules currently in effect
-var RulesInPlay = map[string]RuleMatrix{}
-
 // RegisterNewRuleInternal provides primal register logic for any rule cache
 func RegisterNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
 	if _, ok := ruleStore[ruleName]; ok {

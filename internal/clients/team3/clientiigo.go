@@ -174,7 +174,7 @@ func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 
 	newRulesInPlay := make(map[string]rules.RuleMatrix)
 
-	for key, value := range rules.RulesInPlay {
+	for key, value := range c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay {
 		if key == matrix.RuleName {
 			newRulesInPlay[key] = matrix
 		} else {
@@ -182,7 +182,7 @@ func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 		}
 	}
 
-	if _, ok := rules.RulesInPlay[matrix.RuleName]; ok {
+	if _, ok := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[matrix.RuleName]; ok {
 		delete(newRulesInPlay, matrix.RuleName)
 	} else {
 		newRulesInPlay[matrix.RuleName] = c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[matrix.RuleName]
@@ -205,13 +205,13 @@ func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 func (c *client) RuleProposal() rules.RuleMatrix {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
-	internalMap := copyRulesMap(rules.RulesInPlay)
+	internalMap := copyRulesMap(c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay)
 	inputMap := c.locationService.TranslateToInputs(c.LocalVariableCache)
 	c.localInputsCache = inputMap
 	shortestSoFar := -2.0
 	selectedRule := ""
 	for key, rule := range c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules {
-		if _, ok := rules.RulesInPlay[key]; !ok {
+		if _, ok := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[key]; !ok {
 			reqInputs := dynamics.SourceRequiredInputs(rule, inputMap)
 			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule, reqInputs)
 			if valid {

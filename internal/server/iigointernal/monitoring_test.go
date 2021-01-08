@@ -102,8 +102,8 @@ func TestEvaluateCache(t *testing.T) {
 	}
 	var logging shared.Logger = func(format string, a ...interface{}) {}
 	ruleStore := registerMonitoringTestRule()
-	tempCache := rules.AvailableRules
-	rules.AvailableRules = ruleStore
+	tempCache, _ := rules.InitialRuleRegistration(false)
+	avail := ruleStore
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			monitoring := &monitor{
@@ -111,7 +111,8 @@ func TestEvaluateCache(t *testing.T) {
 				logger:            logging,
 				gameState: &gamestate.GameState{
 					RulesInfo: gamestate.RulesContext{
-						VariableMap: generateDummyVariableCache(),
+						VariableMap:    generateDummyVariableCache(),
+						AvailableRules: avail,
 					},
 				},
 			}
@@ -121,7 +122,7 @@ func TestEvaluateCache(t *testing.T) {
 			}
 		})
 	}
-	rules.AvailableRules = tempCache
+	avail = tempCache
 }
 
 func TestFindRoleToMonitor(t *testing.T) {

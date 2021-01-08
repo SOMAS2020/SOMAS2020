@@ -144,13 +144,13 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 // with all the rules that are affected by it
 // OPTIONAL
 func (c *BaseClient) CheckCompliance(variable rules.VariableFieldName) bool {
-	rulesAffected, found := rules.PickUpRulesByVariable(variable, rules.RulesInPlay, c.LocalVariableCache)
+	rulesAffected, found := rules.PickUpRulesByVariable(variable, c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay, c.LocalVariableCache)
 	complianceCheck := true
 	if !found {
 		return false
 	}
 	for _, ruleName := range rulesAffected {
-		compliant, err := rules.ComplianceCheck(rules.RulesInPlay[ruleName], c.LocalVariableCache)
+		compliant, err := rules.ComplianceCheck(c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[ruleName], c.LocalVariableCache, c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay)
 		if err != nil {
 			c.Logf("Attempted to evaluate rule, failed with error %v", err)
 			return false
@@ -164,12 +164,12 @@ func (c *BaseClient) CheckCompliance(variable rules.VariableFieldName) bool {
 // a given variable must be to ensure compliance. Recomendations are only made for unlinked rules!
 // OPTIONAL
 func (c *BaseClient) GetRecommendation(variable rules.VariableFieldName) (compliantValue rules.VariableValuePair, success bool) {
-	rulesAffected, found := rules.PickUpRulesByVariable(variable, rules.RulesInPlay, c.LocalVariableCache)
+	rulesAffected, found := rules.PickUpRulesByVariable(variable, c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay, c.LocalVariableCache)
 	if !found {
 		return c.LocalVariableCache[variable], false
 	}
 	for _, ruleName := range rulesAffected {
-		ruleToConsider := rules.RulesInPlay[ruleName]
+		ruleToConsider := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[ruleName]
 		if !ruleToConsider.Link.Linked {
 			newMap, ok := rules.ComplianceRecommendation(ruleToConsider, c.LocalVariableCache)
 			if ok {
