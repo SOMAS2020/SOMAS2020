@@ -30,11 +30,11 @@ func RegisterNewVariableInternal(pair VariableValuePair, variableStore map[Varia
 
 // UpdateVariable Updates variable in global cache with new value
 func UpdateVariable(variableName VariableFieldName, newValue VariableValuePair) bool {
-	return updateVariableInternal(variableName, newValue, VariableMap)
+	return UpdateVariableInternal(variableName, newValue, VariableMap)
 }
 
-// updateVariableInternal provides primal update logic for any variable cache
-func updateVariableInternal(variableName VariableFieldName, newValue VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) bool {
+// UpdateVariableInternal provides primal update logic for any variable cache
+func UpdateVariableInternal(variableName VariableFieldName, newValue VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) bool {
 	if _, ok := variableStore[variableName]; ok {
 		variableStore[variableName] = newValue
 		return true

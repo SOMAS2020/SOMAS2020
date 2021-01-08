@@ -46,11 +46,11 @@ func (j *BaseJudge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo
 		clientID := entry.ClientID
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, j.gameState.CurrentRulesInPlay, j.gameState.VariableMap)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, j.gameState.RulesInfo.VariableMap)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
-			updatedVariable := rules.UpdateVariable(variable.VariableName, variable)
+			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, j.gameState.RulesInfo.VariableMap)
 			if !updatedVariable {
 				return map[shared.ClientID]roles.EvaluationReturn{}, false
 			}

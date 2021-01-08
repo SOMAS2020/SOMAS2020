@@ -22,3 +22,13 @@ func (g *GameState) PullRuleOutOfPlay(rulename string) error {
 func (g *GameState) ModifyRule(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense) error {
 	return rules.ModifyRuleInternal(rulename, newMatrix, newAuxiliary, g.RulesInfo.AvailableRules, g.RulesInfo.CurrentRulesInPlay)
 }
+
+// Variables cache manipulation functions
+
+func (g *GameState) RegisterNewVariable(pair rules.VariableValuePair) error {
+	return rules.RegisterNewVariableInternal(pair, g.RulesInfo.VariableMap)
+}
+
+func (g *GameState) UpdateVariable(variableName rules.VariableFieldName, newValue rules.VariableValuePair) bool {
+	return rules.UpdateVariableInternal(variableName, newValue, g.RulesInfo.VariableMap)
+}
