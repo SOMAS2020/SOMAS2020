@@ -3,10 +3,10 @@ import { Table } from 'react-bootstrap'
 
 import styles from './Artifacts.module.css'
 import outputJSON from '../../output/output.json'
-import { OutputJSONType } from '../../consts/types'
+// import { OutputJSONType } from '../../consts/types'
 
 type Props = {
-  output: OutputJSONType
+  output: typeof outputJSON
   logs: string
 }
 
