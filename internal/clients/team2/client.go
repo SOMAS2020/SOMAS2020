@@ -38,11 +38,11 @@ type Situation string
 // others -> us: GiftWeRequest
 
 const (
-	PresidentOp   Situation = "President"
-	JudgeOp       Situation = "Judge"
-	RoleOpinion   Situation = "RoleOpinion"
-	Foraging      Situation = "Foraging"
-	GiftWeRequest Situation = "Gifts"
+	PresidentOp Situation = "President"
+	JudgeOp     Situation = "Judge"
+	RoleOpinion Situation = "RoleOpinion"
+	Foraging    Situation = "Foraging"
+	Gifts       Situation = "Gifts"
 )
 
 type Opinion struct {

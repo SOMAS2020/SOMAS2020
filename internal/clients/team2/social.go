@@ -180,19 +180,6 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	return pastConfidence
 }
 
-//func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
-//Situation
-func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
-	// Situation
-	// Long term vs short term importance
-	// how much they have gifted in general
-	// their transparency, ethical behaviour as an island (have they shared their foraging predictions, their cp intended contributions, etc)
-	// their empathy level
-	// how they acted during a role
-	// performance (how well they are doing)
-	return 0
-}
-
 func (c *client) updatePresidentTrust() {
 	currPres := c.gameState().PresidentID
 	// Take weighted average of past turns
@@ -260,6 +247,7 @@ func (c *client) updateJudgeTrust() {
 	islandSituationPerf := c.opinionHist[currJudge].Performances["Judge"]
 	islandSituationPerf.real = reality
 	c.opinionHist[currJudge].Performances["Judge"] = islandSituationPerf
+	c.confidenceRestrospect("Judge", currJudge)
 
 }
 
