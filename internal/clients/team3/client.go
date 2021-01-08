@@ -4,7 +4,6 @@ package team3
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -78,7 +77,7 @@ type client struct {
 
 	localInputsCache map[rules.VariableFieldName]dynamics.Input
 	// last sanction score cache to determine wheter or not we have been caugth in the last turn
-	lastSanction roles.IIGOSanctionScore
+	lastSanction shared.IIGOSanctionsScore
 }
 
 type criticalStatePrediction struct {
@@ -154,11 +153,11 @@ type iigoCommunicationInfo struct {
 
 type sanctionInfo struct {
 	// tierInfo provides tiers and sanction score required to get to that tier
-	tierInfo map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+	tierInfo map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore
 	// rulePenalties provides sanction score given for breaking each rule
-	rulePenalties map[string]roles.IIGOSanctionScore
+	rulePenalties map[string]shared.IIGOSanctionsScore
 	// islandSanctions stores sanction tier of each island (but not score)
-	islandSanctions map[shared.ClientID]roles.IIGOSanctionTier
+	islandSanctions map[shared.ClientID]shared.IIGOSanctionsTier
 	// ourSanction is the sanction score for our island
-	ourSanction roles.IIGOSanctionScore
+	ourSanction shared.IIGOSanctionsScore
 }
