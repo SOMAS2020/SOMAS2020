@@ -11,11 +11,10 @@ import (
 )
 
 type monitor struct {
-	judgeID           shared.ClientID
-	speakerID         shared.ClientID
-	presidentID       shared.ClientID
+	gameState         *gamestate.GameState
 	internalIIGOCache []shared.Accountability
 	TermLengths       map[shared.Role]uint
+	iigoClients       map[shared.ClientID]baseclient.Client
 	logger            shared.Logger
 }
 
@@ -36,7 +35,7 @@ func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.
 	}
 }
 
-func (m *monitor) monitorRole(g *gamestate.GameState, roleAccountable baseclient.Client) shared.MonitorResult {
+func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorResult {
 	roleToMonitor, roleName, err := m.findRoleToMonitor(roleAccountable.GetID())
 	if err == nil {
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
@@ -61,9 +60,9 @@ func (m *monitor) monitorRole(g *gamestate.GameState, roleAccountable baseclient
 			m.addToCache(roleAccountable.GetID(), variablesToCache, valuesToCache)
 
 			message := generateMonitoringMessage(roleName, evaluationResult)
-			broadcastToAllIslands(roleAccountable.GetID(), message)
+			broadcastToAllIslands(m.iigoClients, roleAccountable.GetID(), message)
 
-			g.IIGOTurnsInPower[roleName] = m.TermLengths[roleName] + 1
+			m.gameState.IIGOTurnsInPower[roleName] = m.TermLengths[roleName] + 1
 		}
 
 		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}
@@ -102,12 +101,12 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 
 func (m *monitor) findRoleToMonitor(roleAccountable shared.ClientID) (shared.ClientID, shared.Role, error) {
 	switch roleAccountable {
-	case m.speakerID:
-		return m.presidentID, shared.President, nil
-	case m.presidentID:
-		return m.judgeID, shared.Judge, nil
-	case m.judgeID:
-		return m.speakerID, shared.Speaker, nil
+	case m.gameState.SpeakerID:
+		return m.gameState.PresidentID, shared.President, nil
+	case m.gameState.PresidentID:
+		return m.gameState.JudgeID, shared.Judge, nil
+	case m.gameState.JudgeID:
+		return m.gameState.SpeakerID, shared.Speaker, nil
 	default:
 		return shared.ClientID(-1), shared.Speaker, errors.Errorf("Monitoring by island that is not an IIGO Role")
 	}
