@@ -38,11 +38,11 @@ type Situation string
 // others -> us: GiftWeRequest
 
 const (
-	PresidentOp   Situation = "President"
-	JudgeOp       Situation = "Judge"
-	RoleOpinion   Situation = "RoleOpinion"
-	Foraging      Situation = "Foraging"
-	GiftWeRequest Situation = "Gifts"
+	PresidentOp Situation = "President"
+	JudgeOp     Situation = "Judge"
+	RoleOpinion Situation = "RoleOpinion"
+	Foraging    Situation = "Foraging"
+	Gifts       Situation = "Gifts"
 )
 
 type Opinion struct {
@@ -78,6 +78,7 @@ type IslandSanctionInfo struct {
 }
 
 type CommonPoolInfo struct {
+	turn            uint
 	tax             shared.Resources
 	requestedToPres shared.Resources
 	allocatedByPres shared.Resources
@@ -104,8 +105,8 @@ type GiftHist map[shared.ClientID]GiftExchange
 type DisasterHistory map[int]DisasterOccurence
 type IslandSanctions map[shared.ClientID][]IslandSanctionInfo
 type TierLevels map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
-type SanctionHist []IslandSanctionInfo
-type CommonPoolHist map[uint]CommonPoolInfo
+type SanctionHist map[shared.ClientID][]IslandSanctionInfo
+type CommonPoolHist map[shared.ClientID][]CommonPoolInfo
 
 // we have to initialise our client somehow
 type client struct {

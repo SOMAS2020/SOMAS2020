@@ -20,12 +20,20 @@ func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHis
 //determines how much to request from the pool
 // How much we ask the President for
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	totalAlloc := determineAllocation(c)
-
-	if c.gameState().ClientLifeStatuses[c.GetID()] == shared.Critical {
-		return totalAlloc * shared.Resources(1.2)
+	request := determineAllocation(c) * shared.Resources(methodConfPool(c))
+	var commonPool CommonPoolInfo
+	presHist := c.commonPoolHist[c.gameState().PresidentID]
+	if len(presHist) != 0 {
+		presHist[len(presHist)-1].requestedToPres = request
+		presHist[len(presHist)-1].turn = c.gameState().Turn
+	} else {
+		commonPool = CommonPoolInfo{
+			requestedToPres: request,
+			turn:            c.gameState().Turn,
+		}
 	}
-	return totalAlloc * shared.Resources(methodConfPool(c))
+	c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+	return request
 }
 
 //TODO:Update to consider IIGO allocated amount, opinion on pres -> whether we take the allocated amount
@@ -44,16 +52,33 @@ func determineAllocation(c *client) shared.Resources {
 //determines how many resources you actually take - currrently going to take however much we say (playing nicely)
 // How much we request the server (we're given as much as there is in the CP)
 func (c *client) RequestAllocation() shared.Resources {
-
 	totalAlloc := determineAllocation(c)
 
+	request := determineAllocation(c) * shared.Resources(methodConfPool(c))
+
+	//HISTORY STUFF
+	var commonPool CommonPoolInfo
+	presHist := c.commonPoolHist[c.gameState().PresidentID]
+	if len(presHist) != 0 {
+		presHist[len(presHist)-1].takenFromCP = request
+		presHist[len(presHist)-1].turn = c.gameState().Turn
+	} else {
+		commonPool = CommonPoolInfo{
+			takenFromCP: request,
+			turn:        c.gameState().Turn,
+		}
+	}
+	c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+
+	//RULES STUFF
 	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
 		VariableName: rules.IslandAllocation,
 		Values:       []float64{float64(c.gameState().CommonPool)},
 	}
 	allocationPair, success := c.GetRecommendation(rules.IslandAllocation)
 
-	if !success { // when not sure we try to get all the resources from commonpool
+	// when not sure we try to get all the resources from commonpool
+	if !success {
 		return c.gameState().CommonPool
 	}
 
@@ -67,8 +92,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	return determineAllocation(c)*shared.Resources(methodConfPool(c)) + shared.Resources(allocation)
 }
 
-//GetTaxContribution determines how much we put into pool
-func (c *client) GetTaxContribution() shared.Resources {
+func (c *client) calculateContribution() shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
 	Taxmin := determineTax(c)
 	contribution, success := c.GetRecommendation(rules.IslandTaxContribution)
@@ -95,6 +119,14 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 	return shared.Resources(contribution.Values[0])
 
+}
+
+//GetTaxContribution determines how much we put into pool
+func (c *client) GetTaxContribution() shared.Resources {
+	allocation := c.calculateContribution()
+	c.updatePresidentTrust()
+	c.confidenceRestrospect("President", c.gameState().PresidentID)
+	return allocation
 }
 
 //determineTax returns how much tax we have to pay
@@ -282,8 +314,26 @@ func (c *client) GetSanctionPayment() shared.Resources {
 	return 0
 }
 
+func (c *client) ShareIntendedContribution() shared.IntendedContribution {
+	shareWith := make([]shared.ClientID, 0)
+	aliveClients := c.getAliveClients()
+	for _, island := range aliveClients {
+		if c.confidence("Gifts", island) > 30 {
+			shareWith = append(shareWith, island)
+		}
+	}
+	intendedContribution := shared.IntendedContribution{
+		Contribution:   c.calculateContribution(),
+		TeamsOfferedTo: shareWith,
+	}
+	return intendedContribution
+}
+func (c *client) ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict) {
+
+}
+
 //***********HELPER FUNCTIONS************************
-// DELETE FROM FINAL CODE
+// DELETE FROM FINAL CODE BUT NOT YET
 
 // func (c *client) UpdateCache(oldCache map[rules.VariableFieldName]rules.VariableValuePair, newValues map[rules.VariableFieldName]rules.VariableValuePair) map[rules.VariableFieldName]rules.VariableValuePair {
 // 	for key, val := range newValues {
