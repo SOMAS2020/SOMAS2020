@@ -29,7 +29,7 @@ type client struct {
 }
 
 func init() {
-	baseclient.RegisterClient(id, NewClient(id))
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
 // ########################
