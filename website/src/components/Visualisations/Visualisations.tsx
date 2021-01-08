@@ -144,9 +144,9 @@ const Visualisations = () => {
             <p>{warning}</p>
           </Alert>
         )}
-        <Container>
-          <Row className="justify-content-md-center">
-            <Col md="auto">
+        <Container fluid="md">
+          <Row className="justify-content-xl-center">
+            <Col>
               {output ? (
                 <Switch>
                   <Route
