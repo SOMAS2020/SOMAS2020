@@ -126,13 +126,13 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		status := shared.ClientLifeStatus(status)
 		switch {
 		case c.wealth() >= 2: // case we are rich
-			if status == shared.Critical && c.opinions[team].getScore() <= 0 {
+			if status == shared.Critical && c.opinions[team].getScore() <= 0 { //If we have a low opinion we still give something
 				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands) // give an amount to dying islands
-			} else if status == shared.Critical && c.opinions[team].getScore() > 0 {
+			} else if status == shared.Critical && c.opinions[team].getScore() > 0 { //if we have a higher opinion we give more to critical islands
 				offers[team] = shared.GiftOffer(c.config.offertoDyingIslandsWeLike) // give higher amount to dying islands we like
 			}
 		default: //if we are poor
-			if status == shared.Critical && c.opinions[team].getScore() <= 0 {
+			if status == shared.Critical && c.opinions[team].getScore() <= 0 { //if we are poor we halve our gifts to critical islands based on opinion
 				offers[team] = shared.GiftOffer(c.config.offertoDyingIslands / 2) // give an amount to dying islands/2
 			} else if status == shared.Critical && c.opinions[team].getScore() > 0 {
 				offers[team] = shared.GiftOffer(c.config.offertoDyingIslandsWeLike / 2) // give higher amount to dying islands we like/2

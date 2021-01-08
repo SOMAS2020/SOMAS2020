@@ -140,11 +140,7 @@ var (
 	)
 	foragingFishingOutputScaler = flag.Float64(
 		"foragingFishingOutputScaler",
-<<<<<<< HEAD
-		15,
-=======
 		12,
->>>>>>> origin/develop
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(
