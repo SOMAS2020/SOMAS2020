@@ -76,7 +76,13 @@ func (c *client) InitialForage() shared.ForageDecision {
 		forageType = shared.FishForageType // Save money by fishing and hope that we can get some returns
 	case dying:
 		c.lastHopeForage() // Invest all our money into fishing to hope we can get some return
-	default: // Midle class (lets see where the coin takes us)
+	case middleClass: // Midle class (lets see where the coin takes us)
+		if rand.Float64() < 0.50 { // Coin
+			forageType = shared.DeerForageType
+		} else {
+			forageType = shared.FishForageType
+		}
+	default:
 		if rand.Float64() < 0.50 { // Coin
 			forageType = shared.DeerForageType
 		} else {
@@ -327,7 +333,7 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	var shareTo []shared.ClientID
 
-	if c.getTurn() > c.config.InitialForageTurns { // for the turns we are doing intialforage
+	if c.getTurn() > c.config.InitialForageTurns { // for the turns we are doing initial forage
 		for _, FOutcome := range c.forageHistory {
 			for _, returns := range FOutcome { // finds Number of hunters  for each turn
 				for _, team := range c.getAliveTeams(false) {
@@ -363,7 +369,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 		}
 		shareTo = shareToPrevShare
 
-	} else if c.getTurn() > 1 { // share info for all turns not in intial forage
+	} else if c.getTurn() > 1 { // share info for all turns not in initial forage
 		for team, status := range c.gameState().ClientLifeStatuses { // Check the clients that are alive
 			if status != shared.Dead { // if they are not dead then append the shareTo,id
 				shareTo = append(shareTo, team)

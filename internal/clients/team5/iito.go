@@ -73,7 +73,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 						c.config.middleGiftRequestAmount /
 							float64(c.opinions[team].getScore()) *
 							c.config.opinionRequestMultiplier) // Scale down the request if we like them
-				default:
+				case jeffBezos:
 					requests[team] = shared.GiftRequest(0)
 				}
 			} else if c.opinions[team].getScore() < (-c.config.opinionThresholdRequest) { // They are trashy people
@@ -90,7 +90,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 						c.config.middleGiftRequestAmount /
 							float64(c.opinions[team].getScore()) *
 							c.config.opinionRequestMultiplier) // Scale up the request if we dont like them
-				default:
+				case jeffBezos:
 					requests[team] = shared.GiftRequest(0)
 				}
 			} else { // Normal people
@@ -101,7 +101,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 					requests[team] = shared.GiftRequest(c.config.imperialGiftRequestAmount) // No scale
 				case middleClass:
 					requests[team] = shared.GiftRequest(c.config.middleGiftRequestAmount) // No scale
-				default:
+				case jeffBezos:
 					requests[team] = shared.GiftRequest(0)
 				}
 			}

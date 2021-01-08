@@ -63,8 +63,9 @@ func (c client) getMood() float64 {
 		return 2
 	case jeffBezos:
 		return 0.5
+	case middleClass:
+		return 1
 	default:
 		return 1
 	}
-
 }
