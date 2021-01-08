@@ -690,8 +690,10 @@ func TestReplyAllocationRequest(t *testing.T) {
 		},
 	}
 
-	rules.PullRuleIntoPlay("allocation_decision")
-	rules.PullRuleIntoPlay("check_allocation_rule")
+	rulesInPlay := map[string]rules.RuleMatrix{}
+
+	rules.PullRuleIntoPlayInternal("allocation_decision", generateRuleStore(), rulesInPlay)
+	rules.PullRuleIntoPlayInternal("check_allocation_rule", generateRuleStore(), rulesInPlay)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -894,8 +896,10 @@ func TestBroadcastTaxation(t *testing.T) {
 		},
 	}
 
-	rules.PullRuleIntoPlay("tax_decision")
-	rules.PullRuleIntoPlay("check_taxation_rule")
+	rulesInPlay := map[string]rules.RuleMatrix{}
+
+	rules.PullRuleIntoPlayInternal("tax_decision", generateRuleStore(), rulesInPlay)
+	rules.PullRuleIntoPlayInternal("check_taxation_rule", generateRuleStore(), rulesInPlay)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

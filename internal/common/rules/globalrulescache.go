@@ -22,11 +22,6 @@ func RegisterNewRuleInternal(ruleName string, requiredVariables []VariableFieldN
 	return &rm, nil
 }
 
-// PullRuleIntoPlay provides engagement logic for global rules in play cache
-func PullRuleIntoPlay(rulename string) error {
-	return PullRuleIntoPlayInternal(rulename, AvailableRules, RulesInPlay)
-}
-
 // PullRuleIntoPlayInternal provides primal rule engagement logic for any pair of caches
 func PullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {

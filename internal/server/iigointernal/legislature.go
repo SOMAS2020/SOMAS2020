@@ -203,7 +203,7 @@ func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn boo
 	//notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleMatrix)
 	if _, ok := rules.AvailableRules[ruleMatrix.RuleName]; !ok || reflect.DeepEqual(ruleMatrix, rules.AvailableRules[ruleMatrix.RuleName]) { //if the proposed ruleMatrix has the same content as the rule with the same name in AvailableRules, the proposal is for putting a rule in/out of play.
 		if ruleIsVotedIn {
-			err := rules.PullRuleIntoPlay(ruleMatrix.RuleName)
+			err := rules.PullRuleIntoPlayInternal(ruleMatrix.RuleName, l.gameState.RulesInfo.AvailableRules, l.gameState.RulesInfo.CurrentRulesInPlay)
 			if ruleErr, ok := err.(*rules.RuleError); ok {
 				if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
 					return ruleErr
