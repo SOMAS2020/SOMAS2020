@@ -25,7 +25,7 @@ type judiciary struct {
 	localSanctionCache    map[int][]roles.Sanction
 	localHistoryCache     map[int][]shared.Accountability
 	iigoClients           map[shared.ClientID]baseclient.Client
-	monitoring            *monitor
+	monitoring            *shared.Monitor
 	logger                shared.Logger
 }
 

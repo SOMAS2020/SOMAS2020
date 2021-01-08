@@ -90,6 +90,7 @@ func createSOMASServer(
 			SpeakerID:          shared.Team1,
 			JudgeID:            shared.Team2,
 			PresidentID:        shared.Team3,
+			IIGOMonitoring: shared.Monitor{}
 			CommonPool:         gameConfig.InitialCommonPool,
 			CurrentRulesInPlay: rules.RulesInPlay,
 		},
