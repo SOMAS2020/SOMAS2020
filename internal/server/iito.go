@@ -214,6 +214,7 @@ func (s *SOMASServer) getGiftResponses(totalOffers map[shared.ClientID]shared.Gi
 
 // distributeGiftHistory collates all responses to a single client and calls that client to receive its responses.
 func (s *SOMASServer) distributeGiftHistory(totalResponses map[shared.ClientID]shared.GiftResponseDict) map[shared.ClientID]shared.GiftResponseDict {
+	s.updateIITOGameState(totalResponses)
 	responsesToClients := map[shared.ClientID]shared.GiftResponseDict{}
 	for _, id := range getNonDeadClientIDs(s.gameState.ClientInfos) {
 		responsesToThisTeam := shared.GiftResponseDict{}
@@ -291,4 +292,8 @@ func (s *SOMASServer) distributeIntendedContributions(islandPredictionDict share
 		c := s.clientMap[id]
 		c.ReceiveIntendedContribution(reorderDictionary[id])
 	}
+}
+
+func (s *SOMASServer) updateIITOGameState(totalResponses map[shared.ClientID]shared.GiftResponseDict) {
+	s.gameState.IITOTransactions = totalResponses
 }
