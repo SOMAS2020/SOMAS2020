@@ -926,9 +926,8 @@ func TestBroadcastTaxation(t *testing.T) {
 				fakeClientMap[clientID] = newClient
 			}
 
-			//setIIGOClients(&fakeClientMap)
+			tc.bPresident.iigoClients = fakeClientMap
 			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
-
 			tc.bPresident.broadcastTaxation(tc.clientReports, aliveID)
 
 			for clientID, resources := range tc.clientReports {
