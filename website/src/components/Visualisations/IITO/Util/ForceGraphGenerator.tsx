@@ -18,14 +18,15 @@ export default function runForceGraph(
     return { ...d }
   })
 
-  console.log({ links })
-  console.log({ nodes })
-
   const containerRect = container.getBoundingClientRect()
   const { height, width } = containerRect
 
-  const color = (d) => {
-    return d.color
+  const borderColor = (d: Node) => {
+    return d.colorStatus
+  }
+
+  const fillColor = (d: Node) => {
+    return d.islandColor
   }
 
   // size the bubbles by their magnitude
@@ -113,13 +114,13 @@ export default function runForceGraph(
 
   const node = svg
     .append('g')
-    .attr('stroke', '#fff')
-    .attr('strokeWidth', 2)
     .selectAll('circle')
     .data(nodes)
     .join('circle')
     .attr('r', bubbleSize) // this determines the size of the nodes
-    .attr('fill', color)
+    .attr('stroke', borderColor)
+    .attr('strokeWidth', 50)
+    .attr('fill', fillColor)
     .call(drag(simulation))
 
   const label = svg

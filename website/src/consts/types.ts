@@ -23,7 +23,8 @@ export type Transaction = {
 export type Node = {
     id: number
     magnitude: number
-    color: string
+    colorStatus: string
+    islandColor: string
 }
 
 export type Link = {

@@ -16,9 +16,8 @@ const IITO = (props: { output: OutputJSONType }) => {
     <div
       className={styles.root}
       style={{
-        width: '90%',
         border: 'black',
-        borderWidth: '4px',
+        borderWidth: '2px',
         textAlign: 'center',
       }}
     >
