@@ -1,8 +1,17 @@
 import React, { useEffect, useRef } from 'react'
-import { runForceGraph } from './ForceGraphGenerator'
+import runForceGraph from './ForceGraphGenerator'
 import styles from '../IITO.module.css'
+import { Link, Node } from '../../../../consts/types'
 
-const ForceGraph = ({ linksData, nodesData, nodeHoverTooltip }) => {
+const ForceGraph = ({
+  linksData,
+  nodesData,
+  nodeHoverTooltip,
+}: {
+  linksData: Link[]
+  nodesData: Node[]
+  nodeHoverTooltip: any
+}) => {
   const containerRef = useRef(null)
 
   useEffect(() => {
