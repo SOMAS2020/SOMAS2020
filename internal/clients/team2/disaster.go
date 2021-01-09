@@ -102,11 +102,11 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	// Get the time until next disaster prediction and confidence
 	sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, totalTurns)
-	confidenceTimeRemaining := GetTimeRemainingConfidence(totalTurns, sampleMeanX)
+	confidenceTimeRemaining := GetTimeRemainingConfidence(c, totalTurns, sampleMeanX)
 
 	// Get the magnitude prediction and confidence
 	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
-	confidenceMagnitude := GetMagnitudeConfidence(totalTurns, sampleMeanM)
+	confidenceMagnitude := GetMagnitudeConfidence(c, totalTurns, sampleMeanM)
 
 	// Get the overall confidence in these predictions
 	confidencePrediction := GetConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
@@ -169,9 +169,9 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, uint) {
 
 // GetTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is
 // given in the report (can ask Hamish)
-func GetTimeRemainingConfidence(totalTurns float64, sampleMeanX float64) shared.PredictionConfidence {
+func GetTimeRemainingConfidence(c *client, totalTurns float64, sampleMeanX float64) shared.PredictionConfidence {
 	varianceTd := (1 - sampleMeanX) / math.Pow(sampleMeanX, 2)
-	confidence := 100.0 - (100.0 * GetMinMaxFloat(MinVal, varianceTd/(TuningParamK*totalTurns), VarianceCapTimeRemaining) / VarianceCapTimeRemaining)
+	confidence := 100.0 - (100.0 * GetMinMaxFloat(MinVal, varianceTd/(c.config.TuningParamK*totalTurns), c.config.VarianceCapTimeRemaining) / c.config.VarianceCapTimeRemaining)
 	return confidence
 }
 
@@ -191,9 +191,9 @@ func GetMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magn
 
 // GetMagnitudeConfidence returns the confidence in the magnitude prediction. The formula for this confidence is
 // given in the report (can ask Hamish)
-func GetMagnitudeConfidence(totalTurns float64, sampleMeanM float64) shared.PredictionConfidence {
+func GetMagnitudeConfidence(c *client, totalTurns float64, sampleMeanM float64) shared.PredictionConfidence {
 	varianceM := math.Pow(sampleMeanM, 2)
-	confidence := 100.0 - (100.0 * GetMinMaxFloat(MinVal, varianceM/(TuningParamG*totalTurns), VarianceCapMagnitude) / VarianceCapMagnitude)
+	confidence := 100.0 - (100.0 * GetMinMaxFloat(MinVal, varianceM/(c.config.TuningParamG*totalTurns), c.config.VarianceCapMagnitude) / c.config.VarianceCapMagnitude)
 	return confidence
 }
 

@@ -97,7 +97,7 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 			// between -100 and 100
 			percentageDiff = 100 * (situationReal - situationExp) / situationExp
 		}
-		newConf := int(float64(percentageDiff)*ConfidenceRetrospectFactor + float64(situationExp))
+		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
 		updatedHist = append(situationHist, c.setLimits(newConf))
 
 		c.Logf("[appended yuhuuu]:", len(updatedHist))

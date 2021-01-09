@@ -44,10 +44,10 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 		return shared.Resources(0)
 	}
 
-	if ourResources < c.agentThreshold() && shared.Resources(foragingDecisionThreshold) < shared.Resources(ForageDecisionThreshold) {
-		c.Logf("[Our beautiful second]:", (c.agentThreshold()-ourResources)/shared.Resources(SlightRiskForageDivisor))
+	if ourResources < c.agentThreshold() && shared.Resources(foragingDecisionThreshold) < shared.Resources(c.config.ForageDecisionThreshold) {
+		c.Logf("[Our beautiful second]:", (c.agentThreshold()-ourResources)/shared.Resources(c.config.SlightRiskForageDivisor))
 
-		return shared.Resources((c.agentThreshold() - ourResources) / SlightRiskForageDivisor)
+		return shared.Resources((c.agentThreshold() - ourResources) / c.config.SlightRiskForageDivisor)
 	}
 
 	var resourcesForForaging shared.Resources

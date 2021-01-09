@@ -66,11 +66,11 @@ func (c *client) MethodOfPlay() int {
 	currTurn := c.gameState().Turn
 
 	// how many turns at the beginning we cannot free ride for
-	minTurnsUntilFreeRide := NoFreeRideAtStart
+	minTurnsUntilFreeRide := c.config.NoFreeRideAtStart
 	// what factor the common pool must increase by for us to considered free riding
-	freeRide := shared.Resources(SwitchToFreeRideFactor)
+	freeRide := shared.Resources(c.config.SwitchToFreeRideFactor)
 	// what factor the common pool must drop by for us to consider altruist
-	altFactor := SwitchToAltruistFactor
+	altFactor := c.config.SwitchToAltruistFactor
 
 	runMeanCommonPool := shared.Resources(0.0)
 	div := shared.Resources(0.0)
