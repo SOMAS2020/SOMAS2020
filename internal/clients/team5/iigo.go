@@ -35,7 +35,6 @@ func (c *client) RequestAllocation() shared.Resources {
 	allocation := c.calculateRequestCommonPool(currentTier, currentCP)
 
 	c.Logf("Taking %v from common pool", allocation)
-	c.cpAllocationHistory[c.getTurn()] = c.allocation
 	c.Logf("cpAllocationHistory: %v", c.cpAllocationHistory)
 	return allocation
 }
@@ -74,23 +73,30 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 }
 
 func (c *client) calculateRequestCommonPool(currentTier wealthTier, currentCP shared.Resources) (allocation shared.Resources) {
+	allocationMade := c.BaseClient.LocalVariableCache[rules.AllocationMade].Values[0] != 0
+	allocationAmount := shared.Resources(0)
 	if currentTier == imperialStudent || currentTier == dying {
 		if c.config.imperialThreshold < (currentCP / 6) {
-			if (currentCP / 6) > c.allocation {
+			if (currentCP / 6) > allocationAmount {
 				allocation = currentCP / 6
 			} else {
-				allocation = c.allocation
+				allocation = allocationAmount
 			}
 		} else {
 			if c.config.imperialThreshold > c.allocation {
 				allocation = c.config.imperialThreshold
 			} else {
-				allocation = c.allocation
+				allocation = allocationAmount
 			}
 		}
 	} else {
-		allocation = c.allocation
+		if allocationMade {
+			allocation = allocationAmount
+		}
+
 	}
+
+	c.cpAllocationHistory[c.getTurn()] = allocationAmount
 	return allocation
 }
 
