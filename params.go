@@ -346,6 +346,12 @@ var (
 		"Length of the term for the Judge",
 	)
 
+	iigoDefaultSanctionScore = flag.Uint(
+		"iigoDefaultSanctionScore",
+		5,
+		"Default penalty score for breaking a rule",
+	)
+
 	startWithRulesInPlay = flag.Bool(
 		"startWithRulesInPlay",
 		true,
@@ -440,6 +446,7 @@ func parseConfig() (config.Config, error) {
 		InspectBallotActionCost:         shared.Resources(*iigoInspectBallotActionCost),
 		InspectAllocationActionCost:     shared.Resources(*iigoInspectAllocationActionCost),
 		AppointNextPresidentActionCost:  shared.Resources(*iigoAppointNextPresidentActionCost),
+		DefaultSanctionScore:            shared.IIGOSanctionsScore(*iigoDefaultSanctionScore),
 		SanctionCacheDepth:              *iigoSanctionCacheDepth,
 		HistoryCacheDepth:               *iigoHistoryCacheDepth,
 		AssumedResourcesNoReport:        shared.Resources(*iigoAssumedResourcesNoReport),
