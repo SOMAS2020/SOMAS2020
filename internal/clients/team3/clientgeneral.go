@@ -7,7 +7,6 @@ import (
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -51,9 +50,9 @@ func (c *client) StartOfTurn() {
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
 	c.LocalVariableCache = rules.CopyVariableMap(c.ServerReadHandle.GetGameState().RulesInfo.VariableMap)
-	c.ourSpeaker = speaker{c: c, BaseSpeaker: &baseclient.BaseSpeaker{}}
+	c.ourSpeaker = speaker{c: c, BaseSpeaker: &baseclient.BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}}
 	c.ourJudge = judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
-	c.ourPresident = president{c: c, BasePresident: &baseclient.BasePresident{}}
+	c.ourPresident = president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 
 	c.initgiftOpinions()
 
@@ -75,10 +74,10 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 	c.iigoInfo = iigoCommunicationInfo{
 		sanctions: &sanctionInfo{
-			tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
-			rulePenalties:   make(map[string]roles.IIGOSanctionScore),
-			islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
-			ourSanction:     roles.IIGOSanctionScore(0),
+			tierInfo:        make(map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore),
+			rulePenalties:   make(map[string]shared.IIGOSanctionsScore),
+			islandSanctions: make(map[shared.ClientID]shared.IIGOSanctionsTier),
+			ourSanction:     shared.IIGOSanctionsScore(0),
 		},
 	}
 	c.criticalStatePrediction.upperBound = serverReadHandle.GetGameState().ClientInfo.Resources
