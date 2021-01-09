@@ -169,7 +169,7 @@ func (c *client) checkForDisaster() bool {
 	return false
 }
 
-//Determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers or free riders
+//AverageCommonPoolDilemma determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers or free riders
 func AverageCommonPoolDilemma(c *client) shared.Resources {
 	turn := c.gameState().Turn
 	if turn == 1 {
