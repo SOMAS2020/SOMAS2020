@@ -7,6 +7,24 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+// DefaultInitLocalSanctionCache generates a blank sanction cache
+func DefaultInitLocalSanctionCache(depth int) map[int][]shared.Sanction {
+	returnMap := map[int][]shared.Sanction{}
+	for i := 0; i < depth; i++ {
+		returnMap[i] = []shared.Sanction{}
+	}
+	return returnMap
+}
+
+// DefaultInitLocalHistoryCache generates a blank history cache
+func DefaultInitLocalHistoryCache(depth int) map[int][]shared.Accountability {
+	returnMap := map[int][]shared.Accountability{}
+	for i := 0; i < depth; i++ {
+		returnMap[i] = []shared.Accountability{}
+	}
+	return returnMap
+}
+
 func evaluateSanction(sanction rules.RuleMatrix, localVariableCache map[rules.VariableFieldName]rules.VariableValuePair) shared.Resources {
 	reqVar := sanction.RequiredVariables
 	if checkAllRequiredVariablesAreAvailable(reqVar, localVariableCache) {

@@ -68,10 +68,10 @@ func (c *client) resetIIGOInfo() {
 	c.iigoInfo.startOfTurnPresidentID = c.ServerReadHandle.GetGameState().PresidentID
 	c.iigoInfo.startOfTurnSpeakerID = c.ServerReadHandle.GetGameState().SpeakerID
 	c.iigoInfo.sanctions = &sanctionInfo{
-		tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
-		rulePenalties:   make(map[string]roles.IIGOSanctionScore),
-		islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
-		ourSanction:     roles.IIGOSanctionScore(0),
+		tierInfo:        make(map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore),
+		rulePenalties:   make(map[string]shared.IIGOSanctionsScore),
+		islandSanctions: make(map[shared.ClientID]shared.IIGOSanctionsTier),
+		ourSanction:     shared.IIGOSanctionsScore(0),
 	}
 	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
 	c.iigoInfo.ourRequest = 0
@@ -118,12 +118,12 @@ func (c *client) GetTaxContribution() shared.Resources {
 	c.clientPrint("Paying %v in tax", toPay)
 	variablesChanged := map[rules.VariableFieldName]rules.VariableValuePair{
 		rules.IslandTaxContribution: {
-			rules.IslandTaxContribution,
-			[]float64{float64(toPay)},
+			VariableName: rules.IslandTaxContribution,
+			Values:       []float64{float64(toPay)},
 		},
 		rules.ExpectedTaxContribution: {
-			rules.ExpectedTaxContribution,
-			c.LocalVariableCache[rules.ExpectedTaxContribution].Values,
+			VariableName: rules.ExpectedTaxContribution,
+			Values:       c.LocalVariableCache[rules.ExpectedTaxContribution].Values,
 		},
 	}
 	recommendedValues := c.dynamicAssistedResult(variablesChanged)
@@ -132,7 +132,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 		return resolve
 	}
 	if toPay != resolve {
-		affectedRules, success := rules.PickUpRulesByVariable(rules.IslandTaxContribution, rules.RulesInPlay, c.LocalVariableCache)
+		rulesInPlay := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay
+		affectedRules, success := rules.PickUpRulesByVariable(rules.IslandTaxContribution, rulesInPlay, c.LocalVariableCache)
 		if success {
 			c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
 		}
@@ -145,7 +146,7 @@ func (c *client) dynamicAssistedResult(variablesChanged map[rules.VariableFieldN
 	if c.LocalVariableCache != nil {
 		c.LocalVariableCache = c.locationService.UpdateCache(c.LocalVariableCache, variablesChanged)
 		// For testing using available rules
-		return c.locationService.GetRecommendations(variablesChanged, rules.AvailableRules, c.LocalVariableCache)
+		return c.locationService.GetRecommendations(variablesChanged, c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules, c.LocalVariableCache)
 	}
 	return variablesChanged
 }
@@ -175,17 +176,17 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			// Rule sanctions
 			if _, ok := data[shared.IIGOSanctionScore]; ok {
 				// c.clientPrint("Received sanction info: %+v", data)
-				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
 			}
 		case shared.RoleMonitored:
 			c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
 			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
 		case shared.SanctionClientID:
-			c.iigoInfo.sanctions.islandSanctions[shared.ClientID(content.IntegerData)] = roles.IIGOSanctionTier(data[shared.IIGOSanctionTier].IntegerData)
+			c.iigoInfo.sanctions.islandSanctions[shared.ClientID(content.IntegerData)] = shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)
 		case shared.IIGOSanctionTier:
-			c.iigoInfo.sanctions.tierInfo[roles.IIGOSanctionTier(content.IntegerData)] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+			c.iigoInfo.sanctions.tierInfo[shared.IIGOSanctionsTier(content.IntegerData)] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
 		case shared.SanctionAmount:
-			c.iigoInfo.sanctions.ourSanction = roles.IIGOSanctionScore(content.IntegerData)
+			c.iigoInfo.sanctions.ourSanction = shared.IIGOSanctionsScore(content.IntegerData)
 		}
 	}
 }
@@ -194,7 +195,7 @@ func (c *client) VoteForRule(matrix rules.RuleMatrix) shared.RuleVoteType {
 
 	newRulesInPlay := make(map[string]rules.RuleMatrix)
 
-	for key, value := range rules.RulesInPlay {
+	for key, value := range c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay {
 		if key == matrix.RuleName {
 			newRulesInPlay[key] = matrix
 		} else {
@@ -202,15 +203,15 @@ func (c *client) VoteForRule(matrix rules.RuleMatrix) shared.RuleVoteType {
 		}
 	}
 
-	if _, ok := rules.RulesInPlay[matrix.RuleName]; ok {
+	if _, ok := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[matrix.RuleName]; ok {
 		delete(newRulesInPlay, matrix.RuleName)
 	} else {
-		newRulesInPlay[matrix.RuleName] = rules.AvailableRules[matrix.RuleName]
+		newRulesInPlay[matrix.RuleName] = c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[matrix.RuleName]
 	}
 
 	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
-
-	distancetoRulesInPlay := dynamics.CalculateDistanceFromRuleSpace(dynamics.CollapseRuleMap(rules.RulesInPlay), c.locationService.TranslateToInputs(c.LocalVariableCache))
+	rulesInPlay := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay
+	distancetoRulesInPlay := dynamics.CalculateDistanceFromRuleSpace(dynamics.CollapseRuleMap(rulesInPlay), c.locationService.TranslateToInputs(c.LocalVariableCache))
 	distancetoNewRulesInPlay := dynamics.CalculateDistanceFromRuleSpace(dynamics.CollapseRuleMap(newRulesInPlay), c.locationService.TranslateToInputs(c.LocalVariableCache))
 
 	if distancetoRulesInPlay < distancetoNewRulesInPlay {
@@ -223,7 +224,7 @@ func (c *client) VoteForRule(matrix rules.RuleMatrix) shared.RuleVoteType {
 func (c *client) RuleProposal() rules.RuleMatrix {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
-	internalMap := copyRulesMap(rules.RulesInPlay)
+	internalMap := copyRulesMap(c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay)
 	inputMap := c.locationService.TranslateToInputs(c.LocalVariableCache)
 	c.localInputsCache = inputMap
 	shortestSoFar := -2.0
@@ -234,15 +235,15 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 			return newMat
 		}
 	}
-	for key, rule := range rules.AvailableRules {
-		if _, ok := rules.RulesInPlay[key]; !ok {
+	for key, rule := range c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules {
+		if _, ok := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[key]; !ok {
 			reqInputs := dynamics.SourceRequiredInputs(rule, inputMap)
 			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule, reqInputs)
 			if valid {
 				ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
 				distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
 				if distance == -1 {
-					return rules.AvailableRules[key]
+					return c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[key]
 				}
 				if shortestSoFar == -2.0 || shortestSoFar > distance {
 					shortestSoFar = distance
@@ -262,7 +263,7 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 	if selectedRule == "" {
 		selectedRule = "inspect_ballot_rule"
 	}
-	return rules.AvailableRules[selectedRule]
+	return c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[selectedRule]
 }
 
 func (c *client) intelligentShift() (rules.RuleMatrix, bool) {
@@ -271,7 +272,8 @@ func (c *client) intelligentShift() (rules.RuleMatrix, bool) {
 	}
 	luckyRule := c.oldBrokenRules[0]
 	inputMap := c.locationService.TranslateToInputs(c.LocalVariableCache)
-	return dynamics.Shift(rules.RulesInPlay[luckyRule], inputMap)
+	rulesInPlay := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay
+	return dynamics.Shift(rulesInPlay[luckyRule], inputMap)
 }
 
 // RequestAllocation gives how much island is taking from common pool
@@ -299,12 +301,12 @@ func (c *client) RequestAllocation() shared.Resources {
 
 	variablesChanged := map[rules.VariableFieldName]rules.VariableValuePair{
 		rules.IslandAllocation: {
-			rules.IslandAllocation,
-			[]float64{float64(ourAllocation)},
+			VariableName: rules.IslandAllocation,
+			Values:       []float64{float64(ourAllocation)},
 		},
 		rules.ExpectedAllocation: {
-			rules.ExpectedAllocation,
-			c.LocalVariableCache[rules.ExpectedAllocation].Values,
+			VariableName: rules.ExpectedAllocation,
+			Values:       c.LocalVariableCache[rules.ExpectedAllocation].Values,
 		},
 	}
 
@@ -314,7 +316,9 @@ func (c *client) RequestAllocation() shared.Resources {
 		return resolve
 	}
 	if ourAllocation != resolve {
-		affectedRules, success := rules.PickUpRulesByVariable(rules.IslandAllocation, rules.RulesInPlay, c.LocalVariableCache)
+		rulesInPlay := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay
+
+		affectedRules, success := rules.PickUpRulesByVariable(rules.IslandAllocation, rulesInPlay, c.LocalVariableCache)
 		if success {
 			c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
 		}
@@ -352,12 +356,12 @@ func (c *client) GetSanctionPayment() shared.Resources {
 		if available {
 			variablesChanged := map[rules.VariableFieldName]rules.VariableValuePair{
 				rules.SanctionPaid: {
-					rules.SanctionPaid,
-					idealVal,
+					VariableName: rules.SanctionPaid,
+					Values:       idealVal,
 				},
 				rules.SanctionExpected: {
-					rules.SanctionExpected,
-					c.LocalVariableCache[rules.SanctionExpected].Values,
+					VariableName: rules.SanctionExpected,
+					Values:       c.LocalVariableCache[rules.SanctionExpected].Values,
 				},
 			}
 
@@ -367,7 +371,9 @@ func (c *client) GetSanctionPayment() shared.Resources {
 				return resolve
 			}
 			if shared.Resources(idealVal[rules.SingleValueVariableEntry]) != resolve {
-				affectedRules, success := rules.PickUpRulesByVariable(rules.SanctionPaid, rules.RulesInPlay, c.LocalVariableCache)
+				rulesInPlay := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay
+
+				affectedRules, success := rules.PickUpRulesByVariable(rules.SanctionPaid, rulesInPlay, c.LocalVariableCache)
 				if success {
 					c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
 				}
