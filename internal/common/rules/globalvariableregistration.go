@@ -17,7 +17,7 @@ func InitialVarRegistration() map[VariableFieldName]VariableValuePair {
 }
 
 // StaticVariables holds all globally defined variables
-var StaticVariables = []VariableValuePair{
+var StaticVariables = [...]VariableValuePair{
 	{
 		VariableName: NumberOfIslandsContributingToCommonPool,
 		Values:       []float64{5},
