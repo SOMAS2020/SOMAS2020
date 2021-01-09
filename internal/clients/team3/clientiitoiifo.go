@@ -141,7 +141,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		totalCoordinateX += c.trustScore[islandID] * prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateX
 		totalCoordinateY += c.trustScore[islandID] * prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateY
 		totalMagnitude += c.trustScore[islandID] * prediction.PredictionMade.Confidence * prediction.PredictionMade.Magnitude
-		totalTimeLeft += int(math.Round(c.trustScore[islandID]*prediction.PredictionMade.Confidence)) * prediction.PredictionMade.TimeLeft
+		totalTimeLeft += uint(math.Round(c.trustScore[islandID]*prediction.PredictionMade.Confidence)) * prediction.PredictionMade.TimeLeft
 		totalConfidence += c.trustScore[islandID] * prediction.PredictionMade.Confidence
 	}
 
@@ -152,7 +152,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		CoordinateX: totalCoordinateX / totalConfidence,
 		CoordinateY: totalCoordinateY / totalConfidence,
 		Magnitude:   totalMagnitude / totalConfidence,
-		TimeLeft:    int((float64(totalTimeLeft) / totalConfidence) + 0.5),
+		TimeLeft:    uint((float64(totalTimeLeft) / totalConfidence) + 0.5),
 		Confidence:  totalConfidence / numberOfPredictions,
 	})
 

@@ -20,5 +20,6 @@ func getislandParams() islandParams {
 		trustConstantAdjustor:       1,    // arbitrary
 		trustParameter:              0.5,  // 0-1
 		NoRequestGiftParam:          0.25, // 0-1
+		intelligence:                true,
 	}
 }

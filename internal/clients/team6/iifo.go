@@ -24,7 +24,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		CoordinateX: meanDisaster.CoordinateX,
 		CoordinateY: meanDisaster.CoordinateY,
 		Magnitude:   meanDisaster.Magnitude,
-		TimeLeft:    int(meanDisaster.Turn),
+		TimeLeft:    meanDisaster.Turn,
 		Confidence:  determineConfidence(pastDisasters, meanDisaster, 100.0),
 	}
 
@@ -45,7 +45,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	totalCoordinateX := selfConfidence * ourPrediction.CoordinateX
 	totalCoordinateY := selfConfidence * ourPrediction.CoordinateY
 	totalMagnitude := selfConfidence * ourPrediction.Magnitude
-	totalTimeLeft := int(math.Round(selfConfidence)) * ourPrediction.TimeLeft
+	totalTimeLeft := uint(math.Round(selfConfidence)) * ourPrediction.TimeLeft
 	totalConfidence := selfConfidence
 
 	// Add other island's predictions using their confidence values
@@ -53,7 +53,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		totalCoordinateX += c.trustRank[team] * prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateX
 		totalCoordinateY += c.trustRank[team] * prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateY
 		totalMagnitude += c.trustRank[team] * prediction.PredictionMade.Confidence * prediction.PredictionMade.Magnitude
-		totalTimeLeft += int(math.Round(c.trustRank[team]*prediction.PredictionMade.Confidence)) * prediction.PredictionMade.TimeLeft
+		totalTimeLeft += uint(math.Round(c.trustRank[team]*prediction.PredictionMade.Confidence)) * prediction.PredictionMade.TimeLeft
 		totalConfidence += c.trustRank[team] * prediction.PredictionMade.Confidence
 	}
 
@@ -63,7 +63,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		CoordinateX: totalCoordinateX / totalConfidence,
 		CoordinateY: totalCoordinateY / totalConfidence,
 		Magnitude:   totalMagnitude / totalConfidence,
-		TimeLeft:    int((float64(totalTimeLeft) / totalConfidence) + 0.5),
+		TimeLeft:    uint((float64(totalTimeLeft) / totalConfidence) + 0.5),
 		Confidence:  totalConfidence / numberOfPredictions,
 	}
 
