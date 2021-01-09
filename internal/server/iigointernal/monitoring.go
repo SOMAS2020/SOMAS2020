@@ -45,7 +45,7 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 		}
 
 		if !evaluationResult {
-			m.gameState.IIGOTurnsInPower[roleName] = m.config.IIGOConfig.IIGOTermLengths[roleName]
+			m.gameState.IIGOTurnsInPower[roleName] = m.config.IIGOConfig.IIGOTermLengths[roleName] + 1
 		}
 
 		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)
