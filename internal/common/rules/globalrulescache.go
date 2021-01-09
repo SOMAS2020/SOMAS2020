@@ -5,19 +5,8 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-// AvailableRules is a global cache of all rules that are available to agents
-var AvailableRules = map[string]RuleMatrix{}
-
-// RulesInPlay is a global cache of all rules currently in effect
-var RulesInPlay = map[string]RuleMatrix{}
-
-// RegisterNewRule Creates and registers new rule based on inputs
-func RegisterNewRule(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
-	return registerNewRuleInternal(ruleName, requiredVariables, applicableMatrix, auxiliaryVector, AvailableRules, mutable, link)
-}
-
-// registerNewRuleInternal provides primal register logic for any rule cache
-func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
+// RegisterNewRuleInternal provides primal register logic for any rule cache
+func RegisterNewRuleInternal(ruleName string, requiredVariables []VariableFieldName, applicableMatrix mat.Dense, auxiliaryVector mat.VecDense, ruleStore map[string]RuleMatrix, mutable bool, link RuleLink) (constructedMatrix *RuleMatrix, Error error) {
 	if _, ok := ruleStore[ruleName]; ok {
 		return nil, &RuleError{Err: errors.Errorf("Rule '%v' already in rule cache", ruleName), ErrorType: TriedToReRegisterRule}
 	}
@@ -27,13 +16,8 @@ func registerNewRuleInternal(ruleName string, requiredVariables []VariableFieldN
 	return &rm, nil
 }
 
-// PullRuleIntoPlay provides engagement logic for global rules in play cache
-func PullRuleIntoPlay(rulename string) error {
-	return pullRuleIntoPlayInternal(rulename, AvailableRules, RulesInPlay)
-}
-
-// pullRuleIntoPlayInternal provides primal rule engagement logic for any pair of caches
-func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
+// PullRuleIntoPlayInternal provides primal rule engagement logic for any pair of caches
+func PullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
 			return &RuleError{Err: errors.Errorf("Rule '%v' is already in play", rulename), ErrorType: RuleIsAlreadyInPlay}
@@ -48,13 +32,8 @@ func pullRuleIntoPlayInternal(rulename string, allRules map[string]RuleMatrix, p
 	return &RuleError{Err: errors.Errorf("Rule '%v' does not exist in available rules", rulename), ErrorType: RuleNotInAvailableRulesCache}
 }
 
-// PullRuleOutOfPlay provides disengagement logic for global rules in play cache
-func PullRuleOutOfPlay(rulename string) error {
-	return pullRuleOutOfPlayInternal(rulename, AvailableRules, RulesInPlay)
-}
-
-// pullRuleOutOfPlayInternal provides primal rule disengagement logic for any pair of caches
-func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
+// PullRuleOutOfPlayInternal provides primal rule disengagement logic for any pair of caches
+func PullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, playRules map[string]RuleMatrix) error {
 	if _, ok := allRules[rulename]; ok {
 		if _, ok := playRules[rulename]; ok {
 			linkRule, linked := checkLinking(rulename, allRules)
@@ -69,12 +48,7 @@ func pullRuleOutOfPlayInternal(rulename string, allRules map[string]RuleMatrix, 
 	return &RuleError{Err: errors.Errorf("Rule '%v' does not exist in available rules cache", rulename), ErrorType: RuleNotInAvailableRulesCache}
 }
 
-// ModifyRule allows for rules that are flagged as mutable to be modified
-func ModifyRule(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense) error {
-	return modifyRuleInternal(rulename, newMatrix, newAuxiliary, AvailableRules, RulesInPlay)
-}
-
-func modifyRuleInternal(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense, rulesCache map[string]RuleMatrix, inPlayCache map[string]RuleMatrix) error {
+func ModifyRuleInternal(rulename string, newMatrix mat.Dense, newAuxiliary mat.VecDense, rulesCache map[string]RuleMatrix, inPlayCache map[string]RuleMatrix) error {
 	if _, ok := rulesCache[rulename]; ok {
 		oldRuleMatrix := rulesCache[rulename]
 		if !oldRuleMatrix.Mutable {
@@ -120,4 +94,37 @@ func checkLinking(ruleName string, availableRules map[string]RuleMatrix) (string
 		}
 	}
 	return "", false
+}
+
+func CopyRulesMap(rulesMap map[string]RuleMatrix) map[string]RuleMatrix {
+	targetMap := make(map[string]RuleMatrix)
+	for key, value := range rulesMap {
+		targetMap[key] = copySingleRuleMatrix(value)
+	}
+	return targetMap
+}
+
+func copySingleRuleMatrix(inp RuleMatrix) RuleMatrix {
+	return RuleMatrix{
+		RuleName:          inp.RuleName,
+		RequiredVariables: copyRequiredVariables(inp.RequiredVariables),
+		ApplicableMatrix:  *mat.DenseCopyOf(&inp.ApplicableMatrix),
+		AuxiliaryVector:   *mat.VecDenseCopyOf(&inp.AuxiliaryVector),
+		Mutable:           inp.Mutable,
+		Link:              copyLink(inp.Link),
+	}
+}
+
+func copyLink(inp RuleLink) RuleLink {
+	return RuleLink{
+		Linked:     inp.Linked,
+		LinkType:   inp.LinkType,
+		LinkedRule: inp.LinkedRule,
+	}
+}
+
+func copyRequiredVariables(inp []VariableFieldName) []VariableFieldName {
+	targetList := make([]VariableFieldName, len(inp))
+	copy(targetList, inp)
+	return targetList
 }
