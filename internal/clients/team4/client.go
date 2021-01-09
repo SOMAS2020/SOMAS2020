@@ -80,25 +80,10 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 	//custom things below, trust matrix initilised to values of 1
 	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
-	c.internalParam = &internalParameters{agentsTrust: make([]float64, numClient)}
-	iigoObs := &iigoObservation{
-		allocationGranted: shared.Resources(0),
-		taxDemanded:       shared.Resources(0),
-	}
-	iifoObs := &iifoObservation{}
-	iitoObs := &iitoObservation{}
-	c.obs = &observation{
-		iigoObs: iigoObs,
-		iifoObs: iifoObs,
-		iitoObs: iitoObs,
-	}
+	trustVector := make([]float64, numClient)
 
+	c.internalParam.agentsTrust = trustVector
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
-
-	// have some config json file or something?
-	c.internalParam.minPardonTime = 3
-	c.internalParam.maxTierToPardon = shared.SanctionTier3
-	c.internalParam.minTrustToPardon = 0.6
 
 	// numClient := len(shared.TeamIDs)
 	// v := make([]float64, numClient*numClient)

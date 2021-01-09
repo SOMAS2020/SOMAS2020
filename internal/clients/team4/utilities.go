@@ -37,15 +37,48 @@ func (c *client) getTrust(clientID shared.ClientID) float64 {
 }
 
 func newClient(id shared.ClientID, testing *testing.T) client {
-	newClient := client{
-		BaseClient:    baseclient.NewClient(id),
-		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
-		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-		yes:           "",
-		obs:           &observation{},
-		internalParam: &internalParameters{},
-		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
+
+	// have some config json file or something?
+	internalConfig := internalParameters{
+		greediness:       0,
+		selfishness:      0,
+		fairness:         0,
+		collaboration:    0,
+		riskTaking:       0,
+		agentsTrust:      []float64{},
+		minPardonTime:    3,
+		maxTierToPardon:  shared.SanctionTier3,
+		minTrustToPardon: 0.6,
 	}
+
+	iigoObs := iigoObservation{
+		allocationGranted: shared.Resources(0),
+		taxDemanded:       shared.Resources(0),
+	}
+	iifoObs := iifoObservation{}
+	iitoObs := iitoObservation{}
+
+	obs := observation{
+		iigoObs: &iigoObs,
+		iifoObs: &iifoObs,
+		iitoObs: &iitoObs,
+	}
+
+	judgeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
+
+	emptyRuleCache := map[string]rules.RuleMatrix{}
+
+	newClient := client{
+		BaseClient:         baseclient.NewClient(id),
+		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
+		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		yes:                "",
+		obs:                &obs,
+		internalParam:      &internalConfig,
+		idealRulesCachePtr: &emptyRuleCache,
+		savedHistory:       &judgeHistory,
+	}
+
 	newClient.clientJudge.parent = &newClient
 	newClient.clientSpeaker.parent = &newClient
 

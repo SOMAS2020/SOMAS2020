@@ -101,9 +101,10 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
 	pardons := map[int][]bool{}
 
-	minPardonTime := j.parent.internalParam.minPardonTime
-	maxTierToPardon := j.parent.internalParam.maxTierToPardon
-	minTrustToPardon := j.parent.internalParam.minTrustToPardon
+	internalParams := j.parent.internalParam
+	minPardonTime := internalParams.minPardonTime
+	maxTierToPardon := internalParams.maxTierToPardon
+	minTrustToPardon := internalParams.minTrustToPardon
 
 	for turn, sanctions := range currentSanctions {
 		pardons[turn] = make([]bool, len(sanctions))
