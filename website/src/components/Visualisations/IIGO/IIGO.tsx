@@ -1,7 +1,7 @@
-import React from 'react';
-import logo from '../../../assets/logo/logo512.png';
-import styles from './IIGO.module.css';
-import { OutputJSONType } from "../../../consts/types";
+import React from 'react'
+import logo from '../../../assets/logo/logo512.png'
+import styles from './IIGO.module.css'
+import { OutputJSONType } from '../../../consts/types'
 
 const IIGO = (props: { output: OutputJSONType }) => {
   return (
@@ -9,7 +9,7 @@ const IIGO = (props: { output: OutputJSONType }) => {
       <img src={logo} className={styles.appLogo} alt="logo" />
       <p className={styles.text}>IIGO Visualisation</p>
     </div>
-  );
+  )
 }
 
-export default IIGO;
+export default IIGO

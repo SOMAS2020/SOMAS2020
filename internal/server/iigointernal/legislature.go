@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -21,6 +22,7 @@ type legislature struct {
 	ballotBox     voting.BallotBox
 	votingResult  bool
 	clientSpeaker roles.Speaker
+	iigoClients   map[shared.ClientID]baseclient.Client
 	monitoring    *monitor
 	logger        shared.Logger
 }
@@ -118,7 +120,9 @@ func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.Cl
 		return voting.BallotBox{}
 	}
 	l.Logf("Rule vote with islands %v allowed to vote", clientIDs)
-	ruleVote := voting.RuleVote{}
+	ruleVote := voting.RuleVote{
+		Logger: l.logger,
+	}
 
 	//TODO: check if rule is valid, otherwise return empty ballot, raise error?
 	ruleVote.SetRule(ruleMatrix)
@@ -127,7 +131,7 @@ func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.Cl
 	//TODO: check if remaining slice is >0, otherwise return empty ballot, raise error?
 	ruleVote.SetVotingIslands(clientIDs)
 
-	ruleVote.GatherBallots(iigoClients)
+	ruleVote.GatherBallots(l.iigoClients)
 	//TODO: log of vote occurring with ruleMatrix, clientIDs
 	//TODO: log of clientIDs vs islandsAllowedToVote
 	//TODO: log of ruleMatrix vs s.RuleToVote
@@ -162,7 +166,7 @@ func (l *legislature) announceVotingResult() (bool, error) {
 		}
 
 		//Perform announcement
-		broadcastToAllIslands(shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(returnAnnouncement.RuleMatrix, returnAnnouncement.VotingResult))
+		broadcastToAllIslands(l.iigoClients, shared.TeamIDs[l.SpeakerID], generateVotingResultMessage(returnAnnouncement.RuleMatrix, returnAnnouncement.VotingResult), *l.gameState)
 		resultAnnounced = true
 
 		//log rule "must announce what was called"
@@ -199,16 +203,16 @@ func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn boo
 	}
 	//TODO: might want to log the errors as logging messages too?
 	//notInRulesCache := errors.Errorf("Rule '%v' is not available in rules cache", ruleMatrix)
-	if _, ok := rules.AvailableRules[ruleMatrix.RuleName]; !ok || reflect.DeepEqual(ruleMatrix, rules.AvailableRules[ruleMatrix.RuleName]) { //if the proposed ruleMatrix has the same content as the rule with the same name in AvailableRules, the proposal is for putting a rule in/out of play.
+	if _, ok := l.gameState.RulesInfo.AvailableRules[ruleMatrix.RuleName]; !ok || reflect.DeepEqual(ruleMatrix, l.gameState.RulesInfo.AvailableRules[ruleMatrix.RuleName]) { //if the proposed ruleMatrix has the same content as the rule with the same name in AvailableRules, the proposal is for putting a rule in/out of play.
 		if ruleIsVotedIn {
-			err := rules.PullRuleIntoPlay(ruleMatrix.RuleName)
+			err := l.gameState.PullRuleIntoPlay(ruleMatrix.RuleName)
 			if ruleErr, ok := err.(*rules.RuleError); ok {
 				if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
 					return ruleErr
 				}
 			}
 		} else {
-			err := rules.PullRuleOutOfPlay(ruleMatrix.RuleName)
+			err := l.gameState.PullRuleOutOfPlay(ruleMatrix.RuleName)
 			if ruleErr, ok := err.(*rules.RuleError); ok {
 				if ruleErr.Type() == rules.RuleNotInAvailableRulesCache {
 					return ruleErr
@@ -218,7 +222,7 @@ func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn boo
 		}
 	} else { //if the proposed ruleMatrix has different content to the rule with the same name in AvailableRules, the proposal is for modifying the rule in the rule caches. It doesn't put a rule in/out of play.
 		if ruleIsVotedIn {
-			err := rules.ModifyRule(ruleMatrix.RuleName, ruleMatrix.ApplicableMatrix, ruleMatrix.AuxiliaryVector)
+			err := l.gameState.ModifyRule(ruleMatrix.RuleName, ruleMatrix.ApplicableMatrix, ruleMatrix.AuxiliaryVector)
 			return err
 		}
 	}
@@ -229,7 +233,9 @@ func (l *legislature) updateRules(ruleMatrix rules.RuleMatrix, ruleIsVotedIn boo
 
 // appointNextJudge returns the island ID of the island appointed to be Judge in the next turn
 func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJudge shared.ClientID, allIslands []shared.ClientID) (shared.ClientID, error) {
-	var election voting.Election
+	var election = voting.Election{
+		Logger: l.logger,
+	}
 	var appointedJudge shared.ClientID
 	electionSettings := l.clientSpeaker.CallJudgeElection(monitoring, int(l.gameState.IIGOTurnsInPower[shared.Judge]), allIslands)
 
@@ -245,9 +251,9 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 		}
 		election.ProposeElection(shared.Judge, electionSettings.VotingMethod)
 		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
-		election.Vote(iigoClients)
+		election.Vote(l.iigoClients)
 		l.gameState.IIGOTurnsInPower[shared.Judge] = 0
-		electedJudge := election.CloseBallot(iigoClients)
+		electedJudge := election.CloseBallot(l.iigoClients)
 		appointedJudge = l.clientSpeaker.DecideNextJudge(electedJudge)
 
 		//Log rule: Must appoint elected role

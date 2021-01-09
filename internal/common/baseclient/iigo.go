@@ -33,7 +33,7 @@ func (c *BaseClient) ResourceReport() shared.ResourcesReport {
 // is then for modifying the rule's content only, it won't put the rule in/out of
 // play. Only a mutable rule's content can be modified.
 func (c *BaseClient) RuleProposal() rules.RuleMatrix {
-	allRules := rules.AvailableRules
+	allRules := c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules
 	for _, ruleMatrix := range allRules {
 		return ruleMatrix
 	}
@@ -43,19 +43,19 @@ func (c *BaseClient) RuleProposal() rules.RuleMatrix {
 // GetClientPresidentPointer is called by IIGO to get the client's implementation of the President Role
 // COMPULSORY: ovverride to return a pointer to your own President object
 func (c *BaseClient) GetClientPresidentPointer() roles.President {
-	return &BasePresident{}
+	return &BasePresident{GameState: c.ServerReadHandle.GetGameState()}
 }
 
 // GetClientJudgePointer is called by IIGO to get the client's implementation of the Judge Role
 // COMPULSORY: ovverride to return a pointer to your own Judge object
 func (c *BaseClient) GetClientJudgePointer() roles.Judge {
-	return &BaseJudge{}
+	return &BaseJudge{GameState: c.ServerReadHandle.GetGameState()}
 }
 
 // GetClientSpeakerPointer is called by IIGO to get the client's implementation of the Speaker Role
 // COMPULSORY: ovverride to return a pointer to your own Speaker object
 func (c *BaseClient) GetClientSpeakerPointer() roles.Speaker {
-	return &BaseSpeaker{}
+	return &BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}
 }
 
 // GetTaxContribution gives value of how much the island wants to pay in taxes
@@ -144,13 +144,13 @@ func (c *BaseClient) RequestAllocation() shared.Resources {
 // with all the rules that are affected by it
 // OPTIONAL
 func (c *BaseClient) CheckCompliance(variable rules.VariableFieldName) bool {
-	rulesAffected, found := rules.PickUpRulesByVariable(variable, rules.RulesInPlay, c.LocalVariableCache)
+	rulesAffected, found := rules.PickUpRulesByVariable(variable, c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay, c.LocalVariableCache)
 	complianceCheck := true
 	if !found {
 		return false
 	}
 	for _, ruleName := range rulesAffected {
-		compliant, err := rules.ComplianceCheck(rules.RulesInPlay[ruleName], c.LocalVariableCache)
+		compliant, err := rules.ComplianceCheck(c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[ruleName], c.LocalVariableCache, c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay)
 		if err != nil {
 			c.Logf("Attempted to evaluate rule, failed with error %v", err)
 			return false
@@ -164,12 +164,12 @@ func (c *BaseClient) CheckCompliance(variable rules.VariableFieldName) bool {
 // a given variable must be to ensure compliance. Recomendations are only made for unlinked rules!
 // OPTIONAL
 func (c *BaseClient) GetRecommendation(variable rules.VariableFieldName) (compliantValue rules.VariableValuePair, success bool) {
-	rulesAffected, found := rules.PickUpRulesByVariable(variable, rules.RulesInPlay, c.LocalVariableCache)
+	rulesAffected, found := rules.PickUpRulesByVariable(variable, c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay, c.LocalVariableCache)
 	if !found {
 		return c.LocalVariableCache[variable], false
 	}
 	for _, ruleName := range rulesAffected {
-		ruleToConsider := rules.RulesInPlay[ruleName]
+		ruleToConsider := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[ruleName]
 		if !ruleToConsider.Link.Linked {
 			newMap, ok := rules.ComplianceRecommendation(ruleToConsider, c.LocalVariableCache)
 			if ok {
