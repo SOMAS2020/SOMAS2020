@@ -7,12 +7,12 @@ import (
 
 // ComplianceCheck Gives a simple check for compliance to clients, they just need to feed in a RuleMatrix and the
 // variable cache they want to feed from
-func ComplianceCheck(rule RuleMatrix, variables map[VariableFieldName]VariableValuePair) (compliant bool, ruleError error) {
+func ComplianceCheck(rule RuleMatrix, variables map[VariableFieldName]VariableValuePair, inPlayRules map[string]RuleMatrix) (compliant bool, ruleError error) {
 	if checkAllVariablesAvailable(rule.RequiredVariables, variables) {
 		ruleCache := map[string]RuleMatrix{}
 		ruleCache[rule.RuleName] = rule
 		if rule.Link.Linked {
-			ruleCache[rule.Link.LinkedRule] = RulesInPlay[rule.Link.LinkedRule]
+			ruleCache[rule.Link.LinkedRule] = inPlayRules[rule.Link.LinkedRule]
 		}
 		evalResult := EvaluateRuleFromCaches(rule.RuleName, ruleCache, variables)
 		return evalResult.RulePasses, evalResult.EvalError
@@ -119,7 +119,7 @@ func fetchRequiredVariables(reqVariables []VariableFieldName, variables map[Vari
 	for _, variable := range reqVariables {
 		if value, ok := variables[variable]; ok {
 			finalSlice = append(finalSlice, value.Values...)
-			returnFix = append(returnFix, generateBoolList(IsChangeable[variable], len(value.Values))...)
+			returnFix = append(returnFix, generateBoolList(IsChangeable()[variable], len(value.Values))...)
 		} else {
 			return finalSlice, returnFix, false
 		}
@@ -147,31 +147,33 @@ func generateBoolList(initial bool, length int) []bool {
 	return finalList
 }
 
-var IsChangeable = map[VariableFieldName]bool{
-	NumberOfIslandsContributingToCommonPool: false,
-	NumberOfFailedForages:                   false,
-	NumberOfBrokenAgreements:                false,
-	MaxSeverityOfSanctions:                  false,
-	NumberOfIslandsAlive:                    false,
-	NumberOfBallotsCast:                     false,
-	NumberOfAllocationsSent:                 false,
-	AllocationRequestsMade:                  false,
-	AllocationMade:                          false,
-	IslandsAlive:                            false,
-	SpeakerSalary:                           true,
-	JudgeSalary:                             true,
-	PresidentSalary:                         true,
-	RuleSelected:                            false,
-	VoteCalled:                              false,
-	ExpectedTaxContribution:                 false,
-	ExpectedAllocation:                      false,
-	IslandTaxContribution:                   true,
-	IslandAllocation:                        true,
-	IslandReportedResources:                 false,
-	ConstSanctionAmount:                     false,
-	TurnsLeftOnSanction:                     false,
-	SanctionPaid:                            true,
-	SanctionExpected:                        false,
-	TestVariable:                            false,
-	JudgeInspectionPerformed:                false,
+func IsChangeable() map[VariableFieldName]bool {
+	return map[VariableFieldName]bool{
+		NumberOfIslandsContributingToCommonPool: false,
+		NumberOfFailedForages:                   false,
+		NumberOfBrokenAgreements:                false,
+		MaxSeverityOfSanctions:                  false,
+		NumberOfIslandsAlive:                    false,
+		NumberOfBallotsCast:                     false,
+		NumberOfAllocationsSent:                 false,
+		AllocationRequestsMade:                  false,
+		AllocationMade:                          false,
+		IslandsAlive:                            false,
+		SpeakerSalary:                           true,
+		JudgeSalary:                             true,
+		PresidentSalary:                         true,
+		RuleSelected:                            false,
+		VoteCalled:                              false,
+		ExpectedTaxContribution:                 false,
+		ExpectedAllocation:                      false,
+		IslandTaxContribution:                   true,
+		IslandAllocation:                        true,
+		IslandReportedResources:                 false,
+		ConstSanctionAmount:                     false,
+		TurnsLeftOnSanction:                     false,
+		SanctionPaid:                            true,
+		SanctionExpected:                        false,
+		TestVariable:                            false,
+		JudgeInspectionPerformed:                false,
+	}
 }
