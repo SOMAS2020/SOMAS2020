@@ -8,6 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
+import { teamColors } from '../utils'
 import styles from './Roles.module.css'
 
 import { ProcessedRoleData, TeamAndTurns, RoleName } from './Util/RoleTypes'
@@ -19,10 +20,9 @@ type CustomTooltipProps = {
   payload: [{ name: string; value: number; unit: string }]
   label: string
   data: ProcessedRoleData
-  colors: Map<string, string>
 }
 
-const CustomTooltip = ({ active, label, data, colors }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, label, data }: CustomTooltipProps) => {
   const getTurnsAsTeams = (role: RoleName): TeamAndTurns =>
     data
       .find((elem) => elem.role === role)
@@ -45,10 +45,12 @@ const CustomTooltip = ({ active, label, data, colors }: CustomTooltipProps) => {
           <p
             className={styles.content}
             key={team}
-            style={{ color: colors.get(team) }}
+            style={{ color: teamColors.get(team) }}
           >
-            Turns as {team}: {turns} ({((turns * 100) / totalTurns).toFixed(1)}
-            %)
+            {`Turns as ${team}: ${turns} (${(
+              (turns * 100) /
+              totalTurns
+            ).toFixed(1)} %)`}
           </p>
         ))}
       </div>
@@ -66,15 +68,6 @@ const Roles = (props: { output: OutputJSONType }) => {
   }, [props.output])
 
   const teams = ['Team1', 'Team2', 'Team3', 'Team4', 'Team5', 'Team6']
-  const colors = new Map([
-    ['Team1', '#0095FF'],
-    ['Team2', '#FF0000'],
-    ['Team3', '#802FF0'],
-    ['Team4', '#00C49F'],
-    ['Team5', '#FFBB28'],
-    ['Team6', '#FF8042'],
-  ])
-
   return (
     <div className={styles.root}>
       <p className={styles.text}>Role Visualisation</p>
@@ -88,9 +81,7 @@ const Roles = (props: { output: OutputJSONType }) => {
             allowDecimals={false}
           />
           <Tooltip
-            content={(p: CustomTooltipProps) =>
-              CustomTooltip({ ...p, data, colors })
-            }
+            content={(p: CustomTooltipProps) => CustomTooltip({ ...p, data })}
           />
           <Legend
             verticalAlign="top"
@@ -98,7 +89,7 @@ const Roles = (props: { output: OutputJSONType }) => {
               value: team,
               type: 'square',
               id: `${team}${i}`,
-              color: colors.get(team),
+              color: teamColors.get(team),
             }))}
           />
           {data[0].occupied.map((a, i) => [
@@ -106,7 +97,7 @@ const Roles = (props: { output: OutputJSONType }) => {
               <Bar
                 dataKey={`occupied[${i}].${team}`}
                 stackId="a"
-                fill={colors.get(team)}
+                fill={teamColors.get(team)}
                 key={`${i.toString()}${team}`}
               />
             )),
