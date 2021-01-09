@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import runForceGraph from './ForceGraphGenerator'
-import styles from '../IITO.module.css'
+import styles from '../Transactions.module.css'
 
 // TODO: Extract summary metric for bubble size from transactions[] and islandGifts[]
 // TODO: might be cool to have max and min resources of each entity as a summary metric in the tooltip

@@ -1,7 +1,7 @@
 // @ts-nocheck
 // TypeScript does not work nicely at all with d3 so need to come back and fix these
 import * as d3 from 'd3'
-import styles from '../IITO.module.css'
+import styles from '../Transactions.module.css'
 import { Link, Node } from './ForceGraph'
 
 export default function runForceGraph(
