@@ -97,7 +97,7 @@ type client struct {
 	config clientConfig
 }
 
-func DefaultConfig() clientConfig {
+func defaultConfig() clientConfig {
 	return clientConfig{
 		randomForageTurns:              0,
 		anxietyThreshold:               20,
@@ -111,10 +111,11 @@ func DefaultConfig() clientConfig {
 	}
 }
 
+// NewClient cause we have to
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
 		BaseClient: baseclient.NewClient(clientID),
-		config:     DefaultConfig(),
+		config:     defaultConfig(),
 
 		forageHistory:     ForageHistory{},
 		reportedResources: map[shared.ClientID]bool{},

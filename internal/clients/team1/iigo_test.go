@@ -17,8 +17,8 @@ func TestStealsResourcesWhenDesperate(t *testing.T) {
 		RulesInfo: gamestate.RulesContext{
 			VariableMap: map[rules.VariableFieldName]rules.VariableValuePair{
 				rules.ExpectedAllocation: {
-					rules.ExpectedAllocation,
-					[]float64{0},
+					VariableName: rules.ExpectedAllocation,
+					Values:       []float64{0},
 				},
 			},
 			AvailableRules:     availableRules,
