@@ -3,21 +3,10 @@ package team1
 import (
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
-
-type mockGetRecommendation struct {
-	success bool
-}
-
-func (c *mockGetRecommendation) GetRecommendation(variable rules.VariableFieldName) (compliantValue rules.VariableValuePair, success bool) {
-	c.success = true
-	return rules.MakeVariableValuePair(variable, []float64{0}), c.success
-}
 
 func TestStealsResourcesWhenDesperate(t *testing.T) {
 	c := MakeTestClient(gamestate.ClientGameState{
