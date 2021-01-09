@@ -43,16 +43,34 @@ func (c *client) GetClientPresidentPointer() roles.President {
 }
 
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
-	candidates := map[int]shared.ClientID{}
-	for i := 0; i < len(candidateList); i++ {
-		candidates[i] = candidateList[i]
-	}
-	// Recombine map, in shuffled order
+	// Vote based on trust, rank on trust
+	candidateNum := len(candidateList)
 	var returnList []shared.ClientID
-	for _, v := range candidates {
-		returnList = append(returnList, v)
+	highscore := 0.0
+	var highscoreIsland shared.ClientID
+
+	for i := 0; i < candidateNum; i++ {
+		// Find current top scorer from non voted for islands
+		for _, island := range candidateList {
+			if c.trustScore[island] > highscore {
+				// Check if already in return list
+				present := false
+				for _, votedIsland := range returnList {
+					if island == votedIsland {
+						present = true
+					}
+				}
+				if !present {
+					highscoreIsland = island
+				}
+			}
+		}
+		returnList = append(returnList, highscoreIsland)
 	}
+
+	// TODO Vote based on performance
 	return returnList
+
 }
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
@@ -73,8 +91,6 @@ func (c *client) resetIIGOInfo() {
 		ourSanction:     shared.IIGOSanctionsScore(0),
 	}
 	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
-	c.iigoInfo.ourRequest = 0
-	c.iigoInfo.ourDeclaredResources = 0
 }
 
 func (c *client) getOurRole() string {
@@ -157,13 +173,14 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	for contentType, content := range data {
 		switch contentType {
 		case shared.IIGOTaxDecision:
-			c.iigoInfo.taxationAmount = shared.Resources(content.IntegerData)
+			c.iigoInfo.taxationAmount = content.IIGOValueData.Amount
 		case shared.IIGOAllocationDecision:
-			c.iigoInfo.commonPoolAllocation = shared.Resources(content.IntegerData)
+			c.iigoInfo.commonPoolAllocation = content.IIGOValueData.Amount
 		case shared.RuleName:
-			currentRuleID := content.TextData
+
 			// Rule voting
 			if _, ok := data[shared.RuleVoteResult]; ok {
+				currentRuleID := content.RuleMatrixData.RuleName
 				if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
 					c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
 					c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
@@ -173,7 +190,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			}
 			// Rule sanctions
 			if _, ok := data[shared.IIGOSanctionScore]; ok {
-				// c.clientPrint("Received sanction info: %+v", data)
+				currentRuleID := content.TextData
 				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
 			}
 		case shared.RoleMonitored:
@@ -184,6 +201,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		case shared.IIGOSanctionTier:
 			c.iigoInfo.sanctions.tierInfo[shared.IIGOSanctionsTier(content.IntegerData)] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
 		case shared.SanctionAmount:
+			c.clientPrint("Got our sanction :( %+v", content)
 			c.iigoInfo.sanctions.ourSanction = shared.IIGOSanctionsScore(content.IntegerData)
 		}
 	}

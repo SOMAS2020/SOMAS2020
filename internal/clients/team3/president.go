@@ -63,7 +63,7 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 
 	for island, req := range resourceRequest {
 		sumRequest += float64(req)
-		resources[island] = shared.Resources(float64(p.c.declaredResources[island]) * math.Pow(resourceSkew, (100-p.c.trustScore[island]/100)))
+		resources[island] = shared.Resources(float64(p.c.declaredResources[island]) * math.Pow(resourceSkew, ((100-p.c.trustScore[island])/100)))
 	}
 
 	p.c.clientPrint("Resource requests: %+v\n", resourceRequest)

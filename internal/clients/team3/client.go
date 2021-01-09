@@ -136,10 +136,6 @@ type iigoCommunicationInfo struct {
 
 	// ruleVotingResults is a map of rules and the corresponding info
 	ruleVotingResults map[string]*ruleVoteInfo
-	// ourRequest stores how much we requested from commonpool
-	ourRequest shared.Resources
-	// ourDeclaredResources stores how much we said we had to the president
-	ourDeclaredResources shared.Resources
 }
 
 type sanctionInfo struct {
