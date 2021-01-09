@@ -61,11 +61,11 @@ func (c *client) getNumAliveClients() int {
 }
 
 // MethodOfPlay determines which state we are in: 0=altruist, 1=fair sharer and 2= free rider
+// TODO: empathy levels are being used incorrectly here
 func (c *client) MethodOfPlay() int {
 	currTurn := c.gameState().Turn
 
 	// how many turns at the beginning we cannot free ride for
-	// TODO: This shouldn't be a float64 it should be a uint
 	minTurnsUntilFreeRide := NoFreeRideAtStart
 	// what factor the common pool must increase by for us to considered free riding
 	freeRide := shared.Resources(SwitchToFreeRideFactor)

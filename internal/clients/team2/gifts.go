@@ -31,7 +31,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 	// check our critical and threshold - if either is off - request
 	ourAgentCritical := shared.Critical == shared.ClientLifeStatus(1)
-	requestAmount := determineAllocation(c) * methodConfGift(c)
+	requestAmount := c.determineBaseCommonPoolRequest() * methodConfGift(c)
 
 	// confidence[island] * requestAmount until -> target
 	if ourAgentCritical || requestAmount > 0 {

@@ -5,56 +5,94 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// CommonPoolUpdate Records history of common pool levels
+// Updates Common Pool History with current Common Pool Level
+// TODO: this is never used
 func CommonPoolUpdate(c *client, commonPoolHistory CommonPoolHistory) {
-	currentPool := c.gameState().CommonPool
-	c.commonPoolHistory[c.gameState().Turn] = currentPool
+	c.commonPoolHistory[c.gameState().Turn] = c.gameState().CommonPool
+	c.Logf("Common Pool History updated: ", commonPoolHistory)
 }
 
-// Records our resources level each turn
-func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHistory) {
-	currentLevel := c.gameState().ClientInfo.Resources
-	c.resourceLevelHistory[c.gameState().Turn] = currentLevel
+// Updates Resource Level History with our current resource Level
+// TODO: this is never used
+func resourceHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHistory) {
+	c.resourceLevelHistory[c.gameState().Turn] = c.gameState().ClientInfo.Resources
+	c.Logf("Resource Level History updated: ", resourceLevelHistory)
 }
 
-// How much we ask the President for from pool
-func (c *client) CommonPoolResourceRequest() shared.Resources {
-	request := determineAllocation(c) * methodConfPool(c)
+// type CommonPoolInfo struct {
+// 	turn            uint
+// 	tax             shared.Resources
+// 	requestedToPres shared.Resources
+// 	allocatedByPres shared.Resources
+// 	takenFromCP     shared.Resources
+// }
+// TODO: this does not match - you are leaving half the values empty each time you access it
+// Updates Pres Common Pool History with current resource request
+func (c *client) presCommonPoolUpdate(request shared.Resources) {
 	var commonPool CommonPoolInfo
-
 	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
 		c.presCommonPoolHist[c.gameState().PresidentID] = make([]CommonPoolInfo, 0)
+		c.Logf("Initialised presCommonPoolHist", c.presCommonPoolHist)
 	} else {
 		presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 		if presHist[len(presHist)-1].turn == c.gameState().Turn {
 			commonPool = presHist[len(presHist)-1]
+			commonPool.turn = c.gameState().Turn
+			commonPool.requestedToPres = request
+			c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+			c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 		}
 	}
-	presHist := c.presCommonPoolHist[c.gameState().PresidentID]
-	commonPool.requestedToPres = request
-	commonPool.turn = c.gameState().Turn
-	c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+}
+
+// If we are critical request the full threshold to shift us back to security
+// If our current resources are below the threshold request enough to reach the threshold
+// If our resources are above the threshold request the tax
+// So we can pay our tax for at least one turn (we may be granted less)
+func (c *client) determineBaseCommonPoolRequest() shared.Resources {
+	currResources := c.gameState().ClientInfo.Resources
+	if c.criticalStatus() {
+		c.Logf("Critical status! Set base request to agent threshold: ", c.agentThreshold())
+		return c.agentThreshold()
+	} else if currResources < c.agentThreshold() {
+		c.Logf("Resources Low! Make up resources to reach agent threshold")
+		return (c.agentThreshold() - currResources)
+	} else {
+		c.Logf("Resources Ok! Request tax amount from Common Pool: ", c.taxAmount)
+		return c.taxAmount
+	}
+}
+
+// Returns a resource request to ask the President for from the common pool
+// of type shared.Resources and updates presCommonPoolHist
+func (c *client) CommonPoolResourceRequest() shared.Resources {
+	request := c.determineBaseCommonPoolRequest() * methodConfPool(c)
+	// TODO: code is logging both requests in the common pool but one is the request
+	// TODO: and the other is when it actually happens (in RequestAllocation)
+	// TODO: should probably only log one
+	c.presCommonPoolUpdate(request)
 
 	return request
 }
 
-//Determines how many resources we want to obtain this round through the pool
-func determineAllocation(c *client) shared.Resources {
-	ourResources := c.gameState().ClientInfo.Resources
-	if c.criticalStatus() {
-		return c.agentThreshold()
-	}
-	if c.gameState().ClientInfo.Resources < c.agentThreshold() {
-		return (c.agentThreshold() - ourResources)
-	}
-	return 0
-}
+// type CommonPoolInfo struct {
+// 	turn            uint
+// 	tax             shared.Resources
+// 	requestedToPres shared.Resources
+// 	allocatedByPres shared.Resources
+// 	takenFromCP     shared.Resources
+// }
+// TODO: this does not match - you are leaving half the values empty each time you access it
 
-//determines how many resources you actually take
+// Determines how many resources you actually take
 func (c *client) RequestAllocation() shared.Resources {
-	request := determineAllocation(c) * shared.Resources(methodConfPool(c))
+	request := c.determineBaseCommonPoolRequest() * methodConfPool(c)
+	c.presCommonPoolUpdate(request)
+
+	// This was using outdated logic without error handling
 	var commonPool CommonPoolInfo
 	presHist := c.presCommonPoolHist[c.gameState().PresidentID]
+
 	if len(presHist) != 0 {
 		presHist[len(presHist)-1].takenFromCP = request
 		presHist[len(presHist)-1].turn = c.gameState().Turn
@@ -64,11 +102,14 @@ func (c *client) RequestAllocation() shared.Resources {
 			turn:        c.gameState().Turn,
 		}
 	}
-	// TODO: same bug here
+
+	// TODO: same bug here -> also appending incomplete objects
 	c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+
 	if c.criticalStatus() && c.commonPoolAllocation < request {
 		return request
 	}
+
 	return c.commonPoolAllocation
 }
 
@@ -97,13 +138,16 @@ func (c *client) calculateContribution() shared.Resources {
 // GetTaxContribution determines how much we put into pool
 func (c *client) GetTaxContribution() shared.Resources {
 	contribution := c.calculateContribution()
+
 	c.updatePresidentTrust()
 	c.confidenceRestrospect("President", c.gameState().PresidentID)
+
 	return contribution
 }
 
 func (c *client) calculateDisasterMagPred() float64 {
 	turn := c.gameState().Turn
+
 	// If we know the common pool threshold
 	if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid {
 		return float64(c.gameConfig().DisasterConfig.CommonpoolThreshold.Value) / float64(c.getNumAliveClients())
@@ -113,6 +157,7 @@ func (c *client) calculateDisasterMagPred() float64 {
 	} else {
 		sampleMeanMag, magnitudePrediction := GetMagnitudePrediction(c, float64(turn))
 
+		// TODO: why are we accessing the first value here???
 		baseThreshold := float64(c.resourceLevelHistory[1] / BaseResourcesToGiveDivisor)
 		disasterBasedAdjustment := 0.0
 		if c.checkForDisaster() {
@@ -165,7 +210,7 @@ func (c *client) agentThreshold() shared.Resources {
 	return basicCosts + shared.Resources(disasterTimeProtectionMultiplier*disasterMagProtection*vulnerabilityMultiplier)
 }
 
-//Checks if there was a disaster in the previous turn
+// Checks if there was a disaster in the previous turn
 func (c *client) checkForDisaster() bool {
 	var prevSeason uint
 	if c.gameState().Turn == 1 {
@@ -179,27 +224,29 @@ func (c *client) checkForDisaster() bool {
 	return false
 }
 
-//AverageCommonPoolDilemma determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers or free riders
+// AverageCommonPoolDilemma determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers or free riders
+// TODO: improve comment description of what the function does
 func AverageCommonPoolDilemma(c *client) shared.Resources {
 	turn := c.gameState().Turn
+	altruistContribution := c.determineAltruistContribution(turn)
+	fairContribution := c.determineFairContribution(turn)
+
 	if turn == 1 {
 		return DefaultFirstTurnContribution
 	}
-	altruist := c.determineAltruist(turn) //determines altruist amount
-	fairSharer := c.determineFair(turn)   //determines fair sharer amount
-	method := c.MethodOfPlay()
-	switch method {
+
+	switch c.MethodOfPlay() {
 	case 0:
-		return shared.Resources(altruist)
+		return shared.Resources(altruistContribution)
 	case 1:
-		return shared.Resources(fairSharer)
-	case 2:
+		return shared.Resources(fairContribution)
+	default:
+		// Use Selfish approach if neither case is matched
 		return shared.Resources(0)
 	}
-	return shared.Resources(fairSharer)
 }
 
-func (c *client) determineAltruist(turn uint) shared.Resources { //identical to fair sharing but a larger factor to multiple the average contribution by
+func (c *client) determineAltruistContribution(turn uint) shared.Resources { //identical to fair sharing but a larger factor to multiple the average contribution by
 	ResourceHistory := c.commonPoolHistory
 	tuneAlt := shared.Resources(AltruistFactorOfAvToGive) //what factor of the average to contribute when being altruistic, will be much higher than fair sharing
 	for j := turn; j > 0; j-- {                           //we are trying to find the most recent instance of the common pool increasing and then use that value
@@ -213,7 +260,7 @@ func (c *client) determineAltruist(turn uint) shared.Resources { //identical to 
 	return 0
 }
 
-func (c *client) determineFair(turn uint) shared.Resources { //can make more sophisticated! Right now just contribute the average, default matters the most
+func (c *client) determineFairContribution(turn uint) shared.Resources { //can make more sophisticated! Right now just contribute the average, default matters the most
 	ResourceHistory := c.commonPoolHistory
 	tuneAverage := shared.Resources(FairShareFactorOfAvToGive) //what factor of the average to contribute when fair sharing, default is 1 to give the average
 	for j := turn; j > 0; j-- {                                //we are trying to find the most recent instance of the common pool increasing and then use that value
@@ -277,9 +324,9 @@ func (c *client) ShareIntendedContribution() shared.IntendedContribution {
 }
 
 // TODO: this is completely empty
-func (c *client) ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict) {
-	// we check how much each island intends to contribute
-	// Compute the average amount needed for the common pool threshold
-	// form an opinion based on how far their contribution is from the average
-	// could help us determine empathy level? (ie altruist, etc)
-}
+// func (c *client) ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict) {
+// we check how much each island intends to contribute
+// Compute the average amount needed for the common pool threshold
+// form an opinion based on how far their contribution is from the average
+// could help us determine empathy level? (ie altruist, etc)
+// }
