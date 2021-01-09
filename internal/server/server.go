@@ -73,7 +73,7 @@ func createSOMASServer(
 	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
 	initRoles, err := getNRandClientIDsUniqueIfPossible(clientIDs, 3)
 	if err != nil {
-		return nil, errors.Errorf("Cannot initialise IIGO roles, no clients registered: %v", err)
+		return nil, errors.Errorf("Cannot initialise IIGO roles: %v", err)
 	}
 
 	server := &SOMASServer{
