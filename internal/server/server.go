@@ -12,6 +12,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"github.com/pkg/errors"
 )
 
@@ -76,12 +77,15 @@ func createSOMASServer(
 		clientMap:  clientMap,
 		gameConfig: gameConfig,
 		gameState: gamestate.GameState{
-			Season:          1,
-			Turn:            1,
-			ClientInfos:     clientInfos,
-			Environment:     disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
-			ForagingHistory: forageHistory,
-			IIGOHistory:     map[uint][]shared.Accountability{},
+			Season:                  1,
+			Turn:                    1,
+			ClientInfos:             clientInfos,
+			Environment:             disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
+			ForagingHistory:         forageHistory,
+			IIGOHistory:             map[uint][]shared.Accountability{},
+			IIGOSanctionCache:       iigointernal.DefaultInitLocalSanctionCache(3),
+			IIGOHistoryCache:        iigointernal.DefaultInitLocalHistoryCache(3),
+			IIGORoleMonitoringCache: []shared.Accountability{},
 			IIGORolesBudget: map[shared.Role]shared.Resources{
 				shared.President: 0,
 				shared.Judge:     0,
