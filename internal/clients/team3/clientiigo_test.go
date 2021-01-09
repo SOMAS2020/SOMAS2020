@@ -198,9 +198,9 @@ func TestGetTaxContribution(t *testing.T) {
 					4: 50,
 					5: 0,
 				},
-				compliance: 1,
+				compliance: 0,
 			},
-			expected: shared.Resources(20),
+			expected: shared.Resources(0),
 		}}
 
 	for _, tc := range cases {

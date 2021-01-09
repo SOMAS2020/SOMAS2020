@@ -92,10 +92,10 @@ func (c *client) getOurRole() string {
 
 func (c *client) GetTaxContribution() shared.Resources {
 	commonPool := c.BaseClient.ServerReadHandle.GetGameState().CommonPool
-	totalToPay := 100 - commonPool
+	totalToPay := shared.Resources(math.Max(float64(c.getIIGOCost()-commonPool), 0))
 	if len(c.globalDisasterPredictions) > int(c.ServerReadHandle.GetGameState().Turn) {
 		disaster := c.globalDisasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)]
-		totalToPay = safeDivResources(shared.Resources(disaster.Magnitude)-commonPool, shared.Resources(disaster.TimeLeft+1))
+		totalToPay += safeDivResources(shared.Resources(disaster.Magnitude)-commonPool, shared.Resources(disaster.TimeLeft+1))
 	}
 	sumTrust := 0.0
 	for id, trust := range c.trustScore {

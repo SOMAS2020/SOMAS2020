@@ -130,7 +130,7 @@ func TestSetTaxationAmount(t *testing.T) {
 				5: {ReportedAmount: 100, Reported: true},
 			},
 			expected: map[shared.ClientID]shared.Resources{
-				0: 10.5,
+				0: 11,
 				1: 15,
 				2: 15,
 				3: 15,
