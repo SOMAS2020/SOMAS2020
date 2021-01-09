@@ -3,6 +3,7 @@ package rules
 import "testing"
 
 func TestIIGOMonitorRulePermission1(t *testing.T) {
+	dummyCache := generateTestVarCache()
 	cases := []struct {
 		decideToMonitor float64
 		announce        float64
@@ -31,9 +32,10 @@ func TestIIGOMonitorRulePermission1(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		UpdateVariable(MonitorRoleDecideToMonitor, MakeVariableValuePair(MonitorRoleDecideToMonitor, []float64{tc.decideToMonitor}))
-		UpdateVariable(MonitorRoleAnnounce, MakeVariableValuePair(MonitorRoleAnnounce, []float64{tc.announce}))
-		eval := EvaluateRule("iigo_monitor_rule_permission_1")
+		UpdateVariableInternal(MonitorRoleDecideToMonitor, MakeVariableValuePair(MonitorRoleDecideToMonitor, []float64{tc.decideToMonitor}), dummyCache)
+		UpdateVariableInternal(MonitorRoleAnnounce, MakeVariableValuePair(MonitorRoleAnnounce, []float64{tc.announce}), dummyCache)
+		avail, _ := InitialRuleRegistration(false)
+		eval := EvaluateRuleFromCaches("iigo_monitor_rule_permission_1", avail, dummyCache)
 
 		if eval.RulePasses != tc.expected {
 			t.Errorf("MonitorRulePermission1 - Failed. Input (%v,%v). Rule evaluated to %v, but expected %v.",
@@ -43,6 +45,7 @@ func TestIIGOMonitorRulePermission1(t *testing.T) {
 }
 
 func TestIIGOMonitorRulePermission2(t *testing.T) {
+	dummyCache := generateTestVarCache()
 	cases := []struct {
 		evalResult       float64
 		evalResultDecide float64
@@ -71,13 +74,35 @@ func TestIIGOMonitorRulePermission2(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		UpdateVariable(MonitorRoleEvalResult, MakeVariableValuePair(MonitorRoleEvalResult, []float64{tc.evalResult}))
-		UpdateVariable(MonitorRoleEvalResultDecide, MakeVariableValuePair(MonitorRoleEvalResultDecide, []float64{tc.evalResultDecide}))
-		eval := EvaluateRule("iigo_monitor_rule_permission_2")
+		UpdateVariableInternal(MonitorRoleEvalResult, MakeVariableValuePair(MonitorRoleEvalResult, []float64{tc.evalResult}), dummyCache)
+		UpdateVariableInternal(MonitorRoleEvalResultDecide, MakeVariableValuePair(MonitorRoleEvalResultDecide, []float64{tc.evalResultDecide}), dummyCache)
+		avail, _ := InitialRuleRegistration(false)
+		eval := EvaluateRuleFromCaches("iigo_monitor_rule_permission_2", avail, dummyCache)
 
 		if eval.RulePasses != tc.expected {
 			t.Errorf("MonitorRulePermission2 - Failed. Input (%v,%v). Rule evaluated to %v, but expected %v.",
 				tc.evalResult, tc.evalResultDecide, eval, tc.expected)
 		}
+	}
+}
+
+func generateTestVarCache() map[VariableFieldName]VariableValuePair {
+	return map[VariableFieldName]VariableValuePair{
+		MonitorRoleDecideToMonitor: {
+			VariableName: MonitorRoleDecideToMonitor,
+			Values:       []float64{0},
+		},
+		MonitorRoleAnnounce: {
+			VariableName: MonitorRoleAnnounce,
+			Values:       []float64{0},
+		},
+		MonitorRoleEvalResult: {
+			VariableName: MonitorRoleEvalResult,
+			Values:       []float64{0},
+		},
+		MonitorRoleEvalResultDecide: {
+			VariableName: MonitorRoleEvalResultDecide,
+			Values:       []float64{0},
+		},
 	}
 }

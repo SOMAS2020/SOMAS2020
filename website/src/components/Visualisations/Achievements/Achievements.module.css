@@ -24,6 +24,7 @@
   justify-content: center;
   flex-direction: column;
   box-shadow: 3px 5px #707070;
+  cursor: pointer;
 }
 
 .innerContainer .leftColumn {

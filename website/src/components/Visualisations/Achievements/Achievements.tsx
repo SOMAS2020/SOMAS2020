@@ -1,6 +1,7 @@
 import React from 'react'
 import { Col, Container, Row } from 'react-bootstrap'
 import logo from '../../../assets/logo/logo512.png'
+import confetti from 'canvas-confetti'
 import styles from './Achievements.module.css'
 import { OutputJSONType } from '../../../consts/types'
 import acheivementList, {
