@@ -76,6 +76,8 @@ type client struct {
 	forageHistory        ForageHistory
 	expectedForageReward shared.Resources
 
+	reportedResources map[shared.ClientID]bool
+
 	// IITO/Gifts
 	teamOpinions  map[shared.ClientID]Opinion
 	receivedOffer map[shared.ClientID]shared.Resources

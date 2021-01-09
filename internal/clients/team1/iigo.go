@@ -18,6 +18,8 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 
 	for clientID, clientReport := range islandsResources {
+		c.reportedResources[clientID] = clientReport.Reported
+
 		if !clientReport.Reported {
 			// If they are not reporting their wealth, they will probably also
 			// not pay tax.
@@ -53,6 +55,30 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 	}
 }
 
+// Make allocations as the base president would, but not to agents that are not
+// reporting their wealth.
+func (c *client) EvaluateAllocationRequests(
+	resourceRequests map[shared.ClientID]shared.Resources,
+	commonPool shared.Resources) shared.PresidentReturnContent {
+
+	chosenRequests := map[shared.ClientID]shared.Resources{}
+
+	for clientID, request := range resourceRequests {
+		reportedResources, noData := c.reportedResources[clientID];
+		if reportedResources || noData {
+			switch {
+			case noData:
+				c.Logf("Granting request to %v, no data on tax evasion", clientID)
+			case reportedResources:
+				c.Logf("Granting request to %v, they reported resources", clientID)
+			}
+			chosenRequests[clientID] = request
+		}
+	}
+
+	return c.BasePresident.EvaluateAllocationRequests(chosenRequests, commonPool)
+
+}
 
 /*************************/
 /* Taxes and allocations */
