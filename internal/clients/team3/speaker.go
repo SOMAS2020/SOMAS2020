@@ -51,7 +51,12 @@ func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 
 func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
 	if s.c.shouldICheat() {
-		result = s.c.iigoInfo.ruleVotingResults[ruleMatrix.RuleName].ourVote
+		res := s.c.iigoInfo.ruleVotingResults[ruleMatrix.RuleName].ourVote
+		if res == shared.Approve {
+			result = true
+		} else {
+			result = false
+		}
 	}
 
 	return shared.SpeakerReturnContent{

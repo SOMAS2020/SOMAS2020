@@ -1,6 +1,8 @@
 package server
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -46,8 +48,13 @@ func (s *SOMASServer) getPredictions() shared.DisasterPredictionInfoDict {
 	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
 	for _, id := range nonDeadClients {
 		c := s.clientMap[id]
-		islandPredictionsDict[id] = c.MakeDisasterPrediction()
+		disasterPrediction := c.MakeDisasterPrediction()
+		if math.IsNaN(disasterPrediction.PredictionMade.Confidence) || math.IsNaN(disasterPrediction.PredictionMade.Magnitude) || math.IsNaN(disasterPrediction.PredictionMade.CoordinateY) || math.IsNaN(disasterPrediction.PredictionMade.CoordinateX) {
+			continue
+		}
+		islandPredictionsDict[id] = disasterPrediction
 	}
+
 	return islandPredictionsDict
 }
 
