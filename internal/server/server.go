@@ -71,7 +71,7 @@ func createSOMASServer(
 	}
 
 	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
-	initSpeaker, initJudge, initPresident := randomUniqueAssignIIGORoles(clientIDs)
+	initRoles := randomUniqueAssignIIGORoles(clientIDs)
 
 	server := &SOMASServer{
 		clientMap:  clientMap,
@@ -176,21 +176,16 @@ func (s ServerForClient) GetGameConfig() config.ClientConfig {
 }
 
 func randomUniqueAssignIIGORoles(input []shared.ClientID) (shared.ClientID, shared.ClientID, shared.ClientID) {
+	// Copy list
 	lst := make([]shared.ClientID, len(input))
 	copy(lst, input)
-	// Just randomly assign roles if there are not enough clients
+
+	// Randomly assign roles if there are not enough clients
 	if len(lst) < 3 {
 		return lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))]
 	}
 
-	uniqueClients := make([]shared.ClientID, 0, 3)
-	for index := 0; index < 3; index++ {
-		randomNum := rand.Intn(len(lst))
-		uniqueClients = append(uniqueClients, lst[randomNum])
-		// Move selected client to the end of the list and remove it
-		lst[randomNum] = lst[len(lst)-1]
-		lst = lst[:len(lst)-1]
-	}
-
-	return uniqueClients[0], uniqueClients[1], uniqueClients[2]
+	// Shuffle and return three first clients
+	rand.Shuffle(len(lst), func(i, j int) { lst[i], lst[j] = lst[j], lst[i] })
+	return lst[0], lst[1], lst[2]
 }
