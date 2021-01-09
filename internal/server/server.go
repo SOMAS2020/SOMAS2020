@@ -11,6 +11,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"github.com/pkg/errors"
 )
 
@@ -68,24 +69,21 @@ func createSOMASServer(
 		forageHistory[t] = make([]foraging.ForagingReport, 0)
 	}
 
-	if gameConfig.IIGOConfig.StartWithRulesInPlay {
-		for ruleName := range rules.AvailableRules {
-			// Result is ignored since we know that the RulesInPlay cache cannot contain any of
-			// these rules (the only error case)
-			_ = rules.PullRuleIntoPlay(ruleName)
-		}
-	}
+	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
 
 	server := &SOMASServer{
 		clientMap:  clientMap,
 		gameConfig: gameConfig,
 		gameState: gamestate.GameState{
-			Season:          1,
-			Turn:            1,
-			ClientInfos:     clientInfos,
-			Environment:     disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
-			ForagingHistory: forageHistory,
-			IIGOHistory:     map[uint][]shared.Accountability{},
+			Season:                  1,
+			Turn:                    1,
+			ClientInfos:             clientInfos,
+			Environment:             disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
+			ForagingHistory:         forageHistory,
+			IIGOHistory:             map[uint][]shared.Accountability{},
+			IIGOSanctionCache:       iigointernal.DefaultInitLocalSanctionCache(3),
+			IIGOHistoryCache:        iigointernal.DefaultInitLocalHistoryCache(3),
+			IIGORoleMonitoringCache: []shared.Accountability{},
 			IIGORolesBudget: map[shared.Role]shared.Resources{
 				shared.President: 0,
 				shared.Judge:     0,
@@ -101,8 +99,8 @@ func createSOMASServer(
 			PresidentID: shared.Team3,
 			CommonPool:  gameConfig.InitialCommonPool,
 			RulesInfo: gamestate.RulesContext{
-				AvailableRules:     rules.AvailableRules,
-				CurrentRulesInPlay: rules.RulesInPlay,
+				AvailableRules:     availableRules,
+				CurrentRulesInPlay: rulesInPlay,
 				VariableMap:        rules.InitialVarRegistration(),
 			},
 		},

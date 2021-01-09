@@ -34,7 +34,8 @@ func TestIIGOMonitorRulePermission1(t *testing.T) {
 	for _, tc := range cases {
 		UpdateVariableInternal(MonitorRoleDecideToMonitor, MakeVariableValuePair(MonitorRoleDecideToMonitor, []float64{tc.decideToMonitor}), dummyCache)
 		UpdateVariableInternal(MonitorRoleAnnounce, MakeVariableValuePair(MonitorRoleAnnounce, []float64{tc.announce}), dummyCache)
-		eval := EvaluateRuleFromCaches("iigo_monitor_rule_permission_1", AvailableRules, dummyCache)
+		avail, _ := InitialRuleRegistration(false)
+		eval := EvaluateRuleFromCaches("iigo_monitor_rule_permission_1", avail, dummyCache)
 
 		if eval.RulePasses != tc.expected {
 			t.Errorf("MonitorRulePermission1 - Failed. Input (%v,%v). Rule evaluated to %v, but expected %v.",
@@ -75,7 +76,8 @@ func TestIIGOMonitorRulePermission2(t *testing.T) {
 	for _, tc := range cases {
 		UpdateVariableInternal(MonitorRoleEvalResult, MakeVariableValuePair(MonitorRoleEvalResult, []float64{tc.evalResult}), dummyCache)
 		UpdateVariableInternal(MonitorRoleEvalResultDecide, MakeVariableValuePair(MonitorRoleEvalResultDecide, []float64{tc.evalResultDecide}), dummyCache)
-		eval := EvaluateRuleFromCaches("iigo_monitor_rule_permission_2", AvailableRules, dummyCache)
+		avail, _ := InitialRuleRegistration(false)
+		eval := EvaluateRuleFromCaches("iigo_monitor_rule_permission_2", avail, dummyCache)
 
 		if eval.RulePasses != tc.expected {
 			t.Errorf("MonitorRulePermission2 - Failed. Input (%v,%v). Rule evaluated to %v, but expected %v.",
