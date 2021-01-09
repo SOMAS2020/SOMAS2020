@@ -75,7 +75,7 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 			ReportedAmount: 0.5 * c.gameState().ClientInfo.Resources,
 			Reported:       true,
 		}
-	default: // Fair or Free Rider
+	default: // Fair or Altruist
 		return shared.ResourcesReport{
 			ReportedAmount: c.gameState().ClientInfo.Resources,
 			Reported:       true,

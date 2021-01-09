@@ -47,8 +47,7 @@ func determineAllocation(c *client) shared.Resources {
 	return 0
 }
 
-//determines how many resources you actually take - currrently going to take however much we say (playing nicely)
-// How much we request the server (we're given as much as there is in the CP)
+//determines how many resources you actually take
 func (c *client) RequestAllocation() shared.Resources {
 	request := determineAllocation(c) * shared.Resources(methodConfPool(c))
 	var commonPool CommonPoolInfo
@@ -71,19 +70,23 @@ func (c *client) RequestAllocation() shared.Resources {
 
 func (c *client) calculateContribution() shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
-	Taxmin := determineTax(c)
-	allocation := AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
+	taxMin := determineTax(c)
+	allocation := AverageCommonPoolDilemma(c) + taxMin //This is our default allocation, this determines how much to give based off of previous common pool level
 	if c.criticalStatus() {
 		return 0 //tax evasion by necessity
 	}
-	if ourResources < c.agentThreshold() {
-		return Taxmin
+	if ourResources <= c.agentThreshold() {
+		return taxMin
 	}
 	if checkOthersCrit(c) {
-		return (ourResources - c.agentThreshold() - Taxmin) / 2
+		if (ourResources-c.agentThreshold())/HelpCritOthersDivisor > taxMin {
+			return (ourResources - c.agentThreshold()) / HelpCritOthersDivisor
+		}
+		return taxMin
 	}
-
-	allocation = AverageCommonPoolDilemma(c) + Taxmin
+	if ourResources-allocation < c.agentThreshold() { //if allocation recommended would make us close to critical/unable to pay tax + cost of living
+		return (ourResources - c.agentThreshold())
+	}
 	return allocation
 }
 
@@ -117,13 +120,10 @@ func (c *client) agentThreshold() shared.Resources {
 	} else { //resources for disaster needed not known
 		sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, float64(turn))
 
-		if turn == 1 {
+		if c.gameState().Season == 1 { //not able to predict disasters in first season as no prev known data
 			disasterMagProtection = float64(c.gameState().ClientInfo.Resources / BaseDisasterProtectionDivisor) //initial disaster threshold guess when we start playing
 		}
 		baseThreshold := float64(c.resourceLevelHistory[1] / BaseResourcesToGiveDivisor)
-		if c.gameState().Season == 1 { //keep threshold from first turn
-			disasterMagProtection = baseThreshold
-		}
 		disasterBasedAdjustment := 0
 		if c.checkForDisaster() {
 			if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] { //no resources taken by disaster
@@ -143,6 +143,9 @@ func (c *client) agentThreshold() shared.Resources {
 	if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
 		period := c.gameConfig().DisasterConfig.DisasterPeriod.Value
 		timeRemaining = float64(period - (c.gameState().Turn % period))
+	}
+	if c.gameState().Season == 1 { //not able to predict disasters in first season as no prev known data
+		timeRemaining = InitialDisasterTurnGuess - float64(c.gameState().Turn)
 	} else {
 		sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, float64(turn))
 		turnsLeftConfidence := GetTimeRemainingConfidence(float64(turn), sampleMeanX)
@@ -195,7 +198,9 @@ func (c *client) determineAltruist(turn uint) shared.Resources { //identical to 
 	for j := turn; j > 0; j-- {                           //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAlt
+			if float64(c.getNumAliveClients())*tuneAlt != 0 {
+				return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAlt
+			}
 		}
 	}
 	return 0
@@ -207,7 +212,9 @@ func (c *client) determineFair(turn uint) shared.Resources { //can make more sop
 	for j := turn; j > 0; j-- {                                //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAverage
+			if float64(c.getNumAliveClients())*tuneAverage != 0 {
+				return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAverage
+			}
 		}
 	}
 	return 0

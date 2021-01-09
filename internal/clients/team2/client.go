@@ -108,6 +108,10 @@ const (
 	FairShareFactorOfAvToGive        float64          = 1
 	AltruistFactorOfAvToGive         float64          = 2
 	ConfidenceRetrospectFactor       float64          = 0.5
+	ForageDecisionThreshold          float64          = 0.6
+	SlightRiskForageDivisor          shared.Resources = 2
+	HelpCritOthersDivisor            shared.Resources = 2
+	InitialDisasterTurnGuess         float64          = 7
 )
 
 type OpinionHist map[shared.ClientID]Opinion
