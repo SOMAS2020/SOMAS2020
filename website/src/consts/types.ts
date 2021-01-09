@@ -53,11 +53,16 @@ type GameState = {
     Environment: any
     DeerPopulation: any
     ForagingHistory: any
-    CurrentRulesInPlay: any
+    RulesInfo: any
     IIGOHistory: IIGOHistory
-    IIGOTurnsInPower: any
-    IIGOCache: any
     IIGORolesBudget: any
+    IIGOTurnsInPower: any
+    IIGOTaxAmount: any
+    IIGOAllocationMap: any
+    IIGOSanctionMap: any
+    IIGOSanctionCache: any
+    IIGOHistoryCache: any
+    IIGORoleMonitoringCache: any
     IITOTransactions: IITOTransactions
     SpeakerID: string
     JudgeID: string
