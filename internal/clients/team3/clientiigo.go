@@ -14,8 +14,8 @@ import (
 	MonitorIIGORole(shared.Role) bool
 	DecideIIGOMonitoringAnnouncement(bool) (bool, bool)
 
-	GetVoteForRule(ruleName string) bool
-	GetVoteForElection(roleToElect shared.Role) []shared.ClientID
+	VoteForRule(ruleName string) bool
+	VoteForElection(roleToElect shared.Role) []shared.ClientID
 
 	CommonPoolResourceRequest() shared.Resources
 	ResourceReport() shared.Resources
@@ -44,7 +44,6 @@ func (c *client) GetClientPresidentPointer() roles.President {
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
 func (c *client) resetIIGOInfo() {
-	c.iigoInfo.ourRole = nil // TODO unused, remove
 	c.clientPrint("IIGO cache from previous turn: %+v", c.iigoInfo)
 	c.clientPrint("IIGO sanction info from previous turn: %+v", c.iigoInfo.sanctions)
 	c.iigoInfo.commonPoolAllocation = 0
@@ -170,7 +169,8 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	}
 }
 
-func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
+func (c *client) VoteForRule(matrix rules.RuleMatrix) shared.RuleVoteType {
+	var vote bool
 
 	newRulesInPlay := make(map[string]rules.RuleMatrix)
 
@@ -189,17 +189,25 @@ func (c *client) GetVoteForRule(matrix rules.RuleMatrix) bool {
 	}
 
 	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
+	vote = true
 
 	// distancetoRulesInPlay = CalculateDistanceFromRuleSpace(rules.RulesInPlay, position)
 	// distancetoNewRulesInPlay = CalculateDistanceFromRuleSpace(newRulesInPlay, position)
 
 	// if distancetoRulesInPlay < distancetoNewRulesInPlay {
-	//  return false
+	//  vote = false
 	// } else {
-	//  return true
+	//  vote = true
 	// }
 
-	return true
+	c.ruleVotedOn = matrix.RuleName
+	c.iigoInfo.ruleVotingResults[c.ruleVotedOn] = &ruleVoteInfo{ourVote: vote}
+
+	if vote == true {
+		return shared.Approve
+	} else {
+		return shared.Reject
+	}
 }
 
 func (c *client) RuleProposal() rules.RuleMatrix {
@@ -292,7 +300,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	escapeCritical := c.params.escapeCritcaIsland && currentState.ClientInfo.LifeStatus == shared.Critical
 	distCriticalThreshold := c.criticalThreshold - ourResources
 
-	request = shared.Resources(c.params.minimumRequest)
+	request = c.ServerReadHandle.GetGameConfig().CostOfLiving
 	if escapeCritical {
 		if request < distCriticalThreshold {
 			request = distCriticalThreshold

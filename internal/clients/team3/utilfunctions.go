@@ -137,3 +137,26 @@ func leastTrusted(values map[shared.ClientID]float64) shared.ClientID {
 func (c *client) isClientStatusCritical(ClientID shared.ClientID) bool {
 	return c.ServerReadHandle.GetGameState().ClientLifeStatuses[ClientID] == shared.Critical
 }
+
+// getIIGOCost returns the miniumum resources in common pool needed to fully run IIGO
+func (c *client) getIIGOCost() shared.Resources {
+	iigoConfig := c.ServerReadHandle.GetGameConfig().IIGOClientConfig
+	sum := shared.Resources(0)
+
+	sum += iigoConfig.GetRuleForSpeakerActionCost
+	sum += iigoConfig.BroadcastTaxationActionCost
+	sum += iigoConfig.ReplyAllocationRequestsActionCost
+	sum += iigoConfig.RequestAllocationRequestActionCost
+	sum += iigoConfig.RequestRuleProposalActionCost
+	sum += iigoConfig.AppointNextSpeakerActionCost
+	sum += iigoConfig.InspectHistoryActionCost
+	sum += iigoConfig.InspectBallotActionCost
+	sum += iigoConfig.InspectAllocationActionCost
+	sum += iigoConfig.AppointNextPresidentActionCost
+	sum += iigoConfig.SetVotingResultActionCost
+	sum += iigoConfig.SetRuleToVoteActionCost
+	sum += iigoConfig.AnnounceVotingResultActionCost
+	sum += iigoConfig.UpdateRulesActionCost
+	sum += iigoConfig.AppointNextJudgeActionCost
+	return sum
+}

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -81,12 +82,33 @@ func TestSetTaxationAmount(t *testing.T) {
 		{
 			name: "Normal",
 			president: president{c: &client{
-				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
-					ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Alive,
-						Resources: 100,
+				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{
+					gameState: gamestate.ClientGameState{
+						ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Alive, Resources: 100},
+						CommonPool: shared.Resources(40),
 					},
-					CommonPool: shared.Resources(40),
-				}}},
+					gameConfig: config.ClientConfig{
+						IIGOClientConfig: config.IIGOConfig{
+							GetRuleForSpeakerActionCost:        shared.Resources(2),
+							BroadcastTaxationActionCost:        shared.Resources(2),
+							ReplyAllocationRequestsActionCost:  shared.Resources(2),
+							RequestAllocationRequestActionCost: shared.Resources(2),
+							RequestRuleProposalActionCost:      shared.Resources(2),
+							AppointNextSpeakerActionCost:       shared.Resources(2),
+							InspectHistoryActionCost:           shared.Resources(2),
+							HistoricalRetributionActionCost:    shared.Resources(2),
+							InspectBallotActionCost:            shared.Resources(2),
+							InspectAllocationActionCost:        shared.Resources(2),
+							AppointNextPresidentActionCost:     shared.Resources(2),
+							AssumedResourcesNoReport:           shared.Resources(2),
+							SetVotingResultActionCost:          shared.Resources(2),
+							SetRuleToVoteActionCost:            shared.Resources(2),
+							AnnounceVotingResultActionCost:     shared.Resources(2),
+							UpdateRulesActionCost:              shared.Resources(2),
+							AppointNextJudgeActionCost:         shared.Resources(2),
+						},
+					},
+				}},
 				criticalThreshold: 10,
 				params:            islandParams{escapeCritcaIsland: true, selfishness: 0.3, riskFactor: 0.5, resourcesSkew: 1.3},
 				trustScore: map[shared.ClientID]float64{
@@ -108,12 +130,12 @@ func TestSetTaxationAmount(t *testing.T) {
 				5: {ReportedAmount: 100, Reported: true},
 			},
 			expected: map[shared.ClientID]shared.Resources{
-				0: 7,
-				1: 10,
-				2: 10,
-				3: 10,
-				4: 10,
-				5: 10,
+				0: 10.5,
+				1: 15,
+				2: 15,
+				3: 15,
+				4: 15,
+				5: 15,
 			}},
 	}
 

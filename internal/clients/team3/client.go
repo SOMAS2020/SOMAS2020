@@ -97,7 +97,6 @@ type islandParams struct {
 	saveCriticalIsland          bool
 	escapeCritcaIsland          bool
 	selfishness                 float64
-	minimumRequest              shared.Resources
 	disasterPredictionWeighting float64
 	recidivism                  float64
 	riskFactor                  float64
@@ -124,8 +123,6 @@ type ruleVoteInfo struct {
 }
 
 type iigoCommunicationInfo struct {
-	// ourRole stores our current role in the IIGO
-	ourRole *shared.Role
 	// Retrieved fully from communications
 	// commonPoolAllocation gives resources allocated by president from requests
 	commonPoolAllocation shared.Resources
