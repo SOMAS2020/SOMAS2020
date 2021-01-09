@@ -48,3 +48,17 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 
 	return bordaList
 }
+
+//MonitorIIGORole decides whether to perform monitoring on a role
+//COMPULOSRY: must be implemented
+func (c *client) MonitorIIGORole(roleName shared.Role) bool {
+	return false
+}
+
+//DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
+//COMPULSORY: must be implemented
+func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
+	resultToShare = false
+	announce = false
+	return
+}
