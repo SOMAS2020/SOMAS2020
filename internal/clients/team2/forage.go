@@ -60,7 +60,9 @@ func (c *client) otherHunters() float64 { //will return a value of how many agen
 	for id, lifeStatus := range c.gameState().ClientLifeStatuses { //loop through every agent
 		if lifeStatus != shared.Dead { //client is dead ignore their decisions
 			for _, forageInfo := range c.foragingReturnsHist[id] { //loop through the agents array and add their average to HuntNum
-				HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(c.foragingReturnsHist[id])) //add the agents decision to HuntNum and then average
+				if float64(len(c.foragingReturnsHist[id])) != 0 {
+					HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(c.foragingReturnsHist[id])) //add the agents decision to HuntNum and then average
+				}
 			}
 		}
 	}

@@ -300,7 +300,9 @@ func (c *client) determineAltruist(turn uint) float64 { //identical to fair shar
 	for j := turn; j > 0; j-- { //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tuneAlt
+			if float64(c.getNumAliveClients())*tuneAlt != 0 {
+				return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tuneAlt
+			}
 		}
 	}
 	return 0
@@ -312,7 +314,9 @@ func (c *client) determineFair(turn uint) float64 { //can make more sophisticate
 	for j := turn; j > 0; j-- { //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tuneAverage //make 6 variable for no of agents
+			if float64(c.getNumAliveClients())*tuneAlt != 0 {
+				return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tuneAverage //make 6 variable for no of agents
+			}
 		}
 	}
 	return 0
