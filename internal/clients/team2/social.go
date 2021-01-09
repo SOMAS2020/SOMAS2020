@@ -40,11 +40,15 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 		return 50
 	}
 
+	c.Logf("[Our beautiful chicken wings]:")
+
 	islandHist := c.opinionHist[otherIsland].Histories
 	situationHist := islandHist[situation]
 	if len(situationHist) == 0 {
+		c.Logf("[returning 50 right after wings]:", len(situationHist))
 		return 50
 	}
+
 	sum := 0
 	div := 0
 	// TODO: change list iteration to just look at the turns we have info abt
@@ -54,6 +58,8 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 		div += i
 	}
 	average := sum / div
+
+	c.Logf("[Our beautiful average]:", average)
 
 	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
 	islandSituationPerf.exp = average
@@ -93,6 +99,8 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 		}
 		newConf := int(float64(percentageDiff)*ConfidenceRetrospectFactor + float64(situationExp))
 		updatedHist = append(situationHist, c.setLimits(newConf))
+
+		c.Logf("[appended yuhuuu]:", len(updatedHist))
 
 		c.opinionHist[otherIsland].Histories[situation] = updatedHist
 	}

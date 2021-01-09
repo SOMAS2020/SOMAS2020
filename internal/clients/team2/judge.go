@@ -20,6 +20,7 @@ func (j *Judge) PayPresident() (shared.Resources, bool) {
 func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool) {
 	outMap := map[shared.ClientID]shared.EvaluationReturn{}
 	copyOfVarCache := rules.CopyVariableMap(j.GameState.RulesInfo.VariableMap)
+
 	j.c.updateRoleTrust(iigoHistory)
 
 	for _, entry := range iigoHistory {
