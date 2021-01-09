@@ -110,6 +110,8 @@ const (
 	SwitchToAltruistFactor           float64          = 5
 	FairShareFactorOfAvToGive        float64          = 1
 	AltruistFactorOfAvToGive         float64          = 2
+	ForageDecisionThreshold          float64          = 0.6
+	SlightRiskForageDivisor          shared.Resources = 2
 )
 
 type OpinionHist map[shared.ClientID]Opinion
