@@ -24,7 +24,7 @@ type disaster struct {
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	var shareTo []shared.ClientID
 
-	shareTo = c.aliveClients
+	shareTo = c.aliveClients()
 
 	lastDecisionTurn := -1
 	var lastDecision shared.ForageDecision
@@ -155,7 +155,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		}
 		return shared.DisasterPredictionInfo{
 			PredictionMade: disasterPrediction,
-			TeamsOfferedTo: c.aliveClients,
+			TeamsOfferedTo: c.aliveClients(),
 		}
 	}
 
@@ -176,7 +176,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	return shared.DisasterPredictionInfo{
 		PredictionMade: disasterPrediction,
-		TeamsOfferedTo: c.aliveClients,
+		TeamsOfferedTo: c.aliveClients(),
 	}
 }
 

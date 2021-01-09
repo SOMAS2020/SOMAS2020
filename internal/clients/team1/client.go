@@ -88,10 +88,7 @@ type client struct {
 	// The lower the score, the more trustworthy they are
 	trustTeams map[shared.ClientID]float64
 
-	// aliveClients
-	aliveClients []shared.ClientID
-
-	// For foraging
+	// Foraging
 	switchType bool
 
 	config clientConfig
@@ -162,14 +159,7 @@ func (c *client) StartOfTurn() {
 	}
 
 	// Reset alive list
-	c.aliveClients = nil
-	for clientID, status := range c.gameState().ClientLifeStatuses {
-		if status != shared.Dead && clientID != c.GetID() {
-			c.aliveClients = append(c.aliveClients, clientID)
-		}
-	}
-
-	if len(c.aliveClients) == 0 {
+	if len(c.aliveClients()) == 0 {
 		c.Logf("I'm all alone :c")
 	}
 }
@@ -196,4 +186,14 @@ func (c *client) gameState() gamestate.ClientGameState {
 
 func (c *client) gameConfig() config.ClientConfig {
 	return c.BaseClient.ServerReadHandle.GetGameConfig()
+}
+
+func (c *client) aliveClients() []shared.ClientID {
+	result := []shared.ClientID{}
+	for clientID, status := range c.gameState().ClientLifeStatuses {
+		if status != shared.Dead && clientID != c.GetID() {
+			result = append(result, clientID)
+		}
+	}
+	return result
 }
