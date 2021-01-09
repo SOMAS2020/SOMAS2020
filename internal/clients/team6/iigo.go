@@ -1,20 +1,21 @@
 package team6
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 func (c *client) GetClientPresidentPointer() roles.President {
-	return &president{client: c}
+	return &president{client: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	return &judge{client: c}
+	return &judge{client: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	return &speaker{client: c}
+	return &speaker{client: c, BaseSpeaker: &baseclient.BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 // func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
@@ -78,7 +79,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 	if ourPersonality == Selfish { //evade tax when we are selfish
 		return 0
 	}
-	return c.clientConfig.payingTax
+	return c.payingTax
 }
 
 // ------ TODO: COMPULSORY -----

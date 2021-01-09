@@ -230,7 +230,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	}
 }
 
-func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shared.Resources) {
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shared.Resources, numberCaught uint) {
 	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], ForageOutcome{
 		contribution: forageDecision.Contribution,
 		revenue:      revenue,
