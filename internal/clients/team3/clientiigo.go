@@ -95,7 +95,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 	totalToPay := 100 - commonPool
 	if len(c.disasterPredictions) > int(c.ServerReadHandle.GetGameState().Turn) {
 		if disaster, ok := c.disasterPredictions[int(c.BaseClient.ServerReadHandle.GetGameState().Turn)][c.BaseClient.GetID()]; ok {
-			totalToPay = (shared.Resources(disaster.Magnitude) - commonPool) / shared.Resources(disaster.TimeLeft)
+			totalToPay = safeDivResources(shared.Resources(disaster.Magnitude)-commonPool, shared.Resources(disaster.TimeLeft))
 		}
 	}
 	sumTrust := 0.0
@@ -106,7 +106,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 			sumTrust += (1 - c.params.selfishness) * 100
 		}
 	}
-	toPay := (totalToPay / shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
+	toPay := safeDivResources(totalToPay, shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
 	targetResources := shared.Resources(2-c.params.riskFactor) * (c.criticalThreshold)
 	if c.getLocalResources()-toPay <= targetResources {
 		toPay = shared.Resources(math.Max(float64(c.getLocalResources()-targetResources), 0.0))
@@ -393,4 +393,11 @@ func copyRulesMap(inp map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
 		newMap[key] = val
 	}
 	return newMap
+}
+
+func safeDivResources(numerator shared.Resources, denominator shared.Resources) shared.Resources {
+	if denominator != 0 {
+		return numerator / denominator
+	}
+	return numerator
 }
