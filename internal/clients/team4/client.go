@@ -10,6 +10,8 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"gonum.org/v1/gonum/mat"
+
 )
 
 const id = shared.Team4
@@ -201,15 +203,15 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 			} else if currentAuxValue == 1 {
 				// TODO: ACTUALLY IMPLEMENT THESE CONDITIONS
 				// >0 condition
-				distance += 10000
+				distance += math.Abs(idealValue-actualValue) / idealValue
 			} else if currentAuxValue == 2 {
-				// >=0 condition
-				distance += 10000
+				// <=0 condition
+				distance += math.Abs(idealValue-actualValue) / idealValue
 			} else if currentAuxValue == 3 {
 				// !=0 condition
 				distance += math.Abs(idealValue-actualValue) / idealValue
 			} else if currentAuxValue == 4 {
-				distance += 10000
+				distance += math.Abs(idealValue-actualValue) / idealValue
 				// it returns the value of the calculation
 			}
 		}
@@ -242,4 +244,65 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	}
 
 	return returnList
+}
+
+
+//MonitorIIGORole decides whether to perform monitoring on a role
+//COMPULOSRY: must be implemented
+func (c *client) MonitorIIGORole(roleName shared.Role) bool {
+	
+	presidentID := c.getPresident()
+	speakerID := c.getSpeaker()
+	judgeID := c.getJudge()
+	clientID := shared.ClientID(4)
+	// TODO: Choose sensible thresholds!
+	trustThreshold := 0.5
+	resourcesThreshold := shared.Resources(100)
+	monitoring := false
+	if presidentID == clientID {
+		// If we are the president.
+		monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
+					  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
+					 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)		   
+	} else if speakerID == clientID {
+		// If we are the Speaker.
+		monitoring = (c.internalParam.agentsTrust[presidentID] < trustThreshold ||
+					  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
+					 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	} else if judgeID == clientID {
+		// If we are the Judge.
+		monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
+					  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
+					 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	}
+	return monitoring
+}
+
+//DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
+//COMPULSORY: must be implemented
+func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
+	collaborationThreshold := 0.5
+	importance := mat.NewVecDense(5, []float64{
+		0.0, 1.0, -1.0, 1.0, 0.0,
+	})
+
+	parameters := mat.NewVecDense(5, []float64{
+		c.internalParam.greediness,
+		c.internalParam.selfishness,
+		c.internalParam.fairness,
+		c.internalParam.collaboration,
+		c.internalParam.riskTaking,
+	})
+	// Initialise Return values.
+	announce = true
+	resultToShare = monitoringResult
+
+	// Calculate collaborationLevel based on the current personality of the client.
+	collaborationLevel := mat.Dot(importance, parameters)
+
+	if collaborationLevel > collaborationThreshold {
+		// announce only if we are collaborative enough.
+		announce = true
+	}
+	return resultToShare, announce
 }
