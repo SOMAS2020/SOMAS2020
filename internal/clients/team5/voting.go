@@ -70,15 +70,6 @@ func (c *client) findIndexOfScore(opinionSortByScore []float64, opinionSortByTea
 // translate int to shared.clientID but put our ID first and someone last
 // assume that we are always alive when this function is called
 func (c *client) sortedMapOfOpinion(rank []int, candidateList []int) (sortedTeamByOpinion []shared.ClientID) {
-	var sortedCandidateList []int
-	allIsland := []int{0, 1, 2, 3, 4, 5}
-	for _, island := range allIsland {
-		for _, clientID := range candidateList {
-			if clientID == island && clientID != 4 && clientID != 2 {
-				sortedCandidateList = append(sortedCandidateList, island)
-			}
-		}
-	}
 	sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Team5)
 	for _, clientID := range rank {
 		sortedTeamByOpinion = append(sortedTeamByOpinion, shared.ClientID(clientID))
