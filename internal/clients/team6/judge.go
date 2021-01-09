@@ -16,7 +16,7 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 
 	for timeStep, sanctions := range currentSanctions {
 		for who, sanction := range sanctions {
-			pardons[timeStep] = initialiseBoolArray(len(sanctions))
+			pardons[timeStep] = make([]bool, len(sanctions))
 			if timeStep == maxSanctionTime && j.client.friendship[sanction.ClientID] == j.client.clientConfig.maxFriendship {
 				// we can pardon certain islands having maximum friendship with us
 				pardons[timeStep][who] = true
@@ -25,12 +25,4 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 	}
 
 	return pardons
-}
-
-func initialiseBoolArray(length int) []bool {
-	ret := []bool{}
-	for i := 0; i < length; i++ {
-		ret = append(ret, false)
-	}
-	return ret
 }
