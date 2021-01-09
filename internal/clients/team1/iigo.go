@@ -1,6 +1,8 @@
 package team1
 
 import (
+	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -64,7 +66,7 @@ func (c *client) EvaluateAllocationRequests(
 	chosenRequests := map[shared.ClientID]shared.Resources{}
 
 	for clientID, request := range resourceRequests {
-		reportedResources, noData := c.reportedResources[clientID];
+		reportedResources, noData := c.reportedResources[clientID]
 		if reportedResources || noData {
 			switch {
 			case noData:
@@ -102,6 +104,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	switch c.emotionalState() {
 	case Anxious:
 		amount := 2 * c.gameConfig().CostOfLiving
+		fmt.Printf("Amount %v", amount)
 		c.Logf("Common pool request: %v", amount)
 		return amount
 	default:

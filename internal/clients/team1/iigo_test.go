@@ -1,12 +1,23 @@
 package team1
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+type mockGetRecommendation struct {
+	success bool
+}
+
+func (c *mockGetRecommendation) GetRecommendation(variable rules.VariableFieldName) (compliantValue rules.VariableValuePair, success bool) {
+	c.success = true
+	return rules.MakeVariableValuePair(variable, []float64{0}), c.success
+}
 
 func TestStealsResourcesWhenDesperate(t *testing.T) {
 	c := MakeTestClient(gamestate.ClientGameState{
@@ -23,6 +34,7 @@ func TestStealsResourcesWhenDesperate(t *testing.T) {
 			AvailableRules:     nil,
 			CurrentRulesInPlay: nil,
 		},
+		CommonPool: 300,
 	})
 	c.config.desperateStealAmount = 50
 	gotTakeAmt := c.RequestAllocation()
@@ -40,6 +52,7 @@ func TestRequestsResourcesWhenAnxious(t *testing.T) {
 		ClientInfo: gamestate.ClientInfo{
 			Resources: 99,
 		},
+		CommonPool: 300,
 	})
 	c.config.anxietyThreshold = 100
 
