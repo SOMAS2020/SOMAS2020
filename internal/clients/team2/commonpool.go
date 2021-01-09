@@ -228,7 +228,7 @@ func (c *client) determineThreshold() shared.Resources {
 	if season == 1 || sampleMeanM == 0.0 { //keep threshold from first turn
 		return baseThreshold
 	}
-	if checkForDisaster(c) {
+	if c.checkForDisaster() {
 		if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] { //no resources taken by disaster
 			if disasterBasedAdjustment > 5 {
 				disasterBasedAdjustment -= 5

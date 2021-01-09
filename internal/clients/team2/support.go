@@ -37,7 +37,7 @@ func criticalStatus(c *client) bool {
 //TODO: how does this work?
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
 	c.disasterHistory[len(c.disasterHistory)] = DisasterOccurence{
-		Turn:   float64(c.gameState().Turn),
+		Turn:   c.gameState().Turn,
 		Report: report,
 	}
 }

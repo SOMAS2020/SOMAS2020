@@ -163,8 +163,8 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, uint) {
 	if timeRemaining < 0 {
 		timeRemaining = 0
 	}
-	return sampleMeanX, int(timeRemaining)
 
+	return sampleMeanX, uint(timeRemaining)
 }
 
 // GetTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is
@@ -306,8 +306,9 @@ func CombinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPr
 		CoordinateX: wsCoordinateX / combinationConfidenceSum,
 		CoordinateY: wsCoordinateY / combinationConfidenceSum,
 		Magnitude:   wsMagnitude / combinationConfidenceSum,
-		TimeLeft:    int((wsTimeLeft / combinationConfidenceSum) + 0.5),
+		TimeLeft:    uint((wsTimeLeft / combinationConfidenceSum) + 0.5),
 		Confidence:  combinationConfidenceSum / (islandConfidencesSum * 100),
 	}
+
 	return finalPrediction
 }

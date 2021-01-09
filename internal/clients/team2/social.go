@@ -385,7 +385,7 @@ func (c *client) updateDisasterConf() {
 
 		predError := int(avgConf) * (magError + turnError)
 
-		predConf := 100 - setLimits(predError)
+		predConf := 100 - c.setLimits(predError)
 
 		c.opinionHist[island].Performances["DisasterPred"] = ExpectationReality{
 			real: predConf,
