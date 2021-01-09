@@ -190,6 +190,7 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 	} else {
 		appointedPresident = currentPresident
 	}
+	j.gameState.IIGOElection = append(j.gameState.IIGOElection, election.GetVotingInfo())
 	return appointedPresident, nil
 }
 
