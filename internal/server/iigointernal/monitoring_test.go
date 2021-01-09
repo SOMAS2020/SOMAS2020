@@ -45,12 +45,14 @@ func TestAddToCache(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
+			gamestate := gamestate.GameState{
+				IIGORoleMonitoringCache: []shared.Accountability{},
+			}
 			monitor := &monitor{
-				internalIIGOCache: []shared.Accountability{},
+				gameState: &gamestate,
 			}
 			monitor.addToCache(tc.roleID, tc.variables, tc.values)
-			res := monitor.internalIIGOCache
+			res := gamestate.IIGORoleMonitoringCache
 			if !reflect.DeepEqual(res, tc.expectedVal) {
 				t.Errorf("Expected internalIIGOCache to be %v got %v", tc.expectedVal, res)
 			}
@@ -102,13 +104,19 @@ func TestEvaluateCache(t *testing.T) {
 	}
 	var logging shared.Logger = func(format string, a ...interface{}) {}
 	ruleStore := registerMonitoringTestRule()
-	tempCache := rules.AvailableRules
-	rules.AvailableRules = ruleStore
+	tempCache, _ := rules.InitialRuleRegistration(false)
+	avail := ruleStore
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			monitoring := &monitor{
-				internalIIGOCache: tc.iigoCache,
-				logger:            logging,
+				logger: logging,
+				gameState: &gamestate.GameState{
+					RulesInfo: gamestate.RulesContext{
+						VariableMap:    generateDummyVariableCache(),
+						AvailableRules: avail,
+					},
+					IIGORoleMonitoringCache: tc.iigoCache,
+				},
 			}
 			res := monitoring.evaluateCache(tc.roleID, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
@@ -116,7 +124,7 @@ func TestEvaluateCache(t *testing.T) {
 			}
 		})
 	}
-	rules.AvailableRules = tempCache
+	avail = tempCache
 }
 
 func TestFindRoleToMonitor(t *testing.T) {

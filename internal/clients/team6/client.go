@@ -29,7 +29,7 @@ type client struct {
 }
 
 func init() {
-	baseclient.RegisterClient(id, NewClient(id))
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
 // ########################
@@ -46,7 +46,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
-	c.LocalVariableCache = rules.CopyVariableMap()
+	c.LocalVariableCache = rules.CopyVariableMap(serverReadHandle.GetGameState().RulesInfo.VariableMap)
 
 	c.friendship = Friendship{}
 	c.trustRank = TrustRank{}
