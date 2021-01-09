@@ -38,7 +38,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 //Determines how many resources we want to obtain this round through the pool
 func determineAllocation(c *client) shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
-	if criticalStatus(c) {
+	if c.criticalStatus() {
 		return c.agentThreshold()
 	}
 	if c.gameState().ClientInfo.Resources < c.agentThreshold() {
@@ -63,7 +63,7 @@ func (c *client) RequestAllocation() shared.Resources {
 		}
 	}
 	c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
-	if criticalStatus(c) && c.commonPoolAllocation < request {
+	if c.criticalStatus() && c.commonPoolAllocation < request {
 		return request
 	}
 	return c.commonPoolAllocation
@@ -73,7 +73,7 @@ func (c *client) calculateContribution() shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources
 	Taxmin := determineTax(c)
 	allocation := AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
-	if criticalStatus(c) {
+	if c.criticalStatus() {
 		return 0 //tax evasion by necessity
 	}
 	if ourResources < c.agentThreshold() {

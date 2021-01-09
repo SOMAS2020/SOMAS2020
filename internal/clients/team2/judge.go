@@ -11,17 +11,11 @@ type Judge struct {
 	c *client
 }
 
-//opinion places
-//LNE 51
-//LINE 84
-//LINE 124
-
-//pay default
+// Pay President default amount
 func (j *Judge) PayPresident() (shared.Resources, bool) {
 	return j.BaseJudge.PayPresident()
 }
 
-//TODO: insert trustworthiness
 // InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
 func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool) {
 	outMap := map[shared.ClientID]shared.EvaluationReturn{}
@@ -85,7 +79,6 @@ func (j *Judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 		Pardoned[i] = List2
 		for index, sanction := range List {
 			if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 && j.c.MethodOfPlay() != 1 {
-
 				Pardoned[i][index] = true
 			} else {
 				Pardoned[i][index] = false
@@ -110,30 +103,39 @@ func (j *Judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
+
 	if monitoring.Performed && !monitoring.Result {
 		electionsettings.HoldElection = true
 	}
+
+	// TODO: This could be a config value - is there a rule on turns for power transfer?
+	// TODO: could use confidence to try to keep friends in power - cheat the accountability cycle
 	if turnsInPower >= 2 {
 		electionsettings.HoldElection = true
 	}
+
 	return electionsettings
 }
 
-//TODO: add our trustworthiness
+// TODO: add our trustworthiness
+// TODO: Carla appreciation this is so sneaky we love it
 func (j *Judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	// If the election winner's trust score is okay, we will declare them as the next President.
 	// If not, we will replace it with the island who's trust score is higher
 	opWinner := j.c.confidence("RoleOpinion", winner)
+
 	if opWinner < 30 {
 		aliveIslands := j.c.getAliveClients()
 		for _, island := range aliveIslands {
 			opIsland := j.c.confidence("RoleOpinion", island)
-			if opIsland > opWinner { //this only replaces the winner with someone with a higher trust
+			//this only replaces the winner with someone with a higher trust
+			if opIsland > opWinner {
 				winner = island
 				opWinner = opIsland
 			}
 		}
 	}
+
 	return winner
 }
 

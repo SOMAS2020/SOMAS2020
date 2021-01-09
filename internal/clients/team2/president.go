@@ -114,6 +114,7 @@ func (p *President) SetTaxationAmount(islandsResources map[shared.ClientID]share
 			p.c.declaredResources[island] = shared.Resources(666)
 		}
 	}
+	// TODO: why are we not using our helper functions here?
 	gameState := p.c.BaseClient.ServerReadHandle.GetGameState()
 	resourcesRequired := 100.0 - float64(gameState.CommonPool)
 	disaster := p.c.MakeDisasterPrediction().PredictionMade

@@ -30,11 +30,11 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 //Decide amount of resources to put into foraging
 func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources // we have given to the pool already by this point in the turn
-	if criticalStatus(c) {
+	if c.criticalStatus() {
 		return 0
 	}
-	if ourResources < c.agentThreshold() && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
-		return (ourResources - c.agentThreshold()) / 2 //tune divisor
+	if ourResources < c.agentThreshold() && foragingDecisionThreshold < ForageDecisionThreshold {
+		return (c.agentThreshold() - ourResources) / SlightRiskForageDivisor
 	}
 	resourcesForForaging := (ourResources - c.agentThreshold())
 	return resourcesForForaging
