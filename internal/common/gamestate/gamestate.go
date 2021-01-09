@@ -57,6 +57,9 @@ type GameState struct {
 	// IIGO Role Monitoring Cache is used in the IIGO accountability cycle
 	IIGORoleMonitoringCache []shared.Accountability
 
+	// IIGO Role Voting
+	IIGOElection []VotingInfo
+
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
 
@@ -87,6 +90,7 @@ func (g GameState) Copy() GameState {
 	ret.IIGOSanctionCache = copyIIGOSanctionCache(g.IIGOSanctionCache)
 	ret.IIGORoleMonitoringCache = copySingleIIGOEntry(g.IIGORoleMonitoringCache)
 	ret.IITOTransactions = copyIITOTransactions(g.IITOTransactions)
+	ret.IIGOElection = copyIIGOElection(g.IIGOElection)
 	return ret
 }
 
@@ -219,6 +223,12 @@ func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) 
 	return ret
 }
 
+func copyIIGOElection(input []VotingInfo) []VotingInfo {
+	ret := make([]VotingInfo, len(input))
+	copy(ret, input)
+	return ret
+}
+
 // ClientInfo contains the client struct as well as the client's attributes
 type ClientInfo struct {
 	// Resources contains the amount of resources owned by the client.
@@ -231,6 +241,14 @@ type ClientInfo struct {
 
 	// [INFRA] add more client information here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
+}
+
+// VotingInfo contains all the information necessary to visualise voting
+type VotingInfo struct {
+	RoleToElect  shared.Role
+	VotingMethod shared.ElectionVotingMethod
+	VoterList    []shared.ClientID
+	Votes        [][]shared.ClientID
 }
 
 // Copy returns a deep copy of the ClientInfo.
