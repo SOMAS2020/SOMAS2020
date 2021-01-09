@@ -91,21 +91,22 @@ func TestRequestAllocation(t *testing.T) {
 func TestGetCommonPoolContribution(t *testing.T) {
 	// day 1 season 1 case
 	var turn, season uint = 1, 1
-	currentTier := imperialStudent
-	c.taxAmount = 20
+	currentTier := middleClass
+	taxAmount := shared.Resources(20)
 	var w shared.Resources
 
-	tax := c.calculateTaxContribution(turn, season, currentTier)
+	tax := calculateTaxContribution(taxAmount, turn, season, currentTier)
 	contribution := c.calculateCPContribution(turn, season)
 	total := tax + contribution
-	w = 10
+	w = 20
 	if w != total {
-		t.Errorf("Not generating proper # of resources to contribute. Want %v, got %v", w, total)
+		t.Errorf("Not generating proper # of resources to contribute. Want %v, got %v", w, tax)
 	}
 
 	//when we are poor
+	currentTier = imperialStudent
 	turn = 2
-	tax = c.calculateTaxContribution(turn, season, currentTier)
+	tax = calculateTaxContribution(taxAmount, turn, season, currentTier)
 	contribution = c.calculateCPContribution(turn, season)
 	total = tax + contribution
 	w = 0
@@ -121,7 +122,7 @@ func TestGetCommonPoolContribution(t *testing.T) {
 	c.cpResourceHistory[1] = 20
 	c.cpResourceHistory[2] = 40
 	//c.Logf("differen2: %v", c.cpResourceHistory[1])
-	tax = c.calculateTaxContribution(turn, season, currentTier)
+	tax = calculateTaxContribution(taxAmount, turn, season, currentTier)
 	contribution = c.calculateCPContribution(turn, season)
 	total = tax + contribution
 	w = 20/6 + 20
@@ -132,7 +133,7 @@ func TestGetCommonPoolContribution(t *testing.T) {
 	//when the cashflow of CP is negative
 	turn = 2
 	c.cpResourceHistory[1] = 60
-	tax = c.calculateTaxContribution(turn, season, currentTier)
+	tax = calculateTaxContribution(taxAmount, turn, season, currentTier)
 	contribution = c.calculateCPContribution(turn, season)
 	total = tax + contribution
 	w = 20

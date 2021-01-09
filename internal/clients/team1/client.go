@@ -29,7 +29,7 @@ func (st EmotionalState) String() string {
 }
 
 func init() {
-	baseclient.RegisterClient(id, NewClient(id))
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
 type clientConfig struct {

@@ -215,10 +215,6 @@ type RuleEvaluationReturn struct {
 	EvalError     error
 }
 
-func EvaluateRule(ruleName string) RuleEvaluationReturn {
-	return EvaluateRuleFromCaches(ruleName, AvailableRules, VariableMap)
-}
-
 func EvaluateRuleFromCaches(ruleName string, rulesCache map[string]RuleMatrix, variableCache map[VariableFieldName]VariableValuePair) RuleEvaluationReturn {
 	if rule, ok := rulesCache[ruleName]; ok {
 		if checkAllVariablesAvailable(rule.RequiredVariables, variableCache) {
