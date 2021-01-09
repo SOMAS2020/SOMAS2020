@@ -27,6 +27,7 @@ import (
 
 // DecideForage helps us pick the foraging method
 func (c *client) DecideForage() (shared.ForageDecision, error) {
+	c.Logf("Period", c.disasterHistory.getLastDisasterTurn())
 	if c.forageHistorySize() < c.config.InitialForageTurns { // Start with initial foraging turns (semi - randomized)
 		return c.InitialForage(), nil
 	} else if c.wealth() == dying { // If dying go to last hope
@@ -100,9 +101,9 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 	for forageType, outcomes := range forageHistory { // For each foraging type
 		returnOI := 0.0
 		for _, returns := range outcomes {
-			returnOI += float64((returns.output / returns.input) - 1) // Cumlative sum of the return on investment
+			returnOI += ((float64(returns.output) / math.Max(float64(returns.input), 0.001)) - 1) // Cumlative sum of the return on investment
 		}
-		returnOI = returnOI / float64(len(outcomes)) // Average RoI for the type
+		returnOI = returnOI / float64(len(outcomes)) // Lenght cant be 0 because of initial foraging //Average RoI for the type
 
 		if returnOI > bestReturn && returnOI > 0 { // Compares the type to the previous type and 0
 			bestReturn = returnOI // If its greater than 0 then it has some return
@@ -224,7 +225,7 @@ func (c *client) normalForage() shared.ForageDecision {
 	// For all returns find the best return on investment ((output/input) -1 )
 	for _, returns := range pastOutcomes { // Look at the returns of the previous
 		if returns.input > 0 { // If returns are not 0
-			RoI := (returns.output / returns.input) - 1 // Find the input that gave the best RoI
+			RoI := shared.Resources((float64(returns.output) / math.Max(float64(returns.input), 0.001)) - 1) // Find the input that gave the best RoI
 			Profit := returns.output - returns.input
 			if RoI > bestRoI { // RoI better than previous
 				bestInput = returns.input // best amount to invest

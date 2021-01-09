@@ -27,7 +27,7 @@ var (
 	)
 	initialCommonPool = flag.Float64(
 		"initialCommonPool",
-		1000,
+		100,
 		"The default number of resources in the common pool at the start of the game.",
 	)
 	costOfLiving = flag.Float64(
@@ -77,7 +77,7 @@ var (
 	)
 	foragingDeerOutputScaler = flag.Float64(
 		"foragingDeerOutputScaler",
-		18,
+		20,
 		"scalar value that adjusts deer returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerDistributionStrategy = flag.Int(
@@ -114,7 +114,7 @@ var (
 	)
 	foragingFishingIncrementalInputDecay = flag.Float64(
 		"foragingFishingIncrementalInputDecay",
-		0.8,
+		0.6,
 		"Determines decay of incremental input cost of catching more fish.",
 	)
 	foragingFishingMean = flag.Float64(
@@ -134,12 +134,12 @@ var (
 	)
 	foragingFishingOutputScaler = flag.Float64(
 		"foragingFishingOutputScaler",
-		12,
+		15,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(
 		"foragingFishingDistributionStrategy",
-		int(shared.EqualSplit),
+		int(shared.InputProportionalSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
 
@@ -166,7 +166,7 @@ var (
 	)
 	disasterPeriod = flag.Uint(
 		"disasterPeriod",
-		15,
+		3,
 		"Period T between disasters in deterministic case and E[T] in stochastic case.",
 	)
 	disasterSpatialPDFType = flag.Int(
@@ -177,11 +177,11 @@ var (
 	disasterMagnitudeLambda = flag.Float64(
 		"disasterMagnitudeLambda",
 		1,
-		"Exponential rate param for disaster magnitude",
+		"Exponential rate param for magnitude",
 	)
 	disasterMagnitudeResourceMultiplier = flag.Float64(
 		"disasterMagnitudeResourceMultiplier",
-		500,
+		50,
 		"Multiplier to map disaster magnitude to CP resource deductions",
 	)
 	disasterCommonpoolThreshold = flag.Float64(
@@ -273,36 +273,6 @@ var (
 		"IIGO action cost for appointNextPresident",
 	)
 
-	iigoDefaultSanctionScore = flag.Uint(
-		"iigoDefaultSanctionScore",
-		5,
-		"Default penalty score for breaking a rule",
-	)
-
-	iigoSanctionCacheDepth = flag.Uint(
-		"iigoSanctionCacheDepth",
-		3,
-		"Turn depth of sanctions to be applied or pardoned",
-	)
-
-	iigoHistoryCacheDepth = flag.Uint(
-		"iigoHistoryCacheDepth",
-		3,
-		"Turn depth of history cache for events to be evaluated",
-	)
-
-	iigoAssumedResourcesNoReport = flag.Uint(
-		"iigoAssumedResourcesNoReport",
-		500,
-		"If an island doesn't report usaged this value is assumed for sanction calculations",
-	)
-
-	iigoSanctionLength = flag.Uint(
-		"iigoSanctionLength",
-		2,
-		"Sanction length for all sanctions",
-	)
-
 	// config.IIGOConfig - Legislative branch
 	iigoSetVotingResultActionCost = flag.Float64(
 		"iigoSetVotingResultActionCost",
@@ -332,6 +302,30 @@ var (
 		"iigoAppointNextJudgeActionCost",
 		10,
 		"IIGO action cost for appointNextJudge action",
+	)
+
+	iigoSanctionCacheDepth = flag.Uint(
+		"iigoSanctionCacheDepth",
+		3,
+		"Turn depth of sanctions to be applied or pardoned",
+	)
+
+	iigoHistoryCacheDepth = flag.Uint(
+		"iigoHistoryCacheDepth",
+		3,
+		"Turn depth of history cache for events to be evaluated",
+	)
+
+	iigoAssumedResourcesNoReport = flag.Uint(
+		"iigoAssumedResourcesNoReport",
+		500,
+		"If an island doesn't report usaged this value is assumed for sanction calculations",
+	)
+
+	iigoSanctionLength = flag.Uint(
+		"iigoSanctionLength",
+		2,
+		"Sanction length for all sanctions",
 	)
 
 	iigoTermLengthPresident = flag.Uint(
