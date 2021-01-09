@@ -239,8 +239,8 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 // COMPULSORY, you need to implement this method
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
 	var giftOff shared.Resources
-	if c.resourceHistory[c.gameState().Turn-1] < c.gameState().ClientInfo.Resources { // if resources are higher that previous' rounds resources
-		if c.wealth() >= wealthTier(c.config.middleThreshold) { //this is only fulfilled if we are wealthy enough Mid and JB
+	if c.resourceHistory[c.gameState().Turn-1] < 0.9*c.gameState().ClientInfo.Resources { // if resources are higher that previous' rounds resources
+		if c.wealth() >= middleClass { //this is only fulfilled if we are wealthy enough Mid and JB
 			if c.opinions[toTeam].getScore() > 0 && c.opinions[toTeam].getScore() <= 0.5 { //if twe are walthy (>=2) and our opinion on the island is between 0 and 0.5 then fulfill full offer
 				giftOff = giftOffer
 			} else if c.opinions[toTeam].getScore() > 0.5 && c.opinions[toTeam].getScore() <= 1 { //if we are wealthy (>=2) and we have a high opinion on the island, then boost the gift a little by 1.4
@@ -248,7 +248,7 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 			} else {
 				giftOff = 0
 			}
-		} else if c.wealth() == wealthTier(c.config.imperialThreshold) { //this is only fulfilled if we are ICL students rich
+		} else if c.wealth() == imperialStudent { //this is only fulfilled if we are ICL students rich
 			if c.opinions[toTeam].getScore() > 0 && c.opinions[toTeam].getScore() <= 0.5 { //if wealth is one but opinion is between 0 and 0.5 then give half the offerr
 				giftOff = giftOffer * c.config.giftReduct
 			} else if c.opinions[toTeam].getScore() > 0.5 && c.opinions[toTeam].getScore() <= 1 { //if wealth is 1 and opinion is 0.5 to 1 then give fulfill whole offer
@@ -292,7 +292,7 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 		actualReceived: sent,                                                  // Amount they actually receive according to server
 	}
 	c.giftHistory[to].theirRequest[c.getTurn()] = newGiftRequest
-	c.Logf("Print Received: team: %v amount: %v", to, sent)
+	c.Logf("Print Sent: team: %v amount: %v", to, sent)
 }
 
 // ReceivedGift is executed at the end of each turn and notifies clients that
@@ -355,6 +355,6 @@ func (c *client) updateGiftOpinions() {
 		}
 		c.Logf("Opinion of teams %v | %v", team, c.opinions[team].getScore())
 	}
-	c.opinions[highestRequest].updateOpinion(generalBasis, -0.05*c.getMood())
+	c.opinions[highestRequest].updateOpinion(generalBasis, -0.025*c.getMood())
 	c.opinions[lowestRequest].updateOpinion(generalBasis, 0.05*c.getMood())
 }
