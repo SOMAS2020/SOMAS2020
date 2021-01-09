@@ -90,6 +90,7 @@ func (g GameState) Copy() GameState {
 	ret.IIGOSanctionCache = copyIIGOSanctionCache(g.IIGOSanctionCache)
 	ret.IIGORoleMonitoringCache = copySingleIIGOEntry(g.IIGORoleMonitoringCache)
 	ret.IITOTransactions = copyIITOTransactions(g.IITOTransactions)
+	ret.IIGOElection = copyIIGOElection(g.IIGOElection)
 	return ret
 }
 
@@ -219,6 +220,12 @@ func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) 
 			ret[k][i] = el.Copy()
 		}
 	}
+	return ret
+}
+
+func copyIIGOElection(input []VotingInfo) []VotingInfo {
+	ret := make([]VotingInfo, len(input))
+	copy(ret, input)
 	return ret
 }
 
