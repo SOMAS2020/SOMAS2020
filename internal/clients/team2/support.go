@@ -122,6 +122,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 				tax:  shared.Resources(content.IntegerData),
 				turn: c.gameState().Turn,
 			}
+			// TODO: Appends incomplete presCommonPoolHist
 			c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
 
 		case shared.IIGOAllocationDecision:

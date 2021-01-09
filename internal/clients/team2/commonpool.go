@@ -35,6 +35,9 @@ func (c *client) presCommonPoolUpdate(request shared.Resources) {
 		c.Logf("Initialised presCommonPoolHist", c.presCommonPoolHist)
 	} else {
 		presHist := c.presCommonPoolHist[c.gameState().PresidentID]
+		// TODO: this logic doesn't make sense - we get the most recent item from the hist
+		// TODO: set the turn and requestedToPres to the current turn (which we already know is the same)
+		// TODO: and then append an item that already exists to the presCommonPoolHist
 		if presHist[len(presHist)-1].turn == c.gameState().Turn {
 			commonPool = presHist[len(presHist)-1]
 			commonPool.turn = c.gameState().Turn
@@ -89,7 +92,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	request := c.determineBaseCommonPoolRequest() * methodConfPool(c)
 	c.presCommonPoolUpdate(request)
 
-	// This was using outdated logic without error handling
+	// This uses outdated logic without error handling
 	var commonPool CommonPoolInfo
 	presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 
@@ -176,7 +179,7 @@ func (c *client) calculateDisasterMagPred() float64 {
 
 func (c *client) calculateTimeRemaining() float64 {
 	turn := c.gameState().Turn
-	//add extra when disaster is soon
+	// add extra when disaster is soon
 	if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
 		period := c.gameConfig().DisasterConfig.DisasterPeriod.Value
 		return float64(period - (turn % period))
@@ -191,7 +194,7 @@ func (c *client) calculateTimeRemaining() float64 {
 
 }
 
-//Determines esources we need to be above critical, pay tax and cost of living, put resources aside proportional to incoming disaster
+// Determines esources we need to be above critical, pay tax and cost of living, put resources aside proportional to incoming disaster
 func (c *client) agentThreshold() shared.Resources {
 	criticalThreshold := c.gameConfig().MinimumResourceThreshold
 	costOfLiving := c.gameConfig().CostOfLiving
