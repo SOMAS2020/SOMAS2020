@@ -9,25 +9,9 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func (c *client) islandEmpathyLevel() EmpathyLevel {
+func (c *client) criticalStatus() bool {
 	clientInfo := c.gameState().ClientInfo
-
-	// switch statement to toggle between three levels
-	// change our state based on these cases
-	switch {
-	case clientInfo.LifeStatus == shared.Critical:
-		return Selfish
-		// replace with some expression
-	case (true):
-		return Altruist
-	default:
-		return FairSharer
-	}
-}
-
-func criticalStatus(c *client) bool {
-	clientInfo := c.gameState().ClientInfo
-	if clientInfo.LifeStatus == shared.Critical { //not sure about shared.Critical
+	if clientInfo.LifeStatus == shared.Critical {
 		return true
 	}
 	return false
@@ -74,31 +58,42 @@ func (c *client) getNumAliveClients() int {
 	return len(c.getAliveClients())
 }
 
-//MethodOfPlay determine which state we are in 0=altruist, 1=fair sharer and 2= free rider
+// MethodOfPlay determines which state we are in: 0=altruist, 1=fair sharer and 2= free rider
 func (c *client) MethodOfPlay() int {
 	ResourceHistory := c.commonPoolHistory
 	turn := c.gameState().Turn
 
-	noFreeride := NoFreeRideAtStart     //how many turns at the beginning we cannot free ride for
-	freeride := SwitchToFreeRideFactor  //what factor the common pool must increase by for us to considered free riding
-	altfactor := SwitchToAltruistFactor //what factor the common pool must drop by for us to consider altruist
+	// how many turns at the beginning we cannot free ride for
+	// TODO: This shouldn't be a float64 it should be a uint
+	noFreeride := NoFreeRideAtStart
+	// what factor the common pool must increase by for us to considered free riding
+	freeride := SwitchToFreeRideFactor
+	// what factor the common pool must drop by for us to consider altruist
+	altfactor := SwitchToAltruistFactor
 
-	if turn == 1 { //if there is no historical data then use default strategy
+	// use default strategy if there is no historical data then
+	if turn == 1 {
 		return 1
 	}
 
 	prevTurn := turn - 1
 	prevTurn2 := turn - 2
-	if ResourceHistory[prevTurn] > (ResourceHistory[turn] * altfactor) { //decreasing common pool means consider altruist
+
+	// Decreasing common pool means consider altruist
+	if ResourceHistory[prevTurn] > (ResourceHistory[turn] * altfactor) {
 		if ResourceHistory[prevTurn2] > (ResourceHistory[prevTurn] * altfactor) {
-			return 0 //altruist
+			// altruist
+			return 0
 		}
 	}
 
-	if float64(turn) > noFreeride { //we will not allow ourselves to use free riding at the start of the game
+	// We will not allow ourselves to use free riding at the start of the game
+	if float64(turn) > noFreeride {
 		if (ResourceHistory[prevTurn] * freeride) < ResourceHistory[turn] {
-			if (ResourceHistory[prevTurn2] * freeride) < ResourceHistory[prevTurn] { //two large jumps then we free ride
-				return 2 //free rider
+			// two large jumps then we free ride
+			if (ResourceHistory[prevTurn2] * freeride) < ResourceHistory[prevTurn] {
+				// free rider
+				return 2
 			}
 		}
 	}
@@ -115,6 +110,10 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		case shared.IIGOTaxDecision:
 			var commonPool CommonPoolInfo
 			presHist := c.commonPoolHist[c.gameState().PresidentID]
+			c.taxAmount = shared.Resources(content.IntegerData)
+
+			// TODO: this makes no sense - if the presHistory doesn't exist we would still append but just append to an empty object - Yannis
+			// TODO: WTF is this code carla? - Hardik
 			if len(presHist) != 0 {
 				presHist[len(presHist)-1].tax = shared.Resources(content.IntegerData)
 				presHist[len(presHist)-1].turn = c.gameState().Turn
@@ -123,12 +122,13 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 					tax:  shared.Resources(content.IntegerData),
 					turn: c.gameState().Turn,
 				}
+				// Todo: this was being set without ever being assigned a value
+				c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
 			}
-			c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
-			c.taxAmount = shared.Resources(content.IntegerData)
 		case shared.IIGOAllocationDecision:
 			var commonPool CommonPoolInfo
 			presHist := c.commonPoolHist[c.gameState().PresidentID]
+			// TODO: Same issue as above
 			if len(presHist) != 0 {
 				presHist[len(presHist)-1].allocatedByPres = shared.Resources(content.IntegerData)
 				presHist[len(presHist)-1].turn = c.gameState().Turn
@@ -137,9 +137,12 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 					allocatedByPres: shared.Resources(content.IntegerData),
 					turn:            c.gameState().Turn,
 				}
+				c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
 			}
-			c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+			// TODO: Commmon pool is appended without ever being assigned a value
+
 			c.commonPoolAllocation = shared.Resources(content.IntegerData)
+		// TODO: Not sure what's going on with this - are we adding it?
 		// case shared.RuleName:
 		// 	currentRuleID := content.TextData
 		// 	// Rule voting
@@ -166,6 +169,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 				Turn: c.gameState().Turn,
 				Tier: data[shared.IIGOSanctionTier].IntegerData,
 			}
+			// TODO: why are we appending to this map instead of setting the sanction value for the island?
 			c.islandSanctions[shared.ClientID(content.IntegerData)] = append(c.islandSanctions[shared.ClientID(content.IntegerData)], sanction)
 		case shared.IIGOSanctionTier:
 			c.tierLevels[content.IntegerData] = data[shared.IIGOSanctionScore].IntegerData
@@ -175,16 +179,16 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 				Tier:   c.checkSanctionTier(content.IntegerData),
 				Amount: content.IntegerData,
 			}
+			// Add a new sanction to the sanction hist
 			sanctions := c.sanctionHist[c.gameState().JudgeID]
 			c.sanctionHist[c.gameState().JudgeID] = append(sanctions, sanction)
 		}
 	}
-
 }
 
 func (c *client) checkSanctionTier(score int) int {
-
 	var keys []int
+
 	for k := range c.tierLevels {
 		keys = append(keys, k)
 	}
@@ -196,5 +200,7 @@ func (c *client) checkSanctionTier(score int) int {
 			return tier
 		}
 	}
-	return 5 // NoSanction
+
+	// NoSanction
+	return 5
 }

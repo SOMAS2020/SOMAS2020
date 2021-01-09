@@ -12,15 +12,25 @@ type Speaker struct {
 }
 
 // DecideVote calls a vote on the rule decided on during DecideAgenda
-// As speaker we will only count the votes of islands who have not had a snaction in the last 10 turns
+// In the first Num turns or if the last sanction is far away, count all the votes
 func (s *Speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
 	var chosenClients []shared.ClientID
+	chosenClients = append(chosenClients, s.c.GetID())
+
 	for _, islandID := range aliveClients {
-		if s.c.islandSanctions[islandID][len(s.c.islandSanctions[islandID])-1].Turn <= s.c.gameState().Turn-10 {
+		lastSanctionTurn := s.c.islandSanctions[islandID][len(s.c.islandSanctions[islandID])-1].Turn
+
+		// do not add our own island twice
+		if islandID == s.c.GetID() {
+			continue
+		}
+
+		if s.c.gameState().Turn <= 10 || (lastSanctionTurn <= s.c.gameState().Turn-10) {
 			chosenClients = append(chosenClients, islandID)
 		}
 	}
 
+	// chosen client is never null - sneaky fix
 	return shared.SpeakerReturnContent{
 		ContentType:          shared.SpeakerVote,
 		ParticipatingIslands: chosenClients,
