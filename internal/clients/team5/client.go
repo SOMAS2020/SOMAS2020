@@ -108,24 +108,3 @@ func (c *client) updateResourceHistory(resourceHistory resourceHistory) {
 func (c client) gameState() gamestate.ClientGameState {
 	return c.ServerReadHandle.GetGameState()
 }
-
-/*	Comunication
-	Gets information on minimum tax amount and cp allocation */
-//=================================================================
-func (c *client) ReceiveCommunication(
-	sender shared.ClientID,
-	data map[shared.CommunicationFieldName]shared.CommunicationContent,
-) {
-	for field, content := range data {
-		switch field {
-		case shared.IIGOTaxDecision:
-			c.taxAmount = shared.Resources(content.IntegerData)
-		case shared.IIGOAllocationDecision:
-			c.allocation = shared.Resources(content.IntegerData)
-		case shared.SanctionAmount:
-			c.sanctionAmount = shared.Resources(content.IntegerData)
-		default:
-			c.Logf("Received unhandled communication of type: %v, value: %v", field, content)
-		}
-	}
-}
