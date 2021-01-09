@@ -16,8 +16,8 @@ func TestCommonPoolResourceRequest(t *testing.T) {
 	currentTier := imperialStudent
 	reqAmount := c.calculateRequestAllocation(turn, season, currentTier, currentCP)
 	w := c.config.imperialThreshold
-	if w != reqAmount {
-		t.Errorf("Not taking proper # of resources from cp. Want %v, got %v", w, reqAmount)
+	if roundTo(float64(w), 1) != roundTo(float64(reqAmount), 1) {
+		t.Errorf("Not taking proper # of resources from cp. Want %v, got %v", w, roundTo(float64(reqAmount), 2))
 	}
 
 	// test submit request to president when we are poor and current CP has a lot

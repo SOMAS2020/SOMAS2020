@@ -52,6 +52,12 @@ func (c client) isClientAlive(id shared.ClientID) bool {
 	return false
 }
 
+func roundTo(x float64, decPlaces uint) float64 {
+	x *= math.Pow(10, float64(decPlaces))
+	y := math.Round(x)
+	return y / math.Pow(10, float64(decPlaces))
+}
+
 // caps magnitude of val to absThresh
 func absoluteCap(val, absThresh float64) float64 {
 	if val > 0 {
