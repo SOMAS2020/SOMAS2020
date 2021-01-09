@@ -229,7 +229,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	actionCost := gameConf.IIGOConfig
 	costOfElection := actionCost.AppointNextSpeakerActionCost + actionCost.AppointNextJudgeActionCost + actionCost.AppointNextPresidentActionCost
 	//reset IIGO Election before using it
-	g.IIGOElection = nil
+	g.IIGOElection = make([]gamestate.VotingInfo, 0)
 	if !CheckEnoughInCommonPool(costOfElection, g) {
 		return false, "Insufficient budget to run IIGO elections"
 	}
