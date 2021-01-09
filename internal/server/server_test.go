@@ -119,19 +119,16 @@ func TestGetNRandClientIDsUniqueIfPossible(t *testing.T) {
 	cases := []struct {
 		name      string
 		input     []shared.ClientID
-		unique    bool
 		retLength int
 	}{
 		{
 			name:      "RandomAssign 2 entries",
 			input:     []shared.ClientID{shared.ClientID(0), shared.ClientID(1)},
-			unique:    false,
 			retLength: 3,
 		},
 		{
 			name:      "RandomAssign 3 entries",
 			input:     []shared.ClientID{shared.ClientID(0), shared.ClientID(1), shared.ClientID(2)},
-			unique:    true,
 			retLength: 3,
 		},
 		{
@@ -143,7 +140,6 @@ func TestGetNRandClientIDsUniqueIfPossible(t *testing.T) {
 				shared.ClientID(3),
 				shared.ClientID(4),
 				shared.ClientID(5)},
-			unique:    true,
 			retLength: 3,
 		},
 		{
@@ -155,20 +151,18 @@ func TestGetNRandClientIDsUniqueIfPossible(t *testing.T) {
 				shared.ClientID(3),
 				shared.ClientID(4),
 				shared.ClientID(5)},
-			unique:    true,
 			retLength: 5,
 		},
 		{
 			name:      "RandomAssign one entry, but long return lsit",
 			input:     []shared.ClientID{shared.ClientID(0), shared.ClientID(1)},
-			unique:    false,
 			retLength: 10,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if !tc.unique {
+			if len(tc.input) < tc.retLength {
 				lst, _ := getNRandClientIDsUniqueIfPossible(tc.input, tc.retLength) // Only check for crash
 				if len(lst) != tc.retLength {
 					t.Errorf("%v - Return list length %v, different from expected length %v", tc.name, len(lst), tc.retLength)
