@@ -31,7 +31,7 @@ import (
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	var predictionInfo shared.DisasterPredictionInfo
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClients))
+	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClientFactories))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
@@ -155,7 +155,6 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		TimeLeft:    uint((float64(totalTimeLeft) / totalConfidence) + 0.5),
 		Confidence:  totalConfidence / numberOfPredictions,
 	})
-
 	c.Logf("Final Prediction: [%v]", c.globalDisasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1])
 
 	// TODO: compare other islands predictions to disaster when info is received and update their trust score

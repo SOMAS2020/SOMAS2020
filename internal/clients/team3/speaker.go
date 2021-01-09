@@ -2,7 +2,6 @@ package team3
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -28,7 +27,7 @@ func (s *speaker) DecideAgenda(ruleMat rules.RuleMatrix) shared.SpeakerReturnCon
 func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
 	var chosenClients []shared.ClientID
 	for _, islandID := range aliveClients {
-		if s.c.iigoInfo.sanctions.islandSanctions[islandID] != roles.NoSanction {
+		if s.c.iigoInfo.sanctions.islandSanctions[islandID] != shared.NoSanction {
 			chosenClients = append(chosenClients, islandID)
 		}
 	}

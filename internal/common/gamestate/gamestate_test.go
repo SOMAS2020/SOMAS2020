@@ -1,6 +1,7 @@
 package gamestate
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"reflect"
 	"testing"
 
@@ -56,6 +57,11 @@ func TestGetClientGameStateCopy(t *testing.T) {
 			shared.Speaker:   4,
 		},
 		CommonPool: 20,
+		RulesInfo: RulesContext{
+			VariableMap:        map[rules.VariableFieldName]rules.VariableValuePair{},
+			AvailableRules:     map[string]rules.RuleMatrix{},
+			CurrentRulesInPlay: map[string]rules.RuleMatrix{},
+		},
 	}
 
 	lifeStatuses := map[shared.ClientID]shared.ClientLifeStatus{
@@ -77,6 +83,7 @@ func TestGetClientGameStateCopy(t *testing.T) {
 				Geography:          gameState.Environment.Geography,
 				IIGORolesBudget:    gameState.IIGORolesBudget,
 				IIGOTurnsInPower:   gameState.IIGOTurnsInPower,
+				RulesInfo:          gameState.RulesInfo,
 			}
 
 			gotClientGS := gameState.GetClientGameStateCopy(tc)
