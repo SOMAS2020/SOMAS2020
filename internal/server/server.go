@@ -176,8 +176,9 @@ func (s ServerForClient) GetGameConfig() config.ClientConfig {
 
 func randomAssign(lst []shared.ClientID) (shared.ClientID, shared.ClientID, shared.ClientID) {
 	uniqueNumbers := make([]int, 0, 3)
+
 	if len(lst) < 3 {
-		return shared.Team1, shared.Team2, shared.Team3
+		return lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))]
 	}
 
 	index := 0
