@@ -10,12 +10,12 @@ import processForagingData from './Util/processForagingData'
 
 const IIFO = (props: { output: OutputJSONType }) => {
   const foragingHistory = processForagingData(props.output)
-
+  console.log({ foragingHistory })
   return (
     <div className={styles.root}>
       <h2 className={styles.text}>Foraging Visualisation</h2>
       <div style={{ textAlign: 'center' }}>
-        <ForagingPlot data={foragingHistory} />
+        <ForagingPlot data={Object.values(foragingHistory)} />
       </div>
     </div>
   )
