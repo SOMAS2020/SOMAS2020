@@ -183,7 +183,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
 	for id, predictions := range receivedPredictions {
 		if predictions.PredictionMade.TimeLeft+1 != c.othersDisasterPrediction[id].PredictionMade.TimeLeft {
-			c.trustTeams[id] -= 1
+			c.trustTeams[id]--
 		}
 	}
 
