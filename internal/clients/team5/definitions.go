@@ -40,6 +40,7 @@ type forageOutcome struct {
 	team   shared.ClientID
 	input  shared.Resources
 	output shared.Resources
+	caught uint
 }
 
 // forageHistory stores history of foraging outcomes

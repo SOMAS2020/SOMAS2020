@@ -59,3 +59,12 @@ func absoluteCap(val, absThresh float64) float64 {
 	}
 	return math.Max(val, absThresh*-1)
 }
+
+func (c client) getMood() float64 {
+	return c.mapToRange(float64(c.gameState().ClientInfo.Resources),
+		float64(c.config.jbThreshold), 0, 0.5, 1.5)
+}
+
+func (c client) mapToRange(x, inMin, inMax, outMin, outMax float64) float64 {
+	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
+}
