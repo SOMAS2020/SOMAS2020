@@ -139,19 +139,27 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 		// Start only when we have enough turns to look back at
 		if c.getTurn() > c.config.DeerTurnsToLookBack {
 			prevTurnsHunters := make(map[uint]uint)
+			noCaught := make(map[uint]uint)
 			for _, returns := range forageHistory[shared.DeerForageType] { // finds Number of hunters  for each turn
 				for i := c.getTurn() - c.config.DeerTurnsToLookBack; i < c.getTurn() && i >= c.getTurn()-c.config.DeerTurnsToLookBack; i++ {
-					if returns.output > returns.input*1.2 && returns.turn == i { // Only count the ones that had positive returns (as they must have went hunting)
+					if returns.output > returns.input && returns.turn == i { // Only count the ones that had positive returns (as they must have went hunting)
 						prevTurnsHunters[i] = prevTurnsHunters[i] + 1
+					}
+					if returns.caught >= 0 && returns.turn == i {
+						noCaught[i] = returns.caught
 					}
 				}
 			}
-			for i := c.getTurn() - c.config.DeerTurnsToLookBack; i < c.getTurn(); i++ {
-				probDeerHunting -= (float64(prevTurnsHunters[i]) / float64(c.getTurn()-i)) * c.config.DecreasePerHunterInLookBack
+			for i := c.getTurn() - c.config.DeerTurnsToLookBack; i < c.getTurn(); i++ { // (Hunters/(X turns before) * scaler * Number of deer
+				probDeerHunting -= (float64(prevTurnsHunters[i]) /
+					float64(c.getTurn()-i)) *
+					c.config.DecreasePerHunterInLookBack *
+					float64(noCaught[i])
 			}
 
 			// Logger
-			c.Logf("[Best Foraging Method] PrevTurnsHunters %v | Prob Hunting %v | Prob Fishing %v", prevTurnsHunters, probDeerHunting, probFishing)
+			c.Logf("[Best Foraging Method][%v]: PrevTurnsHunters %v | No.Caught %v | Prob Hunting %v | Prob Fishing %v",
+				c.getTurn(), prevTurnsHunters, noCaught, probDeerHunting, probFishing)
 		}
 		// ================================================================
 		// If best foraging was none of the 2 above then return shared.ForageType(-1)
@@ -228,7 +236,9 @@ func (c *client) normalForage() shared.ForageDecision {
 		}
 	}
 
-	bestInput = 0.5*mostProfit + 0.5*bestInput
+	bestInput = shared.Resources(
+		(c.config.bestInputProfitPerc)*float64(bestInput) +
+			(1-c.config.bestInputProfitPerc)*float64(mostProfit))
 
 	// Add a random amount -5% -> 5% to the bestInput (max +-X%)
 	if rand.Float64() < 0.5 { // Increase or Decrease
@@ -237,7 +247,7 @@ func (c *client) normalForage() shared.ForageDecision {
 		bestInput += bestInput * shared.Resources(rand.Float64()*c.config.NormalRandomChange)
 	}
 
-	bestInput = bestInput * shared.Resources(c.mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 1.5))
+	bestInput = bestInput * shared.Resources(c.mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 1.8))
 
 	// Pick the minimum value between the best value and x% of our resources
 	bestInput = shared.Resources(math.Min(
@@ -254,8 +264,8 @@ func (c *client) normalForage() shared.ForageDecision {
 	}
 
 	c.Logf(
-		"[Normal Forage]:Method: %v | Input: %v | Expected RoI: %v",
-		bestForagingMethod, bestInput, bestRoI)
+		"[Normal Forage][%v]:Method: %v | Input: %v | Expected RoI: %v",
+		c.getTurn(), bestForagingMethod, bestInput, bestRoI)
 
 	return forageDecision
 }

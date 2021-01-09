@@ -24,6 +24,7 @@ type clientConfig struct {
 	SkipForage          uint // Skip for X turns if no positive RoI
 	NormalRandomChange  float64
 	MaxForagePercentage float64
+	bestInputProfitPerc float64
 
 	//==================== Thresholds ====================
 	// Thresholds for the amount of money we have
@@ -67,13 +68,14 @@ func getClientConfig() clientConfig {
 		RandomChanceToHunt:           0.4,
 		IncreasePerHunterLastTurn:    0.00, // % increase for each Hunter
 		IncreasePerFisherMenLastTurn: 0.00, // % incrase for each Fisher
-		DeerTurnsToLookBack:          3,    // Number of turns to look back at for deer (not including last)
+		DeerTurnsToLookBack:          4,    // Number of turns to look back at for deer (not including last)
 		DecreasePerHunterInLookBack:  0.04, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
 
 		// Normal Forage
 		SkipForage:          1,
 		NormalRandomChange:  0.05,
 		MaxForagePercentage: 0.40,
+		bestInputProfitPerc: 0.8,
 
 		// Threshold for wealth as multiplier
 		jbThreshold:       2.0,
