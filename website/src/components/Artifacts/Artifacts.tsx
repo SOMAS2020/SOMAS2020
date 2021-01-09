@@ -1,6 +1,5 @@
 import React from 'react'
 import { Table } from 'react-bootstrap'
-
 import styles from './Artifacts.module.css'
 import { OutputJSONType } from '../../consts/types'
 

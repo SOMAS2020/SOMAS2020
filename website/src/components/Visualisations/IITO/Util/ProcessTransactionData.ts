@@ -1,10 +1,5 @@
-import {
-    Link,
-    Node,
-    Transaction,
-    OutputJSONType,
-    TeamName,
-} from '../../../../consts/types'
+import { Transaction, OutputJSONType, TeamName } from '../../../../consts/types'
+import { Link, Node } from './ForceGraph'
 import { teamColors } from '../../utils'
 
 export const getIIGOTransactions = (data: OutputJSONType) => {

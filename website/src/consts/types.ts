@@ -17,22 +17,6 @@ export type Transaction = {
     to: TeamName
     amount: number
 }
-
-// TODO: Extract summary metric for bubble size from transactions[] and islandGifts[]
-// TODO: might be cool to have max and min resources of each entity as a summary metric in the tooltip
-export type Node = {
-    id: number
-    magnitude: number
-    colorStatus: string
-    islandColor: string
-}
-
-export type Link = {
-    source: number
-    target: number
-    amount: number
-}
-
 // Custom utility type
 // type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U
 // export type OutputJSONType = GameStatesType & typeof outputJSONData

@@ -1,7 +1,21 @@
 import React, { useEffect, useRef } from 'react'
 import runForceGraph from './ForceGraphGenerator'
 import styles from '../IITO.module.css'
-import { Link, Node } from '../../../../consts/types'
+
+// TODO: Extract summary metric for bubble size from transactions[] and islandGifts[]
+// TODO: might be cool to have max and min resources of each entity as a summary metric in the tooltip
+export type Node = {
+  id: number
+  magnitude: number
+  colorStatus: string
+  islandColor: string
+}
+
+export type Link = {
+  source: number
+  target: number
+  amount: number
+}
 
 const ForceGraph = ({
   linksData,
