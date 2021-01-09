@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -365,4 +366,14 @@ func (e *Election) pluralityResult() shared.ClientID {
 func (e *Election) majorityResult() shared.ClientID {
 	// TODO implement majority winner selection method.
 	return e.pluralityResult()
+}
+
+// GetVotingInfo get a neccesery information to visualise in the form on gamestate.VotingInfo
+func (e *Election) GetVotingInfo() gamestate.VotingInfo {
+	return gamestate.VotingInfo{
+		RoleToElect:  e.roleToElect,
+		VotingMethod: e.votingMethod,
+		VoterList:    e.voterList,
+		Votes:        e.votes,
+	}
 }

@@ -270,6 +270,7 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 	} else {
 		appointedJudge = currentJudge
 	}
+	l.gameState.IIGOElection = append(l.gameState.IIGOElection, election.GetVotingInfo())
 	return appointedJudge, nil
 }
 
