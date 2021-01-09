@@ -71,7 +71,7 @@ func createSOMASServer(
 	}
 
 	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
-	initSpeaker, initJudge, initPresident := randomAssign(clientIDs)
+	initSpeaker, initJudge, initPresident := randomUniqueAssignIIGORoles(clientIDs)
 
 	server := &SOMASServer{
 		clientMap:  clientMap,
@@ -175,7 +175,7 @@ func (s ServerForClient) GetGameConfig() config.ClientConfig {
 	return s.server.gameConfig.GetClientConfig()
 }
 
-func randomAssign(input []shared.ClientID) (shared.ClientID, shared.ClientID, shared.ClientID) {
+func randomUniqueAssignIIGORoles(input []shared.ClientID) (shared.ClientID, shared.ClientID, shared.ClientID) {
 	lst := make([]shared.ClientID, len(input))
 	copy(lst, input)
 	// Just randomly assign roles if there are not enough clients

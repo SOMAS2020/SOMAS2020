@@ -99,7 +99,7 @@ func TestSOMASServerFactoryInitialisesClients(t *testing.T) {
 	}
 }
 
-func TestRandomAssign(t *testing.T) {
+func TestRandomUniqueAssignIIGORoles(t *testing.T) {
 	iterations := 10
 	cases := []struct {
 		name  string
@@ -128,10 +128,10 @@ func TestRandomAssign(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			if len(tc.input) < 3 {
-				randomAssign(tc.input) // Only check for crash
+				randomUniqueAssignIIGORoles(tc.input) // Only check for crash
 			} else {
 				for i := 0; i < iterations; i++ { // As its using random numbers. Run each test several times to minimise probablability
-					speaker, judge, president := randomAssign(tc.input)
+					speaker, judge, president := randomUniqueAssignIIGORoles(tc.input)
 					if speaker == judge ||
 						speaker == president ||
 						judge == president {
