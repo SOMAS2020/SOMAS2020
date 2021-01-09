@@ -227,7 +227,7 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 			if score, ok := j.ruleViolationSeverity[ruleBroken]; ok {
 				totalIslandTurnScore += score
 			} else {
-				totalIslandTurnScore += shared.IIGOSanctionsScore(5)
+				totalIslandTurnScore += j.gameConf.DefaultSanctionScore
 			}
 			j.Logf("Rule: %v, broken by: %v", ruleBroken, islandID)
 		}
@@ -326,7 +326,7 @@ func createBroadcastsForSanctionThresholds(thresholds map[shared.IIGOSanctionsTi
 				T:           shared.CommunicationInt,
 				IntegerData: int(tier),
 			},
-			shared.IIGOSanctionScore: {
+			shared.RuleSanctionPenalty: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(score),
 			},
@@ -343,7 +343,7 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]shared.IIGOS
 				T:        shared.CommunicationString,
 				TextData: ruleName,
 			},
-			shared.IIGOSanctionScore: {
+			shared.RuleSanctionPenalty: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(score),
 			},
