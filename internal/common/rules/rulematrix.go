@@ -37,7 +37,7 @@ type RuleMatrix struct {
 func (r *RuleMatrix) RuleMatrixIsEmpty() bool {
 	if r.RuleName == "" &&
 		len(r.RequiredVariables) == 0 &&
-		r.Mutable == false &&
+		!r.Mutable &&
 		r.Link == (RuleLink{}) {
 		// if r.ApplicableMatrix != nil && r.AuxiliaryVector != nil {
 		r1, c1 := r.ApplicableMatrix.Dims()
