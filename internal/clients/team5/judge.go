@@ -3,7 +3,6 @@ package team5
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -18,7 +17,7 @@ func (c *client) GetClientJudgePointer() roles.Judge {
 }
 
 // Pardon ourselves and homies
-func (j *judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
+func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
 	pardons := make(map[int][]bool)
 	for key, sanctionList := range currentSanctions {
 		lst := make([]bool, len(sanctionList))
@@ -40,7 +39,7 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) ma
 // Pay president based on the status of our own wealth
 // If we are not doing verywell, pay President less so we have more in the CP to take from
 func (j *judge) PayPresident() (shared.Resources, bool) {
-	PresidentSalaryRule, ok := rules.RulesInPlay["salary_cycle_president"]
+	PresidentSalaryRule, ok := j.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_president"]
 	var salary shared.Resources = 0
 	if ok {
 		salary = shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
