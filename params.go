@@ -102,7 +102,7 @@ var (
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",
-		0.5,
+		0.2,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
 
@@ -114,7 +114,7 @@ var (
 	)
 	foragingFishingIncrementalInputDecay = flag.Float64(
 		"foragingFishingIncrementalInputDecay",
-		0.6,
+		0.8,
 		"Determines decay of incremental input cost of catching more fish.",
 	)
 	foragingFishingMean = flag.Float64(
@@ -139,7 +139,7 @@ var (
 	)
 	foragingFishingDistributionStrategy = flag.Int(
 		"foragingFishingDistributionStrategy",
-		int(shared.InputProportionalSplit),
+		int(shared.EqualSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
 
@@ -166,7 +166,7 @@ var (
 	)
 	disasterPeriod = flag.Uint(
 		"disasterPeriod",
-		3,
+		15,
 		"Period T between disasters in deterministic case and E[T] in stochastic case.",
 	)
 	disasterSpatialPDFType = flag.Int(
@@ -177,11 +177,11 @@ var (
 	disasterMagnitudeLambda = flag.Float64(
 		"disasterMagnitudeLambda",
 		1,
-		"Exponential rate param for magnitude",
+		"Exponential rate param for disaster magnitude",
 	)
 	disasterMagnitudeResourceMultiplier = flag.Float64(
 		"disasterMagnitudeResourceMultiplier",
-		100,
+		500,
 		"Multiplier to map disaster magnitude to CP resource deductions",
 	)
 	disasterCommonpoolThreshold = flag.Float64(
