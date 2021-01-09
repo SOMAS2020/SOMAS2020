@@ -15,19 +15,34 @@ import (
 const id = shared.Team4
 
 func init() {
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+}
+
+// NewClient is a function that creates a new empty client
+func NewClient(clientID shared.ClientID) baseclient.Client {
+	iigoObs := &iigoObservation{
+		allocationGranted: shared.Resources(0),
+		taxDemanded:       shared.Resources(0),
+	}
+	iifoObs := &iifoObservation{}
+	iitoObs := &iitoObservation{}
+
 	team4client := client{
 		BaseClient:    baseclient.NewClient(id),
 		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
 		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
 		yes:           "",
-		obs:           &observation{},
+		obs: &observation{
+			iigoObs: iigoObs,
+			iifoObs: iifoObs,
+			iitoObs: iitoObs,
+		},
 		internalParam: &internalParameters{},
 		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
 	}
 	team4client.clientJudge.parent = &team4client
 	team4client.clientSpeaker.parent = &team4client
-
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return &team4client })
+	return &team4client
 }
 
 type client struct {
@@ -75,26 +90,13 @@ type internalParameters struct {
 type personality struct {
 }
 
-//Overriding and extending the Initialise method of the BaseClient to initilise our client
+//Overriding and extending the Initialise method of the BaseClient to initilise our client. This function happens after the init() function. At this point server has just initialised and the ServerReadHandle is available.
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
-	// c.BaseClient.Initialise(serverReadHandle)
 	c.BaseClient.Initialise(serverReadHandle)
 
-	//custom things below, trust matrix initilised to values of 1
+	//custom things below, trust matrix initilised to values of 0
 	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
 	c.internalParam = &internalParameters{agentsTrust: make([]float64, numClient)}
-	iigoObs := &iigoObservation{
-		allocationGranted: shared.Resources(0),
-		taxDemanded:       shared.Resources(0),
-	}
-	iifoObs := &iifoObservation{}
-	iitoObs := &iitoObservation{}
-	c.obs = &observation{
-		iigoObs: iigoObs,
-		iifoObs: iifoObs,
-		iitoObs: iitoObs,
-	}
-
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
 	// numClient := len(shared.TeamIDs)
