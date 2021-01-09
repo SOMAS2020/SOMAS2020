@@ -71,8 +71,10 @@ func createSOMASServer(
 	}
 
 	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
-	initRoles := randomUniqueAssignIIGORoles(clientIDs)
-
+	initRoles, err := getNRandValuesFromLstUniqueWherePossible(clientIDs, 3)
+	if err != nil {
+		panic(err)
+	}
 	server := &SOMASServer{
 		clientMap:  clientMap,
 		gameConfig: gameConfig,
@@ -96,9 +98,9 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
-			SpeakerID:   initSpeaker,
-			JudgeID:     initJudge,
-			PresidentID: initPresident,
+			SpeakerID:   initRoles[0],
+			JudgeID:     initRoles[1],
+			PresidentID: initRoles[2],
 			CommonPool:  gameConfig.InitialCommonPool,
 			RulesInfo: gamestate.RulesContext{
 				AvailableRules:     availableRules,
@@ -175,17 +177,21 @@ func (s ServerForClient) GetGameConfig() config.ClientConfig {
 	return s.server.gameConfig.GetClientConfig()
 }
 
-func randomUniqueAssignIIGORoles(input []shared.ClientID) (shared.ClientID, shared.ClientID, shared.ClientID) {
-	// Copy list
+func getNRandValuesFromLstUniqueWherePossible(input []shared.ClientID, n int) ([]shared.ClientID, error) {
+	if len(input) == 0 {
+		return nil, fmt.Errorf("RIP, empty list")
+	}
+
 	lst := make([]shared.ClientID, len(input))
 	copy(lst, input)
 
-	// Randomly assign roles if there are not enough clients
-	if len(lst) < 3 {
-		return lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))]
+	// make lst's length longer than n
+	for len(lst) < n {
+		lst = append(lst, lst...)
 	}
 
-	// Shuffle and return three first clients
+	// shuffle lst
 	rand.Shuffle(len(lst), func(i, j int) { lst[i], lst[j] = lst[j], lst[i] })
-	return lst[0], lst[1], lst[2]
+
+	return lst[:n], nil
 }

@@ -99,19 +99,37 @@ func TestSOMASServerFactoryInitialisesClients(t *testing.T) {
 	}
 }
 
-func TestRandomUniqueAssignIIGORoles(t *testing.T) {
+func lstHasUniqueClientIDs(lst []shared.ClientID) bool {
+	// set to contain what we've seen so far
+	var s map[shared.ClientID]interface{}
+	for _, id := range lst {
+		if _, ok := s[id]; ok {
+			return false
+		}
+		s[id] = nil
+	}
+	return true
+}
+
+func TestGetNRandValuesFromLstUniqueWherePossible(t *testing.T) {
 	iterations := 10
 	cases := []struct {
-		name  string
-		input []shared.ClientID
+		name      string
+		input     []shared.ClientID
+		unique    bool
+		retLength int
 	}{
 		{
-			name:  "RandomAssign 2 entries",
-			input: []shared.ClientID{shared.ClientID(0), shared.ClientID(1)},
+			name:      "RandomAssign 2 entries",
+			input:     []shared.ClientID{shared.ClientID(0), shared.ClientID(1)},
+			unique:    false,
+			retLength: 3,
 		},
 		{
-			name:  "RandomAssign 3 entries",
-			input: []shared.ClientID{shared.ClientID(0), shared.ClientID(1), shared.ClientID(2)},
+			name:      "RandomAssign 3 entries",
+			input:     []shared.ClientID{shared.ClientID(0), shared.ClientID(1), shared.ClientID(2)},
+			unique:    true,
+			retLength: 3,
 		},
 		{
 			name: "RandomAssign several entries",
@@ -122,24 +140,25 @@ func TestRandomUniqueAssignIIGORoles(t *testing.T) {
 				shared.ClientID(3),
 				shared.ClientID(4),
 				shared.ClientID(5)},
+			unique:    true,
+			retLength: 3,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if len(tc.input) < 3 {
-				randomUniqueAssignIIGORoles(tc.input) // Only check for crash
+			if !tc.unique {
+				getNRandValuesFromLstUniqueWherePossible(tc.input, tc.retLength) // Only check for crash
 			} else {
-				for i := 0; i < iterations; i++ { // As its using random numbers. Run each test several times to minimise probablability
-					speaker, judge, president := randomUniqueAssignIIGORoles(tc.input)
-					if speaker == judge ||
-						speaker == president ||
-						judge == president {
-						t.Errorf("Speaker: %v, Judge: %v, President: %v, should all be unique but weren't", speaker, judge, president)
+				for i := 0; i < iterations; i++ { // As its using random numbers. Run each test several times to minimise probability
+					lst, err := getNRandValuesFromLstUniqueWherePossible(tc.input, tc.retLength)
+					if err != nil && !lstHasUniqueClientIDs(lst) {
+						t.Errorf("Elements in the return list %v should all be unique but weren't", lst)
 					}
 				}
 			}
 		})
 
 	}
+
 }
