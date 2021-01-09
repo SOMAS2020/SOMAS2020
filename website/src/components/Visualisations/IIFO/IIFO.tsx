@@ -1,13 +1,10 @@
 import React from 'react'
-import logo from '../../../assets/logo/logo512.png'
 import styles from './IIFO.module.css'
 
-import { ForagingHistory } from './Util/ForagingTypes'
 import { OutputJSONType } from '../../../consts/types'
 import ForagingPlot from './Util/ForagingPlot'
 import processForagingData from './Util/processForagingData'
-
-// TODO: sketch out what the plot should look like and what you need
+// import { ForagingHistory } from './Util/ForagingTypes'
 
 const IIFO = (props: { output: OutputJSONType }) => {
   const foragingHistory = processForagingData(props.output)
