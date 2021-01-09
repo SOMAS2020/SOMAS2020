@@ -6,6 +6,7 @@ import (
 	"math"
 	"reflect"
 	"sort"
+	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -15,8 +16,61 @@ import (
 const id = shared.Team4
 
 func init() {
-	team4client := newClient(id, nil)
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return &team4client })
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+}
+
+func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
+	// have some config json file or something?
+	internalConfig := internalParameters{
+		greediness:       0,
+		selfishness:      0,
+		fairness:         0,
+		collaboration:    0,
+		riskTaking:       0,
+		agentsTrust:      []float64{},
+		minPardonTime:    3,
+		maxTierToPardon:  shared.SanctionTier3,
+		minTrustToPardon: 0.6,
+	}
+
+	iigoObs := iigoObservation{
+		allocationGranted: shared.Resources(0),
+		taxDemanded:       shared.Resources(0),
+	}
+	iifoObs := iifoObservation{}
+	iitoObs := iitoObservation{}
+
+	obs := observation{
+		iigoObs: &iigoObs,
+		iifoObs: &iifoObs,
+		iitoObs: &iitoObs,
+	}
+
+	judgeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
+
+	emptyRuleCache := map[string]rules.RuleMatrix{}
+
+	team4client := client{
+		BaseClient:         baseclient.NewClient(id),
+		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
+		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		yes:                "",
+		obs:                &obs,
+		internalParam:      &internalConfig,
+		idealRulesCachePtr: &emptyRuleCache,
+		savedHistory:       &judgeHistory,
+	}
+
+	team4client.clientJudge.parent = &team4client
+	team4client.clientSpeaker.parent = &team4client
+
+	return team4client
+}
+
+// NewClient is a function that creates a new empty client
+func NewClient(clientID shared.ClientID) baseclient.Client {
+	team4client := newClientInternal(clientID, nil)
+	return &team4client
 }
 
 type client struct {
@@ -73,15 +127,13 @@ type internalParameters struct {
 type personality struct {
 }
 
-//Overriding and extending the Initialise method of the BaseClient to initilise our client
+//Overriding and extending the Initialise method of the BaseClient to initilise our client. This function happens after the init() function. At this point server has just initialised and the ServerReadHandle is available.
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
-	// c.BaseClient.Initialise(serverReadHandle)
 	c.BaseClient.Initialise(serverReadHandle)
 
-	//custom things below, trust matrix initilised to values of 1
+	//custom things below, trust matrix initilised to values of 0
 	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
 	trustVector := make([]float64, numClient)
-
 	c.internalParam.agentsTrust = trustVector
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
