@@ -86,7 +86,7 @@ func (c client) regressionForage() (shared.ForageDecision, error) {
 		var expectedReward shared.Resources
 		var contribution shared.Resources
 		// Regression throws an error when the size of array is less than 2
-		if len(c.forageHistory[forageType]) < 3 {
+		if len(c.forageHistory[forageType]) < 2 {
 			if forageType == shared.DeerForageType {
 				c.Logf("[Forage decision] Ha! jokes. Flipping instead")
 				contribution = c.flipForage().Contribution
@@ -243,15 +243,21 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 		c.switchType = !c.switchType
 	}
 
-	c.Logf(
-		// "[Forage result]: %v(%05.3f) | Expectation: %+05.3f | Reward: %+05.3f | Error: %.0f%%"
-		"[Forage result]: %v(%05.3f) | Reward: %+05.3f | Error: %.0f%%",
-		forageDecision.Type,
-		forageDecision.Contribution,
-		// c.expectedForageReward,
-		revenue,
-		((c.expectedForageReward-revenue)/revenue)*100,
-	)
+	if revenue == 0 {
+		c.Logf(
+			"[Forage result]: %v(%05.3f) | Reward: 0 ",
+			forageDecision.Type,
+			forageDecision.Contribution,
+		)
+	} else {
+		c.Logf(
+			"[Forage result]: %v(%05.3f) | Reward: %+05.3f | Error: %.0f%%",
+			forageDecision.Type,
+			forageDecision.Contribution,
+			revenue,
+			((c.expectedForageReward-revenue)/revenue)*100,
+		)
+	}
 }
 
 /************************/
