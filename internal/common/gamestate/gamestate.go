@@ -236,7 +236,7 @@ type ClientInfo struct {
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
 }
 
-// VotingInfo contains all the information neccessary to visualise voting
+// VotingInfo contains all the information necessary to visualise voting
 type VotingInfo struct {
 	RoleToElect  shared.Role
 	VotingMethod shared.ElectionVotingMethod
