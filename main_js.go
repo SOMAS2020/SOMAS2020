@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -60,6 +61,7 @@ func RunGame(this js.Value, args []js.Value) (ret interface{}) {
 		}
 	}()
 	timeStart := time.Now()
+	rand.Seed(timeStart.UTC().UnixNano())
 	gameConfig, err := getConfigFromArgs(args)
 	if err != nil {
 		return js.ValueOf(map[string]interface{}{
