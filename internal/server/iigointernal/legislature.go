@@ -3,6 +3,7 @@ package iigointernal
 import (
 	"fmt"
 	"reflect"
+	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -94,10 +95,14 @@ func (l *legislature) setVotingResult(clientIDs []shared.ClientID) (bool, error)
 	}
 
 	returnVote := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
+	returnedIslands := make([]shared.ClientID, len(returnVote.ParticipatingIslands))
+	copy(returnedIslands, returnVote.ParticipatingIslands)
+	sort.Sort(shared.SortClientByID(returnedIslands))
+	sort.Sort(shared.SortClientByID(clientIDs))
 
 	//log rule: All islands must participate in voting
 	variablesToCache := []rules.VariableFieldName{rules.AllIslandsAllowedToVote}
-	valuesToCache := [][]float64{{boolToFloat(sameIslandIDSlice(returnVote.ParticipatingIslands, clientIDs))}}
+	valuesToCache := [][]float64{{boolToFloat(reflect.DeepEqual(returnedIslands, clientIDs))}}
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
 	if returnVote.ActionTaken && returnVote.ContentType == shared.SpeakerVote {
