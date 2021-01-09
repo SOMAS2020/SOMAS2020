@@ -9,13 +9,13 @@ import processForagingData from './Util/processForagingData'
 // TODO: sketch out what the plot should look like and what you need
 
 const IIFO = (props: { output: OutputJSONType }) => {
-  const foragingData = processForagingData(props.output)
+  const foragingHistory = processForagingData(props.output)
 
   return (
     <div className={styles.root}>
       <h2 className={styles.text}>Foraging Visualisation</h2>
       <div style={{ textAlign: 'center' }}>
-        <ForagingPlot data={foragingData} />
+        <ForagingPlot data={foragingHistory} />
       </div>
     </div>
   )

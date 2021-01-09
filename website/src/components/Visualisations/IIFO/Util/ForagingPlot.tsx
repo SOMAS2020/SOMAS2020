@@ -13,30 +13,6 @@ import {
 // TODO: Y axis resources
 // plot: deer population, fish population, foraging return, foraging input
 const ForagingPlot = (data) => {
-  const foragingHist = [
-    {
-      turn: 1,
-      deerCount: 10,
-      fishCount: 25,
-      foragingReturn: 10,
-      foragingInput: 4,
-    },
-    {
-      turn: 2,
-      deerCount: 20,
-      fishCount: 50,
-      foragingReturn: 25,
-      foragingInput: 3,
-    },
-    {
-      turn: 3,
-      deerCount: 15,
-      fishCount: 35,
-      foragingReturn: 20,
-      foragingInput: 5,
-    },
-  ]
-
   const testData = [
     {
       name: 'Page A',
