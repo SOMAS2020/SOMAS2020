@@ -98,7 +98,7 @@ func TestGetCommonPoolContribution(t *testing.T) {
 	var w shared.Resources
 
 	tax := calculateTaxContribution(taxAmount, turn, season, currentTier)
-	contribution := c.calculateCPContribution(turn, season)
+	contribution := c.calculateCPContribution(turn, season, currentTier)
 	total := tax + contribution
 	w = 20
 	if w != total {
@@ -109,7 +109,7 @@ func TestGetCommonPoolContribution(t *testing.T) {
 	currentTier = imperialStudent
 	turn = 2
 	tax = calculateTaxContribution(taxAmount, turn, season, currentTier)
-	contribution = c.calculateCPContribution(turn, season)
+	contribution = c.calculateCPContribution(turn, season, currentTier)
 	total = tax + contribution
 	w = 0
 	if w != total {
@@ -125,7 +125,7 @@ func TestGetCommonPoolContribution(t *testing.T) {
 	c.cpResourceHistory[2] = 40
 	//c.Logf("differen2: %v", c.cpResourceHistory[1])
 	tax = calculateTaxContribution(taxAmount, turn, season, currentTier)
-	contribution = c.calculateCPContribution(turn, season)
+	contribution = c.calculateCPContribution(turn, season, currentTier)
 	total = tax + contribution
 	w = 20/6 + 20
 	if int(w) != int(total) {
@@ -136,7 +136,7 @@ func TestGetCommonPoolContribution(t *testing.T) {
 	turn = 2
 	c.cpResourceHistory[1] = 60
 	tax = calculateTaxContribution(taxAmount, turn, season, currentTier)
-	contribution = c.calculateCPContribution(turn, season)
+	contribution = c.calculateCPContribution(turn, season, currentTier)
 	total = tax + contribution
 	w = 20
 	if int(w) != int(total) {

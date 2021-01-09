@@ -26,19 +26,32 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 // Take resource from the common pool ideally from the allocation given by President
 // If we are in imperial state, we may take resources regardless what the Presdient say (steal mode)
 func (c *client) RequestAllocation() shared.Resources {
+	// calculate the amount to take away from common pool
 	currentCP := c.getCP()
 	currentTier := c.wealth()
+	turn := c.getTurn()
 	allocationMade := c.BaseClient.LocalVariableCache[rules.AllocationMade].Values[0] != 0
 	allocationAmount := shared.Resources(c.BaseClient.LocalVariableCache[rules.ExpectedAllocation].Values[0])
 	allocation := c.calculateAllocationFromCP(currentTier, currentCP, allocationMade, allocationAmount)
 	if float64(allocation) < 0 {
 		allocation = 0
 	}
-
+	// update Allocation hisotry
 	c.cpAllocationHistory[c.getTurn()] = allocationAmount
+
+	// update opinion on President based on allocation
+	presidentID := c.gameState().PresidentID
+	if allocationAmount <= 0 { // if no allocation, then minus
+		c.opinions[presidentID].updateOpinion(generalBasis, -0.1*c.getMood())
+	} else if allocationAmount < c.cpRequestHistory[turn] && allocationAmount >= currentCP/6 { // if some allocation, then just a bit of score
+		c.opinions[presidentID].updateOpinion(generalBasis, 0.05*c.getMood())
+	} else if allocationAmount >= c.cpRequestHistory[turn] {
+		c.opinions[presidentID].updateOpinion(generalBasis, 0.2*c.getMood())
+	}
+
+	//Debug
 	c.Logf("Current CP: %v", c.getCP())
 	c.Logf("Taking %v from common pool out of %v permitted", allocation, allocationAmount)
-	c.Logf("cpAllocationHistory: %v", c.cpAllocationHistory)
 	return allocation
 }
 
@@ -48,7 +61,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 	season := c.getSeason()
 	currentTier := c.wealth()
 	expectedTax, taxDecisionMade := c.expectedTaxContribution()
-	contribution := c.calculateCPContribution(turn, season) //CP contribution
+	contribution := c.calculateCPContribution(turn, season, currentTier) //CP contribution
 	c.Logf("[DEBUG] - Contributing to the common pool: %v", contribution)
 	// only contribute to the CP if tax decision isn't made
 	if !taxDecisionMade {
@@ -129,18 +142,24 @@ func calculateTaxContribution(expectedTax shared.Resources, turn uint, season ui
 }
 
 // Calculate our contribution to common pool
-func (c *client) calculateCPContribution(turn uint, season uint) (contribution shared.Resources) {
+func (c *client) calculateCPContribution(turn uint, season uint, currentTier wealthTier) (contribution shared.Resources) {
 	// Day 1 we don't contribute anything
 	if turn == 1 && season == 1 {
 		contribution = 0
-	} else { // other days we contribute based on cashflow of commonpool
-		difference := c.cpResourceHistory[turn] - c.cpResourceHistory[turn-1]
-		c.Logf("[DEBUG] - CP Cashflow: %v - %v = %v", c.cpResourceHistory[turn], c.cpResourceHistory[turn-1], difference)
-		if difference < 0 {
-			contribution = 0
+	} else {
+		if currentTier != imperialStudent && currentTier != dying {
+			// other days we contribute based on cashflow of commonpool
+			difference := c.cpResourceHistory[turn] - c.cpResourceHistory[turn-1]
+			c.Logf("[DEBUG] - CP Cashflow: %v - %v = %v", c.cpResourceHistory[turn], c.cpResourceHistory[turn-1], difference)
+			if difference < 0 {
+				contribution = 0
+			} else {
+				contribution = difference / 6
+			}
 		} else {
-			contribution = difference / 6
+			contribution = 0
 		}
+
 	}
 	return contribution
 }
