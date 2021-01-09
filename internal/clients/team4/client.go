@@ -27,7 +27,7 @@ func init() {
 	team4client.clientJudge.parent = &team4client
 	team4client.clientSpeaker.parent = &team4client
 
-	baseclient.RegisterClient(id, &team4client)
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return &team4client })
 }
 
 type client struct {
