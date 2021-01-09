@@ -97,10 +97,20 @@ type CommonPoolInfo struct {
 // A set of constants that define tuning parameters
 const (
 	// Disasters (0, infinity]
-	TuningParamK             float64 = 1
-	VarianceCapTimeRemaining float64 = 10000
-	TuningParamG             float64 = 1
-	VarianceCapMagnitude     float64 = 10000
+	TuningParamK                     float64          = 1
+	VarianceCapTimeRemaining         float64          = 10000
+	TuningParamG                     float64          = 1
+	VarianceCapMagnitude             float64          = 10000
+	BaseResourcesToGiveDivisor       shared.Resources = 4
+	BaseDisasterProtectionDivisor    shared.Resources = 4
+	TimeLeftIncreaseDisProtection    float64          = 3
+	disasterSoonProtectionMultiplier float64          = 1.2
+	DefaultFirstTurnContribution     shared.Resources = 20
+	NoFreeRideAtStart                float64          = 3
+	SwitchToFreeRideFactor           float64          = 5
+	SwitchToAltruistFactor           float64          = 5
+	FairShareFactorOfAvToGive        float64          = 1
+	AltruistFactorOfAvToGive         float64          = 2
 )
 
 type OpinionHist map[shared.ClientID]Opinion
