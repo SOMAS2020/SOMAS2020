@@ -15,18 +15,7 @@ import (
 const id = shared.Team4
 
 func init() {
-	team4client := client{
-		BaseClient:    baseclient.NewClient(id),
-		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
-		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-		yes:           "",
-		obs:           &observation{},
-		internalParam: &internalParameters{},
-		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
-	}
-	team4client.clientJudge.parent = &team4client
-	team4client.clientSpeaker.parent = &team4client
-
+	team4client := newClient(id, nil)
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return &team4client })
 }
 

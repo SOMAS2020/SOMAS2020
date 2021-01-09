@@ -105,17 +105,15 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 	maxTierToPardon := j.parent.internalParam.maxTierToPardon
 	minTrustToPardon := j.parent.internalParam.minTrustToPardon
 
-	for key, sanctions := range currentSanctions {
-		pardons[key] = make([]bool, len(sanctions))
+	for turn, sanctions := range currentSanctions {
+		pardons[turn] = make([]bool, len(sanctions))
 		for index, sanction := range sanctions {
 			if sanction.SanctionTier != shared.NoSanction {
 				considerTime := sanction.TurnsLeft <= minPardonTime
 				considerSeverity := sanction.SanctionTier <= maxTierToPardon
 				considerTrust := minTrustToPardon <= j.parent.getTrust(sanction.ClientID)
 				if considerTime && considerSeverity && considerTrust {
-					pardons[key][index] = true
-				} else {
-					pardons[key][index] = false
+					pardons[turn][index] = true
 				}
 			}
 		}

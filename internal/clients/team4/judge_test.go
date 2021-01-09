@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -177,16 +176,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			testClient := client{
-				BaseClient:    baseclient.NewClient(id),
-				clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
-				clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-				yes:           "",
-				obs:           &observation{},
-				internalParam: &internalParameters{},
-				savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
-			}
-			testClient.clientJudge.parent = &testClient
+			testClient := newClient(id, t)
 			j := testClient.clientJudge
 
 			wholeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
@@ -295,18 +285,7 @@ func TestCallPresidentElection(t *testing.T) {
 				ElectionRuleInPlay: tc.electionRuleInPlay,
 			}
 
-			testClient := client{
-				BaseClient:         baseclient.NewClient(id),
-				clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
-				clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-				yes:                "",
-				obs:                &observation{},
-				internalParam:      &internalParameters{},
-				idealRulesCachePtr: &map[string]rules.RuleMatrix{},
-				savedHistory:       &map[uint]map[shared.ClientID]judgeHistoryInfo{},
-			}
-
-			testClient.clientJudge.parent = &testClient
+			testClient := newClient(id, t)
 
 			testClient.Initialise(testServer)
 
@@ -317,6 +296,25 @@ func TestCallPresidentElection(t *testing.T) {
 			if got.HoldElection != tc.expectedElection {
 				t.Errorf("Expected holdElection: %v. Got holdElection: %v", tc.expectedElection, got.HoldElection)
 			}
+		})
+	}
+}
+
+func TestGetPardonedIslands(t *testing.T) {
+	cases := []struct {
+		name      string
+		sanctions map[int][]shared.Sanction
+	}{
+		{
+			name:      "no sanctions",
+			sanctions: make(map[int][]shared.Sanction),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// testClient := newClient(id, t)
+
 		})
 	}
 }

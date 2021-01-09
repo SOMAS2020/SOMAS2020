@@ -1,6 +1,9 @@
 package team4
 
 import (
+	"testing"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -31,6 +34,22 @@ func (c *client) getTrust(clientID shared.ClientID) float64 {
 		return c.internalParam.agentsTrust[int(clientID)]
 	}
 	return 0
+}
+
+func newClient(id shared.ClientID, testing *testing.T) client {
+	newClient := client{
+		BaseClient:    baseclient.NewClient(id),
+		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
+		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		yes:           "",
+		obs:           &observation{},
+		internalParam: &internalParameters{},
+		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
+	}
+	newClient.clientJudge.parent = &newClient
+	newClient.clientSpeaker.parent = &newClient
+
+	return newClient
 }
 
 func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo, ok bool) {
