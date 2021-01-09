@@ -140,13 +140,12 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	// Aim to have 100 in common pool after iigo run
 	resourcesRequired := (float64(p.c.getIIGOCost()) + 100.0) - float64(gameState.CommonPool)
 	p.c.clientPrint("Resources required in common pool %f", resourcesRequired)
-	if len(p.c.disasterPredictions) > int(p.c.ServerReadHandle.GetGameState().Turn) {
-		if disaster, ok := p.c.disasterPredictions[int(p.c.ServerReadHandle.GetGameState().Turn)][p.c.GetID()]; ok {
-			if disaster.TimeLeft != 0 {
-				resourcesRequired = disaster.Magnitude - float64(gameState.CommonPool)/float64(disaster.TimeLeft)
-			}
-		}
+
+	if len(p.c.globalDisasterPredictions) > int(p.c.ServerReadHandle.GetGameState().Turn) {
+		disaster := p.c.globalDisasterPredictions[int(p.c.ServerReadHandle.GetGameState().Turn)]
+		resourcesRequired = disaster.Magnitude - float64(gameState.CommonPool)/float64(disaster.TimeLeft+1)
 	}
+
 	length := math.Max(float64(len(p.c.declaredResources)), 1.0)
 	AveTax := resourcesRequired / length
 	var adjustedResources []float64
