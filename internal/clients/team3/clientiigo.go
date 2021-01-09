@@ -121,7 +121,10 @@ func (c *client) GetTaxContribution() shared.Resources {
 			sumTrust += (1 - c.params.selfishness) * 100
 		}
 	}
-	toPay := safeDivResources(totalToPay, shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
+	toPay := shared.Resources(0)
+	if sumTrust != 0 {
+		toPay = safeDivResources(totalToPay, shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
+	}
 	targetResources := shared.Resources(2-c.params.riskFactor) * (c.criticalThreshold)
 	if c.getLocalResources()-toPay <= targetResources {
 		toPay = shared.Resources(math.Max(float64(c.getLocalResources()-targetResources), 0.0))
