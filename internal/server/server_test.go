@@ -143,17 +143,41 @@ func TestGetNRandValuesFromLstUniqueWherePossible(t *testing.T) {
 			unique:    true,
 			retLength: 3,
 		},
+		{
+			name: "RandomAssign long return",
+			input: []shared.ClientID{
+				shared.ClientID(0),
+				shared.ClientID(1),
+				shared.ClientID(2),
+				shared.ClientID(3),
+				shared.ClientID(4),
+				shared.ClientID(5)},
+			unique:    true,
+			retLength: 5,
+		},
+		{
+			name:      "RandomAssign one entry, but long return lsit",
+			input:     []shared.ClientID{shared.ClientID(0), shared.ClientID(1)},
+			unique:    false,
+			retLength: 10,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			if !tc.unique {
-				getNRandValuesFromLstUniqueWherePossible(tc.input, tc.retLength) // Only check for crash
+				lst, _ := getNRandValuesFromLstUniqueWherePossible(tc.input, tc.retLength) // Only check for crash
+				if len(lst) != tc.retLength {
+					t.Errorf("%v - Return list length %v, different from expected length %v", tc.name, len(lst), tc.retLength)
+				}
 			} else {
 				for i := 0; i < iterations; i++ { // As its using random numbers. Run each test several times to minimise probability
 					lst, err := getNRandValuesFromLstUniqueWherePossible(tc.input, tc.retLength)
+					if len(lst) != tc.retLength {
+						t.Errorf("%v - Return list length %v, different from expected length %v", tc.name, len(lst), tc.retLength)
+					}
 					if err != nil && !lstHasUniqueClientIDs(lst) {
-						t.Errorf("Elements in the return list %v should all be unique but weren't", lst)
+						t.Errorf("%v - Elements in the return list %v should all be unique but weren't", tc.name, lst)
 					}
 				}
 			}
