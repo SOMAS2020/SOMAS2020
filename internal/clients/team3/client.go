@@ -93,28 +93,23 @@ type criticalStatePrediction struct {
 }
 
 type islandParams struct {
-	giftingThreshold            shared.Resources
-	equity                      float64
-	complianceLevel             float64
-	resourcesSkew               float64
-	saveCriticalIsland          bool
-	escapeCritcaIsland          bool
-	selfishness                 float64
-	disasterPredictionWeighting float64
-	recidivism                  float64
-	riskFactor                  float64
-	friendliness                float64
-	anger                       float64
-	aggression                  float64
-	sensitivity                 float64
-	salaryThreshold             float64
-	localPoolThreshold          float64
-	giftInflationPercentage     float64
-	trustConstantAdjustor       float64
-	trustParameter              float64
-	NoRequestGiftParam          float64
-	laziness                    float64
-	intelligence                bool
+	equity                  float64
+	complianceLevel         float64
+	resourcesSkew           float64
+	saveCriticalIsland      bool
+	escapeCritcaIsland      bool
+	selfishness             float64
+	recidivism              float64
+	riskFactor              float64
+	friendliness            float64
+	aggression              float64
+	sensitivity             float64
+	localPoolThreshold      float64
+	giftInflationPercentage float64
+	trustConstantAdjustor   float64
+	trustParameter          float64
+	NoRequestGiftParam      float64
+	intelligence            bool
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
 

@@ -68,6 +68,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 		c.theirTrustScore[islandID] = 50
 	}
 
+	c.locationService.changeStrategy(c.params)
+
 	// Set our trust in ourselves to 100
 	c.theirTrustScore[id] = 100
 
