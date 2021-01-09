@@ -107,7 +107,7 @@ type client struct {
 }
 
 func init() {
-	baseclient.RegisterClient(id, NewClient(id))
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
 // TODO: are we using all of these or can they be removed
@@ -123,6 +123,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		foragingReturnsHist:  ForagingReturnsHist{},
 		giftHist:             GiftHist{},
 		islandEmpathies:      IslandEmpathies{},
+		disasterHistory:      DisasterHistory{},
 
 		//TODO: implement config to gather all changeable parameters in one place
 	}
@@ -183,7 +184,7 @@ func (c *client) gameConfig() config.ClientConfig {
 // You will need it to access the game state through its GetGameStateMethod.
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
-	c.LocalVariableCache = rules.CopyVariableMap()
+	c.LocalVariableCache = rules.CopyVariableMap(c.ServerReadHandle.GetGameState().RulesInfo.VariableMap)
 	// loop through each island (there might not be 6)
 	for clientID := range c.gameState().ClientLifeStatuses {
 		// set the confidence to 50 and initialise any other stuff

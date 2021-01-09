@@ -21,7 +21,9 @@
     "airbnb",
     "plugin:prettier/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "prettier/react"
   ],
   "rules": {
     "import/extensions": [
@@ -34,7 +36,9 @@
         "tsx": "never"
       }
     ],
-    "prettier/prettier": "error",
+    "prettier/prettier": ["error", {
+      "endOfLine":"auto"
+    }],
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-unused-vars": "off",
     "react/jsx-filename-extension": [
