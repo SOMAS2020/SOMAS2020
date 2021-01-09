@@ -26,10 +26,6 @@ func createClient() *client {
 		disasterHistory:         disasterHistory{},
 		cpResourceHistory:       cpResourceHistory{0: 0},
 
-		taxAmount:      0,
-		allocation:     0,
-		sanctionAmount: 0,
-
 		config: getClientConfig(),
 	}
 }
@@ -59,15 +55,19 @@ func (c *client) StartOfTurn() {
 	// Print the level of wealth we are at
 	c.Logf("[Debug] - [Start of Turn] Class: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
 
+	//update cpResourceHistory
+	turn := c.getTurn()
+	c.cpResourceHistory[turn] = c.getCP()
+
+	//evaluate the roles at every turn
+	c.evaluateRoles()
+
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
 			return
 		}
 	}
 
-	//update cpResourceHistory
-	turn := c.getTurn()
-	c.cpResourceHistory[turn] = c.getCP()
 }
 
 //================================================================

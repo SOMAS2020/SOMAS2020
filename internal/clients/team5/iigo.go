@@ -11,14 +11,11 @@ import (
 // This function asking permission from the President to take resource from the commonpool legally
 // The President will reply with an allocation amount
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	c.evaluateRoles()
-	// Initially, request the minimum
 	turn := c.getTurn()
 	season := c.getSeason()
 	currentCP := c.getCP()
 	currentTier := c.wealth()
-
-	reqAmount := c.calculateRequestAllocation(turn, season, currentTier, currentCP)
+	reqAmount := c.calculateRequestToPresident(turn, season, currentTier, currentCP)
 
 	c.Logf("Submitting CP resource request of %v resources", reqAmount)
 	//Update request history
@@ -31,10 +28,16 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 func (c *client) RequestAllocation() shared.Resources {
 	currentCP := c.getCP()
 	currentTier := c.wealth()
-	c.Logf("Current cp allocation amount: %v", c.allocation)
-	allocation := c.calculateRequestCommonPool(currentTier, currentCP)
+	allocationMade := c.BaseClient.LocalVariableCache[rules.AllocationMade].Values[0] != 0
+	allocationAmount := shared.Resources(c.BaseClient.LocalVariableCache[rules.ExpectedAllocation].Values[0])
+	allocation := c.calculateAllocationFromCP(currentTier, currentCP, allocationMade, allocationAmount)
+	if float64(allocation) < 0 {
+		allocation = 0
+	}
 
-	c.Logf("Taking %v from common pool", allocation)
+	c.cpAllocationHistory[c.getTurn()] = allocationAmount
+	c.Logf("Current CP: %v", c.getCP())
+	c.Logf("Taking %v from common pool out of %v permitted", allocation, allocationAmount)
 	c.Logf("cpAllocationHistory: %v", c.cpAllocationHistory)
 	return allocation
 }
@@ -46,12 +49,13 @@ func (c *client) GetTaxContribution() shared.Resources {
 	currentTier := c.wealth()
 	expectedTax, taxDecisionMade := c.expectedTaxContribution()
 	contribution := c.calculateCPContribution(turn, season) //CP contribution
+	c.Logf("[DEBUG] - Contributing to the common pool: %v", contribution)
 	// only contribute to the CP if tax decision isn't made
 	if !taxDecisionMade {
 		return contribution
 	}
 	actualTax := calculateTaxContribution(expectedTax, turn, season, currentTier)
-	c.Logf("[DEBUG] - Team 5 paying tax %v out of %v", actualTax, expectedTax)
+	c.Logf("[DEBUG] - Team 5 paying tax %v out of %v, total paid %v", actualTax, expectedTax, actualTax+contribution)
 	return actualTax + contribution
 }
 
@@ -71,9 +75,10 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 	return
 }
 
-func (c *client) calculateRequestCommonPool(currentTier wealthTier, currentCP shared.Resources) (allocation shared.Resources) {
-	allocationMade := c.BaseClient.LocalVariableCache[rules.AllocationMade].Values[0] != 0
-	allocationAmount := shared.Resources(0)
+// calculate the amount to take away from the common pool
+func (c *client) calculateAllocationFromCP(currentTier wealthTier, currentCP shared.Resources, allocationMade bool, allocationAmount shared.Resources) (allocation shared.Resources) {
+	// allocationMade := c.BaseClient.LocalVariableCache[rules.AllocationMade].Values[0] != 0
+	// allocationAmount := shared.Resources(0)
 	if currentTier == imperialStudent || currentTier == dying {
 		if c.config.imperialThreshold < (currentCP / 6) {
 			if (currentCP / 6) > allocationAmount {
@@ -82,7 +87,7 @@ func (c *client) calculateRequestCommonPool(currentTier wealthTier, currentCP sh
 				allocation = allocationAmount
 			}
 		} else {
-			if c.config.imperialThreshold > c.allocation {
+			if c.config.imperialThreshold > allocationAmount {
 				allocation = c.config.imperialThreshold
 			} else {
 				allocation = allocationAmount
@@ -94,12 +99,11 @@ func (c *client) calculateRequestCommonPool(currentTier wealthTier, currentCP sh
 		}
 
 	}
-
-	c.cpAllocationHistory[c.getTurn()] = allocationAmount
 	return allocation
 }
 
-func (c *client) calculateRequestAllocation(turn uint, season uint, currentTier wealthTier, currentCP shared.Resources) (reqAmount shared.Resources) {
+// calculate the amount of resource to request from the president
+func (c *client) calculateRequestToPresident(turn uint, season uint, currentTier wealthTier, currentCP shared.Resources) (reqAmount shared.Resources) {
 	if turn == 1 && season == 1 {
 		reqAmount = c.config.imperialThreshold
 	} else if currentTier == imperialStudent || currentTier == dying {
@@ -131,6 +135,7 @@ func (c *client) calculateCPContribution(turn uint, season uint) (contribution s
 		contribution = 0
 	} else { // other days we contribute based on cashflow of commonpool
 		difference := c.cpResourceHistory[turn] - c.cpResourceHistory[turn-1]
+		c.Logf("[DEBUG] - CP Cashflow: %v - %v = %v", c.cpResourceHistory[turn], c.cpResourceHistory[turn-1], difference)
 		if difference < 0 {
 			contribution = 0
 		} else {
