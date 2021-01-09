@@ -23,7 +23,7 @@ func (c *client) getTurnLength(role shared.Role) uint {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameConfig().IIGOClientConfig.IIGOTermLengths[role]
 	}
-	return 1
+	return 0
 }
 
 func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo, ok bool) {
