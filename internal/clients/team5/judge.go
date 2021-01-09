@@ -56,13 +56,10 @@ func (j *judge) PayPresident() (shared.Resources, bool) {
 
 // if the real winner is on our bad side, then we choose our best friend
 func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
+	aliveTeams := j.c.getAliveTeams(false) //not including us
 	if j.c.opinions[winner].getScore() < 0 {
-		ballot := j.c.GetVoteForElection(shared.President)
-		for _, clientID := range ballot {
-			if j.c.isClientAlive(clientID) {
-				return clientID
-			}
-		}
+		ballot := j.c.VoteForElection(shared.President, aliveTeams)
+		winner = ballot[0] //choose the first one in Borda Vote
 	}
 	return winner
 }

@@ -3,6 +3,7 @@ package team5
 import (
 	"math"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -24,6 +25,10 @@ func (c client) getCP() shared.Resources {
 // shorthand to get our current life status
 func (c client) getLifeStatus() shared.ClientLifeStatus {
 	return c.gameState().ClientInfo.LifeStatus
+}
+
+func (c client) getGameConfig() config.ClientConfig {
+	return c.ServerReadHandle.GetGameConfig()
 }
 
 func (c client) getAliveTeams(includeUs bool) (aliveTeams []shared.ClientID) {
