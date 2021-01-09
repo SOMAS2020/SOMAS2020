@@ -55,10 +55,10 @@ func (c *client) resetIIGOInfo() {
 	c.iigoInfo.startOfTurnPresidentID = c.ServerReadHandle.GetGameState().PresidentID
 	c.iigoInfo.startOfTurnSpeakerID = c.ServerReadHandle.GetGameState().SpeakerID
 	c.iigoInfo.sanctions = &sanctionInfo{
-		tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
-		rulePenalties:   make(map[string]roles.IIGOSanctionScore),
-		islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
-		ourSanction:     roles.IIGOSanctionScore(0),
+		tierInfo:        make(map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore),
+		rulePenalties:   make(map[string]shared.IIGOSanctionsScore),
+		islandSanctions: make(map[shared.ClientID]shared.IIGOSanctionsTier),
+		ourSanction:     shared.IIGOSanctionsScore(0),
 	}
 	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
 	c.iigoInfo.ourRequest = 0
@@ -155,17 +155,17 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			// Rule sanctions
 			if _, ok := data[shared.IIGOSanctionScore]; ok {
 				// c.clientPrint("Received sanction info: %+v", data)
-				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
 			}
 		case shared.RoleMonitored:
 			c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
 			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
 		case shared.SanctionClientID:
-			c.iigoInfo.sanctions.islandSanctions[shared.ClientID(content.IntegerData)] = roles.IIGOSanctionTier(data[shared.IIGOSanctionTier].IntegerData)
+			c.iigoInfo.sanctions.islandSanctions[shared.ClientID(content.IntegerData)] = shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)
 		case shared.IIGOSanctionTier:
-			c.iigoInfo.sanctions.tierInfo[roles.IIGOSanctionTier(content.IntegerData)] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+			c.iigoInfo.sanctions.tierInfo[shared.IIGOSanctionsTier(content.IntegerData)] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
 		case shared.SanctionAmount:
-			c.iigoInfo.sanctions.ourSanction = roles.IIGOSanctionScore(content.IntegerData)
+			c.iigoInfo.sanctions.ourSanction = shared.IIGOSanctionsScore(content.IntegerData)
 		}
 	}
 }
