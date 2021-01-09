@@ -176,7 +176,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			testClient := newClient(id, t)
+			testClient := newClientInternal(id, t)
 			j := testClient.clientJudge
 
 			wholeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
@@ -285,7 +285,7 @@ func TestCallPresidentElection(t *testing.T) {
 				ElectionRuleInPlay: tc.electionRuleInPlay,
 			}
 
-			testClient := newClient(id, t)
+			testClient := newClientInternal(id, t)
 
 			testClient.Initialise(testServer)
 
@@ -376,7 +376,7 @@ func TestGetPardonedIslands(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			testServer := fakeServerHandle{}
-			testClient := newClient(id, t)
+			testClient := newClientInternal(id, t)
 			testClient.Initialise(testServer)
 
 			testClient.internalParam.agentsTrust = tc.trust
