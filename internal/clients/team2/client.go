@@ -10,7 +10,6 @@ import (
 
 const id = shared.Team2
 
-// IType for Empathy level assigned to each other team
 type EmpathyLevel int
 
 const (
@@ -21,17 +20,12 @@ const (
 
 type IslandEmpathies map[shared.ClientID]EmpathyLevel
 
-// Could be used to store our expectation on an island's behaviour (about anything)
-// vs what they actually did
 type ExpectationReality struct {
 	exp  int
 	real int
 }
 
 type Situation string
-
-// us -> others: ReceivedRequests
-// others -> us: GiftWeRequest
 
 const (
 	PresidentOp Situation = "President"
@@ -62,7 +56,7 @@ type GiftExchange struct {
 	OurRequest    map[uint]GiftInfo
 }
 
-type DisasterOccurence struct {
+type DisasterOccurrence struct {
 	Turn   uint
 	Report disasters.DisasterReport
 }
@@ -120,15 +114,13 @@ type ForagingReturnsHist map[shared.ClientID][]ForageInfo
 type GiftHist map[shared.ClientID]GiftExchange
 type CommonPoolHistory map[uint]shared.Resources
 type ResourcesLevelHistory map[uint]shared.Resources
-type DisasterHistory []DisasterOccurence
+type DisasterHistory []DisasterOccurrence
 type IslandSanctions map[shared.ClientID]IslandSanctionInfo
 type TierLevels map[int]int
 type SanctionHist map[shared.ClientID][]IslandSanctionInfo
 type PresCommonPoolHist map[shared.ClientID][]CommonPoolInfo
 
-// we have to initialise our client somehow
 type client struct {
-	// should this have a * in front?
 	*baseclient.BaseClient
 
 	islandEmpathies      IslandEmpathies
@@ -159,9 +151,6 @@ func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
-// TODO: are we using all of these or can they be removed
-// TODO: we could experiment with how being more/less trustful affects agent performance
-// i.e. start with assuming all islands selfish, normal, altruistic
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
 		BaseClient:           baseclient.NewClient(clientID),
@@ -182,18 +171,17 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	}
 }
 
-// Initialise initialises the base client.
-// OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
-// You will need it to access the game state through its GetGameStateMethod.
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
-	c.LocalVariableCache = rules.CopyVariableMap(c.ServerReadHandle.GetGameState().RulesInfo.VariableMap)
-	// loop through each island (there might not be 6)
+	c.LocalVariableCache = rules.CopyVariableMap(c.gameState().RulesInfo.VariableMap)
+
 	for clientID := range c.gameState().ClientLifeStatuses {
-		c.giftHist[clientID] = GiftExchange{IslandRequest: map[uint]GiftInfo{},
-			OurRequest: map[uint]GiftInfo{},
+		c.giftHist[clientID] = GiftExchange{
+			IslandRequest: map[uint]GiftInfo{},
+			OurRequest:    map[uint]GiftInfo{},
 		}
 	}
+
 	c.currSpeaker = Speaker{c: c}
 	c.currJudge = Judge{c: c}
 	c.currPresident = President{c: c}
