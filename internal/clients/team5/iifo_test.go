@@ -12,7 +12,6 @@ var c = initClient()
 func TestGenerateForecast(t *testing.T) {
 	// can use same spatial and mag info because we're only assessing period
 	dInfo := disasterInfo{report: disasters.DisasterReport{X: 0, Y: 0, Magnitude: 1}}
-	// dh1 := disasterHistory{}
 	dh2 := disasterHistory{8: dInfo}
 	dh3 := disasterHistory{3: dInfo, 5: dInfo, 7: dInfo, 9: dInfo}
 

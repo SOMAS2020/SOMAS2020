@@ -1,9 +1,11 @@
 package team5
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/floats"
 )
@@ -35,11 +37,13 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	lastDisasterTurn := c.disasterHistory.getLastDisasterTurn()
 
-	fInfo, err := c.disasterModel.generateForecast(c.config)
+	fInfo, confMap, err := c.disasterModel.generateForecast(c.config)
 
 	if err != nil {
 		c.Logf("ERROR: unable to generate forecast. Encountered %v", err)
 		// we can still proceed - fInfo will just be default with confidence zero
+	} else {
+		c.Logf("forecast: %+v, model support: %v, confidence map: %+v", fInfo, c.disasterModel.support, confMap)
 	}
 
 	prediction := shared.DisasterPrediction{
@@ -66,11 +70,11 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	return predictionInfo
 }
 
-func (d *disasterModel) generateForecast(conf clientConfig) (forecastInfo, error) {
+func (d *disasterModel) generateForecast(conf clientConfig) (f forecastInfo, confMap map[forecastVariable]float64, err error) {
 	nSamples := d.support
 
 	if nSamples == 0 {
-		return forecastInfo{}, errors.Errorf("Cannot generate forecast with no data")
+		return forecastInfo{}, map[forecastVariable]float64{}, errors.Errorf("Cannot generate forecast with no data")
 	}
 	magStats, errM := d.magnitude.getStatistics(nSamples)
 	xStats, errX := d.x.getStatistics(nSamples)
@@ -79,30 +83,30 @@ func (d *disasterModel) generateForecast(conf clientConfig) (forecastInfo, error
 
 	for _, err := range []error{errM, errX, errY, errP} {
 		if err != nil {
-			return forecastInfo{}, errors.Errorf("Unable to generate forecast. First error encountered: %v", err)
+			return forecastInfo{}, map[forecastVariable]float64{}, errors.Errorf("Unable to generate forecast. First error encountered: %v", err)
 		}
 	}
 
-	confidence := computeConfidence(map[forecastVariable]modelStats{
+	confidence, confMap := computeConfidence(map[forecastVariable]modelStats{
 		period:    periodStats,
 		magnitude: magStats,
 		x:         xStats,
 		y:         yStats,
 	}, conf)
 
-	f := forecastInfo{
+	f = forecastInfo{
 		epiX:       xStats.mean,
 		epiY:       yStats.mean,
 		mag:        magStats.mean,
-		period:     uint(periodStats.mean),
+		period:     uint(math.Round(periodStats.mean)),
 		confidence: confidence,
 	}
-	return f, nil
+	return f, confMap, nil
 }
 
 // computes confidence combination of modelStats weighted by the perceived importance
 // of each estimated quantity. For example, we may want to weight period confidence higher.
-func computeConfidence(paramStats map[forecastVariable]modelStats, config clientConfig) (confidence float64) {
+func computeConfidence(paramStats map[forecastVariable]modelStats, config clientConfig) (float64, map[forecastVariable]float64) {
 	confScore := func(stats modelStats, thresholdScaler float64) float64 {
 		return 1 - math.Min((stats.variance/(stats.mean*thresholdScaler)), 1)
 	}
@@ -110,13 +114,16 @@ func computeConfidence(paramStats map[forecastVariable]modelStats, config client
 	weightsConf := config.forecastParamWeights
 
 	weights := []float64{}
+	confMap := map[forecastVariable]float64{}
+	confidence := 0.0
 	// note: these string keys should match those in config
 	for param, stats := range paramStats {
-		confidence += confScore(stats, vScalers[param]) * weightsConf[param]
+		baseConf := confScore(stats, vScalers[param])
+		confidence += baseConf * weightsConf[param]
+		confMap[param] = baseConf // store this for logging purposes
 		weights = append(weights, weightsConf[param])
 	}
-
-	return confidence / floats.Sum(weights)
+	return confidence / floats.Sum(weights), confMap
 }
 
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,
@@ -181,4 +188,27 @@ func (c *client) updateForecastingReputations(receivedPredictions shared.Receive
 		// TODO: add more sophisticated opinion forming
 	}
 
+}
+
+func (f forecastVariable) String() string {
+	strings := [...]string{"x", "y", "magnitude", "period"}
+	if f >= 0 && int(f) < len(strings) {
+		return strings[f]
+	}
+	return fmt.Sprintf("UNKNOWN forecast variable '%v'", int(f))
+}
+
+// GoString implements GoStringer
+func (f forecastVariable) GoString() string {
+	return f.String()
+}
+
+// MarshalText implements TextMarshaler
+func (f forecastVariable) MarshalText() ([]byte, error) {
+	return miscutils.MarshalTextForString(f.String())
+}
+
+// MarshalJSON implements RawMessage
+func (f forecastVariable) MarshalJSON() ([]byte, error) {
+	return miscutils.MarshalJSONForString(f.String())
 }

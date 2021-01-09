@@ -12,7 +12,7 @@ var (
 	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
-		100,
+		30,
 		"The maximum number of 1-indexed seasons to run the game.",
 	)
 	maxTurns = flag.Uint(

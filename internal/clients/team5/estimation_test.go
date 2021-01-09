@@ -32,7 +32,7 @@ func TestKDE(t *testing.T) {
 		}
 		t.Logf("Result (%v samples): %v, captured variance: %v", nSamples, result, step*floats.Sum(result)/1)
 	}
-	t.Error("Dummy error to force output log") // uncomment to see output
+	// t.Error("Dummy error to force output log") // uncomment to see output
 }
 
 func TestStatistics(t *testing.T) {
