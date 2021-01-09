@@ -36,7 +36,7 @@ type GameState = {
     ClientInfos: any
     Environment: any
     DeerPopulation: any
-    ForagingHistory: any
+    ForagingHistory: ForagingHistory
     RulesInfo: any
     IIGOHistory: IIGOHistory
     IIGORolesBudget: any
@@ -51,6 +51,19 @@ type GameState = {
     SpeakerID: string
     JudgeID: string
     PresidentID: string
+}
+
+export type ForagingHistory = {
+    [forageType: string]: ForagingType[]
+}
+export type ForagingType = {
+    ForageType: string
+    InputResources: number
+    NumberParticipants: number
+    NumberCaught: number
+    TotalUtility: number
+    CatchSizes: number[]
+    Turn: number
 }
 
 // IIGOHistory will be at most data.Config.Maxturns long, containing an "Accountability" occurrence for a given client.

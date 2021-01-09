@@ -1,7 +1,9 @@
 import { OutputJSONType } from '../../../../consts/types'
 import { ForagingTurn, ForagingHistory } from './ForagingTypes'
 
-const processForagingData = (data: OutputJSONType): ForagingHistory => {
+const processForagingData: (data: OutputJSONType) => ForagingHistory = (
+    data: OutputJSONType
+) => {
     // TODO: poor form: probably don't need all these interemediate datastructures
     const fishTurns: number[] = []
     const deerTurns: number[] = []
