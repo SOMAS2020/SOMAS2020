@@ -111,7 +111,7 @@ func lstHasUniqueClientIDs(lst []shared.ClientID) bool {
 	return true
 }
 
-func TestGetNRandValuesFromLstUniqueWherePossible(t *testing.T) {
+func TestGetNRandClientIDsUniqueIfPossible(t *testing.T) {
 	iterations := 10
 	cases := []struct {
 		name      string
@@ -166,13 +166,13 @@ func TestGetNRandValuesFromLstUniqueWherePossible(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			if !tc.unique {
-				lst, _ := getNRandValuesFromLstUniqueWherePossible(tc.input, tc.retLength) // Only check for crash
+				lst, _ := getNRandClientIDsUniqueIfPossible(tc.input, tc.retLength) // Only check for crash
 				if len(lst) != tc.retLength {
 					t.Errorf("%v - Return list length %v, different from expected length %v", tc.name, len(lst), tc.retLength)
 				}
 			} else {
 				for i := 0; i < iterations; i++ { // As its using random numbers. Run each test several times to minimise probability
-					lst, err := getNRandValuesFromLstUniqueWherePossible(tc.input, tc.retLength)
+					lst, err := getNRandClientIDsUniqueIfPossible(tc.input, tc.retLength)
 					if len(lst) != tc.retLength {
 						t.Errorf("%v - Return list length %v, different from expected length %v", tc.name, len(lst), tc.retLength)
 					}

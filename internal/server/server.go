@@ -71,7 +71,7 @@ func createSOMASServer(
 	}
 
 	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
-	initRoles, err := getNRandValuesFromLstUniqueWherePossible(clientIDs, 3)
+	initRoles, err := getNRandClientIDsUniqueIfPossible(clientIDs, 3)
 	if err != nil {
 		panic(err)
 	}
@@ -177,9 +177,9 @@ func (s ServerForClient) GetGameConfig() config.ClientConfig {
 	return s.server.gameConfig.GetClientConfig()
 }
 
-func getNRandValuesFromLstUniqueWherePossible(input []shared.ClientID, n int) ([]shared.ClientID, error) {
+func getNRandClientIDsUniqueIfPossible(input []shared.ClientID, n int) ([]shared.ClientID, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("RIP, empty list")
+		return nil, errors.Errorf("RIP, empty list")
 	}
 
 	lst := make([]shared.ClientID, len(input))
