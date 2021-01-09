@@ -71,6 +71,7 @@ type clientConfig struct {
 // client is Lucy.
 type client struct {
 	*baseclient.BaseClient
+	*baseclient.BasePresident
 
 	forageHistory        ForageHistory
 	expectedForageReward shared.Resources
