@@ -292,7 +292,7 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 		actualReceived: sent,                                                  // Amount they actually receive according to server
 	}
 	c.giftHistory[to].theirRequest[c.getTurn()] = newGiftRequest
-	c.Logf("Print Recieved: team: %v amount: %v", to, sent)
+	c.Logf("Print Received: team: %v amount: %v", to, sent)
 }
 
 // ReceivedGift is executed at the end of each turn and notifies clients that
@@ -308,7 +308,7 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 		actualReceived: received,                                              // Amount they actually GAVE us
 	}
 	c.giftHistory[from].ourRequest[c.getTurn()] = newGiftRequest
-	c.Logf("Print Recieved: team: %v amount: %v", from, received)
+	c.Logf("Print Received: team: %v amount: %v", from, received)
 }
 
 func (c *client) updateGiftOpinions() {

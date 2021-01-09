@@ -64,7 +64,7 @@ func getClientConfig() clientConfig {
 		// Deciding foraging type
 		RandomChanceToFish:           0.1, // Chacne to switch to Hunting/Fishing
 		RandomChanceToHunt:           0.1,
-		IncreasePerHunterLastTurn:    0.00, // % increase for each Hunter
+		IncreasePerHunterLastTurn:    0.10, // % increase for each Hunter
 		IncreasePerFisherMenLastTurn: 0.00, // % incrase for each Fisher
 		DeerTurnsToLookBack:          3,    // Number of turns to look back at for deer (not including last)
 		DecreasePerHunterInLookBack:  0.03, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
@@ -72,7 +72,7 @@ func getClientConfig() clientConfig {
 		// Normal Forage
 		SkipForage:          1,
 		NormalRandomChange:  0.05,
-		MaxForagePercentage: 0.40,
+		MaxForagePercentage: 0.30,
 
 		// Threshold for wealth as multiplier
 		jbThreshold:       2.0,
