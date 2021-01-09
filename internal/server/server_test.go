@@ -90,7 +90,10 @@ func TestSOMASServerFactoryInitialisesClients(t *testing.T) {
 		clientMap[k] = v
 	}
 
-	createSOMASServer(clientInfos, clientMap, config.Config{})
+	_, err := createSOMASServer(clientInfos, clientMap, config.Config{})
+	if err != nil {
+		t.Error(err)
+	}
 
 	for clientID, client := range clientPtrsMap {
 		if !client.initialiseCalled {
