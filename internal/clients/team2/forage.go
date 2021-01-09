@@ -7,23 +7,28 @@ import (
 )
 
 type ForagingResults struct {
-	Hunters int //no. teams that we know (they have shared the info with us)
+	// no. teams that we know (they have shared the info with us)
+	Hunters int
 	Fishers int
-	Result  shared.Resources //total from all the teams we know
+	// total from all the teams we know
+	Result shared.Resources
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	// implement a normal distribution which shifts closer to hunt or fish
 	var Threshold float64 = c.decideHuntingLikelihood() //number from 0 to 1
 	var forageDecision shared.ForageType
-	if rand.Float64() > Threshold { //we fish when above the threshold
+	//we fish when above the threshold
+	if rand.Float64() > Threshold {
 		forageDecision = 1
-	} else { // we hunt when below the threshold
+	} else {
+		// we hunt when below the threshold
 		forageDecision = 0
 	}
+
 	return shared.ForageDecision{
 		Type:         shared.ForageType(forageDecision),
-		Contribution: shared.Resources(c.DecideForageAmount(Threshold)), //contribute fixed amount for now
+		Contribution: shared.Resources(c.DecideForageAmount(Threshold)),
 	}, nil
 }
 
@@ -33,9 +38,11 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 	if c.criticalStatus() {
 		return 0
 	}
+
 	if ourResources < c.agentThreshold() && foragingDecisionThreshold < ForageDecisionThreshold {
 		return (c.agentThreshold() - ourResources) / SlightRiskForageDivisor
 	}
+
 	resourcesForForaging := (ourResources - c.agentThreshold())
 	return resourcesForForaging
 }
@@ -55,13 +62,14 @@ func (c *client) decideHuntingLikelihood() float64 { //will move the threshold, 
 
 //EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
 func (c *client) otherHunters() float64 { //will return a value of how many agents will likely hunt
+	aliveClients := c.getAliveClients()
+	HuntNum := 0.00 //this the average number of likely hunters
 
-	HuntNum := 0.00                                                //this the average number of likely hunters
-	for id, lifeStatus := range c.gameState().ClientLifeStatuses { //loop through every agent
-		if lifeStatus != shared.Dead { //client is dead ignore their decisions
-			for _, forageInfo := range c.foragingReturnsHist[id] { //loop through the agents array and add their average to HuntNum
-				if float64(len(c.foragingReturnsHist[id])) != 0 {
-					HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(c.foragingReturnsHist[id])) //add the agents decision to HuntNum and then average
+	for id := range aliveClients { //loop through every agent
+		if islandForageHist, ok := c.foragingReturnsHist[shared.ClientID(id)]; ok {
+			for _, forageInfo := range islandForageHist { //loop through the agents array and add their average to HuntNum
+				if len(islandForageHist) != 0 {
+					HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(islandForageHist)) //add the agents decision to HuntNum and then average
 				}
 			}
 		}
@@ -70,8 +78,7 @@ func (c *client) otherHunters() float64 { //will return a value of how many agen
 }
 
 //TODO: This function needs to be changed according to Eirik, I have no idea how
-func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
-	// updates our foragingReturnsHist with the decisions everyone made
+func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	for _, info := range neighbourForaging {
 		forageInfo := ForageInfo{
 			DecisionMade:      info.DecisionMade,
