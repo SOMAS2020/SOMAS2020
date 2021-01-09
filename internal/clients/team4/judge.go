@@ -124,29 +124,45 @@ func (j *judge) HistoricalRetributionEnabled() bool {
 // CallPresidentElection is called by the judiciary to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
 func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
-	// example implementation calls an election if monitoring was performed and the result was negative
-	// or if the number of turnsInPower exceeds 3
+
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Runoff,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
+
+	// calculate whether the term has ended
+	termEnded := uint(turnsInPower) > j.parent.getTurnLength(shared.President)
+
+	j.parent.LocalVariableCache[rules.TermEnded] = rules.VariableValuePair{
+		VariableName: rules.TermEnded,
+		Values:       []float64{boolToFloat(termEnded)},
+	}
+
+	// try not holding election
+	j.parent.LocalVariableCache[rules.ElectionHeld] = rules.VariableValuePair{
+		VariableName: rules.ElectionHeld,
+		Values:       []float64{boolToFloat(false)},
+	}
+
+	compliantWithRules := j.parent.CheckCompliance(rules.ElectionHeld)
+
 	if monitoring.Performed && !monitoring.Result {
+		// If president didn't perform it's duties we can try to elect new president. Potentially decide based on trust or something
+		electionsettings.HoldElection = true
+	} else if compliantWithRules {
+		// If we are compliant with rules ie. we don't have to (are not obliged) hold election
+		electionsettings.HoldElection = false
+	} else {
+		// Now we know that we have to hold elections. We can check whether we want to hold election based on trust or something
 		electionsettings.HoldElection = true
 	}
-	if turnsInPower >= 2 {
-		electionsettings.HoldElection = true
-	}
+
 	return electionsettings
 }
 
 // DecideNextPresident returns the ID of chosen next President
 // OPTIONAL: override to manipulate the result of the election
-func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
-	// overloaded
-	j.logf("hello world %v", winner)
-	return id
-}
 
 func (j *judge) logf(format string, a ...interface{}) {
 	if j.t != nil {
