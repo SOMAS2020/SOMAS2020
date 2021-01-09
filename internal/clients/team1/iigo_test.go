@@ -9,23 +9,27 @@ import (
 )
 
 func TestStealsResourcesWhenDesperate(t *testing.T) {
+	availableRules, currentRulesInPlay := rules.InitialRuleRegistration(true)
 	c := MakeTestClient(gamestate.ClientGameState{
 		ClientInfo: gamestate.ClientInfo{
 			LifeStatus: shared.Critical,
 		},
 		RulesInfo: gamestate.RulesContext{
 			VariableMap: map[rules.VariableFieldName]rules.VariableValuePair{
-				rules.AllocationMade: {
-					rules.AllocationMade,
+				rules.ExpectedAllocation: {
+					rules.ExpectedAllocation,
 					[]float64{0},
 				},
 			},
-			AvailableRules:     nil,
-			CurrentRulesInPlay: nil,
+			AvailableRules:     availableRules,
+			CurrentRulesInPlay: currentRulesInPlay,
 		},
 		CommonPool: 300,
 	})
 	c.config.desperateStealAmount = 50
+	c.LocalVariableCache[rules.ExpectedAllocation] = rules.MakeVariableValuePair(
+		rules.ExpectedAllocation, []float64{0},
+	)
 	gotTakeAmt := c.RequestAllocation()
 	if gotTakeAmt != c.config.desperateStealAmount {
 		t.Errorf(

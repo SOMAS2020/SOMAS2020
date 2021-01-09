@@ -87,7 +87,7 @@ func (c *client) EvaluateAllocationRequests(
 /*************************/
 
 func (c *client) GetTaxContribution() shared.Resources {
-	contribution, success := c.GetRecommendation(rules.IslandTaxContribution)
+	contribution, success := c.BaseClient.GetRecommendation(rules.IslandTaxContribution)
 	if !success {
 		c.Logf("Cannot determine correct tax, paying 0")
 		return 0
