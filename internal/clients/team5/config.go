@@ -40,8 +40,6 @@ type clientConfig struct {
 	offertoDyingIslands       float64 // How much to give to islands dying 1/3 when we are poor
 	normalGift                float64
 
-	theirRequestConsideration float64
-
 	//Gift modifiers for opinions
 	opinionRequestMultiplier float64
 	opinionThresholdRequest  opinionScore
