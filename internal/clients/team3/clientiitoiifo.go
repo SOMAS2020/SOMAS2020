@@ -8,26 +8,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-/*
-	//IIFO: OPTIONAL
-	MakeDisasterPrediction() shared.DisasterPredictionInfo
-	ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict)
-	MakeForageInfo() shared.ForageShareInfo
-	ReceiveForageInfo([]shared.ForageShareInfo)
-
-	//IITO: COMPULSORY
-	GetGiftRequests() shared.GiftRequestDict
-	GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict
-	GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict
-	UpdateGiftInfo(receivedResponses shared.GiftResponseDict)
-
-	//TODO: THESE ARE NOT DONE yet, how do people think we should implement the actual transfer?
-	// The server should handle the below functions maybe?
-	SentGift(sent shared.Resources, to shared.ClientID)
-	ReceivedGift(received shared.Resources, from shared.ClientID)
-
-*/
-
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	var predictionInfo shared.DisasterPredictionInfo
@@ -166,7 +146,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 // Strategy: We cover the risk that we lose money from the islands that we don’t trust with
 // what we get from the islands that we do trust. Also, we don't request any gifts from critical islands.
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
-	var totalRequestAmt float64
+	var totalRequestAmt, avgRequestAmt float64
 
 	requests := shared.GiftRequestDict{}
 
@@ -182,7 +162,12 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	}
 	//fmt.Println("total request amount: ", totalRequestAmt)
 
-	avgRequestAmt := totalRequestAmt / float64(c.getIslandsAlive()-c.getIslandsCritical())
+	// check to avoid division by 0 and only request from alive islands
+	if c.getIslandsAlive() != 0 {
+		avgRequestAmt = totalRequestAmt / float64(c.getIslandsAlive())
+	} else {
+		avgRequestAmt = totalRequestAmt
+	}
 
 	for island, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 		if island == id {
@@ -197,6 +182,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 		}
 	}
 
+	//	c.Logf("[TEAM3]: Actual requests made: %v", requests)
 	c.requestedGiftAmounts = requests
 	return requests
 }

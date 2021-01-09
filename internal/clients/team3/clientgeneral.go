@@ -63,7 +63,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	//c.localVariableCache = rules.CopyVariableMap()
 	for _, islandID := range shared.TeamIDs {
 		// Initialise trust scores for all islands except our own
-		if islandID == c.BaseClient.GetID() {
+		if islandID == id {
 			continue
 		}
 		c.trustScore[islandID] = 50
@@ -100,10 +100,9 @@ func (c *client) inittrustMapAgg() {
 	c.trustMapAgg = map[shared.ClientID][]float64{}
 
 	for _, islandID := range shared.TeamIDs {
-		if islandID+1 == c.BaseClient.GetID() {
-			continue
+		if islandID != id {
+			c.trustMapAgg[islandID] = []float64{}
 		}
-		c.trustMapAgg[islandID] = []float64{}
 	}
 }
 
@@ -112,10 +111,9 @@ func (c *client) inittheirtrustMapAgg() {
 	c.theirTrustMapAgg = map[shared.ClientID][]float64{}
 
 	for _, islandID := range shared.TeamIDs {
-		if islandID+1 == c.BaseClient.GetID() {
-			continue
+		if islandID != id {
+			c.theirTrustMapAgg[islandID] = []float64{}
 		}
-		c.theirTrustMapAgg[islandID] = []float64{}
 	}
 }
 
@@ -124,10 +122,9 @@ func (c *client) initgiftOpinions() {
 	c.giftOpinions = map[shared.ClientID]int{}
 
 	for _, islandID := range shared.TeamIDs {
-		if islandID+1 == c.BaseClient.GetID() {
-			continue
+		if islandID != id {
+			c.giftOpinions[islandID] = 10
 		}
-		c.giftOpinions[islandID] = 10
 	}
 }
 
