@@ -357,6 +357,7 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 
 	// Other agent simply look at if we offered them more than suggested, so why not 0.5%
 	// more than we originally intended to offer. This would massively upgrade our opinion.
-	newOffer := giftOffer * 0.005
+	newOffer := giftOffer * 1.005
+	newOffer = shared.Resources(math.Min(float64(newOffer), float64(giftOffer+0.5)))
 	return newOffer
 }
