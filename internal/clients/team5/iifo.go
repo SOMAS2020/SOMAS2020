@@ -87,7 +87,7 @@ func (d *disasterModel) generateForecast(conf clientConfig) (f forecastInfo, con
 		}
 	}
 
-	confidence, confMap := computeConfidence(map[forecastVariable]modelStats{
+	confidence, confMap := getWeightedConfidence(map[forecastVariable]modelStats{
 		period:    periodStats,
 		magnitude: magStats,
 		x:         xStats,
@@ -106,11 +106,8 @@ func (d *disasterModel) generateForecast(conf clientConfig) (f forecastInfo, con
 
 // computes confidence combination of modelStats weighted by the perceived importance
 // of each estimated quantity. For example, we may want to weight period confidence higher.
-func computeConfidence(paramStats map[forecastVariable]modelStats, config clientConfig) (float64, map[forecastVariable]float64) {
-	confScore := func(stats modelStats, thresholdScaler float64) float64 {
-		return 1 - math.Min((stats.variance/(stats.mean*thresholdScaler)), 1)
-	}
-	vScalers := config.forecastVarianceScalers
+func getWeightedConfidence(paramStats map[forecastVariable]modelStats, config clientConfig) (float64, map[forecastVariable]float64) {
+
 	weightsConf := config.forecastParamWeights
 
 	weights := []float64{}
@@ -118,7 +115,7 @@ func computeConfidence(paramStats map[forecastVariable]modelStats, config client
 	confidence := 0.0
 	// note: these string keys should match those in config
 	for param, stats := range paramStats {
-		baseConf := confScore(stats, vScalers[param])
+		baseConf := stats.meanConfidence
 		confidence += baseConf * weightsConf[param]
 		confMap[param] = baseConf // store this for logging purposes
 		weights = append(weights, weightsConf[param])

@@ -1,9 +1,12 @@
 package team5
 
 import (
+	"sort"
 	"testing"
 
+	"github.com/aclements/go-moremath/stats"
 	"gonum.org/v1/gonum/floats"
+	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
@@ -33,6 +36,23 @@ func TestKDE(t *testing.T) {
 		t.Logf("Result (%v samples): %v, captured variance: %v", nSamples, result, step*floats.Sum(result)/1)
 	}
 	// t.Error("Dummy error to force output log") // uncomment to see output
+}
+
+func TestConfidence(t *testing.T) {
+	n := 100
+	pdf := distuv.Exponential{Rate: 1}
+	samples := make([]float64, n)
+	for i := range samples {
+		samples[i] = pdf.Rand()
+	}
+
+	quant := func(q float64, x []float64) float64 { return stat.Quantile(q, stat.LinInterp, x, nil) }
+
+	sort.Float64s(samples)
+	conf := 1 - (stats.StdDev(samples))/(quant(0.97, samples)-quant(0.03, samples))
+	t.Logf("conf: %+v", conf)
+	// t.Error("some error :)")
+
 }
 
 func TestStatistics(t *testing.T) {

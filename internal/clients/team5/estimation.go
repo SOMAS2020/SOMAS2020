@@ -2,11 +2,13 @@ package team5
 
 import (
 	"math"
+	"sort"
 
 	"github.com/aclements/go-moremath/stats"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/floats"
+	"gonum.org/v1/gonum/stat"
 )
 
 type kdeModel struct {
@@ -24,7 +26,7 @@ func newKdeModel(observations []float64) kdeModel {
 }
 
 type modelStats struct {
-	mean, variance float64 // TODO: decide which other pertinent stats to incorporate
+	mean, variance, meanConfidence float64 // TODO: decide which other pertinent stats to incorporate
 }
 
 func (m *kdeModel) updateModel(newSamples []float64) {
@@ -126,9 +128,22 @@ func (m *kdeModel) getStatistics(nSamples uint) (modelStats, error) {
 	}
 
 	return modelStats{
-		mean:     mean,
-		variance: variance, // Note: this will be NaN for len(X) < 2
+		mean:           mean,
+		variance:       variance,
+		meanConfidence: naiveConfidence(X),
 	}, nil
+}
+
+// returns the confidence of using the mean value as a the predictor (based on dispersion)
+func naiveConfidence(x []float64) float64 {
+	if len(x) < 2 {
+		return 0
+	}
+
+	quant := func(q float64, x []float64) float64 { return stat.Quantile(q, stat.LinInterp, x, nil) }
+	sort.Float64s(x)
+	conf := 1 - (stats.StdDev(x))/(quant(0.97, x)-quant(0.03, x)) // compare std dev to range
+	return conf
 }
 
 func makeRange(min, max, step float64) []float64 {
