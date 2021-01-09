@@ -41,9 +41,8 @@ func (r Role) MarshalJSON() ([]byte, error) {
 // RuleVoteType provides enumerated values for Approving, Rejecting or Abstaining from a vote.
 type RuleVoteType int
 
-// type of vote for each ballot
 const (
-	Approve RuleVoteType = iota
+	Approve = iota
 	Reject
 	Abstain
 )
