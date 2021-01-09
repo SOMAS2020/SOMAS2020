@@ -14,22 +14,6 @@ type ForagingResults struct {
 	Result shared.Resources
 }
 
-// func (c *client) DecideForage() (shared.ForageDecision, error) {
-// 	if c.forageHistorySize() < c.config.randomForageTurns {
-// 		c.Logf("[Forage decision]: random")
-// 		return c.randomForage(), nil
-// 	} else if c.emotionalState() == Desperate {
-// 		c.Logf("[Forage decision]: desperate")
-// 		return c.desperateForage(), nil
-// 	} else if len(c.livingClients()) > 1 {
-// 		c.Logf("[Forage decision]: flip")
-// 		return c.flipForage(), nil
-// 	} else {
-// 		c.Logf("[Forage decision]: constant")
-// 		return c.constantForage(0.2), nil
-// 	}
-// }
-
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	// implement a normal distribution which shifts closer to hunt or fish
 	var Threshold float64 = c.decideHuntingLikelihood() //number from 0 to 1
@@ -61,10 +45,11 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 	}
 
 	if ourResources < c.agentThreshold() && shared.Resources(foragingDecisionThreshold) < shared.Resources(ForageDecisionThreshold) {
+		c.Logf("[Our beautiful second]:", (c.agentThreshold()-ourResources)/shared.Resources(SlightRiskForageDivisor))
+
 		return shared.Resources((c.agentThreshold() - ourResources) / SlightRiskForageDivisor)
 	}
 
-	c.Logf("[Our beautiful second (not used)]:", (c.agentThreshold()-ourResources)/shared.Resources(SlightRiskForageDivisor))
 	var resourcesForForaging shared.Resources
 	if ourResources > c.agentThreshold() {
 		resourcesForForaging = ourResources - c.agentThreshold()

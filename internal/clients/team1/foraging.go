@@ -205,10 +205,10 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		c.Logf("[Forage decision]: desperate")
 		return c.desperateForage(), nil
 	} else if len(c.livingClients()) > 1 {
-		c.Logf("[Forage decision]: flip", c.flipForage())
+		c.Logf("[Forage decision]: flip")
 		return c.flipForage(), nil
 	} else {
-		c.Logf("[Forage decision]: constant", c.constantForage(0.2))
+		c.Logf("[Forage decision]: constant")
 		return c.constantForage(0.2), nil
 	}
 }

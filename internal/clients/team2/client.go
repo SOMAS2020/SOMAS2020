@@ -100,7 +100,7 @@ const (
 	BaseResourcesToGiveDivisor       shared.Resources = 4
 	BaseDisasterProtectionDivisor    shared.Resources = 4
 	TimeLeftIncreaseDisProtection    float64          = 3
-	disasterSoonProtectionMultiplier float64          = 1.2
+	DisasterSoonProtectionMultiplier float64          = 1.2
 	DefaultFirstTurnContribution     shared.Resources = 20
 	NoFreeRideAtStart                uint             = 3
 	SwitchToFreeRideFactor           float64          = 0.5

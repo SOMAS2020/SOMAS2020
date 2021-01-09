@@ -109,7 +109,6 @@ func (c *client) calculateDisasterMagPred() float64 {
 		return float64(c.gameConfig().DisasterConfig.CommonpoolThreshold.Value) / float64(c.getNumAliveClients())
 	} else if len(c.disasterHistory) == 0 {
 		// If we don't know the common pool threshold
-		// Check if there is a disaster history or go crazy and do something random
 		return float64(c.gameState().ClientInfo.Resources / BaseDisasterProtectionDivisor) //initial disaster threshold guess when we start playing
 	} else {
 		sampleMeanMag, magnitudePrediction := GetMagnitudePrediction(c, float64(turn))
@@ -131,12 +130,24 @@ func (c *client) calculateDisasterMagPred() float64 {
 }
 
 func (c *client) calculateTimeRemaining() float64 {
+	turn := c.gameState().Turn
+	//add extra when disaster is soon
+	if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
+		period := c.gameConfig().DisasterConfig.DisasterPeriod.Value
+		return float64(period - (turn % period))
+	}
+	if c.gameState().Season == 1 { //not able to predict disasters in first season as no prev known data
+		return InitialDisasterTurnGuess - float64(turn)
+	} else {
+		sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, float64(turn))
+		turnsLeftConfidence := GetTimeRemainingConfidence(float64(turn), sampleMeanX)
+		return float64(timeRemainingPrediction) * (turnsLeftConfidence / 100)
+	}
 
 }
 
 //Determines esources we need to be above critical, pay tax and cost of living, put resources aside proportional to incoming disaster
 func (c *client) agentThreshold() shared.Resources {
-	turn := c.gameState().Turn
 	criticalThreshold := c.gameConfig().MinimumResourceThreshold
 	costOfLiving := c.gameConfig().CostOfLiving
 	basicCosts := criticalThreshold + c.taxAmount + costOfLiving
@@ -145,22 +156,10 @@ func (c *client) agentThreshold() shared.Resources {
 	// Add resources based on expected/predicted disaster magnitude
 	disasterMagProtection := c.calculateDisasterMagPred()
 
-	var timeRemaining float64
-	//add extra when disaster is soon
-	if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
-		period := c.gameConfig().DisasterConfig.DisasterPeriod.Value
-		timeRemaining = float64(period - (c.gameState().Turn % period))
-	}
-	if c.gameState().Season == 1 { //not able to predict disasters in first season as no prev known data
-		timeRemaining = InitialDisasterTurnGuess - float64(c.gameState().Turn)
-	} else {
-		sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, float64(turn))
-		turnsLeftConfidence := GetTimeRemainingConfidence(float64(turn), sampleMeanX)
-		timeRemaining = float64(timeRemainingPrediction) * (turnsLeftConfidence / 100)
-	}
-	disasterTimeProtectionMultiplier := float64(1)
+	timeRemaining := c.calculateTimeRemaining()
+	disasterTimeProtectionMultiplier := 1.0
 	if timeRemaining < TimeLeftIncreaseDisProtection {
-		disasterTimeProtectionMultiplier = disasterSoonProtectionMultiplier
+		disasterTimeProtectionMultiplier = DisasterSoonProtectionMultiplier
 	}
 
 	return basicCosts + shared.Resources(disasterTimeProtectionMultiplier*disasterMagProtection*vulnerabilityMultiplier)
@@ -179,21 +178,6 @@ func (c *client) checkForDisaster() bool {
 	}
 	return false
 }
-
-// Computes the agent threshold when disasters are unknown
-// func (c *client) agentThresholdDisastersUnknown() shared.Resources {
-
-// }
-
-// // Computes the agent threshold when disasters are assumed
-// func (c *client) agentThresholdDisastersAssumed() shared.Resources {
-
-// }
-
-// // Computes the agent threshold when disasters are known
-// func (c *client) agentThresholdDisastersKnown() shared.Resources {
-
-// }
 
 //AverageCommonPoolDilemma determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers or free riders
 func AverageCommonPoolDilemma(c *client) shared.Resources {
@@ -291,6 +275,11 @@ func (c *client) ShareIntendedContribution() shared.IntendedContribution {
 	}
 	return intendedContribution
 }
-func (c *client) ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict) {
 
+// TODO: this is completely empty
+func (c *client) ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict) {
+	// we check how much each island intends to contribute
+	// Compute the average amount needed for the common pool threshold
+	// form an opinion based on how far their contribution is from the average
+	// could help us determine empathy level? (ie altruist, etc)
 }
