@@ -12,7 +12,7 @@ func TestGlobalVariableRegistration(t *testing.T) {
 	}
 
 	for _, v := range variablesToFind {
-		if _, ok := VariableMap[v]; !ok {
+		if _, ok := InitialVarRegistration()[v]; !ok {
 			t.Errorf("Required variable '%v' not found", v)
 		}
 	}

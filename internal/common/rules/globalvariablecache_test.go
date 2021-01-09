@@ -26,5 +26,5 @@ func registerTestVariable(variableStore map[VariableFieldName]VariableValuePair)
 		VariableName: TestVariable,
 		Values:       []float64{5},
 	}
-	_ = registerNewVariableInternal(pair, variableStore)
+	_ = RegisterNewVariableInternal(pair, variableStore)
 }

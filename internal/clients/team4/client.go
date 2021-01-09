@@ -16,18 +16,18 @@ const id = shared.Team4
 
 func init() {
 	team4client := client{
-		BaseClient: baseclient.NewClient(id),
-		clientJudge: judge{
-			BaseJudge: &baseclient.BaseJudge{},
-			t:         nil,
-		},
-		clientSpeaker: speaker{
-			BaseSpeaker: &baseclient.BaseSpeaker{},
-		},
+		BaseClient:    baseclient.NewClient(id),
+		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
+		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		yes:           "",
+		obs:           &observation{},
+		internalParam: &internalParameters{},
+		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
 	}
+	team4client.clientJudge.parent = &team4client
 	team4client.clientSpeaker.parent = &team4client
 
-	baseclient.RegisterClient(id, &team4client)
+	baseclient.RegisterClientFactory(id, func() baseclient.Client { return &team4client })
 }
 
 type client struct {
@@ -40,6 +40,7 @@ type client struct {
 	obs                *observation        //observation is the raw input into our client
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
+	savedHistory       *map[uint]map[shared.ClientID]judgeHistoryInfo
 }
 
 // Store extra information which is not in the server and is helpful for our client
@@ -113,7 +114,9 @@ type personality struct {
 
 //Overriding and extending the Initialise method of the BaseClient to initilise our client
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
-	c.BaseClient.Initialise(serverReadHandle)
+	// c.BaseClient.Initialise(serverReadHandle)
+	c.ServerReadHandle = serverReadHandle
+	c.LocalVariableCache = rules.CopyVariableMap()
 
 	//custom things below, trust matrix initilised to values of 1
 	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)

@@ -1,0 +1,40 @@
+.text {
+  font-size: 2em;
+  font-weight: 600;
+}
+
+.root {
+  padding: 5vh 0;
+}
+
+.achieveContainer {
+  display: flex;
+  justify-content: center;
+  margin: 20px;
+}
+
+.achieveContainer .innerContainer {
+  max-width: 600px;
+  width: 75vw;
+  min-height: 60px;
+  background-color: #e0e0e0;
+  border-radius: 15px;
+  padding: 25px 20px 17px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  box-shadow: 3px 5px #707070;
+  cursor: pointer;
+}
+
+.innerContainer .leftColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.innerContainer .rightColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
