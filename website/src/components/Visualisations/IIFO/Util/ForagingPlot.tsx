@@ -12,12 +12,12 @@ import { ForagingHistory } from './ForagingTypes'
 
 // TODO: Add axis labels
 // plot: deer population, fish population, foraging return, foraging input
-const ForagingPlot = (data: ForagingHistory) => {
-  const [result, setResult] = useState()
+const ForagingPlot = ({ data }: { data: ForagingHistory }) => {
+  const [result, setResult] = useState<ForagingHistory>([])
 
   useEffect(() => {
-    console.log('charts props:', data.result)
-    setResult(data.result)
+    console.log('charts props:', data)
+    setResult(data)
     console.log('results updated')
   })
 
