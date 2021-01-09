@@ -181,7 +181,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	}
 	//fmt.Println("total request amount: ", totalRequestAmt)
 
-	avgRequestAmt := totalRequestAmt / float64(c.getIslandsAlive()-c.getIslandsCritical())
+	avgRequestAmt := totalRequestAmt / float64(c.getIslandsAliveCount()-c.getIslandsCriticalCount())
 
 	for island, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 		if island == id {

@@ -98,8 +98,8 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	commonPoolThreshold = float64(availCommonPool) * (1.0 - p.c.params.riskFactor)
 	if p.c.params.saveCriticalIsland {
 		for island := range resourceRequest {
-			if resources[island] < p.c.criticalStatePrediction.lowerBound {
-				finalAllocations[island] = shared.Resources(math.Max((allocWeights[island] * commonPoolThreshold), float64(p.c.criticalStatePrediction.lowerBound-resources[island])))
+			if resources[island] < p.c.criticalThreshold {
+				finalAllocations[island] = shared.Resources(math.Max((allocWeights[island] * commonPoolThreshold), float64(p.c.criticalThreshold-resources[island])))
 			} else {
 				finalAllocations[island] = 0
 			}
@@ -133,12 +133,13 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		if report.Reported {
 			p.c.declaredResources[island] = report.ReportedAmount
 		} else {
-			//TODO: read from params.config file once its available now i just hope they die of satanic attacc
-			p.c.declaredResources[island] = shared.Resources(666)
+			p.c.declaredResources[island] = shared.Resources(p.c.ServerReadHandle.GetGameConfig().IIGOClientConfig.AssumedResourcesNoReport)
 		}
 	}
 	gameState := p.c.BaseClient.ServerReadHandle.GetGameState()
-	resourcesRequired := 100.0 - float64(gameState.CommonPool)
+	// Aim to have 100 in common pool after iigo run
+	resourcesRequired := (float64(p.c.getIIGOCost()) + 100.0) - float64(gameState.CommonPool)
+	p.c.clientPrint("Resources required in common pool %f", resourcesRequired)
 	if len(p.c.disasterPredictions) > int(p.c.ServerReadHandle.GetGameState().Turn) {
 		if disaster, ok := p.c.disasterPredictions[int(p.c.ServerReadHandle.GetGameState().Turn)][p.c.GetID()]; ok {
 			if disaster.TimeLeft != 0 {
@@ -154,8 +155,6 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		adjustedResource := resource * shared.Resources(math.Pow(p.c.params.resourcesSkew, (100-p.c.trustScore[island])/100))
 		adjustedResources = append(adjustedResources, float64(adjustedResource))
 		adjustedResourcesMap[island] = adjustedResource
-		//update criticalThreshold
-		p.c.updateCriticalThreshold(p.c.ServerReadHandle.GetGameState().ClientLifeStatuses[island], shared.Resources(adjustedResource))
 	}
 
 	AveAdjustedResources := getAverage(adjustedResources)

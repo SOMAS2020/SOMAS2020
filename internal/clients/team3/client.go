@@ -46,7 +46,8 @@ type client struct {
 	ruleVotedOn string
 
 	// ## Game state & History ##
-	criticalStatePrediction criticalStatePrediction
+	// Minimum value for island to avoid critical
+	criticalThreshold shared.Resources
 
 	// declaredResources is a map of all declared island resources
 	declaredResources map[shared.ClientID]shared.Resources
@@ -82,49 +83,36 @@ type client struct {
 	lastSanction shared.IIGOSanctionsScore
 }
 
-type criticalStatePrediction struct {
-	upperBound shared.Resources
-	lowerBound shared.Resources
-}
-
 type islandParams struct {
-	giftingThreshold            shared.Resources
-	equity                      float64
-	complianceLevel             float64
-	resourcesSkew               float64
-	saveCriticalIsland          bool
-	escapeCritcaIsland          bool
-	selfishness                 float64
-	minimumRequest              shared.Resources
-	disasterPredictionWeighting float64
-	recidivism                  float64
-	riskFactor                  float64
-	friendliness                float64
-	anger                       float64
-	aggression                  float64
-	sensitivity                 float64
-	salaryThreshold             float64
-	localPoolThreshold          float64
-	giftInflationPercentage     float64
-	trustConstantAdjustor       float64
-	trustParameter              float64
-	NoRequestGiftParam          float64
-	laziness                    float64
-	intelligence                bool
+	equity                  float64
+	complianceLevel         float64
+	resourcesSkew           float64
+	saveCriticalIsland      bool
+	escapeCritcaIsland      bool
+	selfishness             float64
+	recidivism              float64
+	riskFactor              float64
+	friendliness            float64
+	aggression              float64
+	sensitivity             float64
+	localPoolThreshold      float64
+	giftInflationPercentage float64
+	trustConstantAdjustor   float64
+	trustParameter          float64
+	NoRequestGiftParam      float64
+	intelligence            bool
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
 
 type ruleVoteInfo struct {
 	// ourVote needs to be updated accordingly
-	ourVote         bool
+	ourVote         shared.RuleVoteType
 	resultAnnounced bool
 	// true -> yes, false -> no
 	result bool
 }
 
 type iigoCommunicationInfo struct {
-	// ourRole stores our current role in the IIGO
-	ourRole *shared.Role
 	// Retrieved fully from communications
 	// commonPoolAllocation gives resources allocated by president from requests
 	commonPoolAllocation shared.Resources
