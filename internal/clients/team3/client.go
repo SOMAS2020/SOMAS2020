@@ -85,13 +85,6 @@ type client struct {
 	lastSanction roles.IIGOSanctionScore
 }
 
-type criticalStatePrediction struct {
-	serverSet  bool
-	upperBound shared.Resources
-	lowerBound shared.Resources
-	midValue   shared.Resources
-}
-
 type islandParams struct {
 	equity                  float64
 	complianceLevel         float64
