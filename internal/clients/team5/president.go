@@ -18,8 +18,8 @@ type president struct {
 
 func (c *client) GetClientPresidentPointer() roles.President {
 	c.Logf("Team 5 is now the President, Shalom to all")
-
-	return &c.team5President
+	// return &c.team5President
+	return &president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
@@ -106,23 +106,23 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 //For this, whenever we are presidents, the salary of the speaker comes in hand with our own wealth state
 //this is for the sake of everyone paying less, thus having a higher chance of our island to recover
 func (p *president) PaySpeaker() shared.PresidentReturnContent {
+	// return p.BasePresident.PaySpeaker()
 
 	SpeakerSalaryRule, ok := p.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_speaker"]
 	var salary shared.Resources = 0
 	if ok {
-		salary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
-	}
-
-	if p.c.wealth() == jeffBezos {
-		return shared.PresidentReturnContent{
-			ContentType:   shared.PresidentSpeakerSalary,
-			SpeakerSalary: salary,
-			ActionTaken:   true,
+		if p.c.wealth() == jeffBezos {
+			return shared.PresidentReturnContent{
+				ContentType:   shared.PresidentSpeakerSalary,
+				SpeakerSalary: salary,
+				ActionTaken:   true,
+			}
+		} else if p.c.wealth() == middleClass {
+			salary = salary * 0.8
+		} else {
+			salary = salary * 0.5
 		}
-	} else if p.c.wealth() == middleClass {
-		salary = salary * 0.8
-	} else {
-		salary = salary * 0.5
+		salary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
 	}
 
 	return shared.PresidentReturnContent{

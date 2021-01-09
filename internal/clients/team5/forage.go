@@ -266,7 +266,7 @@ func (c *client) lastHopeForage() shared.ForageDecision {
 		Type:         shared.FishForageType,
 		Contribution: 0.95 * c.gameState().ClientInfo.Resources, // Almost everything we still want to be > 0 in case 0 means insta death
 	}
-	c.Logf("[Forage][Just let me die please?]: Decision %v | Amount %v ?",
+	c.Logf("[Forage][Just let me die please?]: Decision %v | Amount %v ",
 		forageDecision, forageDecision.Contribution)
 	return forageDecision
 }
