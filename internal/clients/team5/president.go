@@ -111,18 +111,18 @@ func (p *president) PaySpeaker() shared.PresidentReturnContent {
 	SpeakerSalaryRule, ok := p.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_speaker"]
 	var salary shared.Resources = 0
 	if ok {
-		if p.c.wealth() == jeffBezos {
-			return shared.PresidentReturnContent{
-				ContentType:   shared.PresidentSpeakerSalary,
-				SpeakerSalary: salary,
-				ActionTaken:   true,
-			}
-		} else if p.c.wealth() == middleClass {
-			salary = salary * 0.8
-		} else {
-			salary = salary * 0.5
-		}
 		salary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
+	}
+	if p.c.wealth() == jeffBezos {
+		return shared.PresidentReturnContent{
+			ContentType:   shared.PresidentSpeakerSalary,
+			SpeakerSalary: salary,
+			ActionTaken:   true,
+		}
+	} else if p.c.wealth() == middleClass {
+		salary = salary * 0.8
+	} else {
+		salary = salary * 0.5
 	}
 
 	return shared.PresidentReturnContent{

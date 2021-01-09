@@ -25,18 +25,18 @@ func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 	JudgeSalaryRule, ok := s.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_judge"]
 	var JudgeSalary shared.Resources = 0
 	if ok {
-		if s.c.wealth() == jeffBezos {
-			return shared.SpeakerReturnContent{
-				ContentType: shared.SpeakerJudgeSalary,
-				JudgeSalary: JudgeSalary,
-				ActionTaken: true,
-			}
-		} else if s.c.wealth() == middleClass {
-			JudgeSalary = JudgeSalary * 0.8
-		} else {
-			JudgeSalary = JudgeSalary * 0.5
-		}
 		JudgeSalary = shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
+	}
+	if s.c.wealth() == jeffBezos {
+		return shared.SpeakerReturnContent{
+			ContentType: shared.SpeakerJudgeSalary,
+			JudgeSalary: JudgeSalary,
+			ActionTaken: true,
+		}
+	} else if s.c.wealth() == middleClass {
+		JudgeSalary = JudgeSalary * 0.8
+	} else {
+		JudgeSalary = JudgeSalary * 0.5
 	}
 
 	return shared.SpeakerReturnContent{

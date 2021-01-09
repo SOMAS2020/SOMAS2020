@@ -40,16 +40,15 @@ func (j *judge) PayPresident() (shared.Resources, bool) {
 	PresidentSalaryRule, ok := j.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_president"]
 	var salary shared.Resources = 0
 	if ok {
-		if j.c.wealth() == jeffBezos {
-			return salary, true
-		} else if j.c.wealth() == middleClass {
-			salary = salary * 0.8
-		} else {
-			salary = salary * 0.5
-		}
 		salary = shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
 	}
-
+	if j.c.wealth() == jeffBezos {
+		return salary, true
+	} else if j.c.wealth() == middleClass {
+		salary = salary * 0.8
+	} else {
+		salary = salary * 0.5
+	}
 	return salary, true
 
 }
