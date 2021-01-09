@@ -112,6 +112,12 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
 		BaseClient: baseclient.NewClient(clientID),
 		config:     DefaultConfig(),
+
+		forageHistory:     ForageHistory{},
+		reportedResources: map[shared.ClientID]bool{},
+		teamOpinions:      map[shared.ClientID]Opinion{},
+		receivedOffer:     map[shared.ClientID]shared.Resources{},
+		trustTeams:        map[shared.ClientID]float64{},
 	}
 }
 
