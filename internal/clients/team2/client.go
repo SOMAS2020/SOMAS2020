@@ -113,6 +113,7 @@ const (
 	ForageDecisionThreshold          float64          = 0.6
 	SlightRiskForageDivisor          shared.Resources = 2
 	HelpCritOthersDivisor            shared.Resources = 2
+	InitialDisasterTurnGuess         float64          = 7
 )
 
 type OpinionHist map[shared.ClientID]Opinion
