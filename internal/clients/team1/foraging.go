@@ -143,11 +143,16 @@ func (c client) flipForage() shared.ForageDecision {
 		}
 	}
 
-	if totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0 || c.switchType == false {
+	if (totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0) && c.switchType == false {
 		// Big contribution
 		return shared.ForageDecision{
 			Contribution: shared.Resources(math.Min(float64(0.3*c.gameState().ClientInfo.Resources), float64(3*c.gameConfig().CostOfLiving))),
 			Type:         shared.DeerForageType,
+		}
+	} else if c.switchType == true {
+		return shared.ForageDecision{
+			Contribution: shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources,
+			Type:         shared.FishForageType,
 		}
 	}
 
@@ -160,12 +165,6 @@ func (c client) flipForage() shared.ForageDecision {
 		float64(contribution),
 	))
 	c.Logf("[Forage decision] flipping results: %v", contribution)
-	if c.switchType == true {
-		return shared.ForageDecision{
-			Contribution: shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources,
-			Type:         shared.FishForageType,
-		}
-	}
 	return shared.ForageDecision{
 		Contribution: contribution,
 		Type:         shared.DeerForageType,
