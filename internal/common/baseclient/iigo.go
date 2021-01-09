@@ -115,7 +115,7 @@ func (c *BaseClient) GetSanctionPayment() shared.Resources {
 // COMPULSORY
 func (c *BaseClient) RequestAllocation() shared.Resources {
 	// TODO: Implement request equal to the allocation permitted by President.
-	valToBeReturned := c.ServerReadHandle.GetGameConfig().CostOfLiving
+	valToBeReturned := c.ServerReadHandle.GetGameState().CommonPool
 	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
 		VariableName: rules.IslandAllocation,
 		Values:       []float64{float64(valToBeReturned)},
