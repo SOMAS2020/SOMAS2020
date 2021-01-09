@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -38,7 +39,7 @@ type SOMASServer struct {
 }
 
 // NewSOMASServer returns an instance of the main server we use.
-func NewSOMASServer(gameConfig config.Config) Server {
+func NewSOMASServer(gameConfig config.Config) (Server, error) {
 	registeredClients := make(map[shared.ClientID]baseclient.Client, len(baseclient.RegisteredClientFactories))
 	for id, factory := range baseclient.RegisteredClientFactories {
 		registeredClients[id] = factory()
@@ -58,7 +59,7 @@ func createSOMASServer(
 	clientInfos map[shared.ClientID]gamestate.ClientInfo,
 	clientMap map[shared.ClientID]baseclient.Client,
 	gameConfig config.Config,
-) Server {
+) (Server, error) {
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
@@ -70,6 +71,10 @@ func createSOMASServer(
 	}
 
 	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
+	initRoles, err := getNRandClientIDsUniqueIfPossible(clientIDs, 3)
+	if err != nil {
+		return nil, errors.Errorf("Cannot initialise IIGO roles: %v", err)
+	}
 
 	server := &SOMASServer{
 		clientMap:  clientMap,
@@ -94,9 +99,9 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
-			SpeakerID:   shared.Team1,
-			JudgeID:     shared.Team4,
-			PresidentID: shared.Team3,
+			SpeakerID:   initRoles[0],
+			JudgeID:     initRoles[1],
+			PresidentID: initRoles[2],
 			CommonPool:  gameConfig.InitialCommonPool,
 			RulesInfo: gamestate.RulesContext{
 				AvailableRules:     availableRules,
@@ -116,7 +121,7 @@ func createSOMASServer(
 		})
 	}
 
-	return server
+	return server, nil
 }
 
 // EntryPoint function that returns a list of historic gamestate.GameState until the
@@ -171,4 +176,23 @@ func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 // GetGameConfig returns ClientConfig which is a subset of the entire Config that is visible to clients.
 func (s ServerForClient) GetGameConfig() config.ClientConfig {
 	return s.server.gameConfig.GetClientConfig()
+}
+
+func getNRandClientIDsUniqueIfPossible(input []shared.ClientID, n int) ([]shared.ClientID, error) {
+	if len(input) == 0 {
+		return nil, errors.Errorf("RIP, empty list")
+	}
+
+	lst := make([]shared.ClientID, len(input))
+	copy(lst, input)
+
+	// make lst's length longer than n
+	for len(lst) < n {
+		lst = append(lst, lst...)
+	}
+
+	// shuffle lst
+	rand.Shuffle(len(lst), func(i, j int) { lst[i], lst[j] = lst[j], lst[i] })
+
+	return lst[:n], nil
 }

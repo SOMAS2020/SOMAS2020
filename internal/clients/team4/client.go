@@ -239,7 +239,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	for i := len(trustList) - 1; i >= 0; i-- {
 		// The idea is to have the very untrusted island to split the points in order
 		// to increase the gap with good islands that we include and that we want to be elected.
-		if trustList[i] > 0.25 { //TODO: calibrate the trustScore so we don't always not rank
+		if trustList[i] > 0.25 || (len(trustList)-1)-i < 2 { //TODO: calibrate the trustScore so we don't always not rank //currently the infra does not support not ranking someone
 			returnList = append(returnList, trustToID[trustList[i]])
 		}
 	}
