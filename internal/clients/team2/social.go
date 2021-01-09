@@ -98,12 +98,6 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 	}
 }
 
-// The implementation of this function (if needed) depends on where (and how) the confidence
-// function is called in the first place
-// func (c *client) confidenceReality(situation string, otherIsland shared.ClientID) {
-
-// }
-
 func max(numbers map[uint]GiftInfo) uint {
 	var maxNumber uint
 	for maxNumber = range numbers {

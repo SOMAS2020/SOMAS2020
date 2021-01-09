@@ -198,7 +198,7 @@ func (c *client) determineAltruist(turn uint) shared.Resources { //identical to 
 	for j := turn; j > 0; j-- {                           //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			if float64(c.getNumAliveClients())*tuneAlt != 0 {
+			if shared.Resources(c.getNumAliveClients())*tuneAlt != shared.Resources(0) {
 				return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAlt
 			}
 		}
@@ -212,7 +212,7 @@ func (c *client) determineFair(turn uint) shared.Resources { //can make more sop
 	for j := turn; j > 0; j-- {                                //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			if float64(c.getNumAliveClients())*tuneAverage != 0 {
+			if shared.Resources(c.getNumAliveClients())*tuneAverage != shared.Resources(0) {
 				return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAverage
 			}
 		}
