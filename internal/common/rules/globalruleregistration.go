@@ -108,7 +108,7 @@ func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMa
 				IslandAllocation,
 				ExpectedAllocation,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{-1, 1, 0},
 			Aux:     []float64{2},
 			Mutable: false,
 			Linked:  false,
@@ -283,7 +283,7 @@ func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMa
 			Name: "obl_to_propose_rule_if_some_are_given",
 			ReqVar: []VariableFieldName{
 				IslandsProposedRules,
-				RuleSelected,
+				PresidentRuleProposal,
 			},
 			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
