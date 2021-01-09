@@ -112,6 +112,7 @@ const (
 	AltruistFactorOfAvToGive         float64          = 2
 	ForageDecisionThreshold          float64          = 0.6
 	SlightRiskForageDivisor          shared.Resources = 2
+	HelpCritOthersDivisor            shared.Resources = 2
 )
 
 type OpinionHist map[shared.ClientID]Opinion
