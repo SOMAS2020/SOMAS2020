@@ -98,3 +98,48 @@ func TestSOMASServerFactoryInitialisesClients(t *testing.T) {
 		}
 	}
 }
+
+func TestAllocationRequests(t *testing.T) {
+	iterations := 10
+	cases := []struct {
+		name  string
+		input []shared.ClientID
+	}{
+		{
+			name:  "RandomAssign 2 entries",
+			input: []shared.ClientID{shared.ClientID(0), shared.ClientID(1)},
+		},
+		{
+			name:  "RandomAssign 3 entries",
+			input: []shared.ClientID{shared.ClientID(0), shared.ClientID(1), shared.ClientID(2)},
+		},
+		{
+			name: "RandomAssign several entries",
+			input: []shared.ClientID{
+				shared.ClientID(0),
+				shared.ClientID(1),
+				shared.ClientID(2),
+				shared.ClientID(3),
+				shared.ClientID(4),
+				shared.ClientID(5)},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if len(tc.input) < 3 {
+				randomAssign(tc.input) // Only check for crash
+			} else {
+				for i := 0; i < iterations; i++ { // As its using random numbers. Run each test several times to minimise probablability
+					speaker, judge, president := randomAssign(tc.input)
+					if speaker == judge ||
+						speaker == president ||
+						judge == president {
+						t.Errorf("Speaker: %v, Judge: %v, President: %v, should all be unique but weren't", speaker, judge, president)
+					}
+				}
+			}
+		})
+
+	}
+}
