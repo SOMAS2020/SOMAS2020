@@ -212,3 +212,117 @@ func TestSaveHistoryInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestCallPresidentElection(t *testing.T) {
+	cases := []struct {
+		name               string
+		monitoring         shared.MonitorResult
+		turnsInPower       int
+		termLength         uint
+		electionRuleInPlay bool
+		expectedElection   bool
+	}{
+		{
+			name:               "no conditions",
+			monitoring:         shared.MonitorResult{Performed: false, Result: false},
+			turnsInPower:       1,
+			termLength:         4,
+			electionRuleInPlay: false,
+			expectedElection:   false,
+		},
+		{
+			name:               "term length exceeded. no rule",
+			monitoring:         shared.MonitorResult{Performed: false, Result: false},
+			turnsInPower:       2,
+			termLength:         1,
+			electionRuleInPlay: false,
+			expectedElection:   false,
+		},
+		{
+			name:               "term length exceeded. rule in play",
+			monitoring:         shared.MonitorResult{Performed: false, Result: false},
+			turnsInPower:       7,
+			termLength:         5,
+			electionRuleInPlay: true,
+			expectedElection:   true,
+		},
+		{
+			name:               "termLength=turnsInPower. rule in play",
+			monitoring:         shared.MonitorResult{Performed: false, Result: false},
+			turnsInPower:       5,
+			termLength:         5,
+			electionRuleInPlay: true,
+			expectedElection:   false,
+		},
+		{
+			name:               "monitoring done",
+			monitoring:         shared.MonitorResult{Performed: true, Result: true},
+			turnsInPower:       2,
+			termLength:         3,
+			electionRuleInPlay: true,
+			expectedElection:   false,
+		},
+		{
+			name:               "monitoring done and cheated",
+			monitoring:         shared.MonitorResult{Performed: true, Result: false},
+			turnsInPower:       5,
+			termLength:         7,
+			electionRuleInPlay: true,
+			expectedElection:   true,
+		},
+		{
+			name:               "monitoring done and cheated. term ended",
+			monitoring:         shared.MonitorResult{Performed: true, Result: false},
+			turnsInPower:       5,
+			termLength:         4,
+			electionRuleInPlay: true,
+			expectedElection:   true,
+		},
+	}
+
+	allTeams := []shared.ClientID{}
+	for _, client := range shared.TeamIDs {
+		allTeams = append(allTeams, client)
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			testServer := fakeServerHandle{
+				TermLengths: map[shared.Role]uint{
+					shared.President: tc.termLength,
+				},
+				ElectionRuleInPlay: tc.electionRuleInPlay,
+			}
+
+			testClient := client{
+				BaseClient:         baseclient.NewClient(id),
+				clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
+				clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+				yes:                "",
+				obs:                &observation{},
+				internalParam:      &internalParameters{},
+				idealRulesCachePtr: &map[string]rules.RuleMatrix{},
+				savedHistory:       &map[uint]map[shared.ClientID]judgeHistoryInfo{},
+			}
+
+			testClient.clientJudge.parent = &testClient
+
+			// if tc.electionRuleInPlay {
+			// 	testServer.RulesInfo = gamestate.RulesContext{
+			// 		CurrentRulesInPlay: registerTestElectionRule(),
+			// 	}
+			// }
+
+			testClient.Initialise(testServer)
+
+			j := testClient.GetClientJudgePointer()
+
+			got := j.CallPresidentElection(tc.monitoring, tc.turnsInPower, allTeams)
+
+			if got.HoldElection != tc.expectedElection {
+				t.Errorf("Expected holdElection: %v. Got holdElection: %v", tc.expectedElection, got.HoldElection)
+			}
+		})
+	}
+}
