@@ -237,6 +237,8 @@ func (c *client) normalForage() shared.ForageDecision {
 		float64(shared.Resources(c.config.MaxForagePercentage)*c.gameState().ClientInfo.Resources)),
 	)
 
+	// bestInput = bestInput * shared.Resources(3*len(c.getAliveTeams(true))/len(c.getAliveTeams(true)))
+
 	// Now return the foraging decision
 	forageDecision := shared.ForageDecision{
 		Type:         bestForagingMethod,
@@ -315,7 +317,7 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 
 	for _, forageInfo := range forageInfos {
 		if forageInfo.DecisionMade.Contribution >= 1 { // has to be meaningful forage
-			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.2*c.getMood()) // Thanks for the information dude very usefull
+			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.05*c.getMood()) // Thanks for the information dude
 		}
 	}
 }
