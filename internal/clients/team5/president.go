@@ -18,11 +18,11 @@ type president struct {
 
 func (c *client) GetClientPresidentPointer() roles.President {
 	c.Logf("Team 5 is now the President, Shalom to all")
-
-	return &c.team5President
+	// return &c.team5President
+	return &president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
-func (pres *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
+func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
 	var requestSum shared.Resources
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
 
@@ -55,7 +55,7 @@ func (pres *president) EvaluateAllocationRequests(resourceRequest map[shared.Cli
 
 //TODO: NEED TO LOOK AT THE RULES
 // PickRuleToVote chooses a rule proposal from all the proposals
-func (pres *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.PresidentReturnContent {
+func (p *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.PresidentReturnContent {
 	// DefaulContentType: No rules were proposed by the islands
 
 	// proposedRule := ""
@@ -79,7 +79,7 @@ func (pres *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.
 // COMPULSORY: decide how much to tax islands, using rules as a guide if you wish.
 
 //Essentially the more the resources the greater the applied tax, as the point of the game is to survive
-func (pres *president) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
+func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
 	var totalrecleft shared.Resources
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 
@@ -105,21 +105,21 @@ func (pres *president) SetTaxationAmount(islandsResources map[shared.ClientID]sh
 
 //For this, whenever we are presidents, the salary of the speaker comes in hand with our own wealth state
 //this is for the sake of everyone paying less, thus having a higher chance of our island to recover
-func (pres *president) PaySpeaker() shared.PresidentReturnContent {
+func (p *president) PaySpeaker() shared.PresidentReturnContent {
+	// return p.BasePresident.PaySpeaker()
 
-	SpeakerSalaryRule, ok := pres.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_speaker"]
+	SpeakerSalaryRule, ok := p.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_speaker"]
 	var salary shared.Resources = 0
 	if ok {
 		salary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
 	}
-
-	if pres.c.wealth() == jeffBezos {
+	if p.c.wealth() == jeffBezos {
 		return shared.PresidentReturnContent{
 			ContentType:   shared.PresidentSpeakerSalary,
 			SpeakerSalary: salary,
 			ActionTaken:   true,
 		}
-	} else if pres.c.wealth() == middleClass {
+	} else if p.c.wealth() == middleClass {
 		salary = salary * 0.8
 	} else {
 		salary = salary * 0.5
@@ -135,7 +135,7 @@ func (pres *president) PaySpeaker() shared.PresidentReturnContent {
 //TODO: NEED TO LOOK AT THE RULES
 // CallSpeakerElection is called by the executive to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
-func (pres *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
@@ -158,20 +158,20 @@ func (pres *president) CallSpeakerElection(monitoring shared.MonitorResult, turn
 //Deciding next speaker revokes the voting procedure and it is selected using our opinion,
 //the island with the highest opinion is selected as the speaker of next round
 
-func (pres *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
+func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	rand.Seed(time.Now().UnixNano())
 	oparray := []opinionScore{}
-	for id, opinion := range pres.c.opinions { //stores scores except team 5's in an array
+	for id, opinion := range p.c.opinions { //stores scores except team 5's in an array
 		if id != ourClientID {
 			oparray = append(oparray, opinion.getScore())
 		}
 	}
-	_, max := pres.c.minmaxOpinion(oparray) //calculates mas score from the array of opinion scores
+	_, max := p.c.minmaxOpinion(oparray) //calculates mas score from the array of opinion scores
 
 	if max > 0.0 {
-		for client, op := range pres.c.opinions { //matches highest score to the id of the island and returns that island as the speaker
+		for client, op := range p.c.opinions { //matches highest score to the id of the island and returns that island as the speaker
 			if op.getScore() == max {
-				pres.c.Logf("Opinion on team %v is %v", client, op.getScore())
+				p.c.Logf("Opinion on team %v is %v", client, op.getScore())
 				return shared.ClientID(client)
 			}
 

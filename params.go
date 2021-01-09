@@ -177,7 +177,7 @@ var (
 	disasterMagnitudeLambda = flag.Float64(
 		"disasterMagnitudeLambda",
 		1,
-		"Exponential rate param for disaster magnitude",
+		"Exponential rate param for magnitude",
 	)
 	disasterMagnitudeResourceMultiplier = flag.Float64(
 		"disasterMagnitudeResourceMultiplier",
