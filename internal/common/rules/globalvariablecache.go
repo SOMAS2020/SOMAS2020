@@ -12,15 +12,8 @@ type VariableValuePair struct {
 	Values       []float64
 }
 
-var VariableMap = map[VariableFieldName]VariableValuePair{}
-
-// RegisterNewVariable Registers the provided variable in the global variable cache
-func RegisterNewVariable(pair VariableValuePair) error {
-	return registerNewVariableInternal(pair, VariableMap)
-}
-
-// registerNewVariableInternal provides primal register logic for any variable cache
-func registerNewVariableInternal(pair VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
+// RegisterNewVariableInternal provides primal register logic for any variable cache
+func RegisterNewVariableInternal(pair VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) error {
 	if _, ok := variableStore[pair.VariableName]; ok {
 		return errors.Errorf("attempted to re-register a variable that had already been registered")
 	}
@@ -28,18 +21,22 @@ func registerNewVariableInternal(pair VariableValuePair, variableStore map[Varia
 	return nil
 }
 
-// UpdateVariable Updates variable in global cache with new value
-func UpdateVariable(variableName VariableFieldName, newValue VariableValuePair) bool {
-	return updateVariableInternal(variableName, newValue, VariableMap)
-}
-
-// updateVariableInternal provides primal update logic for any variable cache
-func updateVariableInternal(variableName VariableFieldName, newValue VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) bool {
+// UpdateVariableInternal provides primal update logic for any variable cache
+func UpdateVariableInternal(variableName VariableFieldName, newValue VariableValuePair, variableStore map[VariableFieldName]VariableValuePair) bool {
 	if _, ok := variableStore[variableName]; ok {
 		variableStore[variableName] = newValue
 		return true
 	}
 	return false
+}
+
+// CopyVariableMap easily copies variable cache
+func CopyVariableMap(varMap map[VariableFieldName]VariableValuePair) map[VariableFieldName]VariableValuePair {
+	newMap := make(map[VariableFieldName]VariableValuePair)
+	for key, value := range varMap {
+		newMap[key] = value
+	}
+	return newMap
 }
 
 type VariableFieldName int
@@ -56,8 +53,17 @@ const (
 	AllocationMade
 	IslandsAlive
 	SpeakerSalary
+	SpeakerPayment
+	SpeakerPaid
+	SpeakerBudgetIncrement
 	JudgeSalary
+	JudgePayment
+	JudgePaid
+	JudgeBudgetIncrement
 	PresidentSalary
+	PresidentPayment
+	PresidentPaid
+	PresidentBudgetIncrement
 	RuleSelected
 	VoteCalled
 	ExpectedTaxContribution
@@ -71,6 +77,29 @@ const (
 	SanctionExpected
 	TestVariable
 	JudgeInspectionPerformed
+	TaxDecisionMade
+	MonitorRoleAnnounce
+	MonitorRoleDecideToMonitor
+	MonitorRoleEvalResult
+	MonitorRoleEvalResultDecide
+	VoteResultAnnounced
+	IslandsAllowedToVote
+	SpeakerProposedPresidentRule
+	PresidentRuleProposal
+	RuleChosenFromProposalList
+	AnnouncementRuleMatchesVote
+	AnnouncementResultMatchesVote
+	PresidentLeftoverBudget
+	SpeakerLeftoverBudget
+	JudgeLeftoverBudget
+	IslandsProposedRules
+	HasIslandReportPrivateResources
+	IslandActualPrivateResources
+	IslandReportedPrivateResources
+	JudgeHistoricalRetributionPerformed
+	TermEnded
+	ElectionHeld
+	AppointmentMatchesVote
 )
 
 func (v VariableFieldName) String() string {
@@ -86,8 +115,17 @@ func (v VariableFieldName) String() string {
 		"AllocationMade",
 		"IslandsAlive",
 		"SpeakerSalary",
+		"SpeakerPayment",
+		"SpeakerPaid",
+		"SpeakerBudgetIncrement",
 		"JudgeSalary",
+		"JudgePayment",
+		"JudgePaid",
+		"JudgeBudgetIncrement",
 		"PresidentSalary",
+		"PresidentPayment",
+		"PresidentPaid",
+		"PresidentBudgetIncrement",
 		"RuleSelected",
 		"VoteCalled",
 		"ExpectedTaxContribution",
@@ -101,6 +139,29 @@ func (v VariableFieldName) String() string {
 		"SanctionExpected",
 		"TestVariable",
 		"JudgeInspectionPerformed",
+		"TaxDecisionMade",
+		"MonitorRoleAnnounce",
+		"MonitorRoleDecideToMonitor",
+		"MonitorRoleEvalResult",
+		"MonitorRoleEvalResultDecide",
+		"VoteResultAnnounced",
+		"IslandsAllowedToVote",
+		"SpeakerProposedPresidentRule",
+		"PresidentRuleProposal",
+		"RuleChosenFromProposalList",
+		"AnnouncementRuleMatchesVote",
+		"AnnouncementResultMatchesVote",
+		"PresidentLeftoverBudget",
+		"SpeakerLeftoverBudget",
+		"JudgeLeftoverBudget",
+		"IslandsProposedRules",
+		"HasIslandReportPrivateResources",
+		"IslandActualPrivateResources",
+		"IslandReportedPrivateResources",
+		"JudgeHistoricalRetributionPerformed",
+		"TermEnded",
+		"ElectionHeld",
+		"AppointmentMatchesVote",
 	}
 	if v >= 0 && int(v) < len(strs) {
 		return strs[v]

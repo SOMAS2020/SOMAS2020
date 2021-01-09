@@ -6,11 +6,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"reflect"
+	"runtime"
+	"runtime/debug"
 	"strings"
 	"syscall/js"
+	"time"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
@@ -38,7 +42,24 @@ func main() {
 // RunGame runs the game.
 // args[0] are optional arguments to set flag values
 // The format is `arg1=value,arg2=value,...`
-func RunGame(this js.Value, args []js.Value) interface{} {
+func RunGame(this js.Value, args []js.Value) (ret interface{}) {
+	// log into a buffer
+	logBuf := bytes.Buffer{}
+	log.SetOutput(logger.NewLogWriter([]io.Writer{&logBuf}))
+
+	defer func() {
+		// try to recover in case some code panicked
+		if panicErr := recover(); panicErr != nil {
+			errStr := fmt.Sprintf("Panicked: %v.\n%v", panicErr, string(debug.Stack()))
+			fmt.Println(errStr)
+			log.Println(errStr)
+			ret = js.ValueOf(map[string]interface{}{
+				"logs":  logBuf.String(),
+				"error": fmt.Sprintf("Panicked: %v. See console for more info.", panicErr),
+			})
+		}
+	}()
+	timeStart := time.Now()
 	gameConfig, err := getConfigFromArgs(args)
 	if err != nil {
 		return js.ValueOf(map[string]interface{}{
@@ -46,27 +67,36 @@ func RunGame(this js.Value, args []js.Value) interface{} {
 		})
 	}
 
-	// log into a buffer
-	logBuf := bytes.Buffer{}
-	log.SetOutput(logger.NewLogWriter([]io.Writer{&logBuf}))
-
 	s := server.NewSOMASServer(gameConfig)
 
 	var o output
 	var outputJSON string
+
 	gameStates, err := s.EntryPoint()
 	if err != nil {
 		return js.ValueOf(map[string]interface{}{
 			"error": convertError(err),
 		})
 	}
-
+	timeEnd := time.Now()
 	o = output{
 		GameStates: gameStates,
 		Config:     gameConfig,
 		// no git info
+		AuxInfo: getAuxInfo(),
+		RunInfo: runInfo{
+			TimeStart:       timeStart,
+			TimeEnd:         timeEnd,
+			DurationSeconds: timeEnd.Sub(timeStart).Seconds(),
+			Version:         runtime.Version(),
+			GOOS:            runtime.GOOS,
+			GOARCH:          runtime.GOARCH,
+		},
 	}
 	outputJSON, err = getOutputJSON(o)
+	if err != nil {
+		log.Printf("Output marshalling failed. Output:\n%#v", o)
+	}
 
 	return js.ValueOf(map[string]interface{}{
 		"output": outputJSON,
@@ -118,7 +148,12 @@ func getConfigFromArgs(jsArgs []js.Value) (config.Config, error) {
 		}
 	}
 
-	return parseConfig(), nil
+	conf, err := parseConfig()
+	if err != nil {
+		return conf, errors.Errorf("Flag parse error: %v", err)
+	}
+
+	return conf, nil
 }
 
 // getFlagBaseType processes the String of the reflect.Type of a flag to

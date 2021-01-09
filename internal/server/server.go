@@ -9,7 +9,9 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/foraging"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"github.com/pkg/errors"
 )
 
@@ -30,14 +32,23 @@ type SOMASServer struct {
 	// We don't store this in gameState--gameState is shared to clients and should
 	// not contain pointers to other clients!
 	clientMap map[shared.ClientID]baseclient.Client
+
+	// prevent the same instance from being run twice
+	ran bool
 }
 
 // NewSOMASServer returns an instance of the main server we use.
 func NewSOMASServer(gameConfig config.Config) Server {
+	registeredClients := make(map[shared.ClientID]baseclient.Client, len(baseclient.RegisteredClientFactories))
+	for id, factory := range baseclient.RegisteredClientFactories {
+		registeredClients[id] = factory()
+	}
+
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(
-		baseclient.RegisteredClients,
+		registeredClients,
 		gameConfig.InitialResources,
 	)
+
 	return createSOMASServer(clientInfos, clientMap, gameConfig)
 }
 
@@ -58,23 +69,45 @@ func createSOMASServer(
 		forageHistory[t] = make([]foraging.ForagingReport, 0)
 	}
 
+	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
+
 	server := &SOMASServer{
 		clientMap:  clientMap,
 		gameConfig: gameConfig,
 		gameState: gamestate.GameState{
-			Season:          1,
-			Turn:            1,
-			ClientInfos:     clientInfos,
-			Environment:     disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
-			DeerPopulation:  foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig),
-			ForagingHistory: forageHistory,
-			IIGOHistory:     []shared.Accountability{},
-			SpeakerID:       shared.Team1,
-			JudgeID:         shared.Team2,
-			PresidentID:     shared.Team3,
-			CommonPool:      gameConfig.InitialCommonPool,
+			Season:                  1,
+			Turn:                    1,
+			ClientInfos:             clientInfos,
+			Environment:             disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
+			ForagingHistory:         forageHistory,
+			IIGOHistory:             map[uint][]shared.Accountability{},
+			IIGOSanctionCache:       iigointernal.DefaultInitLocalSanctionCache(3),
+			IIGOHistoryCache:        iigointernal.DefaultInitLocalHistoryCache(3),
+			IIGORoleMonitoringCache: []shared.Accountability{},
+			IIGORolesBudget: map[shared.Role]shared.Resources{
+				shared.President: 0,
+				shared.Judge:     0,
+				shared.Speaker:   0,
+			},
+			IIGOTurnsInPower: map[shared.Role]uint{
+				shared.President: 0,
+				shared.Judge:     0,
+				shared.Speaker:   0,
+			},
+			SpeakerID:   shared.Team1,
+			JudgeID:     shared.Team2,
+			PresidentID: shared.Team3,
+			CommonPool:  gameConfig.InitialCommonPool,
+			RulesInfo: gamestate.RulesContext{
+				AvailableRules:     availableRules,
+				CurrentRulesInPlay: rulesInPlay,
+				VariableMap:        rules.InitialVarRegistration(),
+			},
 		},
+		ran: false,
 	}
+
+	server.gameState.DeerPopulation = foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig, server.logf)
 
 	for _, client := range clientMap {
 		client.Initialise(ServerForClient{
@@ -89,6 +122,11 @@ func createSOMASServer(
 // EntryPoint function that returns a list of historic gamestate.GameState until the
 // game ends.
 func (s *SOMASServer) EntryPoint() ([]gamestate.GameState, error) {
+	if s.ran {
+		return nil, errors.Errorf("Please create a new server instance to run a new simulation!")
+	}
+	s.ran = true
+
 	states := []gamestate.GameState{s.gameState.Copy()}
 
 	for !s.gameOver(s.gameConfig.MaxTurns, s.gameConfig.MaxSeasons) {
@@ -118,8 +156,7 @@ func (s *SOMASServer) logf(format string, a ...interface{}) {
 	log.Printf("[SERVER]: %v", fmt.Sprintf(format, a...))
 }
 
-// ServerForClient is a reference to the server for particular client. It is
-// meant as an instance of baseclient.ServerReadHandle
+// ServerForClient is a reference to the server for particular client. It implements baseclient.ServerReadHandle
 type ServerForClient struct {
 	clientID shared.ClientID
 	server   *SOMASServer
@@ -129,4 +166,9 @@ type ServerForClient struct {
 // s.server
 func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 	return s.server.gameState.GetClientGameStateCopy(s.clientID)
+}
+
+// GetGameConfig returns ClientConfig which is a subset of the entire Config that is visible to clients.
+func (s ServerForClient) GetGameConfig() config.ClientConfig {
+	return s.server.gameConfig.GetClientConfig()
 }

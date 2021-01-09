@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -30,18 +31,32 @@ func (report DisasterReport) Display() string {
 	return fmt.Sprintf("ALERT: Disaster of magnitude %.3f recorded at co-ordinates (%.2f, %.2f)\n", report.Magnitude, report.X, report.Y)
 }
 
-// DisplayReport is a string format method to viz a disaster report and its effect
-func (env Environment) DisplayReport() string {
-	disasterReport := env.LastDisasterReport.Display()
+// DisplayReport is a string format method to viz a disaster report and its effect,
+// as well as how the disaster is been mitigated by the common pool
+func (env Environment) DisplayReport(cpResources shared.Resources, dConf config.DisasterConfig) string {
+	disasterReport := env.LastDisasterReport
 	if env.LastDisasterReport.Magnitude == 0 {
-		return disasterReport // just return default no disaster message. Not necessary to report affected islands.
+		return "No disaster reported. No disaster effects."
 	}
 	var sb strings.Builder
-	sb.WriteString(disasterReport + "\n")
-	sb.WriteString("------------------------ Disaster Effects ------------------------\n")
-	for islandID, effect := range env.DisasterEffects() {
+	sb.WriteString(disasterReport.Display())
+
+	effects := env.ComputeDisasterEffects(cpResources, dConf)
+
+	// display absolute effects for each island
+	sb.WriteString("\n------------------------ Disaster Effects ------------------------\n")
+
+	for islandID, absEffect := range effects.Absolute {
 		island := env.Geography.Islands[islandID]
-		sb.WriteString(fmt.Sprintf("island ID: %d, \txy co-ords: (%.2f, %.2f), \tdisaster effect: %.2f \n", islandID, island.X, island.Y, effect))
+		sb.WriteString(fmt.Sprintf(
+			"%v: \txy co-ords: (%.2f, %.2f), \tabsolute damage: %.2f \n",
+			islandID, island.X, island.Y, absEffect*dConf.MagnitudeResourceMultiplier))
+	}
+
+	// display propotional effects relative to other islands and effects after CP mitigation
+	sb.WriteString("\n------------------------ Disaster Effects after CP Mitigation ------------------------\n")
+	for islandID, propEffect := range effects.Proportional {
+		sb.WriteString(fmt.Sprintf("%v: proportional damage: %.2f, \t damage after common pool mitigation: %.2f \n", islandID, propEffect, effects.CommonPoolMitigated[islandID]))
 	}
 	return sb.String()
 }

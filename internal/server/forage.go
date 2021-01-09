@@ -34,17 +34,22 @@ func (s *SOMASServer) runForage() error {
 	}
 
 	for id, decision := range foragingParticipants {
-		forageGroup := forageGroups[decision.Type]
-		err := s.takeResources(id, decision.Contribution, forageGroup.takeResourceReason)
-		if err == nil {
-			if decision.Contribution > 0.0 {
-				(*forageGroup.partyContributions)[id] = decision.Contribution
-			} else {
-				s.logf("%v did not contribute resources and will not participate in this foraging round.", id)
-			}
-			// assign contribution to client ID within appropriate forage group
+
+		if !shared.IsValidForageType(decision.Type) {
+			s.logf("%v client selected invalid forag type in foraging decision: ", decision.Type)
 		} else {
-			s.logf("%v did not have enough resources to participate in foraging", id)
+			forageGroup := forageGroups[decision.Type]
+			err := s.takeResources(id, decision.Contribution, forageGroup.takeResourceReason)
+
+			if err == nil {
+				if decision.Contribution > 0.0 {
+					(*forageGroup.partyContributions)[id] = decision.Contribution // assign contribution to client ID within appropriate forage group
+				} else {
+					s.logf("%v did not contribute resources and will not participate in this foraging round.", id)
+				}
+			} else {
+				s.logf("%v did not have enough resources to participate in foraging", id)
+			}
 		}
 	}
 
@@ -97,12 +102,13 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 	hunt, err := foraging.CreateDeerHunt(
 		contributions,
 		dhConf,
+		s.logf,
 	)
 	if err != nil {
 		return errors.Errorf("Error running deer hunt: %v", err)
 	}
 
-	huntReport := hunt.Hunt(dhConf)
+	huntReport := hunt.Hunt(dhConf, uint(s.gameState.DeerPopulation.Population))
 	huntReport.Turn = s.gameState.Turn // update report's Turn with actual turn value
 	// update foraging history
 	if s.gameState.ForagingHistory[shared.DeerForageType] == nil {
@@ -159,7 +165,7 @@ func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]s
 		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
 			Type:         huntReport.ForageType,
 			Contribution: contribution,
-		}, participantReturn)
+		}, participantReturn, huntReport.NumberCaught)
 	}
 }
 
@@ -169,7 +175,7 @@ func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]sha
 
 	fConf := s.gameConfig.ForagingConfig.FishingConfig
 
-	huntF, err := foraging.CreateFishingExpedition(contributions, fConf)
+	huntF, err := foraging.CreateFishingExpedition(contributions, fConf, s.logf)
 	if err != nil {
 		return errors.Errorf("Error running fish hunt: %v", err)
 	}
@@ -191,5 +197,6 @@ func (s *SOMASServer) runFishingExpedition(contributions map[shared.ClientID]sha
 
 // updateDeerPopulation adjusts deer pop. based on consumption of deer after hunt
 func (s *SOMASServer) updateDeerPopulation(consumption uint) {
-	s.gameState.DeerPopulation.Simulate([]int{int(consumption)}) // updates pop. according to DE definition
+	updatedModel := s.gameState.DeerPopulation.Simulate([]int{int(consumption)}) // updates pop. according to DE definition
+	s.gameState.DeerPopulation = updatedModel
 }

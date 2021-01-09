@@ -14,6 +14,8 @@ const (
 	CommunicationInt CommunicationContentType = iota
 	CommunicationString
 	CommunicationBool
+	CommunicationIIGORole
+	CommunicationIIGOValue
 )
 
 func (c CommunicationContentType) String() string {
@@ -21,6 +23,8 @@ func (c CommunicationContentType) String() string {
 		"CommunicationInt",
 		"CommunicationString",
 		"CommunicationBool",
+		"CommunicationIIGORole",
+		"CommunicationIIGOValue",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]
@@ -43,46 +47,65 @@ func (c CommunicationContentType) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
 
+// ValueDecision is part of CommunicationContent and is used to send a tax decision from president to the client
+type ValueDecision struct {
+	Amount       Resources
+	DecisionMade rules.VariableValuePair
+	Expected     rules.VariableValuePair
+}
+
 // CommunicationContent is a general datastructure used for communications
 type CommunicationContent struct {
-	T           CommunicationContentType
-	IntegerData int
-	TextData    string
-	BooleanData bool
+	T              CommunicationContentType
+	IntegerData    int
+	TextData       string
+	BooleanData    bool
+	IIGORoleData   Role
+	IIGOValueData  ValueDecision
+	RuleMatrixData rules.RuleMatrix
 }
 
 type CommunicationFieldName int
 
 const (
 	BallotID CommunicationFieldName = iota
-	PresidentAllocationCheck
 	SpeakerID
 	RoleConducted
 	ResAllocID
-	SpeakerBallotCheck
 	PresidentID
 	RuleName
 	RuleVoteResult
-	TaxAmount
-	AllocationAmount
 	PardonClientID
 	PardonTier
 	SanctionAmount
+	RoleMonitored
+	MonitoringResult
+	IIGOSanctionTier
+	IIGOSanctionScore
+	IIGOTaxDecision
+	IIGOAllocationDecision
+	SanctionClientID
 )
 
 func (c CommunicationFieldName) String() string {
 	strs := [...]string{
 		"BallotID",
-		"PresidentAllocationCheck",
 		"SpeakerID",
 		"RoleConducted",
 		"ResAllocID",
-		"SpeakerBallotCheck",
 		"PresidentID",
 		"RuleName",
 		"RuleVoteResult",
-		"TaxAmount",
-		"AllocationAmount",
+		"PardonClientID",
+		"PardonTier",
+		"SanctionAmount",
+		"RoleMonitored",
+		"MonitoringResult",
+		"IIGOSanctionTier",
+		"IIGOSanctionScore",
+		"IIGOTaxDecision",
+		"IIGOAllocationDecision",
+		"SanctionClientID",
 	}
 	if c >= 0 && int(c) < len(strs) {
 		return strs[c]

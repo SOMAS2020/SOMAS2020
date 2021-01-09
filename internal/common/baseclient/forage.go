@@ -13,8 +13,11 @@ func (c *BaseClient) DecideForage() (shared.ForageDecision, error) {
 	ft := int(math.Round(rand.Float64())) // 0 or 1 with equal prob.
 	return shared.ForageDecision{
 		Type:         shared.ForageType(ft),
-		Contribution: shared.Resources(rand.Float64() * 5),
+		Contribution: shared.Resources(rand.Float64() * 20),
 	}, nil
 }
 
-func (c *BaseClient) ForageUpdate(shared.ForageDecision, shared.Resources) {}
+// ForageUpdate is called by the server upon completion of a foraging session. This handler can be used by clients to
+// analyse their returns - resources returned to them, as well as number of fish/deer caught.
+func (c *BaseClient) ForageUpdate(initialDecision shared.ForageDecision, resourceReturn shared.Resources, numberCaught uint) {
+}

@@ -23,30 +23,29 @@ func (c mockClientForage) DecideForage() (shared.ForageDecision, error) {
 	return c.forageDecision, nil
 }
 
-func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, resources shared.Resources) {
+func (c *mockClientForage) ForageUpdate(forageDecision shared.ForageDecision, resources shared.Resources, numberCaught uint) {
 	c.forageUpdateCalled = true
 	c.gotForageDecision = forageDecision
-}
-
-var envConf = config.DisasterConfig{
-	XMax:            10,
-	YMax:            10,
-	GlobalProb:      0.1,
-	SpatialPDFType:  shared.Uniform,
-	MagnitudeLambda: 1.0,
-}
-
-var deerConf = config.DeerHuntConfig{
-	MaxDeerPerHunt:     4,
-	BernoulliProb:      0.95,
-	ResourceMultiplier: 1,
-	ExponentialRate:    1.0,
 }
 
 func TestForagingCallsForageUpdate(t *testing.T) {
 	cases := []shared.ForageType{
 		shared.DeerForageType,
 		shared.FishForageType,
+		shared.ForageType(-1), // test extraneous forage type
+	}
+	envConf := config.DisasterConfig{
+		XMax:            10,
+		YMax:            10,
+		Period:          10,
+		SpatialPDFType:  shared.Uniform,
+		MagnitudeLambda: 1.0,
+	}
+
+	deerConf := config.DeerHuntConfig{
+		MaxDeerPerHunt:  4,
+		BernoulliProb:   0.95,
+		ExponentialRate: 1.0,
 	}
 
 	contribs := []shared.Resources{0.0, 1.0, 8.0} // test zero resource contribution first off
@@ -73,6 +72,10 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 					clientIDs = append(clientIDs, k)
 				}
 
+				dummyLogger := func(format string, a ...interface{}) {
+					t.Logf("[FORAGING]: %v", fmt.Sprintf(format, a...))
+				}
+
 				s := SOMASServer{
 					gameState: gamestate.GameState{
 						ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
@@ -85,18 +88,17 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 							shared.DeerForageType: make([]foraging.ForagingReport, 0),
 							shared.FishForageType: make([]foraging.ForagingReport, 0),
 						},
-						DeerPopulation: foraging.CreateDeerPopulationModel(deerConf),
+						DeerPopulation: foraging.CreateDeerPopulationModel(deerConf, dummyLogger),
 						Environment:    disasters.InitEnvironment(clientIDs, envConf),
 					},
 					clientMap: clientMap,
 				}
-
 				err := s.runForage()
 
 				if err != nil {
 					t.Errorf("runForage error: %v", err)
 				}
-				if contrib > 0 {
+				if contrib > 0 && shared.IsValidForageType(tc) { // only check cases where these checks are applicable
 					if !client.forageUpdateCalled {
 						t.Errorf("ForageUpdate was not called")
 					}

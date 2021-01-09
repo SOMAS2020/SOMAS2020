@@ -5,10 +5,11 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
 )
 
 var (
-	//config.Config
+	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
 		100,
@@ -47,10 +48,12 @@ var (
 		3,
 		"The maximum consecutive turns an island can be in the critical state.",
 	)
+
+	// config.ForagingConfig.DeerHuntConfig
 	foragingDeerMaxPerHunt = flag.Uint(
 		"foragingMaxDeerPerHunt",
 		4,
-		"Max possible number of deer on a single hunt (regardless of number of participants).",
+		"Max possible number of deer on a single hunt (regardless of number of participants). ** should be strictly less than max deer population.",
 	)
 	foragingDeerIncrementalInputDecay = flag.Float64(
 		"foragingDeerIncrementalInputDecay",
@@ -67,26 +70,43 @@ var (
 		1,
 		"`lambda` param in W variable (see foraging README). Controls distribution of deer sizes.",
 	)
-	foragingDeerResourceMultiplier = flag.Float64(
-		"foragingDeerResourceMultiplier",
-		1,
-		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
+	foragingDeerInputScaler = flag.Float64(
+		"foragingDeerInputScaler",
+		12,
+		"scalar value that adjusts deer input resources to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingDeerOutputScaler = flag.Float64(
+		"foragingDeerOutputScaler",
+		18,
+		"scalar value that adjusts deer returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerDistributionStrategy = flag.Int(
 		"foragingDeerDistributionStrategy",
 		int(shared.InputProportionalSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
+	foragingDeerThetaCritical = flag.Float64(
+		"foragingDeerThetaCritical",
+		0.8,
+		"Bernoulli prob of catching deer when population ratio = running population/max deer per hunt = 1",
+	)
+	foragingDeerThetaMax = flag.Float64(
+		"foragingDeerThetaMax",
+		0.95,
+		"Bernoulli prob of catching deer when population is at carrying capacity (max population)",
+	)
 	foragingDeerMaxPopulation = flag.Uint(
 		"foragingDeerMaxPopulation",
 		12,
-		"Max possible deer population.",
+		"Max possible deer population. ** Should be strictly greater than max deer per hunt.",
 	)
 	foragingDeerGrowthCoefficient = flag.Float64(
 		"foragingDeerGrowthCoefficient",
-		0.4,
+		0.2,
 		"Scaling parameter used in the population model. Larger coeff => deer pop. regenerates faster.",
 	)
+
+	// config.ForagingConfig.FishingConfig
 	foragingFishMaxPerHunt = flag.Uint(
 		"foragingMaxFishPerHunt",
 		6,
@@ -107,9 +127,14 @@ var (
 		0.2,
 		"Determines variance of normal distribution of fishing return (see foraging README)",
 	)
-	foragingFishingResourceMultiplier = flag.Float64(
-		"foragingFishingResourceMultiplier",
-		1,
+	foragingFishingInputScaler = flag.Float64(
+		"foragingFishingInputScaler",
+		10,
+		"scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.",
+	)
+	foragingFishingOutputScaler = flag.Float64(
+		"foragingFishingOutputScaler",
+		12,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(
@@ -117,6 +142,7 @@ var (
 		int(shared.EqualSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
+
 	// config.DisasterConfig
 	disasterXMin = flag.Float64(
 		"disasterXMin",
@@ -138,10 +164,10 @@ var (
 		10,
 		"Max y bound of archipelago (bounds for possible disaster).",
 	)
-	disasterGlobalProb = flag.Float64(
-		"disasterGlobalProb",
-		0.1,
-		"Bernoulli 'p' param. Chance of a disaster occurring.",
+	disasterPeriod = flag.Uint(
+		"disasterPeriod",
+		15,
+		"Period T between disasters in deterministic case and E[T] in stochastic case.",
 	)
 	disasterSpatialPDFType = flag.Int(
 		"disasterSpatialPDFType",
@@ -153,21 +179,218 @@ var (
 		1,
 		"Exponential rate param for disaster magnitude",
 	)
+	disasterMagnitudeResourceMultiplier = flag.Float64(
+		"disasterMagnitudeResourceMultiplier",
+		500,
+		"Multiplier to map disaster magnitude to CP resource deductions",
+	)
+	disasterCommonpoolThreshold = flag.Float64(
+		"disasterCommonpoolThreshold",
+		50,
+		"Common pool threshold value for disaster to be mitigated",
+	)
+	disasterStochasticPeriod = flag.Bool(
+		"disasterStochasticPeriod",
+		false,
+		"If true, period between disasters becomes random. If false, it will be consistent (deterministic)",
+	)
+	disasterCommonpoolThresholdVisible = flag.Bool(
+		"disasterCommonpoolThresholdVisible",
+		false,
+		"Whether disasterCommonpoolThreshold is visible to agents",
+	)
+	disasterPeriodVisible = flag.Bool(
+		"disasterPeriodVisible",
+		true,
+		"Whether disasterPeriod is visible to agents",
+	)
+	disasterStochasticPeriodVisible = flag.Bool(
+		"disasterStochasticPeriodVisible",
+		true,
+		"Whether stochasticPeriod is visible to agents",
+	)
+
+	// config.IIGOConfig - Executive branch
+	iigoGetRuleForSpeakerActionCost = flag.Float64(
+		"iigoGetRuleForSpeakerActionCost",
+		10,
+		"IIGO action cost for getRuleForSpeaker action",
+	)
+	iigoBroadcastTaxationActionCost = flag.Float64(
+		"iigoBroadcastTaxationActionCost",
+		10,
+		"IIGO action cost for broadcastTaxation action",
+	)
+	iigoReplyAllocationRequestsActionCost = flag.Float64(
+		"iigoReplyAllocationRequestsActionCost",
+		10,
+		"IIGO action cost for replyAllocationRequests action",
+	)
+	iigoRequestAllocationRequestActionCost = flag.Float64(
+		"iigoRequestAllocationRequestActionCost",
+		10,
+		"IIGO action cost for requestAllocationRequest action",
+	)
+	iigoRequestRuleProposalActionCost = flag.Float64(
+		"iigoRequestRuleProposalActionCost",
+		10,
+		"IIGO action cost for requestRuleProposal action",
+	)
+	iigoAppointNextSpeakerActionCost = flag.Float64(
+		"iigoAppointNextSpeakerActionCost",
+		10,
+		"IIGO action cost for appointNextSpeaker action",
+	)
+
+	// config.IIGOConfig - Judiciary branch
+	iigoInspectHistoryActionCost = flag.Float64(
+		"iigoInspectHistoryActionCost",
+		10,
+		"IIGO action cost for inspectHistory",
+	)
+
+	historicalRetributionActionCost = flag.Float64(
+		"historicalRetributionActionCost",
+		10,
+		"IIGO action cost for inspectHistory retroactively (in turns before the last one)",
+	)
+
+	iigoInspectBallotActionCost = flag.Float64(
+		"iigoInspectBallotActionCost",
+		10,
+		"IIGO action cost for inspectBallot",
+	)
+
+	iigoInspectAllocationActionCost = flag.Float64(
+		"iigoInspectAllocationActionCost",
+		10,
+		"IIGO action cost for inspectAllocation",
+	)
+
+	iigoAppointNextPresidentActionCost = flag.Float64(
+		"iigoAppointNextPresidentActionCost",
+		10,
+		"IIGO action cost for appointNextPresident",
+	)
+
+	// config.IIGOConfig - Legislative branch
+	iigoSetVotingResultActionCost = flag.Float64(
+		"iigoSetVotingResultActionCost",
+		10,
+		"IIGO action cost for setVotingResult",
+	)
+
+	iigoSetRuleToVoteActionCost = flag.Float64(
+		"iigoSetRuleToVoteActionCost",
+		10,
+		"IIGO action cost for setRuleToVote action",
+	)
+
+	iigoAnnounceVotingResultActionCost = flag.Float64(
+		"iigoAnnounceVotingResultActionCost",
+		10,
+		"IIGO action cost for announceVotingResult action",
+	)
+
+	iigoUpdateRulesActionCost = flag.Float64(
+		"iigoUpdateRulesActionCost",
+		10,
+		"IIGO action cost for updateRules action",
+	)
+
+	iigoAppointNextJudgeActionCost = flag.Float64(
+		"iigoAppointNextJudgeActionCost",
+		10,
+		"IIGO action cost for appointNextJudge action",
+	)
+
+	iigoSanctionCacheDepth = flag.Uint(
+		"iigoSanctionCacheDepth",
+		3,
+		"Turn depth of sanctions to be applied or pardoned",
+	)
+
+	iigoHistoryCacheDepth = flag.Uint(
+		"iigoHistoryCacheDepth",
+		3,
+		"Turn depth of history cache for events to be evaluated",
+	)
+
+	iigoAssumedResourcesNoReport = flag.Uint(
+		"iigoAssumedResourcesNoReport",
+		500,
+		"If an island doesn't report usaged this value is assumed for sanction calculations",
+	)
+
+	iigoSanctionLength = flag.Uint(
+		"iigoSanctionLength",
+		2,
+		"Sanction length for all sanctions",
+	)
+
+	iigoTermLengthPresident = flag.Uint(
+		"iigoTermLengthPresident",
+		4,
+		"Length of the term for the President",
+	)
+
+	iigoTermLengthSpeaker = flag.Uint(
+		"iigoTermLengthSpeaker",
+		4,
+		"Length of the term for the Speaker",
+	)
+
+	iigoTermLengthJudge = flag.Uint(
+		"iigoTermLengthJudge",
+		4,
+		"Length of the term for the Judge",
+	)
+
+	startWithRulesInPlay = flag.Bool(
+		"startWithRulesInPlay",
+		true,
+		"Pull all available rules into play at start of run",
+	)
 )
 
-func parseConfig() config.Config {
+func parseConfig() (config.Config, error) {
 	flag.Parse()
+
+	parsedForagingDeerDistributionStrategy, err := shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingDeerDistributionStrategy: %v", err)
+	}
+
+	parsedDeerMaxPerHunt, parseDeerMaxPopulation, err := shared.ParseDeerPopulationParams(
+		*foragingDeerMaxPerHunt,
+		*foragingDeerMaxPopulation,
+	)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingDeerMaxPerHunt and/or foragingDeerMaxPopulation: %v", err)
+	}
+
+	parsedForagingFishingDistributionStrategy, err := shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing foragingFishingDistributionStrategy: %v", err)
+	}
+
+	parsedDisasterSpatialPDFType, err := shared.ParseSpatialPDFType(*disasterSpatialPDFType)
+	if err != nil {
+		return config.Config{}, errors.Errorf("Error parsing disasterSpatialPDFType: %v", err)
+	}
 
 	deerConf := config.DeerHuntConfig{
 		//Deer parameters
-		MaxDeerPerHunt:        *foragingDeerMaxPerHunt,
+		MaxDeerPerHunt:        parsedDeerMaxPerHunt,
 		IncrementalInputDecay: *foragingDeerIncrementalInputDecay,
 		BernoulliProb:         *foragingDeerBernoulliProb,
 		ExponentialRate:       *foragingDeerExponentialRate,
-		ResourceMultiplier:    *foragingDeerResourceMultiplier,
-		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingDeerDistributionStrategy),
-
-		MaxDeerPopulation:     *foragingDeerMaxPopulation,
+		InputScaler:           *foragingDeerInputScaler,
+		OutputScaler:          *foragingDeerOutputScaler,
+		DistributionStrategy:  parsedForagingDeerDistributionStrategy,
+		ThetaCritical:         *foragingDeerThetaCritical,
+		ThetaMax:              *foragingDeerThetaMax,
+		MaxDeerPopulation:     parseDeerMaxPopulation,
 		DeerGrowthCoefficient: *foragingDeerGrowthCoefficient,
 	}
 	fishingConf := config.FishingConfig{
@@ -176,22 +399,60 @@ func parseConfig() config.Config {
 		IncrementalInputDecay: *foragingFishingIncrementalInputDecay,
 		Mean:                  *foragingFishingMean,
 		Variance:              *foragingFishingVariance,
-		ResourceMultiplier:    *foragingFishingResourceMultiplier,
-		DistributionStrategy:  shared.ParseResourceDistributionStrategy(*foragingFishingDistributionStrategy),
+		InputScaler:           *foragingFishingInputScaler,
+		OutputScaler:          *foragingFishingOutputScaler,
+		DistributionStrategy:  parsedForagingFishingDistributionStrategy,
 	}
 	foragingConf := config.ForagingConfig{
 		DeerHuntConfig: deerConf,
 		FishingConfig:  fishingConf,
 	}
 	disasterConf := config.DisasterConfig{
-		XMin:            *disasterXMin,
-		XMax:            *disasterXMax, // chosen quite arbitrarily for now
-		YMin:            *disasterYMin,
-		YMax:            *disasterYMax,
-		GlobalProb:      *disasterGlobalProb,
-		SpatialPDFType:  shared.ParseSpatialPDFType(*disasterSpatialPDFType),
-		MagnitudeLambda: *disasterMagnitudeLambda,
+		XMin:                        *disasterXMin,
+		XMax:                        *disasterXMax,
+		YMin:                        *disasterYMin,
+		YMax:                        *disasterYMax,
+		Period:                      *disasterPeriod,
+		SpatialPDFType:              parsedDisasterSpatialPDFType,
+		MagnitudeLambda:             *disasterMagnitudeLambda,
+		StochasticPeriod:            *disasterStochasticPeriod,
+		MagnitudeResourceMultiplier: *disasterMagnitudeResourceMultiplier,
+		CommonpoolThreshold:         shared.Resources(*disasterCommonpoolThreshold),
+		CommonpoolThresholdVisible:  *disasterCommonpoolThresholdVisible,
+		PeriodVisible:               *disasterPeriodVisible,
+		StochasticPeriodVisible:     *disasterStochasticPeriodVisible,
 	}
+
+	iigoConf := config.IIGOConfig{
+		IIGOTermLengths: map[shared.Role]uint{shared.President: *iigoTermLengthPresident,
+			shared.Speaker: *iigoTermLengthSpeaker,
+			shared.Judge:   *iigoTermLengthJudge},
+		// Executive branch
+		GetRuleForSpeakerActionCost:        shared.Resources(*iigoGetRuleForSpeakerActionCost),
+		BroadcastTaxationActionCost:        shared.Resources(*iigoBroadcastTaxationActionCost),
+		ReplyAllocationRequestsActionCost:  shared.Resources(*iigoReplyAllocationRequestsActionCost),
+		RequestAllocationRequestActionCost: shared.Resources(*iigoRequestAllocationRequestActionCost),
+		RequestRuleProposalActionCost:      shared.Resources(*iigoRequestRuleProposalActionCost),
+		AppointNextSpeakerActionCost:       shared.Resources(*iigoAppointNextSpeakerActionCost),
+		// Judiciary branch
+		InspectHistoryActionCost:        shared.Resources(*iigoInspectHistoryActionCost),
+		HistoricalRetributionActionCost: shared.Resources(*historicalRetributionActionCost),
+		InspectBallotActionCost:         shared.Resources(*iigoInspectBallotActionCost),
+		InspectAllocationActionCost:     shared.Resources(*iigoInspectAllocationActionCost),
+		AppointNextPresidentActionCost:  shared.Resources(*iigoAppointNextPresidentActionCost),
+		SanctionCacheDepth:              *iigoSanctionCacheDepth,
+		HistoryCacheDepth:               *iigoHistoryCacheDepth,
+		AssumedResourcesNoReport:        shared.Resources(*iigoAssumedResourcesNoReport),
+		SanctionLength:                  *iigoSanctionLength,
+		// Legislative branch
+		SetVotingResultActionCost:      shared.Resources(*iigoSetVotingResultActionCost),
+		SetRuleToVoteActionCost:        shared.Resources(*iigoSetRuleToVoteActionCost),
+		AnnounceVotingResultActionCost: shared.Resources(*iigoAnnounceVotingResultActionCost),
+		UpdateRulesActionCost:          shared.Resources(*iigoUpdateRulesActionCost),
+		AppointNextJudgeActionCost:     shared.Resources(*iigoAppointNextJudgeActionCost),
+		StartWithRulesInPlay:           *startWithRulesInPlay,
+	}
+
 	return config.Config{
 		MaxSeasons:                  *maxSeasons,
 		MaxTurns:                    *maxTurns,
@@ -202,5 +463,6 @@ func parseConfig() config.Config {
 		MaxCriticalConsecutiveTurns: *maxCriticalConsecutiveTurns,
 		ForagingConfig:              foragingConf,
 		DisasterConfig:              disasterConf,
-	}
+		IIGOConfig:                  iigoConf,
+	}, nil
 }

@@ -165,15 +165,13 @@ func TestCommunicateWithIslands(t *testing.T) {
 				fakeClientMap[senderID] = baseclient.NewClient(senderID)
 			}
 
-			setIIGOClients(&fakeClientMap)
-
 			// Perform communications + build expected output
 			expectedResult := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
 
 			for sender, dataList := range tc.sendersPayload {
 				senderID := shared.TeamIDs[sender]
 				for _, data := range dataList {
-					communicateWithIslands(receiverID, senderID, data)
+					communicateWithIslands(fakeClientMap, receiverID, senderID, data)
 
 					expectedResult[senderID] = append(expectedResult[senderID], data)
 				}
@@ -186,6 +184,201 @@ func TestCommunicateWithIslands(t *testing.T) {
 				t.Errorf("CommunicationContent failed. Sent: %v\nGot: %v", expectedResult, recieverGot)
 			}
 
+		})
+	}
+}
+
+func TestWithdrawFromCommonPool(t *testing.T) {
+	cases := []struct {
+		name             string
+		gamestate        *gamestate.GameState
+		inputValue       shared.Resources
+		expectedResource shared.Resources
+		expectedAmount   shared.Resources
+		expectedState    bool
+	}{
+		{
+			name: "Withdraw amount",
+			gamestate: &gamestate.GameState{
+				CommonPool: 300,
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: {Resources: 100},
+					shared.Team2: {Resources: 100},
+					shared.Team3: {Resources: 100},
+				},
+			},
+			inputValue:       100,
+			expectedAmount:   100,
+			expectedResource: 200,
+			expectedState:    true,
+		},
+		{
+			name: "Withdraw negative amount",
+			gamestate: &gamestate.GameState{
+				CommonPool: 300,
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: {Resources: 100},
+					shared.Team2: {Resources: 100},
+					shared.Team3: {Resources: 100},
+				},
+			},
+			inputValue:       -80,
+			expectedAmount:   -80,
+			expectedResource: 380,
+			expectedState:    true,
+		},
+		{
+			name: "Withdraw more than common pool",
+			gamestate: &gamestate.GameState{
+				CommonPool: 100,
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: {Resources: 100},
+					shared.Team2: {Resources: 70},
+					shared.Team3: {Resources: 30},
+				},
+			},
+			inputValue:       250,
+			expectedAmount:   0,
+			expectedResource: 100,
+			expectedState:    false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			amount, state := WithdrawFromCommonPool(tc.inputValue, tc.gamestate)
+			commonPool := tc.gamestate.CommonPool
+			if amount != tc.expectedAmount || commonPool != tc.expectedResource || state != tc.expectedState {
+				t.Errorf("%v - Failed. Got '%v %v %v', but expected '%v %v %v'",
+					tc.name, amount, commonPool, state,
+					tc.expectedAmount, tc.expectedResource, tc.expectedState)
+			}
+		})
+	}
+}
+
+func TestDepositIntoClientPrivatePool(t *testing.T) {
+	cases := []struct {
+		name             string
+		gamestate        *gamestate.GameState
+		inputValue       shared.Resources
+		inputID          shared.ClientID
+		expectedResource shared.Resources
+	}{
+		{
+			name: "Deposit amount",
+			gamestate: &gamestate.GameState{
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: {Resources: 100},
+					shared.Team2: {Resources: 100},
+					shared.Team3: {Resources: 100},
+				},
+			},
+			inputValue:       80,
+			inputID:          shared.Team2,
+			expectedResource: 180,
+		},
+		{
+			name: "Negative amount",
+			gamestate: &gamestate.GameState{
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: {Resources: 100},
+					shared.Team2: {Resources: 100},
+					shared.Team3: {Resources: 100},
+				},
+			},
+			inputValue:       -80,
+			inputID:          shared.Team1,
+			expectedResource: 20,
+		},
+		{
+			name: "Negative resources",
+			gamestate: &gamestate.GameState{
+				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+					shared.Team1: {Resources: 100},
+					shared.Team2: {Resources: 70},
+					shared.Team3: {Resources: 30},
+				},
+			},
+			inputValue:       -80,
+			inputID:          shared.Team3,
+			expectedResource: -50,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			depositIntoClientPrivatePool(tc.inputValue, tc.inputID, tc.gamestate)
+			participantResources := tc.gamestate.ClientInfos[tc.inputID].Resources
+			if participantResources != tc.expectedResource {
+				t.Errorf("%v - Failed. Got '%v', but expected '%v'", tc.name, participantResources, tc.expectedResource)
+			}
+		})
+	}
+}
+
+func TestRemoveDead(t *testing.T) {
+	clientinfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team4: {
+			LifeStatus: shared.Dead,
+		},
+		shared.Team5: {
+			LifeStatus: shared.Dead,
+		},
+	}
+	cases := []struct {
+		name          string
+		testgamestate gamestate.GameState
+	}{
+		{
+			name: "no_dead_roles",
+			testgamestate: gamestate.GameState{
+				PresidentID: shared.ClientID(1),
+				SpeakerID:   shared.ClientID(2),
+				JudgeID:     shared.ClientID(3),
+				ClientInfos: clientinfos,
+			},
+		},
+		{
+			name: "dead_president",
+			testgamestate: gamestate.GameState{
+				PresidentID: shared.ClientID(4),
+				SpeakerID:   shared.ClientID(2),
+				JudgeID:     shared.ClientID(3),
+				ClientInfos: clientinfos,
+			},
+		},
+		{
+			name: "all_dead",
+			testgamestate: gamestate.GameState{
+				PresidentID: shared.ClientID(4),
+				SpeakerID:   shared.ClientID(5),
+				JudgeID:     shared.ClientID(5),
+				ClientInfos: clientinfos,
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			removeDeadBodiesFromOffice(&tc.testgamestate)
+			if !reflect.DeepEqual(tc.testgamestate.ClientInfos[tc.testgamestate.PresidentID].LifeStatus, shared.Alive) {
+				t.Errorf("Expected President to be %v got %v", shared.Alive, tc.testgamestate.ClientInfos[tc.testgamestate.PresidentID].LifeStatus)
+			}
+			if !reflect.DeepEqual(tc.testgamestate.ClientInfos[tc.testgamestate.SpeakerID].LifeStatus, shared.Alive) {
+				t.Errorf("Expected Speaker to be %v got %v", shared.Alive, tc.testgamestate.ClientInfos[tc.testgamestate.SpeakerID].LifeStatus)
+			}
+			if !reflect.DeepEqual(tc.testgamestate.ClientInfos[tc.testgamestate.JudgeID].LifeStatus, shared.Alive) {
+				t.Errorf("Expected Judge to be %v got %v", shared.Alive, tc.testgamestate.ClientInfos[tc.testgamestate.JudgeID].LifeStatus)
+			}
 		})
 	}
 }

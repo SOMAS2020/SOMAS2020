@@ -4,8 +4,11 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/pkg/testutils"
+	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -42,12 +45,14 @@ func TestAddToCache(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
+			gamestate := gamestate.GameState{
+				IIGORoleMonitoringCache: []shared.Accountability{},
+			}
 			monitor := &monitor{
-				internalIIGOCache: []shared.Accountability{},
+				gameState: &gamestate,
 			}
 			monitor.addToCache(tc.roleID, tc.variables, tc.values)
-			res := monitor.internalIIGOCache
+			res := gamestate.IIGORoleMonitoringCache
 			if !reflect.DeepEqual(res, tc.expectedVal) {
 				t.Errorf("Expected internalIIGOCache to be %v got %v", tc.expectedVal, res)
 			}
@@ -97,21 +102,85 @@ func TestEvaluateCache(t *testing.T) {
 			expectedVal: true,
 		},
 	}
+	var logging shared.Logger = func(format string, a ...interface{}) {}
 	ruleStore := registerMonitoringTestRule()
-	tempCache := rules.AvailableRules
-	rules.AvailableRules = ruleStore
+	tempCache, _ := rules.InitialRuleRegistration(false)
+	avail := ruleStore
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			monitor := &monitor{
-				internalIIGOCache: tc.iigoCache,
+			monitoring := &monitor{
+				logger: logging,
+				gameState: &gamestate.GameState{
+					RulesInfo: gamestate.RulesContext{
+						VariableMap:    generateDummyVariableCache(),
+						AvailableRules: avail,
+					},
+					IIGORoleMonitoringCache: tc.iigoCache,
+				},
 			}
-			res := monitor.evaluateCache(tc.roleID, ruleStore)
+			res := monitoring.evaluateCache(tc.roleID, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
 				t.Errorf("Expected evaluation of internalIIGOCache to be %v got %v", tc.expectedVal, res)
 			}
 		})
 	}
-	rules.AvailableRules = tempCache
+	avail = tempCache
+}
+
+func TestFindRoleToMonitor(t *testing.T) {
+	cases := []struct {
+		name            string
+		roleAccountable shared.ClientID
+		expectedRoleID  shared.ClientID
+		expectedRole    shared.Role
+		expectedError   error
+	}{
+		{
+			name:            "Test Speaker to perform monitoring",
+			roleAccountable: shared.ClientID(1),
+			expectedRoleID:  shared.ClientID(2),
+			expectedRole:    shared.President,
+			expectedError:   nil,
+		},
+		{
+			name:            "Test President to perform monitoring",
+			roleAccountable: shared.ClientID(2),
+			expectedRoleID:  shared.ClientID(3),
+			expectedRole:    shared.Judge,
+			expectedError:   nil,
+		},
+		{
+			name:            "Test Judge to perform monitoring",
+			roleAccountable: shared.ClientID(3),
+			expectedRoleID:  shared.ClientID(1),
+			expectedRole:    shared.Speaker,
+			expectedError:   nil,
+		},
+		{
+			name:            "Test non IIGO role trying to perform monitoring",
+			roleAccountable: shared.ClientID(4),
+			expectedRoleID:  shared.ClientID(-1),
+			expectedRole:    shared.Speaker,
+			expectedError:   errors.Errorf("Monitoring by island that is not an IIGO Role"),
+		},
+	}
+	monitoring := &monitor{
+		gameState: &gamestate.GameState{
+			SpeakerID:   1,
+			PresidentID: 2,
+			JudgeID:     3,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			id, role, err := monitoring.findRoleToMonitor(tc.roleAccountable)
+			if !(reflect.DeepEqual(tc.expectedRoleID, id) && reflect.DeepEqual(tc.expectedRole, role)) {
+				t.Errorf("Expected role to monitor to be %v got %v", tc.expectedRoleID, id)
+				t.Errorf("Expected role to monitor to be %v got %v", tc.expectedRole, role)
+			}
+			testutils.CompareTestErrors(tc.expectedError, err, t)
+		})
+	}
 }
 
 func registerMonitoringTestRule() map[string]rules.RuleMatrix {
