@@ -176,8 +176,8 @@ func (s ServerForClient) GetGameConfig() config.ClientConfig {
 }
 
 func randomAssign(input []shared.ClientID) (shared.ClientID, shared.ClientID, shared.ClientID) {
-	lst := arrayCopy(input)
-
+	lst = make([]shared.ClientID, len(input))
+	copy (lst, input)
 	// Just randomly assign roles if there are not enough clients
 	if len(lst) < 3 {
 		return lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))]
