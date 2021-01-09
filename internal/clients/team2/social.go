@@ -42,6 +42,9 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 
 	islandHist := c.opinionHist[otherIsland].Histories
 	situationHist := islandHist[situation]
+	if len(situationHist) == 0 {
+		return 50
+	}
 	sum := 0
 	div := 0
 	// TODO: change list iteration to just look at the turns we have info abt
