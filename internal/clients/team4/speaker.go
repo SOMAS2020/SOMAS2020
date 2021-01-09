@@ -53,7 +53,7 @@ func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resourc
 // PayJudge is used for paying judge for his service
 func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 	var JudgeSalary shared.Resources = 0
-	JudgeSalaryRule, ok := rules.RulesInPlay["salary_cycle_judge"]
+	JudgeSalaryRule, ok := s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["salary_cycle_judge"]
 	if ok {
 		JudgeSalary = shared.Resources(JudgeSalaryRule.ApplicableMatrix.At(0, 1))
 	}

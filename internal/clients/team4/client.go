@@ -115,8 +115,7 @@ type personality struct {
 //Overriding and extending the Initialise method of the BaseClient to initilise our client
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// c.BaseClient.Initialise(serverReadHandle)
-	c.ServerReadHandle = serverReadHandle
-	c.LocalVariableCache = rules.CopyVariableMap()
+	c.BaseClient.Initialise(serverReadHandle)
 
 	//custom things below, trust matrix initilised to values of 1
 	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
@@ -133,7 +132,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 		iitoObs: iitoObs,
 	}
 
-	c.idealRulesCachePtr = deepCopyRulesCache(rules.AvailableRules)
+	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
 	// numClient := len(shared.TeamIDs)
 	// v := make([]float64, numClient*numClient)
