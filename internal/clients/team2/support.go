@@ -79,9 +79,9 @@ func (c *client) MethodOfPlay() int {
 	ResourceHistory := c.commonPoolHistory
 	turn := c.gameState().Turn
 
-	var no_freeride float64 = 3 //how many turns at the beginning we cannot free ride for
-	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
-	var altfactor float64 = 5   //what factor the common pool must drop by for us to consider altruist
+	noFreeride := NoFreeRideAtStart     //how many turns at the beginning we cannot free ride for
+	freeride := SwitchToFreeRideFactor  //what factor the common pool must increase by for us to considered free riding
+	altfactor := SwitchToAltruistFactor //what factor the common pool must drop by for us to consider altruist
 
 	if turn == 1 { //if there is no historical data then use default strategy
 		return 1
@@ -95,7 +95,7 @@ func (c *client) MethodOfPlay() int {
 		}
 	}
 
-	if float64(turn) > no_freeride { //we will not allow ourselves to use free riding at the start of the game
+	if float64(turn) > noFreeride { //we will not allow ourselves to use free riding at the start of the game
 		if (ResourceHistory[prevTurn] * freeride) < ResourceHistory[turn] {
 			if (ResourceHistory[prevTurn2] * freeride) < ResourceHistory[prevTurn] { //two large jumps then we free ride
 				return 2 //free rider
