@@ -1,6 +1,7 @@
 package team5
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -25,4 +26,24 @@ func MakeTestClient(gamestate gamestate.ClientGameState) client {
 		clientGameState: gamestate,
 	})
 	return *c.(*client)
+}
+
+// NewTestClient is a client for testing purposes
+func NewTestClient(clientID shared.ClientID) baseclient.Client {
+	return &client{
+		BaseClient:              baseclient.NewClient(ourClientID),
+		cpRequestHistory:        cpRequestHistory{},
+		cpAllocationHistory:     cpAllocationHistory{},
+		forageHistory:           forageHistory{},
+		resourceHistory:         resourceHistory{},
+		team5President:          president{},
+		giftHistory:             map[shared.ClientID]giftExchange{},
+		forecastHistory:         forecastHistory{},
+		receivedForecastHistory: receivedForecastHistory{},
+		disasterHistory:         disasterHistory{},
+
+		taxAmount:  0,
+		allocation: 0,
+		config:     getClientConfig(),
+	}
 }

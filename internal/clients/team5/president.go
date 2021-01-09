@@ -107,7 +107,7 @@ func (pres *president) SetTaxationAmount(islandsResources map[shared.ClientID]sh
 //this is for the sake of everyone paying less, thus having a higher chance of our island to recover
 func (pres *president) PaySpeaker() shared.PresidentReturnContent {
 
-	SpeakerSalaryRule, ok := rules.RulesInPlay["salary_cycle_speaker"]
+	SpeakerSalaryRule, ok := pres.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_speaker"]
 	var salary shared.Resources = 0
 	if ok {
 		salary = shared.Resources(SpeakerSalaryRule.ApplicableMatrix.At(0, 1))
