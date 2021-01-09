@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -12,6 +13,7 @@ import (
 
 type monitor struct {
 	gameState   *gamestate.GameState
+	config      *config.Config
 	iigoClients map[shared.ClientID]baseclient.Client
 	logger      shared.Logger
 }
@@ -40,6 +42,10 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 		evaluationResult := false
 		if decideToMonitor {
 			evaluationResult = m.evaluateCache(roleToMonitor, m.gameState.RulesInfo.CurrentRulesInPlay)
+		}
+
+		if !evaluationResult {
+			m.gameState.IIGOTurnsInPower[roleName] = m.config.IIGOConfig.IIGOTermLengths[roleName]
 		}
 
 		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)

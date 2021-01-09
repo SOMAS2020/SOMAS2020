@@ -2,9 +2,6 @@ package server
 
 import (
 	"fmt"
-	"log"
-	"math/rand"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
@@ -14,6 +11,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"github.com/pkg/errors"
+	"log"
 )
 
 // Server represents the primary server interface exposed to the simulation.
@@ -95,9 +93,9 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
-			SpeakerID:   shared.ClientID(rand.Intn(len(shared.TeamIDs))),
-			JudgeID:     shared.ClientID(rand.Intn(len(shared.TeamIDs))),
-			PresidentID: shared.ClientID(rand.Intn(len(shared.TeamIDs))),
+			SpeakerID:   shared.Team1,
+			JudgeID:     shared.Team2,
+			PresidentID: shared.Team3,
 			CommonPool:  gameConfig.InitialCommonPool,
 			RulesInfo: gamestate.RulesContext{
 				AvailableRules:     availableRules,
