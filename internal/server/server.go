@@ -176,15 +176,15 @@ func (s ServerForClient) GetGameConfig() config.ClientConfig {
 }
 
 func randomAssign(input []shared.ClientID) (shared.ClientID, shared.ClientID, shared.ClientID) {
-	lst = make([]shared.ClientID, len(input))
-	copy (lst, input)
+	lst := make([]shared.ClientID, len(input))
+	copy(lst, input)
 	// Just randomly assign roles if there are not enough clients
 	if len(lst) < 3 {
 		return lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))], lst[rand.Intn(len(lst))]
 	}
 
 	uniqueClients := make([]shared.ClientID, 0, 3)
-	for index := 0; index != 3; index++ {
+	for index := 0; index < 3; index++ {
 		randomNum := rand.Intn(len(lst))
 		uniqueClients = append(uniqueClients, lst[randomNum])
 		// Move selected client to the end of the list and remove it
@@ -193,12 +193,4 @@ func randomAssign(input []shared.ClientID) (shared.ClientID, shared.ClientID, sh
 	}
 
 	return uniqueClients[0], uniqueClients[1], uniqueClients[2]
-}
-
-func arrayCopy(input []shared.ClientID) []shared.ClientID {
-	returnArray := make([]shared.ClientID, 0, len(input))
-	for _, i := range input {
-		returnArray = append(returnArray, i)
-	}
-	return returnArray
 }
