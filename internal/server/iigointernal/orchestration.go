@@ -9,17 +9,19 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-//monitoring holds the monitoring object that is used across turns
-var monitoring monitor
-
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
 
 	iIGOClients := *clientMap
 
 	removeDeadBodiesFromOffice(g)
-	monitoring.gameState = g
-	monitoring.logger = logger
+
+	var monitoring = monitor{
+		gameState:   g,
+		iigoClients: iIGOClients,
+		logger:      logger,
+	}
+
 	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
 
 	// featureJudge is an instantiation of the Judge interface
@@ -217,8 +219,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	presidentMonitored := monitoring.monitorRole(iIGOClients[g.SpeakerID])
 	judgeMonitored := monitoring.monitorRole(iIGOClients[g.PresidentID])
 	speakerMonitored := monitoring.monitorRole(iIGOClients[g.JudgeID])
-	//Save to gameState and clear
-	g.IIGOCache = monitoring.internalIIGOCache
+	// Clear cache ahead of elections
 	monitoring.clearCache()
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
@@ -243,12 +244,6 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
 	if appointPresidentError != nil {
 		return false, "President was not apointed by the Judge. Insufficient budget"
-	}
-
-	oldCacheSave := monitoring.internalIIGOCache
-	monitoring = monitor{
-		internalIIGOCache: oldCacheSave,
-		TermLengths:       gameConf.IIGOConfig.IIGOTermLengths,
 	}
 
 	return true, "IIGO Run Successful"
