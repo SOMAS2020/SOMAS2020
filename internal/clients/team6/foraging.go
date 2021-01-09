@@ -61,8 +61,8 @@ func (c *client) changeForageType() shared.ForageType {
 
 	if fishAverageRoi < deerAverageRoi {
 		if deerAverageRoi < deerAverageRoi2 {
-			if c.clientConfig.multiplier-0.03 > 0 {
-				c.clientConfig.multiplier -= 0.03
+			if c.clientConfig.multiplier-0.05 > 0 {
+				c.clientConfig.multiplier -= 0.05
 			}
 		}
 		if deerAverageRoi > deerAverageRoi2 {
@@ -72,18 +72,17 @@ func (c *client) changeForageType() shared.ForageType {
 	}
 
 	if fishAverageRoi < fishAverageRoi2 {
-		if c.clientConfig.multiplier-0.05 > 0 {
-			c.clientConfig.multiplier -= 0.05
+		if c.clientConfig.multiplier-0.03 > 0 {
+			c.clientConfig.multiplier -= 0.03
 		}
 	}
 	if fishAverageRoi > fishAverageRoi2 {
-		c.clientConfig.multiplier += 0.05
+		c.clientConfig.multiplier += 0.03
 	}
 	return shared.DeerForageType
 }
 
 func (c *client) decideContribution() shared.Resources {
-
 	var safetyBuffer shared.Resources
 	safetyBuffer = c.ServerReadHandle.GetGameConfig().CostOfLiving + c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
