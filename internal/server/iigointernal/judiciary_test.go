@@ -397,7 +397,7 @@ func TestUpdateSanctionScore(t *testing.T) {
 			},
 			expectedIslandScores: map[shared.ClientID]shared.IIGOSanctionsScore{
 				shared.Team1: 100,
-				shared.Team2: 51,
+				shared.Team2: 55,
 				shared.Team3: 100,
 			},
 		},
