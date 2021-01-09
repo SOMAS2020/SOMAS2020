@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   LineChart,
   Line,
@@ -8,11 +8,19 @@ import {
   Tooltip,
   Legend,
 } from 'recharts'
+import { ForagingHistory } from './ForagingTypes'
 
-// TODO: X axis turns
-// TODO: Y axis resources
+// TODO: Add axis labels
 // plot: deer population, fish population, foraging return, foraging input
-const ForagingPlot = (data) => {
+const ForagingPlot = (data: ForagingHistory) => {
+  const [result, setResult] = useState()
+
+  useEffect(() => {
+    console.log('charts props:', data.result)
+    setResult(data.result)
+    console.log('results updated')
+  })
+
   console.log({ data })
   return (
     <LineChart
@@ -39,6 +47,20 @@ const ForagingPlot = (data) => {
       <Tooltip />
       <Legend />
       <Line
+        yAxisId="right"
+        type="monotone"
+        dataKey="deerNumParticipants"
+        stroke="#F1538A"
+        activeDot={{ r: 8 }}
+      />
+      <Line
+        yAxisId="right"
+        type="monotone"
+        dataKey="fishNumParticipants"
+        stroke="#F1238F"
+        activeDot={{ r: 8 }}
+      />
+      <Line
         yAxisId="left"
         type="monotone"
         dataKey="deerInputResources"
@@ -46,7 +68,7 @@ const ForagingPlot = (data) => {
         activeDot={{ r: 8 }}
       />
       <Line
-        yAxisId="right"
+        yAxisId="left"
         type="monotone"
         dataKey="fishInputResources"
         stroke="#82ca9d"
