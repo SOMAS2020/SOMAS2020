@@ -142,7 +142,12 @@ func naiveConfidence(x []float64) float64 {
 
 	quant := func(q float64, x []float64) float64 { return stat.Quantile(q, stat.LinInterp, x, nil) }
 	sort.Float64s(x)
-	conf := 1 - (stats.StdDev(x))/(quant(0.97, x)-quant(0.03, x)) // compare std dev to range
+	qLo := quant(0.03, x) // 3% percentile as robust approx of minimum
+	qHi := quant(0.97, x) // 97 percentile as robust approx of max (avoid outliers)
+	if qHi == qLo {
+		return 0.99 // can be pretty certain if max \approx min
+	}
+	conf := 1 - math.Min((stats.StdDev(x))/(qHi-qLo), 1) // compare std dev to range
 	return conf
 }
 
