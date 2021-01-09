@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"path"
 	"runtime"
@@ -46,6 +47,8 @@ var (
 
 func main() {
 	timeStart := time.Now()
+	rand.Seed(timeStart.UTC().UnixNano())
+
 	flag.Parse()
 
 	var err error
