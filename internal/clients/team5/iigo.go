@@ -3,6 +3,7 @@ package team5
 import (
 	"math"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -41,15 +42,18 @@ func (c *client) RequestAllocation() shared.Resources {
 
 // Pay tax and contribution to the common pool
 func (c *client) GetTaxContribution() shared.Resources {
-	c.Logf("Current tax amount: %v", c.taxAmount)
 	turn := c.getTurn()
 	season := c.getSeason()
 	currentTier := c.wealth()
-
-	taxContribution := c.calculateTaxContribution(turn, season, currentTier)
-	contribution := c.calculateCPContribution(turn, season)
-	total := taxContribution + contribution
-	return total
+	expectedTax, taxDecisionMade := c.expectedTaxContribution()
+	contribution := c.calculateCPContribution(turn, season) //CP contribution
+	// only contribute to the CP if tax decision isn't made
+	if !taxDecisionMade {
+		return contribution
+	}
+	actualTax := calculateTaxContribution(expectedTax, turn, season, currentTier)
+	c.Logf("[DEBUG] - Team 5 paying tax %v out of %v", actualTax, expectedTax)
+	return actualTax + contribution
 }
 
 //MonitorIIGORole decides whether to perform monitoring on a role
@@ -66,11 +70,6 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 	resultToShare = monitoringResult
 	announce = true
 	return
-}
-
-// Cannot evade sanction :c
-func (c *client) GetSanctionPayment() shared.Resources {
-	return c.sanctionAmount
 }
 
 func (c *client) calculateRequestCommonPool(currentTier wealthTier, currentCP shared.Resources) (allocation shared.Resources) {
@@ -112,16 +111,11 @@ func (c *client) calculateRequestAllocation(turn uint, season uint, currentTier 
 	return
 }
 
-func (c *client) calculateTaxContribution(turn uint, season uint, currentTier wealthTier) (contribution shared.Resources) {
-	if turn == 1 && season == 1 {
-		contribution = 0.5 * c.taxAmount
-	} else if currentTier == imperialStudent || currentTier == dying {
-		contribution = 0
-		return contribution
-	} else {
-		contribution = c.taxAmount
+func calculateTaxContribution(expectedTax shared.Resources, turn uint, season uint, currentTier wealthTier) (contribution shared.Resources) {
+	if currentTier == imperialStudent || currentTier == dying {
+		return 0
 	}
-	return
+	return expectedTax
 }
 
 // Calculate our contribution to common pool
@@ -138,4 +132,10 @@ func (c *client) calculateCPContribution(turn uint, season uint) (contribution s
 		}
 	}
 	return contribution
+}
+
+func (c *client) expectedTaxContribution() (shared.Resources, bool) {
+	expectedTax := shared.Resources(c.BaseClient.LocalVariableCache[rules.ExpectedTaxContribution].Values[0])
+	taxDecisionMade := c.BaseClient.LocalVariableCache[rules.TaxDecisionMade].Values[0] != 0
+	return expectedTax, taxDecisionMade //TODO: not sure if this is correct tax amount to use
 }

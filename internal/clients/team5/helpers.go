@@ -3,6 +3,7 @@ package team5
 import (
 	"math"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -24,6 +25,10 @@ func (c client) getCP() shared.Resources {
 // shorthand to get our current life status
 func (c client) getLifeStatus() shared.ClientLifeStatus {
 	return c.gameState().ClientInfo.LifeStatus
+}
+
+func (c client) getGameConfig() config.ClientConfig {
+	return c.ServerReadHandle.GetGameConfig()
 }
 
 func (c client) getAliveTeams(includeUs bool) (aliveTeams []shared.ClientID) {
@@ -53,4 +58,13 @@ func absoluteCap(val, absThresh float64) float64 {
 		return math.Min(val, absThresh)
 	}
 	return math.Max(val, absThresh*-1)
+}
+
+func (c client) getMood() float64 {
+	return c.mapToRange(float64(c.gameState().ClientInfo.Resources),
+		float64(c.config.jbThreshold), 0, 0.5, 1.5)
+}
+
+func (c client) mapToRange(x, inMin, inMax, outMin, outMax float64) float64 {
+	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
 }
