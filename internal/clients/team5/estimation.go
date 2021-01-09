@@ -73,7 +73,7 @@ func (m *kdeModel) getPDF(nSamples uint) (pdf, xrange []float64) {
 	xMax := floats.Max(X)
 	xMin := floats.Min(X)
 
-	if xMax == xMin || stats.Variance(X) == 0 {
+	if xMax == xMin || stats.Variance(X) == 0 { // special case where bounds are same or zero variance (all same values)
 		for i := 0; i < int(nSamples); i++ {
 			xrange = append(xrange, X[0])
 			pdf = append(pdf, X[0])
@@ -87,17 +87,33 @@ func (m *kdeModel) getPDF(nSamples uint) (pdf, xrange []float64) {
 }
 
 func (m *kdeModel) getStatistics(nSamples uint) modelStats {
-	pdf, xrange := m.getPDF(nSamples) // TODO: simply use sample means for < 5 samples since KDE method is a bit unstable
-	E := 0.0
-	E2 := 0.0
-	for i, p := range pdf {
-		E += xrange[i] * p               // expected value
-		E2 += math.Pow(xrange[i], 2) * p // variance
+
+	mean, variance := 0.0, 0.0
+
+	X := m.estimator.Sample.Xs
+
+	if len(X) < 2 {
+
+	} else if len(X) < 10 {
+		// if we have too few samples, simply use observed sample statistics
+		mean = stats.Mean(X)
+		variance = stats.Variance(X)
+
+	} else { // we have bare min required to use KDE estimated distribution now
+		pdf, xrange := m.getPDF(nSamples) // TODO: simply use sample means for < 5 samples since KDE method is a bit unstable
+		E := 0.0
+		E2 := 0.0
+		for i, p := range pdf {
+			E += xrange[i] * p               // expected value
+			E2 += math.Pow(xrange[i], 2) * p // variance
+		}
+		mean = E // use statistics (expectation) from our estimated distribution
+		variance = E2 - math.Pow(E, 2)
 	}
 
 	return modelStats{
-		mean:     E,
-		variance: E2 - math.Pow(E, 2),
+		mean:     mean,
+		variance: variance,
 	}
 }
 
