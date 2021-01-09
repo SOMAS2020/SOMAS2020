@@ -276,7 +276,13 @@ func (c *client) evalSpeakerPerformance() {
 	}
 
 	ruleVoteInfo := *c.iigoInfo.ruleVotingResults[c.ruleVotedOn]
-	if ruleVoteInfo.ourVote != ruleVoteInfo.result {
+	var ourVote bool
+	if ruleVoteInfo.ourVote == shared.Approve {
+		ourVote = true
+	} else {
+		ourVote = false
+	}
+	if ourVote != ruleVoteInfo.result {
 		evalOfSpeaker += c.params.sensitivity
 	} else {
 		evalOfSpeaker -= c.params.sensitivity

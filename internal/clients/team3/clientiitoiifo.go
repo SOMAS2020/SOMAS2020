@@ -55,7 +55,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 			CoordinateX: meanDisaster.CoordinateX,
 			CoordinateY: meanDisaster.CoordinateY,
 			Magnitude:   meanDisaster.Magnitude,
-			TimeLeft:    int(meanDisaster.Turn),
+			TimeLeft:    uint(meanDisaster.Turn),
 		}
 
 		// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
@@ -133,7 +133,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	totalCoordinateX := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].CoordinateX
 	totalCoordinateY := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].CoordinateY
 	totalMagnitude := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].Magnitude
-	totalTimeLeft := int(math.Round(selfConfidence)) * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].TimeLeft
+	totalTimeLeft := uint(math.Round(selfConfidence)) * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].TimeLeft
 	totalConfidence := selfConfidence
 
 	// Add other island's predictions using their confidence values

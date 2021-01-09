@@ -120,7 +120,7 @@ type islandParams struct {
 
 type ruleVoteInfo struct {
 	// ourVote needs to be updated accordingly
-	ourVote         bool
+	ourVote         shared.RuleVoteType
 	resultAnnounced bool
 	// true -> yes, false -> no
 	result bool
