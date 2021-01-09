@@ -13,7 +13,7 @@ type judge struct {
 
 func (c *client) GetClientJudgePointer() roles.Judge {
 	c.Logf("Team 5 became Judge.")
-	return &c.team5Judge
+	return &judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 // Pardon ourselves and homies
@@ -33,6 +33,7 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 			}
 		}
 	}
+	j.c.Logf("TEAM5 pardoned our homies")
 	return pardons
 }
 

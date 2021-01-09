@@ -4,8 +4,15 @@ import (
 	"math"
 	"testing"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
+
+type testCalculateDisasterContrbution struct {
+	turn            uint
+	currentResource shared.Resources
+	geography       disasters.ArchipelagoGeography
+}
 
 func TestCommonPoolResourceRequest(t *testing.T) {
 	// test submit request to president when we are poor & current CP has nothing
@@ -142,4 +149,15 @@ func TestGetCommonPoolContribution(t *testing.T) {
 	if int(w) != int(total) {
 		t.Errorf("Not generating proper # of resources to contribute. Want %v, got %v", w, tax)
 	}
+}
+
+func TestCalculateDisasterContributionCP(t *testing.T) {
+	ourLocationInfo := disasters.IslandLocationInfo{
+		ID: shared.Team5,
+		X:  6,
+		Y:  0,
+	}
+	var geography disasters.ArchipelagoGeography
+	geography.Islands[shared.Team5] = ourLocationInfo
+	//case 1 where there is no forecast history
 }
