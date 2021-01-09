@@ -83,10 +83,10 @@ func getClientConfig() clientConfig {
 		//  Dying threshold is 0 < Dying < Imperial
 
 		// Gifts Config
-		dyingGiftRequestAmount:    20,
-		imperialGiftRequestAmount: 10,
+		dyingGiftRequestAmount:    25,
+		imperialGiftRequestAmount: 15,
 		middleGiftRequestAmount:   5,
-		offertoDyingIslands:       10,
+		offertoDyingIslands:       15,
 		normalGift:                1,
 
 		opinionThresholdRequest:  0.5, // Above opinion we request less this people
