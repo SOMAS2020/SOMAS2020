@@ -38,7 +38,7 @@ type SOMASServer struct {
 }
 
 // NewSOMASServer returns an instance of the main server we use.
-func NewSOMASServer(gameConfig config.Config) Server {
+func NewSOMASServer(gameConfig config.Config) (Server, error) {
 	registeredClients := make(map[shared.ClientID]baseclient.Client, len(baseclient.RegisteredClientFactories))
 	for id, factory := range baseclient.RegisteredClientFactories {
 		registeredClients[id] = factory()
@@ -58,7 +58,7 @@ func createSOMASServer(
 	clientInfos map[shared.ClientID]gamestate.ClientInfo,
 	clientMap map[shared.ClientID]baseclient.Client,
 	gameConfig config.Config,
-) Server {
+) (Server, error) {
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
@@ -116,7 +116,7 @@ func createSOMASServer(
 		})
 	}
 
-	return server
+	return server, nil
 }
 
 // EntryPoint function that returns a list of historic gamestate.GameState until the

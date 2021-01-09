@@ -69,7 +69,12 @@ func RunGame(this js.Value, args []js.Value) (ret interface{}) {
 		})
 	}
 
-	s := server.NewSOMASServer(gameConfig)
+	s, err := server.NewSOMASServer(gameConfig)
+	if err != nil {
+		return js.ValueOf(map[string]interface{}{
+			"error": convertError(errors.Errorf("Failed to initialise SOMASServer: %v", err)),
+		})
+	}
 
 	var o output
 	var outputJSON string
