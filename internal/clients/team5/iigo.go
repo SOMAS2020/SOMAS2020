@@ -50,11 +50,10 @@ func (c *client) GetTaxContribution() shared.Resources {
 	// only contribute to the CP if tax decision isn't made
 	if !taxDecisionMade {
 		return contribution
-	} else {
-		actualTax := calculateTaxContribution(expectedTax, turn, season, currentTier)
-		c.Logf("[DEBUG] - Team 5 paying tax %v out of %v", actualTax, expectedTax)
-		return actualTax + contribution
 	}
+	actualTax := calculateTaxContribution(expectedTax, turn, season, currentTier)
+	c.Logf("[DEBUG] - Team 5 paying tax %v out of %v", actualTax, expectedTax)
+	return actualTax + contribution
 }
 
 //MonitorIIGORole decides whether to perform monitoring on a role
@@ -114,12 +113,9 @@ func (c *client) calculateRequestAllocation(turn uint, season uint, currentTier 
 
 func calculateTaxContribution(expectedTax shared.Resources, turn uint, season uint, currentTier wealthTier) (contribution shared.Resources) {
 	if currentTier == imperialStudent || currentTier == dying {
-		contribution = 0
-		return contribution
-	} else {
-		contribution = expectedTax
+		return 0
 	}
-	return
+	return expectedTax
 }
 
 // Calculate our contribution to common pool
