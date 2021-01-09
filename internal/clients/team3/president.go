@@ -164,7 +164,7 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		if island == p.c.BaseClient.GetID() {
 			taxation -= shared.Resources(p.c.params.selfishness) * taxation
 		}
-		taxation = shared.Resources(math.Max(float64(taxation), 0.0))
+		taxation = shared.Resources(math.Max(math.Round(float64(taxation)), 0.0))
 		taxationMap[island] = taxation
 	}
 	p.c.clientPrint("tax amounts : %v\n", taxationMap)
