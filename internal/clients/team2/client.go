@@ -3,9 +3,8 @@ package team2
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -15,7 +14,7 @@ const id = shared.Team2
 type CommonPoolHistory map[uint]float64
 type ResourcesLevelHistory map[uint]shared.Resources
 
-// Type for Empathy level assigned to each other team
+// IType for Empathy level assigned to each other team
 type EmpathyLevel int
 
 const (
@@ -39,11 +38,11 @@ type Situation string
 // others -> us: GiftWeRequest
 
 const (
-	President     Situation = "President"
-	Judge         Situation = "Judge"
-	Speaker       Situation = "Speaker"
-	Foraging      Situation = "DisasterPred"
-	GiftWeRequest Situation = "Gifts"
+	PresidentOp Situation = "President"
+	JudgeOp     Situation = "Judge"
+	RoleOpinion Situation = "RoleOpinion"
+	Foraging    Situation = "Foraging"
+	Gifts       Situation = "Gifts"
 )
 
 type Opinion struct {
@@ -77,6 +76,20 @@ type PredictionInfo struct {
 	Turn       uint
 }
 
+type IslandSanctionInfo struct {
+	Turn   uint
+	Tier   roles.IIGOSanctionTier
+	Amount roles.IIGOSanctionScore
+}
+
+type CommonPoolInfo struct {
+	turn            uint
+	tax             shared.Resources
+	requestedToPres shared.Resources
+	allocatedByPres shared.Resources
+	takenFromCP     shared.Resources
+}
+
 // Currently what want to use to get archipelago geography but talking to Yannis to get this fixed
 // Because it doesn't work atm
 //archipelagoGeography := c.gamestate().Environment.Geography
@@ -94,7 +107,12 @@ type OpinionHist map[shared.ClientID]Opinion
 type PredictionsHist map[shared.ClientID][]PredictionInfo
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo
 type GiftHist map[shared.ClientID]GiftExchange
-type DisasterHistory []DisasterOccurence
+
+type DisasterHistory map[int]DisasterOccurence
+type IslandSanctions map[shared.ClientID][]IslandSanctionInfo
+type TierLevels map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+type SanctionHist map[shared.ClientID][]IslandSanctionInfo
+type CommonPoolHist map[shared.ClientID][]CommonPoolInfo
 
 // we have to initialise our client somehow
 type client struct {
@@ -109,6 +127,22 @@ type client struct {
 	foragingReturnsHist  ForagingReturnsHist
 	giftHist             GiftHist
 	disasterHistory      DisasterHistory
+
+	currPresident President
+	currJudge     Judge
+	currSpeaker   Speaker
+
+	taxAmount            shared.Resources
+	commonPoolAllocation shared.Resources
+	islandSanctions      IslandSanctions
+	tierLevels           TierLevels
+	sanctionHist         SanctionHist
+
+	commonPoolHist CommonPoolHist
+
+	//TODO: copied in from team3
+	declaredResources   map[shared.ClientID]shared.Resources
+	disasterPredictions []map[shared.ClientID]shared.DisasterPrediction
 }
 
 func init() {
@@ -128,71 +162,13 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		foragingReturnsHist:  ForagingReturnsHist{},
 		giftHist:             GiftHist{},
 		islandEmpathies:      IslandEmpathies{},
+		sanctionHist:         SanctionHist{},
+		tierLevels:           TierLevels{},
+		islandSanctions:      IslandSanctions{},
+		commonPoolHist:       CommonPoolHist{},
 
 		//TODO: implement config to gather all changeable parameters in one place
 	}
-}
-
-func (c *client) islandEmpathyLevel() EmpathyLevel {
-	clientInfo := c.gameState().ClientInfo
-
-	// switch statement to toggle between three levels
-	// change our state based on these cases
-	switch {
-	case clientInfo.LifeStatus == shared.Critical:
-		return Selfish
-		// replace with some expression
-	case (true):
-		return Altruist
-	default:
-		return FairSharer
-	}
-}
-
-func criticalStatus(c *client) bool {
-	clientInfo := c.gameState().ClientInfo
-	if clientInfo.LifeStatus == shared.Critical { //not sure about shared.Critical
-		return true
-	}
-	return false
-}
-
-// DisasterNotification notifiues each team if a disaster occurs. Each team recieves a  report on the disaster
-// and the effect on them
-func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
-	if c.disasterHistory == nil {
-		c.disasterHistory = make(DisasterHistory, 0)
-	}
-	currDisaster := DisasterOccurence{
-		Turn:   c.gameState().Turn,
-		Report: report,
-	}
-	c.disasterHistory = append(c.disasterHistory, currDisaster)
-	c.updateDisasterConf()
-
-	// Check this actually resets the values stored in PredictionsHist
-	for island, predictions := range c.predictionHist {
-		c.predictionHist[island] = predictions[:0]
-	}
-
-}
-
-//checkOthersCrit checks if anyone else is critical
-func checkOthersCrit(c *client) bool {
-	for clientID, status := range c.gameState().ClientLifeStatuses {
-		if status == shared.Critical && clientID != c.GetID() {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *client) gameState() gamestate.ClientGameState {
-	return c.BaseClient.ServerReadHandle.GetGameState()
-}
-
-func (c *client) gameConfig() config.ClientConfig {
-	return c.BaseClient.ServerReadHandle.GetGameConfig()
 }
 
 // Initialise initialises the base client.
@@ -206,7 +182,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 		// set the confidence to 50 and initialise any other stuff
 		Histories := make(map[Situation][]int)
 		Histories["President"] = []int{50}
-		Histories["Speaker"] = []int{50}
+		Histories["RoleOpinion"] = []int{50}
 		Histories["Judge"] = []int{50}
 		Histories["Foraging"] = []int{50}
 		Histories["Gifts"] = []int{50}
@@ -218,4 +194,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 			OurRequest: map[uint]GiftInfo{},
 		}
 	}
+	c.currSpeaker = Speaker{c: c}
+	c.currJudge = Judge{c: c}
+	c.currPresident = President{c: c}
 }

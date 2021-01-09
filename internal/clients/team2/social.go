@@ -4,6 +4,8 @@ import (
 	"math"
 	"sort"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -44,7 +46,7 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 
 }
 
-func setLimits(confidence int) int {
+func (c *client) setLimits(confidence int) int {
 	if confidence < 0 {
 		return 0
 	} else if confidence > 100 {
@@ -73,7 +75,7 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 		percentageDiff = 100 * (situationReal - situationExp) / situationExp
 	}
 	newConf := int(float64(percentageDiff)*confidenceFactor + float64(situationExp))
-	updatedHist = append(situationHist, setLimits(newConf))
+	updatedHist = append(situationHist, c.setLimits(newConf))
 
 	c.opinionHist[otherIsland].Histories[situation] = updatedHist
 }
@@ -181,17 +183,173 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	return pastConfidence
 }
 
-//func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
-//Situation
-func (c *client) credibility(situation Situation, otherIsland shared.ClientID) int {
-	// Situation
-	// Long term vs short term importance
-	// how much they have gifted in general
-	// their transparency, ethical behaviour as an island (have they shared their foraging predictions, their cp intended contributions, etc)
-	// their empathy level
-	// how they acted during a role
-	// performance (how well they are doing)
-	return 0
+func (c *client) updatePresidentTrust() {
+	currPres := c.gameState().PresidentID
+	// Take weighted average of past turns
+
+	runMeanTax := shared.Resources(0.0)
+	runMeanWeRequest := shared.Resources(0.0)
+	runMeanWeAllocated := shared.Resources(0.0)
+	runMeanWeTake := shared.Resources(0.0)
+
+	for i, commonPool := range c.commonPoolHist[currPres] {
+		turn := shared.Resources(c.gameState().Turn - commonPool.turn)
+		div := shared.Resources(i + 1)
+
+		runMeanTax += (commonPool.tax/turn - runMeanTax) / div
+		runMeanWeRequest += (commonPool.requestedToPres/turn - runMeanWeRequest) / div
+		runMeanWeAllocated += (commonPool.allocatedByPres/turn - runMeanWeAllocated) / div
+		runMeanWeTake += (commonPool.takenFromCP/turn - runMeanWeTake) / div
+
+	}
+
+	percChangeTax := 100 * (c.taxAmount - runMeanTax) / runMeanTax
+	percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / runMeanWeAllocated // How much less we're giveen
+	percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / runMeanWeTake        // How much more we've taken
+
+	reality := c.setLimits(int(100 - percWeGet - percChangeTax + percWeTake))
+
+	islandSituationPerf := c.opinionHist[currPres].Performances["President"]
+	islandSituationPerf.real = reality
+	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
+
+}
+
+func (c *client) updateJudgeTrust() {
+	currJudge := c.gameState().JudgeID
+
+	prevTier := c.sanctionHist[currJudge][0].Tier
+	numConsecTier := 0
+	numDiffTiers := 0
+	avgTurnsPerTier := 0
+	runMeanScore := roles.IIGOSanctionScore(0.0)
+
+	for i, sanction := range c.sanctionHist[currJudge] {
+		turn := roles.IIGOSanctionScore(c.gameState().Turn - sanction.Turn)
+		div := roles.IIGOSanctionScore(i + 1)
+
+		runMeanScore += (sanction.Amount/turn - runMeanScore) / div
+		if prevTier == sanction.Tier {
+			numConsecTier++
+		} else {
+			numDiffTiers++
+			avgTurnsPerTier += (numConsecTier - avgTurnsPerTier) / numDiffTiers
+			prevTier = sanction.Tier
+			numConsecTier = 0
+		}
+	}
+
+	// We don't want to be sanctioned
+	// We don't want a sanction to last too long
+	// We want the judge to be "fair"
+
+	lastScore := c.sanctionHist[currJudge][len(c.sanctionHist[currJudge])-1]
+	percChangeScore := int(100 * (lastScore.Amount - runMeanScore) / runMeanScore)
+	reality := c.setLimits(100 - (avgTurnsPerTier * percChangeScore))
+
+	islandSituationPerf := c.opinionHist[currJudge].Performances["Judge"]
+	islandSituationPerf.real = reality
+	c.opinionHist[currJudge].Performances["Judge"] = islandSituationPerf
+	c.confidenceRestrospect("Judge", currJudge)
+
+}
+
+type AccountabilityInfo struct {
+	AllocationRequestsMade         []float64
+	AllocationMade                 []float64
+	ExpectedTaxContribution        []float64
+	ExpectedAllocation             []float64
+	IslandTaxContribution          []float64
+	IslandAllocation               []float64
+	SanctionPaid                   []float64
+	SanctionExpected               []float64
+	IslandActualPrivateResources   []float64
+	IslandReportedPrivateResources []float64
+}
+
+func (c *client) getWeightedAverage(list []float64) int {
+	if len(list) == 0 {
+		return 0
+	}
+
+	div := 1
+	total := 0
+	for i, item := range list {
+		total *= i * int(item)
+		div += i
+	}
+	return total / div
+}
+
+func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
+
+	//Interested in how much they took vs how much they were allowed to
+	// Interested in how much they said they have vs how much they actually have
+	// How much they've been sanctioned vs How much theey're paying
+
+	for _, info := range iigoHistory {
+		island := info.ClientID
+		islandInfo := info.Pairs
+		var islAccInfo AccountabilityInfo
+		for _, pair := range islandInfo {
+			switch pair.VariableName {
+			case 24: // ExpectedTaxContribution
+				islAccInfo.ExpectedTaxContribution = pair.Values
+			case 25: // ExpectedAllocation
+				islAccInfo.ExpectedAllocation = pair.Values
+			case 26: // IslandTaxContribution
+				islAccInfo.IslandTaxContribution = pair.Values
+			case 27: // IslandAllocation
+				islAccInfo.IslandAllocation = pair.Values
+			case 31: // SanctionPaid
+				islAccInfo.SanctionPaid = pair.Values
+			case 32: // SanctionExpected
+				islAccInfo.SanctionExpected = pair.Values
+			case 52: // IslandActualPrivateResources
+				islAccInfo.IslandActualPrivateResources = pair.Values
+			case 53: // IslandReportedPrivateResources
+				islAccInfo.IslandReportedPrivateResources = pair.Values
+			}
+		}
+		allocationDiff := 0
+		taxContribDiff := 0
+		sanctionDiff := 0
+		islandResourceDiff := 0
+		if islAccInfo.ExpectedTaxContribution != nil && islAccInfo.IslandTaxContribution != nil {
+			avgExpected := c.getWeightedAverage(islAccInfo.ExpectedTaxContribution)
+			avgActual := c.getWeightedAverage(islAccInfo.IslandTaxContribution)
+			if avgActual != 0 {
+				taxContribDiff = 100 * (avgExpected - avgActual) / avgActual
+			}
+		}
+		if islAccInfo.ExpectedAllocation != nil && islAccInfo.IslandAllocation != nil {
+			avgExpected := c.getWeightedAverage(islAccInfo.ExpectedAllocation)
+			avgActual := c.getWeightedAverage(islAccInfo.IslandAllocation)
+			if avgActual != 0 {
+				allocationDiff = 100 * (avgExpected - avgActual) / avgActual
+			}
+		}
+		if islAccInfo.SanctionPaid != nil && islAccInfo.SanctionExpected != nil {
+			avgExpected := c.getWeightedAverage(islAccInfo.SanctionExpected)
+			avgActual := c.getWeightedAverage(islAccInfo.SanctionPaid)
+			if avgActual != 0 {
+				sanctionDiff = 100 * (avgExpected - avgActual) / avgActual
+			}
+		}
+		if islAccInfo.IslandActualPrivateResources != nil && islAccInfo.IslandReportedPrivateResources != nil {
+			avgExpected := c.getWeightedAverage(islAccInfo.IslandReportedPrivateResources)
+			avgActual := c.getWeightedAverage(islAccInfo.IslandActualPrivateResources)
+			if avgActual != 0 {
+				islandResourceDiff = 100 * (avgExpected - avgActual) / avgActual
+			}
+		}
+		reality := c.setLimits(100 - taxContribDiff - allocationDiff - sanctionDiff - islandResourceDiff)
+		islandSituationPerf := c.opinionHist[island].Performances["RoleOpinion"]
+		islandSituationPerf.real = reality
+		c.opinionHist[island].Performances["RoleOpinion"] = islandSituationPerf
+
+	}
+
 }
 
 // disasters:
