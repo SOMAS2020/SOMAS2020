@@ -16,7 +16,6 @@ const Footer = () => {
         >
           GitHub
         </a>
-        GitHub
       </div>
     </div>
   )

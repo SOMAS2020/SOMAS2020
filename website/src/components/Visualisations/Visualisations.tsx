@@ -5,11 +5,12 @@ import VisualisationsNavbar from './VisualisationsNavbar'
 import {
   gamevisualisation,
   visualisations,
-  iifovisualisation,
   iigovisualisation,
-  iitovisualisation,
+  iifovisualisation,
+  transactionvisualisation,
   resourcesvisualisation,
   rolesvisualisation,
+  achievementsvisualisation,
 } from '../../consts/paths'
 import { OutputJSONType } from '../../consts/types'
 import { GitHash } from '../../consts/info'
@@ -24,10 +25,11 @@ import {
 } from './utils'
 import Game from './Game/Game'
 import IIFO from './IIFO/IIFO'
-import IITO from './IITO/IITO'
+import Transactions from './Transactions/Transactions'
 import IIGO from './IIGO/IIGO'
 import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
+import Achievements from './Achievements/Achievements'
 import FourOhFour from '../FourOhFour/FourOhFour'
 
 const Visualisations = () => {
@@ -158,9 +160,9 @@ const Visualisations = () => {
                     component={() => <IIGO output={output} />}
                   />
                   <Route
-                    path={iitovisualisation}
+                    path={transactionvisualisation}
                     exact
-                    component={() => <IITO output={output} />}
+                    component={() => <Transactions output={output} />}
                   />
                   <Route
                     path={iifovisualisation}
@@ -171,6 +173,11 @@ const Visualisations = () => {
                     path={rolesvisualisation}
                     exact
                     component={() => <Roles output={output} />}
+                  />
+                  <Route
+                    path={achievementsvisualisation}
+                    exact
+                    component={() => <Achievements output={output} />}
                   />
                   <Route
                     path={resourcesvisualisation}
