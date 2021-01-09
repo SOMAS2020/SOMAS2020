@@ -26,6 +26,8 @@ func createClient() *client {
 		disasterHistory:         disasterHistory{},
 		cpResourceHistory:       cpResourceHistory{0: 0},
 
+		disasterModel: disasterModel{},
+
 		config: getClientConfig(),
 	}
 }
@@ -48,12 +50,12 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
-	c.wealth()
+	c.Logf("[Start of Turn] Wealth: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
+	c.Logf("[Teams still alive]: Teams %v", c.gameState().ClientLifeStatuses)
+
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.opinionHistory[c.getTurn()] = c.opinions // assign last turn's opinions as default for this turn
-
-	// Print the level of wealth we are at
-	c.Logf("[Debug] - [Start of Turn] Class: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
+	c.cpResourceHistory[c.getTurn()] = c.getCP()
 
 	//update cpResourceHistory
 	turn := c.getTurn()
@@ -67,7 +69,7 @@ func (c *client) StartOfTurn() {
 			return
 		}
 	}
-
+	c.Logf("Died-ed lol")
 }
 
 //================================================================
@@ -99,9 +101,9 @@ func (c *client) updateResourceHistory(resourceHistory resourceHistory) {
 	c.resourceHistory[c.gameState().Turn] = currentResources
 	if c.gameState().Turn >= 2 {
 		amount := c.resourceHistory[c.gameState().Turn-1]
-		c.Logf("[Debug] - Previous round amount: %v", amount)
+		c.Logf("[Resource History] Previous round (%v) amount: %v", c.getTurn(), amount)
 	}
-	c.Logf("[Debug] - Current round amount: %v", currentResources)
+	c.Logf("[Resource History] Current round (%v) amount: %v", c.getTurn(), currentResources)
 }
 
 func (c client) gameState() gamestate.ClientGameState {

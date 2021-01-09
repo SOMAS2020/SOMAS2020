@@ -1,7 +1,6 @@
 package team5
 
 import (
-	"math"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
@@ -24,8 +23,8 @@ func TestCommonPoolResourceRequest(t *testing.T) {
 	currentTier := imperialStudent
 	reqAmount := c.calculateRequestToPresident(turn, season, currentTier, currentCP)
 	w := c.config.imperialThreshold
-	if math.Abs(float64(w-reqAmount)) > 0.1 { //threshold is 0.1
-		t.Errorf("Not requesting proper # of resources to president. Want %v, got %v", w, reqAmount)
+	if roundTo(float64(w), 1) != roundTo(float64(reqAmount), 1) {
+		t.Errorf("Not taking proper # of resources from cp. Want %v, got %v", w, roundTo(float64(reqAmount), 2))
 	}
 
 	// test submit request to president when we are poor and current CP has a lot

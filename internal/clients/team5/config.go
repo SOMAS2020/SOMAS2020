@@ -47,9 +47,10 @@ type clientConfig struct {
 	giftReduct               shared.Resources
 
 	//==================== Disasters and IIFO ====================
-	forecastTrustTreshold opinionScore // min opinion score of another team to consider their forecast in creating ours
-	maxForecastVariance   float64      // maximum tolerable variance in historical forecast values
-	periodConfidenceBias  float64      // value between 0 and 1. Greater than 0.5 => weight period confidence more than mag. and spatial in overall conf
+	forecastTrustTreshold   opinionScore // min opinion score of another team to consider their forecast in creating ours
+	maxForecastVariance     float64      // maximum tolerable variance in historical forecast values
+	forecastParamWeights    map[forecastVariable]float64
+	forecastVarianceScalers map[forecastVariable]float64
 }
 
 // set param values here. In order to add a new value, you need to add a definition in struct above.
@@ -63,16 +64,16 @@ func getClientConfig() clientConfig {
 
 		// Deciding foraging type
 		RandomChanceToFish:           0.1, // Chacne to switch to Hunting/Fishing
-		RandomChanceToHunt:           0.1,
-		IncreasePerHunterLastTurn:    0.10, // % increase for each Hunter
+		RandomChanceToHunt:           0.4,
+		IncreasePerHunterLastTurn:    0.00, // % increase for each Hunter
 		IncreasePerFisherMenLastTurn: 0.00, // % incrase for each Fisher
 		DeerTurnsToLookBack:          3,    // Number of turns to look back at for deer (not including last)
-		DecreasePerHunterInLookBack:  0.03, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
+		DecreasePerHunterInLookBack:  0.04, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
 
 		// Normal Forage
 		SkipForage:          1,
 		NormalRandomChange:  0.05,
-		MaxForagePercentage: 0.30,
+		MaxForagePercentage: 0.40,
 
 		// Threshold for wealth as multiplier
 		jbThreshold:       2.0,
@@ -95,5 +96,17 @@ func getClientConfig() clientConfig {
 		// Disasters and IIFO
 		forecastTrustTreshold: 0.0, // neutral opinion
 		maxForecastVariance:   100.0,
+		forecastParamWeights: map[forecastVariable]float64{
+			period:    1.3,
+			magnitude: 1.0,
+			x:         0.7,
+			y:         0.7,
+		},
+		forecastVarianceScalers: map[forecastVariable]float64{ // control variance thresholds. Values control max acceptable variance = value * mean.
+			period:    0.8,
+			magnitude: 0.8,
+			x:         1.0,
+			y:         1.0,
+		},
 	}
 }
