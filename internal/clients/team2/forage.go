@@ -20,10 +20,10 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	var forageDecision shared.ForageType
 	//we fish when above the threshold
 	if rand.Float64() > Threshold {
-		forageDecision = 1
+		forageDecision = shared.FishForageType
 	} else {
 		// we hunt when below the threshold
-		forageDecision = 0
+		forageDecision = shared.DeerForageType
 	}
 
 	return shared.ForageDecision{
@@ -49,6 +49,7 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 
 //being the only agent to hunt is undesirable, having one hunting partner is the desirable, the more hunters after that the less we want to hunt
 func (c *client) decideHuntingLikelihood() float64 { //will move the threshold, higher value means more likely to hunt
+	// Todo: this could be null
 	hunters := c.otherHunters()
 	if hunters == 1.0 { //in the case when one other person only is hunting
 		return 0.95
@@ -65,8 +66,8 @@ func (c *client) otherHunters() float64 { //will return a value of how many agen
 	aliveClients := c.getAliveClients()
 	HuntNum := 0.00 //this the average number of likely hunters
 
-	for id := range aliveClients { //loop through every agent
-		if islandForageHist, ok := c.foragingReturnsHist[shared.ClientID(id)]; ok {
+	for _, id := range aliveClients { //loop through every agent
+		if islandForageHist, ok := c.foragingReturnsHist[id]; ok {
 			for _, forageInfo := range islandForageHist { //loop through the agents array and add their average to HuntNum
 				if len(islandForageHist) != 0 {
 					HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(islandForageHist)) //add the agents decision to HuntNum and then average
@@ -79,7 +80,7 @@ func (c *client) otherHunters() float64 { //will return a value of how many agen
 
 //TODO: This function needs to be changed according to Eirik, I have no idea how
 func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
-	for _, info := range neighbourForaging {
+	for _, info := range forageInfos {
 		forageInfo := ForageInfo{
 			DecisionMade:      info.DecisionMade,
 			ResourcesObtained: info.ResourceObtained,
