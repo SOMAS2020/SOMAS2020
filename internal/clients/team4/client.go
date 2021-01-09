@@ -72,8 +72,12 @@ type internalParameters struct {
 	agentsTrust   []float64
 
 	// Judge GetPardonIslands config
-	minPardonTime    int
-	maxTierToPardon  shared.IIGOSanctionsTier
+
+	// days left on the sanction after which we can even considering pardoning other islands
+	minPardonTime int
+	// specifies the maximum sanction tier after which we will no longer consider pardoning others
+	maxTierToPardon shared.IIGOSanctionsTier
+	// we will only consider pardoning islands which we trust with at least this value
 	minTrustToPardon float64
 }
 
