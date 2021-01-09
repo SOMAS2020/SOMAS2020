@@ -5,6 +5,7 @@ import (
 
 	"github.com/aclements/go-moremath/stats"
 	"github.com/google/go-cmp/cmp"
+	"github.com/pkg/errors"
 	"gonum.org/v1/gonum/floats"
 )
 
@@ -12,6 +13,14 @@ type kdeModel struct {
 	observations []float64
 	weights      []float64
 	estimator    stats.KDE
+}
+
+// convenience method to create a new model in the way that will most commonly be required - not
+// messing with bandwidth or weight. Also calls m.fitModel for you
+func newKdeModel(observations []float64) kdeModel {
+	m := kdeModel{observations: observations, weights: nil}
+	m.fitModel()
+	return m
 }
 
 type modelStats struct {
@@ -30,6 +39,11 @@ func (m *kdeModel) setBandwidth(bw float64) {
 	m.estimator.Bandwidth = bw
 }
 
+// allows you to modify bandwidth if you think you're better than Scott estimator
+func (m *kdeModel) setWeights(w []float64) {
+	m.weights = w
+}
+
 func (m *kdeModel) fitModel() {
 	s := stats.Sample{Xs: m.observations, Weights: m.weights, Sorted: false}
 	m.estimator = stats.KDE{
@@ -43,29 +57,35 @@ func (m *kdeModel) fitModel() {
 }
 
 // get kernel-smoothed KDE PDF over specific range
-func (m *kdeModel) getConstrainedPDF(xMin, xMax, step float64) (pdf, xrange []float64) {
+func (m *kdeModel) getConstrainedPDF(xMin, xMax, step float64) (pdf, xrange []float64, err error) {
+
+	if xMin == xMax {
+		return pdf, xrange, errors.Errorf("xMin and xMax cannot be the same!")
+	}
+	if step <= 0 {
+		return pdf, xrange, errors.Errorf("Step must be positive non-zero!")
+	}
 
 	if cmp.Equal(m.estimator, stats.KDE{}) {
 		m.fitModel()
 	}
-	xRange := makeRange(xMin, xMax, step)
-	for _, x := range xRange {
+	xrange = makeRange(xMin, xMax, step)
+	for _, x := range xrange {
 		pdf = append(pdf, m.estimator.PDF(x))
 	}
-	return pdf, xRange
+	return pdf, xrange, nil
 }
 
 // get kernel-smoothed KDE PDF
 func (m *kdeModel) getPDF(nSamples uint) (pdf, xrange []float64) {
 
-	if nSamples == 0 {
-		return pdf, xrange
-	}
-
+	// update model if it has not been fitted yet
 	if cmp.Equal(m.estimator, stats.KDE{}) {
 		m.fitModel()
 	}
+
 	X := m.estimator.Sample.Xs
+
 	if len(X) == 0 || nSamples == 0 {
 		return pdf, xrange
 	}
@@ -74,26 +94,21 @@ func (m *kdeModel) getPDF(nSamples uint) (pdf, xrange []float64) {
 	xMin := floats.Min(X)
 
 	if xMax == xMin || stats.Variance(X) == 0 { // special case where bounds are same or zero variance (all same values)
-		for i := 0; i < int(nSamples); i++ {
-			xrange = append(xrange, X[0])
-			pdf = append(pdf, X[0])
-		}
-		floats.Scale(1/floats.Sum(pdf), pdf)
-		return pdf, xrange
+		return []float64{1.0}, []float64{xMax} // trivial PDF
 	}
-	step := (xMax - xMin) / float64(nSamples) // 0 check above
-	pdf, xrange = m.getConstrainedPDF(xMin, xMax, step)
+	step := (xMax - xMin) / float64(nSamples)              // 0 check above
+	pdf, xrange, _ = m.getConstrainedPDF(xMin, xMax, step) // don't
 	return pdf, xrange
 }
 
-func (m *kdeModel) getStatistics(nSamples uint) modelStats {
+func (m *kdeModel) getStatistics(nSamples uint) (modelStats, error) {
 
 	mean, variance := 0.0, 0.0
 
 	X := m.estimator.Sample.Xs
 
-	if len(X) < 2 {
-
+	if len(X) == 0 {
+		return modelStats{}, errors.Errorf("Sample length 0 - cannot calculate statistics.") // zeros
 	} else if len(X) < 10 {
 		// if we have too few samples, simply use observed sample statistics
 		mean = stats.Mean(X)
@@ -101,8 +116,7 @@ func (m *kdeModel) getStatistics(nSamples uint) modelStats {
 
 	} else { // we have bare min required to use KDE estimated distribution now
 		pdf, xrange := m.getPDF(nSamples) // TODO: simply use sample means for < 5 samples since KDE method is a bit unstable
-		E := 0.0
-		E2 := 0.0
+		E, E2 := 0.0, 0.0
 		for i, p := range pdf {
 			E += xrange[i] * p               // expected value
 			E2 += math.Pow(xrange[i], 2) * p // variance
@@ -113,14 +127,8 @@ func (m *kdeModel) getStatistics(nSamples uint) modelStats {
 
 	return modelStats{
 		mean:     mean,
-		variance: variance,
-	}
-}
-
-func createBasicKDE(observations []float64) kdeModel {
-	m := kdeModel{observations: observations, weights: nil}
-	m.fitModel()
-	return m
+		variance: variance, // Note: this will be NaN for len(X) < 2
+	}, nil
 }
 
 func makeRange(min, max, step float64) []float64 {

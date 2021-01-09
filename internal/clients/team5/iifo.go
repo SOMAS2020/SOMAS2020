@@ -4,6 +4,17 @@ import (
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/pkg/errors"
+	"gonum.org/v1/gonum/floats"
+)
+
+type forecastVariable int
+
+const (
+	x forecastVariable = iota
+	y
+	magnitude
+	period
 )
 
 type forecastInfo struct {
@@ -24,7 +35,12 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	lastDisasterTurn := c.disasterHistory.getLastDisasterTurn()
 
-	fInfo := c.disasterModel.generateForecast()
+	fInfo, err := c.disasterModel.generateForecast(c.config)
+
+	if err != nil {
+		c.Logf("ERROR: unable to generate forecast. Encountered %v", err)
+		// we can still proceed - fInfo will just be default with confidence zero
+	}
 
 	prediction := shared.DisasterPrediction{
 		CoordinateX: fInfo.epiX,
@@ -50,31 +66,57 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	return predictionInfo
 }
 
-func (d *disasterModel) generateForecast() forecastInfo {
+func (d *disasterModel) generateForecast(conf clientConfig) (forecastInfo, error) {
 	nSamples := d.support
 
 	if nSamples == 0 {
-		return forecastInfo{}
+		return forecastInfo{}, errors.Errorf("Cannot generate forecast with no data")
 	}
-	magStats := d.magnitude.getStatistics(nSamples)
-	xStats := d.x.getStatistics(nSamples)
-	yStats := d.y.getStatistics(nSamples)
-	periodStats := d.period.getStatistics(nSamples)
+	magStats, errM := d.magnitude.getStatistics(nSamples)
+	xStats, errX := d.x.getStatistics(nSamples)
+	yStats, errY := d.y.getStatistics(nSamples)
+	periodStats, errP := d.period.getStatistics(nSamples)
 
-	// pBias := c.config.periodConfidenceBias
-	// if math.Abs(pBias) > 1 {
-	// 	c.Logf("WARNING: Invalid period confidence bias value of %v. Setting default value of 0.5.", pBias)
-	// 	pBias = 0.5 // assign default if out of range
-	// }
+	for _, err := range []error{errM, errX, errY, errP} {
+		if err != nil {
+			return forecastInfo{}, errors.Errorf("Unable to generate forecast. First error encountered: %v", err)
+		}
+	}
+
+	confidence := computeConfidence(map[forecastVariable]modelStats{
+		period:    periodStats,
+		magnitude: magStats,
+		x:         xStats,
+		y:         yStats,
+	}, conf)
 
 	f := forecastInfo{
 		epiX:       xStats.mean,
 		epiY:       yStats.mean,
 		mag:        magStats.mean,
 		period:     uint(periodStats.mean),
-		confidence: 50, // TODO: implement
+		confidence: confidence,
 	}
-	return f
+	return f, nil
+}
+
+// computes confidence combination of modelStats weighted by the perceived importance
+// of each estimated quantity. For example, we may want to weight period confidence higher.
+func computeConfidence(paramStats map[forecastVariable]modelStats, config clientConfig) (confidence float64) {
+	confScore := func(stats modelStats, thresholdScaler float64) float64 {
+		return 1 - math.Min((stats.variance/(stats.mean*thresholdScaler)), 1)
+	}
+	vScalers := config.forecastVarianceScalers
+	weightsConf := config.forecastParamWeights
+
+	weights := []float64{}
+	// note: these string keys should match those in config
+	for param, stats := range paramStats {
+		confidence += confScore(stats, vScalers[param]) * weightsConf[param]
+		weights = append(weights, weightsConf[param])
+	}
+
+	return confidence / floats.Sum(weights)
 }
 
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,

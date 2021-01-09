@@ -1,7 +1,6 @@
 package team5
 
 import (
-	"math"
 	"testing"
 
 	"gonum.org/v1/gonum/floats"
@@ -23,28 +22,51 @@ func TestKDE(t *testing.T) {
 		}
 		m := kdeModel{observations: obs, weights: nil}
 
-		xMin := 0.0
-		xMax := 5.0
-		step := 0.1
+		// xMin := 0.0
+		// xMax := 5.0
+		step := (floats.Max(obs) - floats.Min(obs)) / float64(nSamples)
 		result, _ := m.getPDF(uint(nSamples))
 
-		expSize := int(math.Round((xMax - xMin) / step))
-		if len(result) != expSize {
-			t.Errorf("Got solution vector of unexpected length: want %v, got %v.", expSize, len(result))
+		if len(result) != nSamples {
+			t.Errorf("Got solution vector of unexpected length: want %v, got %v.", nSamples, len(result))
 		}
 		t.Logf("Result (%v samples): %v, captured variance: %v", nSamples, result, step*floats.Sum(result)/1)
 	}
-	// t.Error("Dummy error to force output log") // uncomment to see output
+	t.Error("Dummy error to force output log") // uncomment to see output
 }
 
-func TestKDE2(t *testing.T) {
+func TestStatistics(t *testing.T) {
 
-	obs := []float64{2, 2, 2, 2, 2}
-	n := len(obs)
-	m := kdeModel{observations: obs, weights: nil}
+	tests := []struct {
+		name                          string
+		obs                           []float64
+		expectedMean, expectedVar     float64
+		strictEquality, errorExpected bool // whether or not exp. mean and variance should strictly equal result and whether or not we expect an error
+	}{
+		{"empty obs set", []float64{}, 0, 0, false, true},
+		{"single obs", []float64{2}, 2, 0, true, false},
+		{"multiple obs periodic, sample only", []float64{3, 3, 3}, 3, 0, true, false},
+		{"multiple obs periodic, KDE", []float64{3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3}, 3, 0, true, false},
+		{"multiple obs not periodic, KDE", []float64{10, 3, 2, 3, 20, 3, 8, 3, 5, 3, 3, 2, 3}, 3, 0, false, false},
+	}
+	for _, tc := range tests {
+		testname := tc.name
+		t.Run(testname, func(t *testing.T) {
 
-	result, _ := m.getPDF(uint(n))
+			model := newKdeModel(tc.obs)
+			stats, err := model.getStatistics(uint(len(tc.obs)))
 
-	t.Logf("Result (%v samples): %v, exp: %v", n, result, m.getStatistics(uint(n)))
-	t.Error("Dummy error to force output log") // uncomment to see output
+			if err != nil && !tc.errorExpected {
+				t.Errorf("received unexpected error: %v with input: %v", err, tc.obs)
+			}
+
+			if stats.mean != tc.expectedMean && tc.strictEquality {
+				t.Errorf("incorrect mean: got %.1f, want %.1f", stats.mean, tc.expectedMean)
+			}
+			if stats.variance != tc.expectedVar && tc.strictEquality {
+				t.Errorf("incorrect variance: got %.1f, want %.1f", stats.variance, tc.expectedVar)
+			}
+
+		})
+	}
 }

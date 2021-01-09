@@ -13,7 +13,7 @@ func TestGenerateForecast(t *testing.T) {
 	// can use same spatial and mag info because we're only assessing period
 	dInfo := disasterInfo{report: disasters.DisasterReport{X: 0, Y: 0, Magnitude: 1}}
 	// dh1 := disasterHistory{}
-	// dh2 := disasterHistory{8: dInfo}
+	dh2 := disasterHistory{8: dInfo}
 	dh3 := disasterHistory{3: dInfo, 5: dInfo, 7: dInfo, 9: dInfo}
 
 	var tests = []struct {
@@ -22,8 +22,7 @@ func TestGenerateForecast(t *testing.T) {
 		wantPeriod uint
 		wantConf   float64
 	}{
-		// {"no past disasters", dh1, 0, 0},
-		// {"1 past disaster", dh2, 7, 50},
+		{"1 past disaster", dh2, 7, 50},
 		{"many periodic disasters", dh3, 2, 100},
 	}
 	for _, tc := range tests {
@@ -33,16 +32,15 @@ func TestGenerateForecast(t *testing.T) {
 			for _, p := range tc.dh.getPastDisasterPeriods() {
 				obs = append(obs, p)
 			}
-			dModel := disasterModel{period: createBasicKDE(obs)}
+			dModel := disasterModel{period: newKdeModel(obs)}
 
 			t.Logf("%v samples: obs: %v, period pdf %v", n, obs, 2)
 
-			// ansPeriod := stats.Mean(dModel.period.estimator.Sample.Xs)
-			ansPeriod := dModel.period.getStatistics(uint(n)).mean
+			ansPeriod, _ := dModel.period.getStatistics(uint(n))
 
-			if uint(ansPeriod) != tc.wantPeriod {
+			if uint(ansPeriod.mean) != tc.wantPeriod {
 				t.Errorf("period ans %.4f", ansPeriod)
-				t.Errorf("period: got %d, want %d", uint(ansPeriod), tc.wantPeriod)
+				t.Errorf("period: got %d, want %d", uint(ansPeriod.mean), tc.wantPeriod)
 			}
 			// if ansConf != tc.wantConf {
 			// 	t.Errorf("conf: got %.3f, want %.3f", ansConf, tc.wantConf)
