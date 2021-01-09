@@ -2,7 +2,6 @@ package team2
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -24,8 +23,9 @@ func (j *Judge) PayPresident() (shared.Resources, bool) {
 
 //TODO: insert trustworthiness
 // InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
-func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	outMap := map[shared.ClientID]roles.EvaluationReturn{}
+func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool) {
+	outMap := map[shared.ClientID]shared.EvaluationReturn{}
+	copyOfVarCache := rules.CopyVariableMap(j.GameState.RulesInfo.VariableMap)
 	j.c.updateRoleTrust(iigoHistory)
 
 	for _, entry := range iigoHistory {
@@ -34,17 +34,17 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		j.c.confidenceRestrospect("RoleOpinion", clientID)
 		var rulesAffected []string
 		for _, variable := range variablePairs {
-			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, rules.RulesInPlay, rules.VariableMap)
+			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, j.GameState.RulesInfo.CurrentRulesInPlay, copyOfVarCache)
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
-			updatedVariable := rules.UpdateVariable(variable.VariableName, variable)
+			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, copyOfVarCache)
 			if !updatedVariable {
-				return map[shared.ClientID]roles.EvaluationReturn{}, false
+				return map[shared.ClientID]shared.EvaluationReturn{}, false
 			}
 		}
 		if _, ok := outMap[clientID]; !ok {
-			outMap[clientID] = roles.EvaluationReturn{
+			outMap[clientID] = shared.EvaluationReturn{
 				Rules:       []rules.RuleMatrix{},
 				Evaluations: []bool{},
 			}
@@ -54,7 +54,7 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		if j.c.confidence("RoleOpinion", clientID) > 80 {
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
-				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
+				tempReturn.Rules = append(tempReturn.Rules, j.GameState.RulesInfo.CurrentRulesInPlay[rule])
 				tempReturn.Evaluations = append(tempReturn.Evaluations, true)
 			}
 			outMap[clientID] = tempReturn
@@ -62,11 +62,11 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			// All other islands will be evaluated fairly using base implementation.
 			tempReturn := outMap[clientID]
 			for _, rule := range rulesAffected {
-				evaluation := rules.EvaluateRule(rule)
+				evaluation := rules.EvaluateRuleFromCaches(rule, j.GameState.RulesInfo.CurrentRulesInPlay, copyOfVarCache)
 				if evaluation.EvalError != nil {
 					return outMap, false
 				}
-				tempReturn.Rules = append(tempReturn.Rules, rules.RulesInPlay[rule])
+				tempReturn.Rules = append(tempReturn.Rules, j.GameState.RulesInfo.CurrentRulesInPlay[rule])
 				tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation.RulePasses)
 			}
 			outMap[clientID] = tempReturn
@@ -78,7 +78,7 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
 //TODO: add the trustworthiness and state consideration
-func (j *Judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
+func (j *Judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
 	Pardoned := make(map[int][]bool)
 	for i, List := range currentSanctions {
 		List2 := make([]bool, len(List))
@@ -137,15 +137,16 @@ func (j *Judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	return winner
 }
 
-// GetRuleViolationSeverity returns a custom map of named rules and
-// how severe the sanction should be for transgressing them
+// GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
 // If a rule is not named here, the default sanction value added is 1
-func (j *Judge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
-	return map[string]roles.IIGOSanctionScore{}
+// OPTIONAL: override to set custom sanction severities for specific rules
+func (j *Judge) GetRuleViolationSeverity() map[string]shared.IIGOSanctionsScore {
+	return map[string]shared.IIGOSanctionsScore{}
 }
 
 // GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
 // For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
-func (j *Judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
-	return j.BaseJudge.GetSanctionThresholds()
+// OPTIONAL: override to set custom sanction thresholds
+func (j *Judge) GetSanctionThresholds() map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore {
+	return map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore{}
 }

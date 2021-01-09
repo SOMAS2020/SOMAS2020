@@ -6,7 +6,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -80,9 +79,9 @@ func (c *client) MethodOfPlay() int {
 	ResourceHistory := c.commonPoolHistory
 	turn := c.gameState().Turn
 
-	var no_freeride float64 = 3 //how many turns at the beginning we cannot free ride for
-	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
-	var altfactor float64 = 5   //what factor the common pool must drop by for us to consider altruist
+	noFreeride := NoFreeRideAtStart     //how many turns at the beginning we cannot free ride for
+	freeride := SwitchToFreeRideFactor  //what factor the common pool must increase by for us to considered free riding
+	altfactor := SwitchToAltruistFactor //what factor the common pool must drop by for us to consider altruist
 
 	if turn == 1 { //if there is no historical data then use default strategy
 		return 1
@@ -96,7 +95,7 @@ func (c *client) MethodOfPlay() int {
 		}
 	}
 
-	if float64(turn) > no_freeride { //we will not allow ourselves to use free riding at the start of the game
+	if float64(turn) > noFreeride { //we will not allow ourselves to use free riding at the start of the game
 		if (ResourceHistory[prevTurn] * freeride) < ResourceHistory[turn] {
 			if (ResourceHistory[prevTurn2] * freeride) < ResourceHistory[prevTurn] { //two large jumps then we free ride
 				return 2 //free rider
@@ -165,16 +164,16 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		case shared.SanctionClientID:
 			sanction := IslandSanctionInfo{
 				Turn: c.gameState().Turn,
-				Tier: roles.IIGOSanctionTier(data[shared.IIGOSanctionTier].IntegerData),
+				Tier: data[shared.IIGOSanctionTier].IntegerData,
 			}
 			c.islandSanctions[shared.ClientID(content.IntegerData)] = append(c.islandSanctions[shared.ClientID(content.IntegerData)], sanction)
 		case shared.IIGOSanctionTier:
-			c.tierLevels[roles.IIGOSanctionTier(content.IntegerData)] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+			c.tierLevels[content.IntegerData] = data[shared.IIGOSanctionScore].IntegerData
 		case shared.SanctionAmount:
 			sanction := IslandSanctionInfo{
 				Turn:   c.gameState().Turn,
-				Tier:   c.checkSanctionTier(roles.IIGOSanctionScore(content.IntegerData)),
-				Amount: roles.IIGOSanctionScore(content.IntegerData),
+				Tier:   c.checkSanctionTier(content.IntegerData),
+				Amount: content.IntegerData,
 			}
 			sanctions := c.sanctionHist[c.gameState().JudgeID]
 			c.sanctionHist[c.gameState().JudgeID] = append(sanctions, sanction)
@@ -183,25 +182,19 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 
 }
 
-type TierList []roles.IIGOSanctionTier
+func (c *client) checkSanctionTier(score int) int {
 
-func (p TierList) Len() int           { return len(p) }
-func (p TierList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p TierList) Less(i, j int) bool { return p[i] < p[j] }
-
-func (c *client) checkSanctionTier(score roles.IIGOSanctionScore) roles.IIGOSanctionTier {
-
-	var keys TierList
+	var keys []int
 	for k := range c.tierLevels {
 		keys = append(keys, k)
 	}
 
-	sort.Sort(keys)
+	sort.Ints(keys)
 
 	for tier := range keys {
-		if score >= c.tierLevels[roles.IIGOSanctionTier(tier)] {
-			return roles.IIGOSanctionTier(tier)
+		if score >= c.tierLevels[tier] {
+			return tier
 		}
 	}
-	return roles.NoSanction
+	return 5 // NoSanction
 }

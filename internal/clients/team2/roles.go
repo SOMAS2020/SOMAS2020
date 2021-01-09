@@ -3,20 +3,24 @@ package team2
 import (
 	"sort"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	return &c.currSpeaker
+	// return &c.currSpeaker
+	return &Speaker{c: c, BaseSpeaker: &baseclient.BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	return &c.currJudge
+	// return &c.currJudge
+	return &Judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) GetClientPresidentPointer() roles.President {
-	return &c.currPresident
+	// return &c.currPresident
+	return &President{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
@@ -61,4 +65,20 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 	resultToShare = false
 	announce = false
 	return
+}
+
+func (c *client) ResourceReport() shared.ResourcesReport {
+	mood := c.MethodOfPlay()
+	switch mood {
+	case 2: // Free Rider
+		return shared.ResourcesReport{
+			ReportedAmount: 0.5 * c.gameState().ClientInfo.Resources,
+			Reported:       true,
+		}
+	default: // Fair or Free Rider
+		return shared.ResourcesReport{
+			ReportedAmount: c.gameState().ClientInfo.Resources,
+			Reported:       true,
+		}
+	}
 }
