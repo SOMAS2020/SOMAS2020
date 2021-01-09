@@ -22,6 +22,7 @@ import {
   runGameHelper,
   setFlagHelper,
   clearLocalFlags,
+  prettifyParamLabel,
 } from './utils'
 import VisualiseButton from '../VisualiseButton/VisualiseButton'
 
@@ -50,7 +51,9 @@ const FlagForm = (props: FlagFormProps) => {
                 </Tooltip>
               }
             >
-              <span style={{ wordBreak: `break-all` }}>{flag.Name}</span>
+              <span style={{ wordBreak: `break-all` }}>
+                {prettifyParamLabel(flag.Name)}
+              </span>
             </OverlayTrigger>
           </Form.Label>
           <Form.Control
