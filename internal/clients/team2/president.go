@@ -25,14 +25,6 @@ func (x IslandResourceList) Len() int           { return len(x) }
 func (x IslandResourceList) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 func (x IslandResourceList) Less(i, j int) bool { return x[i].Resources < x[j].Resources }
 
-func Max(i shared.Resources, j shared.Resources) shared.Resources {
-	if i >= j {
-		return i
-	} else {
-		return j
-	}
-}
-
 func (p *President) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
 	var modeMult, requestSum shared.Resources
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)

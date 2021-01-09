@@ -14,10 +14,27 @@ type ForagingResults struct {
 	Result shared.Resources
 }
 
+// func (c *client) DecideForage() (shared.ForageDecision, error) {
+// 	if c.forageHistorySize() < c.config.randomForageTurns {
+// 		c.Logf("[Forage decision]: random")
+// 		return c.randomForage(), nil
+// 	} else if c.emotionalState() == Desperate {
+// 		c.Logf("[Forage decision]: desperate")
+// 		return c.desperateForage(), nil
+// 	} else if len(c.livingClients()) > 1 {
+// 		c.Logf("[Forage decision]: flip")
+// 		return c.flipForage(), nil
+// 	} else {
+// 		c.Logf("[Forage decision]: constant")
+// 		return c.constantForage(0.2), nil
+// 	}
+// }
+
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	// implement a normal distribution which shifts closer to hunt or fish
 	var Threshold float64 = c.decideHuntingLikelihood() //number from 0 to 1
 	var forageDecision shared.ForageType
+
 	//we fish when above the threshold
 	if rand.Float64() > Threshold {
 		forageDecision = shared.FishForageType
@@ -26,25 +43,38 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		forageDecision = shared.DeerForageType
 	}
 
+	c.Logf("[Our beautiful Forage decision]:", forageDecision)
+	c.Logf("[Our beautiful Forage contribution]:", shared.Resources(c.DecideForageAmount(Threshold)))
+
 	return shared.ForageDecision{
-		Type:         shared.ForageType(forageDecision),
+		Type:         forageDecision,
 		Contribution: shared.Resources(c.DecideForageAmount(Threshold)),
 	}, nil
 }
 
 //Decide amount of resources to put into foraging
+// TODO: Problem is definitely here
 func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Resources {
 	ourResources := c.gameState().ClientInfo.Resources // we have given to the pool already by this point in the turn
 	if c.criticalStatus() {
-		return 0
+		return shared.Resources(0)
 	}
 
-	if ourResources < c.agentThreshold() && foragingDecisionThreshold < ForageDecisionThreshold {
-		return (c.agentThreshold() - ourResources) / SlightRiskForageDivisor
+	if ourResources < c.agentThreshold() && shared.Resources(foragingDecisionThreshold) < shared.Resources(ForageDecisionThreshold) {
+		return shared.Resources((c.agentThreshold() - ourResources) / SlightRiskForageDivisor)
 	}
 
-	resourcesForForaging := (ourResources - c.agentThreshold())
-	return resourcesForForaging
+	c.Logf("[Our beautiful second (not used)]:", (c.agentThreshold()-ourResources)/shared.Resources(SlightRiskForageDivisor))
+	var resourcesForForaging shared.Resources
+	if ourResources > c.agentThreshold() {
+		resourcesForForaging = ourResources - c.agentThreshold()
+	} else {
+		resourcesForForaging = c.agentThreshold() - ourResources
+	}
+	c.Logf("[Our beautiful third]:", resourcesForForaging)
+	c.Logf("[Our beautiful resources]:", ourResources)
+	c.Logf("[Our beautiful threshold]:", c.agentThreshold())
+	return shared.Resources(resourcesForForaging)
 }
 
 //being the only agent to hunt is undesirable, having one hunting partner is the desirable, the more hunters after that the less we want to hunt

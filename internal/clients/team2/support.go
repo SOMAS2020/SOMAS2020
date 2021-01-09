@@ -109,6 +109,11 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
 				c.presCommonPoolHist[c.gameState().PresidentID] = make([]CommonPoolInfo, 0)
 
+			} else {
+				presHist := c.presCommonPoolHist[c.gameState().PresidentID]
+				if presHist[len(presHist)-1].turn == c.gameState().Turn {
+					commonPool = presHist[len(presHist)-1]
+				}
 			}
 			presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 			c.taxAmount = shared.Resources(content.IntegerData)
@@ -124,6 +129,11 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
 				c.presCommonPoolHist[c.gameState().PresidentID] = make([]CommonPoolInfo, 0)
 
+			} else {
+				presHist := c.presCommonPoolHist[c.gameState().PresidentID]
+				if presHist[len(presHist)-1].turn == c.gameState().Turn {
+					commonPool = presHist[len(presHist)-1]
+				}
 			}
 			presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 			c.commonPoolAllocation = shared.Resources(content.IntegerData)
@@ -178,4 +188,20 @@ func (c *client) checkSanctionTier(score int) int {
 
 	// NoSanction
 	return 5
+}
+
+func Max(i shared.Resources, j shared.Resources) shared.Resources {
+	if i >= j {
+		return i
+	} else {
+		return j
+	}
+}
+
+func Min(i shared.Resources, j shared.Resources) shared.Resources {
+	if i < j {
+		return i
+	} else {
+		return j
+	}
 }
