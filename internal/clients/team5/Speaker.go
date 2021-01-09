@@ -44,13 +44,10 @@ func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 
 // if the real winner is on our bad side, then we choose our best friend
 func (s *speaker) DecideNextJudge(winner shared.ClientID) shared.ClientID {
+	aliveTeams := s.c.getAliveTeams(false) //not including us
 	if s.c.opinions[winner].getScore() < 0 {
-		ballot := s.c.GetVoteForElection(shared.President)
-		for _, clientID := range ballot {
-			if s.c.isClientAlive(clientID) {
-				return clientID
-			}
-		}
+		ballot := s.c.VoteForElection(shared.President, aliveTeams)
+		winner = ballot[0] //choose the first one in Borda Vote
 	}
 	return winner
 }
