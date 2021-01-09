@@ -1,6 +1,8 @@
 package team4
 
 import (
+	"math/rand"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
@@ -28,6 +30,7 @@ func (c *client) evaluateParamVector(decisionVector *mat.VecDense, agent shared.
 }
 
 func (c *client) RequestAllocation() shared.Resources {
+	//TODO: check rules for how much we are allocated
 	allocationGranted := c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0
 	importance := mat.NewVecDense(5, []float64{
@@ -83,7 +86,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	// TODO: Implement needs based resource request.
+	// TODO: Implement needs based on resource request.
 
 	// available observations
 	commonPoolLevel := c.ServerReadHandle.GetGameState().CommonPool
@@ -97,9 +100,13 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 			numClientAlive++
 		}
 	}
-	// TODO: add zero division check
-	resNeeded := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
 
+	resNeeded := shared.Resources(0)
+	if numClientAlive != 0 {
+		resNeeded = commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
+	} else {
+		resNeeded = commonPoolLevel * shared.Resources(rand.Float64())
+	}
 	if ourLifeStatus == shared.Critical {
 		// turnsInCriticalState := c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter //TODO: probably don't need this, only need this in RequestAllocation()
 		resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold - ourResource
