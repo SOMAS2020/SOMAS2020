@@ -308,12 +308,6 @@ func TestCallPresidentElection(t *testing.T) {
 
 			testClient.clientJudge.parent = &testClient
 
-			// if tc.electionRuleInPlay {
-			// 	testServer.RulesInfo = gamestate.RulesContext{
-			// 		CurrentRulesInPlay: registerTestElectionRule(),
-			// 	}
-			// }
-
 			testClient.Initialise(testServer)
 
 			j := testClient.GetClientJudgePointer()

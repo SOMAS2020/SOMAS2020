@@ -17,7 +17,7 @@ func TestGetJudgePointer(t *testing.T) {
 	j := c.GetClientJudgePointer()
 	winner := j.DecideNextPresident(shared.Team1)
 
-	if winner != id {
+	if winner != shared.Team1 {
 		t.Errorf("Got wrong judge pointer. Winner is %v", winner)
 	}
 
