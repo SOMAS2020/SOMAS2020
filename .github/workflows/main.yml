@@ -42,5 +42,6 @@ jobs:
     - name: Test build website
       run: | 
         cd website
+        yarn test
         yarn build
         yarn lint         
