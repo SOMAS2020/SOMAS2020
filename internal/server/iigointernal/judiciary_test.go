@@ -565,7 +565,7 @@ func TestCreateBroadcastsForSanctionThresholds(t *testing.T) {
 						T:           shared.CommunicationInt,
 						IntegerData: 0,
 					},
-					shared.IIGOSanctionScore: {
+					shared.RuleSanctionPenalty: {
 						T:           shared.CommunicationInt,
 						IntegerData: 1,
 					},
@@ -600,7 +600,7 @@ func TestCreateBroadcastsForRuleViolationPenalties(t *testing.T) {
 						T:        shared.CommunicationString,
 						TextData: "inspect_allocation_rule",
 					},
-					shared.IIGOSanctionScore: {
+					shared.RuleSanctionPenalty: {
 						T:           shared.CommunicationInt,
 						IntegerData: int(50),
 					},
@@ -1977,8 +1977,10 @@ func defaultInitJudiciary() judiciary {
 		sanctionRecord:        map[shared.ClientID]shared.IIGOSanctionsScore{},
 		sanctionThresholds:    map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore{},
 		ruleViolationSeverity: map[string]shared.IIGOSanctionsScore{},
-		gameConf:              &config.IIGOConfig{},
-		gameState:             &gamestate,
+		gameConf: &config.IIGOConfig{
+			DefaultSanctionScore: 5,
+		},
+		gameState: &gamestate,
 		monitoring: &monitor{
 			gameState: &gamestate,
 		},
