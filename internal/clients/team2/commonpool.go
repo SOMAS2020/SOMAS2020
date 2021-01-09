@@ -120,13 +120,10 @@ func (c *client) agentThreshold() shared.Resources {
 	} else { //resources for disaster needed not known
 		sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, float64(turn))
 
-		if turn == 1 {
+		if c.gameState().Season == 1 { //not able to predict disasters in first season as no prev known data
 			disasterMagProtection = float64(c.gameState().ClientInfo.Resources / BaseDisasterProtectionDivisor) //initial disaster threshold guess when we start playing
 		}
 		baseThreshold := float64(c.resourceLevelHistory[1] / BaseResourcesToGiveDivisor)
-		if c.gameState().Season == 1 { //keep threshold from first turn
-			disasterMagProtection = baseThreshold
-		}
 		disasterBasedAdjustment := 0
 		if c.checkForDisaster() {
 			if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] { //no resources taken by disaster
@@ -146,6 +143,9 @@ func (c *client) agentThreshold() shared.Resources {
 	if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
 		period := c.gameConfig().DisasterConfig.DisasterPeriod.Value
 		timeRemaining = float64(period - (c.gameState().Turn % period))
+	}
+	if c.gameState().Season == 1 { //not able to predict disasters in first season as no prev known data
+		timeRemaining = InitialDisasterTurnGuess - float64(c.gameState().Turn)
 	} else {
 		sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, float64(turn))
 		turnsLeftConfidence := GetTimeRemainingConfidence(float64(turn), sampleMeanX)
