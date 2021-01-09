@@ -19,6 +19,13 @@ func (c *client) getSeason() uint {
 	return 0
 }
 
+func (c *client) getTurnLength(role shared.Role) uint {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameConfig().IIGOClientConfig.IIGOTermLengths[role]
+	}
+	return 0
+}
+
 func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo, ok bool) {
 	resourceOK := 0
 	taxOK := 0
@@ -61,4 +68,11 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 	ok = resourceOK == 2 && taxOK == 2 && allocationOK == 2
 
 	return retInfo, ok
+}
+
+func boolToFloat(input bool) float64 {
+	if input {
+		return 1
+	}
+	return 0
 }
