@@ -83,8 +83,7 @@ func (c *client) changeForageType() shared.ForageType {
 }
 
 func (c *client) decideContribution() shared.Resources {
-	var safetyBuffer shared.Resources
-	safetyBuffer = c.ServerReadHandle.GetGameConfig().CostOfLiving + c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+	safetyBuffer := c.ServerReadHandle.GetGameConfig().CostOfLiving + c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	if ourResources > safetyBuffer {
 		return shared.Resources(c.clientConfig.multiplier) * (ourResources - safetyBuffer)
