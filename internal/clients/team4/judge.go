@@ -100,14 +100,24 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 // COMPULSORY: decide which islands, if any, to forgive
 func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
 	pardons := map[int][]bool{}
-	maxSanctionTime := int(j.parent.ServerReadHandle.GetGameConfig().IIGOClientConfig.SanctionCacheDepth - 1)
 
-	for timeBack, sanctions := range currentSanctions {
-		pardons[timeBack] = make([]bool, len(sanctions))
-		for clientID := range sanctions {
-			// We can decide based on trust matrix and sanction.timeleft whether we want to pardon our friends earlier
-			if timeBack == maxSanctionTime {
-				pardons[timeBack][clientID] = true
+	// days left on the sanction after which we can even considering pardoning other islands
+	minPardonTime := j.parent.internalParam.minPardonTime
+	// specifies the maximum sanction tier after which we will no longer consider pardoning others
+	maxTierToPardon := j.parent.internalParam.maxTierToPardon
+	// we will only pardon islands which we trust with at least this value
+	minTrustToPardon := j.parent.internalParam.minTrustToPardon
+
+	for key, sanctions := range currentSanctions {
+		pardons[key] = make([]bool, len(sanctions))
+		for index, sanction := range sanctions {
+			considerTime := sanction.TurnsLeft <= minPardonTime
+			considerSeverity := sanction.SanctionTier <= maxTierToPardon
+			considerTrust := minTrustToPardon <= j.parent.getTrust(sanction.ClientID)
+			if considerTime && considerSeverity && considerTrust {
+				pardons[key][index] = true
+			} else {
+				pardons[key][index] = false
 			}
 		}
 	}

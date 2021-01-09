@@ -70,6 +70,11 @@ type internalParameters struct {
 	collaboration float64
 	riskTaking    float64
 	agentsTrust   []float64
+
+	// Judge GetPardonIslands config
+	minPardonTime    int
+	maxTierToPardon  shared.IIGOSanctionsTier
+	minTrustToPardon float64
 }
 
 type personality struct {
@@ -96,6 +101,11 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	}
 
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
+
+	// have some config json file or something?
+	c.internalParam.minPardonTime = 3
+	c.internalParam.maxTierToPardon = shared.SanctionTier3
+	c.internalParam.minTrustToPardon = 0.6
 
 	// numClient := len(shared.TeamIDs)
 	// v := make([]float64, numClient*numClient)
