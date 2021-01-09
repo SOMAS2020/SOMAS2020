@@ -9,8 +9,7 @@ import (
 )
 
 func init() {
-	clientPtr := createClient()
-	baseclient.RegisterClient(ourClientID, clientPtr)
+	baseclient.RegisterClientFactory(ourClientID, func() baseclient.Client { return createClient() })
 }
 
 func createClient() *client {
@@ -35,29 +34,9 @@ func createClient() *client {
 	}
 }
 
-// NewTestClient is a client for testing purposes
-func NewTestClient(clientID shared.ClientID) baseclient.Client {
-	return &client{
-		BaseClient:              baseclient.NewClient(ourClientID),
-		cpRequestHistory:        cpRequestHistory{},
-		cpAllocationHistory:     cpAllocationHistory{},
-		forageHistory:           forageHistory{},
-		resourceHistory:         resourceHistory{},
-		team5President:          president{},
-		giftHistory:             map[shared.ClientID]giftExchange{},
-		forecastHistory:         forecastHistory{},
-		receivedForecastHistory: receivedForecastHistory{},
-		disasterHistory:         disasterHistory{},
-
-		taxAmount:  0,
-		allocation: 0,
-		config:     getClientConfig(),
-	}
-}
-
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle // don't change this
-	c.LocalVariableCache = rules.CopyVariableMap()
+	c.LocalVariableCache = rules.CopyVariableMap(c.gameState().RulesInfo.VariableMap)
 	c.initOpinions()
 	c.initGiftHist()
 	// Assign the thresholds according to the amount of resouces in the first turn
@@ -130,7 +109,6 @@ func (c client) gameState() gamestate.ClientGameState {
 	return c.ServerReadHandle.GetGameState()
 }
 
-//================================================================
 /*	Comunication
 	Gets information on minimum tax amount and cp allocation */
 //=================================================================

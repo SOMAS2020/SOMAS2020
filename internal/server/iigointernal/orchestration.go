@@ -9,9 +9,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-//monitoring holds the monitoring object that is used across turns
-var monitoring monitor
-
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
 
@@ -19,21 +16,24 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 
 	removeDeadBodiesFromOffice(g)
 
-	monitoring.logger = logger
+	var monitoring = monitor{
+		gameState:   g,
+		iigoClients: iIGOClients,
+		logger:      logger,
+	}
+
 	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
 
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
 	var judicialBranch = judiciary{
-		gameState:          nil,
-		gameConf:           nil,
-		JudgeID:            0,
-		evaluationResults:  nil,
-		localSanctionCache: defaultInitLocalSanctionCache(3),
-		localHistoryCache:  defaultInitLocalHistoryCache(3),
-		monitoring:         &monitoring,
-		iigoClients:        iIGOClients,
-		logger:             logger,
+		gameState:         nil,
+		gameConf:          nil,
+		JudgeID:           0,
+		evaluationResults: nil,
+		monitoring:        &monitoring,
+		iigoClients:       iIGOClients,
+		logger:            logger,
 	}
 
 	var legislativeBranch = legislature{
@@ -59,17 +59,17 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	}
 
 	// Increments the budget according to increment_budget_role rules
-	PresidentIncRule, ok := rules.RulesInPlay["increment_budget_president"]
+	PresidentIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_president"]
 	if ok {
 		PresidentBudgetInc := PresidentIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.President] += shared.Resources(PresidentBudgetInc)
 	}
-	JudgeIncRule, ok := rules.RulesInPlay["increment_budget_judge"]
+	JudgeIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_judge"]
 	if ok {
 		JudgeBudgetInc := JudgeIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.Judge] += shared.Resources(JudgeBudgetInc)
 	}
-	SpeakerIncRule, ok := rules.RulesInPlay["increment_budget_speaker"]
+	SpeakerIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_speaker"]
 	if ok {
 		SpeakerBudgetInc := SpeakerIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.Speaker] += shared.Resources(SpeakerBudgetInc)
@@ -219,8 +219,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	presidentMonitored := monitoring.monitorRole(iIGOClients[g.SpeakerID])
 	judgeMonitored := monitoring.monitorRole(iIGOClients[g.PresidentID])
 	speakerMonitored := monitoring.monitorRole(iIGOClients[g.JudgeID])
-	//Save to gameState and clear
-	g.IIGOCache = monitoring.internalIIGOCache
+	// Clear cache ahead of elections
 	monitoring.clearCache()
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
@@ -245,12 +244,6 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
 	if appointPresidentError != nil {
 		return false, "President was not apointed by the Judge. Insufficient budget"
-	}
-
-	oldCacheSave := monitoring.internalIIGOCache
-	monitoring = monitor{
-		internalIIGOCache: oldCacheSave,
-		TermLengths:       gameConf.IIGOConfig.IIGOTermLengths,
 	}
 
 	return true, "IIGO Run Successful"
