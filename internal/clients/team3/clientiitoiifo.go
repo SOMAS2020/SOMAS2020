@@ -354,5 +354,9 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 // DecideGiftAmount is executed at the end of each turn and asks clients how much
 // they wish to fulfill a gift offer they have previously made.
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	return giftOffer
+
+	// Other agent simply look at if we offered them more than suggested, so why not 0.5%
+	// more than we originally intended to offer. This would massively upgrade our opinion.
+	newOffer := giftOffer * 0.005
+	return newOffer
 }
