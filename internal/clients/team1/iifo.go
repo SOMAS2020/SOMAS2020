@@ -94,7 +94,7 @@ func (c client) findConfidence() float64 {
 	magSD := math.Sqrt(totalDisaster.Magnitude / disasterHistorySize)
 
 	// 1.645 is Z value for 90% Confidence Interval
-	// See link: https://www.mathsisfun.com/data/confidence-interval.html
+	// See link for more maths: https://www.mathsisfun.com/data/confidence-interval.html
 	confidenceIntervalX := 1.645 * xSD / (sqrtDisasterHistory * meanDisaster.X)
 	confidenceIntervalY := 1.645 * ySD / (sqrtDisasterHistory * meanDisaster.Y)
 	confidenceIntervalM := 1.645 * magSD / (sqrtDisasterHistory * meanDisaster.Magnitude)
@@ -119,7 +119,7 @@ func (c *client) DisasterNotification(disaster disasters.DisasterReport, effect 
 			c.disasterInfo.meanDisaster.Magnitude = (c.disasterInfo.meanDisaster.Magnitude*float64(numOfDisasters) + disaster.Magnitude) / denominator
 			c.disasterInfo.meanDisasterTurn = (c.disasterInfo.meanDisasterTurn*float64(numOfDisasters) + float64(c.disasterInfo.disasterTurnCounter)) / denominator
 		}
-		// TODO: Improvement by keeping a track of a historgram of daysSinceDisaster -> howManyDisasterHappened.
+		// TODO: Improve this estimation by keeping a track of a historgram of daysSinceDisaster -> howManyDisasterHappened.
 		c.disasterInfo.estimatedDDay = c.gameState().Turn + uint(c.disasterInfo.meanDisasterTurn)
 		c.disasterInfo.disasterTurnCounter = 0
 	}
@@ -136,14 +136,11 @@ func (c *client) DisasterNotification(disaster disasters.DisasterReport, effect 
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	c.disasterInfo.disasterTurnCounter++
 	currTurn := c.gameState().Turn
-
+	confidence := 0.0
 	timeLeft := c.disasterInfo.estimatedDDay - currTurn
 	if c.disasterInfo.estimatedDDay < currTurn {
 		timeLeft = 0
 	}
-
-	// TODO: If timeLeft is less than 0, increase confidence
-	var confidence float64
 
 	if c.disasterInfo.numberOfDisasters == 0 {
 		if timeLeft < 0 {
