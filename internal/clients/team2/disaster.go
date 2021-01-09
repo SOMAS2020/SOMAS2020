@@ -23,8 +23,8 @@ type Outline struct {
 
 // Define constant variables for choosing to find maximum or minimum in GetMinMax()
 const (
-	Min bool = false
-	Max bool = true
+	MinVal bool = false
+	MaxVal bool = true
 )
 
 // Define a global variable that holds the last prediction we shared
@@ -55,10 +55,10 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 			Top:    archipelagoGeography.YMax + relativeOffset.Y,
 		}
 		overlapArchipelagoOutline := Outline{
-			Left:   GetMinMaxCoordinate(Max, shiftedArchipelagoOutline.Left, archipelagoGeography.XMin),
-			Right:  GetMinMaxCoordinate(Min, shiftedArchipelagoOutline.Right, archipelagoGeography.XMax),
-			Bottom: GetMinMaxCoordinate(Max, shiftedArchipelagoOutline.Bottom, archipelagoGeography.YMin),
-			Top:    GetMinMaxCoordinate(Min, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
+			Left:   GetMinMaxCoordinate(MaxVal, shiftedArchipelagoOutline.Left, archipelagoGeography.XMin),
+			Right:  GetMinMaxCoordinate(MinVal, shiftedArchipelagoOutline.Right, archipelagoGeography.XMax),
+			Bottom: GetMinMaxCoordinate(MaxVal, shiftedArchipelagoOutline.Bottom, archipelagoGeography.YMin),
+			Top:    GetMinMaxCoordinate(MinVal, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
 		}
 
 		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Left) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
@@ -74,7 +74,7 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 // GetMinMaxCoordinate returns either the minimum or maximum coordinate of the two supplied, according to the bool argument
 // that is input to the function
 func GetMinMaxCoordinate(minOrMax bool, coordinate1 shared.Coordinate, coordinate2 shared.Coordinate) shared.Coordinate {
-	if (minOrMax == Min && coordinate1 < coordinate2) || (minOrMax == Max && coordinate1 > coordinate2) {
+	if (minOrMax == MinVal && coordinate1 < coordinate2) || (minOrMax == MaxVal && coordinate1 > coordinate2) {
 		return coordinate1
 	}
 	return coordinate2
@@ -82,7 +82,7 @@ func GetMinMaxCoordinate(minOrMax bool, coordinate1 shared.Coordinate, coordinat
 
 // GetMinMaxFloat is the same as GetMinMaxCoordinate but works for floats
 func GetMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
-	if (minOrMax == Min && value1 < value2) || (minOrMax == Max && value1 > value2) {
+	if (minOrMax == MinVal && value1 < value2) || (minOrMax == MaxVal && value1 > value2) {
 		return value1
 	}
 	return value2
@@ -171,7 +171,7 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, uint) {
 // given in the report (can ask Hamish)
 func GetTimeRemainingConfidence(totalTurns float64, sampleMeanX float64) shared.PredictionConfidence {
 	varianceTd := (1 - sampleMeanX) / math.Pow(sampleMeanX, 2)
-	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, varianceTd/(TuningParamK*totalTurns), VarianceCapTimeRemaining) / VarianceCapTimeRemaining)
+	confidence := 100.0 - (100.0 * GetMinMaxFloat(MinVal, varianceTd/(TuningParamK*totalTurns), VarianceCapTimeRemaining) / VarianceCapTimeRemaining)
 	return confidence
 }
 
@@ -193,7 +193,7 @@ func GetMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magn
 // given in the report (can ask Hamish)
 func GetMagnitudeConfidence(totalTurns float64, sampleMeanM float64) shared.PredictionConfidence {
 	varianceM := math.Pow(sampleMeanM, 2)
-	confidence := 100.0 - (100.0 * GetMinMaxFloat(Min, varianceM/(TuningParamG*totalTurns), VarianceCapMagnitude) / VarianceCapMagnitude)
+	confidence := 100.0 - (100.0 * GetMinMaxFloat(MinVal, varianceM/(TuningParamG*totalTurns), VarianceCapMagnitude) / VarianceCapMagnitude)
 	return confidence
 }
 

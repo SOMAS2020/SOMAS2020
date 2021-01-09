@@ -4,7 +4,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
-	"math"
 	"sort"
 )
 
@@ -26,6 +25,14 @@ func (x IslandResourceList) Len() int           { return len(x) }
 func (x IslandResourceList) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 func (x IslandResourceList) Less(i, j int) bool { return x[i].Resources < x[j].Resources }
 
+func Max(i shared.Resources, j shared.Resources) shared.Resources {
+	if i >= j {
+		return i
+	} else {
+		return j
+	}
+}
+
 func (p *President) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
 	var modeMult, requestSum shared.Resources
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
@@ -33,33 +40,53 @@ func (p *President) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	for _, request := range resourceRequest {
 		requestSum += request
 	}
+
+	// If the pool is struggling, scale resources that could be allocated from Common Pool
 	switch p.c.MethodOfPlay() {
 	case 0:
-		modeMult = 0.6 //pool is struggling, give less
+		// pool is scarce - be cautious
+		modeMult = 0.4
 	case 1:
-		modeMult = 0.7 //default
+		// default
+		modeMult = 0.5
 	case 2:
-		modeMult = 0.8 //pool has surplus, give a bit more than usual
+		// pool has a surplus - give more
+		modeMult = 0.6
 	}
 
-	if requestSum < modeMult*availCommonPool || requestSum == 0 { //enough resources to go round
+	resourcesToGive := modeMult * availCommonPool
+
+	// If there are sufficient resources, fulfill every request
+	if requestSum <= resourcesToGive || requestSum == 0 {
 		resourceAllocation = resourceRequest
-	} else { // In this case we only give out resources to critical islands
-		//order islands in terms of most critical to least critical
-		resourcesToGive := modeMult * availCommonPool
+	} else {
+		// In this case we only give out resources to critical islands
+		// order islands in terms of most critical to least critical
 		rankedIslands := rankIslands(p, resourceRequest)
+
+		ResourcesPerCritIsland := resourcesToGive
+		count := 0
+
 		for _, islandID := range rankedIslands {
-			if resourcesToGive-resourceRequest[islandID] > 0 {
-				resourceAllocation[islandID] = shared.Resources(resourceRequest[islandID])
-				resourcesToGive -= resourceRequest[islandID]
-				continue
+			if p.c.gameState().ClientLifeStatuses[islandID] == shared.Critical {
+				count++
 			}
-			if resourcesToGive > 0 {
-				resourceAllocation[islandID] = shared.Resources(resourcesToGive)
-				resourcesToGive = 0
-				break
+		}
+
+		if count > 0 {
+			ResourcesPerCritIsland = resourcesToGive / shared.Resources(count)
+		}
+
+		for _, islandID := range rankedIslands {
+			if p.c.gameState().ClientLifeStatuses[islandID] == shared.Critical {
+				if resourceRequest[islandID] < ResourcesPerCritIsland {
+					resourceAllocation[islandID] = shared.Resources(resourceRequest[islandID])
+				} else {
+					resourceAllocation[islandID] = shared.Resources(ResourcesPerCritIsland)
+				}
+			} else {
+				resourceAllocation[islandID] = shared.Resources(0)
 			}
-			break
 		}
 	}
 
@@ -70,11 +97,11 @@ func (p *President) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	}
 }
 
-// rankIslands returns a slice of island IDs from the lowest resource island (index 0) to highest
-// resource island
+// rankIslands returns island IDs ranked from lowest to highest island resources
 func rankIslands(p *President, resourceRequest map[shared.ClientID]shared.Resources) []shared.ClientID {
 	sortedList := make(IslandResourceList, 0)
 	notReportedList := make(IslandResourceList, 0)
+
 	for id, reportedResource := range p.reportedResources {
 		if reportedResource.Reported {
 			sortedList = append(sortedList, IslandResources{Resources: reportedResource.ReportedAmount, ID: id})
@@ -83,7 +110,6 @@ func rankIslands(p *President, resourceRequest map[shared.ClientID]shared.Resour
 		}
 	}
 
-	// Sort this list
 	sort.Sort(sortedList)
 
 	// Append those islands without reported resources to the end
@@ -94,53 +120,71 @@ func rankIslands(p *President, resourceRequest map[shared.ClientID]shared.Resour
 	for _, islandResources := range sortedList {
 		rankedList = append(rankedList, islandResources.ID)
 	}
+
 	return rankedList
 }
 
-// TODO by Eirik/Hardik
-// We should always pick the rule WE want changed if we are the judge (but not sure how to do this)
+// TODO: We should always pick the rule WE want changed if we are the judge (but not sure how to do this)
 //func (p *President) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.PresidentReturnContent {
 //}
-
-//Used Team3's implementation
+// ***************STRATEGY******************
+// if islands declare resources we compute the average declared resources
+// we can add a penalty (additional tax) to islands that do not declare tax
+// and use the declared resources to compute the avg tax as a base
+// so more like a fine - the fine can be whatever we want
+// if we wanted to it could be 20% of the richest declared resources
+// very little computation in this approach by comparison to the current
+//*********************************************
 func (p *President) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
+
 	p.reportedResources = islandsResources
-	p.c.declaredResources = make(map[shared.ClientID]shared.Resources)
-	for island, report := range islandsResources {
+	totalResourcesReported := shared.Resources(0)
+	totalIslandsReported := shared.Resources(0)
+	avgRepResources := shared.Resources(0)
+	avgResourcesReq := shared.Resources(0)
+
+	for _, report := range islandsResources {
 		if report.Reported {
-			p.c.declaredResources[island] = report.ReportedAmount
+			totalResourcesReported += report.ReportedAmount
+			totalIslandsReported++
 		} else {
-			//TODO: read from params.config file once its available now i just hope they die of satanic attacc <-Team3 comment
-			p.c.declaredResources[island] = shared.Resources(666)
+
 		}
 	}
-	// TODO: why are we not using our helper functions here?
-	gameState := p.c.BaseClient.ServerReadHandle.GetGameState()
-	resourcesRequired := 100.0 - float64(gameState.CommonPool)
-	disaster := p.c.MakeDisasterPrediction().PredictionMade
-	resourcesRequired = (disaster.Magnitude - float64(p.c.gameState().CommonPool)/float64(disaster.TimeLeft))
 
-	AveTax := resourcesRequired / float64(len(p.c.declaredResources))
-
-	var declaredResourcesFloat []float64
-	declaredResourcesMapFloat := make(map[shared.ClientID]shared.Resources)
-	for island, resource := range p.c.declaredResources {
-		declaredResourceFloat := resource
-		declaredResourcesFloat = append(declaredResourcesFloat, float64(declaredResourceFloat))
-		declaredResourcesMapFloat[island] = declaredResourceFloat
+	if totalIslandsReported != 0 {
+		avgRepResources = totalResourcesReported / totalIslandsReported
 	}
 
-	AveDeclaredResources := getAverage(declaredResourcesFloat)
+	// Check resourcesRequired to mitigate a disaster
+	resourcesRequired := 0.0
+	disaster := p.c.MakeDisasterPrediction().PredictionMade
+
+	if float64(disaster.TimeLeft) != 0.0 {
+		resourcesRequired = (disaster.Magnitude - float64(p.c.gameState().CommonPool)/float64(disaster.TimeLeft))
+	} else {
+		resourcesRequired = disaster.Magnitude - float64(p.c.gameState().CommonPool)
+	}
 
 	taxationMap := make(map[shared.ClientID]shared.Resources)
-	for island, resources := range declaredResourcesMapFloat {
-		taxation := shared.Resources(AveTax) + (resources - shared.Resources(AveDeclaredResources)) //*shared.Resources(p.c.params.equity)
-		if island == p.c.BaseClient.GetID() {
-			taxation -= taxation //*shared.Resources(p.c.params.selfishness)
-		}
-		taxation = shared.Resources(math.Max(float64(taxation), 0.0))
-		taxationMap[island] = taxation
+
+	if p.c.getNumAliveClients() != 0 {
+		avgResourcesReq = shared.Resources(resourcesRequired) / shared.Resources(p.c.getNumAliveClients())
 	}
+
+	// assign average tax
+	for island, report := range p.reportedResources {
+		if report.Reported {
+			taxationMap[island] = Max(0.2*report.ReportedAmount, avgResourcesReq)
+		} else {
+			taxationMap[island] = Max(avgRepResources, avgResourcesReq) * 1.2
+		}
+		// the best islands don't pay tax - tax evasion 101
+		if island == p.c.BaseClient.GetID() {
+			taxationMap[island] = 0
+		}
+	}
+
 	return shared.PresidentReturnContent{
 		ContentType: shared.PresidentTaxation,
 		ResourceMap: taxationMap,
@@ -158,22 +202,9 @@ func (p *President) CallSpeakerElection(monitoring shared.MonitorResult, turnsIn
 	if monitoring.Performed && !monitoring.Result {
 		electionsettings.HoldElection = true
 	}
-	if turnsInPower >= 2 { //keep default because speaker is not too relevant
+	if turnsInPower >= 2 {
+		//keep default because speaker is not too relevant
 		electionsettings.HoldElection = true
 	}
 	return electionsettings
-}
-
-// getAverage returns the average of the list
-func getAverage(lst []float64) float64 {
-	if len(lst) == 0 {
-		return 0.0
-	}
-
-	total := 0.0
-	for _, val := range lst {
-		total += val
-	}
-
-	return (float64(total) / float64(len(lst)))
 }

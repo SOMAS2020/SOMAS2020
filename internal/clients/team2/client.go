@@ -10,9 +10,6 @@ import (
 
 const id = shared.Team2
 
-type CommonPoolHistory map[uint]float64
-type ResourcesLevelHistory map[uint]shared.Resources
-
 // IType for Empathy level assigned to each other team
 type EmpathyLevel int
 
@@ -105,23 +102,25 @@ const (
 	TimeLeftIncreaseDisProtection    float64          = 3
 	disasterSoonProtectionMultiplier float64          = 1.2
 	DefaultFirstTurnContribution     shared.Resources = 20
-	NoFreeRideAtStart                float64          = 3
-	SwitchToFreeRideFactor           float64          = 5
-	SwitchToAltruistFactor           float64          = 5
+	NoFreeRideAtStart                uint             = 3
+	SwitchToFreeRideFactor           float64          = 0.5
+	SwitchToAltruistFactor           float64          = 0.5
 	FairShareFactorOfAvToGive        float64          = 1
 	AltruistFactorOfAvToGive         float64          = 2
+	ConfidenceRetrospectFactor       float64          = 0.5
 )
 
 type OpinionHist map[shared.ClientID]Opinion
 type PredictionsHist map[shared.ClientID][]PredictionInfo
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo
 type GiftHist map[shared.ClientID]GiftExchange
-
-type DisasterHistory map[int]DisasterOccurence
-type IslandSanctions map[shared.ClientID][]IslandSanctionInfo
+type CommonPoolHistory map[uint]shared.Resources
+type ResourcesLevelHistory map[uint]shared.Resources
+type DisasterHistory []DisasterOccurence
+type IslandSanctions map[shared.ClientID]IslandSanctionInfo
 type TierLevels map[int]int
 type SanctionHist map[shared.ClientID][]IslandSanctionInfo
-type CommonPoolHist map[shared.ClientID][]CommonPoolInfo
+type PresCommonPoolHist map[shared.ClientID][]CommonPoolInfo
 
 // we have to initialise our client somehow
 type client struct {
@@ -147,7 +146,7 @@ type client struct {
 	tierLevels           TierLevels
 	sanctionHist         SanctionHist
 
-	commonPoolHist CommonPoolHist
+	presCommonPoolHist PresCommonPoolHist
 
 	declaredResources map[shared.ClientID]shared.Resources
 }
@@ -172,7 +171,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		sanctionHist:         SanctionHist{},
 		tierLevels:           TierLevels{},
 		islandSanctions:      IslandSanctions{},
-		commonPoolHist:       CommonPoolHist{},
+		presCommonPoolHist:   PresCommonPoolHist{},
 		disasterHistory:      DisasterHistory{},
 
 		//TODO: implement config to gather all changeable parameters in one place
@@ -187,17 +186,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.LocalVariableCache = rules.CopyVariableMap(c.ServerReadHandle.GetGameState().RulesInfo.VariableMap)
 	// loop through each island (there might not be 6)
 	for clientID := range c.gameState().ClientLifeStatuses {
-		// set the confidence to 50 and initialise any other stuff
-		Histories := make(map[Situation][]int)
-		Histories["President"] = []int{50}
-		Histories["RoleOpinion"] = []int{50}
-		Histories["Judge"] = []int{50}
-		Histories["Foraging"] = []int{50}
-		Histories["Gifts"] = []int{50}
-		c.opinionHist[clientID] = Opinion{
-			Histories:    Histories,
-			Performances: map[Situation]ExpectationReality{},
-		}
 		c.giftHist[clientID] = GiftExchange{IslandRequest: map[uint]GiftInfo{},
 			OurRequest: map[uint]GiftInfo{},
 		}

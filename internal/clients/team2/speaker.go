@@ -18,16 +18,19 @@ func (s *Speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 	chosenClients = append(chosenClients, s.c.GetID())
 
 	for _, islandID := range aliveClients {
-		lastSanctionTurn := s.c.islandSanctions[islandID][len(s.c.islandSanctions[islandID])-1].Turn
-
 		// do not add our own island twice
 		if islandID == s.c.GetID() {
 			continue
 		}
 
-		if s.c.gameState().Turn <= 10 || (lastSanctionTurn <= s.c.gameState().Turn-10) {
+		if lastSanctionTurn, ok := s.c.islandSanctions[islandID]; ok {
+			if s.c.gameState().Turn <= 10 || lastSanctionTurn.Turn <= s.c.gameState().Turn-10 {
+				chosenClients = append(chosenClients, islandID)
+			}
+		} else {
 			chosenClients = append(chosenClients, islandID)
 		}
+
 	}
 
 	// chosen client is never null - sneaky fix

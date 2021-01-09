@@ -71,7 +71,6 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 }
 
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
-//TODO: add the trustworthiness and state consideration
 func (j *Judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
 	Pardoned := make(map[int][]bool)
 	for i, List := range currentSanctions {
@@ -117,8 +116,6 @@ func (j *Judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 	return electionsettings
 }
 
-// TODO: add our trustworthiness
-// TODO: Carla appreciation this is so sneaky we love it
 func (j *Judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	// If the election winner's trust score is okay, we will declare them as the next President.
 	// If not, we will replace it with the island who's trust score is higher

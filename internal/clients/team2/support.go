@@ -1,6 +1,7 @@
 package team2
 
 import (
+	"math"
 	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -19,10 +20,11 @@ func (c *client) criticalStatus() bool {
 
 //TODO: how does this work?
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
-	c.disasterHistory[len(c.disasterHistory)] = DisasterOccurence{
+	disaster := DisasterOccurence{
 		Turn:   c.gameState().Turn,
 		Report: report,
 	}
+	c.disasterHistory = append(c.disasterHistory, disaster)
 }
 
 //checkOthersCrit checks if anyone else is critical
@@ -60,45 +62,40 @@ func (c *client) getNumAliveClients() int {
 
 // MethodOfPlay determines which state we are in: 0=altruist, 1=fair sharer and 2= free rider
 func (c *client) MethodOfPlay() int {
-	ResourceHistory := c.commonPoolHistory
-	turn := c.gameState().Turn
+	currTurn := c.gameState().Turn
 
 	// how many turns at the beginning we cannot free ride for
 	// TODO: This shouldn't be a float64 it should be a uint
-	noFreeride := NoFreeRideAtStart
+	minTurnsUntilFreeRide := NoFreeRideAtStart
 	// what factor the common pool must increase by for us to considered free riding
-	freeride := SwitchToFreeRideFactor
+	freeRide := shared.Resources(SwitchToFreeRideFactor)
 	// what factor the common pool must drop by for us to consider altruist
-	altfactor := SwitchToAltruistFactor
+	altFactor := SwitchToAltruistFactor
 
-	// use default strategy if there is no historical data then
-	if turn == 1 {
-		return 1
-	}
+	runMeanCommonPool := shared.Resources(0.0)
+	div := shared.Resources(0.0)
 
-	prevTurn := turn - 1
-	prevTurn2 := turn - 2
-
-	// Decreasing common pool means consider altruist
-	if ResourceHistory[prevTurn] > (ResourceHistory[turn] * altfactor) {
-		if ResourceHistory[prevTurn2] > (ResourceHistory[prevTurn] * altfactor) {
-			// altruist
-			return 0
+	for pastTurn, resources := range c.commonPoolHistory {
+		if pastTurn == currTurn {
+			continue
 		}
+		diffTurn := shared.Resources(c.gameState().Turn - pastTurn)
+		div++
+
+		runMeanCommonPool += (resources/(diffTurn+1) - runMeanCommonPool) / div
 	}
 
-	// We will not allow ourselves to use free riding at the start of the game
-	if float64(turn) > noFreeride {
-		if (ResourceHistory[prevTurn] * freeride) < ResourceHistory[turn] {
-			// two large jumps then we free ride
-			if (ResourceHistory[prevTurn2] * freeride) < ResourceHistory[prevTurn] {
-				// free rider
-				return 2
-			}
-		}
+	changeCommonPool := (c.commonPoolHistory[currTurn] - runMeanCommonPool) / runMeanCommonPool
+
+	if changeCommonPool < 0 && math.Abs(float64(changeCommonPool)) > altFactor {
+		//altruist
+		return 0
+	} else if changeCommonPool > 0 && changeCommonPool > freeRide && currTurn > minTurnsUntilFreeRide {
+		// Free rider
+		return 2
 	}
 
-	// Else if neither
+	// Default case: Fair Sharer
 	return 1
 }
 
@@ -109,71 +106,47 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		switch contentType {
 		case shared.IIGOTaxDecision:
 			var commonPool CommonPoolInfo
-			presHist := c.commonPoolHist[c.gameState().PresidentID]
+			if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
+				c.presCommonPoolHist[c.gameState().PresidentID] = make([]CommonPoolInfo, 0)
+
+			}
+			presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 			c.taxAmount = shared.Resources(content.IntegerData)
 
-			// TODO: this makes no sense - if the presHistory doesn't exist we would still append but just append to an empty object - Yannis
-			// TODO: WTF is this code carla? - Hardik
-			if len(presHist) != 0 {
-				presHist[len(presHist)-1].tax = shared.Resources(content.IntegerData)
-				presHist[len(presHist)-1].turn = c.gameState().Turn
-			} else {
-				commonPool = CommonPoolInfo{
-					tax:  shared.Resources(content.IntegerData),
-					turn: c.gameState().Turn,
-				}
-				// Todo: this was being set without ever being assigned a value
-				c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+			commonPool = CommonPoolInfo{
+				tax:  shared.Resources(content.IntegerData),
+				turn: c.gameState().Turn,
 			}
+			c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+
 		case shared.IIGOAllocationDecision:
 			var commonPool CommonPoolInfo
-			presHist := c.commonPoolHist[c.gameState().PresidentID]
-			// TODO: Same issue as above
-			if len(presHist) != 0 {
-				presHist[len(presHist)-1].allocatedByPres = shared.Resources(content.IntegerData)
-				presHist[len(presHist)-1].turn = c.gameState().Turn
-			} else {
-				commonPool = CommonPoolInfo{
-					allocatedByPres: shared.Resources(content.IntegerData),
-					turn:            c.gameState().Turn,
-				}
-				c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
-			}
-			// TODO: Commmon pool is appended without ever being assigned a value
+			if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
+				c.presCommonPoolHist[c.gameState().PresidentID] = make([]CommonPoolInfo, 0)
 
+			}
+			presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 			c.commonPoolAllocation = shared.Resources(content.IntegerData)
-		// TODO: Not sure what's going on with this - are we adding it?
-		// case shared.RuleName:
-		// 	currentRuleID := content.TextData
-		// 	// Rule voting
-		// 	if _, ok := data[shared.RuleVoteResult]; ok {
-		// 		if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
-		// 			c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
-		// 			c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
-		// 		} else {
-		// 			c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
-		// 		}
-		// 	}
-		// 	// Rule sanctions
-		// 	if _, ok := data[shared.IIGOSanctionScore]; ok {
-		// 		// c.clientPrint("Received sanction info: %+v", data)
-		// 		c.iigoInfo.sanctions.rulePenalties[currentRuleID] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
-		// 	}
-
-		// TODO: decide if this is worth it
-		// case shared.RoleMonitored:
-		// 	c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
-		// 	c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
-		case shared.SanctionClientID:
-			sanction := IslandSanctionInfo{
-				Turn: c.gameState().Turn,
-				Tier: data[shared.IIGOSanctionTier].IntegerData,
+			commonPool = CommonPoolInfo{
+				allocatedByPres: shared.Resources(content.IntegerData),
+				turn:            c.gameState().Turn,
 			}
-			// TODO: why are we appending to this map instead of setting the sanction value for the island?
-			c.islandSanctions[shared.ClientID(content.IntegerData)] = append(c.islandSanctions[shared.ClientID(content.IntegerData)], sanction)
+			c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+
+		case shared.SanctionClientID:
+			islandSanc := IslandSanctionInfo{
+				Turn:   c.gameState().Turn,
+				Tier:   (content.IntegerData),
+				Amount: 0,
+			}
+			c.islandSanctions[shared.ClientID(content.IntegerData)] = islandSanc
 		case shared.IIGOSanctionTier:
 			c.tierLevels[content.IntegerData] = data[shared.IIGOSanctionScore].IntegerData
 		case shared.SanctionAmount:
+			if _, ok := c.sanctionHist[c.gameState().JudgeID]; !ok {
+				c.sanctionHist[c.gameState().JudgeID] = make([]IslandSanctionInfo, 0)
+
+			}
 			sanction := IslandSanctionInfo{
 				Turn:   c.gameState().Turn,
 				Tier:   c.checkSanctionTier(content.IntegerData),
@@ -182,6 +155,8 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			// Add a new sanction to the sanction hist
 			sanctions := c.sanctionHist[c.gameState().JudgeID]
 			c.sanctionHist[c.gameState().JudgeID] = append(sanctions, sanction)
+		default:
+			// will NOT execute logic for other conditions
 		}
 	}
 }

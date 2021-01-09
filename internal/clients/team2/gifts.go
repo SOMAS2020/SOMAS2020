@@ -114,8 +114,9 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 				trustRank = append(trustRank, islandConf)
 			}
 		}
-
-		sort.Sort(trustRank)
+		if len(trustRank) != 0 {
+			sort.Sort(trustRank)
+		}
 
 		// TODO: need to factor in the size of a request in decisions - above we were just sorting them by confidence
 		for i := 0; i < len(trustRank); i++ {
@@ -160,9 +161,13 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 			AcceptedAmount: shared.Resources(offer),
 			Reason:         shared.Accept,
 		}
+		weRequested := shared.GiftRequest(0)
+		if val, ok := c.giftHist[client].OurRequest[turn]; ok {
+			weRequested = val.requested
+		}
 		newGiftRequest := GiftInfo{
 			// it could potentially crash if we receive a gift we didn't ask for... this entry would be a null pointer
-			requested: c.giftHist[client].OurRequest[turn].requested,
+			requested: weRequested,
 			gifted:    shared.GiftOffer(responses[client].AcceptedAmount),
 			reason:    shared.AcceptReason(responses[client].AcceptedAmount),
 		}
@@ -222,11 +227,11 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
 	// Give no more than half of amount before we reach threshold
-	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / 2
-	if giftOffer <= maxToGive {
+	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / (1 / (methodConfGift(c) / 2))
+	if maxToGive > 0 || giftOffer <= maxToGive {
 		return giftOffer
 	}
-	return shared.Resources(0.0)
+	return shared.Resources(0)
 }
 
 func methodConfGift(c *client) shared.Resources {

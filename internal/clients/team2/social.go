@@ -17,18 +17,35 @@ func (p IslandTrustMap) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // func (p IslandTrustMap) Less(i, j int) bool { return p[i].trust < p[j].trust }
 
+func (c *client) initialiseOpinionForIsland(otherIsland shared.ClientID) {
+	Histories := make(map[Situation][]int)
+	Histories["President"] = []int{50}
+	Histories["RoleOpinion"] = []int{50}
+	Histories["Judge"] = []int{50}
+	Histories["Foraging"] = []int{50}
+	Histories["Gifts"] = []int{50}
+	c.opinionHist[otherIsland] = Opinion{
+		Histories:    Histories,
+		Performances: map[Situation]ExpectationReality{},
+	}
+}
+
 // Calculates the confidence we have in an island based on our past experience with them
 // Depending on the situation we need to judge, we look at a different history
 // The values in the histories should be updated in retrospect
 func (c *client) confidence(situation Situation, otherIsland shared.ClientID) int {
+
+	if _, ok := c.opinionHist[otherIsland]; !ok {
+		c.initialiseOpinionForIsland(otherIsland)
+		return 50
+	}
+
 	islandHist := c.opinionHist[otherIsland].Histories
 	situationHist := islandHist[situation]
 	sum := 0
 	div := 0
 	// TODO: change list iteration to just look at the turns we have info abt
-	if len(situationHist) == 0 {
-		return 50
-	}
+
 	for i := len(situationHist); i > 0; i-- {
 		sum += (situationHist[i-1]) * i
 		div += i
@@ -57,25 +74,25 @@ func (c *client) setLimits(confidence int) int {
 // performance with the reality
 // Should be called after an action (with an island) has occurred
 func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.ClientID) {
-	islandHist := c.opinionHist[otherIsland].Histories
-	situationHist := islandHist[situation]
+	if opinion, ok := c.opinionHist[otherIsland]; !ok {
+		islandHist := opinion.Histories
+		situationHist := islandHist[situation]
 
-	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
-	situationExp := islandSituationPerf.exp
-	situationReal := islandSituationPerf.real
-	confidenceFactor := 0.5 // Factor by which the confidence increases/decreases, can be changed
+		islandSituationPerf := opinion.Performances[situation]
+		situationExp := islandSituationPerf.exp
+		situationReal := islandSituationPerf.real
 
-	var updatedHist []int
-	//TODO: make sure to check the range of values coz that might affect percentagediff when situationExp is 0
-	percentageDiff := situationReal
-	if situationExp != 0 {
-		// between -100 and 100
-		percentageDiff = 100 * (situationReal - situationExp) / situationExp
+		var updatedHist []int
+		percentageDiff := situationReal
+		if situationExp != 0 { // Forgiveness principle: if we had 0 expectation, give them a chance to improve
+			// between -100 and 100
+			percentageDiff = 100 * (situationReal - situationExp) / situationExp
+		}
+		newConf := int(float64(percentageDiff)*ConfidenceRetrospectFactor + float64(situationExp))
+		updatedHist = append(situationHist, c.setLimits(newConf))
+
+		c.opinionHist[otherIsland].Histories[situation] = updatedHist
 	}
-	newConf := int(float64(percentageDiff)*confidenceFactor + float64(situationExp))
-	updatedHist = append(situationHist, c.setLimits(newConf))
-
-	c.opinionHist[otherIsland].Histories[situation] = updatedHist
 }
 
 // The implementation of this function (if needed) depends on where (and how) the confidence
@@ -110,7 +127,7 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	turn := c.gameState().Turn
 	pastConfidence := c.confidence("Gifts", island)
 
-	var bufferLen = 0
+	var bufferLen int
 	if turn < 10 {
 		bufferLen = int(turn)
 	} else {
@@ -122,16 +139,21 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	runMeanWeReq := 0.0
 	runMeanWeDon := 0.0
 
-	ourReqMap := c.giftHist[island].OurRequest
-	theirReqMap := c.giftHist[island].IslandRequest
+	var ourReqMap, theirReqMap map[uint]GiftInfo
+	if hist, ok := c.giftHist[island]; ok {
+		ourReqMap = hist.OurRequest
+		theirReqMap = hist.IslandRequest
+	} else {
+		return pastConfidence
+	}
 
 	ourKeys := make([]int, 0)
-	for k, _ := range ourReqMap {
+	for k := range ourReqMap {
 		ourKeys = append(ourKeys, int(k))
 	}
 
 	theirKeys := make([]int, 0)
-	for k, _ := range theirReqMap {
+	for k := range theirReqMap {
 		theirKeys = append(theirKeys, int(k))
 	}
 
@@ -205,7 +227,7 @@ func (c *client) updatePresidentTrust() {
 	runMeanWeAllocated := shared.Resources(0.0)
 	runMeanWeTake := shared.Resources(0.0)
 
-	for i, commonPool := range c.commonPoolHist[currPres] {
+	for i, commonPool := range c.presCommonPoolHist[currPres] {
 		turn := shared.Resources(c.gameState().Turn - commonPool.turn)
 		div := shared.Resources(i + 1)
 

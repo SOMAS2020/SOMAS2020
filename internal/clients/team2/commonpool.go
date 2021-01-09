@@ -8,7 +8,7 @@ import (
 //CommonPoolUpdate Records history of common pool levels
 func CommonPoolUpdate(c *client, commonPoolHistory CommonPoolHistory) {
 	currentPool := c.gameState().CommonPool
-	c.commonPoolHistory[c.gameState().Turn] = float64(currentPool)
+	c.commonPoolHistory[c.gameState().Turn] = currentPool
 }
 
 //Records our resources level each turn
@@ -21,7 +21,7 @@ func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHis
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	request := determineAllocation(c) * shared.Resources(methodConfPool(c))
 	var commonPool CommonPoolInfo
-	presHist := c.commonPoolHist[c.gameState().PresidentID]
+	presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 	if len(presHist) != 0 {
 		presHist[len(presHist)-1].requestedToPres = request
 		presHist[len(presHist)-1].turn = c.gameState().Turn
@@ -31,7 +31,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 			turn:            c.gameState().Turn,
 		}
 	}
-	c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+	c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
 	return request
 }
 
@@ -52,7 +52,7 @@ func determineAllocation(c *client) shared.Resources {
 func (c *client) RequestAllocation() shared.Resources {
 	request := determineAllocation(c) * shared.Resources(methodConfPool(c))
 	var commonPool CommonPoolInfo
-	presHist := c.commonPoolHist[c.gameState().PresidentID]
+	presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 	if len(presHist) != 0 {
 		presHist[len(presHist)-1].takenFromCP = request
 		presHist[len(presHist)-1].turn = c.gameState().Turn
@@ -62,7 +62,7 @@ func (c *client) RequestAllocation() shared.Resources {
 			turn:        c.gameState().Turn,
 		}
 	}
-	c.commonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+	c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
 	if c.criticalStatus() && c.commonPoolAllocation < request {
 		return request
 	}
@@ -189,31 +189,31 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 	return shared.Resources(fairSharer)
 }
 
-func (c *client) determineAltruist(turn uint) float64 { //identical to fair sharing but a larger factor to multiple the average contribution by
+func (c *client) determineAltruist(turn uint) shared.Resources { //identical to fair sharing but a larger factor to multiple the average contribution by
 	ResourceHistory := c.commonPoolHistory
-	tuneAlt := AltruistFactorOfAvToGive //what factor of the average to contribute when being altruistic, will be much higher than fair sharing
-	for j := turn; j > 0; j-- {         //we are trying to find the most recent instance of the common pool increasing and then use that value
+	tuneAlt := shared.Resources(AltruistFactorOfAvToGive) //what factor of the average to contribute when being altruistic, will be much higher than fair sharing
+	for j := turn; j > 0; j-- {                           //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tuneAlt
+			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAlt
 		}
 	}
 	return 0
 }
 
-func (c *client) determineFair(turn uint) float64 { //can make more sophisticated! Right now just contribute the average, default matters the most
+func (c *client) determineFair(turn uint) shared.Resources { //can make more sophisticated! Right now just contribute the average, default matters the most
 	ResourceHistory := c.commonPoolHistory
-	tuneAverage := FairShareFactorOfAvToGive //what factor of the average to contribute when fair sharing, default is 1 to give the average
-	for j := turn; j > 0; j-- {              //we are trying to find the most recent instance of the common pool increasing and then use that value
+	tuneAverage := shared.Resources(FairShareFactorOfAvToGive) //what factor of the average to contribute when fair sharing, default is 1 to give the average
+	for j := turn; j > 0; j-- {                                //we are trying to find the most recent instance of the common pool increasing and then use that value
 		prevTurn := j - 1
 		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / float64(c.getNumAliveClients())) * tuneAverage
+			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAverage
 		}
 	}
 	return 0
 }
 
-func methodConfPool(c *client) float64 {
+func methodConfPool(c *client) shared.Resources {
 	var modeMult float64
 	switch c.MethodOfPlay() {
 	case 0:
@@ -223,7 +223,7 @@ func methodConfPool(c *client) float64 {
 	case 2:
 		modeMult = 1.2 //when free riding we mostly take from the pool
 	}
-	return modeMult
+	return shared.Resources(modeMult)
 }
 
 func (c *client) SanctionHopeful() shared.Resources {
