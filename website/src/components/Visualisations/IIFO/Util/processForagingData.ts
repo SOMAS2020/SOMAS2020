@@ -1,18 +1,7 @@
 import { OutputJSONType } from '../../../../consts/types'
+import { ForagingTurn, ForagingHistory } from './ForagingTypes'
 
-const processForagingData = (data: OutputJSONType) => {
-    let ForagingTurn: {
-        turn: number
-        deerInputResources: number
-        deerNumParticipants: number
-        deerNumCaught: number
-        deerTotalUtility: number
-        fishInputResources: number
-        fishNumParticipants: number
-        fishNumCaught: number
-        fishTotalUtility: number
-    }
-
+const processForagingData = (data: OutputJSONType): ForagingHistory => {
     // TODO: poor form: probably don't need all these interemediate datastructures
     const fishTurns: number[] = []
     const deerTurns: number[] = []
@@ -54,7 +43,7 @@ const processForagingData = (data: OutputJSONType) => {
     // Have to check the type of Foraging History Matches the expected type
     // TODO: remove intermediate fish/deer histories and do it all in one step
     // Cannot show individual catch sizes for now
-    const acc: typeof ForagingTurn[] = []
+    const acc: ForagingTurn[] = []
 
     deerTurns.forEach((turn) => {
         acc.push({
