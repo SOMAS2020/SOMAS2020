@@ -285,24 +285,3 @@ func (l *legislature) incurServiceCharge(cost shared.Resources) bool {
 	}
 	return ok
 }
-
-func sameIslandIDSlice(x, y []shared.ClientID) bool {
-	if len(x) != len(y) {
-		return false
-	}
-	diff := make(map[shared.ClientID]int, len(x))
-	for _, _x := range x {
-		//Count instances of _x
-		diff[_x]++
-	}
-	for _, _y := range y {
-		if _, ok := diff[_y]; !ok {
-			return false
-		}
-		diff[_y] -= 1
-		if diff[_y] == 0 {
-			delete(diff, _y)
-		}
-	}
-	return len(diff) == 0
-}
