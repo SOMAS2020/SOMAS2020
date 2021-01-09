@@ -6,7 +6,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -165,16 +164,16 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		case shared.SanctionClientID:
 			sanction := IslandSanctionInfo{
 				Turn: c.gameState().Turn,
-				Tier: roles.IIGOSanctionTier(data[shared.IIGOSanctionTier].IntegerData),
+				Tier: data[shared.IIGOSanctionTier].IntegerData,
 			}
 			c.islandSanctions[shared.ClientID(content.IntegerData)] = append(c.islandSanctions[shared.ClientID(content.IntegerData)], sanction)
 		case shared.IIGOSanctionTier:
-			c.tierLevels[roles.IIGOSanctionTier(content.IntegerData)] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+			c.tierLevels[content.IntegerData] = data[shared.IIGOSanctionScore].IntegerData
 		case shared.SanctionAmount:
 			sanction := IslandSanctionInfo{
 				Turn:   c.gameState().Turn,
-				Tier:   c.checkSanctionTier(roles.IIGOSanctionScore(content.IntegerData)),
-				Amount: roles.IIGOSanctionScore(content.IntegerData),
+				Tier:   c.checkSanctionTier(content.IntegerData),
+				Amount: content.IntegerData,
 			}
 			sanctions := c.sanctionHist[c.gameState().JudgeID]
 			c.sanctionHist[c.gameState().JudgeID] = append(sanctions, sanction)
@@ -183,25 +182,19 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 
 }
 
-type TierList []roles.IIGOSanctionTier
+func (c *client) checkSanctionTier(score int) int {
 
-func (p TierList) Len() int           { return len(p) }
-func (p TierList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p TierList) Less(i, j int) bool { return p[i] < p[j] }
-
-func (c *client) checkSanctionTier(score roles.IIGOSanctionScore) roles.IIGOSanctionTier {
-
-	var keys TierList
+	var keys []int
 	for k := range c.tierLevels {
 		keys = append(keys, k)
 	}
 
-	sort.Sort(keys)
+	sort.Ints(keys)
 
 	for tier := range keys {
-		if score >= c.tierLevels[roles.IIGOSanctionTier(tier)] {
-			return roles.IIGOSanctionTier(tier)
+		if score >= c.tierLevels[tier] {
+			return tier
 		}
 	}
-	return roles.NoSanction
+	return 5 // NoSanction
 }

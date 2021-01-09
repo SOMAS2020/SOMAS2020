@@ -4,8 +4,6 @@ import (
 	"math"
 	"sort"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -237,11 +235,11 @@ func (c *client) updateJudgeTrust() {
 	numConsecTier := 0
 	numDiffTiers := 0
 	avgTurnsPerTier := 0
-	runMeanScore := roles.IIGOSanctionScore(0.0)
+	runMeanScore := 0
 
 	for i, sanction := range c.sanctionHist[currJudge] {
-		turn := roles.IIGOSanctionScore(c.gameState().Turn - sanction.Turn)
-		div := roles.IIGOSanctionScore(i + 1)
+		turn := int(c.gameState().Turn - sanction.Turn)
+		div := i + 1
 
 		runMeanScore += (sanction.Amount/turn - runMeanScore) / div
 		if prevTier == sanction.Tier {
@@ -259,7 +257,7 @@ func (c *client) updateJudgeTrust() {
 	// We want the judge to be "fair"
 
 	lastScore := c.sanctionHist[currJudge][len(c.sanctionHist[currJudge])-1]
-	percChangeScore := int(100 * (lastScore.Amount - runMeanScore) / runMeanScore)
+	percChangeScore := int(100 * int((lastScore.Amount-runMeanScore)/runMeanScore))
 	reality := c.setLimits(100 - (avgTurnsPerTier * percChangeScore))
 
 	islandSituationPerf := c.opinionHist[currJudge].Performances["Judge"]

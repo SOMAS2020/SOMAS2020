@@ -56,12 +56,11 @@ func (c *client) decideHuntingLikelihood() float64 { //will move the threshold, 
 //EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
 func (c *client) otherHunters() float64 { //will return a value of how many agents will likely hunt
 
-	HuntNum := 0.00                                                //this the average number of likely hunters
-	for id, lifeStatus := range c.gameState().ClientLifeStatuses { //loop through every agent
-		if lifeStatus != shared.Dead { //client is dead ignore their decisions
-			for _, forageInfo := range c.foragingReturnsHist[id] { //loop through the agents array and add their average to HuntNum
-				HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(c.foragingReturnsHist[id])) //add the agents decision to HuntNum and then average
-			}
+	HuntNum := 0.00 //this the average number of likely hunters
+	aliveClients := c.getAliveClients()
+	for _, id := range aliveClients { //loop through every agent
+		for _, forageInfo := range c.foragingReturnsHist[id] { //loop through the agents array and add their average to HuntNum
+			HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(c.foragingReturnsHist[id])) //add the agents decision to HuntNum and then average
 		}
 	}
 	return HuntNum
@@ -70,15 +69,12 @@ func (c *client) otherHunters() float64 { //will return a value of how many agen
 //TODO: This function needs to be changed according to Eirik, I have no idea how
 func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 	// updates our foragingReturnsHist with the decisions everyone made
-	roi := map[shared.ClientID]shared.Resources{}
-	for _, val := range neighbourForaging {
-		/*c.foragingReturnsHist[val.SharedFrom].append(
-		shared.ForageInfo{ DecisionMade: val.DecisionMade, //this needs to change
-			ResourcesObtained: val.ResourcesObtained})
-		*/
-		if val.DecisionMade.Type == shared.DeerForageType {
-			roi[val.SharedFrom] = val.ResourceObtained / shared.Resources(val.DecisionMade.Contribution) * 100
+	for _, info := range neighbourForaging {
+		forageInfo := ForageInfo{
+			DecisionMade:      info.DecisionMade,
+			ResourcesObtained: info.ResourceObtained,
 		}
+		c.foragingReturnsHist[info.SharedFrom] = append(c.foragingReturnsHist[info.SharedFrom], forageInfo)
 	}
 }
 

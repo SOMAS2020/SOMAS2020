@@ -4,7 +4,6 @@ package team2
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -78,8 +77,8 @@ type PredictionInfo struct {
 
 type IslandSanctionInfo struct {
 	Turn   uint
-	Tier   roles.IIGOSanctionTier
-	Amount roles.IIGOSanctionScore
+	Tier   int
+	Amount int
 }
 
 type CommonPoolInfo struct {
@@ -110,7 +109,7 @@ type GiftHist map[shared.ClientID]GiftExchange
 
 type DisasterHistory map[int]DisasterOccurence
 type IslandSanctions map[shared.ClientID][]IslandSanctionInfo
-type TierLevels map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
+type TierLevels map[int]int
 type SanctionHist map[shared.ClientID][]IslandSanctionInfo
 type CommonPoolHist map[shared.ClientID][]CommonPoolInfo
 
@@ -140,9 +139,7 @@ type client struct {
 
 	commonPoolHist CommonPoolHist
 
-	//TODO: copied in from team3
-	declaredResources   map[shared.ClientID]shared.Resources
-	disasterPredictions []map[shared.ClientID]shared.DisasterPrediction
+	declaredResources map[shared.ClientID]shared.Resources
 }
 
 func init() {
