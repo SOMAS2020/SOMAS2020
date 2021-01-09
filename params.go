@@ -304,6 +304,12 @@ var (
 		"IIGO action cost for appointNextJudge action",
 	)
 
+	iigoDefaultSanctionScore = flag.Uint(
+		"iigoDefaultSanctionScore",
+		5,
+		"Default penalty score for breaking a rule",
+	)
+
 	iigoSanctionCacheDepth = flag.Uint(
 		"iigoSanctionCacheDepth",
 		3,
@@ -344,12 +350,6 @@ var (
 		"iigoTermLengthJudge",
 		4,
 		"Length of the term for the Judge",
-	)
-
-	iigoDefaultSanctionScore = flag.Uint(
-		"iigoDefaultSanctionScore",
-		5,
-		"Default penalty score for breaking a rule",
 	)
 
 	startWithRulesInPlay = flag.Bool(
