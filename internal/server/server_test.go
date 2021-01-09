@@ -99,7 +99,7 @@ func TestSOMASServerFactoryInitialisesClients(t *testing.T) {
 	}
 }
 
-func TestAllocationRequests(t *testing.T) {
+func TestRandomAssign(t *testing.T) {
 	iterations := 10
 	cases := []struct {
 		name  string
