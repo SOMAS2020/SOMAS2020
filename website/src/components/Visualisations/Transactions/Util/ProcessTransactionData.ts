@@ -11,34 +11,84 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
         data.GameStates[data.GameStates.length - 1].IIGOHistory
     )
     // For each of these arrayed tuples, we have [turnNumber: <"pair events">[]]
-    IIGOHistory.forEach(([_, exchanges]) => {
+    IIGOHistory.forEach(([turnNumber, exchanges]) => {
         if (exchanges) {
             exchanges.forEach((teamAction) => {
                 const type = teamAction.Pairs[0].VariableName
-                let transaction: Transaction
+                let transaction: Transaction | undefined
                 // There are three types of transactions
                 // the target could be the client id depending on the type of team action
                 // else accounts for SanctionPaid and IslandTaxContribution
-                if (type === 'IslandAllocation') {
-                    transaction = {
-                        from: TeamName.CommonPool,
-                        to:
-                            TeamName[
-                                teamAction.ClientID as keyof typeof TeamName
-                            ],
-                        amount: teamAction.Pairs[0].Values[0],
-                    }
-                } else {
-                    transaction = {
-                        from:
-                            TeamName[
-                                teamAction.ClientID as keyof typeof TeamName
-                            ],
-                        to: TeamName.CommonPool,
-                        amount: teamAction.Pairs[0].Values[0],
-                    }
+                switch (type) {
+                    case 'IslandAllocation':
+                    case 'AllocationMade':
+                        transaction = {
+                            from: TeamName.CommonPool,
+                            to:
+                                TeamName[
+                                    teamAction.ClientID as keyof typeof TeamName
+                                ],
+                            amount: teamAction.Pairs[0].Values[0],
+                        }
+                        break
+                    case 'SpeakerPayment':
+                        transaction = {
+                            from:
+                                TeamName[
+                                    teamAction.ClientID as keyof typeof TeamName
+                                ],
+                            to:
+                                TeamName[
+                                    data.GameStates[Number(turnNumber)]
+                                        .SpeakerID as keyof typeof TeamName
+                                ],
+                            amount: teamAction.Pairs[0].Values[0],
+                        }
+                        break
+                    case 'JudgePayment':
+                        transaction = {
+                            from:
+                                TeamName[
+                                    teamAction.ClientID as keyof typeof TeamName
+                                ],
+                            to:
+                                TeamName[
+                                    data.GameStates[Number(turnNumber)]
+                                        .JudgeID as keyof typeof TeamName
+                                ],
+                            amount: teamAction.Pairs[0].Values[0],
+                        }
+                        break
+                    case 'PresidentPayment':
+                        transaction = {
+                            from:
+                                TeamName[
+                                    teamAction.ClientID as keyof typeof TeamName
+                                ],
+                            to:
+                                TeamName[
+                                    data.GameStates[Number(turnNumber)]
+                                        .PresidentID as keyof typeof TeamName
+                                ],
+                            amount: teamAction.Pairs[0].Values[0],
+                        }
+                        break
+                    case 'IslandTaxContribution':
+                    case 'SanctionPaid':
+                        transaction = {
+                            from:
+                                TeamName[
+                                    teamAction.ClientID as keyof typeof TeamName
+                                ],
+                            to: TeamName.CommonPool,
+                            amount: teamAction.Pairs[0].Values[0],
+                        }
+                        break
+                    default:
+                        transaction = undefined
+                        break
                 }
-                if (transaction.amount) acc.push(transaction)
+                if (transaction?.amount) acc.push(transaction)
             })
         }
     })

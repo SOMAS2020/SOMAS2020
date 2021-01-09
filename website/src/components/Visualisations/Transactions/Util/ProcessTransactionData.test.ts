@@ -2209,14 +2209,10 @@ const testInput = {
 
 test('test getIIGOTransactions', () => {
     const want = [
-        { from: 0, to: 5, amount: 10 },
-        { from: 0, to: 6, amount: 10 },
-        { from: 6, to: 0, amount: 42 },
-        { from: 1, to: 0, amount: 68 },
-        { from: 2, to: 0, amount: 60 },
-        { from: 3, to: 0, amount: 94 },
-        { from: 4, to: 0, amount: 66 },
-        { from: 5, to: 0, amount: 43 },
+        { from: 5, to: 0, amount: 1.4002923751652314 },
+        { from: 1, to: 0, amount: 1.4002923751652314 },
+        { from: 2, to: 0, amount: 51.40029237516523 },
+        { from: 4, to: 0, amount: 1.4002923751652314 },
     ]
     expect(getIIGOTransactions(testInput)).toEqual(want)
 })
