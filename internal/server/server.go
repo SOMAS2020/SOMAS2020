@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -94,9 +95,9 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
-			SpeakerID:   shared.Team1,
-			JudgeID:     shared.Team2,
-			PresidentID: shared.Team3,
+			SpeakerID:   shared.ClientID(rand.Intn(len(shared.TeamIDs))),
+			JudgeID:     shared.ClientID(rand.Intn(len(shared.TeamIDs))),
+			PresidentID: shared.ClientID(rand.Intn(len(shared.TeamIDs))),
 			CommonPool:  gameConfig.InitialCommonPool,
 			RulesInfo: gamestate.RulesContext{
 				AvailableRules:     availableRules,
