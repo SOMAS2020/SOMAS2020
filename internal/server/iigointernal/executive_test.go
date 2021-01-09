@@ -369,6 +369,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			shared.Speaker:   10,
 			shared.Judge:     10,
 		},
+		IIGORoleMonitoringCache: []shared.Accountability{},
 	}
 	cases := []struct {
 		name       string
@@ -383,7 +384,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: ""}},
 		},
@@ -395,7 +398,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "test"}},
 		},
@@ -407,7 +412,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
@@ -419,7 +426,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
@@ -431,7 +440,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
