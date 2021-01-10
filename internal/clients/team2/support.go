@@ -18,12 +18,13 @@ func (c *client) criticalStatus() bool {
 	return false
 }
 
-//TODO: how does this work?
+// If a disaster is reported, append the turn and report of the latest disaster to the disaster history
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
 	disaster := DisasterOccurrence{
 		Turn:   c.gameState().Turn,
 		Report: report,
 	}
+
 	c.disasterHistory = append(c.disasterHistory, disaster)
 }
 

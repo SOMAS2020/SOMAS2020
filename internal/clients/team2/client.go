@@ -93,8 +93,8 @@ type clientConfig struct {
 	TuningParamG                     float64
 	VarianceCapMagnitude             float64
 	BaseResourcesToGiveDivisor       shared.Resources
-	BaseDisasterProtectionDivisor    shared.Resources
-	TimeLeftIncreaseDisProtection    float64
+	InitialThresholdProportionGuess  float64
+	TimeLeftIncreaseDisProtection    uint
 	DisasterSoonProtectionMultiplier float64
 	DefaultFirstTurnContribution     shared.Resources
 	SelfishStartTurns                uint
@@ -106,7 +106,9 @@ type clientConfig struct {
 	ForageDecisionThreshold          float64
 	SlightRiskForageDivisor          shared.Resources
 	HelpCritOthersDivisor            shared.Resources
-	InitialDisasterTurnGuess         float64
+	InitialDisasterTurnGuess         uint
+	CombinedDisasterPred             shared.DisasterPrediction
+	InitialCommonPoolThresholdGuess  shared.Resources
 }
 
 type OpinionHist map[shared.ClientID]Opinion
@@ -120,6 +122,9 @@ type IslandSanctions map[shared.ClientID]IslandSanctionInfo
 type TierLevels map[int]int
 type SanctionHist map[shared.ClientID][]IslandSanctionInfo
 type PresCommonPoolHist map[shared.ClientID][]CommonPoolInfo
+
+// DisasterVulnerabilityDict is a map from island ID to an islands DVP
+type DisasterVulnerabilityDict map[shared.ClientID]float64
 
 type client struct {
 	*baseclient.BaseClient
@@ -141,6 +146,12 @@ type client struct {
 	currJudge     Judge
 	currSpeaker   Speaker
 
+	islandDVPs DisasterVulnerabilityDict
+
+	// Define a global variable that holds the last prediction we shared
+	AgentDisasterPred    shared.DisasterPredictionInfo
+	CombinedDisasterPred shared.DisasterPrediction
+	commonPoolThreshold  shared.Resources
 	taxAmount            shared.Resources
 	commonPoolAllocation shared.Resources
 	islandSanctions      IslandSanctions
@@ -176,7 +187,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			TuningParamG:                     1.0,
 			VarianceCapMagnitude:             10000,
 			BaseResourcesToGiveDivisor:       4.0,
-			BaseDisasterProtectionDivisor:    4.0,
+			InitialThresholdProportionGuess:  0.3,
 			TimeLeftIncreaseDisProtection:    3.0,
 			DisasterSoonProtectionMultiplier: 1.2,
 			DefaultFirstTurnContribution:     20,
@@ -190,6 +201,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			SlightRiskForageDivisor:          2.0,
 			HelpCritOthersDivisor:            2.0,
 			InitialDisasterTurnGuess:         7.0,
+			InitialCommonPoolThresholdGuess:  100, // this value is meaningless for now
 		},
 	}
 }
@@ -209,7 +221,18 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Set the initial strategy to selfish (can put anything here)
 	c.currStrategy = Selfish
 
+	// Initialise Disaster Prediction variables
+	c.CombinedDisasterPred = shared.DisasterPrediction{}
+	c.AgentDisasterPred = shared.DisasterPredictionInfo{}
+	c.commonPoolThreshold = c.config.InitialCommonPoolThresholdGuess
+
+	// Compute DVP for each Island based on Geography
+	c.islandDVPs = DisasterVulnerabilityDict{}
+	c.GetIslandDVPs(c.gameState().Geography)
+
+	// Initialise Roles
 	c.currSpeaker = Speaker{c: c}
 	c.currJudge = Judge{c: c}
 	c.currPresident = President{c: c}
+
 }

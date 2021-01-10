@@ -7,9 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// DisasterVulnerabilityParametersDict is a map from island ID to an islands DVP
-type DisasterVulnerabilityParametersDict map[shared.ClientID]float64
-
 // CartesianCoordinates is a struct that holds the X,Y coordinates of a point
 type CartesianCoordinates struct {
 	X, Y shared.Coordinate
@@ -27,14 +24,17 @@ const (
 	MaxVal bool = true
 )
 
-// Define a global variable that holds the last prediction we shared
-var LastPredictionMade shared.DisasterPredictionInfo
-var CombinedPrediction shared.DisasterPrediction
+func (c *client) getAgentDisasterPred() shared.DisasterPredictionInfo {
+	return c.AgentDisasterPred
+}
+
+func (c *client) getCombinedDisasterPred() shared.DisasterPrediction {
+	return c.CombinedDisasterPred
+}
 
 // GetIslandDVPs is used to calculate the disaster vulnerability parameter of each island in the game.
 // This only needs to be run at the start of the game because island's positions do not change
-func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) DisasterVulnerabilityParametersDict {
-	islandDVPs := make(DisasterVulnerabilityParametersDict)
+func (c *client) GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) {
 	archipelagoCentre := CartesianCoordinates{
 		X: archipelagoGeography.XMin + (archipelagoGeography.XMax-archipelagoGeography.XMin)/2,
 		Y: archipelagoGeography.YMin + (archipelagoGeography.YMax-archipelagoGeography.YMin)/2,
@@ -62,13 +62,13 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 		}
 
 		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Left) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
+
 		if areaOfArchipelago != 0 {
-			islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
+			c.islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
 		} else {
-			islandDVPs[islandID] = areaOfOverlap
+			c.islandDVPs[islandID] = areaOfOverlap
 		}
 	}
-	return islandDVPs
 }
 
 // GetMinMaxCoordinate returns either the minimum or maximum coordinate of the two supplied, according to the bool argument
@@ -126,7 +126,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		PredictionMade: disasterPrediction,
 		TeamsOfferedTo: islandsToShareWith,
 	}
-	LastPredictionMade = disasterPredictionInfo
+	c.AgentDisasterPred = disasterPredictionInfo
 	return disasterPredictionInfo
 }
 
@@ -231,7 +231,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 
 	// Combine each islands prediction
 	finalPrediction := CombinePredictions(c, receivedPredictions, islandConfidences)
-	CombinedPrediction = finalPrediction
+	c.CombinedDisasterPred = finalPrediction
 }
 
 // UpdatePredictionHistory updates the history of predictions we have recieved from other islands with
@@ -268,12 +268,12 @@ func CombinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPr
 		}
 	}
 	if numZeroTerms == len(islandConfidences) {
-		return LastPredictionMade.PredictionMade
+		return c.AgentDisasterPred.PredictionMade
 	}
 
 	// Add our own prediction to those recieved
 	receivedPredictions[c.GetID()] = shared.ReceivedDisasterPredictionInfo{
-		PredictionMade: LastPredictionMade.PredictionMade,
+		PredictionMade: c.AgentDisasterPred.PredictionMade,
 		SharedFrom:     c.GetID(),
 	}
 

@@ -66,7 +66,7 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 func (c *client) decideHuntingLikelihood() float64 { //will move the threshold, higher value means more likely to hunt
 	// Todo: this could be null
 	hunters := c.otherHunters()
-	if hunters == 1.0 { //in the case when one other person only is hunting
+	if hunters > 1.0 && hunters < 1.2 { //in the case when one other person only is hunting
 		return 0.95
 	} else if hunters > 1 { //if no one is likely to hunt then we do default probability
 		return 0.95 - (hunters * 0.15) //default hunt probability is 10%, the less people hunting the more likely we do it
