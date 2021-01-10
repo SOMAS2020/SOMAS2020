@@ -4,6 +4,7 @@ package team4
 import (
 	"math"
 	"sort"
+	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -16,29 +17,56 @@ func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
-// NewClient is a function that creates a new empty client
-func NewClient(clientID shared.ClientID) baseclient.Client {
-	iigoObs := &iigoObservation{
+func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
+	// have some config json file or something?
+	internalConfig := internalParameters{
+		greediness:       0,
+		selfishness:      0,
+		fairness:         0,
+		collaboration:    0,
+		riskTaking:       0,
+		agentsTrust:      []float64{},
+		maxPardonTime:    3,
+		maxTierToPardon:  shared.SanctionTier3,
+		minTrustToPardon: 0.6,
+	}
+
+	iigoObs := iigoObservation{
 		allocationGranted: shared.Resources(0),
 		taxDemanded:       shared.Resources(0),
 	}
-	iifoObs := &iifoObservation{}
-	iitoObs := &iitoObservation{}
+	iifoObs := iifoObservation{}
+	iitoObs := iitoObservation{}
+
+	obs := observation{
+		iigoObs: &iigoObs,
+		iifoObs: &iifoObs,
+		iitoObs: &iitoObs,
+	}
+
+	judgeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
+
+	emptyRuleCache := map[string]rules.RuleMatrix{}
 
 	team4client := client{
-		BaseClient:    baseclient.NewClient(id),
-		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
-		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-		obs: &observation{
-			iigoObs: iigoObs,
-			iifoObs: iifoObs,
-			iitoObs: iitoObs,
-		},
-		internalParam: &internalParameters{},
-		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		BaseClient:         baseclient.NewClient(id),
+		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
+		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		obs:                &obs,
+		internalParam:      &internalConfig,
+		idealRulesCachePtr: &emptyRuleCache,
+		savedHistory:       &judgeHistory,
 	}
+
 	team4client.clientJudge.parent = &team4client
 	team4client.clientSpeaker.parent = &team4client
+
+	return team4client
+}
+
+// NewClient is a function that creates a new empty client
+func NewClient(clientID shared.ClientID) baseclient.Client {
+	team4client := newClientInternal(clientID, nil)
 	return &team4client
 }
 
@@ -85,6 +113,15 @@ type internalParameters struct {
 	collaboration float64
 	riskTaking    float64
 	agentsTrust   []float64
+
+	// Judge GetPardonIslands config
+
+	// days left on the sanction after which we can even considering pardoning other islands
+	maxPardonTime int
+	// specifies the maximum sanction tier after which we will no longer consider pardoning others
+	maxTierToPardon shared.IIGOSanctionsTier
+	// we will only consider pardoning islands which we trust with at least this value
+	minTrustToPardon float64
 }
 
 // type personality struct {
@@ -96,7 +133,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 	//custom things below, trust matrix initilised to values of 0
 	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
-	c.internalParam = &internalParameters{agentsTrust: make([]float64, numClient)}
+	trustVector := make([]float64, numClient)
+	c.internalParam.agentsTrust = trustVector
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
 }
