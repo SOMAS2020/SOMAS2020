@@ -39,6 +39,7 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 
 	if _, ok := c.opinionHist[otherIsland]; !ok {
 		c.initialiseOpinionForIsland(otherIsland)
+		c.Logf("Initialised opinions: ", c.opinionHist)
 	}
 
 	// We have initialised the histories
@@ -47,7 +48,8 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 	c.Logf("Island ", otherIsland)
 	c.Logf("History with island ", islandHist)
 	situationHist := islandHist[situation]
-	// Check if ther is a history to take a weighted average from
+
+	// Check if there is a history to take a weighted average from
 	if len(situationHist) != 0 {
 		sum := 0
 		div := 0
@@ -124,6 +126,7 @@ func max(numbers map[uint]GiftInfo) uint {
 	}
 	return maxNumber
 }
+
 func MinInt(a, b int) int {
 	if a < b {
 		return a
@@ -139,6 +142,7 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	pastConfidence := c.confidence("Gifts", island)
 
 	var bufferLen int
+
 	if turn < 10 {
 		bufferLen = int(turn)
 	} else {
@@ -151,10 +155,14 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	runMeanWeDon := 0.0
 
 	var ourReqMap, theirReqMap map[uint]GiftInfo
+
 	if hist, ok := c.giftHist[island]; ok {
 		ourReqMap = hist.OurRequest
 		theirReqMap = hist.IslandRequest
+		c.Logf("ourReqMap: ", ourReqMap)
+		c.Logf("theirReqMap: ", theirReqMap)
 	} else {
+		// TODO: this could be something
 		return pastConfidence
 	}
 
@@ -178,6 +186,7 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	if MinInt(len(ourKeys), len(theirKeys)) == 0 {
 		return pastConfidence
 	}
+
 	c.Logf("Bufferlen %v", bufferLen)
 	for i := 0; i < MinInt(bufferLen, len(ourKeys)); i++ {
 		// Get the transaction distance to the previous transaction
@@ -186,6 +195,7 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
 		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
 	}
+
 	for i := 0; i < MinInt(bufferLen, len(theirKeys)); i++ {
 		// Get the transaction distance to the previous transaction
 		theirTransDist := turn - uint(theirKeys[i]) + 1
@@ -194,7 +204,7 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
 	}
 
-	// TODO: is there a potential divide by 0 here?
+	// TODO: if this checkDivZero returns 1 this is not between 0 and 1
 	usRatio := runMeanTheyDon / checkDivZero(runMeanWeReq)   // between 0 and 1
 	themRatio := runMeanWeDon / checkDivZero(runMeanTheyReq) // between 0 and 1
 	diff := usRatio - themRatio                              // between -1 and 1
@@ -237,32 +247,34 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 
 func (c *client) updatePresidentTrust() {
 	currPres := c.gameState().PresidentID
-	// Take weighted average of past turns
-
-	runMeanTax := shared.Resources(0.0)
-	runMeanWeRequest := shared.Resources(0.0)
-	runMeanWeAllocated := shared.Resources(0.0)
-	runMeanWeTake := shared.Resources(0.0)
 
 	// Default value for Opinion if we have no history
 	reality := 50
 
-	div := shared.Resources(1.0)
 	if presHist, ok := c.presCommonPoolHist[currPres]; ok {
 		c.Logf("c.presCommonPoolHist", presHist)
-		for turn, commonPool := range presHist {
-			turn := shared.Resources(c.gameState().Turn - turn)
+		runMeanTax := shared.Resources(0)
+		runMeanWeRequest := shared.Resources(0)
+		runMeanWeAllocated := shared.Resources(0)
+		runMeanWeTake := shared.Resources(0)
+		counter := shared.Resources(1)
 
-			runMeanTax += (commonPool.tax/turn - runMeanTax) / div
-			runMeanWeRequest += (commonPool.requestedToPres/turn - runMeanWeRequest) / div
-			runMeanWeAllocated += (commonPool.allocatedByPres/turn - runMeanWeAllocated) / div
-			runMeanWeTake += (commonPool.takenFromCP/turn - runMeanWeTake) / div
-			div++
+		// Running average m(n) = m(n-1) + (a(n) - m(n-1))/n
+		for _, commonPool := range presHist {
+			runMeanTax = runMeanTax + (commonPool.tax-runMeanTax)/shared.Resources(counter)
+			runMeanWeRequest = runMeanWeRequest + (commonPool.requestedToPres-runMeanWeRequest)/shared.Resources(counter)
+			runMeanWeAllocated = runMeanWeAllocated + (commonPool.allocatedByPres-runMeanWeAllocated)/shared.Resources(counter)
+			runMeanWeTake = runMeanWeTake + (commonPool.takenFromCP-runMeanWeTake)/shared.Resources(counter)
+			counter++
 		}
 
 		percChangeTax := 100 * (c.taxAmount - runMeanTax) / shared.Resources(checkDivZero(float64(runMeanTax)))
-		percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / shared.Resources(checkDivZero(float64(runMeanWeAllocated))) // How much less we're giveen
-		percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / shared.Resources(checkDivZero(float64(runMeanWeTake)))        // How much more we've taken
+
+		// How much less we're giveen
+		percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / shared.Resources(checkDivZero(float64(runMeanWeAllocated)))
+
+		// How much more we've taken
+		percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / shared.Resources(checkDivZero(float64(runMeanWeTake)))
 
 		reality = c.setLimits(int(100 - percWeGet - percChangeTax + percWeTake))
 	}
@@ -271,13 +283,14 @@ func (c *client) updatePresidentTrust() {
 		exp:  50, // Would not get overwritten if we have no current expectation, so default should be 50
 		real: reality,
 	}
+
 	if perf, ok := c.opinionHist[currPres].Performances["President"]; ok {
 		islandSituationPerf.exp = perf.exp
 	}
+
 	c.Logf("Previous performance for President", c.opinionHist[currPres].Performances["President"])
 	c.Logf("Updated performance for President", islandSituationPerf)
 	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
-
 }
 
 func (c *client) updateJudgeTrust() {
