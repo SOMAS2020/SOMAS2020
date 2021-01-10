@@ -158,7 +158,7 @@ func TestCalculateDisasterContributionCP(t *testing.T) {
 	geography.Islands[shared.Team5] = ourLocationInfo
 	//case 1 where there is no forecast initially
 	currentTurn := uint(1)
-	currentResource := shared.Resources(100)
+	currentResource := shared.Resources(1000)
 	lastDisaster := uint(0)
 	contribution := c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
 	w := shared.Resources(0)
@@ -185,6 +185,7 @@ func TestCalculateDisasterContributionCP(t *testing.T) {
 	currentTurn = 9
 	c.forecastHistory[8] = forecast
 	distance := math.Sqrt(math.Pow(ourLocationInfo.X-forecast.epiX, 2) + math.Pow(ourLocationInfo.Y-forecast.epiY, 2))
+	c.Logf("test distance: %v forecast mag: %v", distance, forecast.mag)
 	w = shared.Resources((float64(forecast.mag) * 100 / distance) * 0.2)
 	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
 	if w != contribution {
@@ -193,7 +194,7 @@ func TestCalculateDisasterContributionCP(t *testing.T) {
 
 	// case 4 when there is forecast, it's in 1 days and we are not that rich
 	currentResource = 3
-	w = (currentResource / 2) * 0.2
+	w = currentResource / 2
 	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
 	if w != contribution {
 		t.Errorf("4. Not generating proper # of resources to mitigate disaster. Want %v, got %v", w, contribution)
