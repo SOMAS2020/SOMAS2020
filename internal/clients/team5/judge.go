@@ -12,7 +12,7 @@ type judge struct {
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	c.Logf("Team 5 became Judge.")
+	c.Logf("Team 5 became the Judge, the Jury and Executioner.")
 	return &judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
