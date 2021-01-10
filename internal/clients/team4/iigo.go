@@ -33,9 +33,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	//TODO: check rules for how much we are allocated
 	allocationGranted := c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0
-	importance := mat.NewVecDense(6, []float64{
-		5.0, 1.0, -1.0, -1.0, 5.0, 1.0,
-	})
+	importance := c.importances.requestAllocationImportance
 
 	parameters := mat.NewVecDense(6, []float64{
 		c.internalParam.greediness,
@@ -116,10 +114,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 
 	greedyThreshold := 2.5
-
-	importance := mat.NewVecDense(6, []float64{
-		4.0, 1.0, -1.0, -1.0, 1.0, 1.0,
-	})
+	importance := c.importances.commonPoolResourceRequestImportance
 
 	parameters := mat.NewVecDense(6, []float64{
 		c.internalParam.greediness,
@@ -151,9 +146,7 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	}
 
 	// Initialise importance vector and parameters vector.
-	importance := mat.NewVecDense(6, []float64{
-		5.0, 5.0, -5.0, -5.0, 1.0, 5.0,
-	})
+	importance := c.importances.resourceReportImportance
 
 	parameters := mat.NewVecDense(6, []float64{
 		c.internalParam.greediness,
@@ -194,16 +187,12 @@ func (c *client) GetTaxContribution() shared.Resources {
 	wealthThreshold := 5 * valToBeReturned
 
 	// Initialise importance vector and parameters vector.
-	importance := mat.NewVecDense(6, []float64{
-		-2.0, -2.0, 0.0, 4.0, 0.0, 1.0,
-	})
+	importance := c.importances.getTaxContributionImportance
 
-	parameters := mat.NewVecDense(6, []float64{
+	parameters := mat.NewVecDense(4, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
-		c.internalParam.fairness,
 		c.internalParam.collaboration,
-		c.internalParam.riskTaking,
 		c.internalParam.agentsTrust[c.getPresident()],
 	})
 

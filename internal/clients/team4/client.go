@@ -54,8 +54,16 @@ type client struct {
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
 	savedHistory       *map[uint]map[shared.ClientID]judgeHistoryInfo
+	importances 	   *importances
 }
 
+type importances struct {
+	requestAllocationImportance 			   *mat.VecDense
+	commonPoolResourceRequestImportance 	   *mat.VecDense
+	resourceReportImportance				   *mat.VecDense
+	getTaxContributionImportance			   *mat.VecDense
+	decideIIGOMonitoringAnnouncementImportance *mat.VecDense
+}
 // Store extra information which is not in the server and is helpful for our client
 type observation struct {
 	iigoObs           *iigoObservation
@@ -100,7 +108,16 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
 	c.internalParam = &internalParameters{agentsTrust: make([]float64, numClient)}
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
+	
 
+	// INITIALISATION OF IMPORTANCES!
+	c.importances = &importances {
+		requestAllocationImportance: mat.NewVecDense(6, []float64{5.0, 1.0, -1.0, -1.0, 5.0, 1.0,}),
+		commonPoolResourceRequestImportance:  mat.NewVecDense(6, []float64{4.0, 1.0, -1.0, -1.0, 1.0, 1.0,}),
+		resourceReportImportance: mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0,}),
+		getTaxContributionImportance: mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0,}),
+		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0,}),
+	}
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
@@ -216,21 +233,23 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)
 	monitoring := false
-	if presidentID == clientID {
-		// If we are the president.
-		monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
-					  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-					 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)		   
-	} else if speakerID == clientID {
-		// If we are the Speaker.
-		monitoring = (c.internalParam.agentsTrust[presidentID] < trustThreshold ||
-					  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-					 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
-	} else if judgeID == clientID {
-		// If we are the Judge.
-		monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
-					  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-					 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	switch clientID {
+		case presidentID:
+			// If we are the president.
+			monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
+						c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
+						(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+
+		case speakerID:
+			// If we are the Speaker.
+			monitoring = (c.internalParam.agentsTrust[presidentID] < trustThreshold ||
+						c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
+						(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+		case judgeID:
+			// If we are the Judge.
+			monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
+						  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
+						 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
 	}
 	return monitoring
 }
@@ -239,19 +258,15 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 //COMPULSORY: must be implemented
 func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
 	collaborationThreshold := 0.5
-	importance := mat.NewVecDense(5, []float64{
-		0.0, 1.0, -1.0, 1.0, 0.0,
-	})
+	importance := c.importances.decideIIGOMonitoringAnnouncementImportance
 
-	parameters := mat.NewVecDense(5, []float64{
-		c.internalParam.greediness,
+	parameters := mat.NewVecDense(3, []float64{
 		c.internalParam.selfishness,
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
-		c.internalParam.riskTaking,
 	})
 	// Initialise Return values.
-	announce = true
+	announce = false
 	resultToShare = monitoringResult
 
 	// Calculate collaborationLevel based on the current personality of the client.
