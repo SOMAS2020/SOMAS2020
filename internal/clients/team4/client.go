@@ -69,8 +69,8 @@ type iigoObservation struct {
 
 type iifoObservation struct {
 	receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
-	DisasterPrediction          shared.DisasterPredictionInfo
-	FinalDisasterPrediction     shared.DisasterPrediction
+	ourDisasterPrediction       shared.DisasterPredictionInfo
+	finalDisasterPrediction     shared.DisasterPrediction
 }
 
 type iitoObservation struct {

@@ -37,7 +37,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		PredictionMade: prediction,
 		TeamsOfferedTo: islandsToSend,
 	}
-	c.obs.iifoObs.DisasterPrediction = predictionInfo
+	c.obs.iifoObs.ourDisasterPrediction = predictionInfo
 	return predictionInfo
 }
 
@@ -95,7 +95,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	// If we assume that we trust each island equally (including ourselves), then take the final prediction
 	// of disaster as being the weighted mean of predictions according to confidence
 	numberOfPredictions := float64(len(receivedPredictions) + 1)
-	predictionInfo := c.obs.iifoObs.DisasterPrediction.PredictionMade
+	predictionInfo := c.obs.iifoObs.ourDisasterPrediction.PredictionMade
 	selfConfidence := predictionInfo.Confidence
 
 	// Initialise running totals using our own island's predictions
@@ -123,7 +123,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		TimeLeft:    uint((float64(totalTimeLeft) / totalConfidence) + 0.5),
 		Confidence:  totalConfidence / numberOfPredictions,
 	}
-	c.obs.iifoObs.FinalDisasterPrediction = finalPrediction
+	c.obs.iifoObs.finalDisasterPrediction = finalPrediction
 	c.Logf("Final Prediction: [%v]", finalPrediction)
 }
 
