@@ -159,7 +159,7 @@ func (c *client) calculateDisasterMagPred() float64 {
 		// If we don't know the common pool threshold
 		return float64(c.gameState().ClientInfo.Resources / c.config.BaseDisasterProtectionDivisor) //initial disaster threshold guess when we start playing
 	} else {
-		sampleMeanMag, magnitudePrediction := GetMagnitudePrediction(c, float64(turn))
+		sampleMeanMag, magnitudePrediction := getMagnitudePrediction(c, float64(turn))
 
 		// TODO: why are we accessing the first value here???
 		baseThreshold := float64(c.resourceLevelHistory[1] / c.config.BaseResourcesToGiveDivisor)
@@ -188,8 +188,8 @@ func (c *client) calculateTimeRemaining() float64 {
 	if c.gameState().Season == 1 { //not able to predict disasters in first season as no prev known data
 		return c.config.InitialDisasterTurnGuess - float64(turn)
 	} else {
-		sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, float64(turn))
-		turnsLeftConfidence := GetTimeRemainingConfidence(c, float64(turn), sampleMeanX)
+		sampleMeanX, timeRemainingPrediction := getTimeRemainingPrediction(c, float64(turn))
+		turnsLeftConfidence := getTimeRemainingConfidence(c, float64(turn), sampleMeanX)
 		return float64(timeRemainingPrediction) * (turnsLeftConfidence / 100)
 	}
 
@@ -200,7 +200,7 @@ func (c *client) agentThreshold() shared.Resources {
 	criticalThreshold := c.gameConfig().MinimumResourceThreshold
 	costOfLiving := c.gameConfig().CostOfLiving
 	basicCosts := criticalThreshold + c.taxAmount + costOfLiving
-	vulnerabilityMultiplier := 0.75 + GetIslandDVPs(c.gameState().Geography)[c.GetID()] //1 to 1.75 (1.75 being the most vulnerable)
+	vulnerabilityMultiplier := 0.75 + getIslandDVPs(c.gameState().Geography)[c.GetID()] //1 to 1.75 (1.75 being the most vulnerable)
 
 	// Add resources based on expected/predicted disaster magnitude
 	disasterMagProtection := c.calculateDisasterMagPred()

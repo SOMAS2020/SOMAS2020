@@ -27,13 +27,15 @@ const (
 	MaxVal bool = true
 )
 
-// Define a global variable that holds the last prediction we shared
+// LastPredictionMade defines a global variable that holds the last prediction we shared
 var LastPredictionMade shared.DisasterPredictionInfo
+
+// CombinedPrediction defines a global variable that holds our current combined prediction
 var CombinedPrediction shared.DisasterPrediction
 
-// GetIslandDVPs is used to calculate the disaster vulnerability parameter of each island in the game.
+// getIslandDVPs is used to calculate the disaster vulnerability parameter of each island in the game.
 // This only needs to be run at the start of the game because island's positions do not change
-func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) DisasterVulnerabilityParametersDict {
+func getIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) DisasterVulnerabilityParametersDict {
 	islandDVPs := make(DisasterVulnerabilityParametersDict)
 	archipelagoCentre := CartesianCoordinates{
 		X: archipelagoGeography.XMin + (archipelagoGeography.XMax-archipelagoGeography.XMin)/2,
@@ -55,33 +57,34 @@ func GetIslandDVPs(archipelagoGeography disasters.ArchipelagoGeography) Disaster
 			Top:    archipelagoGeography.YMax + relativeOffset.Y,
 		}
 		overlapArchipelagoOutline := Outline{
-			Left:   GetMinMaxCoordinate(MaxVal, shiftedArchipelagoOutline.Left, archipelagoGeography.XMin),
-			Right:  GetMinMaxCoordinate(MinVal, shiftedArchipelagoOutline.Right, archipelagoGeography.XMax),
-			Bottom: GetMinMaxCoordinate(MaxVal, shiftedArchipelagoOutline.Bottom, archipelagoGeography.YMin),
-			Top:    GetMinMaxCoordinate(MinVal, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
+			Left:   getMinMaxCoordinate(MaxVal, shiftedArchipelagoOutline.Left, archipelagoGeography.XMin),
+			Right:  getMinMaxCoordinate(MinVal, shiftedArchipelagoOutline.Right, archipelagoGeography.XMax),
+			Bottom: getMinMaxCoordinate(MaxVal, shiftedArchipelagoOutline.Bottom, archipelagoGeography.YMin),
+			Top:    getMinMaxCoordinate(MinVal, shiftedArchipelagoOutline.Top, archipelagoGeography.YMax),
 		}
 
 		areaOfOverlap := (overlapArchipelagoOutline.Right - overlapArchipelagoOutline.Left) * (overlapArchipelagoOutline.Top - overlapArchipelagoOutline.Bottom)
 		if areaOfArchipelago != 0 {
 			islandDVPs[islandID] = areaOfOverlap / areaOfArchipelago
 		} else {
-			islandDVPs[islandID] = areaOfOverlap
+			// Assume all islands have DVP = max value = 1 in this unlikely case
+			islandDVPs[islandID] = 1.0
 		}
 	}
 	return islandDVPs
 }
 
-// GetMinMaxCoordinate returns either the minimum or maximum coordinate of the two supplied, according to the bool argument
+// getMinMaxCoordinate returns either the minimum or maximum coordinate of the two supplied, according to the bool argument
 // that is input to the function
-func GetMinMaxCoordinate(minOrMax bool, coordinate1 shared.Coordinate, coordinate2 shared.Coordinate) shared.Coordinate {
+func getMinMaxCoordinate(minOrMax bool, coordinate1 shared.Coordinate, coordinate2 shared.Coordinate) shared.Coordinate {
 	if (minOrMax == MinVal && coordinate1 < coordinate2) || (minOrMax == MaxVal && coordinate1 > coordinate2) {
 		return coordinate1
 	}
 	return coordinate2
 }
 
-// GetMinMaxFloat is the same as GetMinMaxCoordinate but works for floats
-func GetMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
+// getMinMaxFloat is the same as GetMinMaxCoordinate but works for floats
+func getMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
 	if (minOrMax == MinVal && value1 < value2) || (minOrMax == MaxVal && value1 > value2) {
 		return value1
 	}
@@ -98,21 +101,21 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	}
 
 	// Get the location prediction
-	locationPrediction := GetLocationPrediction(c)
+	locationPrediction := getLocationPrediction(c)
 
 	// Get the time until next disaster prediction and confidence
-	sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, totalTurns)
-	confidenceTimeRemaining := GetTimeRemainingConfidence(c, totalTurns, sampleMeanX)
+	sampleMeanX, timeRemainingPrediction := getTimeRemainingPrediction(c, totalTurns)
+	confidenceTimeRemaining := getTimeRemainingConfidence(c, totalTurns, sampleMeanX)
 
 	// Get the magnitude prediction and confidence
-	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
-	confidenceMagnitude := GetMagnitudeConfidence(c, totalTurns, sampleMeanM)
+	sampleMeanM, magnitudePrediction := getMagnitudePrediction(c, totalTurns)
+	confidenceMagnitude := getMagnitudeConfidence(c, totalTurns, sampleMeanM)
 
 	// Get the overall confidence in these predictions
-	confidencePrediction := GetConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
+	confidencePrediction := getConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
 
 	// Get trusted islands NOTE: CURRENTLY JUST ALL ISLANDS
-	islandsToShareWith := GetIslandsToShareWith()
+	islandsToShareWith := getIslandsToShareWith()
 
 	// Put everything together and return the whole prediction we have made and teams to share with
 	disasterPrediction := shared.DisasterPrediction{
@@ -140,9 +143,9 @@ func nilPrediction() shared.DisasterPredictionInfo {
 	return nilPrediction
 }
 
-// GetLocationPrediction provides a prediction about the location of the next disaster.
+// getLocationPrediction provides a prediction about the location of the next disaster.
 // The prediction is always the the centre of the archipelago
-func GetLocationPrediction(c *client) CartesianCoordinates {
+func getLocationPrediction(c *client) CartesianCoordinates {
 	archipelagoGeography := c.gameState().Geography
 	archipelagoCentre := CartesianCoordinates{
 		X: archipelagoGeography.XMin + (archipelagoGeography.XMax-archipelagoGeography.XMin)/2,
@@ -151,9 +154,9 @@ func GetLocationPrediction(c *client) CartesianCoordinates {
 	return archipelagoCentre
 }
 
-// GetTimeRemainingPrediction returns a prediction about the time remaining until the next disaster and the sample mean
+// getTimeRemainingPrediction returns a prediction about the time remaining until the next disaster and the sample mean
 // of the RV X. The prediction is 1/sample mean of the Bernoulli RV, minus the turns since the last disaster.
-func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, uint) {
+func getTimeRemainingPrediction(c *client, totalTurns float64) (float64, uint) {
 	totalDisasters := float64(len(c.disasterHistory))
 	sampleMeanX := totalDisasters / totalTurns
 
@@ -167,17 +170,17 @@ func GetTimeRemainingPrediction(c *client, totalTurns float64) (float64, uint) {
 	return sampleMeanX, uint(timeRemaining)
 }
 
-// GetTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is
+// getTimeRemainingConfidence returns the confidence in the time remaining prediction. The formula for this confidence is
 // given in the report (can ask Hamish)
-func GetTimeRemainingConfidence(c *client, totalTurns float64, sampleMeanX float64) shared.PredictionConfidence {
+func getTimeRemainingConfidence(c *client, totalTurns float64, sampleMeanX float64) shared.PredictionConfidence {
 	varianceTd := (1 - sampleMeanX) / math.Pow(sampleMeanX, 2)
-	confidence := 100.0 - (100.0 * GetMinMaxFloat(MinVal, varianceTd/(c.config.TuningParamK*totalTurns), c.config.VarianceCapTimeRemaining) / c.config.VarianceCapTimeRemaining)
+	confidence := 100.0 - (100.0 * getMinMaxFloat(MinVal, varianceTd/(c.config.TuningParamK*totalTurns), c.config.VarianceCapTimeRemaining) / c.config.VarianceCapTimeRemaining)
 	return confidence
 }
 
-// GetMagnitudePrediction returns a prediction about the magnitude of the next disaster and the sample mean
+// getMagnitudePrediction returns a prediction about the magnitude of the next disaster and the sample mean
 // of the RV M. The prediction is the sample mean of the past magnitudes of disasters
-func GetMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magnitude) {
+func getMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magnitude) {
 	totalMagnitudes := 0.0
 	for _, disasterReport := range c.disasterHistory {
 		totalMagnitudes += disasterReport.Report.Magnitude
@@ -189,23 +192,23 @@ func GetMagnitudePrediction(c *client, totalTurns float64) (float64, shared.Magn
 	return sampleMeanMag, magnitudePrediction
 }
 
-// GetMagnitudeConfidence returns the confidence in the magnitude prediction. The formula for this confidence is
+// getMagnitudeConfidence returns the confidence in the magnitude prediction. The formula for this confidence is
 // given in the report (can ask Hamish)
-func GetMagnitudeConfidence(c *client, totalTurns float64, sampleMeanM float64) shared.PredictionConfidence {
+func getMagnitudeConfidence(c *client, totalTurns float64, sampleMeanM float64) shared.PredictionConfidence {
 	varianceM := math.Pow(sampleMeanM, 2)
-	confidence := 100.0 - (100.0 * GetMinMaxFloat(MinVal, varianceM/(c.config.TuningParamG*totalTurns), c.config.VarianceCapMagnitude) / c.config.VarianceCapMagnitude)
+	confidence := 100.0 - (100.0 * getMinMaxFloat(MinVal, varianceM/(c.config.TuningParamG*totalTurns), c.config.VarianceCapMagnitude) / c.config.VarianceCapMagnitude)
 	return confidence
 }
 
-// GetConfidencePrediction provides an overall confidence in our prediction.
+// getConfidencePrediction provides an overall confidence in our prediction.
 // The confidence is the average of those from the timeRemaining and Magnitude predictions.
-func GetConfidencePrediction(confidenceTimeRemaining shared.PredictionConfidence, confidenceMagnitude shared.PredictionConfidence) shared.PredictionConfidence {
+func getConfidencePrediction(confidenceTimeRemaining shared.PredictionConfidence, confidenceMagnitude shared.PredictionConfidence) shared.PredictionConfidence {
 	return (confidenceTimeRemaining + confidenceMagnitude) / 2
 }
 
-// islandsToShareWith returns a slice of the islands we want to share our prediction with.
+// getIslandsToShareWith returns a slice of the islands we want to share our prediction with.
 // We decided to always share our prediction with all islands to improve arhcipelago decisions as a whole.
-func GetIslandsToShareWith() []shared.ClientID {
+func getIslandsToShareWith() []shared.ClientID {
 	islandsToShareWith := make([]shared.ClientID, len(shared.TeamIDs))
 	for index, id := range shared.TeamIDs {
 		islandsToShareWith[index] = id
@@ -217,11 +220,11 @@ func GetIslandsToShareWith() []shared.ClientID {
 // that they have been granted access to see.
 // We use this function to combine all predictions into one final prediction (CombinedPrediction) to use for decisions.
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
-	UpdatePredictionHistory(c, receivedPredictions)
+	updatePredictionHistory(c, receivedPredictions)
 
 	// Get the confidence in each island's prediction making ability
 	islandConfidences := make(map[shared.ClientID]int)
-	for island, _ := range c.opinionHist {
+	for island := range c.opinionHist {
 		conf := c.confidence("DisasterPred", island)
 		islandConfidences[island] = conf
 		c.opinionHist[island].Performances["DisasterPred"] = ExpectationReality{
@@ -230,13 +233,13 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	}
 
 	// Combine each islands prediction
-	finalPrediction := CombinePredictions(c, receivedPredictions, islandConfidences)
+	finalPrediction := combinePredictions(c, receivedPredictions, islandConfidences)
 	CombinedPrediction = finalPrediction
 }
 
-// UpdatePredictionHistory updates the history of predictions we have recieved from other islands with
+// updatePredictionHistory updates the history of predictions we have recieved from other islands with
 // those recieved this turn.
-func UpdatePredictionHistory(c *client, receivedPredictions shared.ReceivedDisasterPredictionsDict) {
+func updatePredictionHistory(c *client, receivedPredictions shared.ReceivedDisasterPredictionsDict) {
 	if c.predictionHist == nil {
 		c.predictionHist = make(PredictionsHist)
 		for _, id := range shared.TeamIDs {
@@ -255,12 +258,12 @@ func UpdatePredictionHistory(c *client, receivedPredictions shared.ReceivedDisas
 	}
 }
 
-// CombinePredictions combines the predictions recieved from all the islands (including ours) to get
+// combinePredictions combines the predictions recieved from all the islands (including ours) to get
 // one final disaster prediction.
 // Use our confidence in an island as well as that island's confidence in their prediction to do this
-func CombinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPredictionsDict, islandConfidences map[shared.ClientID]int) shared.DisasterPrediction {
+func combinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPredictionsDict, islandConfidences map[shared.ClientID]int) shared.DisasterPrediction {
 	// If confidence in island is zero OR islands confidence in their prediction is zero, for all islands,
-	// then take the combined prediction to be our prediction instead
+	// then take the combined prediction to be our prediction instead (divide by zero protection)
 	numZeroTerms := 0
 	for islandID, confidence := range islandConfidences {
 		if confidence == 0 || receivedPredictions[islandID].PredictionMade.Confidence == 0 {
