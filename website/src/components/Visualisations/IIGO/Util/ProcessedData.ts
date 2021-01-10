@@ -1,15 +1,14 @@
-import { OutputJSONType } from "../../../../consts/types";
-
+import { OutputJSONType } from '../../../../consts/types'
 
 export type RuleType = {
-    ruleName: string;
-    mutable: boolean;
-    linked: boolean;
-    variables: string[];
-    history: {season: number; turn: number}[];
-};
+    ruleName: string
+    mutable: boolean
+    linked: boolean
+    variables: string[]
+    history: { season: number; turn: number }[]
+}
 
-export const processRulesData = (data: OutputJSONType): RuleType[]=> {
+export const processRulesData = (data: OutputJSONType): RuleType[] => {
     if (data.GameStates.length === 0) return []
 
     // return CurrentRulesInPlay keys in term of seasons
@@ -17,21 +16,21 @@ export const processRulesData = (data: OutputJSONType): RuleType[]=> {
         return {
             season: episode.Season,
             turn: episode.Turn,
-            rules: Object.keys(episode.CurrentRulesInPlay)
+            rules: Object.keys(episode.CurrentRulesInPlay),
         }
     })
 
     // return a list of rules of RuleType
-    let rulesDict = {}
+    const rulesDict: RuleType[] = []
     // each season, do...
     data.GameStates.forEach((episode) => {
         // each rules in season, do...
         Object.keys(episode.CurrentRulesInPlay).forEach((rules) => {
             // add history
-            let history_:any = []
+            const history: any = []
             rulesInSeasons.forEach((item) => {
-                if (item.rules.includes(rules)){
-                    history_.push({season:item.season, turn:item.turn})
+                if (item.rules.includes(rules)) {
+                    history.push({ season: item.season, turn: item.turn })
                 }
             })
             rulesDict[rules] = {
@@ -39,11 +38,10 @@ export const processRulesData = (data: OutputJSONType): RuleType[]=> {
                 mutable: episode.CurrentRulesInPlay[rules].Mutable,
                 linked: episode.CurrentRulesInPlay[rules].Linked,
                 variables: episode.CurrentRulesInPlay[rules].RequiredVariables,
-                history: history_,
+                history,
             }
         })
     })
 
-    return Object.values(rulesDict);
+    return Object.values(rulesDict)
 }
-
