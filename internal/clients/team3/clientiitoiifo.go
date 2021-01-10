@@ -162,8 +162,8 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	//fmt.Println("total request amount: ", totalRequestAmt)
 
 	// check to avoid division by 0 and only request from alive islands
-	if c.getIslandsAlive() != 0 {
-		avgRequestAmt = totalRequestAmt / float64(c.getIslandsAlive())
+	if len(c.getAliveIslands()) != 0 {
+		avgRequestAmt = totalRequestAmt / float64(len(c.getAliveIslands()))
 	} else {
 		avgRequestAmt = totalRequestAmt
 	}
