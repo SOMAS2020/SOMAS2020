@@ -2,6 +2,7 @@ package team1
 
 import (
 	"fmt"
+	"math"
 	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -141,25 +142,30 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 }
 
 func (c *client) RequestAllocation() shared.Resources {
+	if c.emotionalState() == Desperate && c.config.desperateStealAmount != 0 {
+		allocation := c.config.desperateStealAmount
+		c.Logf("Desperate for %v to stay alive.", allocation)
+		return shared.Resources(
+			math.Min(float64(allocation), float64(c.gameState().CommonPool)),
+		)
+	}
+
 	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
 		VariableName: rules.IslandAllocation,
 		Values:       []float64{float64(c.gameState().CommonPool)},
 	}
+
 	allocationPair, success := c.GetRecommendation(rules.IslandAllocation)
 	if !success {
 		c.Logf("Cannot determine allocation, trying to get all resources in CP.")
 		return c.gameState().CommonPool
 	}
 
-	if c.emotionalState() == Desperate {
-		allocationAmount := c.config.desperateStealAmount
-		c.Logf("Desperate for %v to stay alive.", allocationAmount)
-		return allocationAmount
-	}
-
 	allocation := allocationPair.Values[0]
 	if allocation != 0 {
 		c.Logf("Taking %v from common pool", allocation)
 	}
-	return shared.Resources(allocation)
+	return shared.Resources(
+		math.Min(allocation, float64(c.gameState().CommonPool)),
+	)
 }
