@@ -61,51 +61,54 @@ func (c *client) getNumAliveClients() int {
 	return len(c.getAliveClients())
 }
 
+// Stores the information we receive from IIGO
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
-
 	for contentType, content := range data {
+		commonPool := CommonPoolInfo{
+			tax:             0,
+			requestedToPres: 0,
+			allocatedByPres: 0,
+			takenFromCP:     0,
+		}
 		switch contentType {
+		// How much tax we must pay
 		case shared.IIGOTaxDecision:
-			var commonPool CommonPoolInfo
 			if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
-				c.presCommonPoolHist[c.gameState().PresidentID] = make([]CommonPoolInfo, 0)
+				// Create map if it doesn't exist
+				c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
 
 			} else {
 				presHist := c.presCommonPoolHist[c.gameState().PresidentID]
-				if presHist[len(presHist)-1].turn == c.gameState().Turn {
-					commonPool = presHist[len(presHist)-1]
+				if pastInfo, ok := presHist[c.gameState().Turn]; ok {
+					//Take previous values if they exist in the map
+					commonPool = pastInfo
 				}
 			}
-			presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 			c.taxAmount = shared.Resources(content.IntegerData)
+			commonPool.tax = shared.Resources(content.IntegerData)
+			// Update the history
+			c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 
-			commonPool = CommonPoolInfo{
-				tax:  shared.Resources(content.IntegerData),
-				turn: c.gameState().Turn,
-			}
-			// TODO: Appends incomplete presCommonPoolHist
-			c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
-
+		// How many resources we've been allocated from the CP by the President
 		case shared.IIGOAllocationDecision:
-			var commonPool CommonPoolInfo
 			if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
-				c.presCommonPoolHist[c.gameState().PresidentID] = make([]CommonPoolInfo, 0)
+				// Create map if it doesn't exist
+				c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
 
 			} else {
 				presHist := c.presCommonPoolHist[c.gameState().PresidentID]
-				if presHist[len(presHist)-1].turn == c.gameState().Turn {
-					commonPool = presHist[len(presHist)-1]
+				if pastInfo, ok := presHist[c.gameState().Turn]; ok {
+					//Take previous values if they exist in the map
+					commonPool = pastInfo
 				}
 			}
-			presHist := c.presCommonPoolHist[c.gameState().PresidentID]
 			c.commonPoolAllocation = shared.Resources(content.IntegerData)
-			commonPool = CommonPoolInfo{
-				allocatedByPres: shared.Resources(content.IntegerData),
-				turn:            c.gameState().Turn,
-			}
-			c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+			commonPool.allocatedByPres = shared.Resources(content.IntegerData)
+			// Update the history
+			c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 
+		// What islands have a sanction (and the sanction tier)
 		case shared.SanctionClientID:
 			islandSanc := IslandSanctionInfo{
 				Turn:   c.gameState().Turn,
@@ -113,8 +116,12 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 				Amount: 0,
 			}
 			c.islandSanctions[shared.ClientID(content.IntegerData)] = islandSanc
+
+		// The sanction tier "score" for this turn
 		case shared.IIGOSanctionTier:
 			c.tierLevels[content.IntegerData] = data[shared.IIGOSanctionScore].IntegerData
+
+		// What sanction score we have
 		case shared.SanctionAmount:
 			if _, ok := c.sanctionHist[c.gameState().JudgeID]; !ok {
 				c.sanctionHist[c.gameState().JudgeID] = make([]IslandSanctionInfo, 0)
@@ -175,6 +182,8 @@ func (c *client) setAgentStrategy() AgentStrategy {
 	return FairSharer
 }
 
+// Takes as input a sanction score and returns what sanction tier is corresponds to from the latest score-sanction threshold we have
+// Used to store what sanction tier we're in from the IIGO Communications
 func (c *client) checkSanctionTier(score int) int {
 	var keys []int
 

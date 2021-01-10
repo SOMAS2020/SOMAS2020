@@ -40,12 +40,9 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 		return 50
 	}
 
-	c.Logf("[Our beautiful chicken wings]:")
-
 	islandHist := c.opinionHist[otherIsland].Histories
 	situationHist := islandHist[situation]
 	if len(situationHist) == 0 {
-		c.Logf("[returning 50 right after wings]:", len(situationHist))
 		return 50
 	}
 
@@ -59,13 +56,19 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 	}
 	average := sum / div
 
-	c.Logf("[Our beautiful average]:", average)
+	//c.Logf("[Our beautiful average]:", average)
+	// c.Logf("situation hist ", situationHist)
+	// c.Logf("[returning average right after wings]:", len(situationHist))
 
 	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
 	islandSituationPerf.exp = average
-	c.Logf("%v", c.opinionHist)
-	c.opinionHist[otherIsland].Performances[situation] = islandSituationPerf
+	islandSituationPerf.real = 0
+	c.Logf("situation we're dealing with ", situation)
+	c.Logf("[returning flowers]:", islandSituationPerf)
 
+	//c.Logf("island opinions", c.opinionHist[shared.ClientID(4)])
+	c.opinionHist[otherIsland].Performances[situation] = islandSituationPerf
+	//c.Logf("[returning full object]:", c.opinionHist[otherIsland])
 	return average
 
 }
@@ -83,13 +86,16 @@ func (c *client) setLimits(confidence int) int {
 // performance with the reality
 // Should be called after an action (with an island) has occurred
 func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.ClientID) {
-	if opinion, ok := c.opinionHist[otherIsland]; !ok {
+	c.Logf("[our opinion of others]:", c.opinionHist[otherIsland])
+	if opinion, ok := c.opinionHist[otherIsland]; ok {
 		islandHist := opinion.Histories
 		situationHist := islandHist[situation]
-
+		c.Logf("situation we're dealing with ", situation)
+		c.Logf("[situation before]:", situationHist)
 		islandSituationPerf := opinion.Performances[situation]
 		situationExp := islandSituationPerf.exp
 		situationReal := islandSituationPerf.real
+		c.Logf("[current performance]:", islandSituationPerf)
 
 		var updatedHist []int
 		percentageDiff := situationReal
@@ -99,10 +105,11 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 		}
 		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
 		updatedHist = append(situationHist, c.setLimits(newConf))
-
+		c.Logf("[situation after]:", updatedHist)
 		c.Logf("[appended yuhuuu]:", len(updatedHist))
 
 		c.opinionHist[otherIsland].Histories[situation] = updatedHist
+		c.Logf("[did it really append?]:", c.opinionHist[otherIsland].Histories[situation])
 	}
 }
 
@@ -232,25 +239,36 @@ func (c *client) updatePresidentTrust() {
 	runMeanWeAllocated := shared.Resources(0.0)
 	runMeanWeTake := shared.Resources(0.0)
 
-	for i, commonPool := range c.presCommonPoolHist[currPres] {
-		turn := shared.Resources(c.gameState().Turn - commonPool.turn)
-		div := shared.Resources(i + 1)
+	// Default value for Opinion if we have no history
+	reality := 50
 
-		runMeanTax += (commonPool.tax/turn - runMeanTax) / div
-		runMeanWeRequest += (commonPool.requestedToPres/turn - runMeanWeRequest) / div
-		runMeanWeAllocated += (commonPool.allocatedByPres/turn - runMeanWeAllocated) / div
-		runMeanWeTake += (commonPool.takenFromCP/turn - runMeanWeTake) / div
+	div := shared.Resources(1.0)
+	if presHist, ok := c.presCommonPoolHist[currPres]; ok {
+		c.Logf("c.presCommonPoolHist", presHist)
+		for turn, commonPool := range presHist {
+			turn := shared.Resources(c.gameState().Turn - turn)
 
+			runMeanTax += (commonPool.tax/turn - runMeanTax) / div
+			runMeanWeRequest += (commonPool.requestedToPres/turn - runMeanWeRequest) / div
+			runMeanWeAllocated += (commonPool.allocatedByPres/turn - runMeanWeAllocated) / div
+			runMeanWeTake += (commonPool.takenFromCP/turn - runMeanWeTake) / div
+			div++
+		}
+
+		percChangeTax := 100 * (c.taxAmount - runMeanTax) / runMeanTax
+		percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / runMeanWeAllocated // How much less we're giveen
+		percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / runMeanWeTake        // How much more we've taken
+
+		reality = c.setLimits(int(100 - percWeGet - percChangeTax + percWeTake))
+	}
+	islandSituationPerf := ExpectationReality{
+		exp:  0,
+		real: reality,
+	}
+	if perf, ok := c.opinionHist[currPres].Performances["President"]; ok {
+		islandSituationPerf.exp = perf.exp
 	}
 
-	percChangeTax := 100 * (c.taxAmount - runMeanTax) / runMeanTax
-	percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / runMeanWeAllocated // How much less we're giveen
-	percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / runMeanWeTake        // How much more we've taken
-
-	reality := c.setLimits(int(100 - percWeGet - percChangeTax + percWeTake))
-
-	islandSituationPerf := c.opinionHist[currPres].Performances["President"]
-	islandSituationPerf.real = reality
 	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
 
 }

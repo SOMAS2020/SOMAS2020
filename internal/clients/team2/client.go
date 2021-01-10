@@ -75,7 +75,6 @@ type IslandSanctionInfo struct {
 }
 
 type CommonPoolInfo struct {
-	turn            uint
 	tax             shared.Resources
 	requestedToPres shared.Resources
 	allocatedByPres shared.Resources
@@ -121,7 +120,7 @@ type DisasterHistory []DisasterOccurrence
 type IslandSanctions map[shared.ClientID]IslandSanctionInfo
 type TierLevels map[int]int
 type SanctionHist map[shared.ClientID][]IslandSanctionInfo
-type PresCommonPoolHist map[shared.ClientID][]CommonPoolInfo
+type PresCommonPoolHist map[shared.ClientID]map[uint]CommonPoolInfo
 
 // DisasterVulnerabilityDict is a map from island ID to an islands DVP
 type DisasterVulnerabilityDict map[shared.ClientID]float64
