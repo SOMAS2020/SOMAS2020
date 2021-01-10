@@ -101,7 +101,7 @@ func (c *client) randomForage() shared.ForageDecision {
 		forageType = shared.DeerForageType
 	}
 	tmp := rand.Float64()
-	if tmp > 0.3 { //up to 20% resources
+	if tmp > 0.3 { //up to 30% resources
 		resources = 0.3 * c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	} else {
 		resources = shared.Resources(tmp) * c.ServerReadHandle.GetGameState().ClientInfo.Resources
