@@ -66,7 +66,7 @@ func (c *client) changeForageType() shared.ForageType {
 			}
 		}
 		if deerAverageRoi > deerAverageRoi2 {
-			c.clientConfig.multiplier += 0.03
+			c.clientConfig.multiplier += 0.05
 		}
 		return shared.DeerForageType
 	}
