@@ -144,7 +144,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 				probDeerHunting -= (float64(prevTurnsHunters[i]) /
 					float64(c.getTurn()-i)) *
 					c.config.DecreasePerHunterInLookBack *
-					float64(noCaught[i])
+					(0.5 + float64(noCaught[i]))
 			}
 
 			// Logger
@@ -236,15 +236,17 @@ func (c *client) normalForage() shared.ForageDecision {
 		bestInput += bestInput * shared.Resources(rand.Float64()*c.config.NormalRandomChange)
 	}
 
-	bestInput = bestInput * shared.Resources(c.mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 1.8))
+	if bestForagingMethod == shared.FishForageType {
+		bestInput = bestInput * shared.Resources(c.mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 1.8))
+	} else if bestForagingMethod == shared.DeerForageType {
+		bestInput = bestInput * shared.Resources(c.mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 2.2))
+	}
 
 	// Pick the minimum value between the best value and x% of our resources
 	bestInput = shared.Resources(math.Min(
 		float64(bestInput),
 		float64(shared.Resources(c.config.MaxForagePercentage)*c.gameState().ClientInfo.Resources)),
 	)
-
-	// bestInput = bestInput * shared.Resources(3*len(c.getAliveTeams(true))/len(c.getAliveTeams(true)))
 
 	// Now return the foraging decision
 	forageDecision := shared.ForageDecision{
@@ -319,11 +321,19 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 			)
 	}
 
-	c.Logf("[ReceiveForageInfo][%v]: %v", c.getTurn(), forageInfos)
-
+	c.Logf("[ReceiveForageInfo][%v]: %+v", c.getTurn(), forageInfos)
+	// c.opinions[team].updateOpinion(generalBasis, -0.05*c.getMood()) // booo give me your foraging data
 	for _, forageInfo := range forageInfos {
 		if forageInfo.DecisionMade.Contribution >= 1 { // has to be meaningful forage
-			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.2*c.getMood()) // Thanks for the information dude
+			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.05*c.getMood()) // Thanks for the information dude
+		}
+	}
+
+	for _, team := range c.getAliveTeams(true) {
+		for _, gaveInfo := range forageInfos {
+			if team != gaveInfo.SharedFrom { // has to be meaningful forage
+				c.opinions[team].updateOpinion(generalBasis, -0.05*c.getMood()) // Thanks for the information dude
+			}
 		}
 	}
 }
@@ -340,8 +350,6 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 							returns.turn <= c.getTurn() &&
 							returns.team == team { // If a certain team within a certain range
 							shareTo = append(shareTo, team) // add to shrae to list if they shared to us
-						} else {
-							c.opinions[team].updateOpinion(generalBasis, -0.05*c.getMood()) // booo give me your foraging data
 						}
 					} else {
 						startOfGame := uint(0) // case that the deerTurnsTo look back is greater than turns
@@ -349,8 +357,6 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 							returns.turn <= c.getTurn() &&
 							returns.team == team {
 							shareTo = append(shareTo, team)
-						} else {
-							c.opinions[team].updateOpinion(generalBasis, -0.05*c.getMood()) // booo give me your foraging data
 						}
 					}
 				}
@@ -400,6 +406,6 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 		SharedFrom:       shared.Team5,
 	}
 
-	c.Logf("[MakeForageInfo][%v]: %v", c.getTurn(), forageInfo)
+	c.Logf("[MakeForageInfo][%v]: %+v", c.getTurn(), forageInfo)
 	return forageInfo
 }

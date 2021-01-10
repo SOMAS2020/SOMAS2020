@@ -134,8 +134,8 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		switch {
 		// case we are RICH or Middle class
 		case c.wealth() >= 2:
-			opinionMulti := c.mapToRange(float64(c.opinions[team].getScore()), -1, 1, 0.01, 1) // Opinion = 0 then you get what we say, opinion = 1 get what they ask for
-			amount := ((opinionMulti * float64(receivedRequests[team])) +                      // opinion = 1 then they get what they asked for
+			opinionMulti := c.mapToRange(float64(c.opinions[team].getScore()), -1, 1, 0.2, 1) // Opinion = 0 then you get what we say, opinion = 1 get what they ask for
+			amount := ((opinionMulti * float64(receivedRequests[team])) +                     // opinion = 1 then they get what they asked for
 				((1 - opinionMulti) * c.config.offertoDyingIslands)) // opinion = -1 they get 0 of what they want and all of what we pay them
 			if status == shared.Critical {
 				if c.opinions[team].getScore() >= 0 {
@@ -251,7 +251,7 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 // they want to fulfill a gift offer they have made.
 // COMPULSORY, you need to implement this method
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	giftOff := giftOffer * 0.90
+	giftOff := giftOffer
 	// History
 	newGiftRequest := giftInfo{ // 	For each client create a new gift info
 		requested:      c.giftHistory[toTeam].theirRequest[c.getTurn()].requested, // Amount We requested
@@ -302,7 +302,7 @@ func (c *client) updateGiftOpinions() {
 	var highestRequest shared.ClientID
 	var lowestRequest shared.ClientID
 	for _, team := range c.getAliveTeams(false) { // for each ID
-		c.Logf("Opinion of teams BEFORE %v | %v", team, c.opinions[team].getScore())
+		c.Logf("Opinion of %v BEFORE gifts = %v", team, c.opinions[team].getScore())
 		// ======================= Bad =======================
 		// If we get OFFERED LESS than we Requested
 		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].offered) <
@@ -312,7 +312,7 @@ func (c *client) updateGiftOpinions() {
 		// If we ACTUALLY get LESS than they OFFERED us
 		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].actualReceived) <
 			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].offered) {
-			c.opinions[team].updateOpinion(generalBasis, -0.025*c.getMood())
+			c.opinions[team].updateOpinion(generalBasis, -0.05*c.getMood())
 		}
 
 		// If they REQUEST the MOST compared to other islands
@@ -329,9 +329,9 @@ func (c *client) updateGiftOpinions() {
 		}
 
 		// If we RECEIVE MORE than WE REQUESTED
-		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].offered) >=
+		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].offered) >
 			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].requested) &&
-			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].actualReceived) >=
+			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].actualReceived) >
 				shared.Resources(c.giftHistory[team].ourRequest[lastTurn].requested) {
 			c.opinions[team].updateOpinion(generalBasis, 0.10*c.getMood())
 		}
@@ -341,8 +341,8 @@ func (c *client) updateGiftOpinions() {
 			c.giftHistory[team].theirRequest[lastTurn].requested {
 			lowestRequest = team
 		}
-		c.Logf("Opinion of teams AFTER %v | %v", team, c.opinions[team].getScore())
+		c.Logf("Opinion of %v AFTER gifts = %v", team, c.opinions[team].getScore())
 	}
-	c.opinions[highestRequest].updateOpinion(generalBasis, -0.01*c.getMood())
+	c.opinions[highestRequest].updateOpinion(generalBasis, -0.05*c.getMood())
 	c.opinions[lowestRequest].updateOpinion(generalBasis, 0.05*c.getMood())
 }

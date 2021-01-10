@@ -56,12 +56,11 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Print the Thresholds
 	c.Logf("[Initialise [%v]] JB TH %v | Middle TH %v | Imperial TH %v",
 		c.getTurn(), c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
-
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
-	c.Logf("[StartOfTurn][%v]: Wealth class: %v | Money In the Bank: %v | Teams Alive: %v ", c.getTurn(), c.wealth(), c.gameState().ClientInfo.Resources, c.gameState().ClientLifeStatuses)
+	c.Logf("[StartOfTurn][%v]: Wealth class: %v | Money In the Bank: %v | Teams still alive: %v ", c.getTurn(), c.wealth(), c.gameState().ClientInfo.Resources, c.gameState().ClientLifeStatuses)
 
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.opinionHistory[c.getTurn()] = c.opinions // assign last turn's opinions as default for this turn

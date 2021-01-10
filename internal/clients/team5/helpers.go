@@ -67,6 +67,10 @@ func absoluteCap(val, absThresh float64) float64 {
 }
 
 func (c client) getMood() float64 {
+	if c.gameState().ClientInfo.Resources >= getClientConfig().jbThreshold {
+		return c.mapToRange(float64(c.gameState().ClientInfo.Resources),
+			float64(c.gameState().ClientInfo.Resources), 0, 0.5, 1.5)
+	}
 	return c.mapToRange(float64(c.gameState().ClientInfo.Resources),
 		float64(c.config.jbThreshold), 0, 0.5, 1.5)
 }

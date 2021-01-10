@@ -72,7 +72,7 @@ var (
 	)
 	foragingDeerInputScaler = flag.Float64(
 		"foragingDeerInputScaler",
-		20,
+		12,
 		"scalar value that adjusts deer input resources to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerOutputScaler = flag.Float64(
@@ -119,22 +119,22 @@ var (
 	)
 	foragingFishingMean = flag.Float64(
 		"foragingFishingMean",
-		0.9,
+		1,
 		"Determines mean of normal distribution of fishing return (see foraging README)",
 	)
 	foragingFishingVariance = flag.Float64(
 		"foragingFishingVariance",
-		0.2,
+		0.1,
 		"Determines variance of normal distribution of fishing return (see foraging README)",
 	)
 	foragingFishingInputScaler = flag.Float64(
 		"foragingFishingInputScaler",
-		15,
+		10,
 		"scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingOutputScaler = flag.Float64(
 		"foragingFishingOutputScaler",
-		20,
+		18,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(
@@ -166,7 +166,7 @@ var (
 	)
 	disasterPeriod = flag.Uint(
 		"disasterPeriod",
-		15,
+		10,
 		"Period T between disasters in deterministic case and E[T] in stochastic case.",
 	)
 	disasterSpatialPDFType = flag.Int(
