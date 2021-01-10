@@ -63,3 +63,10 @@ func (t *trust) normalize() {
 		}
 	}
 }
+
+func (t *trust) initialise() {
+	for _, clientID := range shared.TeamIDs {
+		t.trustMap[clientID] = 0.5
+	}
+	t.normalize()
+}

@@ -50,9 +50,10 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	}
 
 	emptyRuleCache := map[string]rules.RuleMatrix{}
-	emptyTrust := trust{
+	trustMatrix := trust{
 		trustMap: map[shared.ClientID]float64{},
 	}
+	trustMatrix.initialise()
 
 	importancesMatrix := importances{
 		requestAllocationImportance:                mat.NewVecDense(6, []float64{5.0, 1.0, -1.0, -1.0, 5.0, 1.0}),
@@ -70,7 +71,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
 		savedHistory:       &judgeHistory,
-		trustMatrix:        &emptyTrust,
+		trustMatrix:        &trustMatrix,
 		importances:        &importancesMatrix,
 	}
 
@@ -155,15 +156,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.BaseClient.Initialise(serverReadHandle)
 
 	//custom things below, trust matrix initilised to values of 0
-	trustMap := map[shared.ClientID]float64{}
-	for clientID := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		trustMap[clientID] = 0.5
-	}
-
-	trustMatrix := trust{trustMap: trustMap}
-
-	c.trustMatrix = &trustMatrix
-
+	c.Logf("Initial trust matrix: %v", c.trustMatrix.trustMap)
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
 	c.updateParents()
