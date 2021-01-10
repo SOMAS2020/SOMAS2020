@@ -275,9 +275,7 @@ func (c *client) StartOfTurn() {
 
 func (c *client) updateTrustFromSavedHistory() {
 	if c.savedHistory.updated {
-		c.Logf("Updating history. Trust before: %v", c.trustMatrix.trustMap)
 		newInfo := c.savedHistory.getNewInfo()
-		c.Logf("Updating history. NewInfo: %v", newInfo)
 
 		if len(newInfo) > 0 {
 			var truthfulnessSum float64
@@ -299,8 +297,6 @@ func (c *client) updateTrustFromSavedHistory() {
 			}
 		}
 		c.savedHistory.updated = false
-		c.Logf("History updated. Trust after: %v", c.trustMatrix.trustMap)
-
 	}
 }
 
