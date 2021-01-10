@@ -18,7 +18,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	safetyFactor := 1.0 + (0.5/100)*c.params.riskFactor
 
 	//we want to have more than the critical threshold leftover after foraging
-	var minimumLeftoverResources = float64(c.criticalStatePrediction.upperBound) * safetyFactor
+	var minimumLeftoverResources = float64(c.criticalThreshold) * safetyFactor
 
 	var foragingInvestment = 0.0
 	//for now we invest everything we can, because foraging is iffy.

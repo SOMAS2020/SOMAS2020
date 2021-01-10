@@ -2,9 +2,7 @@ package team6
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
-
 )
 
 type judge struct {
@@ -12,57 +10,19 @@ type judge struct {
 	*client
 }
 
-func (j *judge) GetRuleViolationSeverity() map[string]roles.IIGOSanctionScore {
-	return map[string]roles.IIGOSanctionScore{}
-}
+func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
+	pardons := map[int][]bool{}
+	maxSanctionTime := int(j.client.ServerReadHandle.GetGameConfig().IIGOClientConfig.SanctionCacheDepth - 1)
 
-func (j *judge) GetSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
-	return j.BaseJudge.GetSanctionThresholds()
-}
-
-func (j *judge) PayPresident() (shared.Resources, bool) {
-	return j.BaseJudge.PayPresident()
-}
-
-func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]roles.EvaluationReturn, bool) {
-	return j.BaseJudge.InspectHistory(iigoHistory, turnsAgo)
-}
-
-// We don't have reasons pardon any islands being sanctioned
-func (j *judge) GetPardonedIslands(currentSanctions map[int][]roles.Sanction) map[int][]bool {
-	/*
-		currentRoundSanction := map[int][bool]{};
-		// Pardon an island that has zero TurnsLeft
-		for _, _, i := currentSanctions{
-			if i == 0 {
-				map[]
+	for timeStep, sanctions := range currentSanctions {
+		pardons[timeStep] = make([]bool, len(sanctions))
+		for who, sanction := range sanctions {
+			if timeStep == maxSanctionTime && j.client.friendship[sanction.ClientID] == j.client.clientConfig.maxFriendship {
+				// we can pardon certain islands having maximum friendship with us
+				pardons[timeStep][who] = true
 			}
 		}
-	*/
-	return j.BaseJudge.GetPardonedIslands(currentSanctions)
-}
-
-func (j *judge) HistoricalRetributionEnabled() bool {
-	return j.BaseJudge.HistoricalRetributionEnabled()
-}
-
-func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
-
-	var electionsettings = shared.ElectionSettings{
-		VotingMethod:  shared.BordaCount,
-		IslandsToVote: allIslands,
-		HoldElection:  false,
-	}
-	if monitoring.Performed && !monitoring.Result {
-		electionsettings.HoldElection = true
 	}
 
-	if turnsInPower >= 2 {
-		electionsettings.HoldElection = true
-	}
-	return electionsettings
-}
-
-func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
-	return winner
+	return pardons
 }

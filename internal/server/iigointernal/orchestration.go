@@ -9,37 +9,33 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/voting"
 )
 
-// TaxAmountMapExport is a local tax amount cache for checking of rules
-var TaxAmountMapExport map[shared.ClientID]shared.Resources
-
-// AllocationAmountMapExport is a local allocation map for checking of rules
-var AllocationAmountMapExport map[shared.ClientID]shared.Resources
-
-// SanctionAmountMapExport is a local sanction map for sanctions
-var SanctionAmountMapExport map[shared.ClientID]shared.Resources
-
-// iigoClients holds pointers to all the clients
-var iigoClients map[shared.ClientID]baseclient.Client
-
-//monitoring holds the monitoring object that is used across turns
-var monitoring monitor
-
 // RunIIGO runs all iigo function in sequence
 func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared.ClientID]baseclient.Client, gameConf *config.Config) (IIGOSuccessful bool, StatusDescription string) {
+
+	iIGOClients := *clientMap
+
+	removeDeadBodiesFromOffice(g)
+
+	var monitoring = monitor{
+		gameState:   g,
+		iigoClients: iIGOClients,
+		logger:      logger,
+	}
+
+	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
+
 	// featureJudge is an instantiation of the Judge interface
 	// with both the Base Judge features and a reference to client judges
 	var judicialBranch = judiciary{
-		gameState:          nil,
-		gameConf:           nil,
-		JudgeID:            0,
-		evaluationResults:  nil,
-		localSanctionCache: defaultInitLocalSanctionCache(3),
-		localHistoryCache:  defaultInitLocalHistoryCache(3),
-		logger:             logger,
+		gameState:         nil,
+		gameConf:          nil,
+		JudgeID:           0,
+		evaluationResults: nil,
+		monitoring:        &monitoring,
+		iigoClients:       iIGOClients,
+		logger:            logger,
 	}
 
-	// featureSpeaker is an instantiation of the Speaker interface
-	// with both the baseSpeaker features and a reference to client speakers
 	var legislativeBranch = legislature{
 		gameState:    nil,
 		gameConf:     nil,
@@ -47,36 +43,33 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		ruleToVote:   rules.RuleMatrix{},
 		ballotBox:    voting.BallotBox{},
 		votingResult: false,
+		monitoring:   &monitoring,
+		iigoClients:  iIGOClients,
 		logger:       logger,
 	}
 
-	// featurePresident is an instantiation of the President interface
-	// with both the basePresident features and a reference to client presidents
 	var executiveBranch = executive{
 		gameState:        nil,
 		gameConf:         nil,
 		PresidentID:      0,
 		ResourceRequests: nil,
+		monitoring:       &monitoring,
+		iigoClients:      iIGOClients,
 		logger:           logger,
 	}
-	executiveBranch.monitoring = &monitoring
-	legislativeBranch.monitoring = &monitoring
-	judicialBranch.monitoring = &monitoring
-
-	iigoClients = *clientMap
 
 	// Increments the budget according to increment_budget_role rules
-	PresidentIncRule, ok := rules.RulesInPlay["increment_budget_president"]
+	PresidentIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_president"]
 	if ok {
 		PresidentBudgetInc := PresidentIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.President] += shared.Resources(PresidentBudgetInc)
 	}
-	JudgeIncRule, ok := rules.RulesInPlay["increment_budget_judge"]
+	JudgeIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_judge"]
 	if ok {
 		JudgeBudgetInc := JudgeIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.Judge] += shared.Resources(JudgeBudgetInc)
 	}
-	SpeakerIncRule, ok := rules.RulesInPlay["increment_budget_speaker"]
+	SpeakerIncRule, ok := g.RulesInfo.CurrentRulesInPlay["increment_budget_speaker"]
 	if ok {
 		SpeakerBudgetInc := SpeakerIncRule.ApplicableMatrix.At(0, 1)
 		g.IIGORolesBudget[shared.Speaker] += shared.Resources(SpeakerBudgetInc)
@@ -99,11 +92,11 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	executiveBranch.PresidentID = g.PresidentID
 
 	// Set judgePointer
-	judgePointer := iigoClients[g.JudgeID].GetClientJudgePointer()
+	judgePointer := iIGOClients[g.JudgeID].GetClientJudgePointer()
 	// Set speakerPointer
-	speakerPointer := iigoClients[g.SpeakerID].GetClientSpeakerPointer()
+	speakerPointer := iIGOClients[g.SpeakerID].GetClientSpeakerPointer()
 	// Set presidentPointer
-	presidentPointer := iigoClients[g.PresidentID].GetClientPresidentPointer()
+	presidentPointer := iIGOClients[g.PresidentID].GetClientPresidentPointer()
 
 	// Initialise iigointernal with their clientVersions
 	judicialBranch.loadClientJudge(judgePointer)
@@ -125,7 +118,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	for clientID, clientGameState := range g.ClientInfos {
 		if clientGameState.LifeStatus != shared.Dead {
 			aliveClientIds = append(aliveClientIds, clientID)
-			resourceReports[clientID] = iigoClients[clientID].ResourceReport()
+			resourceReports[clientID] = iIGOClients[clientID].ResourceReport()
 
 			// Update Variables in Rules (updateIIGOTurnHistory)
 			g.IIGOHistory[g.Turn] = append(g.IIGOHistory[g.Turn],
@@ -223,11 +216,10 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		return false, "Cannot pay IIGO salary"
 	}
 
-	presidentMonitored := monitoring.monitorRole(g, iigoClients[g.SpeakerID])
-	judgeMonitored := monitoring.monitorRole(g, iigoClients[g.PresidentID])
-	speakerMonitored := monitoring.monitorRole(g, iigoClients[g.JudgeID])
-	//Save to gameState and clear
-	g.IIGOCache = monitoring.internalIIGOCache
+	presidentMonitored := monitoring.monitorRole(iIGOClients[g.SpeakerID])
+	judgeMonitored := monitoring.monitorRole(iIGOClients[g.PresidentID])
+	speakerMonitored := monitoring.monitorRole(iIGOClients[g.JudgeID])
+	// Clear cache ahead of elections
 	monitoring.clearCache()
 
 	// TODO:- at the moment, these are action (and cost resources) but should they?
@@ -252,15 +244,6 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	g.PresidentID, appointPresidentError = judicialBranch.appointNextPresident(presidentMonitored, g.PresidentID, aliveClientIds)
 	if appointPresidentError != nil {
 		return false, "President was not apointed by the Judge. Insufficient budget"
-	}
-
-	oldCacheSave := monitoring.internalIIGOCache
-	monitoring = monitor{
-		speakerID:         g.SpeakerID,
-		presidentID:       g.PresidentID,
-		judgeID:           g.JudgeID,
-		internalIIGOCache: oldCacheSave,
-		TermLengths:       gameConf.IIGOConfig.IIGOTermLengths,
 	}
 
 	return true, "IIGO Run Successful"

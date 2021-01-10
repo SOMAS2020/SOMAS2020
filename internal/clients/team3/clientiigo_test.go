@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -21,9 +22,9 @@ func TestRequestAllocation(t *testing.T) {
 			ourClient: client{
 				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
 					ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Critical}}}},
-				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30},
-				iigoInfo:                iigoCommunicationInfo{commonPoolAllocation: shared.Resources(10)},
-				params:                  islandParams{escapeCritcaIsland: true, selfishness: 0.3},
+				criticalThreshold: 50,
+				iigoInfo:          iigoCommunicationInfo{commonPoolAllocation: shared.Resources(10)},
+				params:            islandParams{escapeCritcaIsland: true, selfishness: 0.3},
 			},
 			expected: shared.Resources(40),
 		},
@@ -32,10 +33,10 @@ func TestRequestAllocation(t *testing.T) {
 			ourClient: client{
 				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
 					ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Critical}}}},
-				compliance:              1.0,
-				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30},
-				iigoInfo:                iigoCommunicationInfo{commonPoolAllocation: shared.Resources(10)},
-				params:                  islandParams{escapeCritcaIsland: false, selfishness: 0.3},
+				compliance:        1.0,
+				criticalThreshold: 50,
+				iigoInfo:          iigoCommunicationInfo{commonPoolAllocation: shared.Resources(10)},
+				params:            islandParams{escapeCritcaIsland: false, selfishness: 0.3},
 			},
 			expected: shared.Resources(10),
 		},
@@ -44,10 +45,10 @@ func TestRequestAllocation(t *testing.T) {
 			ourClient: client{
 				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
 					ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Alive}}}},
-				compliance:              0.0,
-				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30},
-				iigoInfo:                iigoCommunicationInfo{commonPoolAllocation: shared.Resources(10)},
-				params:                  islandParams{escapeCritcaIsland: false, selfishness: 0.3},
+				compliance:        0.0,
+				criticalThreshold: 50,
+				iigoInfo:          iigoCommunicationInfo{commonPoolAllocation: shared.Resources(10)},
+				params:            islandParams{escapeCritcaIsland: false, selfishness: 0.3},
 			},
 			expected: shared.Resources(10 + 10*0.3),
 		},
@@ -72,38 +73,44 @@ func TestCommonPoolResourceRequest(t *testing.T) {
 		{
 			name: "Request critical difference",
 			ourClient: client{
-				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
-					ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Critical, Resources: 20}}}},
-				compliance:              1.0,
-				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30},
-				iigoInfo:                iigoCommunicationInfo{},
-				params:                  islandParams{minimumRequest: 10, escapeCritcaIsland: true, selfishness: 0.3},
+				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{
+					gameState:  gamestate.ClientGameState{ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Critical, Resources: 20}},
+					gameConfig: config.ClientConfig{CostOfLiving: 10},
+				}},
+				compliance:        1.0,
+				criticalThreshold: 50,
+				iigoInfo:          iigoCommunicationInfo{},
+				params:            islandParams{escapeCritcaIsland: true, selfishness: 0.3},
 			},
 			expected: shared.Resources(30),
 		},
 		{
 			name: "Non-escape critical, non-cheat",
 			ourClient: client{
-				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
-					ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Alive, Resources: 20}}}},
-				compliance:              1.0,
-				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30},
-				iigoInfo:                iigoCommunicationInfo{},
-				params:                  islandParams{minimumRequest: 50, escapeCritcaIsland: false, selfishness: 0.3},
+				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{
+					gameState:  gamestate.ClientGameState{ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Alive, Resources: 20}},
+					gameConfig: config.ClientConfig{CostOfLiving: 10},
+				}},
+				compliance:        1.0,
+				criticalThreshold: 50,
+				iigoInfo:          iigoCommunicationInfo{},
+				params:            islandParams{escapeCritcaIsland: false, selfishness: 0.3},
 			},
-			expected: shared.Resources(50),
+			expected: shared.Resources(10),
 		},
 		{
 			name: "Cheating",
 			ourClient: client{
-				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
-					ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Alive}}}},
-				compliance:              0.0,
-				criticalStatePrediction: criticalStatePrediction{upperBound: 70, lowerBound: 30},
-				iigoInfo:                iigoCommunicationInfo{},
-				params:                  islandParams{minimumRequest: 50, escapeCritcaIsland: false, selfishness: 0.3},
+				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{
+					gameState:  gamestate.ClientGameState{ClientInfo: gamestate.ClientInfo{LifeStatus: shared.Alive, Resources: 20}},
+					gameConfig: config.ClientConfig{CostOfLiving: 10},
+				}},
+				compliance:        0.0,
+				criticalThreshold: 50,
+				iigoInfo:          iigoCommunicationInfo{},
+				params:            islandParams{escapeCritcaIsland: false, selfishness: 0.3},
 			},
-			expected: shared.Resources(50 + 50*0.3),
+			expected: shared.Resources(10 + 10*0.3),
 		},
 	}
 
@@ -132,9 +139,9 @@ func TestGetTaxContribution(t *testing.T) {
 					},
 					CommonPool: shared.Resources(0),
 				}}},
-				criticalStatePrediction: criticalStatePrediction{upperBound: 10, lowerBound: 0},
-				iigoInfo:                iigoCommunicationInfo{taxationAmount: shared.Resources(30)},
-				params:                  islandParams{escapeCritcaIsland: true, selfishness: 1, riskFactor: 0.5},
+				criticalThreshold: 10,
+				iigoInfo:          iigoCommunicationInfo{taxationAmount: shared.Resources(30)},
+				params:            islandParams{escapeCritcaIsland: true, selfishness: 1, riskFactor: 0.5},
 				trustScore: map[shared.ClientID]float64{
 					0: 50,
 					1: 50,
@@ -156,9 +163,9 @@ func TestGetTaxContribution(t *testing.T) {
 					},
 					CommonPool: shared.Resources(0),
 				}}},
-				criticalStatePrediction: criticalStatePrediction{upperBound: 10, lowerBound: 0},
-				iigoInfo:                iigoCommunicationInfo{taxationAmount: shared.Resources(30)},
-				params:                  islandParams{escapeCritcaIsland: true, selfishness: 1, riskFactor: 0.5},
+				criticalThreshold: 10,
+				iigoInfo:          iigoCommunicationInfo{taxationAmount: shared.Resources(30)},
+				params:            islandParams{escapeCritcaIsland: true, selfishness: 1, riskFactor: 0.5},
 				trustScore: map[shared.ClientID]float64{
 					0: 50,
 					1: 50,
@@ -180,9 +187,9 @@ func TestGetTaxContribution(t *testing.T) {
 					},
 					CommonPool: shared.Resources(0),
 				}}},
-				criticalStatePrediction: criticalStatePrediction{upperBound: 10, lowerBound: 0},
-				iigoInfo:                iigoCommunicationInfo{taxationAmount: shared.Resources(8)},
-				params:                  islandParams{escapeCritcaIsland: true, selfishness: 0.5, riskFactor: 0.5},
+				criticalThreshold: 10,
+				iigoInfo:          iigoCommunicationInfo{taxationAmount: shared.Resources(8)},
+				params:            islandParams{escapeCritcaIsland: true, selfishness: 0.5, riskFactor: 0.5},
 				trustScore: map[shared.ClientID]float64{
 					0: 50,
 					1: 50,
@@ -191,9 +198,9 @@ func TestGetTaxContribution(t *testing.T) {
 					4: 50,
 					5: 0,
 				},
-				compliance: 1,
+				compliance: 0,
 			},
-			expected: shared.Resources(20),
+			expected: shared.Resources(0),
 		}}
 
 	for _, tc := range cases {

@@ -41,7 +41,7 @@ func (c *BaseClient) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		CoordinateX: meanDisaster.CoordinateX,
 		CoordinateY: meanDisaster.CoordinateY,
 		Magnitude:   meanDisaster.Magnitude,
-		TimeLeft:    int(meanDisaster.Turn),
+		TimeLeft:    meanDisaster.Turn,
 	}
 
 	// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
@@ -50,7 +50,7 @@ func (c *BaseClient) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	prediction.Confidence = determineConfidence(pastDisastersList, meanDisaster, varianceLimit)
 
 	// For MVP, share this prediction with all islands since trust has not yet been implemented
-	trustedIslands := make([]shared.ClientID, len(RegisteredClients))
+	trustedIslands := make([]shared.ClientID, len(RegisteredClientFactories))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
@@ -67,7 +67,9 @@ func (c *BaseClient) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 func getMeanDisaster(pastDisastersList PastDisastersList) DisasterInfo {
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	numberDisastersPassed := float64(len(pastDisastersList))
-
+	if numberDisastersPassed == 0 {
+		return DisasterInfo{0, 0, 0, 1000}
+	}
 	for _, disaster := range pastDisastersList {
 		totalCoordinateX += disaster.CoordinateX
 		totalCoordinateY += disaster.CoordinateY
@@ -122,7 +124,7 @@ func (c *BaseClient) ReceiveDisasterPredictions(receivedPredictions shared.Recei
 	totalCoordinateX := selfConfidence * c.predictionInfo.PredictionMade.CoordinateX
 	totalCoordinateY := selfConfidence * c.predictionInfo.PredictionMade.CoordinateY
 	totalMagnitude := selfConfidence * c.predictionInfo.PredictionMade.Magnitude
-	totalTimeLeft := int(math.Round(selfConfidence)) * c.predictionInfo.PredictionMade.TimeLeft
+	totalTimeLeft := uint(math.Round(selfConfidence)) * c.predictionInfo.PredictionMade.TimeLeft
 	totalConfidence := selfConfidence
 
 	// Add other island's predictions using their confidence values
@@ -130,7 +132,7 @@ func (c *BaseClient) ReceiveDisasterPredictions(receivedPredictions shared.Recei
 		totalCoordinateX += prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateX
 		totalCoordinateY += prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateY
 		totalMagnitude += prediction.PredictionMade.Confidence * prediction.PredictionMade.Magnitude
-		totalTimeLeft += int(math.Round(prediction.PredictionMade.Confidence)) * prediction.PredictionMade.TimeLeft
+		totalTimeLeft += uint(math.Round(prediction.PredictionMade.Confidence)) * prediction.PredictionMade.TimeLeft
 		totalConfidence += prediction.PredictionMade.Confidence
 	}
 
@@ -140,7 +142,7 @@ func (c *BaseClient) ReceiveDisasterPredictions(receivedPredictions shared.Recei
 		CoordinateX: totalCoordinateX / totalConfidence,
 		CoordinateY: totalCoordinateY / totalConfidence,
 		Magnitude:   totalMagnitude / totalConfidence,
-		TimeLeft:    int((float64(totalTimeLeft) / totalConfidence) + 0.5),
+		TimeLeft:    uint((float64(totalTimeLeft) / totalConfidence) + 0.5),
 		Confidence:  totalConfidence / numberOfPredictions,
 	}
 

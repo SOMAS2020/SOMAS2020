@@ -33,13 +33,18 @@ func genRuleMatrixExample2(ruleName string) rules.RuleMatrix {
 	return rules.RuleMatrix{RuleName: ruleName, ApplicableMatrix: *coreMatrix2, AuxiliaryVector: *auxiliaryVector2, Mutable: true, RequiredVariables: requiredVariables}
 }
 func TestRuleVotedIn(t *testing.T) {
-	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
+	avail, inPlay := generateRulesTestStores()
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
 		IIGORolesBudget: map[shared.Role]shared.Resources{
 			shared.President: 10,
 			shared.Speaker:   10,
 			shared.Judge:     10,
+		},
+		RulesInfo: gamestate.RulesContext{
+			VariableMap:        nil,
+			AvailableRules:     avail,
+			CurrentRulesInPlay: inPlay,
 		},
 	}
 	s := legislature{
@@ -89,20 +94,25 @@ func TestRuleVotedIn(t *testing.T) {
 		"Kinda Test Rule":   genRuleMatrixExample1("Kinda Test Rule"),
 		"Kinda Test Rule 2": genRuleMatrixExample1("Kinda Test Rule 2"),
 	}
-	eq := reflect.DeepEqual(rules.RulesInPlay, expectedRulesInPlay)
+	eq := reflect.DeepEqual(inPlay, expectedRulesInPlay)
 	if !eq {
-		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedRulesInPlay, rules.RulesInPlay)
+		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedRulesInPlay, inPlay)
 	}
 }
 
 func TestRuleVotedOut(t *testing.T) {
-	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
+	avail, inPlay := generateRulesTestStores()
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
 		IIGORolesBudget: map[shared.Role]shared.Resources{
 			shared.President: 10,
 			shared.Speaker:   10,
 			shared.Judge:     10,
+		},
+		RulesInfo: gamestate.RulesContext{
+			VariableMap:        nil,
+			AvailableRules:     avail,
+			CurrentRulesInPlay: inPlay,
 		},
 	}
 	s := legislature{
@@ -149,20 +159,25 @@ func TestRuleVotedOut(t *testing.T) {
 		})
 	}
 	expectedRulesInPlay := map[string]rules.RuleMatrix{}
-	eq := reflect.DeepEqual(rules.RulesInPlay, expectedRulesInPlay)
+	eq := reflect.DeepEqual(inPlay, expectedRulesInPlay)
 	if !eq {
-		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedRulesInPlay, rules.RulesInPlay)
+		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedRulesInPlay, inPlay)
 	}
 }
 
 func TestModifiedRuleVotedIn(t *testing.T) {
-	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
+	avail, inPlay := generateRulesTestStores()
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
 		IIGORolesBudget: map[shared.Role]shared.Resources{
 			shared.President: 10,
 			shared.Speaker:   10,
 			shared.Judge:     10,
+		},
+		RulesInfo: gamestate.RulesContext{
+			VariableMap:        nil,
+			AvailableRules:     avail,
+			CurrentRulesInPlay: inPlay,
 		},
 	}
 	s := legislature{
@@ -211,9 +226,9 @@ func TestModifiedRuleVotedIn(t *testing.T) {
 	expectedRulesInPlay := map[string]rules.RuleMatrix{
 		"Kinda Test Rule 2": genRuleMatrixExample2("Kinda Test Rule 2"),
 	}
-	eq := reflect.DeepEqual(rules.RulesInPlay, expectedRulesInPlay)
+	eq := reflect.DeepEqual(inPlay, expectedRulesInPlay)
 	if !eq {
-		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedRulesInPlay, rules.RulesInPlay)
+		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedRulesInPlay, inPlay)
 	}
 	expectedAvailbleRules := map[string]rules.RuleMatrix{
 		"Kinda Test Rule":   genRuleMatrixExample2("Kinda Test Rule"),
@@ -222,20 +237,25 @@ func TestModifiedRuleVotedIn(t *testing.T) {
 		"TestingRule1":      genRuleMatrixExample1("TestingRule1"),
 		"TestingRule2":      genRuleMatrixExample1("TestingRule2"),
 	}
-	eq = reflect.DeepEqual(rules.AvailableRules, expectedAvailbleRules)
+	eq = reflect.DeepEqual(avail, expectedAvailbleRules)
 	if !eq {
-		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedAvailbleRules, rules.AvailableRules)
+		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedAvailbleRules, avail)
 	}
 }
 
 func TestModifiedRuleVotedOut(t *testing.T) {
-	rules.AvailableRules, rules.RulesInPlay = generateRulesTestStores()
+	avail, inPlay := generateRulesTestStores()
 	fakeGameState := gamestate.GameState{
 		CommonPool: 400,
 		IIGORolesBudget: map[shared.Role]shared.Resources{
 			shared.President: 10,
 			shared.Speaker:   10,
 			shared.Judge:     10,
+		},
+		RulesInfo: gamestate.RulesContext{
+			VariableMap:        nil,
+			AvailableRules:     avail,
+			CurrentRulesInPlay: inPlay,
 		},
 	}
 	s := legislature{
@@ -284,9 +304,9 @@ func TestModifiedRuleVotedOut(t *testing.T) {
 	expectedRulesInPlay := map[string]rules.RuleMatrix{
 		"Kinda Test Rule 2": genRuleMatrixExample1("Kinda Test Rule 2"),
 	}
-	eq := reflect.DeepEqual(rules.RulesInPlay, expectedRulesInPlay)
+	eq := reflect.DeepEqual(inPlay, expectedRulesInPlay)
 	if !eq {
-		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedRulesInPlay, rules.RulesInPlay)
+		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedRulesInPlay, inPlay)
 	}
 	expectedAvailbleRules := map[string]rules.RuleMatrix{
 		"Kinda Test Rule":   genRuleMatrixExample1("Kinda Test Rule"),
@@ -295,9 +315,9 @@ func TestModifiedRuleVotedOut(t *testing.T) {
 		"TestingRule1":      genRuleMatrixExample1("TestingRule1"),
 		"TestingRule2":      genRuleMatrixExample1("TestingRule2"),
 	}
-	eq = reflect.DeepEqual(rules.AvailableRules, expectedAvailbleRules)
+	eq = reflect.DeepEqual(avail, expectedAvailbleRules)
 	if !eq {
-		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedAvailbleRules, rules.AvailableRules)
+		t.Errorf("The rules in play are not the same as expected, expected '%v', got '%v'", expectedAvailbleRules, avail)
 	}
 }
 

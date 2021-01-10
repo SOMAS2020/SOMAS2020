@@ -11,7 +11,7 @@ import (
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	var predictionInfo shared.DisasterPredictionInfo
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClients))
+	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClientFactories))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
@@ -35,7 +35,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 			CoordinateX: meanDisaster.CoordinateX,
 			CoordinateY: meanDisaster.CoordinateY,
 			Magnitude:   meanDisaster.Magnitude,
-			TimeLeft:    int(meanDisaster.Turn),
+			TimeLeft:    uint(meanDisaster.Turn),
 		}
 
 		// Use (variance limit - mean(sample variance)), where the mean is taken over each field, as confidence
@@ -113,7 +113,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	totalCoordinateX := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].CoordinateX
 	totalCoordinateY := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].CoordinateY
 	totalMagnitude := selfConfidence * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].Magnitude
-	totalTimeLeft := int(math.Round(selfConfidence)) * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].TimeLeft
+	totalTimeLeft := uint(math.Round(selfConfidence)) * c.disasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1][c.GetID()].TimeLeft
 	totalConfidence := selfConfidence
 
 	// Add other island's predictions using their confidence values
@@ -121,7 +121,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		totalCoordinateX += c.trustScore[islandID] * prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateX
 		totalCoordinateY += c.trustScore[islandID] * prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateY
 		totalMagnitude += c.trustScore[islandID] * prediction.PredictionMade.Confidence * prediction.PredictionMade.Magnitude
-		totalTimeLeft += int(math.Round(c.trustScore[islandID]*prediction.PredictionMade.Confidence)) * prediction.PredictionMade.TimeLeft
+		totalTimeLeft += uint(math.Round(c.trustScore[islandID]*prediction.PredictionMade.Confidence)) * prediction.PredictionMade.TimeLeft
 		totalConfidence += c.trustScore[islandID] * prediction.PredictionMade.Confidence
 	}
 
@@ -132,10 +132,9 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		CoordinateX: totalCoordinateX / totalConfidence,
 		CoordinateY: totalCoordinateY / totalConfidence,
 		Magnitude:   totalMagnitude / totalConfidence,
-		TimeLeft:    int((float64(totalTimeLeft) / totalConfidence) + 0.5),
+		TimeLeft:    uint((float64(totalTimeLeft) / totalConfidence) + 0.5),
 		Confidence:  totalConfidence / numberOfPredictions,
 	})
-
 	c.Logf("Final Prediction: [%v]", c.globalDisasterPredictions[int(c.ServerReadHandle.GetGameState().Turn)-1])
 
 	// TODO: compare other islands predictions to disaster when info is received and update their trust score
