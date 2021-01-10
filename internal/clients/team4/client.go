@@ -61,7 +61,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 
 	team4client := client{
 		BaseClient:         baseclient.NewClient(id),
-		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
+		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
 		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
 		obs:                &obs,
 		internalParam:      &internalConfig,
