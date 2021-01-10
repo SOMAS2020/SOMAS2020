@@ -70,17 +70,16 @@ func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resourc
 	return s.getActionsCost(SAPcopy)
 }
 
-func sendToBack(str string, array []string) []string {
+func sendToBack(str string, array []string) {
 	index := len(array) - 1
 	for i, el := range array {
 		if el == str {
 			index = i
 		}
 	}
-	if index == len(array)-1 {
-		return array
+	if index != len(array)-1 {
+		array = append(append(array[:index], array[(index+1):]...), array[index])
 	}
-	return append(append(array[:index], array[(index+1):]...), array[index])
 }
 
 func (s *speaker) reorderPriorities() {
