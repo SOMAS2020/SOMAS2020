@@ -49,6 +49,7 @@ type clientConfig struct {
 	maxForecastVariance     float64      // maximum tolerable variance in historical forecast values
 	forecastParamWeights    map[forecastVariable]float64
 	forecastVarianceScalers map[forecastVariable]float64
+	forecastTemporalDecay   float64 // decay factor [0, 1] for exponential weighting of past forecasts in time. Discounts older forecasts.
 }
 
 // set param values here. In order to add a new value, you need to add a definition in struct above.
@@ -118,5 +119,6 @@ func getClientConfig() clientConfig {
 			x:         1.0,
 			y:         1.0,
 		},
+		forecastTemporalDecay: 0.8, // 0-1
 	}
 }

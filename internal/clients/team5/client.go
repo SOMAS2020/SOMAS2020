@@ -66,9 +66,6 @@ func (c *client) StartOfTurn() {
 	turn := c.getTurn()
 	c.cpResourceHistory[turn] = c.getCP()
 
-	//evaluate the roles at every turn
-	c.evaluateRoles()
-
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
 			return

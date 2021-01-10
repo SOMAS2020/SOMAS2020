@@ -190,6 +190,7 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 	} else {
 		appointedPresident = currentPresident
 	}
+	j.gameState.IIGOElection = append(j.gameState.IIGOElection, election.GetVotingInfo())
 	return appointedPresident, nil
 }
 
@@ -226,7 +227,7 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 			if score, ok := j.ruleViolationSeverity[ruleBroken]; ok {
 				totalIslandTurnScore += score
 			} else {
-				totalIslandTurnScore += shared.IIGOSanctionsScore(1)
+				totalIslandTurnScore += j.gameConf.DefaultSanctionScore
 			}
 			j.Logf("Rule: %v, broken by: %v", ruleBroken, islandID)
 		}
@@ -262,7 +263,7 @@ func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID
 	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.gameState.IIGOSanctionCache, reportedIslandResources, j.gameState.RulesInfo.CurrentRulesInPlay, j.gameConf.AssumedResourcesNoReport)
 	j.gameState.IIGOSanctionMap = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
-		communicateWithIslands(j.iigoClients, j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
+		communicateWithIslands(j.iigoClients, clientID, j.JudgeID, map[shared.CommunicationFieldName]shared.CommunicationContent{
 			shared.SanctionAmount: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(sanctionedResources),
@@ -325,7 +326,7 @@ func createBroadcastsForSanctionThresholds(thresholds map[shared.IIGOSanctionsTi
 				T:           shared.CommunicationInt,
 				IntegerData: int(tier),
 			},
-			shared.IIGOSanctionScore: {
+			shared.RuleSanctionPenalty: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(score),
 			},
@@ -342,7 +343,7 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]shared.IIGOS
 				T:        shared.CommunicationString,
 				TextData: ruleName,
 			},
-			shared.IIGOSanctionScore: {
+			shared.RuleSanctionPenalty: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(score),
 			},
