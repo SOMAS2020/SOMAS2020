@@ -86,7 +86,7 @@ func (c *client) setLimits(confidence int) int {
 // performance with the reality
 // Should be called after an action (with an island) has occurred
 func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.ClientID) {
-	c.Logf("[Our confidence of [v%] for situation [v%]]:", c.opinionHist[otherIsland], situation)
+	c.Logf("Our opinion of %v:%v", otherIsland, c.opinionHist[otherIsland])
 	if opinion, ok := c.opinionHist[otherIsland]; ok {
 		situationHist := opinion.Histories[situation]
 		c.Logf("situation we're dealing with ", situation)
@@ -94,18 +94,16 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 		islandSituationPerf := opinion.Performances[situation]
 		situationExp := islandSituationPerf.exp
 		situationReal := islandSituationPerf.real
-		c.Logf("[island situation perf]:", islandSituationPerf)
 
 		percentageDiff := situationReal
 		if situationExp != 0 { // Forgiveness principle: if we had 0 expectation, give them a chance to improve
 			// between -100 and 100
-			percentageDiff = 100 * (situationReal - situationExp) / situationExp
+			percentageDiff = situationReal - situationExp
 		}
 		c.Logf("[Exp [%v] Real [%v]]:", situationExp, situationReal)
 		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
+		c.Logf("Calculated new confidence: %v", newConf)
 		updatedHist := append(situationHist, c.setLimits(newConf))
-		c.Logf("[situation after]:", updatedHist)
-		c.Logf("[appended yuhuuu]:", len(updatedHist))
 
 		c.opinionHist[otherIsland].Histories[situation] = updatedHist
 		c.Logf("[did it really append?]:", c.opinionHist[otherIsland].Histories[situation])
@@ -444,8 +442,7 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 			}
 		}
 
-		c.Logf("Role trust for turn ", c.gameState().Turn)
-		c.Logf("For island ", island)
+		c.Logf("Role trust for turn %v and island %v", c.gameState().Turn, island)
 		c.Logf("Accountability map", accountability)
 		c.Logf("IIGO History", iigoHistory)
 		c.Logf("taxContribDiff", taxContribDiff)
@@ -464,7 +461,6 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 		}
 		c.Logf("Updated performance ", islandSituationPerf)
 		c.opinionHist[island].Performances["RoleOpinion"] = islandSituationPerf
-
 	}
 
 }
