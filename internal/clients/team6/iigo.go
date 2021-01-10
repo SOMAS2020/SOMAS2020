@@ -88,7 +88,7 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 func (c *client) GetTaxContribution() shared.Resources {
 	var total shared.Resources = 0
 	prediction, ok := c.disasterPredictions[c.GetID()]
-	if ok && prediction.TimeLeft == 1 {
+	if ok && prediction.TimeLeft < 1 {
 		total = shared.Resources(prediction.Magnitude * prediction.Confidence / 100)
 	}
 
