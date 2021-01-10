@@ -92,7 +92,7 @@ type client struct {
 	trustTeams map[shared.ClientID]float64
 
 	// Foraging
-	switchType bool
+	forageType shared.ForageType
 
 	config clientConfig
 }
@@ -144,7 +144,7 @@ func (c *client) StartOfTurn() {
 	// This should only happen at the start of the game.
 	if c.gameState().Turn == 1 {
 		c.disasterInfo.meanDisaster = disasters.DisasterReport{}
-		c.switchType = false
+		c.forageType = shared.DeerForageType
 		if c.gameConfig().DisasterConfig.DisasterPeriod.Valid == true {
 			c.disasterInfo.estimatedDDay = c.gameConfig().DisasterConfig.DisasterPeriod.Value
 		} else {

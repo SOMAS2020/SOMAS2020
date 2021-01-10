@@ -143,16 +143,18 @@ func (c client) flipForage() shared.ForageDecision {
 		}
 	}
 
-	if (totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0) && c.switchType == false {
+	if c.forageType == shared.FishForageType {
+		return shared.ForageDecision{
+			Contribution: shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources,
+			Type:         shared.FishForageType,
+		}
+	}
+
+	if c.forageType == shared.DeerForageType && (totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0) {
 		// Big contribution
 		return shared.ForageDecision{
 			Contribution: shared.Resources(math.Min(float64(0.3*c.gameState().ClientInfo.Resources), float64(3*c.gameConfig().CostOfLiving))),
 			Type:         shared.DeerForageType,
-		}
-	} else if c.switchType == true {
-		return shared.ForageDecision{
-			Contribution: shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources,
-			Type:         shared.FishForageType,
 		}
 	}
 
@@ -240,7 +242,12 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 
 	notEnoughMoney := revenue < 2*c.gameConfig().CostOfLiving
 	if notEnoughMoney || revenue/forageDecision.Contribution < 1 {
-		c.switchType = !c.switchType
+		switch c.forageType {
+		case shared.DeerForageType:
+			c.forageType = shared.FishForageType
+		case shared.FishForageType:
+			c.forageType = shared.DeerForageType
+		}
 	}
 
 	if revenue == 0 {
