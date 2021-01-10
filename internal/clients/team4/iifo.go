@@ -124,7 +124,6 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 		Confidence:  totalConfidence / numberOfPredictions,
 	}
 	c.obs.iifoObs.finalDisasterPrediction = finalPrediction
-	c.Logf("Final Prediction: [%v]", finalPrediction)
 }
 
 // MakeForageInfo allows clients to share their most recent foraging DecisionMade, ResourceObtained from it to
