@@ -95,10 +95,17 @@ func (c *client) VoteForElection(
 	opinionRank := sortByOpinion{}
 
 	for _, candidate := range candidateList {
-		opinionRank = append(opinionRank, opinionOnTeam{
-			clientID: candidate,
-			opinion:  c.teamOpinions[candidate],
-		})
+		if candidate == c.GetID() {
+			opinionRank = append(opinionRank, opinionOnTeam{
+				clientID: candidate,
+				opinion:  math.MaxInt64,
+			})
+		} else {
+			opinionRank = append(opinionRank, opinionOnTeam{
+				clientID: candidate,
+				opinion:  c.teamOpinions[candidate],
+			})
+		}
 	}
 	sort.Sort(opinionRank)
 
