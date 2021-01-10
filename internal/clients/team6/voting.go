@@ -14,14 +14,37 @@ func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
 // VoteForElection returns the client's Borda vote for the role to be elected.
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
 	//Sort candidates according to friendship level as a preference list
-	//Every Island votes for itself first
-	c.friendship[id] = c.clientConfig.maxFriendship
+	idToSlice := []shared.ClientID{id}
+	
+	for i, candidateID := range candidateList {
+		if candidateID == id {
+			candidateList = append(candidateList[:i], candidateList[i+1:]...)
+			break
+		}
+	} 
+
+	//Rank candidates except yourself according to friendship level
 	for i := 0; i < len(candidateList); i++ {
 		for j := i; j < len(candidateList); j++ {
 			if c.friendship[candidateList[j]] > c.friendship[candidateList[i]] {
 				candidateList[i], candidateList[j] = candidateList[j], candidateList[i]
 			}
 		}
+	}
+
+	//Votes for itself according to the preference for different roles when more than 3 islands alive,
+	//put yourself in the first, second or third place in the preference list according to rolePreference
+	//Otherwise put yourself at the last place of the list(less than 3 islands alive)
+	rolePreference := []shared.Role{shared.President, shared.Speaker, shared.Judge}
+	if len(candidateList) > 3 {
+		for i, role := range rolePreference {
+			if role == roleToElect {
+				insertID := append(candidateList[:i], idToSlice...)
+				candidateList = append(insertID, candidateList[i:]...)
+			}
+		}
+	} else {
+		candidateList = append(candidateList, idToSlice...)
 	}
 
 	preferenceList := candidateList
