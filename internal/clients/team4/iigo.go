@@ -86,6 +86,12 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 
 		}
 	}
+	if _, ok := data[shared.IIGOSanctionScore]; ok {
+		c.obs.iigoObs.sanctionTiers[shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
+	}
+	if _, ok := data[shared.SanctionClientID]; ok {
+		c.obs.iigoObs.sanctionScores[shared.ClientID(data[shared.SanctionClientID].IntegerData)] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
+	}
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {

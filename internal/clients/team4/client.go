@@ -23,6 +23,8 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	iigoObs := &iigoObservation{
 		allocationGranted: shared.Resources(0),
 		taxDemanded:       shared.Resources(0),
+		sanctionTiers:     make(map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore),
+		sanctionScores:    make(map[shared.ClientID]shared.IIGOSanctionsScore),
 	}
 	iifoObs := &iifoObservation{}
 	iitoObs := &iitoObservation{}
@@ -68,6 +70,8 @@ type observation struct {
 type iigoObservation struct {
 	allocationGranted shared.Resources
 	taxDemanded       shared.Resources
+	sanctionTiers     map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore
+	sanctionScores    map[shared.ClientID]shared.IIGOSanctionsScore
 }
 
 type iifoObservation struct {

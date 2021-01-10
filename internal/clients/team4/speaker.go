@@ -66,10 +66,34 @@ func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 
 //DecideAgenda the interface implementation and example of a well behaved Speaker
 //who sets the vote to be voted on to be the rule the President provided
+func (s *speaker) DecideAgenda(ruleMatrix rules.RuleMatrix) shared.SpeakerReturnContent {
+	if ruleMatrix.RuleMatrixIsEmpty() {
+		//president has not selected a rule
+	}
+	return shared.SpeakerReturnContent{
+		ContentType: shared.SpeakerAgenda,
+		RuleMatrix:  ruleMatrix,
+		ActionTaken: true,
+	}
+}
 
 //DecideVote is the interface implementation and example of a well behaved Speaker
 //who calls a vote on the proposed rule and asks all available islands to vote.
 //Return an empty string or empty []shared.ClientID for no vote to occur
+func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
+	var nonSanctionedClients []shared.ClientID
+	for _, clientID := range aliveClients {
+		if s.parent.obs.iigoObs.sanctionScores[clientID] > 0 {
+			nonSanctionedClients = append(nonSanctionedClients, clientID)
+		}
+	}
+	return shared.SpeakerReturnContent{
+		ContentType:          shared.SpeakerVote,
+		ParticipatingIslands: nonSanctionedClients,
+		RuleMatrix:           ruleMatrix,
+		ActionTaken:          true,
+	}
+}
 
 //DecideAnnouncement is the interface implementation and example of a well behaved Speaker
 //A well behaved speaker announces what had been voted on and the corresponding result
@@ -86,7 +110,7 @@ func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) s
 
 // CallJudgeElection is called by the legislature to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
-/*func (s *speaker) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+func (s *speaker) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
 	var electionsettings = shared.ElectionSettings{
@@ -101,7 +125,7 @@ func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) s
 		electionsettings.HoldElection = true
 	}
 	return electionsettings
-}*/
+}
 
 // DecideNextJudge returns the ID of chosen next Judge
 // OPTIONAL: override to manipulate the result of the election
