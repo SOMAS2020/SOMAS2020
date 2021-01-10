@@ -3,6 +3,8 @@ package team5
 import (
 	"testing"
 
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -156,7 +158,61 @@ func TestCalculateDisasterContributionCP(t *testing.T) {
 		X:  6,
 		Y:  0,
 	}
-	var geography disasters.ArchipelagoGeography
+	geography := disasters.ArchipelagoGeography{
+		Islands: make(map[shared.ClientID]disasters.IslandLocationInfo),
+	}
 	geography.Islands[shared.Team5] = ourLocationInfo
-	//case 1 where there is no forecast history
+	//case 1 where there is no forecast initially
+	currentTurn := uint(1)
+	currentResource := shared.Resources(100)
+	lastDisaster := uint(0)
+	contribution := c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
+	w := shared.Resources(0)
+	if w != contribution {
+		t.Errorf("1. Not generating proper # of resources to mitigate disaster. Want %v, got %v", w, contribution)
+	}
+
+	// case 2 when there is forecast. But it's in 9 days so we don't contribute
+	forecast := forecastInfo{
+		epiX:       shared.Coordinate(3),
+		epiY:       shared.Coordinate(4),
+		mag:        10,
+		period:     10,
+		confidence: 60,
+	}
+	c.forecastHistory[1] = forecast
+	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
+	if w != contribution {
+		t.Errorf("2. Not generating proper # of resources to mitigate disaster. Want %v, got %v", w, contribution)
+	}
+
+	// case 3 when there is forecast, and it's in 1 days so we contribute 20% of the calculated damage
+	// and we are quite rich
+	currentTurn = 9
+	c.forecastHistory[8] = forecast
+	distance := math.Sqrt(math.Pow(ourLocationInfo.X-forecast.epiX, 2) + math.Pow(ourLocationInfo.Y-forecast.epiY, 2))
+	w = shared.Resources((float64(forecast.mag) * 10 / distance) * 0.2)
+	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
+	if w != contribution {
+		t.Errorf("3. Not generating proper # of resources to mitigate disaster. Want %v, got %v", w, contribution)
+	}
+
+	// case 4 when there is forecast, it's in 1 days and we are not that rich
+	currentResource = 3
+	w = (currentResource / 2) * 0.2
+	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
+	if w != contribution {
+		t.Errorf("4. Not generating proper # of resources to mitigate disaster. Want %v, got %v", w, contribution)
+	}
+
+	// case 5 when there is forecast, it's today and we are rich
+	c.forecastHistory[9] = forecast
+	currentResource = 1000
+	currentTurn = 10
+	lastDisaster = 0
+	w = shared.Resources((float64(forecast.mag) * 10 / distance) * 0.8)
+	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
+	if w != contribution {
+		t.Errorf("5. Not generating proper # of resources to mitigate disaster. Want %v, got %v", w, contribution)
+	}
 }

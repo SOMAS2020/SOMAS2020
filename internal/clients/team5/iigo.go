@@ -118,7 +118,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 	contribution := c.calculateCPContribution(turn, season, currentTier) //CP contribution
 	currentResource := c.gameState().ClientInfo.Resources
 	geography := c.gameState().Geography
-	disasterMitigation := c.calculateDisasterContributionCP(turn, currentResource, geography)
+	lastDisaster := c.disasterHistory.getLastDisasterTurn()
+	disasterMitigation := c.calculateDisasterContributionCP(turn, currentResource, geography, lastDisaster)
 
 	c.Logf("Disaster Prediction: %v", c.forecastHistory[turn-1])
 	// only contribute to the CP if tax decision isn't made
@@ -169,39 +170,45 @@ func (c *client) calculateCPContribution(turn uint, season uint, currentTier wea
 }
 
 // Contribution to CP to prepare for disaster
-func (c *client) calculateDisasterContributionCP(turn uint, currentResource shared.Resources, geography disasters.ArchipelagoGeography) shared.Resources {
+// Calculate the effect of disaster on our islands using the predicted epicenters
+// The contribution amount is based on our confidence intervals, financial status, and predicted period
+// Since we don't want our contribution in CP to get taken away by the mob, we will contribute on the last day & the day of the incident
+// The day of the incident we can contribute because IIGO happens before disaster.
+func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResource shared.Resources, geography disasters.ArchipelagoGeography, lastDisaster uint) shared.Resources {
 	if len(c.forecastHistory) == 0 {
 		return 0
 	}
-	predictionInfo := c.forecastHistory[turn-1] // turn - 1 because IIFO happens before IIGO
+	predictionInfo := c.forecastHistory[currentTurn-1] // turn - 1 because IIFO happens before IIGO
 	idealContribution := shared.Resources(0)
 	contribution := shared.Resources(0)
 	//how far is the epicenter from our island
-	minDistance := math.Sqrt(math.Pow(geography.XMin-predictionInfo.epiX, 2) + math.Pow(geography.YMin-predictionInfo.epiY, 2))
+	minDistance := math.Sqrt(math.Pow(geography.Islands[shared.Team5].X-predictionInfo.epiX, 2) + math.Pow(geography.Islands[shared.Team5].Y-predictionInfo.epiY, 2))
 
 	//ideal contribution based on disaster magnitude
-	if predictionInfo.confidence <= 0.5 && predictionInfo.confidence > 0.2 {
+	if predictionInfo.confidence <= 50 && predictionInfo.confidence > 20 {
 		idealContribution = shared.Resources((float64(predictionInfo.mag) * 5) / minDistance)
-	} else if predictionInfo.confidence > 0.5 && predictionInfo.confidence < 0.8 {
-		idealContribution = shared.Resources((float64(predictionInfo.mag) * 10) / minDistance)
-	} else if predictionInfo.confidence >= 0.8 {
+	} else if predictionInfo.confidence > 50 && predictionInfo.confidence < 80 {
+		idealContribution = shared.
+			Resources((float64(predictionInfo.mag) * 10) / minDistance)
+	} else if predictionInfo.confidence >= 80 {
 		idealContribution = shared.Resources((float64(predictionInfo.mag) * 20) / minDistance)
 	}
 
 	//update idealContribution based on our financial status
 	if currentResource < idealContribution {
-		contribution = shared.Resources(0.5) * currentResource
-	} else {
-		contribution = shared.Resources(0.5) * idealContribution
+		idealContribution = shared.Resources(0.5) * currentResource
 	}
 
-	//Only contribute if disaster is coming in 2 days
-	if predictionInfo.turn-turn < 3 {
-		return contribution
+	//Only contribute if disaster is coming in 1 days
+	// Contribute mostly on the day of the disaster to prevent people taking CP resource
+	if currentTurn-lastDisaster == predictionInfo.period-1 {
+		contribution = shared.Resources(0.2) * idealContribution
+	} else if currentTurn-lastDisaster == predictionInfo.period {
+		contribution = shared.Resources(0.8) * idealContribution
 	} else {
 		contribution = 0
-		return contribution
 	}
+	return contribution
 }
 
 //------------------------------------------------------------------------------------------//
