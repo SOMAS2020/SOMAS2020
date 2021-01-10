@@ -400,7 +400,7 @@ func (c *client) GetSanctionPayment() shared.Resources {
 
 			recommendedValues := c.dynamicAssistedResult(variablesChanged)
 			resolve := shared.Resources(recommendedValues[rules.SanctionPaid].Values[rules.SingleValueVariableEntry])
-			if c.params.complianceLevel > 80 {
+			if c.params.complianceLevel > 0.05 {
 				return resolve
 			}
 			if shared.Resources(idealVal[rules.SingleValueVariableEntry]) != resolve {
