@@ -46,7 +46,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	var reqResource shared.Resources = 0
 	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
 	ownResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	if ownResources > minThreshold { //if current resource > threshold, our agent skip to request resource from common pool
+	if ownResources < minThreshold { //if current resource > threshold, our agent skip to request resource from common pool
 		reqResource = minThreshold - ownResources
 	}
 	c.Logf("Request %v from common pool", reqResource)
