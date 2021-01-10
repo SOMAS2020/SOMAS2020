@@ -153,6 +153,9 @@ type client struct {
 	config clientConfig
 
 	declaredResources map[shared.ClientID]shared.Resources
+
+	lastForageType   shared.ForageType
+	lastForageAmount shared.Resources
 }
 
 func init() {

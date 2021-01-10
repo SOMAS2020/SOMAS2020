@@ -28,6 +28,16 @@ func (c *client) DisasterNotification(report disasters.DisasterReport, effects d
 	c.disasterHistory = append(c.disasterHistory, disaster)
 }
 
+// getIslandsToShareWith returns a slice of the islands we want to share our prediction with.
+// We decided to always share our prediction with all islands to improve arhcipelago decisions as a whole.
+func (c *client) getIslandsToShareWith() []shared.ClientID {
+	islandsToShareWith := make([]shared.ClientID, len(shared.TeamIDs))
+	for index, id := range shared.TeamIDs {
+		islandsToShareWith[index] = id
+	}
+	return islandsToShareWith
+}
+
 //checkOthersCrit checks if anyone else is critical
 func checkOthersCrit(c *client) bool {
 	for clientID, status := range c.gameState().ClientLifeStatuses {

@@ -106,7 +106,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	confidencePrediction := getConfidencePrediction(confidenceTimeRemaining, confidenceMagnitude)
 
 	// Get trusted islands NOTE: CURRENTLY JUST ALL ISLANDS
-	islandsToShareWith := getIslandsToShareWith()
+	islandsToShareWith := c.getIslandsToShareWith()
 
 	// Put everything together and return the whole prediction we have made and teams to share with
 	disasterPrediction := shared.DisasterPrediction{
@@ -195,16 +195,6 @@ func getMagnitudeConfidence(c *client, totalTurns float64, sampleMeanM float64) 
 // The confidence is the average of those from the timeRemaining and Magnitude predictions.
 func getConfidencePrediction(confidenceTimeRemaining shared.PredictionConfidence, confidenceMagnitude shared.PredictionConfidence) shared.PredictionConfidence {
 	return (confidenceTimeRemaining + confidenceMagnitude) / 2
-}
-
-// getIslandsToShareWith returns a slice of the islands we want to share our prediction with.
-// We decided to always share our prediction with all islands to improve arhcipelago decisions as a whole.
-func getIslandsToShareWith() []shared.ClientID {
-	islandsToShareWith := make([]shared.ClientID, len(shared.TeamIDs))
-	for index, id := range shared.TeamIDs {
-		islandsToShareWith[index] = id
-	}
-	return islandsToShareWith
 }
 
 // ReceiveDisasterPredictions provides each client with the prediction info, in addition to the source island,
