@@ -44,8 +44,6 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 			evaluationResult = m.evaluateCache(roleToMonitor, m.gameState.RulesInfo.CurrentRulesInPlay)
 		}
 
-
-
 		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)
 
 		evaluationResultAnnounce, announce := roleAccountable.DecideIIGOMonitoringAnnouncement(evaluationResult)
@@ -61,14 +59,13 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 			valuesToCache := [][]float64{{boolToFloat(evaluationResult)}, {boolToFloat(evaluationResultAnnounce)}}
 			m.addToCache(roleAccountable.GetID(), variablesToCache, valuesToCache)
 
-
 			message := generateMonitoringMessage(roleName, evaluationResultAnnounce)
 			broadcastToAllIslands(m.iigoClients, roleAccountable.GetID(), message, *m.gameState)
-      
-      if !evaluationResult {
-			    m.gameState.IIGOTurnsInPower[roleName] = m.config.IIGOConfig.IIGOTermLengths[roleName] + 1
-		  }
-      
+
+			if !evaluationResult {
+				m.gameState.IIGOTurnsInPower[roleName] = m.config.IIGOConfig.IIGOTermLengths[roleName] + 1
+			}
+
 		}
 
 		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}
