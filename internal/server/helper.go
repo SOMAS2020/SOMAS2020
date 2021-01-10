@@ -1,6 +1,8 @@
 package server
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -104,7 +106,10 @@ func getNonDeadClientIDs(clientInfos map[shared.ClientID]gamestate.ClientInfo) [
 
 // giveResources takes resources to client, logging it and mentioning reason
 func (s *SOMASServer) takeResources(clientID shared.ClientID, resources shared.Resources, reason string) error {
-	s.logf("Took %v from %v (reason: %s)", resources, clientID, reason)
+	s.logf("Trying to take %v from %v (reason: %s)", resources, clientID, reason)
+	if math.IsNaN(float64(resources)) || resources < 0 {
+		return errors.Errorf("Cannot take invalid number of resources %v from client %v", resources, clientID)
+	}
 
 	participantInfo := s.gameState.ClientInfos[clientID]
 	if participantInfo.Resources < resources {
@@ -115,6 +120,7 @@ func (s *SOMASServer) takeResources(clientID shared.ClientID, resources shared.R
 	}
 	participantInfo.Resources -= resources
 	s.gameState.ClientInfos[clientID] = participantInfo
+	s.logf("Took %v from %v (reason: %s)", resources, clientID, reason)
 	return nil
 }
 

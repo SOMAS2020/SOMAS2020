@@ -1,6 +1,7 @@
 package server
 
 import (
+	"math"
 	"reflect"
 	"sort"
 	"testing"
@@ -242,6 +243,22 @@ func TestTakeResources(t *testing.T) {
 			takeAmt:   15,
 			want:      10,
 			wantErr:   errors.Errorf("Client %v did not have enough resources. Requested %v, only had %v", shared.Team1, 15, 10),
+		},
+		{
+			name:      "NaN",
+			resources: 42,
+			takeAmt:   shared.Resources(math.NaN()),
+			want:      42,
+			wantErr: errors.Errorf("Cannot take invalid number of resources %v from client %v",
+				math.NaN(), shared.Team1),
+		},
+		{
+			name:      "try take negative",
+			resources: 42,
+			takeAmt:   shared.Resources(-42),
+			want:      42,
+			wantErr: errors.Errorf("Cannot take invalid number of resources %v from client %v",
+				-42, shared.Team1),
 		},
 	}
 
