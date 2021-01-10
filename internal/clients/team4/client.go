@@ -21,14 +21,18 @@ func init() {
 func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	// have some config json file or something?
 	internalConfig := internalParameters{
-		greediness:       0,
-		selfishness:      0,
-		fairness:         0,
-		collaboration:    0,
-		riskTaking:       0,
-		maxPardonTime:    3,
-		maxTierToPardon:  shared.SanctionTier3,
-		minTrustToPardon: 0.6,
+		greediness:                   0,
+		selfishness:                  0,
+		fairness:                     0,
+		collaboration:                0,
+		riskTaking:                   0,
+		maxPardonTime:                3,
+		maxTierToPardon:              shared.SanctionTier3,
+		minTrustToPardon:             0.6,
+		historyWeight:                1,   // in range [0,1]
+		historyFullTruthfulnessBonus: 0.1, // in range [0,1]
+		monitoringWeight:             1,   // in range [0,1]
+		monitoringResultChange:       0.1, // in range [0,1]
 	}
 
 	iigoObs := iigoObservation{
@@ -150,6 +154,12 @@ type internalParameters struct {
 	maxTierToPardon shared.IIGOSanctionsTier
 	// we will only consider pardoning islands which we trust with at least this value
 	minTrustToPardon float64
+
+	// Trust config
+	historyWeight                float64
+	historyFullTruthfulnessBonus float64
+	monitoringWeight             float64
+	monitoringResultChange       float64
 }
 
 // type personality struct {
@@ -287,12 +297,11 @@ func (c *client) updateTrustFromSavedHistory() {
 
 			for clientID, history := range newInfo {
 				truthfulness := history.TruthfulRatio
-				c.Logf("%v, %v", clientID, truthfulness)
 
-				c.trustMatrix.ChangeClientTrust(clientID, truthfulness-averageTruthfulness) //potentially add * historyWeight to scale the update
+				c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyWeight*(truthfulness-averageTruthfulness)) //potentially add * historyWeight to scale the update
 
 				if floatEqual(truthfulness, 1) { //bonus for being fully truthful
-					c.trustMatrix.ChangeClientTrust(clientID, 0.1)
+					c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyFullTruthfulnessBonus)
 				}
 			}
 		}
@@ -309,15 +318,14 @@ func (c *client) updateTrustMonitoring(data map[shared.CommunicationFieldName]sh
 
 					if monitoringResult.BooleanData {
 						// Monitored role was truthful
-						c.trustMatrix.ChangeClientTrust(roleID, 0.1)
+						c.trustMatrix.ChangeClientTrust(roleID, c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange) // config?
 					} else {
 						// Monitored role cheated
-						c.trustMatrix.ChangeClientTrust(roleID, -0.1)
+						c.trustMatrix.ChangeClientTrust(roleID, -c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange)
 					}
 				}
 			}
 		}
-
 	}
 }
 

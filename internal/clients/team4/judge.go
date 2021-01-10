@@ -107,8 +107,6 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		// lieCounts[client] = float64(lieCount) / float64(len(eval.Evaluations))
 	}
 
-	j.parent.Logf("Truthfulness: %v", truthfulness)
-
 	j.saveHistoryInfo(&iigoHistory, &truthfulness, turn)
 
 	return outputmap, state

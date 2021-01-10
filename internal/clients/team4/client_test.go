@@ -7,14 +7,16 @@ import (
 )
 
 func TestGetJudgePointer(t *testing.T) {
-	c := newClientInternal(id, t)
-	j := c.GetClientJudgePointer()
+	testClient := newClientInternal(id, t)
+	testServer := fakeServerHandle{}
+	testClient.Initialise(testServer)
+	j := testClient.GetClientJudgePointer()
+
 	winner := j.DecideNextPresident(shared.Team1)
 
 	if winner != shared.Team1 {
 		t.Errorf("Got wrong judge pointer. Winner is %v", winner)
 	}
-
 }
 
 func TestUpdateTrustFromHistory(t *testing.T) {
@@ -64,12 +66,8 @@ func TestUpdateTrustFromHistory(t *testing.T) {
 			testClient := newClientInternal(id, t)
 			testClient.Initialise(testServer)
 
-			t.Logf("Trust history before: %v", testClient.trustMatrix.trustMap)
-
 			testClient.savedHistory = &tc.savedHistory
 			testClient.updateTrustFromSavedHistory()
-
-			t.Logf("Trust history after: %v", testClient.trustMatrix.trustMap)
 
 		})
 	}
