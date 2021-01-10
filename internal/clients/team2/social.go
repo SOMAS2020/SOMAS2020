@@ -471,7 +471,7 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 
 //This function is called when a disaster occurs to update our confidence on others' predictions
 func (c *client) updateDisasterConf() {
-	if val, ok := c.disasterHistory
+	//if val, ok := c.disasterHistory
 	disasterMag := c.disasterHistory[len(c.disasterHistory)-1].Report.Magnitude
 	disasterTurn := c.disasterHistory[len(c.disasterHistory)-1].Turn
 	for island, predictions := range c.predictionHist {
