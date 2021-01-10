@@ -15,13 +15,8 @@ import { processPaymentsData } from './Util/ProcessedPaymentsData'
 import { OutputJSONType, TeamName } from '../../../consts/types'
 
 const Payments = (props: { output: OutputJSONType }) => {
-  const [data, setData] = useState(processPaymentsData(props.output))
+  const data = processPaymentsData(props.output)
 
-  useEffect(() => {
-    setData(processPaymentsData(props.output))
-  }, [props.output])
-
-  const teams = ['Team1', 'Team2', 'Team3', 'Team4', 'Team5', 'Team6']
   const legend = new Map([
     ['actualTax', '#094fdb'],
     ['expectedTax', '#507cd4'],

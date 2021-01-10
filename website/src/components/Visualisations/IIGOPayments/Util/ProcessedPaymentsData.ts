@@ -29,75 +29,39 @@ export const processPaymentsData = (data: OutputJSONType): ProcessedTaxData => {
         [6, empty()],
     ])
 
-    IIGOHistory.forEach(([turnNumber, exchanges]) => {
+    IIGOHistory.forEach(([_, exchanges]) => {
         if (exchanges) {
             exchanges.forEach((teamAction) => {
+                const team = TeamName[teamAction.ClientID]
+                const current: TaxData | undefined = TaxInfo.get(team)
                 const type = teamAction.Pairs[0].VariableName
-                switch (type) {
-                    case 'IslandAllocation':
-                        {
-                            const team =
-                                TeamName[
-                                    teamAction.ClientID as keyof typeof TeamName
-                                ]
-                            const current: TaxData | undefined = TaxInfo.get(
-                                team
-                            )
-                            if (current) {
-                                current.actualAlloc +=
-                                    teamAction.Pairs[0].Values[0]
-                                current.expectedAlloc +=
-                                    teamAction.Pairs[1].Values[0]
-                                TaxInfo.set(team, current)
-                            }
-                        }
-                        break
-                    case 'IslandTaxContribution':
-                        {
-                            const team =
-                                TeamName[
-                                    teamAction.ClientID as keyof typeof TeamName
-                                ]
-                            const current: TaxData | undefined = TaxInfo.get(
-                                team
-                            )
-                            if (current) {
-                                current.actualTax +=
-                                    teamAction.Pairs[0].Values[0]
-                                current.expectedTax +=
-                                    teamAction.Pairs[1].Values[0]
-                                TaxInfo.set(team, current)
-                            }
-                        }
-                        break
-                    case 'SanctionPaid':
-                        {
-                            const team =
-                                TeamName[
-                                    teamAction.ClientID as keyof typeof TeamName
-                                ]
-                            const current: TaxData | undefined = TaxInfo.get(
-                                team
-                            )
-                            if (teamAction.Pairs[0].Values[0] !== 0) {
-                                console.log(turnNumber, teamAction)
-                            }
-                            if (current) {
-                                current.actualSanction +=
-                                    teamAction.Pairs[0].Values[0]
-                                current.expectedSanction +=
-                                    teamAction.Pairs[1].Values[0]
-                                TaxInfo.set(team, current)
-                            }
-                        }
-                        break
-                    default:
-                        break
+                if (current) {
+                    switch (type) {
+                        case 'IslandAllocation':
+                            current.actualAlloc += teamAction.Pairs[0].Values[0]
+                            current.expectedAlloc +=
+                                teamAction.Pairs[1].Values[0]
+                            TaxInfo.set(team, current)
+                            break
+                        case 'IslandTaxContribution':
+                            current.actualTax += teamAction.Pairs[0].Values[0]
+                            current.expectedTax += teamAction.Pairs[1].Values[0]
+                            TaxInfo.set(team, current)
+                            break
+                        case 'SanctionPaid':
+                            current.actualSanction +=
+                                teamAction.Pairs[0].Values[0]
+                            current.expectedSanction +=
+                                teamAction.Pairs[1].Values[0]
+                            TaxInfo.set(team, current)
+                            break
+                        default:
+                            break
+                    }
                 }
             })
         }
     })
-    console.log(TaxInfo)
 
     TaxInfo.forEach((value, key) => {
         retData.push({
