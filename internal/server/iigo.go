@@ -5,6 +5,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
+	"github.com/pkg/errors"
 )
 
 // runIIGO : IIGO decides rule changes, elections, sanctions
@@ -89,7 +90,10 @@ func (s *SOMASServer) runIIGOAllocations() error {
 		allocation := v.RequestAllocation()
 
 		if allocation <= s.gameState.CommonPool {
-			s.giveResources(clientID, allocation, "allocation")
+			err := s.giveResources(clientID, allocation, "allocation")
+			if err != nil {
+				return errors.Errorf("Failed to give resources: %v", err)
+			}
 			s.gameState.CommonPool -= allocation
 
 			s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{

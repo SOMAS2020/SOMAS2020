@@ -137,19 +137,19 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 
 		// The sanction tier "score" for this turn
 		case shared.IIGOSanctionTier:
-			c.tierLevels[content.IntegerData] = data[shared.IIGOSanctionScore].IntegerData
-
+			c.tierLevels[content.IntegerData] = content.IntegerData
 		// What sanction score we have
 		case shared.SanctionAmount:
 			if _, ok := c.sanctionHist[c.gameState().JudgeID]; !ok {
 				c.sanctionHist[c.gameState().JudgeID] = make([]IslandSanctionInfo, 0)
-
 			}
+
 			sanction := IslandSanctionInfo{
 				Turn:   c.gameState().Turn,
 				Tier:   c.checkSanctionTier(content.IntegerData),
 				Amount: content.IntegerData,
 			}
+
 			// Add a new sanction to the sanction hist
 			sanctions := c.sanctionHist[c.gameState().JudgeID]
 			c.sanctionHist[c.gameState().JudgeID] = append(sanctions, sanction)
