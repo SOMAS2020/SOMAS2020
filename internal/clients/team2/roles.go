@@ -54,15 +54,15 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 //COMPULOSRY: must be implemented
 // TODO: This function is not implemented
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
-	return false
+	return true
 }
 
 // DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
 // COMPULSORY: must be implemented
 // TODO: This function is not implemented
 func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
-	resultToShare = false
-	announce = false
+	resultToShare = monitoringResult
+	announce = true
 	return
 }
 
