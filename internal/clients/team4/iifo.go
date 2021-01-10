@@ -45,7 +45,7 @@ func getMeanDisaster(pastDisastersList baseclient.PastDisastersList) baseclient.
 	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
 	numberDisastersPassed := float64(len(pastDisastersList))
 	if numberDisastersPassed == 0 {
-		return baseclient.DisasterInfo{0, 0, 0, 1000}
+		return baseclient.DisasterInfo{CoordinateX: 0, CoordinateY: 0, Magnitude: 0, Turn: 1000}
 	}
 	for _, disaster := range pastDisastersList {
 		totalCoordinateX += disaster.CoordinateX
@@ -129,21 +129,12 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 // MakeForageInfo allows clients to share their most recent foraging DecisionMade, ResourceObtained from it to
 // other clients.
 // OPTIONAL. If this is not implemented then all values are nil.
-func (c *client) MakeForageInfo() shared.ForageShareInfo {
-	contribution := shared.ForageDecision{Type: shared.DeerForageType, Contribution: 0}
-	return shared.ForageShareInfo{DecisionMade: contribution, ResourceObtained: 0, ShareTo: []shared.ClientID{}}
-}
+// func (c *client) MakeForageInfo() shared.ForageShareInfo {
+// }
 
 // ReceiveForageInfo lets clients know what other clients has obtained from their most recent foraging attempt.
 // Most recent foraging attempt includes information about: foraging DecisionMade and ResourceObtained as well
 // as where this information came from.
 // OPTIONAL.
-func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
-	// Return on Investment
-	roi := map[shared.ClientID]shared.Resources{}
-	for _, val := range neighbourForaging {
-		if val.DecisionMade.Type == shared.DeerForageType {
-			roi[val.SharedFrom] = val.ResourceObtained / shared.Resources(val.DecisionMade.Contribution) * 100
-		}
-	}
-}
+// func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
+// }
