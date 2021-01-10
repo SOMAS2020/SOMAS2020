@@ -41,7 +41,7 @@ func (c *client) RequestAllocation() shared.Resources {
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[c.getPresident()],
+		c.getTrust(c.getPresident()),
 	})
 
 	uncomplianceLevel := mat.Dot(importance, parameters) - uncomplianceThreshold
@@ -122,7 +122,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[c.getPresident()],
+		c.getTrust(c.getPresident()),
 	})
 	greedyLevel := mat.Dot(importance, parameters) - greedyThreshold
 
@@ -155,7 +155,7 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[c.getPresident()],
+		c.getTrust(c.getPresident()),
 	})
 
 	// lyingLevel will be positive when agent is inclined to lie.
@@ -194,13 +194,13 @@ func (c *client) GetTaxContribution() shared.Resources {
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.collaboration,
-		c.internalParam.agentsTrust[c.getPresident()],
+		c.getTrust(c.getPresident()),
 	})
 
 	collaborationLevel := mat.Dot(importance, parameters)
 
-	if collaborationLevel > collaborationThreshold && 
-	   currentWealth > wealthThreshold {
+	if collaborationLevel > collaborationThreshold &&
+		currentWealth > wealthThreshold {
 		// Deliberately pay more (collaborationLevel is larger than 1)
 		valToBeReturned = valToBeReturned * shared.Resources(collaborationLevel)
 
