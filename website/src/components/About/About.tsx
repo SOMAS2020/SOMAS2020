@@ -11,9 +11,9 @@ const About = () => {
           This project explores different areas of self-organising multi-agent
           (SOMAS) systems through a game of survival. In this game, there are
           multiple islands that must work together to survive disasters by
-          foraging, sharing resources via gifts and a common pool and making use
-          of government structures. The game is broken down into turns and
-          seasons. Each turn includes the daily tasks of the islands.{' '}
+          foraging, sharing resources via gifts and a common pool, and making
+          use of government structures. The game is broken down into turns and
+          seasons. A turn includes the daily tasks of the islands.{' '}
         </p>
         <p>
           A turn consists of different organisations running inter-island tasks.
@@ -46,11 +46,11 @@ const About = () => {
         <p> </p>
         <h2>How to play</h2>
         <p>
-          Click the New Run tab along the top navigation bar. Here, you can
-          choose to run the game with the default flags, or you can customize
-          the game by changing the flags. Click to run the game. From here, you
-          can either download the outputs or click Visualise and explore
-          different diagrams showing the progression of the game ran.{' '}
+          Click New Run along the top navigation bar. Here, you can choose to
+          run the game with the default flags, or you can customize the game by
+          changing the flags. Click to run the game. From here, you can either
+          download the outputs or click Visualise and explore different diagrams
+          showing the progression of the game ran.{' '}
         </p>
       </div>
     </div>
