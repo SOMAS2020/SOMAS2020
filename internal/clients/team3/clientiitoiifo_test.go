@@ -31,6 +31,7 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
+					riskFactor:              0.2,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -40,19 +41,19 @@ func TestGetGiftRequests(t *testing.T) {
 					shared.Team6: 50,
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
-					shared.Team1: 11.785113019775793,
-					shared.Team2: 11.785113019775793,
-					shared.Team4: 11.785113019775793,
-					shared.Team5: 11.785113019775793,
-					shared.Team6: 11.785113019775793,
+					shared.Team1: 3.644540246477594,
+					shared.Team2: 3.644540246477594,
+					shared.Team4: 3.644540246477594,
+					shared.Team5: 3.644540246477594,
+					shared.Team6: 3.644540246477594,
 				},
 			},
 			expectedVal: shared.GiftRequestDict{
-				shared.Team1: 11.785113019775793,
-				shared.Team2: 11.785113019775793,
-				shared.Team4: 11.785113019775793,
-				shared.Team5: 11.785113019775793,
-				shared.Team6: 11.785113019775793,
+				shared.Team1: 3.644540246477594,
+				shared.Team2: 3.644540246477594,
+				shared.Team4: 3.644540246477594,
+				shared.Team5: 3.644540246477594,
+				shared.Team6: 3.644540246477594,
 			},
 		},
 		{
@@ -71,6 +72,7 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
+					riskFactor:              0.2,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -111,6 +113,7 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
+					riskFactor:              0.2,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -120,19 +123,19 @@ func TestGetGiftRequests(t *testing.T) {
 					shared.Team6: 90,
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
-					shared.Team1: 116.67261889578037,
-					shared.Team2: 127.80845042484479,
-					shared.Team4: 138.0489043781225,
-					shared.Team5: 147.58048651498615,
-					shared.Team6: 156.5327441783348,
+					shared.Team1: 43.87594114979616,
+					shared.Team2: 45.92210178127672,
+					shared.Team4: 47.726375540564796,
+					shared.Team5: 49.34650978030029,
+					shared.Team6: 50.821159755976886,
 				},
 			},
 			expectedVal: shared.GiftRequestDict{
-				shared.Team1: 116.67261889578037,
-				shared.Team2: 127.80845042484479,
-				shared.Team4: 138.0489043781225,
-				shared.Team5: 147.58048651498615,
-				shared.Team6: 156.5327441783348,
+				shared.Team1: 36.08094844012818,
+				shared.Team2: 37.4208970618899,
+				shared.Team4: 38.59255681756235,
+				shared.Team5: 39.637106321387236,
+				shared.Team6: 40.58190651651451,
 			},
 		},
 	}
