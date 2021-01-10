@@ -103,6 +103,7 @@ type clientConfig struct {
 	CombinedDisasterPred             shared.DisasterPrediction
 	InitialCommonPoolThresholdGuess  shared.Resources
 	TargetRequestGift                shared.Resources
+	MaxGiftOffersMultiplier          shared.Resources
 }
 
 type OpinionHist map[shared.ClientID]Opinion
@@ -200,6 +201,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			InitialDisasterTurnGuess:         7.0,
 			InitialCommonPoolThresholdGuess:  100, // this value is meaningless for now
 			TargetRequestGift:                1.5,
+			MaxGiftOffersMultiplier:          0.5,
 		},
 	}
 }

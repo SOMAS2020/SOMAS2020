@@ -25,50 +25,45 @@ func (p IslandTrustList) Less(i, j int) bool { return p[i].trust < p[j].trust }
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	turn := c.gameState().Turn
 	requests := shared.GiftRequestDict{}
-
-	// check our critical and threshold - if either is off - request
 	ourAgentCritical := c.criticalStatus()
-
-	// Minimum we need to survive a round
 	giftTarget := 1.5 * (c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold) * c.giftReliance()
 
-	// confidence[island] * requestAmount until -> target
 	if ourAgentCritical || giftTarget != 0 {
-		var trustRank []IslandTrust
+		var trustRank IslandTrustList
 
-		for team, status := range c.gameState().ClientLifeStatuses {
-			if status != shared.ClientLifeStatus(2) {
-				islandConf := IslandTrust{
-					island: team,
-					trust:  c.confidence("Gifts", team),
-				}
-
-				trustRank = append(trustRank, islandConf)
+		for _, team := range c.getAliveClients() {
+			islandConf := IslandTrust{
+				island: team,
+				trust:  c.confidence("Gifts", team),
 			}
+
+			trustRank = append(trustRank, islandConf)
 		}
 
-		//**** we haven't looked beyond this point ****//
-
 		// keep a ranked list of the teams
-		sort.Sort(trustRank)
+		if len(trustRank) != 0 {
+			sort.Sort(trustRank)
+		}
 
-		// request confidence (0-1)*amountNeeded to consecutive islands in rank
-		// until amountRequested = (factor eg 1.5) * amountNeeded (to accommodate for some islands not giving us a gift)
-		targetFulfilled := target
+		targetToFulfill := giftTarget
+
 		for i := 0; i < len(trustRank); i++ {
-			requestAmount := shared.Resources(trustRank[i].trust) / 100 * target
+			requestAmount := shared.Resources(trustRank[i].trust) / shared.Resources(100) * giftTarget
 			requestedTo := trustRank[i].island
 			requests[requestedTo] = shared.GiftRequest(requestAmount)
 
-			// to keep track in our history
+			// To keep track in our history (for each island)
 			newGiftRequest := GiftInfo{
-				requested: shared.GiftRequest(requestAmount),
+				requested: requests[requestedTo],
+				gifted:    0,             // to be changed later (when we receive responses)
+				reason:    shared.Accept, // to be changed later (when we receive responses)
 			}
+
 			c.giftHist[requestedTo].OurRequest[turn] = newGiftRequest
 
-			targetFulfilled -= requestAmount
+			targetToFulfill -= requestAmount
 
-			if targetFulfilled <= 0 {
+			if targetToFulfill <= 0 {
 				return requests
 			}
 		}
@@ -84,41 +79,32 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 	turn := c.gameState().Turn
-
-	// if we are critical do not offer gifts-> there should be a way to see which other islands are critical
-	// if we are not critical and another island is critical offer gift
-	// do not offer more than proportion of total resources we have
-	ourAgentCritical := shared.Critical == shared.ClientLifeStatus(1)
+	ourAgentCritical := c.criticalStatus()
+	excess := c.gameState().ClientInfo.Resources - c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold
+	maxToGive := excess * c.config.MaxGiftOffersMultiplier
 
 	// prioritize giving gifts to islands we trust (for now confidence)
-
-	// Give no more than half of amount before we reach threshold
-	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / (shared.Resources(1) / (c.giftReliance() / shared.Resources(2)))
-
 	var trustRank IslandTrustList
-	if !ourAgentCritical || maxToGive <= 0 {
+	if !ourAgentCritical && maxToGive > 0 {
 		for team := range receivedRequests {
-			// max would be 200
-			// c.confidence("ReceivedRequests", team) should reflect the status of an island and int,float64 requests hist
-			// c.confidence("GiftWeRequest", team) should reflect how they respond to our requests
-			confidenceMetric := c.confidence("Gifts", team)
-			otherTeamCritical := c.gameState().ClientLifeStatuses[team] == shared.Critical
-			if confidenceMetric > 50 || otherTeamCritical {
+			teamLifeStatus := c.gameState().ClientLifeStatuses[team]
+			islandConf := c.confidence("Gifts", team)
+			if islandConf > 50 || teamLifeStatus == shared.Critical {
 				islandConf := IslandTrust{
 					island: team,
-					trust:  confidenceMetric,
+					trust:  islandConf,
 				}
 				trustRank = append(trustRank, islandConf)
 			}
 		}
+
 		if len(trustRank) != 0 {
 			sort.Sort(trustRank)
 		}
 
-		// TODO: need to factor in the size of a request in decisions - above we were just sorting them by confidence
 		for i := 0; i < len(trustRank); i++ {
 			offeredTo := trustRank[i].island
-			offeredAmount := receivedRequests[offeredTo]
+			offeredAmount := receivedRequests[offeredTo] * (shared.GiftRequest(trustRank[i].trust) / 100)
 
 			if offeredAmount >= shared.GiftRequest(maxToGive) {
 				offeredAmount = shared.GiftRequest(maxToGive)
@@ -131,7 +117,9 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			newGiftRequest := GiftInfo{
 				requested: receivedRequests[offeredTo],
 				gifted:    shared.GiftOffer(offeredAmount),
+				reason:    shared.Accept,
 			}
+
 			c.giftHist[offeredTo].IslandRequest[turn] = newGiftRequest
 
 			maxToGive -= shared.Resources(offeredAmount)
@@ -148,7 +136,6 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 // GetGiftResponses allows clients to accept gifts offered by other clients.
 // It also needs to provide a reasoning should it not accept the full amount.
 // COMPULSORY, you need to implement this method
-// sanctions could be a reason to deny a gift offer
 func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.GiftResponseDict {
 	responses := shared.GiftResponseDict{}
 	turn := c.gameState().Turn
@@ -158,19 +145,23 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 			AcceptedAmount: shared.Resources(offer),
 			Reason:         shared.Accept,
 		}
+
 		weRequested := shared.GiftRequest(0)
+
 		if val, ok := c.giftHist[client].OurRequest[turn]; ok {
 			weRequested = val.requested
 		}
+
 		newGiftRequest := GiftInfo{
-			// it could potentially crash if we receive a gift we didn't ask for... this entry would be a null pointer
 			requested: weRequested,
 			gifted:    shared.GiftOffer(responses[client].AcceptedAmount),
 			reason:    shared.AcceptReason(responses[client].AcceptedAmount),
 		}
+
 		c.giftHist[client].OurRequest[turn] = newGiftRequest
 	}
 
+	c.Logf("[TEAM2]: It's rude not to accept gifts. :-)")
 	return responses
 }
 
@@ -179,18 +170,8 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 // that you will implement yourself below. This allows for opinion formation.
 // COMPULSORY, you need to implement this method
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
-	turn := c.gameState().Turn
-
-	// we should update our opinion of something if they reject a gift
-	// instead for now, we base our decisions/opinions on actions not words
-	// so we disregard what people say they will do and only store what they actually do
 	for island, response := range receivedResponses {
-		newGiftRequest := GiftInfo{
-			requested: c.giftHist[island].IslandRequest[turn].requested,
-			gifted:    shared.GiftOffer(response.AcceptedAmount),
-			reason:    shared.AcceptReason(response.AcceptedAmount),
-		}
-		c.giftHist[island].IslandRequest[turn] = newGiftRequest
+		c.Logf("[TEAM2]: Island[%v] accepted [%v] Resources ", island, response.AcceptedAmount)
 	}
 }
 
@@ -199,36 +180,57 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 // COMPULSORY, you need to implement this method
 func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 	turn := c.gameState().Turn
-	newGiftRequest := GiftInfo{
-		requested: c.giftHist[to].IslandRequest[turn].requested,
-		gifted:    shared.GiftOffer(sent),
+	theyRequested := shared.GiftRequest(0)
+
+	if val, ok := c.giftHist[to].IslandRequest[turn]; ok {
+		theyRequested = val.requested
 	}
+
+	newGiftRequest := GiftInfo{
+		requested: theyRequested,
+		gifted:    shared.GiftOffer(sent),
+		reason:    shared.Accept,
+	}
+
+	c.Logf("[TEAM2]: Gift successfully sent to Island[%v], with [%v] Resources ", to, theyRequested)
+
 	c.giftHist[to].IslandRequest[turn] = newGiftRequest
 	// because received gift is called first we call this here
 	c.updateGiftConfidence(to)
 }
 
-// // ReceivedGift is executed at the end of each turn and notifies clients that
-// // their gift was successfully received, along with the offer details.
-// // COMPULSORY, you need to implement this method
+// ReceivedGift is executed at the end of each turn and notifies clients that
+// their gift was successfully received, along with the offer details.
+// COMPULSORY, you need to implement this method
 func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 	turn := c.gameState().Turn
-	newGiftRequest := GiftInfo{
-		// it could potentially crash if we receive a gift we didn't ask for... this entry would be a null pointer
-		requested: c.giftHist[from].OurRequest[turn].requested,
-		gifted:    shared.GiftOffer(received),
-	}
-	c.giftHist[from].OurRequest[turn] = newGiftRequest
+	weRequested := shared.GiftRequest(0)
 
+	if val, ok := c.giftHist[from].OurRequest[turn]; ok {
+		weRequested = val.requested
+	}
+
+	newGiftRequest := GiftInfo{
+		requested: weRequested,
+		gifted:    shared.GiftOffer(received),
+		reason:    shared.Accept,
+	}
+
+	c.Logf("[TEAM2]: Gift successfully received from Island[%v], with [%v] Resources ", from, received)
+
+	c.giftHist[from].OurRequest[turn] = newGiftRequest
 }
 
-// TODO: DOUBLE CHECK THE LOGIC ON GIFT AMOUNTS
+// If we have less resources to give than expected (after actually using our resources this turn)
+// we can decide not to give the previously agreed upon amount
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	// Give no more than half of amount before we reach threshold
-	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / (shared.Resources(1) / (c.giftReliance() / shared.Resources(2)))
-	if maxToGive > 0 || giftOffer <= maxToGive {
+	updatedExcess := c.gameState().ClientInfo.Resources - c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold
+	updatedMaxToGive := updatedExcess * c.config.MaxGiftOffersMultiplier
+
+	if updatedMaxToGive > 0 || giftOffer <= updatedMaxToGive {
 		return giftOffer
 	}
+
 	return shared.Resources(0)
 }
 
