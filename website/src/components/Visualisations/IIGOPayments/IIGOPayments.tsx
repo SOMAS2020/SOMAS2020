@@ -14,14 +14,6 @@ import { ProcessedTaxData } from './Util/IIGOPaymentsTypes'
 import { processPaymentsData } from './Util/ProcessedPaymentsData'
 import { OutputJSONType, TeamName } from '../../../consts/types'
 
-type CustomTooltipProps = {
-  active: boolean
-  payload: [{ name: string; value: number; unit: string }]
-  label: string
-  data: ProcessedTaxData
-  colors: Map<string, string>
-}
-
 const Payments = (props: { output: OutputJSONType }) => {
   const [data, setData] = useState(processPaymentsData(props.output))
 
@@ -49,6 +41,7 @@ const Payments = (props: { output: OutputJSONType }) => {
             tickCount={20}
             allowDecimals={false}
           />
+          <Tooltip />
           <Legend verticalAlign="top" />
           <Bar dataKey="expectedTax" fill="#094fbd" />
           <Bar dataKey="actualTax" fill="#507cd4" />
