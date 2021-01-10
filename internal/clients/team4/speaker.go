@@ -12,7 +12,7 @@ type speaker struct {
 }
 
 //SpeakerActionPriorities indicate speaker actions in order of priority
-var SpeakerActionPriorities = []string{
+var SpeakerActionPriorities = [...]string{
 	"SetVotingResult",
 	"SetRuleToVote",
 	"AnnounceVotingResult",
