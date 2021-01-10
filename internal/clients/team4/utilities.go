@@ -1,6 +1,10 @@
 package team4
 
 import (
+	"fmt"
+	"log"
+	"os"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -22,6 +26,28 @@ func (c *client) getSeason() uint {
 func (c *client) getTurnLength(role shared.Role) uint {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameConfig().IIGOClientConfig.IIGOTermLengths[role]
+	}
+	return 0
+}
+
+func (c *client) getResources() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	}
+	return 0
+}
+
+func (c *client) getLifeStatus() shared.ClientLifeStatus {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+	}
+	return 0
+}
+
+func (c *client) getSafeResourceLevel() shared.Resources {
+	if c.ServerReadHandle != nil {
+		conf := c.ServerReadHandle.GetGameConfig()
+		return conf.MinimumResourceThreshold + conf.CostOfLiving
 	}
 	return 0
 }
@@ -74,23 +100,19 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 	return retInfo, ok
 }
 
-// func dump(filename string, format string, v ...interface{}) {
-// 	//f, err := os.Create(filename)
-// 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func dump(filename string, format string, v ...interface{}) {
+	//f, err := os.Create(filename)
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	_, err2 := f.WriteString(fmt.Sprintf(format, v...))
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+}
 
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	defer f.Close()
-
-// 	_, err2 := f.WriteString(fmt.Sprintf(format, v...))
-
-// 	if err2 != nil {
-// 		log.Fatal(err2)
-// 	}
-
-// }
 func boolToFloat(input bool) float64 {
 	if input {
 		return 1

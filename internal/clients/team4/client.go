@@ -39,6 +39,9 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		},
 		internalParam: &internalParameters{},
 		savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		forage: &forageStorage{
+			preferedForageMethod: 0,
+		},
 	}
 	team4client.clientJudge.parent = &team4client
 	team4client.clientSpeaker.parent = &team4client
@@ -56,6 +59,7 @@ type client struct {
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
 	savedHistory       *map[uint]map[shared.ClientID]judgeHistoryInfo
+	forage             *forageStorage
 }
 
 // Store extra information which is not in the server and is helpful for our client
