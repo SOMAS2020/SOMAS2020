@@ -169,8 +169,11 @@ func (c client) flipForage() shared.ForageDecision {
 	totalROI := totalRevenueLastTurn / totalContributionLastTurn
 	averageContribution := totalContributionLastTurn / shared.Resources(totalHuntersLastTurn)
 	contribution := shared.Resources(c.config.flipForageScale) * totalROI * averageContribution
+	contribution += shared.Resources(c.config.forageContributionNoisePercent) * resources
 	contribution = shared.Resources(math.Min(
-		float64(0.2*c.gameState().ClientInfo.Resources),
+		float64(shared.Resources(
+			c.config.forageContributionCapPercent)*resources,
+		),
 		float64(contribution),
 	))
 	c.Logf("[Forage decision] flipping results: %v", contribution)
