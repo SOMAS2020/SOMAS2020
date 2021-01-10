@@ -180,7 +180,7 @@ func (s ServerForClient) GetGameConfig() config.ClientConfig {
 
 func getNRandClientIDsUniqueIfPossible(input []shared.ClientID, n int) ([]shared.ClientID, error) {
 	if len(input) == 0 {
-		return nil, errors.Errorf("RIP, empty list")
+		return nil, errors.Errorf("empty list")
 	}
 
 	lst := make([]shared.ClientID, len(input))
