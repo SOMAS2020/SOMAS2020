@@ -50,6 +50,9 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	}
 
 	emptyRuleCache := map[string]rules.RuleMatrix{}
+	emptyTrust := trust{
+		trustMap: map[shared.ClientID]float64{},
+	}
 
 	importancesMatrix := importances{
 		requestAllocationImportance:                mat.NewVecDense(6, []float64{5.0, 1.0, -1.0, -1.0, 5.0, 1.0}),
@@ -67,6 +70,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
 		savedHistory:       &judgeHistory,
+		trustMatrix:        &emptyTrust,
 		importances:        &importancesMatrix,
 	}
 
