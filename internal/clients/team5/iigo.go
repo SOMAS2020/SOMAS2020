@@ -127,6 +127,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 		return contribution + disasterMitigation
 	}
 	actualTax := calculateTaxContribution(expectedTax, turn, season, currentTier)
+	c.Logf("%v+v", c.getCP())
 	c.Logf("[DEBUG] - Team 5 paying tax %v out of %v, contribute %v for community, %v for disaster mitigation", actualTax, expectedTax, contribution, disasterMitigation)
 	return actualTax + contribution + disasterMitigation
 }
@@ -183,15 +184,18 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 	contribution := shared.Resources(0)
 	//how far is the epicenter from our island
 	minDistance := math.Sqrt(math.Pow(geography.Islands[shared.Team5].X-predictionInfo.epiX, 2) + math.Pow(geography.Islands[shared.Team5].Y-predictionInfo.epiY, 2))
+	if minDistance < 1 {
+		minDistance = 1
+	}
 
 	//ideal contribution based on disaster magnitude
-	if predictionInfo.confidence <= 50 && predictionInfo.confidence > 20 {
-		idealContribution = shared.Resources((float64(predictionInfo.mag) * 5) / minDistance)
-	} else if predictionInfo.confidence > 50 && predictionInfo.confidence < 80 {
+	if predictionInfo.confidence <= 0.5 && predictionInfo.confidence > 0.2 {
+		idealContribution = shared.Resources((float64(predictionInfo.mag) * 50) / minDistance)
+	} else if predictionInfo.confidence > 0.5 && predictionInfo.confidence < 0.8 {
 		idealContribution = shared.
-			Resources((float64(predictionInfo.mag) * 10) / minDistance)
-	} else if predictionInfo.confidence >= 80 {
-		idealContribution = shared.Resources((float64(predictionInfo.mag) * 20) / minDistance)
+			Resources((float64(predictionInfo.mag) * 100) / minDistance)
+	} else if predictionInfo.confidence >= 0.8 {
+		idealContribution = shared.Resources((float64(predictionInfo.mag) * 200) / minDistance)
 	}
 
 	//update idealContribution based on our financial status
@@ -201,6 +205,7 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 
 	//Only contribute if disaster is coming in 1 days
 	// Contribute mostly on the day of the disaster to prevent people taking CP resource
+	c.Logf("currentTurn: %v, lastDisaster: %v ", currentTurn, lastDisaster)
 	if currentTurn-lastDisaster == predictionInfo.period-1 {
 		contribution = shared.Resources(0.2) * idealContribution
 	} else if currentTurn-lastDisaster == predictionInfo.period {

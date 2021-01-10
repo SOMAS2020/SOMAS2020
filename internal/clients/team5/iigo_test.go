@@ -172,7 +172,7 @@ func TestCalculateDisasterContributionCP(t *testing.T) {
 		epiY:       shared.Coordinate(4),
 		mag:        10,
 		period:     10,
-		confidence: 60,
+		confidence: 0.6,
 	}
 	c.forecastHistory[1] = forecast
 	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
