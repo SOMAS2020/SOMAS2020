@@ -97,7 +97,6 @@ type islandParams struct {
 	sensitivity             float64
 	localPoolThreshold      float64
 	giftInflationPercentage float64
-	trustConstantAdjustor   float64
 	trustParameter          float64
 	NoRequestGiftParam      float64
 	intelligence            bool
