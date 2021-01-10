@@ -278,7 +278,6 @@ func (c *client) updatePresidentTrust() {
 func (c *client) updateJudgeTrust() {
 	currJudge := c.gameState().JudgeID
 
-	prevTier := c.sanctionHist[currJudge][0].Tier
 	numConsecTier := 0
 	numDiffTiers := 0
 	avgTurnsPerTier := 0
@@ -287,6 +286,7 @@ func (c *client) updateJudgeTrust() {
 
 	if _, ok := c.sanctionHist[currJudge]; ok {
 		c.Logf("sanction hist for judge ", c.sanctionHist[currJudge])
+		prevTier := c.sanctionHist[currJudge][0].Tier
 		for i, sanction := range c.sanctionHist[currJudge] {
 			turn := int(c.gameState().Turn - sanction.Turn)
 			div := i + 1
@@ -348,7 +348,7 @@ func (c *client) getWeightedAverage(list []float64) int {
 	div := 1
 	total := 0
 	for i, item := range list {
-		total *= i * int(item)
+		total += i * int(item)
 		div += i
 	}
 	return total / div
@@ -360,7 +360,7 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 	// Interested in how much they said they have vs how much they actually have
 	// How much they've been sanctioned vs How much theey're paying
 	islandInfo := make(map[shared.ClientID]*AccountabilityInfo)
-	emptyInt := []float64{0}
+	emptyInt := []float64{}
 	// Initialise islandInfo for all Alive islands
 	for _, island := range c.getAliveClients() {
 		islandInfo[island] = &AccountabilityInfo{
@@ -406,28 +406,28 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 		taxContribDiff := 0
 		sanctionDiff := 0
 		islandResourceDiff := 0
-		if accountability.ExpectedTaxContribution != nil && accountability.IslandTaxContribution != nil {
+		if len(accountability.ExpectedTaxContribution) != 0 && len(accountability.IslandTaxContribution) != 0 {
 			avgExpected := c.getWeightedAverage(accountability.ExpectedTaxContribution)
 			avgActual := c.getWeightedAverage(accountability.IslandTaxContribution)
 			if avgActual != 0 {
 				taxContribDiff = 100 * (avgExpected - avgActual) / avgActual
 			}
 		}
-		if accountability.ExpectedAllocation != nil && accountability.IslandAllocation != nil {
+		if len(accountability.ExpectedAllocation) != 0 && len(accountability.IslandAllocation) != 0 {
 			avgExpected := c.getWeightedAverage(accountability.ExpectedAllocation)
 			avgActual := c.getWeightedAverage(accountability.IslandAllocation)
 			if avgActual != 0 {
 				allocationDiff = 100 * (avgExpected - avgActual) / avgActual
 			}
 		}
-		if accountability.SanctionPaid != nil && accountability.SanctionExpected != nil {
+		if len(accountability.SanctionPaid) != 0 && len(accountability.SanctionExpected) != 0 {
 			avgExpected := c.getWeightedAverage(accountability.SanctionExpected)
 			avgActual := c.getWeightedAverage(accountability.SanctionPaid)
 			if avgActual != 0 {
 				sanctionDiff = 100 * (avgExpected - avgActual) / avgActual
 			}
 		}
-		if accountability.IslandActualPrivateResources != nil && accountability.IslandReportedPrivateResources != nil {
+		if len(accountability.IslandActualPrivateResources) != 0 && len(accountability.IslandReportedPrivateResources) != 0 {
 			avgExpected := c.getWeightedAverage(accountability.IslandReportedPrivateResources)
 			avgActual := c.getWeightedAverage(accountability.IslandActualPrivateResources)
 			if avgActual != 0 {
@@ -471,6 +471,7 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 
 //This function is called when a disaster occurs to update our confidence on others' predictions
 func (c *client) updateDisasterConf() {
+	if val, ok := c.disasterHistory
 	disasterMag := c.disasterHistory[len(c.disasterHistory)-1].Report.Magnitude
 	disasterTurn := c.disasterHistory[len(c.disasterHistory)-1].Turn
 	for island, predictions := range c.predictionHist {
