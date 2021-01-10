@@ -187,16 +187,70 @@ func (c *client) updateForecastingReputations(receivedPredictions shared.Receive
 	}
 }
 
-func analyseDisasterHistory(dh disasterHistory, fh forecastHistory) {
+func analyseDisasterHistory(dh disasterHistory, fh forecastHistory) (forecastErrors []map[forecastVariable]float64, err error) {
+	disasterPeriodHistory := dh.getPastDisasterPeriods()
 	forecastTurns := uintsAsFloats(fh.sortKeys())
 	prevTurn := 0.0
-	for turn := range dh {
+	forecastErrors = []map[forecastVariable]float64{}
+	i := 0 // index variable
+	for turn, report := range dh {
 		indexes, _ := floats.Find([]int{}, func(x float64) bool {
 			return (x <= float64(turn)) && (x > prevTurn)
 		}, forecastTurns, -1)
 		prevTurn = float64(turn)
 		fmt.Printf("Indexes: %v", indexes)
+
+		precedingForecasts := make([]forecastInfo, len(indexes))
+		for i, index := range indexes {
+			precedingForecasts[i] = fh[uint(forecastTurns[index])]
+		}
+		fmt.Printf("preceding forecasts: %+v", precedingForecasts)
+		forecastErrors = append(forecastErrors, analyseForecastSkill(precedingForecasts, report, float64(disasterPeriodHistory[i])))
+		i++
 	}
+	fmt.Printf("\nforecast errors: %+v", forecastErrors)
+
+	return forecastErrors, nil
+}
+
+func analyseForecastSkill(forecasts []forecastInfo, disaster disasterInfo, disasterPeriod float64) (mseMap map[forecastVariable]float64) {
+	mseMap = map[forecastVariable]float64{}
+	pVals, xVals, yVals, magVals := []float64{}, []float64{}, []float64{}, []float64{}
+	for _, f := range forecasts {
+		pVals = append(pVals, float64(f.period))
+		xVals = append(xVals, f.epiX)
+		yVals = append(yVals, f.epiY)
+		magVals = append(magVals, f.mag)
+	}
+
+	decay := 0.8 // TODO: move to config
+
+	mseMap[period] = univariateWeightedMSE(pVals, disasterPeriod, decay)
+	mseMap[magnitude] = univariateWeightedMSE(magVals, disaster.report.Magnitude, decay)
+	mseMap[x] = univariateWeightedMSE(xVals, disaster.report.X, decay)
+	mseMap[y] = univariateWeightedMSE(yVals, disaster.report.Y, decay)
+
+	return mseMap
+}
+
+// exponential weighting to series of floats (sorted chronologically so latest is late). Usually,
+// decay in [0; 1] so that latest values are weighted more.
+func expWeighting(x []float64, decay float64) (weightedX, weights []float64) {
+	for i, el := range x {
+		w := math.Pow(decay, float64(i))
+		weights = append(weights, w)
+		weightedX = append(weightedX, w*el)
+	}
+	return weightedX, weights
+}
+
+// mean squared error for a exponentially weighted sample compared to a target value
+func univariateWeightedMSE(sample []float64, target, expDecay float64) (MSE float64) {
+	weightedSample, _ := expWeighting(sample, expDecay)
+	for _, s := range weightedSample {
+		MSE += math.Pow(s-target, 2)
+	}
+	return MSE / math.Max(float64(len(weightedSample)), 1)
 }
 
 func (f forecastVariable) String() string {

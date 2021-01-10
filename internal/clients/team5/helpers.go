@@ -74,6 +74,14 @@ func uintsAsFloats(x []uint) []float64 {
 	return out
 }
 
+func floatsAsUints(x []float64) []uint {
+	out := make([]uint, len(x))
+	for i, el := range x {
+		out[i] = uint(el)
+	}
+	return out
+}
+
 func (c client) getMood() float64 {
 	return mapToRange(float64(c.gameState().ClientInfo.Resources),
 		float64(c.config.jbThreshold), 0, 0.5, 1.5)
