@@ -13,6 +13,8 @@ type Judge struct {
 
 // Pay President default amount
 func (j *Judge) PayPresident() (shared.Resources, bool) {
+	j.c.Logf("Pay President default amount")
+
 	return j.BaseJudge.PayPresident()
 }
 
@@ -26,8 +28,11 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
+
 		j.c.confidenceRestrospect("RoleOpinion", clientID)
+
 		var rulesAffected []string
+
 		for _, variable := range variablePairs {
 			valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, j.GameState.RulesInfo.CurrentRulesInPlay, copyOfVarCache)
 			if foundRules {
@@ -38,6 +43,7 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 				return map[shared.ClientID]shared.EvaluationReturn{}, false
 			}
 		}
+
 		if _, ok := outMap[clientID]; !ok {
 			outMap[clientID] = shared.EvaluationReturn{
 				Rules:       []rules.RuleMatrix{},
@@ -73,24 +79,30 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
 func (j *Judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
-	Pardoned := make(map[int][]bool)
+	PardonedIslands := make(map[int][]bool)
 	for i, List := range currentSanctions {
-		List2 := make([]bool, len(List))
-		Pardoned[i] = List2
-		// TODO: what are we intending to check here with agent strategy because the values were used wrong across multiple files
+		boolArr := make([]bool, len(List))
+		PardonedIslands[i] = boolArr
+
 		for index, sanction := range List {
-			if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 && j.c.setAgentStrategy() != 1 {
-				Pardoned[i][index] = true
+			// If we are very confident in the other island and
+			if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 && j.c.setAgentStrategy() != Selfish {
+				PardonedIslands[i][index] = true
 			} else {
-				Pardoned[i][index] = false
+				PardonedIslands[i][index] = false
 			}
 		}
 	}
-	return Pardoned
+
+	j.c.Logf("Pardoned Islands", PardonedIslands)
+
+	return PardonedIslands
 }
 
 // HistoricalRetributionEnabled allows you to punish more than the previous turns transgressions
 func (j *Judge) HistoricalRetributionEnabled() bool {
+	j.c.Logf("Historical Retribution Enabled")
+
 	return true
 }
 
@@ -99,41 +111,42 @@ func (j *Judge) HistoricalRetributionEnabled() bool {
 func (j *Judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	// example implementation calls an election if monitoring was performed and the result was negative
 	// or if the number of turnsInPower exceeds 3
-	var electionsettings = shared.ElectionSettings{
+	var electionSettings = shared.ElectionSettings{
 		VotingMethod:  shared.Runoff,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
 
-	if monitoring.Performed && !monitoring.Result {
-		electionsettings.HoldElection = true
-	}
-
 	// TODO: This could be a config value - is there a rule on turns for power transfer?
 	// TODO: could use confidence to try to keep friends in power - cheat the accountability cycle
-	if turnsInPower >= 2 {
-		electionsettings.HoldElection = true
+	if (monitoring.Performed && !monitoring.Result) || turnsInPower >= 2 {
+		electionSettings.HoldElection = true
 	}
 
-	return electionsettings
+	j.c.Logf("Election Settings: ", electionSettings)
+
+	return electionSettings
 }
 
+// If the election winner's trust score is okay, we will declare them as the next President.
+// If not, we will replace it with the island who's trust score is higher
 func (j *Judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
-	// If the election winner's trust score is okay, we will declare them as the next President.
-	// If not, we will replace it with the island who's trust score is higher
 	opWinner := j.c.confidence("RoleOpinion", winner)
 
+	// Something's fishy if we have very low confidence in the winner
 	if opWinner < 30 {
 		aliveIslands := j.c.getAliveClients()
 		for _, island := range aliveIslands {
 			opIsland := j.c.confidence("RoleOpinion", island)
-			//this only replaces the winner with someone with a higher trust
+			// Only replaces the winner with someone with a higher trust
 			if opIsland > opWinner {
 				winner = island
 				opWinner = opIsland
 			}
 		}
 	}
+
+	j.c.Logf("Aaaaaand the next president is...: ", winner)
 
 	return winner
 }

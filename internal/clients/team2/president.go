@@ -139,8 +139,6 @@ func (p *President) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		if report.Reported {
 			totalResourcesReported += report.ReportedAmount
 			totalIslandsReported++
-		} else {
-
 		}
 	}
 
@@ -149,19 +147,19 @@ func (p *President) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	}
 
 	// Check resourcesRequired to mitigate a disaster
-	resourcesRequired := 0.0
+	resourcesRequired := shared.Resources(0.0)
 	disaster := p.c.MakeDisasterPrediction().PredictionMade
 
 	if float64(disaster.TimeLeft) != 0.0 {
-		resourcesRequired = (disaster.Magnitude - float64(p.c.gameState().CommonPool)/float64(disaster.TimeLeft))
+		resourcesRequired = shared.Resources(disaster.Magnitude - float64(p.c.gameState().CommonPool)/float64(disaster.TimeLeft))
 	} else {
-		resourcesRequired = disaster.Magnitude - float64(p.c.gameState().CommonPool)
+		resourcesRequired = shared.Resources(disaster.Magnitude - float64(p.c.gameState().CommonPool))
 	}
 
 	taxationMap := make(map[shared.ClientID]shared.Resources)
 
 	if p.c.getNumAliveClients() != 0 {
-		avgResourcesReq = shared.Resources(resourcesRequired) / shared.Resources(p.c.getNumAliveClients())
+		avgResourcesReq = resourcesRequired / shared.Resources(p.c.getNumAliveClients())
 	}
 
 	// assign average tax
@@ -171,6 +169,7 @@ func (p *President) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		} else {
 			taxationMap[island] = Max(avgRepResources, avgResourcesReq) * 1.2
 		}
+
 		// the best islands don't pay tax - tax evasion 101
 		if island == p.c.BaseClient.GetID() {
 			taxationMap[island] = 0
@@ -184,19 +183,22 @@ func (p *President) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	}
 }
 
+// example implementation calls an election if monitoring was performed and the result was negative
 func (p *President) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
-	// example implementation calls an election if monitoring was performed and the result was negative
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.InstantRunoff,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
+
 	if monitoring.Performed && !monitoring.Result {
 		electionsettings.HoldElection = true
 	}
+
 	if turnsInPower >= 2 {
 		//keep default because speaker is not too relevant
 		electionsettings.HoldElection = true
 	}
+
 	return electionsettings
 }

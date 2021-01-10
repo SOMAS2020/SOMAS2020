@@ -33,6 +33,8 @@ func (s *Speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 
 	}
 
+	s.c.Logf("Clients Chosen as Speaker:", chosenClients)
+
 	// chosen client is never null - sneaky fix
 	return shared.SpeakerReturnContent{
 		ContentType:          shared.SpeakerVote,
