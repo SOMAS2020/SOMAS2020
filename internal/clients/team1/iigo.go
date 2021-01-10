@@ -132,7 +132,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	switch c.emotionalState() {
 	case Anxious:
-		amount := 2 * c.gameConfig().CostOfLiving
+		amount := shared.Resources(c.config.resourceRequestScale) *
+			c.gameConfig().CostOfLiving
 		fmt.Printf("Amount %v", amount)
 		c.Logf("Common pool request: %v", amount)
 		return amount
