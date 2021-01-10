@@ -17,27 +17,19 @@ type judge struct {
 func (j *judge) PayPresident() (shared.Resources, bool) {
 
 	// Strategy: Pay the president the amount they are owed, no changing amount.
-	return j.BaseJudge.PayPresident()
+	var PresidentSalary shared.Resources = 0
+	PresidentSalaryRule, ok := j.GameState.RulesInfo.CurrentRulesInPlay["salary_cycle_president"]
+	if ok {
+		PresidentSalary = shared.Resources(PresidentSalaryRule.ApplicableMatrix.At(0, 1))
+	}
+	return PresidentSalary, true
 }
 
 // InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool) {
 	outMap := map[shared.ClientID]shared.EvaluationReturn{}
 
-	// If we do not have sufficient budget to conduct the inspection,
-	// then we will return an empty map with true evaluations.
-	// if j.c.getLocalResources() < config.IIGOConfig.InspectHistoryActionCost {
-	// 	// dummy evaluation map
-	// 	for _, entry := range iigoHistory {
-	// 		outMap[entry.ClientID] = shared.EvaluationReturn{
-	// 			Rules:       []rules.RuleMatrix{},
-	// 			Evaluations: []bool{},
-	// 		}
-	// 	}
-	// 	return outMap, true
-	// }
-
-	// Else, carry out inspectHistory as base implementation.
+	// Carry out base implementation of iterating through history to find rules to sanction
 	for _, entry := range iigoHistory {
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
@@ -95,11 +87,10 @@ func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 	}
 
 	// Base implementation calls an election if monitoring was performed and the result was negative
-	// or if the number of turnsInPower exceeds 3
+	// or if the number of turnsInPower exceeds 2
 	if monitoring.Performed && !monitoring.Result {
 		electionsettings.HoldElection = true
 	}
-	// TODO: think if we want to change strategy here
 	if turnsInPower >= 2 {
 		electionsettings.HoldElection = true
 	}
@@ -153,6 +144,14 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 }
 
 // HistoricalRetributionEnabled enables historical retribution of inspection (automatically set to 3 turns ago)
+// Strategy: If the rule is in play, we adhere to it else we will break it.
 func (j *judge) HistoricalRetributionEnabled() bool {
-	return false
+
+	var ans bool = false
+	res := rules.EvaluateRuleFromCaches("judge_historical_retribution_permission", j.GameState.RulesInfo.CurrentRulesInPlay, j.GameState.RulesInfo.VariableMap)
+	if res.RulePasses && res.EvalError == nil {
+		ans = true
+	}
+	j.c.Logf("[TEAM3]: Historical Rule Cache: %v, %v", res.RulePasses, ans)
+	return ans
 }
