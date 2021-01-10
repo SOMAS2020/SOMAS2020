@@ -26,6 +26,13 @@ func (c *client) getTurnLength(role shared.Role) uint {
 	return 0
 }
 
+func (c *client) getTrust(clientID shared.ClientID) float64 {
+	if int(clientID) < len(c.internalParam.agentsTrust) {
+		return c.internalParam.agentsTrust[int(clientID)]
+	}
+	return 0
+}
+
 func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo, ok bool) {
 	resourceOK := 0
 	taxOK := 0
