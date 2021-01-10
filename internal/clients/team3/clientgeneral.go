@@ -354,13 +354,3 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	skewedResource := resource / shared.Resources(c.params.resourcesSkew)
 	return shared.ResourcesReport{ReportedAmount: skewedResource, Reported: true}
 }
-
-/*
-	DisasterNotification(disasters.DisasterReport, map[shared.ClientID]shared.Magnitude)
-	updateCompliance
-	shouldICheat
-	updateCriticalThreshold
-	evalPresidentPerformance
-	evalSpeakerPerformance
-	evalJudgePerformance
-*/
