@@ -148,8 +148,8 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			}
 
 			// Logger
-			c.Logf("[DecideForage][bestHistoryForaging][%v]: PrevTurnsHunters %v | No.Caught %v | Prob Switch: Hunting %v / Fishing %v",
-				c.getTurn(), prevTurnsHunters, noCaught, probDeerHunting, probFishing)
+			// c.Logf("[DecideForage][bestHistoryForaging][%v]: PrevTurnsHunters %v | No.Caught %v | Prob Switch: Hunting %v / Fishing %v",
+			// 	c.getTurn(), prevTurnsHunters, noCaught, probDeerHunting, probFishing)
 		}
 		// ================================================================
 		// If best foraging was none of the 2 above then return shared.ForageType(-1)
@@ -284,15 +284,15 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output share
 		output: output,
 		caught: numberCaught,
 	})
-	c.Logf(
-		"[ForageUpdate][%v]: Type %v | Input %v | Profit %v | No.Caught %v | Actual RoI %v",
-		c.getTurn(),
-		forageDecision.Type,
-		forageDecision.Contribution,
-		output-forageDecision.Contribution,
-		numberCaught,
-		(output/forageDecision.Contribution)-1,
-	)
+	// c.Logf(
+	// 	"[ForageUpdate][%v]: Type %v | Input %v | Profit %v | No.Caught %v | Actual RoI %v",
+	// 	c.getTurn(),
+	// 	forageDecision.Type,
+	// 	forageDecision.Contribution,
+	// 	output-forageDecision.Contribution,
+	// 	numberCaught,
+	// 	(output/forageDecision.Contribution)-1,
+	// )
 }
 
 // forageHistorySize gets the size of our history to tell us how many rounds we have foraged for
@@ -406,6 +406,6 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 		SharedFrom:       shared.Team5,
 	}
 
-	c.Logf("[MakeForageInfo][%v]: %+v", c.getTurn(), forageInfo)
+	// c.Logf("[MakeForageInfo][%v]: %+v", c.getTurn(), forageInfo)
 	return forageInfo
 }

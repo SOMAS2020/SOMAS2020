@@ -81,7 +81,6 @@ func getClientConfig() clientConfig {
 		imperialThreshold: 0.3, // surely should be - 100e6? (your right we are so far indebt)
 		//  Dying threshold is 0 < Dying < Imperial
 
-<<<<<<< Updated upstream
 		// Gifts Config (multipliers of cost of living)
 		dyingGiftRequestAmount:    2,   // multiplier of the cost of living
 		imperialGiftRequestAmount: 1,   // The cost of living
@@ -90,19 +89,6 @@ func getClientConfig() clientConfig {
 
 		opinionThresholdRequest:  0.3, // Above opinion we request less this people (0.1 lowest)
 		opinionRequestMultiplier: 0.3, // We request the threshold at the above amount of opinion
-=======
-		// Gifts Config
-		dyingGiftRequestAmount:    25,
-		imperialGiftRequestAmount: 15,
-		middleGiftRequestAmount:   5,
-		offertoDyingIslands:       10,
-		normalGift:                1,
-
-		opinionThresholdRequest:  0.3, // Above opinion we request less this people (0.1 lowest)
-		opinionRequestMultiplier: 0.5, // We request half as much above this threshold
-		giftBoosting:             1.4,
-		giftReduct:               0.5,
->>>>>>> Stashed changes
 
 		// Disasters and IIFO
 		forecastTrustTreshold: 0.0, // neutral opinion
