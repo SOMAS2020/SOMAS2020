@@ -162,8 +162,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
-	// INITIALISATION OF IMPORTANCES!
-
 	c.updateParents()
 }
 
