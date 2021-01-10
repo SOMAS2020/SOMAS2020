@@ -83,7 +83,7 @@ const (
 	MonitorRoleEvalResult
 	MonitorRoleEvalResultDecide
 	VoteResultAnnounced
-	IslandsAllowedToVote
+	AllIslandsAllowedToVote
 	SpeakerProposedPresidentRule
 	PresidentRuleProposal
 	RuleChosenFromProposalList
@@ -145,7 +145,7 @@ func (v VariableFieldName) String() string {
 		"MonitorRoleEvalResult",
 		"MonitorRoleEvalResultDecide",
 		"VoteResultAnnounced",
-		"IslandsAllowedToVote",
+		"AllIslandsAllowedToVote",
 		"SpeakerProposedPresidentRule",
 		"PresidentRuleProposal",
 		"RuleChosenFromProposalList",
