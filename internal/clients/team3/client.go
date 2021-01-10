@@ -81,6 +81,8 @@ type client struct {
 	localInputsCache map[rules.VariableFieldName]dynamics.Input
 	// last sanction score cache to determine wheter or not we have been caugth in the last turn
 	lastSanction shared.IIGOSanctionsScore
+
+	forageData map[shared.ForageType][]ForageData
 }
 
 type islandParams struct {
@@ -107,6 +109,12 @@ type ruleVoteInfo struct {
 	resultAnnounced bool
 	// true -> yes, false -> no
 	result bool
+}
+
+type ForageData struct {
+	amountContributed shared.Resources
+	amountReturned    shared.Resources
+	turn              uint
 }
 
 type iigoCommunicationInfo struct {
