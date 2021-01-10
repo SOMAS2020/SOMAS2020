@@ -34,42 +34,42 @@ func (c *client) initialiseOpinionForIsland(otherIsland shared.ClientID) {
 // Depending on the situation we need to judge, we look at a different history
 // The values in the histories should be updated in retrospect
 func (c *client) confidence(situation Situation, otherIsland shared.ClientID) int {
+	trust := 50
+	// The default for no data is to trust other islands 50%
 
 	if _, ok := c.opinionHist[otherIsland]; !ok {
 		c.initialiseOpinionForIsland(otherIsland)
-		return 50
 	}
 
+	// We have initialised the histories
 	islandHist := c.opinionHist[otherIsland].Histories
+	c.Logf("Situation ", situation)
+	c.Logf("Island ", otherIsland)
+	c.Logf("History with island ", islandHist)
 	situationHist := islandHist[situation]
-	if len(situationHist) == 0 {
-		return 50
+	// Check if ther is a history to take a weighted average from
+	if len(situationHist) != 0 {
+		sum := 0
+		div := 0
+
+		for i := len(situationHist); i > 0; i-- {
+			sum += (situationHist[i-1]) * i
+			div += i
+		}
+		trust = sum / div
 	}
 
-	sum := 0
-	div := 0
-	// TODO: change list iteration to just look at the turns we have info abt
-
-	for i := len(situationHist); i > 0; i-- {
-		sum += (situationHist[i-1]) * i
-		div += i
+	// Set the expectation to the weighted past average or the default 50
+	islandSituationPerf := ExpectationReality{
+		exp:  trust,
+		real: 0,
 	}
-	average := sum / div
-
-	//c.Logf("[Our beautiful average]:", average)
-	// c.Logf("situation hist ", situationHist)
-	// c.Logf("[returning average right after wings]:", len(situationHist))
-
-	islandSituationPerf := c.opinionHist[otherIsland].Performances[situation]
-	islandSituationPerf.exp = average
-	islandSituationPerf.real = 0
-	c.Logf("situation we're dealing with ", situation)
-	c.Logf("[returning flowers]:", islandSituationPerf)
+	c.Logf("[Situation Performance (exp)]:", islandSituationPerf)
 
 	//c.Logf("island opinions", c.opinionHist[shared.ClientID(4)])
 	c.opinionHist[otherIsland].Performances[situation] = islandSituationPerf
 	//c.Logf("[returning full object]:", c.opinionHist[otherIsland])
-	return average
+	return trust
 
 }
 
@@ -255,20 +255,22 @@ func (c *client) updatePresidentTrust() {
 			div++
 		}
 
-		percChangeTax := 100 * (c.taxAmount - runMeanTax) / runMeanTax
-		percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / runMeanWeAllocated // How much less we're giveen
-		percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / runMeanWeTake        // How much more we've taken
+		percChangeTax := 100 * (c.taxAmount - runMeanTax) / checkDivZero(runMeanTax)
+		percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / checkDivZero(runMeanWeAllocated) // How much less we're giveen
+		percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / checkDivZero(runMeanWeTake)        // How much more we've taken
 
 		reality = c.setLimits(int(100 - percWeGet - percChangeTax + percWeTake))
 	}
+
 	islandSituationPerf := ExpectationReality{
-		exp:  0,
+		exp:  50, // Would not get overwritten if we have no current expectation, so default should be 50
 		real: reality,
 	}
 	if perf, ok := c.opinionHist[currPres].Performances["President"]; ok {
 		islandSituationPerf.exp = perf.exp
 	}
-
+	c.Logf("Previous performance for President", c.opinionHist[currPres].Performances["President"])
+	c.Logf("Updated performance for President", islandSituationPerf)
 	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
 
 }
@@ -281,32 +283,45 @@ func (c *client) updateJudgeTrust() {
 	numDiffTiers := 0
 	avgTurnsPerTier := 0
 	runMeanScore := 0
+	reality := 50
 
-	for i, sanction := range c.sanctionHist[currJudge] {
-		turn := int(c.gameState().Turn - sanction.Turn)
-		div := i + 1
+	if _, ok := c.sanctionHist[currJudge]; ok {
+		c.Logf("sanction hist for judge ", c.sanctionHist[currJudge])
+		for i, sanction := range c.sanctionHist[currJudge] {
+			turn := int(c.gameState().Turn - sanction.Turn)
+			div := i + 1
 
-		runMeanScore += (sanction.Amount/turn - runMeanScore) / div
-		if prevTier == sanction.Tier {
-			numConsecTier++
-		} else {
-			numDiffTiers++
-			avgTurnsPerTier += (numConsecTier - avgTurnsPerTier) / numDiffTiers
-			prevTier = sanction.Tier
-			numConsecTier = 0
+			runMeanScore += (sanction.Amount/turn - runMeanScore) / div
+			if prevTier == sanction.Tier {
+				numConsecTier++
+			} else {
+				numDiffTiers++
+				avgTurnsPerTier += (numConsecTier - avgTurnsPerTier) / numDiffTiers
+				prevTier = sanction.Tier
+				numConsecTier = 0
+			}
 		}
+
+		// We don't want to be sanctioned
+		// We don't want a sanction to last too long
+		// We want the judge to be "fair"
+
+		lastScore := c.sanctionHist[currJudge][len(c.sanctionHist[currJudge])-1]
+		percChangeScore := int(100 * int((lastScore.Amount-runMeanScore)/runMeanScore))
+		reality = c.setLimits(100 - (avgTurnsPerTier * percChangeScore))
+	}
+	islandSituationPerf := ExpectationReality{
+		exp:  50, // Would not get overwritten if we have no current expectation, so default should be 50
+		real: reality,
+	}
+	if perf, ok := c.opinionHist[currJudge].Performances["Judge"]; ok {
+		islandSituationPerf.exp = perf.exp
 	}
 
-	// We don't want to be sanctioned
-	// We don't want a sanction to last too long
-	// We want the judge to be "fair"
-
-	lastScore := c.sanctionHist[currJudge][len(c.sanctionHist[currJudge])-1]
-	percChangeScore := int(100 * int((lastScore.Amount-runMeanScore)/runMeanScore))
-	reality := c.setLimits(100 - (avgTurnsPerTier * percChangeScore))
-
-	islandSituationPerf := c.opinionHist[currJudge].Performances["Judge"]
 	islandSituationPerf.real = reality
+
+	c.Logf("Updated performance for Judge", islandSituationPerf)
+
 	c.opinionHist[currJudge].Performances["Judge"] = islandSituationPerf
 	c.confidenceRestrospect("Judge", currJudge)
 
@@ -344,66 +359,101 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 	//Interested in how much they took vs how much they were allowed to
 	// Interested in how much they said they have vs how much they actually have
 	// How much they've been sanctioned vs How much theey're paying
+	islandInfo := make(map[shared.ClientID]*AccountabilityInfo)
+	emptyInt := []float64{0}
+	// Initialise islandInfo for all Alive islands
+	for _, island := range c.getAliveClients() {
+		islandInfo[island] = &AccountabilityInfo{
+			AllocationRequestsMade:         emptyInt,
+			AllocationMade:                 emptyInt,
+			ExpectedTaxContribution:        emptyInt,
+			ExpectedAllocation:             emptyInt,
+			IslandTaxContribution:          emptyInt,
+			IslandAllocation:               emptyInt,
+			SanctionPaid:                   emptyInt,
+			SanctionExpected:               emptyInt,
+			IslandActualPrivateResources:   emptyInt,
+			IslandReportedPrivateResources: emptyInt,
+		}
+	}
 
-	for _, info := range iigoHistory {
-		island := info.ClientID
-		islandInfo := info.Pairs
-		var islAccInfo AccountabilityInfo
-		for _, pair := range islandInfo {
+	c.Logf("IslandInfo ", islandInfo)
+
+	for _, accountability := range iigoHistory {
+		for _, pair := range accountability.Pairs {
 			switch pair.VariableName {
 			case 24: // ExpectedTaxContribution
-				islAccInfo.ExpectedTaxContribution = pair.Values
+				islandInfo[accountability.ClientID].ExpectedTaxContribution = pair.Values
 			case 25: // ExpectedAllocation
-				islAccInfo.ExpectedAllocation = pair.Values
+				islandInfo[accountability.ClientID].ExpectedAllocation = pair.Values
 			case 26: // IslandTaxContribution
-				islAccInfo.IslandTaxContribution = pair.Values
+				islandInfo[accountability.ClientID].IslandTaxContribution = pair.Values
 			case 27: // IslandAllocation
-				islAccInfo.IslandAllocation = pair.Values
+				islandInfo[accountability.ClientID].IslandAllocation = pair.Values
 			case 31: // SanctionPaid
-				islAccInfo.SanctionPaid = pair.Values
+				islandInfo[accountability.ClientID].SanctionPaid = pair.Values
 			case 32: // SanctionExpected
-				islAccInfo.SanctionExpected = pair.Values
+				islandInfo[accountability.ClientID].SanctionExpected = pair.Values
 			case 52: // IslandActualPrivateResources
-				islAccInfo.IslandActualPrivateResources = pair.Values
+				islandInfo[accountability.ClientID].IslandActualPrivateResources = pair.Values
 			case 53: // IslandReportedPrivateResources
-				islAccInfo.IslandReportedPrivateResources = pair.Values
+				islandInfo[accountability.ClientID].IslandReportedPrivateResources = pair.Values
 			}
 		}
+	}
+	for island, accountability := range islandInfo {
 		allocationDiff := 0
 		taxContribDiff := 0
 		sanctionDiff := 0
 		islandResourceDiff := 0
-		if islAccInfo.ExpectedTaxContribution != nil && islAccInfo.IslandTaxContribution != nil {
-			avgExpected := c.getWeightedAverage(islAccInfo.ExpectedTaxContribution)
-			avgActual := c.getWeightedAverage(islAccInfo.IslandTaxContribution)
+		if accountability.ExpectedTaxContribution != nil && accountability.IslandTaxContribution != nil {
+			avgExpected := c.getWeightedAverage(accountability.ExpectedTaxContribution)
+			avgActual := c.getWeightedAverage(accountability.IslandTaxContribution)
 			if avgActual != 0 {
 				taxContribDiff = 100 * (avgExpected - avgActual) / avgActual
 			}
 		}
-		if islAccInfo.ExpectedAllocation != nil && islAccInfo.IslandAllocation != nil {
-			avgExpected := c.getWeightedAverage(islAccInfo.ExpectedAllocation)
-			avgActual := c.getWeightedAverage(islAccInfo.IslandAllocation)
+		if accountability.ExpectedAllocation != nil && accountability.IslandAllocation != nil {
+			avgExpected := c.getWeightedAverage(accountability.ExpectedAllocation)
+			avgActual := c.getWeightedAverage(accountability.IslandAllocation)
 			if avgActual != 0 {
 				allocationDiff = 100 * (avgExpected - avgActual) / avgActual
 			}
 		}
-		if islAccInfo.SanctionPaid != nil && islAccInfo.SanctionExpected != nil {
-			avgExpected := c.getWeightedAverage(islAccInfo.SanctionExpected)
-			avgActual := c.getWeightedAverage(islAccInfo.SanctionPaid)
+		if accountability.SanctionPaid != nil && accountability.SanctionExpected != nil {
+			avgExpected := c.getWeightedAverage(accountability.SanctionExpected)
+			avgActual := c.getWeightedAverage(accountability.SanctionPaid)
 			if avgActual != 0 {
 				sanctionDiff = 100 * (avgExpected - avgActual) / avgActual
 			}
 		}
-		if islAccInfo.IslandActualPrivateResources != nil && islAccInfo.IslandReportedPrivateResources != nil {
-			avgExpected := c.getWeightedAverage(islAccInfo.IslandReportedPrivateResources)
-			avgActual := c.getWeightedAverage(islAccInfo.IslandActualPrivateResources)
+		if accountability.IslandActualPrivateResources != nil && accountability.IslandReportedPrivateResources != nil {
+			avgExpected := c.getWeightedAverage(accountability.IslandReportedPrivateResources)
+			avgActual := c.getWeightedAverage(accountability.IslandActualPrivateResources)
 			if avgActual != 0 {
 				islandResourceDiff = 100 * (avgExpected - avgActual) / avgActual
 			}
 		}
+
+		c.Logf("Role trust for turn ", c.gameState().Turn)
+		c.Logf("For island ", island)
+		c.Logf("Accountability map", accountability)
+		c.Logf("IIGO History", iigoHistory)
+		c.Logf("taxContribDiff", taxContribDiff)
+		c.Logf("allocationDiff", allocationDiff)
+		c.Logf("sanctionDiff", sanctionDiff)
+		c.Logf("islandResourceDiff", islandResourceDiff)
 		reality := c.setLimits(100 - taxContribDiff - allocationDiff - sanctionDiff - islandResourceDiff)
-		islandSituationPerf := c.opinionHist[island].Performances["RoleOpinion"]
-		islandSituationPerf.real = reality
+		islandSituationPerf := ExpectationReality{
+			exp:  50,
+			real: reality,
+		}
+		if _, ok := c.opinionHist[island]; ok {
+			islandSituationPerf.exp = c.opinionHist[island].Performances["RoleOpinion"].exp
+		} else {
+			c.initialiseOpinionForIsland(island)
+		}
+		c.Logf("Updated performance ", islandSituationPerf)
 		c.opinionHist[island].Performances["RoleOpinion"] = islandSituationPerf
 
 	}

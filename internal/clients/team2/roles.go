@@ -31,6 +31,8 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		situation = "Gifts"
 	}
 
+	c.Logf("Voting for ", situation)
+
 	var trustRank IslandTrustList
 	for _, candidate := range candidateList {
 		islandConf := IslandTrust{

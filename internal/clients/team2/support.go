@@ -86,8 +86,12 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			}
 			c.taxAmount = shared.Resources(content.IntegerData)
 			commonPool.tax = shared.Resources(content.IntegerData)
+			c.Logf("Common pool (how much the tax is)", shared.Resources(content.IntegerData))
+			c.Logf("Common pool (how much the tax is obj)", commonPool)
+
 			// Update the history
 			c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+			c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 
 		// How many resources we've been allocated from the CP by the President
 		case shared.IIGOAllocationDecision:
@@ -104,8 +108,12 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			}
 			c.commonPoolAllocation = shared.Resources(content.IntegerData)
 			commonPool.allocatedByPres = shared.Resources(content.IntegerData)
+			c.Logf("Common pool (how we are allocated)", shared.Resources(content.IntegerData))
+			c.Logf("Common pool (how we are allocated obj)", commonPool)
+
 			// Update the history
 			c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+			c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 
 		// What islands have a sanction (and the sanction tier)
 		case shared.SanctionClientID:
@@ -216,4 +224,11 @@ func Min(i shared.Resources, j shared.Resources) shared.Resources {
 	} else {
 		return j
 	}
+}
+
+func checkDivZero(denom shared.Resources) shared.Resources {
+	if denom == 0 {
+		return 1.0
+	}
+	return denom
 }

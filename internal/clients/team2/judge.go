@@ -29,8 +29,6 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		variablePairs := entry.Pairs
 		clientID := entry.ClientID
 
-		j.c.confidenceRestrospect("RoleOpinion", clientID)
-
 		var rulesAffected []string
 
 		for _, variable := range variablePairs {
@@ -72,6 +70,8 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			}
 			outMap[clientID] = tempReturn
 		}
+		// We've calculated the reality and the expectation before already
+		j.c.confidenceRestrospect("RoleOpinion", clientID)
 	}
 
 	return outMap, true
@@ -85,9 +85,11 @@ func (j *Judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 		PardonedIslands[i] = boolArr
 
 		for index, sanction := range List {
-			// If we are very confident in the other island and
-			if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 && j.c.setAgentStrategy() != Selfish {
-				PardonedIslands[i][index] = true
+			// If we are very confident in the other island and not being selfish
+			if _, ok := j.c.opinionHist[sanction.ClientID]; ok && j.c.setAgentStrategy() != Selfish {
+				if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 {
+					PardonedIslands[i][index] = true
+				}
 			} else {
 				PardonedIslands[i][index] = false
 			}

@@ -34,15 +34,16 @@ func (c *client) presCommonPoolUpdate(request shared.Resources) {
 		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
 		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 
-		c.Logf("Initialised presCommonPoolHist and added request", c.presCommonPoolHist)
+		c.Logf("Initialised presCommonPoolHist")
 	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
 		// If we have a previous entry, update the requestedToPres
 		commonPool = pastCommonPool
 		commonPool.requestedToPres = request
-		c.Logf("President Common Pool History updated", c.presCommonPoolHist)
-
 	}
+	c.Logf("Common pool (how much we request obj)", commonPool)
+	c.Logf("Common pool (how much we request)", request)
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+	c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 }
 
 // If we are critical request the full threshold to shift us back to security
@@ -75,14 +76,6 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	return request
 }
 
-// type CommonPoolInfo struct {
-// 	turn            uint
-// 	tax             shared.Resources
-// 	requestedToPres shared.Resources
-// 	allocatedByPres shared.Resources
-// 	takenFromCP     shared.Resources
-// }
-
 // Determines how many resources you actually take
 func (c *client) RequestAllocation() shared.Resources {
 	request := c.determineBaseCommonPoolRequest() * c.commonPoolMultiplier()
@@ -103,15 +96,16 @@ func (c *client) RequestAllocation() shared.Resources {
 		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
 		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 
-		c.Logf("Initialised presCommonPoolHist and added request", c.presCommonPoolHist)
+		c.Logf("Initialised presCommonPoolHist")
 	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
 		// If we have a previous entry, update the requestedToPres
 		commonPool = pastCommonPool
 		commonPool.takenFromCP = request
-		c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 	}
-
+	c.Logf("Common pool (how much we take)", request)
+	c.Logf("Common pool (how much we take obj)", commonPool)
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+	c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 	return request
 
 }
