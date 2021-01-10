@@ -70,3 +70,14 @@ func (t *trust) initialise() {
 	}
 	t.normalise()
 }
+
+//Return a list of clients above a trust threshold
+func (t *trust) trustedClients(threshold float64) []shared.ClientID {
+	var lst []shared.ClientID
+	for client, val := range t.trustMap {
+		if val > threshold {
+			lst = append(lst, client)
+		}
+	}
+	return lst
+}

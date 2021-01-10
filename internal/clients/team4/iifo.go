@@ -136,12 +136,14 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	for id, status := range c.getAllLifeStatus() {
 		if status != shared.Dead {
 			if c.getTurn() < 5 {
-				// Send to everyone for the first five turns
+				// Send to everyone for the first five rounds
 				shareTo = append(shareTo, id)
 			} else {
 				// Send only to island who sent to us in the previous round
 				shareTo = c.returnPreviousForagers()
 				// Maybe also add island we trust incase they won't send to us unless we send to them?
+				shareTo = append(shareTo, c.trustMatrix.trustedClients(0.70)...)
+				shareTo = createClientSet(shareTo)
 			}
 		}
 	}

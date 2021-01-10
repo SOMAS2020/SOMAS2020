@@ -151,3 +151,26 @@ func boolToFloat(input bool) float64 {
 	}
 	return 0
 }
+
+func checkIfClientIsInList(lst []shared.ClientID, c shared.ClientID) bool {
+	for _, e := range lst {
+		if e == c {
+			return true
+		}
+	}
+	return false
+}
+
+func createClientSet(lst []shared.ClientID) []shared.ClientID {
+	uniqueMap := make(map[shared.ClientID]bool)
+	var uniqueLst []shared.ClientID
+	for _, e := range lst {
+
+		_, ok := uniqueMap[e]
+		if !ok {
+			uniqueMap[e] = true
+			uniqueLst = append(uniqueLst, e)
+		}
+	}
+	return uniqueLst
+}
