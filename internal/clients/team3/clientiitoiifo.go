@@ -176,7 +176,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			requests[island] = shared.GiftRequest(0.0)
 		} else {
 			var requestAmt float64
-			requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.trustParameter) * c.params.trustConstantAdjustor
+			requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.trustParameter)
 			requests[island] = shared.GiftRequest(requestAmt)
 		}
 	}
@@ -251,7 +251,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 	for _, island := range c.getAliveIslands() {
 		if island != id && amounts[island] == 0.0 {
-			amounts[island] = shared.GiftOffer(c.trustScore[island] * c.params.NoRequestGiftParam)
+			amounts[island] = shared.GiftOffer(c.trustScore[island] * (c.params.friendliness / 30))
 		}
 	}
 
