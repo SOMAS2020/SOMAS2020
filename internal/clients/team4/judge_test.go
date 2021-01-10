@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -177,16 +176,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			testClient := client{
-				BaseClient:    baseclient.NewClient(id),
-				clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
-				clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-				yes:           "",
-				obs:           &observation{},
-				internalParam: &internalParameters{},
-				savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
-			}
-			testClient.clientJudge.parent = &testClient
+			testClient := newClientInternal(id, t)
 			j := testClient.clientJudge
 
 			wholeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
@@ -200,12 +190,16 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 				clientHistory := *testClient.savedHistory
 
-				if !reflect.DeepEqual(expected, clientHistory[turn]) {
-					t.Errorf("Single history failed. expected %v,\n got %v", expected, clientHistory[turn])
+				if !reflect.DeepEqual(expected, clientHistory.history[turn]) {
+					t.Errorf("Single history failed. expected %v,\n got %v", expected, clientHistory.history[turn])
+				}
+
+				if !clientHistory.updated {
+					t.Errorf("Single history failed. History was not updated")
 				}
 			}
 
-			if !reflect.DeepEqual(wholeHistory, *testClient.savedHistory) {
+			if !reflect.DeepEqual(wholeHistory, testClient.savedHistory.history) {
 				t.Errorf("Whole history comparison failed. Saved history: %v", *testClient.savedHistory)
 			}
 
@@ -295,18 +289,7 @@ func TestCallPresidentElection(t *testing.T) {
 				ElectionRuleInPlay: tc.electionRuleInPlay,
 			}
 
-			testClient := client{
-				BaseClient:         baseclient.NewClient(id),
-				clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
-				clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-				yes:                "",
-				obs:                &observation{},
-				internalParam:      &internalParameters{},
-				idealRulesCachePtr: &map[string]rules.RuleMatrix{},
-				savedHistory:       &map[uint]map[shared.ClientID]judgeHistoryInfo{},
-			}
-
-			testClient.clientJudge.parent = &testClient
+			testClient := newClientInternal(id, t)
 
 			testClient.Initialise(testServer)
 
@@ -317,6 +300,121 @@ func TestCallPresidentElection(t *testing.T) {
 			if got.HoldElection != tc.expectedElection {
 				t.Errorf("Expected holdElection: %v. Got holdElection: %v", tc.expectedElection, got.HoldElection)
 			}
+		})
+	}
+}
+
+func TestGetPardonedIslands(t *testing.T) {
+	cases := []struct {
+		name      string
+		sanctions map[int][]shared.Sanction
+		pardons   map[int][]bool
+		trust     map[shared.ClientID]float64
+	}{
+		{
+			name:      "empty sanctions",
+			sanctions: make(map[int][]shared.Sanction),
+			pardons:   make(map[int][]bool),
+			trust:     make(map[shared.ClientID]float64),
+		},
+		{
+			name: "no sanction",
+			sanctions: map[int][]shared.Sanction{
+				0: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: shared.NoSanction,
+						TurnsLeft:    5,
+					},
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: shared.NoSanction,
+						TurnsLeft:    5,
+					},
+				},
+			},
+			pardons: map[int][]bool{
+				0: {false, false},
+			},
+			trust: map[shared.ClientID]float64{
+				shared.Team1: 0.5,
+				shared.Team2: 0.5,
+			},
+		},
+		{
+			name: "get pardon",
+			sanctions: map[int][]shared.Sanction{
+				0: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: shared.SanctionTier1,
+						TurnsLeft:    3,
+					},
+				},
+			},
+			pardons: map[int][]bool{
+				0: {true},
+			},
+			trust: map[shared.ClientID]float64{
+				shared.Team1: 0.8,
+				shared.Team2: 0.2,
+			},
+		},
+		{
+			name: "get one pardon",
+			sanctions: map[int][]shared.Sanction{
+				0: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: shared.SanctionTier1,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: shared.SanctionTier4, // this will prevent getting a pardon
+						TurnsLeft:    2,
+					},
+				},
+			},
+			pardons: map[int][]bool{
+				0: {true, false},
+			},
+			trust: map[shared.ClientID]float64{
+				shared.Team1: 0.7,
+				shared.Team2: 0.3,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			clients := []shared.ClientID{}
+			for clientID := range tc.trust {
+				clients = append(clients, clientID)
+			}
+
+			testServer := fakeServerHandle{clients: clients}
+			testClient := newClientInternal(id, t)
+			testClient.Initialise(testServer)
+
+			for client, clientTrust := range tc.trust {
+				testClient.trustMatrix.SetClientTrust(client, clientTrust)
+			}
+
+			j := testClient.GetClientJudgePointer()
+
+			pardons := j.GetPardonedIslands(tc.sanctions)
+
+			if reflect.DeepEqual(tc.pardons, map[int][]bool{}) {
+				if !reflect.DeepEqual(pardons, map[int][]bool{}) {
+					t.Errorf("GetPardonedIslands failed. expected: empty map, got %v", pardons)
+				}
+			}
+
+			if !reflect.DeepEqual(pardons, tc.pardons) {
+				t.Errorf("GetPardonedIslands failed. expected: %v, got %v", tc.pardons, pardons)
+			}
+
 		})
 	}
 }

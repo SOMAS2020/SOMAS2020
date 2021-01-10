@@ -24,7 +24,7 @@ func (c *client) evaluateParamVector(decisionVector *mat.VecDense, agent shared.
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[agent],
+		c.trustMatrix.GetClientTrust(agent),
 	})
 	return mat.Dot(decisionVector, parameters) - threshold
 }
@@ -33,18 +33,15 @@ func (c *client) RequestAllocation() shared.Resources {
 	//TODO: check rules for how much we are allocated
 	allocationGranted := c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0
-	importance := mat.NewVecDense(5, []float64{
-		5.0, 1.0, 0.0, -1.0, 5.0, //0.0,
-		// TODO: add multiplier for the 0.0 ones
-	})
+	importance := c.importances.requestAllocationImportance
 
-	parameters := mat.NewVecDense(5, []float64{
+	parameters := mat.NewVecDense(6, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		//c.internalParam.agentsTrust[0], // TODO: index properly based on president in that turn. This VecDense can only store float64 as an element
+		c.getTrust(c.getPresident()),
 	})
 
 	uncomplianceLevel := mat.Dot(importance, parameters) - uncomplianceThreshold
@@ -79,6 +76,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			// 	c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
 			// }
 		case shared.RoleMonitored:
+			// TODO: modify trust matrix based on monitor result
 			// c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
 			// c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
 		default: //[exhaustive] reported by reviewdog 🐶
@@ -115,25 +113,20 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 		resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold - ourResource
 	}
 
-	// TODO: define how much we want -> resNeeded
 	greedyThreshold := 2.5
+	importance := c.importances.commonPoolResourceRequestImportance
 
-	importance := mat.NewVecDense(5, []float64{
-		5.0, 1.0, -1.0, -1.0, 1.0, //0.0,
-		// TODO: add multiplier for the 0.0 ones
-	})
-
-	parameters := mat.NewVecDense(5, []float64{
+	parameters := mat.NewVecDense(6, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		// c.internalParam.agentsTrust[0], // TODO: index properly based on president in that turn. this VecDense can only store float64 as an element
+		c.getTrust(c.getPresident()),
 	})
 	greedyLevel := mat.Dot(importance, parameters) - greedyThreshold
 
-	allocRequested := resNeeded // if we're selfless, still request and take resNeeded, but gift the extra to critical islands
+	allocRequested := resNeeded // if we're selfless, still request and take resNeeded, but gift the extra to critical islands.
 	if greedyLevel > 0 {
 		allocRequested = resNeeded * shared.Resources((greedyLevel + 1))
 	}
@@ -147,27 +140,22 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	lyingThreshold := 3.0
 	reporting := true
 
+	presidentID := c.ServerReadHandle.GetGameState().PresidentID
 	// If collaboration and trust are above average chose to report, otherwise abstain!
-	if (c.internalParam.collaboration + c.internalParam.agentsTrust[0]) < 1 { // agent trust towards the president, TODO: change to president index
+	if (c.internalParam.collaboration + c.trustMatrix.GetClientTrust(presidentID)) < 1 { // agent trust towards the president, TODO: change to president index
 		reporting = false
 	}
 
 	// Initialise importance vector and parameters vector.
-	importance := mat.NewVecDense(5, []float64{
-		5.0, 5.0, -5.0, -5.0, 1.0, //5.0,
-		// TODO: add multiplier for the 0.0 ones.
-	})
+	importance := c.importances.resourceReportImportance
 
-	parameters := mat.NewVecDense(5, []float64{
+	parameters := mat.NewVecDense(6, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		// c.internalParam.agentsTrust[0], // TODO: index properly based on president and judge: respectively
-		// to measure your trust on the fairness of the tax you will get/how
-		// much you trust that agent with this info and how much you think the
-		// judge is likely to inspect you. Also this VecDense can only store float64 as an element, we need to think of a way
+		c.getTrust(c.getPresident()),
 	})
 
 	// lyingLevel will be positive when agent is inclined to lie.
@@ -189,6 +177,37 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	return resReportStruct
 }
 
-////////////// TODO: FUNCTION WAITING ON BASECLIENT PR /////////////
-// GetTaxContribution()
+// GetTaxContribution gives value of how much the island wants to pay in taxes
+// The tax is the minimum contribution, you can pay more if you want to
+// COMPULSORY
+func (c *client) GetTaxContribution() shared.Resources {
+	valToBeReturned := shared.Resources(0)
+	currentWealth := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+
+	collaborationThreshold := 1.0
+	wealthThreshold := 5 * valToBeReturned
+
+	// Initialise importance vector and parameters vector.
+	importance := c.importances.getTaxContributionImportance
+
+	parameters := mat.NewVecDense(4, []float64{
+		c.internalParam.greediness,
+		c.internalParam.selfishness,
+		c.internalParam.collaboration,
+		c.getTrust(c.getPresident()),
+	})
+
+	collaborationLevel := mat.Dot(importance, parameters)
+
+	if collaborationLevel > collaborationThreshold &&
+		currentWealth > wealthThreshold {
+		// Deliberately pay more (collaborationLevel is larger than 1)
+		valToBeReturned = valToBeReturned * shared.Resources(collaborationLevel)
+
+	}
+
+	return valToBeReturned
+
+}
+
 // GetSanctionPayment()
