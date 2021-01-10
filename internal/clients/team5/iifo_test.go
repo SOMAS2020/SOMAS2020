@@ -103,22 +103,26 @@ func TestAnalyseDisasterHistory(t *testing.T) {
 		4: forecastInfo{epiX: 0.5, period: 2},
 		5: forecastInfo{epiX: 0.5, period: 2},
 	}
-	periodSamples := [][]float64{{0, 1, 2}, {2, 2}} // errors calculated by hand
+	periodSamples := [][]float64{{0, 1, 2}, {2, 2}}
 	periodTargets := []float64{2, 2}
 
-	xSamples := [][]float64{{0, 0.5, 0.75}, {0.5, 0.5}} // errors calculated by hand
+	xSamples := [][]float64{{0, 0.5, 0.75}, {0.5, 0.5}}
 	xTargets := []float64{1, 0}
 
-	forecastErrors, err := analyseDisasterHistory(dh, fh)
+	conf := createClient().config
+	decay := conf.forecastTemporalDecay
+
+	forecastErrors, err := analyseDisasterHistory(dh, fh, conf)
 
 	if err != nil {
 		t.Logf("Error analysing disaster history: %v", err)
 	}
+
 	for i := range dh.sortKeys() {
 		errorMap := forecastErrors[i]
 
-		expectedXError := univariateWeightedMSE(xSamples[i], xTargets[i], 0.8)
-		expectedPeriodError := univariateWeightedMSE(periodSamples[i], periodTargets[i], 0.8)
+		expectedXError := univariateWeightedMSE(xSamples[i], xTargets[i], decay)
+		expectedPeriodError := univariateWeightedMSE(periodSamples[i], periodTargets[i], decay)
 
 		if errorMap[x] != expectedXError {
 			t.Logf("computed x epicentre error was incorrect. Expected %v, got %v", expectedXError, errorMap[x])

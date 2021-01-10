@@ -187,7 +187,7 @@ func (c *client) updateForecastingReputations(receivedPredictions shared.Receive
 	}
 }
 
-func analyseDisasterHistory(dh disasterHistory, fh forecastHistory) (forecastErrors []map[forecastVariable]float64, err error) {
+func analyseDisasterHistory(dh disasterHistory, fh forecastHistory, conf clientConfig) (forecastErrors []map[forecastVariable]float64, err error) {
 	disasterPeriodHistory := dh.getPastDisasterPeriods()
 	forecastTurns := uintsAsFloats(fh.sortKeys())
 	prevTurn := 0.0
@@ -198,22 +198,18 @@ func analyseDisasterHistory(dh disasterHistory, fh forecastHistory) (forecastErr
 			return (x <= float64(turn)) && (x > prevTurn)
 		}, forecastTurns, -1)
 		prevTurn = float64(turn)
-		fmt.Printf("Indexes: %v", indexes)
 
 		precedingForecasts := make([]forecastInfo, len(indexes))
 		for i, index := range indexes {
 			precedingForecasts[i] = fh[uint(forecastTurns[index])]
 		}
-		fmt.Printf("preceding forecasts: %+v", precedingForecasts)
-		forecastErrors = append(forecastErrors, analyseForecastSkill(precedingForecasts, report, float64(disasterPeriodHistory[i])))
+		forecastErrors = append(forecastErrors, analyseForecastSkill(precedingForecasts, report, float64(disasterPeriodHistory[i]), conf))
 		i++
 	}
-	fmt.Printf("\nforecast errors: %+v", forecastErrors)
-
 	return forecastErrors, nil
 }
 
-func analyseForecastSkill(forecasts []forecastInfo, disaster disasterInfo, disasterPeriod float64) (mseMap map[forecastVariable]float64) {
+func analyseForecastSkill(forecasts []forecastInfo, disaster disasterInfo, disasterPeriod float64, conf clientConfig) (mseMap map[forecastVariable]float64) {
 	mseMap = map[forecastVariable]float64{}
 	pVals, xVals, yVals, magVals := []float64{}, []float64{}, []float64{}, []float64{}
 	for _, f := range forecasts {
@@ -223,7 +219,7 @@ func analyseForecastSkill(forecasts []forecastInfo, disaster disasterInfo, disas
 		magVals = append(magVals, f.mag)
 	}
 
-	decay := 0.8 // TODO: move to config
+	decay := conf.forecastTemporalDecay
 
 	mseMap[period] = univariateWeightedMSE(pVals, disasterPeriod, decay)
 	mseMap[magnitude] = univariateWeightedMSE(magVals, disaster.report.Magnitude, decay)
