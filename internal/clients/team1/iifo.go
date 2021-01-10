@@ -93,11 +93,24 @@ func (c client) findConfidence() float64 {
 	ySD := math.Sqrt(totalDisaster.Y / disasterHistorySize)
 	magSD := math.Sqrt(totalDisaster.Magnitude / disasterHistorySize)
 
+	if xSD == 0 && ySD == 0 && magSD == 0 {
+		return 0
+	}
 	// 1.645 is Z value for 90% Confidence Interval
 	// See link for more maths: https://www.mathsisfun.com/data/confidence-interval.html
-	confidenceIntervalX := 1.645 * xSD / (sqrtDisasterHistory * meanDisaster.X)
-	confidenceIntervalY := 1.645 * ySD / (sqrtDisasterHistory * meanDisaster.Y)
-	confidenceIntervalM := 1.645 * magSD / (sqrtDisasterHistory * meanDisaster.Magnitude)
+	// Formula: meanX +- Z( sdX / sqrt(n) )
+	// Z( sdX / sqrt(n) ) is the upper and lower bounds and therefore can be transformed
+	// to a confidence percentage by (meanX - Z(sdX / sqrt(n))) / meanX
+	confidenceIntervalX, confidenceIntervalY, confidenceIntervalM := 0.0, 0.0, 0.0
+	if meanDisaster.X != 0 {
+		confidenceIntervalX = 1 - (1.645 * xSD / (sqrtDisasterHistory * meanDisaster.X))
+	}
+	if meanDisaster.Y != 0 {
+		confidenceIntervalY = 1 - (1.645 * ySD / (sqrtDisasterHistory * meanDisaster.Y))
+	}
+	if meanDisaster.Magnitude != 0 {
+		confidenceIntervalM = 1 - (1.645 * magSD / (sqrtDisasterHistory * meanDisaster.Magnitude))
+	}
 
 	// Return average
 	return (confidenceIntervalX + confidenceIntervalY + confidenceIntervalM) / 3
@@ -126,8 +139,12 @@ func (c *client) DisasterNotification(disaster disasters.DisasterReport, effect 
 
 	for id, team := range c.othersDisasterPrediction {
 		timeDistance := team.PredictionMade.TimeLeft
+		trustValue := float64(turnCounter) * team.PredictionMade.Confidence
 		if timeDistance == 0 {
-			c.trustTeams[id] += float64(turnCounter) * team.PredictionMade.Confidence
+			c.trustTeams[id] += trustValue
+		} else {
+			// Add one to avoid divide by 1 case.
+			c.trustTeams[id] += trustValue / (float64(timeDistance) + 1)
 		}
 	}
 }
