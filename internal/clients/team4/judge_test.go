@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -177,16 +176,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			testClient := client{
-				BaseClient:    baseclient.NewClient(id),
-				clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
-				clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-				yes:           "",
-				obs:           &observation{},
-				internalParam: &internalParameters{},
-				savedHistory:  &map[uint]map[shared.ClientID]judgeHistoryInfo{},
-			}
-			testClient.clientJudge.parent = &testClient
+			testClient := newClientInternal(id, t)
 			j := testClient.clientJudge
 
 			wholeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
@@ -295,18 +285,7 @@ func TestCallPresidentElection(t *testing.T) {
 				ElectionRuleInPlay: tc.electionRuleInPlay,
 			}
 
-			testClient := client{
-				BaseClient:         baseclient.NewClient(id),
-				clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: t},
-				clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-				yes:                "",
-				obs:                &observation{},
-				internalParam:      &internalParameters{},
-				idealRulesCachePtr: &map[string]rules.RuleMatrix{},
-				savedHistory:       &map[uint]map[shared.ClientID]judgeHistoryInfo{},
-			}
-
-			testClient.clientJudge.parent = &testClient
+			testClient := newClientInternal(id, t)
 
 			testClient.Initialise(testServer)
 
@@ -317,6 +296,105 @@ func TestCallPresidentElection(t *testing.T) {
 			if got.HoldElection != tc.expectedElection {
 				t.Errorf("Expected holdElection: %v. Got holdElection: %v", tc.expectedElection, got.HoldElection)
 			}
+		})
+	}
+}
+
+func TestGetPardonedIslands(t *testing.T) {
+	cases := []struct {
+		name      string
+		sanctions map[int][]shared.Sanction
+		pardons   map[int][]bool
+		trust     []float64
+	}{
+		{
+			name:      "empty sanctions",
+			sanctions: make(map[int][]shared.Sanction),
+			pardons:   make(map[int][]bool),
+			trust:     make([]float64, 6),
+		},
+		{
+			name: "no sanction",
+			sanctions: map[int][]shared.Sanction{
+				0: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: shared.NoSanction,
+						TurnsLeft:    5,
+					},
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: shared.NoSanction,
+						TurnsLeft:    5,
+					},
+				},
+			},
+			pardons: map[int][]bool{
+				0: {false, false},
+			},
+			trust: []float64{0.5, 0.5},
+		},
+		{
+			name: "get pardon",
+			sanctions: map[int][]shared.Sanction{
+				0: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: shared.SanctionTier1,
+						TurnsLeft:    3,
+					},
+				},
+			},
+			pardons: map[int][]bool{
+				0: {true},
+			},
+			trust: []float64{0.7},
+		},
+		{
+			name: "get one pardon",
+			sanctions: map[int][]shared.Sanction{
+				0: {
+					{
+						ClientID:     shared.Team1,
+						SanctionTier: shared.SanctionTier1,
+						TurnsLeft:    3,
+					},
+					{
+						ClientID:     shared.Team2,
+						SanctionTier: shared.SanctionTier4, // this will prevent getting a pardon
+						TurnsLeft:    2,
+					},
+				},
+			},
+			pardons: map[int][]bool{
+				0: {true, false},
+			},
+			trust: []float64{0.61, 0.99},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			testServer := fakeServerHandle{}
+			testClient := newClientInternal(id, t)
+			testClient.Initialise(testServer)
+
+			testClient.internalParam.agentsTrust = tc.trust
+
+			j := testClient.GetClientJudgePointer()
+
+			pardons := j.GetPardonedIslands(tc.sanctions)
+
+			if reflect.DeepEqual(tc.pardons, map[int][]bool{}) {
+				if !reflect.DeepEqual(pardons, map[int][]bool{}) {
+					t.Errorf("GetPardonedIslands failed. expected: empty map, got %v", pardons)
+				}
+			}
+
+			if !reflect.DeepEqual(pardons, tc.pardons) {
+				t.Errorf("GetPardonedIslands failed. expected: %v, got %v", tc.pardons, pardons)
+			}
+
 		})
 	}
 }

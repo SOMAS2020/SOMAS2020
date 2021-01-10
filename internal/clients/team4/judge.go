@@ -92,6 +92,30 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
 // COMPULSORY: decide which islands, if any, to forgive
+func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
+	pardons := map[int][]bool{}
+
+	internalParams := j.parent.internalParam
+	maxPardonTime := internalParams.maxPardonTime
+	maxTierToPardon := internalParams.maxTierToPardon
+	minTrustToPardon := internalParams.minTrustToPardon
+
+	for turn, sanctions := range currentSanctions {
+		pardons[turn] = make([]bool, len(sanctions))
+		for index, sanction := range sanctions {
+			if sanction.SanctionTier != shared.NoSanction {
+				considerTime := sanction.TurnsLeft <= maxPardonTime
+				considerSeverity := sanction.SanctionTier <= maxTierToPardon
+				considerTrust := minTrustToPardon <= j.parent.getTrust(sanction.ClientID)
+				if considerTime && considerSeverity && considerTrust {
+					pardons[turn][index] = true
+				}
+			}
+		}
+	}
+
+	return pardons
+}
 
 // HistoricalRetributionEnabled allows you to punish more than the previous turns transgressions
 // OPTIONAL: override if you want to punish historical transgressions

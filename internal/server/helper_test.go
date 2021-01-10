@@ -1,6 +1,7 @@
 package server
 
 import (
+	"math"
 	"reflect"
 	"sort"
 	"testing"
@@ -243,6 +244,22 @@ func TestTakeResources(t *testing.T) {
 			want:      10,
 			wantErr:   errors.Errorf("Client %v did not have enough resources. Requested %v, only had %v", shared.Team1, 15, 10),
 		},
+		{
+			name:      "NaN",
+			resources: 42,
+			takeAmt:   shared.Resources(math.NaN()),
+			want:      42,
+			wantErr: errors.Errorf("Cannot take invalid number of resources %v from client %v",
+				math.NaN(), shared.Team1),
+		},
+		{
+			name:      "try take negative",
+			resources: 42,
+			takeAmt:   shared.Resources(-42),
+			want:      42,
+			wantErr: errors.Errorf("Cannot take invalid number of resources %v from client %v",
+				-42, shared.Team1),
+		},
 	}
 
 	for _, tc := range cases {
@@ -273,6 +290,7 @@ func TestGiveResources(t *testing.T) {
 		resources shared.Resources
 		giveAmt   shared.Resources
 		want      shared.Resources
+		wantErr   error
 	}{
 		{
 			name:      "normal",
@@ -286,6 +304,22 @@ func TestGiveResources(t *testing.T) {
 			giveAmt:   0,
 			want:      42,
 		},
+		{
+			name:      "Give NaN",
+			resources: 42,
+			giveAmt:   shared.Resources(math.NaN()),
+			want:      42,
+			wantErr: errors.Errorf("Cannot give invalid number of resources %v to client %v",
+				math.NaN(), shared.Team1),
+		},
+		{
+			name:      "Give -42",
+			resources: 42,
+			giveAmt:   -42,
+			want:      42,
+			wantErr: errors.Errorf("Cannot give invalid number of resources %v to client %v",
+				-42, shared.Team1),
+		},
 	}
 
 	for _, tc := range cases {
@@ -298,8 +332,10 @@ func TestGiveResources(t *testing.T) {
 				},
 			}
 
-			s.giveResources(shared.Team1, tc.giveAmt, tc.name)
+			err := s.giveResources(shared.Team1, tc.giveAmt, tc.name)
 			got := s.gameState.ClientInfos[shared.Team1].Resources
+
+			testutils.CompareTestErrors(tc.wantErr, err, t)
 
 			if tc.want != got {
 				t.Errorf("want '%v' got '%v'", tc.want, got)
