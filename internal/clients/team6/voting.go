@@ -41,7 +41,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	//Create a slice for id
 	idToSlice := []shared.ClientID{id}
 
-	doWeHaveRoles := c.doWeHaveRoles()
+	doWeHaveRoles := c.doWeHaveRoles(roleToElect)
 	
 	//Rank candidates except yourself according to friendship level
 	for i, candidateID := range candidateList {
