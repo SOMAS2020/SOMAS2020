@@ -81,15 +81,9 @@ func (s *speaker) DecideAgenda(ruleMatrix rules.RuleMatrix) shared.SpeakerReturn
 //who calls a vote on the proposed rule and asks all available islands to vote.
 //Return an empty string or empty []shared.ClientID for no vote to occur
 func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
-	var nonSanctionedClients []shared.ClientID
-	for _, clientID := range aliveClients {
-		if s.parent.obs.iigoObs.sanctionScores[clientID] > 0 {
-			nonSanctionedClients = append(nonSanctionedClients, clientID)
-		}
-	}
 	return shared.SpeakerReturnContent{
 		ContentType:          shared.SpeakerVote,
-		ParticipatingIslands: nonSanctionedClients,
+		ParticipatingIslands: aliveClients,
 		RuleMatrix:           ruleMatrix,
 		ActionTaken:          true,
 	}
@@ -98,7 +92,6 @@ func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 //DecideAnnouncement is the interface implementation and example of a well behaved Speaker
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
-
 func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
 	return shared.SpeakerReturnContent{
 		ContentType:  shared.SpeakerAnnouncement,

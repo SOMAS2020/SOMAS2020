@@ -84,11 +84,8 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 
 		}
 	}
-	if _, ok := data[shared.IIGOSanctionScore]; ok {
-		c.obs.iigoObs.sanctionTiers[shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
-	}
 	if _, ok := data[shared.SanctionClientID]; ok {
-		c.obs.iigoObs.sanctionScores[shared.ClientID(data[shared.SanctionClientID].IntegerData)] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
+		c.obs.iigoObs.sanctionTiers[shared.ClientID(data[shared.SanctionClientID].IntegerData)] = shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)
 	}
 }
 
@@ -204,8 +201,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 	collaborationLevel := mat.Dot(importance, parameters)
 
-	if collaborationLevel > collaborationThreshold && 
-	   currentWealth > wealthThreshold {
+	if collaborationLevel > collaborationThreshold &&
+		currentWealth > wealthThreshold {
 		// Deliberately pay more (collaborationLevel is larger than 1)
 		valToBeReturned = valToBeReturned * shared.Resources(collaborationLevel)
 

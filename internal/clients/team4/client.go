@@ -10,7 +10,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
-
 )
 
 const id = shared.Team4
@@ -36,8 +35,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	iigoObs := iigoObservation{
 		allocationGranted: shared.Resources(0),
 		taxDemanded:       shared.Resources(0),
-		sanctionTiers:     make(map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore),
-		sanctionScores:    make(map[shared.ClientID]shared.IIGOSanctionsScore),
+		sanctionTiers:     make(map[shared.ClientID]shared.IIGOSanctionsTier),
 	}
 	iifoObs := iifoObservation{}
 	iitoObs := iitoObservation{}
@@ -84,16 +82,17 @@ type client struct {
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
 	savedHistory       *map[uint]map[shared.ClientID]judgeHistoryInfo
-	importances 	   *importances
+	importances        *importances
 }
 
 type importances struct {
-	requestAllocationImportance 			   *mat.VecDense
-	commonPoolResourceRequestImportance 	   *mat.VecDense
-	resourceReportImportance				   *mat.VecDense
-	getTaxContributionImportance			   *mat.VecDense
+	requestAllocationImportance                *mat.VecDense
+	commonPoolResourceRequestImportance        *mat.VecDense
+	resourceReportImportance                   *mat.VecDense
+	getTaxContributionImportance               *mat.VecDense
 	decideIIGOMonitoringAnnouncementImportance *mat.VecDense
 }
+
 // Store extra information which is not in the server and is helpful for our client
 type observation struct {
 	iigoObs           *iigoObservation
@@ -105,8 +104,7 @@ type observation struct {
 type iigoObservation struct {
 	allocationGranted shared.Resources
 	taxDemanded       shared.Resources
-	sanctionTiers     map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore
-	sanctionScores    map[shared.ClientID]shared.IIGOSanctionsScore
+	sanctionTiers     map[shared.ClientID]shared.IIGOSanctionsTier
 }
 
 type iifoObservation struct {
@@ -150,15 +148,14 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	trustVector := make([]float64, numClient)
 	c.internalParam.agentsTrust = trustVector
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
-	
 
 	// INITIALISATION OF IMPORTANCES!
-	c.importances = &importances {
-		requestAllocationImportance: mat.NewVecDense(6, []float64{5.0, 1.0, -1.0, -1.0, 5.0, 1.0,}),
-		commonPoolResourceRequestImportance:  mat.NewVecDense(6, []float64{4.0, 1.0, -1.0, -1.0, 1.0, 1.0,}),
-		resourceReportImportance: mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0,}),
-		getTaxContributionImportance: mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0,}),
-		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0,}),
+	c.importances = &importances{
+		requestAllocationImportance:                mat.NewVecDense(6, []float64{5.0, 1.0, -1.0, -1.0, 5.0, 1.0}),
+		commonPoolResourceRequestImportance:        mat.NewVecDense(6, []float64{4.0, 1.0, -1.0, -1.0, 1.0, 1.0}),
+		resourceReportImportance:                   mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0}),
+		getTaxContributionImportance:               mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0}),
+		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0}),
 	}
 }
 
@@ -262,11 +259,10 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	return returnList
 }
 
-
 //MonitorIIGORole decides whether to perform monitoring on a role
 //COMPULOSRY: must be implemented
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
-	
+
 	presidentID := c.getPresident()
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
@@ -276,22 +272,22 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	resourcesThreshold := shared.Resources(100)
 	monitoring := false
 	switch clientID {
-		case presidentID:
-			// If we are the president.
-			monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
-						c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-						(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	case presidentID:
+		// If we are the president.
+		monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
+			c.internalParam.agentsTrust[judgeID] < trustThreshold) &&
+			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
 
-		case speakerID:
-			// If we are the Speaker.
-			monitoring = (c.internalParam.agentsTrust[presidentID] < trustThreshold ||
-						c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-						(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
-		case judgeID:
-			// If we are the Judge.
-			monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
-						  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-						 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	case speakerID:
+		// If we are the Speaker.
+		monitoring = (c.internalParam.agentsTrust[presidentID] < trustThreshold ||
+			c.internalParam.agentsTrust[judgeID] < trustThreshold) &&
+			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	case judgeID:
+		// If we are the Judge.
+		monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
+			c.internalParam.agentsTrust[judgeID] < trustThreshold) &&
+			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
 	}
 	return monitoring
 }
