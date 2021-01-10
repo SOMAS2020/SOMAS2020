@@ -89,7 +89,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 // CallPresidentElection sets the election settings for the next president election
 func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	var electionsettings = shared.ElectionSettings{
-		VotingMethod:  shared.Approval,
+		VotingMethod:  shared.InstantRunoff,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
