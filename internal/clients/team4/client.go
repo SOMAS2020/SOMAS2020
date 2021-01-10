@@ -10,7 +10,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
-
 )
 
 const id = shared.Team4
@@ -27,7 +26,6 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		fairness:         0,
 		collaboration:    0,
 		riskTaking:       0,
-		agentsTrust:      []float64{},
 		maxPardonTime:    3,
 		maxTierToPardon:  shared.SanctionTier3,
 		minTrustToPardon: 0.6,
@@ -46,22 +44,38 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		iitoObs: &iitoObs,
 	}
 
-	judgeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
+	judgeHistory := accountabilityHistory{
+		history: map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		updated: false,
+	}
 
 	emptyRuleCache := map[string]rules.RuleMatrix{}
+	trustMatrix := trust{
+		trustMap: map[shared.ClientID]float64{},
+	}
+	trustMatrix.initialise()
+
+	importancesMatrix := importances{
+		requestAllocationImportance:                mat.NewVecDense(6, []float64{5.0, 1.0, -1.0, -1.0, 5.0, 1.0}),
+		commonPoolResourceRequestImportance:        mat.NewVecDense(6, []float64{4.0, 1.0, -1.0, -1.0, 1.0, 1.0}),
+		resourceReportImportance:                   mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0}),
+		getTaxContributionImportance:               mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0}),
+		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0}),
+	}
 
 	team4client := client{
 		BaseClient:         baseclient.NewClient(id),
-		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
+		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
 		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
 		obs:                &obs,
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
 		savedHistory:       &judgeHistory,
+		trustMatrix:        &trustMatrix,
+		importances:        &importancesMatrix,
 	}
 
-	team4client.clientJudge.parent = &team4client
-	team4client.clientSpeaker.parent = &team4client
+	team4client.updateParents()
 
 	return team4client
 }
@@ -81,17 +95,19 @@ type client struct {
 	obs                *observation        //observation is the raw input into our client
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
-	savedHistory       *map[uint]map[shared.ClientID]judgeHistoryInfo
-	importances 	   *importances
+	savedHistory       *accountabilityHistory
+	trustMatrix        *trust
+	importances        *importances
 }
 
 type importances struct {
-	requestAllocationImportance 			   *mat.VecDense
-	commonPoolResourceRequestImportance 	   *mat.VecDense
-	resourceReportImportance				   *mat.VecDense
-	getTaxContributionImportance			   *mat.VecDense
+	requestAllocationImportance                *mat.VecDense
+	commonPoolResourceRequestImportance        *mat.VecDense
+	resourceReportImportance                   *mat.VecDense
+	getTaxContributionImportance               *mat.VecDense
 	decideIIGOMonitoringAnnouncementImportance *mat.VecDense
 }
+
 // Store extra information which is not in the server and is helpful for our client
 type observation struct {
 	iigoObs           *iigoObservation
@@ -122,10 +138,8 @@ type internalParameters struct {
 	fairness      float64
 	collaboration float64
 	riskTaking    float64
-	agentsTrust   []float64
 
 	// Judge GetPardonIslands config
-
 	// days left on the sanction after which we can even considering pardoning other islands
 	maxPardonTime int
 	// specifies the maximum sanction tier after which we will no longer consider pardoning others
@@ -142,20 +156,14 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.BaseClient.Initialise(serverReadHandle)
 
 	//custom things below, trust matrix initilised to values of 0
-	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
-	trustVector := make([]float64, numClient)
-	c.internalParam.agentsTrust = trustVector
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
-	
+	c.updateParents()
+}
 
-	// INITIALISATION OF IMPORTANCES!
-	c.importances = &importances {
-		requestAllocationImportance: mat.NewVecDense(6, []float64{5.0, 1.0, -1.0, -1.0, 5.0, 1.0,}),
-		commonPoolResourceRequestImportance:  mat.NewVecDense(6, []float64{4.0, 1.0, -1.0, -1.0, 1.0, 1.0,}),
-		resourceReportImportance: mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0,}),
-		getTaxContributionImportance: mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0,}),
-		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0,}),
-	}
+func (c *client) updateParents() {
+	c.clientJudge.parent = c
+	c.clientSpeaker.parent = c
+
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
@@ -241,7 +249,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	trustList := []float64{}
 	returnList := []shared.ClientID{}
 	for i := 0; i < len(candidateList); i++ {
-		trustScore := c.internalParam.agentsTrust[candidateList[i]]
+		trustScore := c.trustMatrix.GetClientTrust(candidateList[i]) //c.internalParam.agentsTrust[candidateList[i]]
 		trustToID[trustScore] = candidateList[i]
 		trustList = append(trustList, trustScore)
 	}
@@ -258,36 +266,45 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	return returnList
 }
 
+func (c *client) StartOfTurn() {
+	c.updateTrustFromSavedHistory()
+}
+
+func (c *client) updateTrustFromSavedHistory() {
+	if c.savedHistory.updated {
+
+	}
+}
 
 //MonitorIIGORole decides whether to perform monitoring on a role
 //COMPULOSRY: must be implemented
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
-	
+
 	presidentID := c.getPresident()
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
-	clientID := shared.ClientID(4)
+	clientID := id
 	// TODO: Choose sensible thresholds!
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)
 	monitoring := false
 	switch clientID {
-		case presidentID:
-			// If we are the president.
-			monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
-						c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-						(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	case presidentID:
+		// If we are the president.
+		monitoring = (c.getTrust(speakerID) < trustThreshold ||
+			c.getTrust(judgeID) < trustThreshold) &&
+			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
 
-		case speakerID:
-			// If we are the Speaker.
-			monitoring = (c.internalParam.agentsTrust[presidentID] < trustThreshold ||
-						c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-						(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
-		case judgeID:
-			// If we are the Judge.
-			monitoring = (c.internalParam.agentsTrust[speakerID] < trustThreshold ||
-						  c.internalParam.agentsTrust[judgeID]   < trustThreshold ) && 
-						 (c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	case speakerID:
+		// If we are the Speaker.
+		monitoring = (c.getTrust(presidentID) < trustThreshold ||
+			c.getTrust(judgeID) < trustThreshold) &&
+			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+	case judgeID:
+		// If we are the Judge.
+		monitoring = (c.getTrust(speakerID) < trustThreshold ||
+			c.getTrust(judgeID) < trustThreshold) &&
+			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
 	}
 	return monitoring
 }

@@ -24,7 +24,7 @@ func (c *client) evaluateParamVector(decisionVector *mat.VecDense, agent shared.
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[agent],
+		c.trustMatrix.GetClientTrust(agent),
 	})
 	return mat.Dot(decisionVector, parameters) - threshold
 }
@@ -41,7 +41,7 @@ func (c *client) RequestAllocation() shared.Resources {
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[c.getPresident()],
+		c.getTrust(c.getPresident()),
 	})
 
 	uncomplianceLevel := mat.Dot(importance, parameters) - uncomplianceThreshold
@@ -122,7 +122,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[c.getPresident()],
+		c.getTrust(c.getPresident()),
 	})
 	greedyLevel := mat.Dot(importance, parameters) - greedyThreshold
 
@@ -140,8 +140,9 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	lyingThreshold := 3.0
 	reporting := true
 
+	presidentID := c.ServerReadHandle.GetGameState().PresidentID
 	// If collaboration and trust are above average chose to report, otherwise abstain!
-	if (c.internalParam.collaboration + c.internalParam.agentsTrust[0]) < 1 { // agent trust towards the president, TODO: change to president index
+	if (c.internalParam.collaboration + c.trustMatrix.GetClientTrust(presidentID)) < 1 { // agent trust towards the president, TODO: change to president index
 		reporting = false
 	}
 
@@ -154,7 +155,7 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[c.getPresident()],
+		c.getTrust(c.getPresident()),
 	})
 
 	// lyingLevel will be positive when agent is inclined to lie.
@@ -193,13 +194,13 @@ func (c *client) GetTaxContribution() shared.Resources {
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.collaboration,
-		c.internalParam.agentsTrust[c.getPresident()],
+		c.getTrust(c.getPresident()),
 	})
 
 	collaborationLevel := mat.Dot(importance, parameters)
 
-	if collaborationLevel > collaborationThreshold && 
-	   currentWealth > wealthThreshold {
+	if collaborationLevel > collaborationThreshold &&
+		currentWealth > wealthThreshold {
 		// Deliberately pay more (collaborationLevel is larger than 1)
 		valToBeReturned = valToBeReturned * shared.Resources(collaborationLevel)
 

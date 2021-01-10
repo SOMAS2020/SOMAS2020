@@ -1,6 +1,8 @@
 package team4
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -13,18 +15,27 @@ type fakeServerHandle struct {
 	JudgeID            shared.ClientID
 	SpeakerID          shared.ClientID
 	TermLengths        map[shared.Role]uint
+	clients            []shared.ClientID
 	ElectionRuleInPlay bool
 }
 
 func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
-	fakeGS := gamestate.ClientGameState{
-		SpeakerID:   s.SpeakerID,
-		JudgeID:     s.JudgeID,
-		PresidentID: s.PresidentID,
+	lifeStatuses := map[shared.ClientID]shared.ClientLifeStatus{}
+	for _, clientID := range s.clients {
+		lifeStatuses[clientID] = shared.Alive
 	}
+
+	fakeGS := gamestate.ClientGameState{
+		SpeakerID:          s.SpeakerID,
+		JudgeID:            s.JudgeID,
+		PresidentID:        s.PresidentID,
+		ClientLifeStatuses: lifeStatuses,
+	}
+
 	if s.ElectionRuleInPlay {
 		fakeGS.RulesInfo.CurrentRulesInPlay = registerTestElectionRule()
 	}
+
 	return fakeGS
 }
 
@@ -53,4 +64,9 @@ func registerTestElectionRule() map[string]rules.RuleMatrix {
 	rm := rules.RuleMatrix{RuleName: name, RequiredVariables: reqVar, ApplicableMatrix: *CoreMatrix, AuxiliaryVector: *AuxiliaryVector, Mutable: false}
 	rulesStore[name] = rm
 	return rulesStore
+}
+
+func floatEqual(x float64, y float64) bool {
+	tolerance := 0.0001
+	return math.Abs(x-y) < tolerance // if x - y < tolerance then x == y
 }

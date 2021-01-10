@@ -40,6 +40,11 @@ type judgeHistoryInfo struct {
 	Lied       int       // number of times the island has lied
 }
 
+type accountabilityHistory struct {
+	history map[uint]map[shared.ClientID]judgeHistoryInfo // stores accountablity history of all turns
+	updated bool                                          // indicates whether a judge has updated the history
+}
+
 func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts *map[shared.ClientID]int, turn uint) {
 	accountabilityMap := map[shared.ClientID][]rules.VariableValuePair{}
 	for _, clientID := range shared.TeamIDs {
@@ -56,13 +61,12 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 		if ok {
 			clientLied := (*lieCounts)[client]
 			clientInfo.Lied = clientLied
-			savedHistory := *j.parent.savedHistory
-			if savedHistory[turn] != nil {
-				savedHistory[turn][client] = clientInfo
+			if j.parent.savedHistory.history[turn] != nil {
+				j.parent.savedHistory.history[turn][client] = clientInfo
 			} else {
-				savedHistory[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
+				j.parent.savedHistory.history[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
 			}
-			j.parent.savedHistory = &savedHistory
+			j.parent.savedHistory.updated = true
 		}
 	}
 }
@@ -95,18 +99,13 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
 	pardons := map[int][]bool{}
 
-	internalParams := j.parent.internalParam
-	maxPardonTime := internalParams.maxPardonTime
-	maxTierToPardon := internalParams.maxTierToPardon
-	minTrustToPardon := internalParams.minTrustToPardon
-
 	for turn, sanctions := range currentSanctions {
 		pardons[turn] = make([]bool, len(sanctions))
 		for index, sanction := range sanctions {
 			if sanction.SanctionTier != shared.NoSanction {
-				considerTime := sanction.TurnsLeft <= maxPardonTime
-				considerSeverity := sanction.SanctionTier <= maxTierToPardon
-				considerTrust := minTrustToPardon <= j.parent.getTrust(sanction.ClientID)
+				considerTime := sanction.TurnsLeft <= j.parent.internalParam.maxPardonTime
+				considerSeverity := sanction.SanctionTier <= j.parent.internalParam.maxTierToPardon
+				considerTrust := j.parent.internalParam.minTrustToPardon <= j.parent.getTrust(sanction.ClientID)
 				if considerTime && considerSeverity && considerTrust {
 					pardons[turn][index] = true
 				}
