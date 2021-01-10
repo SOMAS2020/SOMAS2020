@@ -60,45 +60,6 @@ func (c *client) getNumAliveClients() int {
 	return len(c.getAliveClients())
 }
 
-// MethodOfPlay determines which state we are in: 0=altruist, 1=fair sharer and 2= free rider
-// TODO: empathy levels are being used incorrectly here
-func (c *client) MethodOfPlay() int {
-	currTurn := c.gameState().Turn
-
-	// how many turns at the beginning we cannot free ride for
-	minTurnsUntilFreeRide := c.config.NoFreeRideAtStart
-	// what factor the common pool must increase by for us to considered free riding
-	freeRide := shared.Resources(c.config.SwitchToFreeRideFactor)
-	// what factor the common pool must drop by for us to consider altruist
-	altFactor := c.config.SwitchToAltruistFactor
-
-	runMeanCommonPool := shared.Resources(0.0)
-	div := shared.Resources(0.0)
-
-	for pastTurn, resources := range c.commonPoolHistory {
-		if pastTurn == currTurn {
-			continue
-		}
-		diffTurn := shared.Resources(c.gameState().Turn - pastTurn)
-		div++
-
-		runMeanCommonPool += (resources/(diffTurn+1) - runMeanCommonPool) / div
-	}
-
-	changeCommonPool := (c.commonPoolHistory[currTurn] - runMeanCommonPool) / runMeanCommonPool
-
-	if changeCommonPool < 0 && math.Abs(float64(changeCommonPool)) > altFactor {
-		//altruist
-		return 0
-	} else if changeCommonPool > 0 && changeCommonPool > freeRide && currTurn > minTurnsUntilFreeRide {
-		// Free rider
-		return 2
-	}
-
-	// Default case: Fair Sharer
-	return 1
-}
-
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.Communications[sender] = append(c.Communications[sender], data)
 
@@ -170,6 +131,49 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			// will NOT execute logic for other conditions
 		}
 	}
+}
+
+// Gets the current AgentStrategy and returns an AgentStrategy Type
+func (c *client) getAgentStrategy() AgentStrategy {
+	return c.currStrategy
+}
+
+// TODO: it makes more sense to start by free riding to make our selves secure tbh
+// Sets the current AgentStrategy and returns an AgentStrategy Type
+func (c *client) setAgentStrategy() AgentStrategy {
+	currTurn := c.gameState().Turn
+
+	// How many turns at the beginning we cannot free ride for
+	minTurnsUntilFreeRide := c.config.NoFreeRideAtStart
+
+	// What factor the common pool must increase by for us to considered free riding
+	freeRide := shared.Resources(c.config.SwitchToFreeRideFactor)
+
+	// What factor the common pool must drop by for us to consider altruist
+	altFactor := c.config.SwitchToAltruistFactor
+
+	// TODO: Need to review this logic to double check this makes sense especially with typed return statements
+	runMeanCommonPool := shared.Resources(0)
+	div := shared.Resources(0)
+
+	if len(c.commonPoolHistory) != 0 {
+		for pastTurn, resources := range c.commonPoolHistory {
+			diffTurn := shared.Resources(c.gameState().Turn - pastTurn)
+			div++
+
+			runMeanCommonPool += (resources/(diffTurn+1) - runMeanCommonPool) / div
+		}
+
+		changeCommonPool := (c.commonPoolHistory[currTurn] - runMeanCommonPool) / runMeanCommonPool
+
+		if changeCommonPool < 0 && math.Abs(float64(changeCommonPool)) > altFactor {
+			return Altruist
+		} else if changeCommonPool > 0 && changeCommonPool > freeRide && currTurn > minTurnsUntilFreeRide {
+			return Selfish
+		}
+	}
+
+	return FairSharer
 }
 
 func (c *client) checkSanctionTier(score int) int {

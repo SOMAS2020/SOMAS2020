@@ -9,17 +9,14 @@ import (
 )
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	// return &c.currSpeaker
 	return &Speaker{c: c, BaseSpeaker: &baseclient.BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	// return &c.currJudge
 	return &Judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
 func (c *client) GetClientPresidentPointer() roles.President {
-	// return &c.currPresident
 	return &President{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
@@ -55,27 +52,31 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 
 //MonitorIIGORole decides whether to perform monitoring on a role
 //COMPULOSRY: must be implemented
+// TODO: This function is not implemented
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	return false
 }
 
-//DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
-//COMPULSORY: must be implemented
+// DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
+// COMPULSORY: must be implemented
+// TODO: This function is not implemented
 func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
 	resultToShare = false
 	announce = false
 	return
 }
 
+// Returns a ResourceReport - if Agent Strategy is selfish lies about resources
+// Otherwise accurately shares resources
 func (c *client) ResourceReport() shared.ResourcesReport {
-	mood := c.MethodOfPlay()
+	mood := c.setAgentStrategy()
 	switch mood {
-	case 2: // Free Rider
+	case Selfish:
 		return shared.ResourcesReport{
 			ReportedAmount: 0.5 * c.gameState().ClientInfo.Resources,
 			Reported:       true,
 		}
-	default: // Fair or Altruist
+	default:
 		return shared.ResourcesReport{
 			ReportedAmount: c.gameState().ClientInfo.Resources,
 			Reported:       true,

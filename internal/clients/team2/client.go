@@ -10,15 +10,17 @@ import (
 
 const id = shared.Team2
 
-type EmpathyLevel int
+type AgentStrategy uint
 
+// TODO: URGENT - THIS IS NOT BEING USED PROPERLY IN ANY OF THE SECTIONS
+// TODO: THERE ARE FUNCTIONS THAT INCORRECTLY USE NUMBERS INSTEAD OF THE WORDS IN COMMON POOL AND OTHER PLACES
 const (
-	Selfish EmpathyLevel = iota
+	Selfish AgentStrategy = iota
 	FairSharer
 	Altruist
 )
 
-type IslandEmpathies map[shared.ClientID]EmpathyLevel
+type IslandEmpathies map[shared.ClientID]AgentStrategy
 
 type ExpectationReality struct {
 	exp  int
@@ -134,6 +136,7 @@ type client struct {
 	sanctionHist         SanctionHist
 	presCommonPoolHist   PresCommonPoolHist
 
+	currStrategy  AgentStrategy
 	currPresident President
 	currJudge     Judge
 	currSpeaker   Speaker
@@ -195,12 +198,16 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
 	c.LocalVariableCache = rules.CopyVariableMap(c.gameState().RulesInfo.VariableMap)
 
+	// We should probably initialise out empathy level
 	for clientID := range c.gameState().ClientLifeStatuses {
 		c.giftHist[clientID] = GiftExchange{
 			IslandRequest: map[uint]GiftInfo{},
 			OurRequest:    map[uint]GiftInfo{},
 		}
 	}
+
+	// Set the initial strategy to selfish (can put anything here)
+	c.currStrategy = Selfish
 
 	c.currSpeaker = Speaker{c: c}
 	c.currJudge = Judge{c: c}

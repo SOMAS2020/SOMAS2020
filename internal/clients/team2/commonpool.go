@@ -239,7 +239,7 @@ func AverageCommonPoolDilemma(c *client) shared.Resources {
 		return c.config.DefaultFirstTurnContribution
 	}
 
-	switch c.MethodOfPlay() {
+	switch c.setAgentStrategy() {
 	case 0:
 		return shared.Resources(altruistContribution)
 	case 1:
@@ -285,15 +285,13 @@ func (c *client) determineFairContribution(turn uint) shared.Resources {
 func (c *client) commonPoolMultiplier() shared.Resources {
 	var multiplier float64
 
-	switch c.MethodOfPlay() {
-	case 0:
+	switch c.setAgentStrategy() {
+	case Altruist:
 		// when the pool is struggling, we will forage less to hav emo
 		multiplier = 0.4
-	case 1:
-		// default
+	case FairSharer:
 		multiplier = 0.6
-	case 2:
-		// when free riding we mostly take from the pool
+	case Selfish:
 		multiplier = 1.2
 	}
 
@@ -302,7 +300,7 @@ func (c *client) commonPoolMultiplier() shared.Resources {
 
 // TODO: make switch case on agent mode.
 func (c *client) SanctionHopeful() shared.Resources {
-	switch c.MethodOfPlay() {
+	switch c.setAgentStrategy() {
 
 	}
 	return 0

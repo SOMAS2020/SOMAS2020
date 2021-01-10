@@ -77,8 +77,9 @@ func (j *Judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 	for i, List := range currentSanctions {
 		List2 := make([]bool, len(List))
 		Pardoned[i] = List2
+		// TODO: what are we intending to check here with agent strategy because the values were used wrong across multiple files
 		for index, sanction := range List {
-			if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 && j.c.MethodOfPlay() != 1 {
+			if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 && j.c.setAgentStrategy() != 1 {
 				Pardoned[i][index] = true
 			} else {
 				Pardoned[i][index] = false

@@ -33,15 +33,15 @@ func (p *President) EvaluateAllocationRequests(resourceRequest map[shared.Client
 		requestSum += request
 	}
 
-	// If the pool is struggling, scale resources that could be allocated from Common Pool
-	switch p.c.MethodOfPlay() {
-	case 0:
+	// Scale resources that could be allocated from Common Pool according to AgentStrategy
+	switch p.c.setAgentStrategy() {
+	case Selfish:
 		// pool is scarce - be cautious
 		modeMult = 0.4
-	case 1:
+	case FairSharer:
 		// default
 		modeMult = 0.5
-	case 2:
+	case Altruist:
 		// pool has a surplus - give more
 		modeMult = 0.6
 	}

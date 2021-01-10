@@ -11,11 +11,6 @@ type IslandTrust struct {
 	trust  int
 }
 
-//Game Method Implementation: altruist, fair sharer and free rider
-//LINE 230: this function determines how generous we will be based off of current method
-//LINE 33: methodConfig is called
-//LINE 99: methodConfig is called
-
 type IslandTrustList []IslandTrust
 
 // Overwrite default sort implementation
@@ -31,7 +26,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 	// check our critical and threshold - if either is off - request
 	ourAgentCritical := shared.Critical == shared.ClientLifeStatus(1)
-	requestAmount := c.determineBaseCommonPoolRequest() * methodConfGift(c)
+	requestAmount := c.determineBaseCommonPoolRequest() * c.giftReliance()
 
 	// confidence[island] * requestAmount until -> target
 	if ourAgentCritical || requestAmount > 0 {
@@ -96,7 +91,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	// prioritize giving gifts to islands we trust (for now confidence)
 
 	// Give no more than half of amount before we reach threshold
-	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / (1 / (methodConfGift(c) / 2))
+	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / (shared.Resources(1) / (c.giftReliance() / shared.Resources(2)))
 
 	var trustRank IslandTrustList
 	if !ourAgentCritical || maxToGive <= 0 {
@@ -225,24 +220,30 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 
 }
 
+// TODO: DOUBLE CHECK THE LOGIC ON GIFT AMOUNTS
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
 	// Give no more than half of amount before we reach threshold
-	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / (1 / (methodConfGift(c) / 2))
+	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / (shared.Resources(1) / (c.giftReliance() / shared.Resources(2)))
 	if maxToGive > 0 || giftOffer <= maxToGive {
 		return giftOffer
 	}
 	return shared.Resources(0)
 }
 
-func methodConfGift(c *client) shared.Resources {
-	var modeMult shared.Resources
-	switch c.MethodOfPlay() {
-	case 0:
-		modeMult = 0.8 //we do not want to take from the pool as it is struggling, request the majority from gifts
-	case 1:
-		modeMult = 0.6 //pool is doing average, request 60% from gifts
-	case 2:
-		modeMult = 0.2 //there is plenty in the pool so we take from the pool rather than request from people
+func (c *client) giftReliance() shared.Resources {
+	var multiplier shared.Resources
+
+	switch c.setAgentStrategy() {
+	case Altruist:
+		// Pool Level is LOW, rely 80% on gifts
+		multiplier = 0.8
+	case FairSharer:
+		// Pool Level is OK, rely 60% on gifts
+		multiplier = 0.6
+	case Selfish:
+		// Pool Level is HIGH, rely 20% on gifts
+		multiplier = 0.2
 	}
-	return modeMult
+
+	return multiplier
 }
