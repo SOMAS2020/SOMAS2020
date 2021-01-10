@@ -11,7 +11,7 @@ type speaker struct {
 	parent *client
 }
 
-//SpeakerActionOrder indicate speaker actions in order of priority
+//SpeakerActionOrder indicate speaker actions in order of execution
 var SpeakerActionOrder = []string{
 	"SetVotingResult",
 	"SetRuleToVote",
