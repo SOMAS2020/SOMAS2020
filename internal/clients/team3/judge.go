@@ -154,5 +154,5 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 
 // HistoricalRetributionEnabled enables historical retribution of inspection (automatically set to 3 turns ago)
 func (j *judge) HistoricalRetributionEnabled() bool {
-	return true
+	return false
 }
