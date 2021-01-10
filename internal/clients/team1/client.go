@@ -66,6 +66,10 @@ type team1Config struct {
 
 	//** Allocation **//
 
+	// commonPoolResourceRequestScale scales the request made to the commonPool.
+	// The basis is the cost of living
+	resourceRequestScale float64
+
 	// desperateStealAmount is the amount the agent will steal from the commonPool
 	desperateStealAmount shared.Resources
 
