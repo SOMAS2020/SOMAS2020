@@ -42,8 +42,6 @@ func NewTestClient(clientID shared.ClientID) baseclient.Client {
 		receivedForecastHistory: receivedForecastHistory{},
 		disasterHistory:         disasterHistory{},
 
-		taxAmount:  0,
-		allocation: 0,
-		config:     getClientConfig(),
+		config: getClientConfig(),
 	}
 }

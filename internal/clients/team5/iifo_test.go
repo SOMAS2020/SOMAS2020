@@ -92,6 +92,16 @@ func TestUpdateForecastingReputations(t *testing.T) {
 
 }
 
+func TestAnalyseDisasterHistory(t *testing.T) {
+	di := disasterInfo{}
+	fi := forecastInfo{}
+	dh := disasterHistory{4: di, 8: di}
+	fh := forecastHistory{1: fi, 2: fi, 3: fi, 4: fi, 5: fi, 6: fi, 7: fi, 8: fi}
+
+	analyseDisasterHistory(dh, fh)
+	t.Error("dummy error")
+}
+
 func initClient() *client {
 	c := createClient()
 	return c
