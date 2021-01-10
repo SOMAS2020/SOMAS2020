@@ -18,13 +18,24 @@ func (c *client) criticalStatus() bool {
 	return false
 }
 
-//TODO: how does this work?
+// If a disaster is reported, append the turn and report of the latest disaster to the disaster history
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
 	disaster := DisasterOccurrence{
 		Turn:   c.gameState().Turn,
 		Report: report,
 	}
+
 	c.disasterHistory = append(c.disasterHistory, disaster)
+}
+
+// getIslandsToShareWith returns a slice of the islands we want to share our prediction with.
+// We decided to always share our prediction with all islands to improve arhcipelago decisions as a whole.
+func (c *client) getIslandsToShareWith() []shared.ClientID {
+	islandsToShareWith := make([]shared.ClientID, len(shared.TeamIDs))
+	for index, id := range shared.TeamIDs {
+		islandsToShareWith[index] = id
+	}
+	return islandsToShareWith
 }
 
 //checkOthersCrit checks if anyone else is critical
