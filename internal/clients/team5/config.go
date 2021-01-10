@@ -87,10 +87,10 @@ func getClientConfig() clientConfig {
 		dyingGiftRequestAmount:    25,
 		imperialGiftRequestAmount: 15,
 		middleGiftRequestAmount:   5,
-		offertoDyingIslands:       15,
+		offertoDyingIslands:       10,
 		normalGift:                1,
 
-		opinionThresholdRequest:  0.5, // Above opinion we request less this people
+		opinionThresholdRequest:  0.3, // Above opinion we request less this people (0.1 lowest)
 		opinionRequestMultiplier: 0.5, // We request half as much above this threshold
 		giftBoosting:             1.4,
 		giftReduct:               0.5,

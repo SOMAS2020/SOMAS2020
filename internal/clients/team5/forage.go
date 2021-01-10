@@ -101,7 +101,11 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 	for forageType, outcomes := range forageHistory { // For each foraging type
 		returnOI := 0.0
 		for _, returns := range outcomes {
-			returnOI += ((float64(returns.output) / math.Max(float64(returns.input), 0.001)) - 1) // Cumlative sum of the return on investment
+			if returns.input > 0 {
+				returnOI += float64((returns.output / returns.input) - 1) // Cumlative sum of the return on investment
+			} else {
+				returnOI += 0
+			}
 		}
 		returnOI = returnOI / float64(len(outcomes)) // Lenght cant be 0 because of initial foraging //Average RoI for the type
 
@@ -190,7 +194,7 @@ func (c *client) normalForage() shared.ForageDecision {
 		c.config.SkipForage--         // Count down the number of turns to skip
 		return shared.ForageDecision{ // Dont go foraging
 			Type:         shared.DeerForageType,
-			Contribution: 0.01,
+			Contribution: 0.001, // Abuse the hunting so I can see how many hunters
 		}
 	} else if bestForagingMethod == shared.ForageType(-1) && c.config.SkipForage == 0 { // Force Foraging
 		c.Logf("Force Foraging: %v", c.config.SkipForage)
@@ -225,7 +229,7 @@ func (c *client) normalForage() shared.ForageDecision {
 	// For all returns find the best return on investment ((output/input) -1 )
 	for _, returns := range pastOutcomes { // Look at the returns of the previous
 		if returns.input > 0 { // If returns are not 0
-			RoI := shared.Resources((float64(returns.output) / math.Max(float64(returns.input), 0.001)) - 1) // Find the input that gave the best RoI
+			RoI := (returns.output / returns.input) - 1 // Find the input that gave the best RoI (if it work, it works math.Max 0.001 :P)
 			Profit := returns.output - returns.input
 			if RoI > bestRoI { // RoI better than previous
 				bestInput = returns.input // best amount to invest
