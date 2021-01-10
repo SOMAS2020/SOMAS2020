@@ -13,9 +13,10 @@ func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
 
 // VoteForElection returns the client's Borda vote for the role to be elected.
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
-	//Sort candidates according to friendship level as a preference list
+	//Create a slice for id
 	idToSlice := []shared.ClientID{id}
 	
+	//Rank candidates except yourself according to friendship level
 	for i, candidateID := range candidateList {
 		if candidateID == id {
 			candidateList = append(candidateList[:i], candidateList[i+1:]...)
@@ -23,7 +24,6 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		}
 	} 
 
-	//Rank candidates except yourself according to friendship level
 	for i := 0; i < len(candidateList); i++ {
 		for j := i; j < len(candidateList); j++ {
 			if c.friendship[candidateList[j]] > c.friendship[candidateList[i]] {
