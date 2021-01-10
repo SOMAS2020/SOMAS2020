@@ -7,7 +7,7 @@ func getislandParams() islandParams {
 		resourcesSkew:               1.3, // >1
 		saveCriticalIsland:          true,
 		escapeCritcaIsland:          true,
-		selfishness:                 0.5,  //0-1
+		selfishness:                 0.3,  //0-1
 		minimumRequest:              30,   // real number
 		disasterPredictionWeighting: 0.4,  // 0-1
 		recidivism:                  0.3,  // real number
