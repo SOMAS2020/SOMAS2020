@@ -78,8 +78,12 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			// 	c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
 			// }
 		case shared.RoleMonitored:
+			// TODO: modify trust matrix based on monitor result
 			// c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
 			// c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
+		default: //[exhaustive] reported by reviewdog 🐶
+			//missing cases in switch of type shared.CommunicationFieldName: BallotID, IIGOSanctionScore, IIGOSanctionTier, MonitoringResult, PardonClientID, PardonTier, PresidentID, ResAllocID, RoleConducted, RuleVoteResult, SanctionAmount, SanctionClientID, SpeakerID (exhaustive)
+
 		}
 	}
 }

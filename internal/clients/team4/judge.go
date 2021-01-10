@@ -2,18 +2,12 @@ package team4
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
-
-func init() {
-	os.Remove("./Historymap.txt")
-}
 
 type judge struct {
 	*baseclient.BaseJudge
@@ -108,50 +102,48 @@ func (j *judge) HistoricalRetributionEnabled() bool {
 // CallPresidentElection is called by the judiciary to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
 func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
-	// example implementation calls an election if monitoring was performed and the result was negative
-	// or if the number of turnsInPower exceeds 3
+
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Runoff,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
+
+	// calculate whether the term has ended
+	termEnded := uint(turnsInPower) > j.parent.getTurnLength(shared.President)
+
+	j.parent.LocalVariableCache[rules.TermEnded] = rules.VariableValuePair{
+		VariableName: rules.TermEnded,
+		Values:       []float64{boolToFloat(termEnded)},
+	}
+
+	// try not holding election
+	j.parent.LocalVariableCache[rules.ElectionHeld] = rules.VariableValuePair{
+		VariableName: rules.ElectionHeld,
+		Values:       []float64{boolToFloat(false)},
+	}
+
+	compliantWithRules := j.parent.CheckCompliance(rules.ElectionHeld)
+
 	if monitoring.Performed && !monitoring.Result {
+		// If president didn't perform it's duties we can try to elect new president. Potentially decide based on trust or something
+		electionsettings.HoldElection = true
+	} else if compliantWithRules {
+		// If we are compliant with rules ie. we don't have to (are not obliged) hold election
+		electionsettings.HoldElection = false
+	} else {
+		// Now we know that we have to hold elections. We can check whether we want to hold election based on trust or something
 		electionsettings.HoldElection = true
 	}
-	if turnsInPower >= 2 {
-		electionsettings.HoldElection = true
-	}
+
 	return electionsettings
 }
 
 // DecideNextPresident returns the ID of chosen next President
 // OPTIONAL: override to manipulate the result of the election
-func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
-	// overloaded
-	j.logf("hello world %v", winner)
-	return id
-}
 
 func (j *judge) logf(format string, a ...interface{}) {
 	if j.t != nil {
 		j.t.Log(fmt.Sprintf(format, a...))
 	}
-}
-
-func dump(filename string, format string, v ...interface{}) {
-	//f, err := os.Create(filename)
-	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer f.Close()
-
-	_, err2 := f.WriteString(fmt.Sprintf(format, v...))
-
-	if err2 != nil {
-		log.Fatal(err2)
-	}
-
 }

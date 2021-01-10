@@ -5,9 +5,9 @@ import VisualisationsNavbar from './VisualisationsNavbar'
 import {
   gamevisualisation,
   visualisations,
-  iifovisualisation,
   iigovisualisation,
-  iitovisualisation,
+  iifovisualisation,
+  transactionvisualisation,
   resourcesvisualisation,
   rolesvisualisation,
   achievementsvisualisation,
@@ -25,7 +25,7 @@ import {
 } from './utils'
 import Game from './Game/Game'
 import IIFO from './IIFO/IIFO'
-import IITO from './IITO/IITO'
+import Transactions from './Transactions/Transactions'
 import IIGO from './IIGO/IIGO'
 import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
@@ -160,9 +160,9 @@ const Visualisations = () => {
                     component={() => <IIGO output={output} />}
                   />
                   <Route
-                    path={iitovisualisation}
+                    path={transactionvisualisation}
                     exact
-                    component={() => <IITO output={output} />}
+                    component={() => <Transactions output={output} />}
                   />
                   <Route
                     path={iifovisualisation}
