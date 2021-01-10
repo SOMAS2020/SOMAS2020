@@ -75,6 +75,8 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		importances:        &importancesMatrix,
 		forage: &forageStorage{
 			preferedForageMethod: 0,
+			forageHistory:        nil,
+			receivedForageData:   nil,
 		},
 	}
 

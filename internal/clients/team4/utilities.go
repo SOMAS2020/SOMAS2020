@@ -44,6 +44,13 @@ func (c *client) getLifeStatus() shared.ClientLifeStatus {
 	return 0
 }
 
+func (c *client) getAllLifeStatus() map[shared.ClientID]shared.ClientLifeStatus {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientLifeStatuses
+	}
+	return make(map[shared.ClientID]shared.ClientLifeStatus)
+}
+
 func (c *client) getSafeResourceLevel() shared.Resources {
 	if c.ServerReadHandle != nil {
 		conf := c.ServerReadHandle.GetGameConfig()
