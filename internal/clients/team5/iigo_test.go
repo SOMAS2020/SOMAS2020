@@ -9,12 +9,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-type testCalculateDisasterContrbution struct {
-	turn            uint
-	currentResource shared.Resources
-	geography       disasters.ArchipelagoGeography
-}
-
 func TestCommonPoolResourceRequest(t *testing.T) {
 	// test submit request to president when we are poor & current CP has nothing
 	var turn, season uint = 2, 1
