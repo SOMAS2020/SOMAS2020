@@ -88,7 +88,7 @@ type client struct {
 	// Disaster
 	disasterInfo             disaster
 	othersDisasterPrediction shared.ReceivedDisasterPredictionsDict
-	// The lower the score, the more trustworthy they are
+	// The higher the score, the more trustworthy they are
 	trustTeams map[shared.ClientID]float64
 
 	// Foraging
