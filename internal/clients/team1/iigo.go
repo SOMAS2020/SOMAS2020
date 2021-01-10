@@ -2,6 +2,7 @@ package team1
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -80,6 +81,33 @@ func (c *client) EvaluateAllocationRequests(
 
 	return c.BasePresident.EvaluateAllocationRequests(chosenRequests, commonPool)
 
+}
+
+/*************/
+/*  Voting   */
+/*************/
+
+func (c *client) VoteForElection(
+	roleToElect shared.Role,
+	candidateList []shared.ClientID) []shared.ClientID {
+
+	opinionRank := sortByOpinion{}
+
+	for _, candidate := range candidateList {
+		opinionRank = append(opinionRank, opinionOnTeam{
+			clientID: candidate,
+			opinion:  c.teamOpinions[candidate],
+		})
+	}
+	sort.Sort(opinionRank)
+
+	ballot := []shared.ClientID{}
+
+	for _, opinionOnTeam := range opinionRank {
+		ballot = append(ballot, opinionOnTeam.clientID)
+	}
+
+	return ballot
 }
 
 /*************************/
