@@ -135,7 +135,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 					if returns.output > returns.input && returns.turn == i { // Only count the ones that had positive returns (as they must have went hunting)
 						prevTurnsHunters[i] = prevTurnsHunters[i] + 1
 					}
-					if returns.caught >= 0 && returns.turn == i {
+					if int(returns.caught) >= 0 && returns.turn == i {
 						noCaught[i] = returns.caught
 					}
 				}
