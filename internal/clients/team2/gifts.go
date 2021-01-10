@@ -28,7 +28,8 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 	// check our critical and threshold - if either is off - request
 	ourAgentCritical := shared.Critical == shared.ClientLifeStatus(1)
-	requestAmount := c.determineBaseCommonPoolRequest() * c.giftReliance()
+	// Minimum we need to survive a round
+	requestAmount := (c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold) * c.giftReliance()
 
 	// confidence[island] * requestAmount until -> target
 	if ourAgentCritical || requestAmount > 0 {

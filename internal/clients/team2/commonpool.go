@@ -57,7 +57,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	request := c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold
 
 	if c.criticalStatus() {
-		request *= 3
+		request += 2 * (c.taxAmount + c.gameConfig().CostOfLiving)
 		c.Logf("Critical status! Set Common Pool request to: ", request)
 	} else if c.getAgentExcessResources() == shared.Resources(0) || agentDVP > 0.6 {
 		request *= 2
