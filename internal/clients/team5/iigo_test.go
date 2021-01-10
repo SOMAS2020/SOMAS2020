@@ -185,7 +185,7 @@ func TestCalculateDisasterContributionCP(t *testing.T) {
 	currentTurn = 9
 	c.forecastHistory[8] = forecast
 	distance := math.Sqrt(math.Pow(ourLocationInfo.X-forecast.epiX, 2) + math.Pow(ourLocationInfo.Y-forecast.epiY, 2))
-	w = shared.Resources((float64(forecast.mag) * 10 / distance) * 0.2)
+	w = shared.Resources((float64(forecast.mag) * 100 / distance) * 0.2)
 	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
 	if w != contribution {
 		t.Errorf("3. Not generating proper # of resources to mitigate disaster. Want %v, got %v", w, contribution)
@@ -204,7 +204,7 @@ func TestCalculateDisasterContributionCP(t *testing.T) {
 	currentResource = 1000
 	currentTurn = 10
 	lastDisaster = 0
-	w = shared.Resources((float64(forecast.mag) * 10 / distance) * 0.8)
+	w = shared.Resources((float64(forecast.mag) * 100 / distance) * 0.8)
 	contribution = c.calculateDisasterContributionCP(currentTurn, currentResource, geography, lastDisaster)
 	if w != contribution {
 		t.Errorf("5. Not generating proper # of resources to mitigate disaster. Want %v, got %v", w, contribution)

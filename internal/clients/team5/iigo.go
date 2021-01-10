@@ -205,7 +205,6 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 
 	//Only contribute if disaster is coming in 1 days
 	// Contribute mostly on the day of the disaster to prevent people taking CP resource
-	c.Logf("currentTurn: %v, lastDisaster: %v ", currentTurn, lastDisaster)
 	if currentTurn-lastDisaster == predictionInfo.period-1 {
 		contribution = shared.Resources(0.2) * idealContribution
 	} else if currentTurn-lastDisaster == predictionInfo.period {
