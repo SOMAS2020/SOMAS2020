@@ -213,7 +213,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	// Get the confidence in each island's prediction making ability
 	islandConfidences := make(map[shared.ClientID]int)
 	for island := range c.opinionHist {
-		conf := c.confidence("DisasterPred", island)
+		conf := c.confidence("Disaster", island)
 		islandConfidences[island] = conf
 		c.opinionHist[island].Performances["DisasterPred"] = ExpectationReality{
 			exp: conf,

@@ -26,6 +26,10 @@ func (c *client) DisasterNotification(report disasters.DisasterReport, effects d
 	}
 
 	c.disasterHistory = append(c.disasterHistory, disaster)
+	c.updateDisasterConf()
+	for _, island := range c.getAliveClients() {
+		c.confidenceRestrospect("Disaster", island)
+	}
 }
 
 // getIslandsToShareWith returns a slice of the islands we want to share our prediction with.

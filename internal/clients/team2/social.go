@@ -86,22 +86,22 @@ func (c *client) setLimits(confidence int) int {
 // performance with the reality
 // Should be called after an action (with an island) has occurred
 func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.ClientID) {
-	c.Logf("[our opinion of others]:", c.opinionHist[otherIsland])
+	c.Logf("[Our confidence of [v%] for situation [v%]]:", c.opinionHist[otherIsland], situation)
 	if opinion, ok := c.opinionHist[otherIsland]; ok {
-		islandHist := opinion.Histories
-		situationHist := islandHist[situation]
+		situationHist := opinion.Histories[situation]
 		c.Logf("situation we're dealing with ", situation)
 		c.Logf("[situation before]:", situationHist)
 		islandSituationPerf := opinion.Performances[situation]
 		situationExp := islandSituationPerf.exp
 		situationReal := islandSituationPerf.real
-		c.Logf("[current performance]:", islandSituationPerf)
+		c.Logf("[island situation perf]:", islandSituationPerf)
 
 		percentageDiff := situationReal
 		if situationExp != 0 { // Forgiveness principle: if we had 0 expectation, give them a chance to improve
 			// between -100 and 100
 			percentageDiff = 100 * (situationReal - situationExp) / situationExp
 		}
+		c.Logf("[Exp [%v] Real [%v]]:", situationExp, situationReal)
 		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
 		updatedHist := append(situationHist, c.setLimits(newConf))
 		c.Logf("[situation after]:", updatedHist)
@@ -154,78 +154,79 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	if hist, ok := c.giftHist[island]; ok {
 		ourReqMap = hist.OurRequest
 		theirReqMap = hist.IslandRequest
-	} else {
-		return pastConfidence
+		ourKeys := make([]int, 0)
+
+		for k := range ourReqMap {
+			ourKeys = append(ourKeys, int(k))
+		}
+
+		theirKeys := make([]int, 0)
+		for k := range theirReqMap {
+			theirKeys = append(theirKeys, int(k))
+		}
+
+		// Sort the keys in decreasing order
+		sort.Ints(ourKeys)
+		sort.Ints(theirKeys)
+
+		// Take running average of the interactions
+		// The individual turn values will be scaled wrt to the "distance" from the current turn
+		// ie transactions further in the past are valued less
+		if MinInt(len(ourKeys), len(theirKeys)) == 0 {
+			updatedHist := append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
+			c.opinionHist[island].Histories["Gifts"] = updatedHist
+			return pastConfidence
+		}
+		c.Logf("Bufferlen %v", bufferLen)
+		for i := 0; i < MinInt(bufferLen, len(ourKeys)); i++ {
+			// Get the transaction distance to the previous transaction
+			ourTransDist := turn - uint(ourKeys[i]) + 1
+			// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
+			runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
+			runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
+		}
+		for i := 0; i < MinInt(bufferLen, len(theirKeys)); i++ {
+			// Get the transaction distance to the previous transaction
+			theirTransDist := turn - uint(theirKeys[i]) + 1
+			// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
+			runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
+			runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
+		}
+
+		// TODO: is there a potential divide by 0 here?
+		usRatio := runMeanTheyDon / checkDivZero(runMeanWeReq)   // between 0 and 1
+		themRatio := runMeanWeDon / checkDivZero(runMeanTheyReq) // between 0 and 1
+		diff := usRatio - themRatio                              // between -1 and 1
+		// confidence increases if usRatio >= themRatio
+		// confidence decreases if not
+
+		// e.g. 1 pastConfidnece = 50%
+		// diff = 100% in our favour 1.0
+		// inc pastConfidence = (50 + 100)/2 = 75
+
+		// e.g. 2 pastConfidence = 90%
+		// diff = 70% in our favour
+		// inc pastConfidence = (90 + 70)/2 = 80
+
+		// e.g. 3 pastConfidence = 80%
+		// diff = 30% against us
+		// inc pastConfidence = (80 - 30)/2 = 25
+
+		// e.g. 4 pastConfidence = 100%
+		// diff = 100% against us
+		// inc pastConfidence = (100 - 100)/2 = 0
+
+		// e.g. 5 pastConfidence = 0%
+		// diff = 100% in our favour
+		// inc pastConfidence = (0 + 100)/2 = 50
+
+		// TODO: improve how ratios are used to improve pastConfidence
+		// pastConfidence = (pastConfidence + sensitivity*diff*100) / 2
+		// c.Logf("[Past confidence (GIFTS)]:", pastConfidence)
+		// c.Logf("[Diff added (GIFTS)]: ", diff)
+		pastConfidence = int((pastConfidence + int(diff*100)) / 2)
 	}
 
-	ourKeys := make([]int, 0)
-	for k := range ourReqMap {
-		ourKeys = append(ourKeys, int(k))
-	}
-
-	theirKeys := make([]int, 0)
-	for k := range theirReqMap {
-		theirKeys = append(theirKeys, int(k))
-	}
-
-	// Sort the keys in decreasing order
-	sort.Ints(ourKeys)
-	sort.Ints(theirKeys)
-
-	// Take running average of the interactions
-	// The individual turn values will be scaled wrt to the "distance" from the current turn
-	// ie transactions further in the past are valued less
-	if MinInt(len(ourKeys), len(theirKeys)) == 0 {
-		return pastConfidence
-	}
-	c.Logf("Bufferlen %v", bufferLen)
-	for i := 0; i < MinInt(bufferLen, len(ourKeys)); i++ {
-		// Get the transaction distance to the previous transaction
-		ourTransDist := turn - uint(ourKeys[i]) + 1
-		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
-		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
-		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
-	}
-	for i := 0; i < MinInt(bufferLen, len(theirKeys)); i++ {
-		// Get the transaction distance to the previous transaction
-		theirTransDist := turn - uint(theirKeys[i]) + 1
-		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
-		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
-		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
-	}
-
-	// TODO: is there a potential divide by 0 here?
-	usRatio := runMeanTheyDon / checkDivZero(runMeanWeReq)   // between 0 and 1
-	themRatio := runMeanWeDon / checkDivZero(runMeanTheyReq) // between 0 and 1
-	diff := usRatio - themRatio                              // between -1 and 1
-	// confidence increases if usRatio >= themRatio
-	// confidence decreases if not
-
-	// e.g. 1 pastConfidnece = 50%
-	// diff = 100% in our favour 1.0
-	// inc pastConfidence = (50 + 100)/2 = 75
-
-	// e.g. 2 pastConfidence = 90%
-	// diff = 70% in our favour
-	// inc pastConfidence = (90 + 70)/2 = 80
-
-	// e.g. 3 pastConfidence = 80%
-	// diff = 30% against us
-	// inc pastConfidence = (80 - 30)/2 = 25
-
-	// e.g. 4 pastConfidence = 100%
-	// diff = 100% against us
-	// inc pastConfidence = (100 - 100)/2 = 0
-
-	// e.g. 5 pastConfidence = 0%
-	// diff = 100% in our favour
-	// inc pastConfidence = (0 + 100)/2 = 50
-
-	// TODO: improve how ratios are used to improve pastConfidence
-	// pastConfidence = (pastConfidence + sensitivity*diff*100) / 2
-	c.Logf("[Past confidence (GIFTS)]:", pastConfidence)
-	c.Logf("[Diff added (GIFTS)]: ", diff)
-	pastConfidence = int((pastConfidence + int(diff*100)) / 2)
 	updatedHist := append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
 	c.Logf("[Gift situation updated]:", updatedHist)
 	c.Logf("[Length of gift situation after update]:", len(updatedHist))
