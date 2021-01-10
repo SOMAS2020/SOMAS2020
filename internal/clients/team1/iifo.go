@@ -153,21 +153,17 @@ func (c *client) DisasterNotification(disaster disasters.DisasterReport, effect 
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	c.disasterInfo.disasterTurnCounter++
 	currTurn := c.gameState().Turn
-	confidence := 0.0
 	timeLeft := c.disasterInfo.estimatedDDay - currTurn
 	if c.disasterInfo.estimatedDDay < currTurn {
 		timeLeft = 0
 	}
 
 	if c.disasterInfo.numberOfDisasters == 0 {
-		if timeLeft < 0 {
-			confidence = 0.1 * float64(currTurn)
-		}
 		disasterPrediction := shared.DisasterPrediction{
 			CoordinateX: rand.Float64() * 10,
 			CoordinateY: rand.Float64() * 10,
 			Magnitude:   rand.Float64(),
-			Confidence:  0 + confidence,
+			Confidence:  0,
 			TimeLeft:    timeLeft,
 		}
 		return shared.DisasterPredictionInfo{
@@ -177,8 +173,8 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	}
 
 	disasterPrediction := shared.DisasterPrediction{
-		CoordinateX: c.disasterInfo.meanDisaster.X + rand.Float64(),
-		CoordinateY: c.disasterInfo.meanDisaster.Y + rand.Float64(),
+		CoordinateX: c.disasterInfo.meanDisaster.X,
+		CoordinateY: c.disasterInfo.meanDisaster.Y,
 		Magnitude:   c.disasterInfo.meanDisaster.Magnitude,
 		TimeLeft:    timeLeft,
 		// TODO: Add timeLeft to confidence level
