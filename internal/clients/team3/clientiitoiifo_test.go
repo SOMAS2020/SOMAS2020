@@ -178,7 +178,6 @@ func TestGetGiftOffers(t *testing.T) {
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
 					trustParameter:          0.5,
-					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -229,7 +228,6 @@ func TestGetGiftOffers(t *testing.T) {
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
 					trustParameter:          0.5,
-					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -282,7 +280,6 @@ func TestGetGiftOffers(t *testing.T) {
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
 					trustParameter:          0.5,
-					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -335,7 +332,6 @@ func TestGetGiftOffers(t *testing.T) {
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
 					trustParameter:          0.5,
-					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{

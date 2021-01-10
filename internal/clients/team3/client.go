@@ -98,7 +98,6 @@ type islandParams struct {
 	localPoolThreshold      float64
 	giftInflationPercentage float64
 	trustParameter          float64
-	NoRequestGiftParam      float64
 	intelligence            bool
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
