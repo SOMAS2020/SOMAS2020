@@ -46,16 +46,22 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.config.middleThreshold = (c.gameState().ClientInfo.Resources) * c.config.middleThreshold
 	c.config.imperialThreshold = (c.gameState().ClientInfo.Resources) * c.config.imperialThreshold
 
+	// Gift Requests
+	c.config.dyingGiftRequestAmount = float64(c.getGameConfig().CostOfLiving) * c.config.dyingGiftRequestAmount
+	c.config.imperialGiftRequestAmount = float64(c.getGameConfig().CostOfLiving) * c.config.imperialGiftRequestAmount
+	c.config.middleGiftRequestAmount = float64(c.getGameConfig().CostOfLiving) * c.config.middleGiftRequestAmount
+
+	// Gift offers
+	c.config.offertoDyingIslands = (float64(c.getGameConfig().CostOfLiving)) * c.config.offertoDyingIslands
 	// Print the Thresholds
-	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
-		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
+	c.Logf("[Initialise [%v]] JB TH %v | Middle TH %v | Imperial TH %v",
+		c.getTurn(), c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
 
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
-	c.Logf("[Start of Turn] Wealth: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
-	c.Logf("[Teams still alive]: Teams %v", c.gameState().ClientLifeStatuses)
+	c.Logf("[StartOfTurn][%v]: Wealth class: %v | Money In the Bank: %v | Teams Alive: %v ", c.getTurn(), c.wealth(), c.gameState().ClientInfo.Resources, c.gameState().ClientLifeStatuses)
 
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.opinionHistory[c.getTurn()] = c.opinions // assign last turn's opinions as default for this turn
@@ -66,7 +72,7 @@ func (c *client) StartOfTurn() {
 			return
 		}
 	}
-	c.Logf("Died-ed lol")
+	c.Logf("Team 5 Died-ed lol")
 }
 
 //================================================================
@@ -98,9 +104,9 @@ func (c *client) updateResourceHistory(resourceHistory resourceHistory) {
 	c.resourceHistory[c.gameState().Turn] = currentResources
 	if c.gameState().Turn >= 2 {
 		amount := c.resourceHistory[c.gameState().Turn-1]
-		c.Logf("[Resource History] Previous round (%v) amount: %v", c.getTurn(), amount)
+		c.Logf("[updateResourceHistory]: Previous round: (%v) | Amount: %v", c.getTurn(), amount)
 	}
-	c.Logf("[Resource History] Current round (%v) amount: %v", c.getTurn(), currentResources)
+	c.Logf("[updateResourceHistory]: Current round: (%v) | Amount: %v", c.getTurn(), currentResources)
 }
 
 func (c client) gameState() gamestate.ClientGameState {

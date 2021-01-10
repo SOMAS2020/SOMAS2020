@@ -27,7 +27,6 @@ import (
 
 // DecideForage helps us pick the foraging method
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	c.Logf("Period", c.disasterHistory.getLastDisasterTurn())
 	if c.forageHistorySize() < c.config.InitialForageTurns { // Start with initial foraging turns (semi - randomized)
 		return c.InitialForage(), nil
 	} else if c.wealth() == dying { // If dying go to last hope
@@ -47,20 +46,6 @@ If we succeed we are JB and will risk more to gain more
 If we lose again then we are in the Imperial class and we fish to try to get back to middle class
 */
 func (c *client) InitialForage() shared.ForageDecision {
-	// Figure out how much the cost of livin per turn is
-	//=============================================================================
-	// if c.getTurn() == 2 { // On turn 2
-	// 	var turncost shared.Resources
-	// 	for _, outcomes := range c.forageHistory { // For each foraging type find the outcome
-	// 		for _, returns := range outcomes { // For each outcome find the returns
-	// 			turncost += returns.input // cumlative sum of the return on investment (should only be 1 return from foraging)
-	// 			c.Logf("[DEBUG] %v - %v + %v", c.resourceHistory[1], c.resourceHistory[2], returns.input)
-	// 		}
-	// 	}
-	// 	costOfTurn1 := c.resourceHistory[1] - c.resourceHistory[2] + turncost
-	// 	c.Logf("[Debug] Cost per turn to live %v = %v - %v + %v", costOfTurn1, c.resourceHistory[1], c.resourceHistory[2], turncost)
-	// }
-	// =============================================================================
 	var forageType shared.ForageType
 	forageContribution := shared.Resources(c.config.MinimumForagePercentage+
 		rand.Float64()*
@@ -85,7 +70,7 @@ func (c *client) InitialForage() shared.ForageDecision {
 		}
 	}
 
-	c.Logf("[Initial Forage]:[%v][%v]", forageType, forageContribution)
+	c.Logf("[DecideForage]:[Inital Forage] [%v] | [%v]", forageType, forageContribution)
 
 	return shared.ForageDecision{
 		Type:         forageType,
@@ -163,7 +148,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			}
 
 			// Logger
-			c.Logf("[Best Foraging Method][%v]: PrevTurnsHunters %v | No.Caught %v | Prob Hunting %v | Prob Fishing %v",
+			c.Logf("[DecideForage][bestHistoryForaging][%v]: PrevTurnsHunters %v | No.Caught %v | Prob Switch: Hunting %v / Fishing %v",
 				c.getTurn(), prevTurnsHunters, noCaught, probDeerHunting, probFishing)
 		}
 		// ================================================================
@@ -178,7 +163,6 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			bDeer := distuv.Bernoulli{P: 1 - probDeerHunting}     // P(1)[Fishing]= 0.1 + 0.1*3 = 0.4
 			bestForagingMethod += shared.ForageType(bDeer.Rand()) // +1 [makes it fishing] if Fishing was picked in randomness
 		}
-		c.Logf("Chance to Hunt %v | Chance to Fish %v", probDeerHunting, probFishing)
 	} // If both methods are less than 0 RoI then return SharedType(-1)
 	return bestForagingMethod
 }
@@ -186,18 +170,18 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 /* normalForage() (Past the initial, based on the history of our foraging and some randomness) */
 func (c *client) normalForage() shared.ForageDecision {
 	bestForagingMethod := c.bestHistoryForaging(c.forageHistory) // Find the best foragine type in based on history
-	c.Logf("DEBUG BestMethod: %v", bestForagingMethod)
+
 	// No good returns all our history had RoI < 0 , Skip one turn
 	//=============================================================================
 	if bestForagingMethod == shared.ForageType(-1) && c.config.SkipForage > 0 {
-		c.Logf("Skipping Foraging: %v", c.config.SkipForage)
+		c.Logf("[DecideForage][Skipping Foraging] for %v turn", c.config.SkipForage)
 		c.config.SkipForage--         // Count down the number of turns to skip
 		return shared.ForageDecision{ // Dont go foraging
 			Type:         shared.DeerForageType,
 			Contribution: 0.001, // Abuse the hunting so I can see how many hunters
 		}
 	} else if bestForagingMethod == shared.ForageType(-1) && c.config.SkipForage == 0 { // Force Foraging
-		c.Logf("Force Foraging: %v", c.config.SkipForage)
+		c.Logf("[DecideForage][Force Random Foraging] as skip turns is %v", c.config.SkipForage)
 		c.config.SkipForage = 1 // Reassign the number of skips for next time we have RoI < 0
 
 		// Randomly pick type and invest 1->3%
@@ -269,9 +253,8 @@ func (c *client) normalForage() shared.ForageDecision {
 	}
 
 	c.Logf(
-		"[Normal Forage][%v]:Method: %v | Input: %v | Expected RoI: %v",
+		"[DecideForage][Normal Forage][%v]: Method: %v | Input: %v | Expected RoI: %v",
 		c.getTurn(), bestForagingMethod, bestInput, bestRoI)
-
 	return forageDecision
 }
 
@@ -281,8 +264,8 @@ func (c *client) lastHopeForage() shared.ForageDecision {
 		Type:         shared.FishForageType,
 		Contribution: 0.95 * c.gameState().ClientInfo.Resources, // Almost everything we still want to be > 0 in case 0 means insta death
 	}
-	c.Logf("[Forage][Just let me die please?]: Decision %v | Amount %v ",
-		forageDecision, forageDecision.Contribution)
+	c.Logf("[DecideForage][Just let me die, please][%v]: Decision: Black (%v) | All in baby: %v ",
+		c.getTurn(), forageDecision, forageDecision.Contribution)
 	return forageDecision
 }
 
@@ -300,7 +283,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output share
 		caught: numberCaught,
 	})
 	c.Logf(
-		"[Update Forage History]:[%v] Type %v | Input %v | Profit %v | No.Caught %v | Actual RoI %v",
+		"[ForageUpdate][%v]: Type %v | Input %v | Profit %v | No.Caught %v | Actual RoI %v",
 		c.getTurn(),
 		forageDecision.Type,
 		forageDecision.Contribution,
@@ -336,11 +319,11 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 			)
 	}
 
-	c.Logf("[Forage Info From] %v", forageInfos)
+	c.Logf("[ReceiveForageInfo][%v]: %v", c.getTurn(), forageInfos)
 
 	for _, forageInfo := range forageInfos {
 		if forageInfo.DecisionMade.Contribution >= 1 { // has to be meaningful forage
-			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.05*c.getMood()) // Thanks for the information dude
+			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.2*c.getMood()) // Thanks for the information dude
 		}
 	}
 }
@@ -417,6 +400,6 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 		SharedFrom:       shared.Team5,
 	}
 
-	c.Logf("[Sharing Foraging Info] %v", forageInfo)
+	c.Logf("[MakeForageInfo][%v]: %v", c.getTurn(), forageInfo)
 	return forageInfo
 }

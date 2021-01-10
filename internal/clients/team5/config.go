@@ -39,13 +39,10 @@ type clientConfig struct {
 	imperialGiftRequestAmount float64 // How much to request when we are at Imperial
 	middleGiftRequestAmount   float64 // How much to request when we are dying
 	offertoDyingIslands       float64 // How much to give to islands dying 1/3 when we are poor
-	normalGift                float64
 
 	//Gift modifiers for opinions
 	opinionRequestMultiplier float64
 	opinionThresholdRequest  opinionScore
-	giftBoosting             shared.Resources
-	giftReduct               shared.Resources
 
 	//==================== Disasters and IIFO ====================
 	forecastTrustTreshold   opinionScore // min opinion score of another team to consider their forecast in creating ours
@@ -83,17 +80,14 @@ func getClientConfig() clientConfig {
 		imperialThreshold: 0.3, // surely should be - 100e6? (your right we are so far indebt)
 		//  Dying threshold is 0 < Dying < Imperial
 
-		// Gifts Config
-		dyingGiftRequestAmount:    25,
-		imperialGiftRequestAmount: 15,
-		middleGiftRequestAmount:   5,
-		offertoDyingIslands:       10,
-		normalGift:                1,
+		// Gifts Config (multipliers of cost of living)
+		dyingGiftRequestAmount:    2,   // multiplier of the cost of living
+		imperialGiftRequestAmount: 1,   // The cost of living
+		middleGiftRequestAmount:   0.5, //
+		offertoDyingIslands:       1.5, // is a multiple of cost of living
 
 		opinionThresholdRequest:  0.3, // Above opinion we request less this people (0.1 lowest)
-		opinionRequestMultiplier: 0.5, // We request half as much above this threshold
-		giftBoosting:             1.4,
-		giftReduct:               0.5,
+		opinionRequestMultiplier: 0.3, // We request the threshold at the above amount of opinion
 
 		// Disasters and IIFO
 		forecastTrustTreshold: 0.0, // neutral opinion
