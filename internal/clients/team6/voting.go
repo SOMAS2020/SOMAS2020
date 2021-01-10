@@ -19,13 +19,19 @@ func (c *client) rolesInfro() map[shared.Role]shared.ClientID {
 	return rolesInfro
 }
 
-func (c *client) doWeHaveRoles() bool {
+func (c *client) doWeHaveRoles(roleToElect shared.Role) bool {
 	doWeHaveRoles := false
-	for _, ID := range c.rolesInfro() {
-		if ID == id {
-			doWeHaveRoles = true
-			break
+	numOfRoles := 0
+	for role, roleID := range c.rolesInfro() {
+		if roleID == id {
+			numOfRoles++
+			if role == roleToElect {
+				numOfRoles--
+			}
 		}
+	}
+	if numOfRoles > 0 {
+		doWeHaveRoles = true
 	}
 	return doWeHaveRoles
 }
