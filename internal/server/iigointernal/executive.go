@@ -206,6 +206,7 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 	} else {
 		appointedSpeaker = currentSpeaker
 	}
+	e.gameState.IIGOElection = append(e.gameState.IIGOElection, election.GetVotingInfo())
 	return appointedSpeaker, nil
 }
 
