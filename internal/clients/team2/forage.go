@@ -131,6 +131,23 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 // other clients.
 // OPTIONAL. If this is not implemented then all values are nil.
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
-	contribution := shared.ForageDecision{Type: c.lastForageType, Contribution: c.lastForageAmount}
-	return shared.ForageShareInfo{DecisionMade: contribution, ResourceObtained: c.foragingReturnsHist[c.GetID()][len(c.foragingReturnsHist)-1].ResourcesObtained, ShareTo: c.getIslandsToShareWith()}
+
+	if val, ok := c.foragingReturnsHist[c.GetID()]; ok {
+		if len(val) != 0 {
+			contribution := shared.ForageDecision{Type: c.lastForageType, Contribution: c.lastForageAmount}
+			return shared.ForageShareInfo{
+				DecisionMade:     contribution,
+				ResourceObtained: c.foragingReturnsHist[c.GetID()][len(c.foragingReturnsHist)-1].ResourcesObtained,
+				ShareTo:          c.getIslandsToShareWith(),
+			}
+		}
+	}
+
+	noInfo := shared.ForageShareInfo{
+		DecisionMade:     shared.ForageDecision{},
+		ResourceObtained: shared.Resources(0),
+		ShareTo:          []shared.ClientID{},
+	}
+
+	return noInfo
 }
