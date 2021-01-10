@@ -33,7 +33,7 @@ func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 	}
 	if s.c.shouldICheat() {
 		for _, islandID := range aliveClients {
-			if s.c.trustScore[islandID] > 0.5 {
+			if s.c.trustScore[islandID] > 50 {
 				chosenClients = append(chosenClients, islandID)
 			}
 		}

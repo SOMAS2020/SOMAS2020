@@ -142,7 +142,7 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 		lst := make([]bool, len(sanctionList))
 		pardons[key] = lst
 		for index, sanction := range sanctionList {
-			if j.c.trustScore[sanction.ClientID] > 50 && j.c.params.friendliness > 40 {
+			if j.c.trustScore[sanction.ClientID] > 50 && j.c.params.friendliness > 0.4 {
 				pardons[key][index] = true
 			} else {
 				pardons[key][index] = false
