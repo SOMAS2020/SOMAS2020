@@ -37,28 +37,26 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 }
 
 //Decide amount of resources to put into foraging
-// TODO: Problem is definitely here
 func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Resources {
-	ourResources := c.gameState().ClientInfo.Resources // we have given to the pool already by this point in the turn
-	if c.criticalStatus() {
+	// we have given to the pool already by this point in the turn
+
+	if c.criticalStatus() || c.getAgentExcessResources() == 0 {
 		return shared.Resources(0)
 	}
-
-	if ourResources < c.agentThreshold() && shared.Resources(foragingDecisionThreshold) < shared.Resources(c.config.ForageDecisionThreshold) {
-		c.Logf("[Our beautiful second]:", (c.agentThreshold()-ourResources)/shared.Resources(c.config.SlightRiskForageDivisor))
-
-		return shared.Resources((c.agentThreshold() - ourResources) / c.config.SlightRiskForageDivisor)
+	// otherwise we have excess to allocate to foraging
+	multiplier := shared.Resources(0)
+	switch c.setAgentStrategy() {
+	case Altruist:
+		multiplier = 0.1 //when the common pool is struggling we forage with 10% of our resources
+	case FairSharer:
+		multiplier = 0.2 //by default give 20% of our excess
+	case Selfish:
+		multiplier = 0.3 //when common pool is doing well we take risk and forage with 30% of our excess
 	}
 
-	var resourcesForForaging shared.Resources
-	if ourResources > c.agentThreshold() {
-		resourcesForForaging = ourResources - c.agentThreshold()
-	} else {
-		resourcesForForaging = c.agentThreshold() - ourResources
-	}
-	c.Logf("[Our beautiful third]:", resourcesForForaging)
-	c.Logf("[Our beautiful resources]:", ourResources)
-	c.Logf("[Our beautiful threshold]:", c.agentThreshold())
+	resourcesForForaging := c.getAgentExcessResources() * multiplier //how much of our excess we forage with depends on the method of play
+	c.Logf("Resources allocated to foraging:", resourcesForForaging)
+
 	return shared.Resources(resourcesForForaging)
 }
 

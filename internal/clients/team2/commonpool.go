@@ -45,53 +45,62 @@ func (c *client) presCommonPoolUpdate(request shared.Resources) {
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 }
 
-// If we are critical request the full threshold to shift us back to security
-// If our current resources are below the threshold request enough to reach the threshold
-// If our resources are above the threshold request the tax
-// So we can pay our tax for at least one turn (we may be granted less)
-func (c *client) determineBaseCommonPoolRequest() shared.Resources {
-	currResources := c.gameState().ClientInfo.Resources
-	if c.criticalStatus() {
-		c.Logf("Critical status! Set base request to agent threshold: ", c.agentThreshold())
-		return c.agentThreshold()
-	} else if currResources < c.agentThreshold() {
-		c.Logf("Resources Low! Make up resources to reach agent threshold")
-		return (c.agentThreshold() - currResources)
-	} else {
-		c.Logf("Resources Ok! Request tax amount from Common Pool: ", c.taxAmount)
-		return c.taxAmount
-	}
-}
-
 // Returns a resource request to ask the President for from the common pool
 // of type shared.Resources and updates presCommonPoolHist
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	request := c.determineBaseCommonPoolRequest() * c.commonPoolMultiplier()
-	// TODO: code is logging both requests in the common pool but one is the request
-	// TODO: and the other is when it actually happens (in RequestAllocation)
-	// TODO: should probably only log one
+	// DVP - if we are heavily affected - worry more about ours - 0.25 - 1 (1 highly vulnerable)
+	agentDVP := c.islandDVPs[c.GetID()]
+
+	// 1 + agentDVP - 1.25x if vuln 1.8x
+	// Base request is amount needed to survive 1 more turn
+	request := c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold
+
+	if c.criticalStatus() {
+		request *= 3
+		c.Logf("Critical status! Set Common Pool request to: ", request)
+	} else if c.getAgentExcessResources() == shared.Resources(0) || agentDVP > 0.6 {
+		request *= 2
+		c.Logf("Resources getting LOW or at risk! Gather up resources for one turn to stay safe")
+	} else if c.getAgentExcessResources() > shared.Resources(0) {
+		multiplier := shared.Resources(0)
+		switch c.setAgentStrategy() {
+		case Altruist:
+			multiplier = 0.4
+		case FairSharer:
+			multiplier = 0.5
+		case Selfish:
+			multiplier = 1
+		}
+		request *= multiplier
+		c.Logf("Resources in Excess! Request based on agent Strategy: ", c.taxAmount)
+	} else {
+		request = c.taxAmount
+	}
+
 	c.presCommonPoolUpdate(request)
 
 	return request
 }
 
-// type CommonPoolInfo struct {
-// 	turn            uint
-// 	tax             shared.Resources
-// 	requestedToPres shared.Resources
-// 	allocatedByPres shared.Resources
-// 	takenFromCP     shared.Resources
-// }
-
 // Determines how many resources you actually take
 func (c *client) RequestAllocation() shared.Resources {
-	request := c.determineBaseCommonPoolRequest() * c.commonPoolMultiplier()
-	// TODO: check if it's fine to just always take the biggest (before we also checked for status critical)
-	request = Max(request, c.commonPoolAllocation)
+	// this ignores the presidents allocation
+	request := c.CommonPoolResourceRequest()
 
-	c.presCommonPoolUpdate(request)
+	switch c.getAgentStrategy() {
+	case Selfish:
+		spiteFactor := shared.Resources(1.2)
+		if request > c.commonPoolAllocation {
+			return request * spiteFactor
+		}
 
-	// This uses outdated logic without error handling
+		request = c.commonPoolAllocation
+	case Altruist:
+		request = Min(request, c.commonPoolAllocation)
+	default:
+		// Leave request as is if Fair Strategy
+	}
+
 	commonPool := CommonPoolInfo{
 		tax:             0,
 		requestedToPres: 0,
@@ -112,94 +121,49 @@ func (c *client) RequestAllocation() shared.Resources {
 	}
 
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+
 	return request
-
-}
-
-// // 1 to 1.75 (1.75 being the most vulnerable)
-// vulnerabilityMultiplier := 0.75 + c.islandDVPs[c.GetID()]
-
-// // Add resources based on expected/predicted disaster magnitude
-// c.commonPoolThreshold = c.updateCommonPoolThreshold()
-// timeRemaining := c.getTurnsUntilDisaster()
-
-// //commonpool/timeRemaining -> give to pool each turn
-
-// disasterTimeProtectionMultiplier := 1.0
-// if timeRemaining < c.config.TimeLeftIncreaseDisProtection {
-// 	disasterTimeProtectionMultiplier = c.config.DisasterSoonProtectionMultiplier
-// }
-
-// return basicCosts + shared.Resources(disasterTimeProtectionMultiplier*c.commonPoolThreshold*vulnerabilityMultiplier)
-
-func (c *client) calculateContribution() shared.Resources {
-	ourResources := c.gameState().ClientInfo.Resources
-	// This is our default allocation, this determines how much to give based off of previous common pool level
-	defaultAllocation := AverageCommonPoolDilemma(c) + c.taxAmount
-	agentThreshold := c.agentThreshold()
-	surplus := ourResources - agentThreshold
-
-	if c.criticalStatus() || agentThreshold == 0 {
-		// tax evasion by necessity
-		return shared.Resources(0)
-	} else if ourResources <= agentThreshold {
-		// Below the threshold, pay proportion of taxAmount
-		return c.taxAmount * (ourResources / agentThreshold)
-	} else if checkOthersCrit(c) {
-		// Others are in a critical state (Long term survival)
-		return Min(surplus/c.config.HelpCritOthersDivisor, c.taxAmount)
-	} else {
-		// Give the smallest contribution
-		return Min(surplus, defaultAllocation)
-	}
 }
 
 // GetTaxContribution determines how much we put into pool
 func (c *client) GetTaxContribution() shared.Resources {
-	contribution := c.calculateContribution()
+	contribution := shared.Resources(0)
+	strategicContribution := c.getStrategicContribution()
+
+	if c.getAgentExcessResources() == 0 || c.criticalStatus() {
+		contribution = shared.Resources(0)
+	} else if c.getAgentExcessResources() < strategicContribution {
+		// Not enough excess to mitigate disasters oh no...
+		// hoard some for ourselves
+		contribution = c.getAgentExcessResources() / 2
+	} else if c.getAgentExcessResources() < strategicContribution+c.taxAmount {
+		// enough to mitigate disasters but not pay tax so screw tax
+		contribution = strategicContribution
+	} else {
+		// enough to mitigate disasters and pay tax
+		contribution = strategicContribution + c.taxAmount
+	}
 
 	c.updatePresidentTrust()
 	c.confidenceRestrospect("President", c.gameState().PresidentID)
+	c.Logf("Common Pool Contribution: ", contribution)
 
 	return contribution
 }
 
-// if we know what threshold we need that's fine
-// guess if we don't know
-// once we have some knowledge on disasters, if it is going to be bigger - we increase the amount we're giving
-// if our predictions were not enough before we want to increase it
-func (c *client) updateCommonPoolThreshold() shared.Resources {
-	// If we know the common pool threshold
-	if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid {
-		return c.gameConfig().DisasterConfig.CommonpoolThreshold.Value
-	} else if len(c.disasterHistory) == 0 {
-		// If we don't know the common pool threshold make a guess
-		return c.gameState().ClientInfo.Resources * shared.Resources(c.config.InitialThresholdProportionGuess) * shared.Resources(c.getNumAliveClients())
-	} else {
-		magnitudePrediction := c.CombinedDisasterPred.Magnitude
-		disasterOccurred, lastDisasterReport := c.getLastDisasterInfo()
-
-		// TODO: this relies heavily on an accurate first guess
-		// if disaster happened in the previous turn, update our prediction, otherwise
-		if disasterOccurred && (lastDisasterReport.Turn == c.gameState().Turn-1) {
-			return shared.Resources(magnitudePrediction/lastDisasterReport.Report.Magnitude) * c.commonPoolThreshold
-		}
-	}
-}
-
 // Returns the number of turns until the next disaster (could be prediction/known value)
 func (c *client) getTurnsUntilDisaster() uint {
-	currTurn := c.gameState().Turn
+	currentTurn := c.gameState().Turn
 
 	// add extra when disaster is soon
 	if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
 		period := c.gameConfig().DisasterConfig.DisasterPeriod.Value
-		return period - (currTurn % period)
+		return period - (currentTurn % period)
 	}
 
 	// Not able to predict disasters in first season as no prev known data
 	if c.gameState().Season == 1 {
-		return c.config.InitialDisasterTurnGuess - currTurn
+		return c.config.InitialDisasterTurnGuess - currentTurn
 	} else {
 		return c.CombinedDisasterPred.TimeLeft
 	}
@@ -211,119 +175,90 @@ func (c *client) getTurnsUntilDisaster() uint {
 func (c *client) getAgentExcessResources() shared.Resources {
 	// At a minimum we should be able to pay cost of living
 	excess := c.gameState().ClientInfo.Resources
-	excess -= c.gameConfig().CostOfLiving - c.gameConfig().MinimumResourceThreshold - c.taxAmount
-
+	excess -= c.gameConfig().CostOfLiving - c.gameConfig().MinimumResourceThreshold
 	return Min(0, excess)
 }
 
-// Gets turn and report from last disaster. Returns true and DisasterOccurrence{} if a disaster occurred
-// Else returns false and an empty DisasterOccurrence{}
-func (c *client) getLastDisasterInfo() (bool, DisasterOccurrence) {
-	lastDisaster := DisasterOccurrence{}
-	numDisasters := len(c.disasterHistory)
-	if numDisasters == 0 {
-		return false, lastDisaster
-	} else {
-		// get the most recent disaster turn and report
-		lastDisaster.Turn = c.disasterHistory[numDisasters-1].Turn
-		lastDisaster.Report = c.disasterHistory[numDisasters-1].Report
+// getStrategicContribution finds the best contribution to the common pool based on the method of play we
+// are in and whether the threshold is known. If so we should use our disaster prediction also.
+// Returns  proposed contribution as shared.Resources
+func (c *client) getStrategicContribution() shared.Resources {
+	strategicContribution := c.config.DefaultContribution
+	disasterContribution := c.config.DefaultContribution
 
-		return true, lastDisaster
+	if c.gameState().Turn == 1 {
+		return strategicContribution
 	}
-}
 
-// AverageCommonPoolDilemma determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers or free riders
-// TODO: improve comment description of what the function does
-func AverageCommonPoolDilemma(c *client) shared.Resources {
-	turn := c.gameState().Turn
-	altruistContribution := c.determineAltruistContribution(turn)
-	fairContribution := c.determineFairContribution(turn)
-
-	if turn == 1 {
-		return c.config.DefaultFirstTurnContribution
+	if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid {
+		missingResources := Max(0, c.gameConfig().DisasterConfig.CommonpoolThreshold.Value-c.gameState().CommonPool)
+		if missingResources != 0 {
+			// If we know the threshold get a disaster contribution, if not always use strategic
+			// trust no one - not even the server to stop the game
+			if c.getNumAliveClients() != 0 && c.getTurnsUntilDisaster() != 0 {
+				disasterContribution = missingResources / shared.Resources(c.getTurnsUntilDisaster()) / shared.Resources(c.getNumAliveClients())
+			} else if c.getNumAliveClients() != 0 {
+				disasterContribution = missingResources / shared.Resources(c.getNumAliveClients())
+			}
+		}
 	}
 
 	switch c.setAgentStrategy() {
-	case 0:
-		return shared.Resources(altruistContribution)
-	case 1:
-		return shared.Resources(fairContribution)
+	case FairSharer:
+		// contribute the weighted average contribution
+		ResourceHistory := c.commonPoolHistory
+		runningAverageCPChange := shared.Resources(0)
+
+		// compute running average
+		for j := c.gameState().Turn; j > 0; j-- {
+			runningAverageCPChange = runningAverageCPChange + (ResourceHistory[j]-ResourceHistory[j-1]-runningAverageCPChange)/shared.Resources(j)
+		}
+
+		// trust no one - not even the server to stop the game
+		if shared.Resources(c.getNumAliveClients()) != 0 {
+			strategicContribution = runningAverageCPChange / shared.Resources(c.getNumAliveClients())
+		}
+
+		// If we know the threshold take average between strategic and disaster contributions
+		if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid {
+			return (strategicContribution + disasterContribution) / shared.Resources(2)
+		}
+
+		// otherwise just return strategic
+		return strategicContribution
+	case Altruist:
+		// contribute weighted average contribution multiplied by a factor
+		ResourceHistory := c.commonPoolHistory
+		runningAverageCPChange := shared.Resources(0)
+
+		// compute running average
+		for j := c.gameState().Turn; j > 0; j-- {
+			runningAverageCPChange = runningAverageCPChange + (ResourceHistory[j]-ResourceHistory[j-1]-runningAverageCPChange)/shared.Resources(j)
+		}
+
+		// TODO: setting this multiplier in the config
+		// do not trust anyone - even the server - check for divide by 0
+		if shared.Resources(c.getNumAliveClients()) == shared.Resources(0) {
+			strategicContribution = runningAverageCPChange * 1.2 / shared.Resources(c.getNumAliveClients())
+		}
+
+		return Max(strategicContribution, disasterContribution)
 	default:
-		// Use Selfish approach if neither case is matched
+		// if we are Selfish contribute nothing shared.Resources(0)
 		return shared.Resources(0)
 	}
 }
 
-// Identical to fair sharing but a larger factor to multiple the average contribution by
-func (c *client) determineAltruistContribution(turn uint) shared.Resources {
-	ResourceHistory := c.commonPoolHistory
-	//what factor of the average to contribute when being altruistic, will be much higher than fair sharing
-	tuneAlt := shared.Resources(c.config.AltruistFactorOfAvToGive)
-	//we are trying to find the most recent instance of the common pool increasing and then use that value
-	for j := turn; j > 0; j-- {
-		prevTurn := j - 1
-		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			if shared.Resources(c.getNumAliveClients())*tuneAlt != shared.Resources(0) {
-				return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAlt
-			}
-		}
-	}
-	return 0
-}
-
-// Can make more sophisticated! Right now just contribute the average
-func (c *client) determineFairContribution(turn uint) shared.Resources {
-	ResourceHistory := c.commonPoolHistory
-	// What factor of the average to contribute when fair sharing, default is 1 to give the average
-	tuneAverage := shared.Resources(c.config.FairShareFactorOfAvToGive)
-	// We are trying to find the most recent instance of the common pool increasing and then use that value
-	for j := turn; j > 0; j-- {
-		prevTurn := j - 1
-		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			if shared.Resources(c.getNumAliveClients())*tuneAverage != shared.Resources(0) {
-				return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / shared.Resources(c.getNumAliveClients())) * tuneAverage
-			}
-		}
-	}
-	return 0
-}
-
-func (c *client) commonPoolMultiplier() shared.Resources {
-	var multiplier float64
-
-	switch c.setAgentStrategy() {
-	case Altruist:
-		// when the pool is struggling, we will forage less to hav emo
-		multiplier = 0.4
-	case FairSharer:
-		multiplier = 0.6
-	case Selfish:
-		multiplier = 1.2
-	}
-
-	return shared.Resources(multiplier)
-}
-
-// TODO: make switch case on agent mode.
-func (c *client) SanctionHopeful() shared.Resources {
-	switch c.setAgentStrategy() {
-
-	}
-	return 0
-}
-
-// Checks the sanction amount against what we expect
-// TODO: this function is not implementing any logic
+// Pays sanction unless we are being selfish or if we are critical
 func (c *client) GetSanctionPayment() shared.Resources {
 	if value, ok := c.LocalVariableCache[rules.SanctionExpected]; ok {
-		if c.gameState().ClientLifeStatuses[c.GetID()] != shared.Critical {
-			if shared.Resources(value.Values[0]) <= c.SanctionHopeful() {
-				return shared.Resources(value.Values[0])
-			} else {
-				return c.SanctionHopeful()
-			}
-		} else {
+		if c.criticalStatus() || c.getAgentStrategy() == Selfish {
+			c.Logf("Yeah I don't know about those sanctions...not feeling like it :P")
 			return 0
+
+		} else {
+			c.Logf("Not happy about it but okay...we'll pay your sanction")
+			return shared.Resources(value.Values[rules.SingleValueVariableEntry])
 		}
 	}
 	return 0
@@ -334,6 +269,7 @@ func (c *client) ShareIntendedContribution() shared.IntendedContribution {
 	shareWith := make([]shared.ClientID, 0)
 	aliveClients := c.getAliveClients()
 
+	// Share contributions with our friends
 	for _, island := range aliveClients {
 		if c.confidence("Gifts", island) > 30 {
 			shareWith = append(shareWith, island)
@@ -341,7 +277,7 @@ func (c *client) ShareIntendedContribution() shared.IntendedContribution {
 	}
 
 	return shared.IntendedContribution{
-		Contribution:   c.calculateContribution(),
+		Contribution:   c.GetTaxContribution(),
 		TeamsOfferedTo: shareWith,
 	}
 }
