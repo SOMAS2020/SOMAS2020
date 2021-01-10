@@ -93,8 +93,6 @@ func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 //who sets the vote to be voted on to be the rule the President provided
 func (s *speaker) DecideAgenda(ruleMatrix rules.RuleMatrix) shared.SpeakerReturnContent {
 	//there are more important things to do...
-	s.parent.Logf("Action costs: %v, %v, %v, %v", s.getActionsCost([]string{"SetRuleToVote"}), s.getActionsCost([]string{"SetVotingResult"}), s.getActionsCost([]string{"AnnounceVotingResult"}), s.getActionsCost([]string{"AppointNextJudge"}))
-	s.parent.Logf("Higher priority: %v, %v, %v, %v", s.getHigherPriorityActionsCost("SetRuleToVote"), s.getHigherPriorityActionsCost("SetVotingResult"), s.getHigherPriorityActionsCost("AnnounceVotingResult"), s.getHigherPriorityActionsCost("AppointNextJudge"))
 	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("SetRuleToVote") {
 		return shared.SpeakerReturnContent{
 			ActionTaken: false,
