@@ -131,6 +131,7 @@ func (c client) regressionForage() (shared.ForageDecision, error) {
 // forages deer, with an amount inversely proportional to the sum of contributed
 // resources
 func (c client) flipForage() shared.ForageDecision {
+	resources := c.gameState().ClientInfo.Resources
 	deerHistory := c.forageHistory[shared.DeerForageType]
 	totalContributionLastTurn := shared.Resources(0)
 	totalHuntersLastTurn := 0
@@ -151,9 +152,15 @@ func (c client) flipForage() shared.ForageDecision {
 	}
 
 	if c.forageType == shared.DeerForageType && (totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0) {
+		contribution := shared.Resources(math.Min(
+			float64(shared.Resources(
+				c.config.forageContributionCapPercent)*resources,
+			),
+			float64(c.config.soloDeerHuntContribution),
+		))
 		// Big contribution
 		return shared.ForageDecision{
-			Contribution: shared.Resources(math.Min(float64(0.3*c.gameState().ClientInfo.Resources), float64(3*c.gameConfig().CostOfLiving))),
+			Contribution: contribution,
 			Type:         shared.DeerForageType,
 		}
 	}

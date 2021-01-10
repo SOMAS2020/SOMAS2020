@@ -56,6 +56,10 @@ type team1Config struct {
 	// amount as a percentage of current resources
 	forageContributionNoisePercent float64
 
+	// soloDeerHuntContribution is the amount of resources that will be used to
+	// hunt if no one hunted last turn
+	soloDeerHuntContribution shared.Resources
+
 	//** Taxes **//
 
 	// If true, ignore requests for taxes
@@ -120,6 +124,7 @@ func defaultConfig() team1Config {
 		kickstartTaxPercent:            0,
 		desperateStealAmount:           30,
 		maxOpinion:                     10,
+		soloDeerHuntContribution:       40,
 	}
 }
 
