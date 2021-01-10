@@ -20,12 +20,7 @@ var SpeakerActionOrder = []string{
 }
 
 //SpeakerActionPriorities indicate speaker actions in order of priority
-var SpeakerActionPriorities = []string{
-	"SetVotingResult",
-	"AnnounceVotingResult",
-	"SetRuleToVote",
-	"AppointNextJudge",
-}
+var SpeakerActionPriorities = SpeakerActionOrder
 
 func (s *speaker) getSpeakerBudget() shared.Resources {
 	return s.parent.ServerReadHandle.GetGameState().IIGORolesBudget[shared.Speaker]
@@ -75,6 +70,39 @@ func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resourc
 	return s.getActionsCost(SAPcopy)
 }
 
+func sendToBack(str string, array []string) []string {
+	index := len(array) - 1
+	for i, el := range array {
+		if el == str {
+			index = i
+		}
+	}
+	if index == len(array)-1 {
+		return array
+	}
+	return append(append(array[:index], array[(index+1):]...), array[index])
+}
+
+func (s *speaker) reorderPriorities() {
+	SpeakerActionPriorities = SpeakerActionOrder
+	_, ok := s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["vote_called_rule"]
+	if ok {
+		sendToBack("SetRuleToVote", SpeakerActionPriorities)
+	}
+	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["islands_allowed_to_vote_rule"]
+	if ok {
+		sendToBack("SetVotingResult", SpeakerActionPriorities)
+	}
+	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["vote_result_rule"]
+	if ok {
+		sendToBack("AnnounceVotingResult", SpeakerActionPriorities)
+	}
+	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["roles_must_hold_election"]
+	if ok {
+		sendToBack("AppointNextJudge", SpeakerActionPriorities)
+	}
+}
+
 // PayJudge is used for paying judge for his service
 func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 	var JudgeSalary shared.Resources = 0
@@ -92,6 +120,7 @@ func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 //DecideAgenda the interface implementation and example of a well behaved Speaker
 //who sets the vote to be voted on to be the rule the President provided
 func (s *speaker) DecideAgenda(ruleMatrix rules.RuleMatrix) shared.SpeakerReturnContent {
+	s.reorderPriorities()
 	//there are more important things to do...
 	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("SetRuleToVote") {
 		return shared.SpeakerReturnContent{
