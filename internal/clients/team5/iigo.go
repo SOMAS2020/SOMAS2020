@@ -69,7 +69,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	} else if allocationAmount < c.cpRequestHistory[turn] && allocationAmount >= currentCP/6 { // if some allocation, then just a bit of score
 		c.opinions[presidentID].updateOpinion(generalBasis, 0.05*c.getMood())
 	} else if allocationAmount >= c.cpRequestHistory[turn] {
-		c.opinions[presidentID].updateOpinion(generalBasis, 0.2*c.getMood())
+		c.opinions[presidentID].updateOpinion(generalBasis, 0.1*c.getMood())
 	}
 
 	//Debug
@@ -80,8 +80,6 @@ func (c *client) RequestAllocation() shared.Resources {
 
 // calculate the amount to take away from the common pool
 func (c *client) calculateAllocationFromCP(currentTier wealthTier, currentCP shared.Resources, allocationMade bool, allocationAmount shared.Resources) (allocation shared.Resources) {
-	// allocationMade := c.BaseClient.LocalVariableCache[rules.AllocationMade].Values[0] != 0
-	// allocationAmount := shared.Resources(0)
 	if currentTier == imperialStudent || currentTier == dying {
 		if c.config.imperialThreshold < (currentCP / 6) {
 			if (currentCP / 6) > allocationAmount {
@@ -219,10 +217,21 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 //------------------------------------------------------------------------------------------//
 
 //-----------------------------------Monitor IIGO------------------------------------------//
-//MonitorIIGORole decides whether to perform monitoring on a role
-//COMPULOSRY: must be implemented
-//always monitor a role
+// Only monitor the foes
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
+	var roleID shared.ClientID
+	if roleName == shared.Speaker {
+		roleID = c.gameState().SpeakerID
+	} else if roleName == shared.Judge {
+		roleID = c.gameState().JudgeID
+	} else {
+		roleID = c.gameState().PresidentID
+	}
+	if roleID == shared.Team5 {
+		return false
+	} else if c.opinions[roleID].getScore() > 0.5 && roleID != shared.Team3 {
+		return false
+	}
 	return true
 }
 
