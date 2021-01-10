@@ -67,7 +67,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		BaseClient:         baseclient.NewClient(id),
 		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
 		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-		clientPresident: president{BasePresident: &baseclient.BasePresident{}},
+		clientPresident:    president{BasePresident: &baseclient.BasePresident{}},
 		obs:                &obs,
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
@@ -165,7 +165,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 func (c *client) updateParents() {
 	c.clientJudge.parent = c
 	c.clientSpeaker.parent = c
-
+	c.clientPresident.parent = c
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
