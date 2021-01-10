@@ -63,6 +63,8 @@ func (c *client) RequestAllocation() shared.Resources {
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.BaseClient.ReceiveCommunication(sender, data)
 	// TODO parse sanction info
+	c.updateTrustMonitoring(data)
+
 	for contentType, content := range data {
 		switch contentType {
 		case shared.IIGOTaxDecision:
@@ -70,18 +72,15 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		case shared.IIGOAllocationDecision:
 			c.obs.iigoObs.allocationGranted = shared.Resources(content.IntegerData)
 		case shared.RuleName:
-			// currentRuleID := content.TextData
-			// if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
-			// 	c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
-			// 	c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
-			// } else {
-			// 	c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
-			// }
-		case shared.RoleMonitored:
-			// TODO: modify trust matrix based on monitor result
-			// c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
-			// c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
+		// currentRuleID := content.TextData
+		// if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
+		// 	c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
+		// 	c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
+		// } else {
+		// 	c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
+		// }
 		default: //[exhaustive] reported by reviewdog 🐶
+			return
 			//missing cases in switch of type shared.CommunicationFieldName: BallotID, IIGOSanctionScore, IIGOSanctionTier, MonitoringResult, PardonClientID, PardonTier, PresidentID, ResAllocID, RoleConducted, RuleVoteResult, SanctionAmount, SanctionClientID, SpeakerID (exhaustive)
 
 		}

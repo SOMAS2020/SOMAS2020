@@ -300,6 +300,27 @@ func (c *client) updateTrustFromSavedHistory() {
 	}
 }
 
+func (c *client) updateTrustMonitoring(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	if roleMonitored, ok := data[shared.RoleMonitored]; ok {
+		if roleMonitored.T == shared.CommunicationIIGORole {
+			if monitoringResult, ok := data[shared.MonitoringResult]; ok {
+				if monitoringResult.T == shared.CommunicationBool {
+					roleID := c.getRole(roleMonitored.IIGORoleData)
+
+					if monitoringResult.BooleanData {
+						// Monitored role was truthful
+						c.trustMatrix.ChangeClientTrust(roleID, 0.1)
+					} else {
+						// Monitored role cheated
+						c.trustMatrix.ChangeClientTrust(roleID, -0.1)
+					}
+				}
+			}
+		}
+
+	}
+}
+
 //MonitorIIGORole decides whether to perform monitoring on a role
 //COMPULOSRY: must be implemented
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
