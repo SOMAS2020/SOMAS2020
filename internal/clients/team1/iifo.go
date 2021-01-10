@@ -93,9 +93,6 @@ func (c client) findConfidence() float64 {
 	ySD := math.Sqrt(totalDisaster.Y / disasterHistorySize)
 	magSD := math.Sqrt(totalDisaster.Magnitude / disasterHistorySize)
 
-	if xSD == 0 && ySD == 0 && magSD == 0 {
-		return 0
-	}
 	// 1.645 is Z value for 90% Confidence Interval
 	// See link for more maths: https://www.mathsisfun.com/data/confidence-interval.html
 	// Formula: meanX +- Z( sdX / sqrt(n) )
@@ -154,6 +151,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	c.disasterInfo.disasterTurnCounter++
 	currTurn := c.gameState().Turn
 	timeLeft := c.disasterInfo.estimatedDDay - currTurn
+	confidence := 0.0
 	if c.disasterInfo.estimatedDDay < currTurn {
 		timeLeft = 0
 	}
@@ -163,7 +161,7 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 			CoordinateX: rand.Float64() * 10,
 			CoordinateY: rand.Float64() * 10,
 			Magnitude:   rand.Float64(),
-			Confidence:  0,
+			Confidence:  confidence,
 			TimeLeft:    timeLeft,
 		}
 		return shared.DisasterPredictionInfo{
@@ -172,13 +170,17 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		}
 	}
 
+	if len(c.disasterInfo.allDisaster) > 1 {
+		// TODO: Cache confidence level
+		confidence = c.findConfidence()
+	}
 	disasterPrediction := shared.DisasterPrediction{
 		CoordinateX: c.disasterInfo.meanDisaster.X,
 		CoordinateY: c.disasterInfo.meanDisaster.Y,
 		Magnitude:   c.disasterInfo.meanDisaster.Magnitude,
 		TimeLeft:    timeLeft,
 		// TODO: Add timeLeft to confidence level
-		Confidence: c.findConfidence(),
+		Confidence: confidence,
 	}
 
 	// Store own disasterPrediction for evaluation in DisasterNotification
