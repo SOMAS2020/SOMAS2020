@@ -11,12 +11,12 @@ export type RuleType = {
 export const processRulesData = (data: OutputJSONType): RuleType[] => {
     if (data.GameStates.length === 0) return []
 
-    // return CurrentRulesInPlay keys in term of seasons
+    // return RulesInfo.AvailableRules keys in term of seasons
     const rulesInSeasons = data.GameStates.map((episode) => {
         return {
             season: episode.Season,
             turn: episode.Turn,
-            rules: Object.keys(episode.CurrentRulesInPlay),
+            rules: Object.keys(episode.RulesInfo.AvailableRules),
         }
     })
 
@@ -25,7 +25,7 @@ export const processRulesData = (data: OutputJSONType): RuleType[] => {
     // each season, do...
     data.GameStates.forEach((episode) => {
         // each rules in season, do...
-        Object.keys(episode.CurrentRulesInPlay).forEach((rules) => {
+        Object.keys(episode.RulesInfo.AvailableRules).forEach((rules) => {
             // add history
             const history: any = []
             rulesInSeasons.forEach((item) => {
@@ -34,10 +34,11 @@ export const processRulesData = (data: OutputJSONType): RuleType[] => {
                 }
             })
             rulesDict[rules] = {
-                ruleName: episode.CurrentRulesInPlay[rules].RuleName,
-                mutable: episode.CurrentRulesInPlay[rules].Mutable,
-                linked: episode.CurrentRulesInPlay[rules].Linked,
-                variables: episode.CurrentRulesInPlay[rules].RequiredVariables,
+                ruleName: episode.RulesInfo.AvailableRules[rules].RuleName,
+                mutable: episode.RulesInfo.AvailableRules[rules].Mutable,
+                linked: episode.RulesInfo.AvailableRules[rules].Linked,
+                variables:
+                    episode.RulesInfo.AvailableRules[rules].RequiredVariables,
                 history,
             }
         })
