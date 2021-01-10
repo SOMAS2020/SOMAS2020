@@ -119,7 +119,7 @@ func fetchRequiredVariables(reqVariables []VariableFieldName, variables map[Vari
 	for _, variable := range reqVariables {
 		if value, ok := variables[variable]; ok {
 			finalSlice = append(finalSlice, value.Values...)
-			returnFix = append(returnFix, generateBoolList(IsChangeable[variable], len(value.Values))...)
+			returnFix = append(returnFix, generateBoolList(IsChangeable()[variable], len(value.Values))...)
 		} else {
 			return finalSlice, returnFix, false
 		}
@@ -147,31 +147,33 @@ func generateBoolList(initial bool, length int) []bool {
 	return finalList
 }
 
-var IsChangeable = map[VariableFieldName]bool{
-	NumberOfIslandsContributingToCommonPool: false,
-	NumberOfFailedForages:                   false,
-	NumberOfBrokenAgreements:                false,
-	MaxSeverityOfSanctions:                  false,
-	NumberOfIslandsAlive:                    false,
-	NumberOfBallotsCast:                     false,
-	NumberOfAllocationsSent:                 false,
-	AllocationRequestsMade:                  false,
-	AllocationMade:                          false,
-	IslandsAlive:                            false,
-	SpeakerSalary:                           true,
-	JudgeSalary:                             true,
-	PresidentSalary:                         true,
-	RuleSelected:                            false,
-	VoteCalled:                              false,
-	ExpectedTaxContribution:                 false,
-	ExpectedAllocation:                      false,
-	IslandTaxContribution:                   true,
-	IslandAllocation:                        true,
-	IslandReportedResources:                 false,
-	ConstSanctionAmount:                     false,
-	TurnsLeftOnSanction:                     false,
-	SanctionPaid:                            true,
-	SanctionExpected:                        false,
-	TestVariable:                            false,
-	JudgeInspectionPerformed:                false,
+func IsChangeable() map[VariableFieldName]bool {
+	return map[VariableFieldName]bool{
+		NumberOfIslandsContributingToCommonPool: false,
+		NumberOfFailedForages:                   false,
+		NumberOfBrokenAgreements:                false,
+		MaxSeverityOfSanctions:                  false,
+		NumberOfIslandsAlive:                    false,
+		NumberOfBallotsCast:                     false,
+		NumberOfAllocationsSent:                 false,
+		AllocationRequestsMade:                  false,
+		AllocationMade:                          false,
+		IslandsAlive:                            false,
+		SpeakerSalary:                           true,
+		JudgeSalary:                             true,
+		PresidentSalary:                         true,
+		RuleSelected:                            false,
+		VoteCalled:                              false,
+		ExpectedTaxContribution:                 false,
+		ExpectedAllocation:                      false,
+		IslandTaxContribution:                   true,
+		IslandAllocation:                        true,
+		IslandReportedResources:                 false,
+		ConstSanctionAmount:                     false,
+		TurnsLeftOnSanction:                     false,
+		SanctionPaid:                            true,
+		SanctionExpected:                        false,
+		TestVariable:                            false,
+		JudgeInspectionPerformed:                false,
+	}
 }

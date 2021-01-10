@@ -55,10 +55,10 @@ func (c *client) resetIIGOInfo() {
 	c.iigoInfo.startOfTurnPresidentID = c.ServerReadHandle.GetGameState().PresidentID
 	c.iigoInfo.startOfTurnSpeakerID = c.ServerReadHandle.GetGameState().SpeakerID
 	c.iigoInfo.sanctions = &sanctionInfo{
-		tierInfo:        make(map[roles.IIGOSanctionTier]roles.IIGOSanctionScore),
-		rulePenalties:   make(map[string]roles.IIGOSanctionScore),
-		islandSanctions: make(map[shared.ClientID]roles.IIGOSanctionTier),
-		ourSanction:     roles.IIGOSanctionScore(0),
+		tierInfo:        make(map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore),
+		rulePenalties:   make(map[string]shared.IIGOSanctionsScore),
+		islandSanctions: make(map[shared.ClientID]shared.IIGOSanctionsTier),
+		ourSanction:     shared.IIGOSanctionsScore(0),
 	}
 	c.iigoInfo.ruleVotingResults = make(map[string]*ruleVoteInfo)
 	c.iigoInfo.ourRequest = 0
@@ -83,7 +83,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 	totalToPay := 100 - commonPool
 	if len(c.disasterPredictions) > int(c.ServerReadHandle.GetGameState().Turn) {
 		if disaster, ok := c.disasterPredictions[int(c.BaseClient.ServerReadHandle.GetGameState().Turn)][c.BaseClient.GetID()]; ok {
-			totalToPay = (shared.Resources(disaster.Magnitude) - commonPool) / shared.Resources(disaster.TimeLeft)
+			totalToPay = safeDivResources(shared.Resources(disaster.Magnitude)-commonPool, shared.Resources(disaster.TimeLeft))
 		}
 	}
 	sumTrust := 0.0
@@ -94,7 +94,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 			sumTrust += (1 - c.params.selfishness) * 100
 		}
 	}
-	toPay := (totalToPay / shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
+	toPay := safeDivResources(totalToPay, shared.Resources(sumTrust)) * (1 - shared.Resources(c.params.selfishness)) * 100
 	targetResources := shared.Resources(2-c.params.riskFactor) * (c.criticalStatePrediction.upperBound)
 	if c.getLocalResources()-toPay <= targetResources {
 		toPay = shared.Resources(math.Max(float64(c.getLocalResources()-targetResources), 0.0))
@@ -153,19 +153,19 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 				}
 			}
 			// Rule sanctions
-			if _, ok := data[shared.IIGOSanctionScore]; ok {
+			if _, ok := data[shared.RuleSanctionPenalty]; ok {
 				// c.clientPrint("Received sanction info: %+v", data)
-				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = shared.IIGOSanctionsScore(data[shared.RuleSanctionPenalty].IntegerData)
 			}
 		case shared.RoleMonitored:
 			c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
 			c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
 		case shared.SanctionClientID:
-			c.iigoInfo.sanctions.islandSanctions[shared.ClientID(content.IntegerData)] = roles.IIGOSanctionTier(data[shared.IIGOSanctionTier].IntegerData)
+			c.iigoInfo.sanctions.islandSanctions[shared.ClientID(content.IntegerData)] = shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)
 		case shared.IIGOSanctionTier:
-			c.iigoInfo.sanctions.tierInfo[roles.IIGOSanctionTier(content.IntegerData)] = roles.IIGOSanctionScore(data[shared.IIGOSanctionScore].IntegerData)
+			c.iigoInfo.sanctions.tierInfo[shared.IIGOSanctionsTier(content.IntegerData)] = shared.IIGOSanctionsScore(data[shared.RuleSanctionPenalty].IntegerData)
 		case shared.SanctionAmount:
-			c.iigoInfo.sanctions.ourSanction = roles.IIGOSanctionScore(content.IntegerData)
+			c.iigoInfo.sanctions.ourSanction = shared.IIGOSanctionsScore(content.IntegerData)
 		}
 	}
 }
@@ -338,4 +338,11 @@ func copyRulesMap(inp map[string]rules.RuleMatrix) map[string]rules.RuleMatrix {
 		newMap[key] = val
 	}
 	return newMap
+}
+
+func safeDivResources(numerator shared.Resources, denominator shared.Resources) shared.Resources {
+	if denominator != 0 {
+		return numerator / denominator
+	}
+	return numerator
 }

@@ -39,9 +39,6 @@ type GameState struct {
 	// IIGO turns in power (incremented and set by monitoring)
 	IIGOTurnsInPower map[shared.Role]uint
 
-	// IIGO Role Action Cache
-	IIGOCache []shared.Accountability
-
 	// IIGO Tax Amount Map
 	IIGOTaxAmount map[shared.ClientID]shared.Resources
 
@@ -50,6 +47,18 @@ type GameState struct {
 
 	// IIGO Sanction Amount Map
 	IIGOSanctionMap map[shared.ClientID]shared.Resources
+
+	// IIGO Sanction Cache is a record of all sanctions
+	IIGOSanctionCache map[int][]shared.Sanction
+
+	// IIGO History Cache is a record of all transgressions for historical retribution
+	IIGOHistoryCache map[int][]shared.Accountability
+
+	// IIGO Role Monitoring Cache is used in the IIGO accountability cycle
+	IIGORoleMonitoringCache []shared.Accountability
+
+	// IIGO Role Voting
+	IIGOElection []VotingInfo
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict
@@ -74,11 +83,14 @@ func (g GameState) Copy() GameState {
 	ret.IIGOHistory = copyIIGOHistory(g.IIGOHistory)
 	ret.IIGORolesBudget = copyRolesBudget(g.IIGORolesBudget)
 	ret.IIGOTurnsInPower = copyTurnsInPower(g.IIGOTurnsInPower)
-	ret.IIGOCache = copyIIGOCache(g.IIGOCache)
 	ret.IIGOTaxAmount = copyIIGOClientIDResourceMap(g.IIGOTaxAmount)
 	ret.IIGOAllocationMap = copyIIGOClientIDResourceMap(g.IIGOAllocationMap)
 	ret.IIGOSanctionMap = copyIIGOClientIDResourceMap(g.IIGOSanctionMap)
+	ret.IIGOHistoryCache = copyIIGOHistoryCache(g.IIGOHistoryCache)
+	ret.IIGOSanctionCache = copyIIGOSanctionCache(g.IIGOSanctionCache)
+	ret.IIGORoleMonitoringCache = copySingleIIGOEntry(g.IIGORoleMonitoringCache)
 	ret.IITOTransactions = copyIITOTransactions(g.IITOTransactions)
+	ret.IIGOElection = copyIIGOElection(g.IIGOElection)
 	return ret
 }
 
@@ -103,12 +115,6 @@ func (g *GameState) GetClientGameStateCopy(id shared.ClientID) ClientGameState {
 		IIGOTurnsInPower:   copyTurnsInPower(g.IIGOTurnsInPower),
 		RulesInfo:          copyRulesContext(g.RulesInfo),
 	}
-}
-
-func copyIIGOCache(c []shared.Accountability) []shared.Accountability {
-	ret := make([]shared.Accountability, len(c))
-	copy(ret, c)
-	return ret
 }
 
 func copyClientInfos(m map[shared.ClientID]ClientInfo) map[shared.ClientID]ClientInfo {
@@ -137,6 +143,24 @@ func copyTurnsInPower(m map[shared.Role]uint) map[shared.Role]uint {
 
 func copyIIGOHistory(iigoHistory map[uint][]shared.Accountability) map[uint][]shared.Accountability {
 	targetMap := make(map[uint][]shared.Accountability)
+	for key, value := range iigoHistory {
+		targetMap[key] = copySingleIIGOEntry(value)
+	}
+	return targetMap
+}
+
+func copyIIGOSanctionCache(m map[int][]shared.Sanction) map[int][]shared.Sanction {
+	targetMap := make(map[int][]shared.Sanction)
+	for k, v := range m {
+		entry := make([]shared.Sanction, len(v))
+		copy(entry, v)
+		targetMap[k] = entry
+	}
+	return targetMap
+}
+
+func copyIIGOHistoryCache(iigoHistory map[int][]shared.Accountability) map[int][]shared.Accountability {
+	targetMap := make(map[int][]shared.Accountability)
 	for key, value := range iigoHistory {
 		targetMap[key] = copySingleIIGOEntry(value)
 	}
@@ -199,6 +223,12 @@ func copyForagingHistory(fHist map[shared.ForageType][]foraging.ForagingReport) 
 	return ret
 }
 
+func copyIIGOElection(input []VotingInfo) []VotingInfo {
+	ret := make([]VotingInfo, len(input))
+	copy(ret, input)
+	return ret
+}
+
 // ClientInfo contains the client struct as well as the client's attributes
 type ClientInfo struct {
 	// Resources contains the amount of resources owned by the client.
@@ -211,6 +241,14 @@ type ClientInfo struct {
 
 	// [INFRA] add more client information here
 	// REMEMBER TO EDIT `Copy` IF YOU ADD ANY REFERENCE TYPES (maps, slices, channels, functions etc.)
+}
+
+// VotingInfo contains all the information necessary to visualise voting
+type VotingInfo struct {
+	RoleToElect  shared.Role
+	VotingMethod shared.ElectionVotingMethod
+	VoterList    []shared.ClientID
+	Votes        [][]shared.ClientID
 }
 
 // Copy returns a deep copy of the ClientInfo.
