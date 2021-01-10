@@ -194,14 +194,15 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 	} else if predictionInfo.confidence > 0.5 && predictionInfo.confidence < 0.8 {
 		idealContribution = shared.
 			Resources((float64(predictionInfo.mag) * 100) / minDistance)
+		c.Logf("prediction mag: %v, minDisatance: %v idealContribution %v", predictionInfo.mag, minDistance, idealContribution)
 	} else if predictionInfo.confidence >= 0.8 {
 		idealContribution = shared.Resources((float64(predictionInfo.mag) * 200) / minDistance)
 	}
 
 	//update idealContribution based on our financial status
-	if currentResource < idealContribution {
-		idealContribution = shared.Resources(0.5) * currentResource
-	}
+	// if currentResource < idealContribution {
+	// 	idealContribution = shared.Resources(0.5) * currentResource
+	// }
 
 	//Only contribute if disaster is coming in 1 days
 	// Contribute mostly on the day of the disaster to prevent people taking CP resource
@@ -211,6 +212,10 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 		contribution = shared.Resources(0.8) * idealContribution
 	} else {
 		contribution = 0
+		return contribution
+	}
+	if currentResource < contribution {
+		contribution = shared.Resources(0.5) * currentResource
 	}
 	return contribution
 }
