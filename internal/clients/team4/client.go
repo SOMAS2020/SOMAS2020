@@ -26,10 +26,11 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	iitoObs := &iitoObservation{}
 
 	team4client := client{
-		BaseClient:    baseclient.NewClient(id),
-		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
-		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-		yes:           "",
+		BaseClient:      baseclient.NewClient(id),
+		clientJudge:     judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
+		clientSpeaker:   speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		clientPresident: president{BasePresident: &baseclient.BasePresident{}},
+		yes:             "",
 		obs: &observation{
 			iigoObs: iigoObs,
 			iifoObs: iifoObs,
@@ -40,6 +41,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 	}
 	team4client.clientJudge.parent = &team4client
 	team4client.clientSpeaker.parent = &team4client
+	team4client.clientPresident.parent = &team4client
 	return &team4client
 }
 
@@ -47,6 +49,7 @@ type client struct {
 	*baseclient.BaseClient //client struct has access to methods and fields of the BaseClient struct which implements implicitly the Client interface.
 	clientJudge            judge
 	clientSpeaker          speaker
+	clientPresident        president
 
 	//custom fields
 	yes                string              //this field is just for testing
