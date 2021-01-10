@@ -273,7 +273,12 @@ func (c *client) StartOfTurn() {
 func (c *client) updateTrustFromSavedHistory() {
 	if c.savedHistory.updated {
 
-		// newInfo := c.savedHistory.getNewInfo()
+		newInfo := c.savedHistory.getNewInfo()
+
+		for clientID, history := range newInfo {
+			lieRatio := history.TruthfulRatio
+			c.trustMatrix.ChangeClientTrust(clientID, lieRatio)
+		}
 
 		c.savedHistory.updated = false
 	}

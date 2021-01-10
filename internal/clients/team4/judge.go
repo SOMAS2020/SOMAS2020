@@ -34,10 +34,10 @@ type valuePair struct {
 }
 
 type judgeHistoryInfo struct {
-	Resources  valuePair // amount of resources available and reported by the island
-	Taxation   valuePair // amount of tax paid and expected
-	Allocation valuePair // amount of allocation taken and granted
-	Lied       int       // number of times the island has lied
+	Resources     valuePair // amount of resources available and reported by the island
+	Taxation      valuePair // amount of tax paid and expected
+	Allocation    valuePair // amount of allocation taken and granted
+	TruthfulRatio float64   // ratio of truth/all in each island report
 }
 
 type accountabilityHistory struct {
@@ -58,7 +58,7 @@ func (h *accountabilityHistory) update(turn uint) {
 	h.updatedTurn = turn
 }
 
-func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts *map[shared.ClientID]int, turn uint) {
+func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, truthfulness *map[shared.ClientID]float64, turn uint) {
 	accountabilityMap := map[shared.ClientID][]rules.VariableValuePair{}
 	for _, clientID := range shared.TeamIDs {
 		accountabilityMap[clientID] = []rules.VariableValuePair{}
@@ -72,8 +72,8 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 	for client, pairs := range accountabilityMap {
 		clientInfo, ok := buildHistoryInfo(pairs)
 		if ok {
-			clientLied := (*lieCounts)[client]
-			clientInfo.Lied = clientLied
+			truthfulRatio := (*truthfulness)[client]
+			clientInfo.TruthfulRatio = truthfulRatio
 			if j.parent.savedHistory.history[turn] != nil {
 				j.parent.savedHistory.history[turn][client] = clientInfo
 			} else {
@@ -89,7 +89,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 	outputmap, state := j.BaseJudge.InspectHistory(iigoHistory, turnsAgo)
 
 	turn := j.parent.getTurn() - uint(turnsAgo)
-	lieCounts := map[shared.ClientID]int{}
+	truthfulness := map[shared.ClientID]float64{}
 
 	// Check number of times clients lied
 	for client, eval := range outputmap {
@@ -99,10 +99,17 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 				lieCount++
 			}
 		}
-		lieCounts[client] = lieCount
+		switch len(eval.Evaluations) {
+		case 0:
+			truthfulness[client] = 0
+		case 1:
+			truthfulness[client] = 1 - float64(lieCount)/float64(len(eval.Evaluations))
+
+		}
+		// lieCounts[client] = float64(lieCount) / float64(len(eval.Evaluations))
 	}
 
-	j.saveHistoryInfo(&iigoHistory, &lieCounts, turn)
+	j.saveHistoryInfo(&iigoHistory, &truthfulness, turn)
 
 	return outputmap, state
 }
