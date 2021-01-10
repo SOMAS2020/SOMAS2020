@@ -19,33 +19,30 @@ func resourceHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHistory
 	c.Logf("Resource Level History updated: ", resourceLevelHistory)
 }
 
-// type CommonPoolInfo struct {
-// 	turn            uint
-// 	tax             shared.Resources
-// 	requestedToPres shared.Resources
-// 	allocatedByPres shared.Resources
-// 	takenFromCP     shared.Resources
-// }
-// TODO: this does not match - you are leaving half the values empty each time you access it
 // Updates Pres Common Pool History with current resource request
 func (c *client) presCommonPoolUpdate(request shared.Resources) {
-	var commonPool CommonPoolInfo
-	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
-		c.presCommonPoolHist[c.gameState().PresidentID] = make([]CommonPoolInfo, 0)
-		c.Logf("Initialised presCommonPoolHist", c.presCommonPoolHist)
-	} else {
-		presHist := c.presCommonPoolHist[c.gameState().PresidentID]
-		// TODO: this logic doesn't make sense - we get the most recent item from the hist
-		// TODO: set the turn and requestedToPres to the current turn (which we already know is the same)
-		// TODO: and then append an item that already exists to the presCommonPoolHist
-		if presHist[len(presHist)-1].turn == c.gameState().Turn {
-			commonPool = presHist[len(presHist)-1]
-			commonPool.turn = c.gameState().Turn
-			commonPool.requestedToPres = request
-			c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
-			c.Logf("President Common Pool History updated", c.presCommonPoolHist)
-		}
+	// Initialises a complete commonPool update
+	c.Logf("We request ", request)
+	commonPool := CommonPoolInfo{
+		tax:             0,
+		requestedToPres: request,
+		allocatedByPres: 0,
+		takenFromCP:     0,
 	}
+	// Checks if the map is not initialised
+	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
+		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
+		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+
+		c.Logf("Initialised presCommonPoolHist and added request", c.presCommonPoolHist)
+	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
+		// If we have a previous entry, update the requestedToPres
+		commonPool = pastCommonPool
+		commonPool.requestedToPres = request
+		c.Logf("President Common Pool History updated", c.presCommonPoolHist)
+
+	}
+	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 }
 
 // If we are critical request the full threshold to shift us back to security
@@ -85,36 +82,38 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 // 	allocatedByPres shared.Resources
 // 	takenFromCP     shared.Resources
 // }
-// TODO: this does not match - you are leaving half the values empty each time you access it
-// TODO: so it seems if you leave the push empty it makes the other values zero
-// TODO: then you just have to update the values if they're already there instead of pushing another item onto the end
+
 // Determines how many resources you actually take
 func (c *client) RequestAllocation() shared.Resources {
 	request := c.determineBaseCommonPoolRequest() * c.commonPoolMultiplier()
+	// TODO: check if it's fine to just always take the biggest (before we also checked for status critical)
+	request = Max(request, c.commonPoolAllocation)
+
 	c.presCommonPoolUpdate(request)
 
 	// This uses outdated logic without error handling
-	var commonPool CommonPoolInfo
-	presHist := c.presCommonPoolHist[c.gameState().PresidentID]
+	commonPool := CommonPoolInfo{
+		tax:             0,
+		requestedToPres: 0,
+		allocatedByPres: 0,
+		takenFromCP:     request,
+	}
+	// Checks if the map is not initialised
+	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
+		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
+		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 
-	if len(presHist) != 0 {
-		presHist[len(presHist)-1].takenFromCP = request
-		presHist[len(presHist)-1].turn = c.gameState().Turn
-	} else {
-		commonPool = CommonPoolInfo{
-			takenFromCP: request,
-			turn:        c.gameState().Turn,
-		}
+		c.Logf("Initialised presCommonPoolHist and added request", c.presCommonPoolHist)
+	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
+		// If we have a previous entry, update the requestedToPres
+		commonPool = pastCommonPool
+		commonPool.takenFromCP = request
+		c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 	}
 
-	// TODO: same bug here -> also appending incomplete objects
-	c.presCommonPoolHist[c.gameState().PresidentID] = append(presHist, commonPool)
+	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+	return request
 
-	if c.criticalStatus() && c.commonPoolAllocation < request {
-		return request
-	}
-
-	return c.commonPoolAllocation
 }
 
 func (c *client) calculateContribution() shared.Resources {
