@@ -24,8 +24,11 @@ func (c *client) doWeHaveRoles(roleToElect shared.Role) bool {
 	doWeHaveRoles := false
 	numOfRoles := 0
 	for role, roleID := range c.rolesInfro() {
-		if roleID == id && role != roleToElect {
+		if roleID == id {
 			numOfRoles++
+			if role == roleToElect {
+				numOfRoles--
+			}
 		}
 	}
 	if numOfRoles > 0 {
