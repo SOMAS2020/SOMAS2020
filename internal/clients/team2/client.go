@@ -92,21 +92,21 @@ type clientConfig struct {
 	VarianceCapTimeRemaining         float64
 	TuningParamG                     float64
 	VarianceCapMagnitude             float64
-	BaseResourcesToGiveDivisor       shared.Resources // error
-	BaseDisasterProtectionDivisor    shared.Resources // error
-	TimeLeftIncreaseDisProtection    float64          // error
-	DisasterSoonProtectionMultiplier float64          // error
-	DefaultFirstTurnContribution     shared.Resources // error
-	NoFreeRideAtStart                uint
-	SwitchToFreeRideFactor           float64
+	BaseResourcesToGiveDivisor       shared.Resources
+	BaseDisasterProtectionDivisor    shared.Resources
+	TimeLeftIncreaseDisProtection    float64
+	DisasterSoonProtectionMultiplier float64
+	DefaultFirstTurnContribution     shared.Resources
+	SelfishStartTurns                uint
+	SwitchToSelfishFactor            float64
 	SwitchToAltruistFactor           float64
 	FairShareFactorOfAvToGive        float64
-	AltruistFactorOfAvToGive         float64 // error
+	AltruistFactorOfAvToGive         float64
 	ConfidenceRetrospectFactor       float64
 	ForageDecisionThreshold          float64
 	SlightRiskForageDivisor          shared.Resources
-	HelpCritOthersDivisor            shared.Resources // error
-	InitialDisasterTurnGuess         float64          // error
+	HelpCritOthersDivisor            shared.Resources
+	InitialDisasterTurnGuess         float64
 }
 
 type OpinionHist map[shared.ClientID]Opinion
@@ -177,18 +177,18 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			VarianceCapMagnitude:             10000,
 			BaseResourcesToGiveDivisor:       4.0,
 			BaseDisasterProtectionDivisor:    4.0,
-			TimeLeftIncreaseDisProtection:    3.0, // error
-			DisasterSoonProtectionMultiplier: 1.2, // error
-			DefaultFirstTurnContribution:     20,  // error
-			NoFreeRideAtStart:                3.0,
-			SwitchToFreeRideFactor:           0.5,
+			TimeLeftIncreaseDisProtection:    3.0,
+			DisasterSoonProtectionMultiplier: 1.2,
+			DefaultFirstTurnContribution:     20,
+			SelfishStartTurns:                3,
+			SwitchToSelfishFactor:            0.3,
 			SwitchToAltruistFactor:           0.5,
-			FairShareFactorOfAvToGive:        1.0, // error
-			AltruistFactorOfAvToGive:         2.0, // error
+			FairShareFactorOfAvToGive:        1.0,
+			AltruistFactorOfAvToGive:         2.0,
 			ConfidenceRetrospectFactor:       0.5,
 			ForageDecisionThreshold:          0.6,
 			SlightRiskForageDivisor:          2.0,
-			HelpCritOthersDivisor:            2.0, //error
+			HelpCritOthersDivisor:            2.0,
 			InitialDisasterTurnGuess:         7.0,
 		},
 	}

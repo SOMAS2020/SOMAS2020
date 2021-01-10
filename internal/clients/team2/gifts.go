@@ -18,6 +18,8 @@ func (p IslandTrustList) Len() int           { return len(p) }
 func (p IslandTrustList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p IslandTrustList) Less(i, j int) bool { return p[i].trust < p[j].trust }
 
+// TODO: we still seem to be giving negative gifts whatever that means lol
+
 // GetGiftRequests allows clients to signalize that they want a gift
 // This information is fed to OfferGifts of all other clients.
 func (c *client) GetGiftRequests() shared.GiftRequestDict {

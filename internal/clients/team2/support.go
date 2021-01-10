@@ -142,33 +142,31 @@ func (c *client) getAgentStrategy() AgentStrategy {
 // Sets the current AgentStrategy and returns an AgentStrategy Type
 func (c *client) setAgentStrategy() AgentStrategy {
 	currTurn := c.gameState().Turn
+	// Factor the common pool must increase by for us to considered free riding
+	freeRide := shared.Resources(c.config.SwitchToSelfishFactor)
 
-	// How many turns at the beginning we cannot free ride for
-	minTurnsUntilFreeRide := c.config.NoFreeRideAtStart
+	// Factor the common pool must drop by for us to consider altruist
+	altFactor := c.config.SwitchToSelfishFactor
 
-	// What factor the common pool must increase by for us to considered free riding
-	freeRide := shared.Resources(c.config.SwitchToFreeRideFactor)
-
-	// What factor the common pool must drop by for us to consider altruist
-	altFactor := c.config.SwitchToAltruistFactor
-
-	// TODO: Need to review this logic to double check this makes sense especially with typed return statements
-	runMeanCommonPool := shared.Resources(0)
-	div := shared.Resources(0)
+	// Explore and test limits by playing a selfish strategy for a few turns
+	if currTurn <= c.config.SelfishStartTurns {
+		return Selfish
+	}
 
 	if len(c.commonPoolHistory) != 0 {
-		for pastTurn, resources := range c.commonPoolHistory {
-			diffTurn := shared.Resources(c.gameState().Turn - pastTurn)
-			div++
+		runningMean := shared.Resources(0)
 
-			runMeanCommonPool += (resources/(diffTurn+1) - runMeanCommonPool) / div
+		for _, resources := range c.commonPoolHistory {
+			runningMean = runningMean + (resources-runningMean)/shared.Resources(c.gameState().Turn)
 		}
 
-		changeCommonPool := (c.commonPoolHistory[currTurn] - runMeanCommonPool) / runMeanCommonPool
+		// Percentage change in common pool from previous running mean
+		percentageChange := (c.commonPoolHistory[c.gameState().Turn] - runningMean) / runningMean
 
-		if changeCommonPool < 0 && math.Abs(float64(changeCommonPool)) > altFactor {
+		// if the pool decreases on average by a factor above altFactor set AgentStrategy to Altruist
+		if percentageChange < 0 && math.Abs(float64(percentageChange)) > altFactor {
 			return Altruist
-		} else if changeCommonPool > 0 && changeCommonPool > freeRide && currTurn > minTurnsUntilFreeRide {
+		} else if percentageChange > 0 && percentageChange > freeRide {
 			return Selfish
 		}
 	}
