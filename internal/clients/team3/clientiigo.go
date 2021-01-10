@@ -246,6 +246,10 @@ func (c *client) VoteForRule(matrix rules.RuleMatrix) shared.RuleVoteType {
 }
 
 func (c *client) RuleProposal() rules.RuleMatrix {
+	return c.generalRuleSelection(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
+}
+
+func (c *client) generalRuleSelection(allowedRules map[string]rules.RuleMatrix) rules.RuleMatrix {
 	c.locationService.syncGameState(c.ServerReadHandle.GetGameState())
 	c.locationService.syncTrustScore(c.trustScore)
 	internalMap := copyRulesMap(c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay)
@@ -259,7 +263,7 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 			return newMat
 		}
 	}
-	for key, rule := range c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules {
+	for key, rule := range allowedRules {
 		if _, ok := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[key]; !ok {
 			reqInputs := dynamics.SourceRequiredInputs(rule, inputMap)
 			idealLoc, valid := c.locationService.checkIfIdealLocationAvailable(rule, reqInputs)
@@ -267,7 +271,7 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 				ruleDynamics := dynamics.BuildAllDynamics(rule, rule.AuxiliaryVector)
 				distance := dynamics.GetDistanceToSubspace(ruleDynamics, idealLoc)
 				if distance == -1 {
-					return c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[key]
+					return allowedRules[key]
 				}
 				if shortestSoFar == -2.0 || shortestSoFar > distance {
 					shortestSoFar = distance
@@ -285,9 +289,12 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 		}
 	}
 	if selectedRule == "" {
-		selectedRule = "inspect_ballot_rule"
+		for key := range allowedRules {
+			selectedRule = key
+			return allowedRules[key]
+		}
 	}
-	return c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[selectedRule]
+	return allowedRules[selectedRule]
 }
 
 func (c *client) intelligentShift() (rules.RuleMatrix, bool) {

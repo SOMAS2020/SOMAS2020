@@ -1,6 +1,7 @@
 package team3
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -172,4 +173,35 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		ResourceMap: taxationMap,
 		ActionTaken: true,
 	}
+}
+
+// PickRuleToVote chooses a rule proposal from all the proposals
+func (p *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.PresidentReturnContent {
+
+	// Convert to map
+	proposals := rmListToMap(rulesProposals)
+
+	compliantProposal := p.c.generalRuleSelection(proposals)
+
+	ret := shared.PresidentReturnContent{
+		ContentType:        shared.PresidentRuleProposal,
+		ProposedRuleMatrix: compliantProposal,
+		ActionTaken:        true,
+	}
+
+	if p.c.params.complianceLevel > 0.5 {
+		return ret
+	}
+
+	ret.ProposedRuleMatrix = p.c.RuleProposal()
+
+	return ret
+}
+
+func rmListToMap(lst []rules.RuleMatrix) map[string]rules.RuleMatrix {
+	ret := make(map[string]rules.RuleMatrix)
+	for _, rule := range lst {
+		ret[rule.RuleName] = rule
+	}
+	return ret
 }
