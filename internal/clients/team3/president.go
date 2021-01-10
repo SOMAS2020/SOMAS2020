@@ -109,9 +109,9 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	for island := range resourceRequest {
 		if finalAllocations[island] == 0 {
 			if sumRequest < commonPoolThreshold {
-				finalAllocations[island] = shared.Resources(allocWeights[island] * float64(sumRequest))
+				finalAllocations[island] = shared.Resources(math.Max(allocWeights[island]*float64(sumRequest), 0))
 			} else {
-				finalAllocations[island] = shared.Resources(allocWeights[island] * commonPoolThreshold)
+				finalAllocations[island] = shared.Resources(math.Max(allocWeights[island]*commonPoolThreshold, 0))
 			}
 		}
 	}

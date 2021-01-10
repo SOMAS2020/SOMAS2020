@@ -46,6 +46,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	// Vote based on trust, rank on trust
 	candidateNum := len(candidateList)
 	var returnList []shared.ClientID
+	returnList = append(returnList, shared.ClientID(id))
 	highscore := 0.0
 	var highscoreIsland shared.ClientID
 
@@ -300,31 +301,34 @@ func (c *client) intelligentShift() (rules.RuleMatrix, bool) {
 
 // RequestAllocation gives how much island is taking from common pool
 func (c *client) RequestAllocation() shared.Resources {
+	var takenAlloc shared.Resources
 	ourAllocation := c.iigoInfo.commonPoolAllocation
 	currentState := c.BaseClient.ServerReadHandle.GetGameState()
 	escapeCritical := c.params.escapeCritcaIsland && currentState.ClientInfo.LifeStatus == shared.Critical
 	distCriticalThreshold := c.criticalThreshold - ourAllocation
 
+	takenAlloc = ourAllocation
+
 	if escapeCritical && (ourAllocation < distCriticalThreshold) {
 		// Get enough to save ourselves
-		return distCriticalThreshold
+		takenAlloc = distCriticalThreshold
+	} else {
+		if c.shouldICheat() {
+			// Scale up allocation a bit
+			takenAlloc = ourAllocation + shared.Resources(float64(ourAllocation)*c.params.selfishness)
+		}
 	}
 
-	if c.shouldICheat() {
-		// Scale up allocation a bit
-		return ourAllocation + shared.Resources(float64(ourAllocation)*c.params.selfishness)
+	// Base return - take what we are allocated, but make sure we aren't stolen from!
+	if takenAlloc < shared.Resources(0) {
+		takenAlloc = shared.Resources(0)
 	}
-
-	// Base return - take what we are allocated, but make sure we are stolen from!
-	if ourAllocation < shared.Resources(0) {
-		ourAllocation = shared.Resources(0)
-	}
-	c.clientPrint("Taking %f from common pool", ourAllocation)
+	c.clientPrint("Taking %f from common pool", takenAlloc)
 
 	variablesChanged := map[rules.VariableFieldName]rules.VariableValuePair{
 		rules.IslandAllocation: {
 			VariableName: rules.IslandAllocation,
-			Values:       []float64{float64(ourAllocation)},
+			Values:       []float64{float64(takenAlloc)},
 		},
 		rules.ExpectedAllocation: {
 			VariableName: rules.ExpectedAllocation,
@@ -337,7 +341,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	if c.params.complianceLevel > 80 {
 		return resolve
 	}
-	if ourAllocation != resolve {
+	if takenAlloc != resolve {
 		rulesInPlay := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay
 
 		affectedRules, success := rules.PickUpRulesByVariable(rules.IslandAllocation, rulesInPlay, c.LocalVariableCache)
@@ -345,7 +349,7 @@ func (c *client) RequestAllocation() shared.Resources {
 			c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
 		}
 	}
-	return ourAllocation
+	return takenAlloc
 }
 
 // CommonPoolResourceRequest is called by the President in IIGO to
