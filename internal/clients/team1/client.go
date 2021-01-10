@@ -35,22 +35,18 @@ func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
-type clientConfig struct {
+type team1Config struct {
+	// If resources go below this limit, go into "desperation" mode
+	anxietyThreshold shared.Resources
+
+	//** Foraging **//
+
 	// At the start of the game forage randomly for this many turns. If true,
 	// pay some initial tax to help get the first IIGO running
 	randomForageTurns uint
 
-	// If resources go below this limit, go into "desperation" mode
-	anxietyThreshold shared.Resources
-
-	// If true, ignore requests for taxes
-	evadeTaxes bool
-
-	// If true, pay some initial tax to help get the first IIGO running
-	kickstartTaxPercent shared.Resources
-
-	// desperateStealAmount is the amount the agent will steal from the commonPool
-	desperateStealAmount shared.Resources
+	// flipForageScale scales the amount contributed by flipForage
+	flipForageScale float64
 
 	// forageContributionCapPercent is the maximum percent of current resources we
 	// will use for foraging
@@ -60,12 +56,24 @@ type clientConfig struct {
 	// amount as a percentage of current resources
 	forageContributionNoisePercent float64
 
+	//** Taxes **//
+
+	// If true, ignore requests for taxes
+	evadeTaxes bool
+
+	// If true, pay some initial tax to help get the first IIGO running
+	kickstartTaxPercent shared.Resources
+
+	//** Allocation **//
+
+	// desperateStealAmount is the amount the agent will steal from the commonPool
+	desperateStealAmount shared.Resources
+
+	//** Opinions **//
+
 	// maxOpinion is the boundary where we either give resources without questioning
 	// or we refuse to give them resources.
 	maxOpinion Opinion
-
-	// flipForageScale scales the amount contributed by flipForage
-	flipForageScale float64
 }
 
 // client is Lucy.
@@ -94,20 +102,20 @@ type client struct {
 	// Foraging
 	forageType shared.ForageType
 
-	config clientConfig
+	config team1Config
 }
 
-func defaultConfig() clientConfig {
-	return clientConfig{
+func defaultConfig() team1Config {
+	return team1Config{
+		anxietyThreshold:               50,
 		randomForageTurns:              0,
-		anxietyThreshold:               20,
-		desperateStealAmount:           30,
-		evadeTaxes:                     false,
-		kickstartTaxPercent:            0,
+		flipForageScale:                0.3,
 		forageContributionCapPercent:   0.2,
 		forageContributionNoisePercent: 0.01,
+		evadeTaxes:                     true,
+		kickstartTaxPercent:            0,
+		desperateStealAmount:           30,
 		maxOpinion:                     10,
-		flipForageScale:                0.3,
 	}
 }
 
