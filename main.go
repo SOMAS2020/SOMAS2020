@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"path"
 	"runtime"
@@ -25,8 +26,31 @@ import (
 const outputJSONFileName = "output.json"
 const outputLogFileName = "log.txt"
 
+// non-WASM flags.
+// see `params.go` for shared flags.
+var (
+	outputFolderName = flag.String(
+		"output",
+		"output",
+		"The relative path (to the current working directory) to store output.json and logs in.\n"+
+			"WARNING: This folder will be removed prior to running!",
+	)
+	logLevel = flag.Uint(
+		"logLevel",
+		2,
+		"Logging verbosity level. Note that output artifacts will remain the same.\n"+
+			"0: No logs at all\n"+
+			"1: Game logs (identical to logs.txt) (to stderr)\n"+
+			"2: As in 1 plus game states (similar to output.json) (to stdout)\n",
+	)
+)
+
 func main() {
 	timeStart := time.Now()
+	rand.Seed(timeStart.UTC().UnixNano())
+
+	flag.Parse()
+
 	var err error
 
 	wd, err := os.Getwd()
@@ -34,7 +58,6 @@ func main() {
 		log.Fatalf("%v", err)
 	}
 
-	flag.Parse()
 	absOutputDir := path.Join(wd, *outputFolderName)
 
 	err = prepareOutputFolder(absOutputDir)
@@ -50,15 +73,20 @@ func main() {
 		log.Fatalf("Flag parse error: %v\nUse --help.", err)
 	}
 
-	s := server.NewSOMASServer(gameConfig)
+	s, err := server.NewSOMASServer(gameConfig)
+	if err != nil {
+		log.Fatalf("Failed to initial SOMASServer: %v", err)
+	}
 	if gameStates, err := s.EntryPoint(); err != nil {
 		log.Fatalf("Run failed with: %+v", err)
 	} else {
-		fmt.Printf("===== GAME CONFIGURATION =====\n")
-		fmt.Printf("%#v\n", gameConfig)
-		for _, st := range gameStates {
-			fmt.Printf("===== START OF TURN %v (END OF TURN %v) =====\n", st.Turn, st.Turn-1)
-			fmt.Printf("%#v\n", st)
+		if *logLevel >= 2 {
+			fmt.Printf("===== GAME CONFIGURATION =====\n")
+			fmt.Printf("%#v\n", gameConfig)
+			for _, st := range gameStates {
+				fmt.Printf("===== START OF TURN %v (END OF TURN %v) =====\n", st.Turn, st.Turn-1)
+				fmt.Printf("%#v\n", st)
+			}
 		}
 		timeEnd := time.Now()
 		err = outputJSON(output{
@@ -103,8 +131,14 @@ func prepareLogger(absOutputDir string) error {
 		return errors.Errorf("Unable to open log file, try running using sudo: %v", err)
 	}
 
+	writers := []io.Writer{f}
+
+	if *logLevel >= 1 {
+		writers = append(writers, os.Stderr)
+	}
+
 	log.SetOutput(
-		logger.NewLogWriter([]io.Writer{os.Stderr, f}),
+		logger.NewLogWriter(writers),
 	)
 
 	return nil

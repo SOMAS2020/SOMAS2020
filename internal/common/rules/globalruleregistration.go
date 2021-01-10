@@ -7,13 +7,19 @@ import (
 )
 
 // Init Registers all global scoped rules
-func init() {
-	registerDemoRule()
-	registerRulesByMass()
+func InitialRuleRegistration(startWithRules bool) (AvailableRules map[string]RuleMatrix, RulesInPlay map[string]RuleMatrix) {
+	availableRules := make(map[string]RuleMatrix)
+	rulesInPlay := make(map[string]RuleMatrix)
+	availableRules = registerDemoRule(availableRules)
+	availableRules = registerRulesByMass(availableRules)
+	if startWithRules {
+		rulesInPlay = CopyRulesMap(availableRules)
+	}
+	return availableRules, rulesInPlay
 }
 
 // registerDemoRule Defines and registers demo rule
-func registerDemoRule() {
+func registerDemoRule(AvailableRules map[string]RuleMatrix) map[string]RuleMatrix {
 
 	//A very contrived rule//
 	name := "Kinda Complicated Rule"
@@ -29,13 +35,14 @@ func registerDemoRule() {
 	aux := []float64{1, 1, 2, 0}
 	AuxiliaryVector := mat.NewVecDense(4, aux)
 
-	_, ruleErr := RegisterNewRule(name, reqVar, *CoreMatrix, *AuxiliaryVector, false, RuleLink{
+	_, ruleErr := RegisterNewRuleInternal(name, reqVar, *CoreMatrix, *AuxiliaryVector, AvailableRules, false, RuleLink{
 		Linked: false,
 	})
 	if ruleErr != nil {
 		panic(ruleErr.Error())
 	}
 	// Check internal/clients/team3/client.go for an implementation of a basic evaluator for this rule
+	return AvailableRules
 }
 
 // RawRuleSpecification allows a user to use the CompileRuleCase function to build a rule matrix
@@ -50,7 +57,7 @@ type RawRuleSpecification struct {
 	LinkedRule string
 }
 
-func registerRulesByMass() {
+func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMatrix {
 	ruleSpecs := []RawRuleSpecification{
 		{
 			Name: "inspect_ballot_rule",
@@ -101,7 +108,7 @@ func registerRulesByMass() {
 				IslandAllocation,
 				ExpectedAllocation,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{-1, 1, 0},
 			Aux:     []float64{2},
 			Mutable: false,
 			Linked:  false,
@@ -276,7 +283,7 @@ func registerRulesByMass() {
 			Name: "obl_to_propose_rule_if_some_are_given",
 			ReqVar: []VariableFieldName{
 				IslandsProposedRules,
-				RuleSelected,
+				PresidentRuleProposal,
 			},
 			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},
@@ -450,9 +457,8 @@ func registerRulesByMass() {
 			Name: "tax_decision",
 			ReqVar: []VariableFieldName{
 				TaxDecisionMade,
-				IslandTaxContribution,
 			},
-			Values:     []float64{1, 0, -1},
+			Values:     []float64{1, -1},
 			Aux:        []float64{0},
 			Mutable:    false,
 			Linked:     true,
@@ -463,9 +469,8 @@ func registerRulesByMass() {
 			Name: "allocation_decision",
 			ReqVar: []VariableFieldName{
 				AllocationMade,
-				IslandAllocation,
 			},
-			Values:     []float64{1, 0, -1},
+			Values:     []float64{1, -1},
 			Aux:        []float64{0},
 			Mutable:    false,
 			Linked:     true,
@@ -494,11 +499,12 @@ func registerRulesByMass() {
 				LinkedRule: rs.LinkedRule,
 			}
 		}
-		_, ruleError := RegisterNewRule(rs.Name, rs.ReqVar, *CoreMatrix, *AuxiliaryVector, rs.Mutable, ruleLink)
+		_, ruleError := RegisterNewRuleInternal(rs.Name, rs.ReqVar, *CoreMatrix, *AuxiliaryVector, availableRules, rs.Mutable, ruleLink)
 		if ruleError != nil {
 			panic(ruleError.Error())
 		}
 	}
+	return availableRules
 }
 
 // CompileRuleCase allows an agent to quickly build a RuleMatrix using the RawRuleSpecification

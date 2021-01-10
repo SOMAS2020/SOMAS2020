@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -11,6 +12,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/server/iigointernal"
 	"github.com/pkg/errors"
 )
 
@@ -31,14 +33,23 @@ type SOMASServer struct {
 	// We don't store this in gameState--gameState is shared to clients and should
 	// not contain pointers to other clients!
 	clientMap map[shared.ClientID]baseclient.Client
+
+	// prevent the same instance from being run twice
+	ran bool
 }
 
 // NewSOMASServer returns an instance of the main server we use.
-func NewSOMASServer(gameConfig config.Config) Server {
+func NewSOMASServer(gameConfig config.Config) (Server, error) {
+	registeredClients := make(map[shared.ClientID]baseclient.Client, len(baseclient.RegisteredClientFactories))
+	for id, factory := range baseclient.RegisteredClientFactories {
+		registeredClients[id] = factory()
+	}
+
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(
-		baseclient.RegisteredClients,
+		registeredClients,
 		gameConfig.InitialResources,
 	)
+
 	return createSOMASServer(clientInfos, clientMap, gameConfig)
 }
 
@@ -48,7 +59,7 @@ func createSOMASServer(
 	clientInfos map[shared.ClientID]gamestate.ClientInfo,
 	clientMap map[shared.ClientID]baseclient.Client,
 	gameConfig config.Config,
-) Server {
+) (Server, error) {
 	clientIDs := make([]shared.ClientID, 0, len(clientMap))
 	for k := range clientMap {
 		clientIDs = append(clientIDs, k)
@@ -59,24 +70,25 @@ func createSOMASServer(
 		forageHistory[t] = make([]foraging.ForagingReport, 0)
 	}
 
-	if gameConfig.IIGOConfig.StartWithRulesInPlay {
-		for ruleName := range rules.AvailableRules {
-			// Result is ignored since we know that the RulesInPlay cache cannot contain any of
-			// these rules (the only error case)
-			_ = rules.PullRuleIntoPlay(ruleName)
-		}
+	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
+	initRoles, err := getNRandClientIDsUniqueIfPossible(clientIDs, 3)
+	if err != nil {
+		return nil, errors.Errorf("Cannot initialise IIGO roles: %v", err)
 	}
 
 	server := &SOMASServer{
 		clientMap:  clientMap,
 		gameConfig: gameConfig,
 		gameState: gamestate.GameState{
-			Season:          1,
-			Turn:            1,
-			ClientInfos:     clientInfos,
-			Environment:     disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
-			ForagingHistory: forageHistory,
-			IIGOHistory:     map[uint][]shared.Accountability{},
+			Season:                  1,
+			Turn:                    1,
+			ClientInfos:             clientInfos,
+			Environment:             disasters.InitEnvironment(clientIDs, gameConfig.DisasterConfig),
+			ForagingHistory:         forageHistory,
+			IIGOHistory:             map[uint][]shared.Accountability{},
+			IIGOSanctionCache:       iigointernal.DefaultInitLocalSanctionCache(3),
+			IIGOHistoryCache:        iigointernal.DefaultInitLocalHistoryCache(3),
+			IIGORoleMonitoringCache: []shared.Accountability{},
 			IIGORolesBudget: map[shared.Role]shared.Resources{
 				shared.President: 0,
 				shared.Judge:     0,
@@ -87,12 +99,17 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
-			SpeakerID:          shared.Team1,
-			JudgeID:            shared.Team2,
-			PresidentID:        shared.Team3,
-			CommonPool:         gameConfig.InitialCommonPool,
-			CurrentRulesInPlay: rules.RulesInPlay,
+			SpeakerID:   initRoles[0],
+			JudgeID:     initRoles[1],
+			PresidentID: initRoles[2],
+			CommonPool:  gameConfig.InitialCommonPool,
+			RulesInfo: gamestate.RulesContext{
+				AvailableRules:     availableRules,
+				CurrentRulesInPlay: rulesInPlay,
+				VariableMap:        rules.InitialVarRegistration(),
+			},
 		},
+		ran: false,
 	}
 
 	server.gameState.DeerPopulation = foraging.CreateDeerPopulationModel(gameConfig.ForagingConfig.DeerHuntConfig, server.logf)
@@ -104,12 +121,17 @@ func createSOMASServer(
 		})
 	}
 
-	return server
+	return server, nil
 }
 
 // EntryPoint function that returns a list of historic gamestate.GameState until the
 // game ends.
 func (s *SOMASServer) EntryPoint() ([]gamestate.GameState, error) {
+	if s.ran {
+		return nil, errors.Errorf("Please create a new server instance to run a new simulation!")
+	}
+	s.ran = true
+
 	states := []gamestate.GameState{s.gameState.Copy()}
 
 	for !s.gameOver(s.gameConfig.MaxTurns, s.gameConfig.MaxSeasons) {
@@ -154,4 +176,23 @@ func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 // GetGameConfig returns ClientConfig which is a subset of the entire Config that is visible to clients.
 func (s ServerForClient) GetGameConfig() config.ClientConfig {
 	return s.server.gameConfig.GetClientConfig()
+}
+
+func getNRandClientIDsUniqueIfPossible(input []shared.ClientID, n int) ([]shared.ClientID, error) {
+	if len(input) == 0 {
+		return nil, errors.Errorf("RIP, empty list")
+	}
+
+	lst := make([]shared.ClientID, len(input))
+	copy(lst, input)
+
+	// make lst's length longer than n
+	for len(lst) < n {
+		lst = append(lst, lst...)
+	}
+
+	// shuffle lst
+	rand.Shuffle(len(lst), func(i, j int) { lst[i], lst[j] = lst[j], lst[i] })
+
+	return lst[:n], nil
 }

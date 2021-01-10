@@ -3,6 +3,7 @@ package iigointernal
 import (
 	"fmt"
 
+	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -16,13 +17,12 @@ type judiciary struct {
 	gameState             *gamestate.GameState
 	gameConf              *config.IIGOConfig
 	JudgeID               shared.ClientID
-	evaluationResults     map[shared.ClientID]roles.EvaluationReturn
+	evaluationResults     map[shared.ClientID]shared.EvaluationReturn
 	clientJudge           roles.Judge
-	sanctionRecord        map[shared.ClientID]roles.IIGOSanctionScore
-	sanctionThresholds    map[roles.IIGOSanctionTier]roles.IIGOSanctionScore
-	ruleViolationSeverity map[string]roles.IIGOSanctionScore
-	localSanctionCache    map[int][]roles.Sanction
-	localHistoryCache     map[int][]shared.Accountability
+	sanctionRecord        map[shared.ClientID]shared.IIGOSanctionsScore
+	sanctionThresholds    map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore
+	ruleViolationSeverity map[string]shared.IIGOSanctionsScore
+	iigoClients           map[shared.ClientID]baseclient.Client
 	monitoring            *monitor
 	logger                shared.Logger
 }
@@ -41,21 +41,11 @@ func (j *judiciary) loadSanctionConfig() {
 func (j *judiciary) syncWithGame(gameState *gamestate.GameState, gameConf *config.IIGOConfig) {
 	j.gameState = gameState
 	j.gameConf = gameConf
-	j.resetCaches()
-}
-
-func (j *judiciary) resetCaches() {
-	if len(j.localSanctionCache) != int(j.gameConf.SanctionCacheDepth) {
-		j.localSanctionCache = defaultInitLocalSanctionCache(int(j.gameConf.SanctionCacheDepth))
-	}
-	if len(j.localHistoryCache) != int(j.gameConf.HistoryCacheDepth) {
-		j.localHistoryCache = defaultInitLocalHistoryCache(int(j.gameConf.HistoryCacheDepth))
-	}
 }
 
 func (j *judiciary) broadcastSanctionConfig() {
-	broadcastGeneric(j.JudgeID, createBroadcastsForSanctionThresholds(j.sanctionThresholds))
-	broadcastGeneric(j.JudgeID, createBroadcastsForRuleViolationPenalties(j.ruleViolationSeverity))
+	broadcastGeneric(j.iigoClients, j.JudgeID, createBroadcastsForSanctionThresholds(j.sanctionThresholds), *j.gameState)
+	broadcastGeneric(j.iigoClients, j.JudgeID, createBroadcastsForRuleViolationPenalties(j.ruleViolationSeverity), *j.gameState)
 }
 
 // loadClientJudge checks client pointer is good and if not panics
@@ -93,49 +83,44 @@ func (j *judiciary) sendPresidentSalary() error {
 
 // inspectHistory checks all actions that happened in the last turn and audits them.
 // This can be overridden by clients.
-func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]roles.EvaluationReturn, bool) {
+func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[shared.ClientID]shared.EvaluationReturn, bool) {
 	if !CheckEnoughInCommonPool(j.gameConf.InspectHistoryActionCost, j.gameState) {
 		return nil, false
 	}
 	finalResults := getBaseEvalResults(shared.TeamIDs)
-	tempResults, success := j.clientJudge.InspectHistory(iigoHistory, 0)
+	tempResults, actionTakenByClient := j.clientJudge.InspectHistory(iigoHistory, 0)
 
 	//Log rule: "Judge has the obligation to inspect history"
 	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
-	valuesToCache := [][]float64{{boolToFloat(success)}}
+	valuesToCache := [][]float64{{boolToFloat(actionTakenByClient)}}
 	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 
-	if success {
+	if actionTakenByClient {
 		//Quit if taking resources goes wrong
 		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
 			return nil, false
 		}
 	}
 
-	//Quit early if CP does not have enough resources for historical Retribution
-	if success && !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
-		finalResults = mergeEvaluationReturn(tempResults, finalResults)
-		entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
-		j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
-		j.evaluationResults = finalResults
-		return j.evaluationResults, success
+	rulesInPlay := j.gameState.RulesInfo.CurrentRulesInPlay
+	if !CheckEnoughInCommonPool(j.gameConf.HistoricalRetributionActionCost, j.gameState) {
+		if actionTakenByClient {
+			finalResults = mergeEvaluationReturn(tempResults, finalResults)
+			entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rulesInPlay, j.gameState.RulesInfo.VariableMap)
+			j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
+			j.evaluationResults = finalResults
+			return j.evaluationResults, actionTakenByClient
+		}
+		return nil, false
 	}
+
+	//Quit early if CP does not have enough resources for historical Retribution
 
 	//Perform historical checking
 	decisionOfHistoricalRetribution := j.clientJudge.HistoricalRetributionEnabled()
 	if decisionOfHistoricalRetribution {
-		if !j.incurServiceCharge(j.gameConf.InspectHistoryActionCost) {
-			//Quit if taking resources goes wrong
-			if success {
-				finalResults = mergeEvaluationReturn(tempResults, finalResults)
-				entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
-				j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
-				j.evaluationResults = finalResults
-				return j.evaluationResults, success
-			}
-			return nil, false
-		}
-		for turnsAgo, v := range j.localHistoryCache {
+		j.incurServiceCharge(j.gameConf.InspectHistoryActionCost)
+		for turnsAgo, v := range j.gameState.IIGOHistoryCache {
 			res, rsuccess := j.clientJudge.InspectHistory(v, turnsAgo+1)
 			if rsuccess {
 				for key, accounts := range res {
@@ -146,7 +131,7 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 				}
 			}
 		}
-		j.localHistoryCache = defaultInitLocalHistoryCache(int(j.gameConf.HistoryCacheDepth))
+		j.gameState.IIGOHistoryCache = DefaultInitLocalHistoryCache(int(j.gameConf.HistoryCacheDepth))
 	}
 
 	//Log rule: "Judge is not allowed to perform historical retribution"
@@ -155,10 +140,10 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 	j.monitoring.addToCache(j.JudgeID, variablesToCache, valuesToCache)
 
 	finalResults = mergeEvaluationReturn(tempResults, finalResults)
-	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rules.RulesInPlay, rules.VariableMap)
+	entryForHistoryCache := cullCheckedRules(iigoHistory, finalResults, rulesInPlay, j.gameState.RulesInfo.VariableMap)
 	j.cycleHistoryCache(entryForHistoryCache, int(j.gameConf.HistoryCacheDepth))
 	j.evaluationResults = finalResults
-	return j.evaluationResults, success
+	return j.evaluationResults, actionTakenByClient
 }
 
 // searchForRule searches for a given rule in the RuleMatrix
@@ -191,9 +176,9 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		}
 		election.ProposeElection(shared.President, electionSettings.VotingMethod)
 		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
-		election.Vote(iigoClients)
+		election.Vote(j.iigoClients)
 		j.gameState.IIGOTurnsInPower[shared.President] = 0
-		electedPresident := election.CloseBallot(iigoClients)
+		electedPresident := election.CloseBallot(j.iigoClients)
 		appointedPresident = j.clientJudge.DecideNextPresident(electedPresident)
 
 		//Log rule: Must appoint elected role
@@ -205,6 +190,7 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 	} else {
 		appointedPresident = currentPresident
 	}
+	j.gameState.IIGOElection = append(j.gameState.IIGOElection, election.GetVotingInfo())
 	return appointedPresident, nil
 }
 
@@ -225,7 +211,7 @@ func (j *judiciary) incurServiceCharge(cost shared.Resources) bool {
 // This function relies upon (in part) the client provided RuleViolationSeverity
 func (j *judiciary) updateSanctionScore() {
 	//Clearing sanction map
-	j.sanctionRecord = map[shared.ClientID]roles.IIGOSanctionScore{}
+	j.sanctionRecord = map[shared.ClientID]shared.IIGOSanctionsScore{}
 	islandTransgressions := map[shared.ClientID][]string{}
 	for k, v := range j.evaluationResults {
 		islandTransgressions[k] = unpackSingleIslandTransgressions(v)
@@ -236,12 +222,12 @@ func (j *judiciary) updateSanctionScore() {
 // scoreIslandTransgressions uses the client provided ruleViolationSeverity map to score island transgressions
 func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID][]string) {
 	for islandID, rulesBroken := range transgressions {
-		totalIslandTurnScore := roles.IIGOSanctionScore(0)
+		totalIslandTurnScore := shared.IIGOSanctionsScore(0)
 		for _, ruleBroken := range rulesBroken {
 			if score, ok := j.ruleViolationSeverity[ruleBroken]; ok {
 				totalIslandTurnScore += score
 			} else {
-				totalIslandTurnScore += roles.IIGOSanctionScore(1)
+				totalIslandTurnScore += j.gameConf.DefaultSanctionScore
 			}
 			j.Logf("Rule: %v, broken by: %v", ruleBroken, islandID)
 		}
@@ -252,74 +238,74 @@ func (j *judiciary) scoreIslandTransgressions(transgressions map[shared.ClientID
 // applySanctions uses RulesInPlay and it's versions of the sanction rules to work out how much to sanction an island
 func (j *judiciary) applySanctions() {
 	j.cycleSanctionCache(int(j.gameConf.SanctionCacheDepth))
-	var currentSanctions []roles.Sanction
+	var currentSanctions []shared.Sanction
 	for islandID, sanctionScore := range j.sanctionRecord {
 		islandSanctionTier := getIslandSanctionTier(sanctionScore, j.sanctionThresholds)
-		sanctionEntry := roles.Sanction{
+		sanctionEntry := shared.Sanction{
 			ClientID:     islandID,
 			SanctionTier: islandSanctionTier,
 			TurnsLeft:    int(j.gameConf.SanctionLength),
 		}
 		currentSanctions = append(currentSanctions, sanctionEntry)
-		broadcastToAllIslands(j.JudgeID, createBroadcastForSanction(islandID, islandSanctionTier))
+		broadcastToAllIslands(j.iigoClients, j.JudgeID, createBroadcastForSanction(islandID, islandSanctionTier), *j.gameState)
 	}
-	j.localSanctionCache[0] = currentSanctions
+	j.gameState.IIGOSanctionCache[0] = currentSanctions
 }
 
 // sanctionEvaluate allows the clients to effectively pardon islands, levy and communicate sanctions
 func (j *judiciary) sanctionEvaluate(reportedIslandResources map[shared.ClientID]shared.ResourcesReport) {
-	pardons := j.clientJudge.GetPardonedIslands(j.localSanctionCache)
-	pardonsValid, newSanctionMap, communications := implementPardons(j.localSanctionCache, pardons, shared.TeamIDs)
+	pardons := j.clientJudge.GetPardonedIslands(j.gameState.IIGOSanctionCache)
+	pardonsValid, newSanctionMap, communications := implementPardons(j.gameState.IIGOSanctionCache, pardons, shared.TeamIDs)
 	if pardonsValid {
-		broadcastPardonCommunications(j.JudgeID, communications)
+		broadcastPardonCommunications(j.iigoClients, j.JudgeID, communications, *j.gameState)
 	}
-	j.localSanctionCache = newSanctionMap
-	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.localSanctionCache, reportedIslandResources, rules.RulesInPlay, j.gameConf.AssumedResourcesNoReport)
-	SanctionAmountMapExport = totalSanctionPerAgent
+	j.gameState.IIGOSanctionCache = newSanctionMap
+	totalSanctionPerAgent := runEvaluationRulesOnSanctions(j.gameState.IIGOSanctionCache, reportedIslandResources, j.gameState.RulesInfo.CurrentRulesInPlay, j.gameConf.AssumedResourcesNoReport)
+	j.gameState.IIGOSanctionMap = totalSanctionPerAgent
 	for clientID, sanctionedResources := range totalSanctionPerAgent {
-		communicateWithIslands(j.JudgeID, clientID, map[shared.CommunicationFieldName]shared.CommunicationContent{
+		communicateWithIslands(j.iigoClients, clientID, j.JudgeID, map[shared.CommunicationFieldName]shared.CommunicationContent{
 			shared.SanctionAmount: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(sanctionedResources),
 			},
 		})
 	}
-	j.localSanctionCache = decrementSanctionTime(j.localSanctionCache)
+	j.gameState.IIGOSanctionCache = decrementSanctionTime(j.gameState.IIGOSanctionCache)
 }
 
 // cycleSanctionCache rolls the sanction cache one turn forward (effectively dropping any sanctions longer than the depth)
 func (j *judiciary) cycleSanctionCache(sanctionCacheDepth int) {
-	oldMap := j.localSanctionCache
+	oldMap := j.gameState.IIGOSanctionCache
 	delete(oldMap, sanctionCacheDepth-1)
-	newMapReturn := defaultInitLocalSanctionCache(sanctionCacheDepth)
+	newMapReturn := DefaultInitLocalSanctionCache(sanctionCacheDepth)
 	for i := 0; i < sanctionCacheDepth-1; i++ {
 		newMapReturn[i+1] = oldMap[i]
 	}
-	newMapReturn[0] = []roles.Sanction{}
-	j.localSanctionCache = newMapReturn
+	newMapReturn[0] = []shared.Sanction{}
+	j.gameState.IIGOSanctionCache = newMapReturn
 }
 
 // cycleHistoryCache rolls the history cache (for retributive justice) forward
 func (j *judiciary) cycleHistoryCache(iigoHistory []shared.Accountability, historyCacheDepth int) {
-	oldMap := j.localHistoryCache
+	oldMap := j.gameState.IIGOHistoryCache
 	delete(oldMap, historyCacheDepth-1)
-	newMapReturn := defaultInitLocalHistoryCache(historyCacheDepth)
+	newMapReturn := DefaultInitLocalHistoryCache(historyCacheDepth)
 	for i := 0; i < historyCacheDepth-1; i++ {
 		newMapReturn[i+1] = oldMap[i]
 	}
 	newMapReturn[0] = iigoHistory
-	j.localHistoryCache = newMapReturn
+	j.gameState.IIGOHistoryCache = newMapReturn
 }
 
 // Helper functions //
 
-func broadcastGeneric(judgeID shared.ClientID, itemsForbroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func broadcastGeneric(clients map[shared.ClientID]baseclient.Client, judgeID shared.ClientID, itemsForbroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent, state gamestate.GameState) {
 	for _, item := range itemsForbroadcast {
-		broadcastToAllIslands(judgeID, item)
+		broadcastToAllIslands(clients, judgeID, item, state)
 	}
 }
 
-func createBroadcastForSanction(clientID shared.ClientID, sanctionTier roles.IIGOSanctionTier) map[shared.CommunicationFieldName]shared.CommunicationContent {
+func createBroadcastForSanction(clientID shared.ClientID, sanctionTier shared.IIGOSanctionsTier) map[shared.CommunicationFieldName]shared.CommunicationContent {
 	return map[shared.CommunicationFieldName]shared.CommunicationContent{
 		shared.SanctionClientID: {
 			T:           shared.CommunicationInt,
@@ -332,7 +318,7 @@ func createBroadcastForSanction(clientID shared.ClientID, sanctionTier roles.IIG
 	}
 }
 
-func createBroadcastsForSanctionThresholds(thresholds map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
+func createBroadcastsForSanctionThresholds(thresholds map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
 	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
 	for tier, score := range thresholds {
 		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
@@ -340,7 +326,7 @@ func createBroadcastsForSanctionThresholds(thresholds map[roles.IIGOSanctionTier
 				T:           shared.CommunicationInt,
 				IntegerData: int(tier),
 			},
-			shared.IIGOSanctionScore: {
+			shared.RuleSanctionPenalty: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(score),
 			},
@@ -349,7 +335,7 @@ func createBroadcastsForSanctionThresholds(thresholds map[roles.IIGOSanctionTier
 	return outputBroadcast
 }
 
-func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSanctionScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
+func createBroadcastsForRuleViolationPenalties(penalties map[string]shared.IIGOSanctionsScore) []map[shared.CommunicationFieldName]shared.CommunicationContent {
 	var outputBroadcast []map[shared.CommunicationFieldName]shared.CommunicationContent
 	for ruleName, score := range penalties {
 		outputBroadcast = append(outputBroadcast, map[shared.CommunicationFieldName]shared.CommunicationContent{
@@ -357,7 +343,7 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSa
 				T:        shared.CommunicationString,
 				TextData: ruleName,
 			},
-			shared.IIGOSanctionScore: {
+			shared.RuleSanctionPenalty: {
 				T:           shared.CommunicationInt,
 				IntegerData: int(score),
 			},
@@ -367,7 +353,7 @@ func createBroadcastsForRuleViolationPenalties(penalties map[string]roles.IIGOSa
 }
 
 // runEvaluationRulesOnSanctions uses the custom sanction evaluator calculate how much each island should be paying in sanctions
-func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, reportedIslandResources map[shared.ClientID]shared.ResourcesReport, rulesCache map[string]rules.RuleMatrix, maxNoReport shared.Resources) map[shared.ClientID]shared.Resources {
+func runEvaluationRulesOnSanctions(localSanctionCache map[int][]shared.Sanction, reportedIslandResources map[shared.ClientID]shared.ResourcesReport, rulesCache map[string]rules.RuleMatrix, maxNoReport shared.Resources) map[shared.ClientID]shared.Resources {
 	totalSanctionPerAgent := map[shared.ClientID]shared.Resources{}
 	for _, sanctionList := range localSanctionCache {
 		for _, sanction := range sanctionList {
@@ -398,15 +384,15 @@ func runEvaluationRulesOnSanctions(localSanctionCache map[int][]roles.Sanction, 
 	return totalSanctionPerAgent
 }
 
-func broadcastPardonCommunications(judgeID shared.ClientID, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func broadcastPardonCommunications(clients map[shared.ClientID]baseclient.Client, judgeID shared.ClientID, communications map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent, state gamestate.GameState) {
 	for _, communicationList := range communications {
 		for _, v := range communicationList {
-			broadcastToAllIslands(judgeID, v)
+			broadcastToAllIslands(clients, judgeID, v, state)
 		}
 	}
 }
 
-func decrementSanctionTime(sanctions map[int][]roles.Sanction) (updatedSanctions map[int][]roles.Sanction) {
+func decrementSanctionTime(sanctions map[int][]shared.Sanction) (updatedSanctions map[int][]shared.Sanction) {
 	for k, v := range sanctions {
 		for index, sanction := range v {
 			sanctions[k][index].TurnsLeft = sanction.TurnsLeft - 1
@@ -416,18 +402,18 @@ func decrementSanctionTime(sanctions map[int][]roles.Sanction) (updatedSanctions
 }
 
 // getDefaultSanctionThresholds provides default thresholds for sanctions
-func getDefaultSanctionThresholds() map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
-	return map[roles.IIGOSanctionTier]roles.IIGOSanctionScore{
-		roles.SanctionTier1: 1,
-		roles.SanctionTier2: 5,
-		roles.SanctionTier3: 10,
-		roles.SanctionTier4: 20,
-		roles.SanctionTier5: 30,
+func getDefaultSanctionThresholds() map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore {
+	return map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore{
+		shared.SanctionTier1: 1,
+		shared.SanctionTier2: 5,
+		shared.SanctionTier3: 10,
+		shared.SanctionTier4: 20,
+		shared.SanctionTier5: 30,
 	}
 }
 
 // softMergeSanctionThresholds merges the default sanction thresholds with a (preferred) client version
-func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) map[roles.IIGOSanctionTier]roles.IIGOSanctionScore {
+func softMergeSanctionThresholds(clientSanctionMap map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore) map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore {
 	outputMap := getDefaultSanctionThresholds()
 	for k := range outputMap {
 		if clientVal, ok := clientSanctionMap[k]; ok {
@@ -441,15 +427,15 @@ func softMergeSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]ro
 	}
 }
 
-func checkMonotonicityOfSanctionThresholds(clientSanctionMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) bool {
-	sanctionsInOrder := []roles.IIGOSanctionTier{
-		roles.SanctionTier1,
-		roles.SanctionTier2,
-		roles.SanctionTier3,
-		roles.SanctionTier4,
-		roles.SanctionTier5,
+func checkMonotonicityOfSanctionThresholds(clientSanctionMap map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore) bool {
+	sanctionsInOrder := []shared.IIGOSanctionsTier{
+		shared.SanctionTier1,
+		shared.SanctionTier2,
+		shared.SanctionTier3,
+		shared.SanctionTier4,
+		shared.SanctionTier5,
 	}
-	hold := roles.IIGOSanctionScore(0)
+	hold := shared.IIGOSanctionsScore(0)
 	for _, v := range sanctionsInOrder {
 		if clientSanctionMap[v] < hold {
 			return false
@@ -460,7 +446,7 @@ func checkMonotonicityOfSanctionThresholds(clientSanctionMap map[roles.IIGOSanct
 }
 
 // unpackSingleIslandTransgressions fetches the rule names of any broken rules as per EvaluationReturns
-func unpackSingleIslandTransgressions(evaluationReturn roles.EvaluationReturn) []string {
+func unpackSingleIslandTransgressions(evaluationReturn shared.EvaluationReturn) []string {
 	transgressions := []string{}
 	for i, v := range evaluationReturn.Rules {
 		if !evaluationReturn.Evaluations[i] {
@@ -471,43 +457,34 @@ func unpackSingleIslandTransgressions(evaluationReturn roles.EvaluationReturn) [
 }
 
 // getIslandSanctionTier if statement based evaluator for which sanction tier a particular score is in
-func getIslandSanctionTier(islandScore roles.IIGOSanctionScore, scoreMap map[roles.IIGOSanctionTier]roles.IIGOSanctionScore) roles.IIGOSanctionTier {
-	if islandScore < scoreMap[roles.SanctionTier1] {
-		return roles.NoSanction
-	} else if islandScore < scoreMap[roles.SanctionTier2] {
-		return roles.SanctionTier1
-	} else if islandScore < scoreMap[roles.SanctionTier3] {
-		return roles.SanctionTier2
-	} else if islandScore < scoreMap[roles.SanctionTier4] {
-		return roles.SanctionTier3
-	} else if islandScore < scoreMap[roles.SanctionTier5] {
-		return roles.SanctionTier4
+func getIslandSanctionTier(islandScore shared.IIGOSanctionsScore, scoreMap map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore) shared.IIGOSanctionsTier {
+	if islandScore < scoreMap[shared.SanctionTier1] {
+		return shared.NoSanction
+	} else if islandScore < scoreMap[shared.SanctionTier2] {
+		return shared.SanctionTier1
+	} else if islandScore < scoreMap[shared.SanctionTier3] {
+		return shared.SanctionTier2
+	} else if islandScore < scoreMap[shared.SanctionTier4] {
+		return shared.SanctionTier3
+	} else if islandScore < scoreMap[shared.SanctionTier5] {
+		return shared.SanctionTier4
 	} else {
-		return roles.SanctionTier5
+		return shared.SanctionTier5
 	}
 }
 
 // getTierSanctionMap basic mapping between sanction tier and rule that governs it
-func getTierSanctionMap() map[roles.IIGOSanctionTier]string {
-	return map[roles.IIGOSanctionTier]string{
-		roles.SanctionTier1: "iigo_economic_sanction_1",
-		roles.SanctionTier2: "iigo_economic_sanction_2",
-		roles.SanctionTier3: "iigo_economic_sanction_3",
-		roles.SanctionTier4: "iigo_economic_sanction_4",
-		roles.SanctionTier5: "iigo_economic_sanction_5",
+func getTierSanctionMap() map[shared.IIGOSanctionsTier]string {
+	return map[shared.IIGOSanctionsTier]string{
+		shared.SanctionTier1: "iigo_economic_sanction_1",
+		shared.SanctionTier2: "iigo_economic_sanction_2",
+		shared.SanctionTier3: "iigo_economic_sanction_3",
+		shared.SanctionTier4: "iigo_economic_sanction_4",
+		shared.SanctionTier5: "iigo_economic_sanction_5",
 	}
 }
 
-// defaultInitLocalSanctionCache generates a blank sanction cache
-func defaultInitLocalSanctionCache(depth int) map[int][]roles.Sanction {
-	returnMap := map[int][]roles.Sanction{}
-	for i := 0; i < depth; i++ {
-		returnMap[i] = []roles.Sanction{}
-	}
-	return returnMap
-}
-
-func implementPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool, allTeamIds [len(shared.TeamIDs)]shared.ClientID) (bool, map[int][]roles.Sanction, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func implementPardons(sanctionCache map[int][]shared.Sanction, pardons map[int][]bool, allTeamIds [len(shared.TeamIDs)]shared.ClientID) (bool, map[int][]shared.Sanction, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	if validatePardons(sanctionCache, pardons) {
 		finalSanctionCache := sanctionCache
 		communicationsAboutPardons := generateEmptyCommunicationsMap(allTeamIds)
@@ -521,15 +498,6 @@ func implementPardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]
 	return false, sanctionCache, nil
 }
 
-// defaultInitLocalHistoryCache generates a blank history cache
-func defaultInitLocalHistoryCache(depth int) map[int][]shared.Accountability {
-	returnMap := map[int][]shared.Accountability{}
-	for i := 0; i < depth; i++ {
-		returnMap[i] = []shared.Accountability{}
-	}
-	return returnMap
-}
-
 func generateEmptyCommunicationsMap(allTeamIds [len(shared.TeamIDs)]shared.ClientID) map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
 	commsMap := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
 	for _, clientID := range allTeamIds {
@@ -538,7 +506,7 @@ func generateEmptyCommunicationsMap(allTeamIds [len(shared.TeamIDs)]shared.Clien
 	return commsMap
 }
 
-func knitSanctions(sanctionCache map[int][]roles.Sanction, loc int, newSanctions []roles.Sanction) map[int][]roles.Sanction {
+func knitSanctions(sanctionCache map[int][]shared.Sanction, loc int, newSanctions []shared.Sanction) map[int][]shared.Sanction {
 	sanctionCache[loc] = newSanctions
 	return sanctionCache
 }
@@ -552,8 +520,8 @@ func knitPardonCommunications(originalCommunications map[shared.ClientID][]map[s
 	return originalCommunications
 }
 
-func processSingleTimeStep(sanctions []roles.Sanction, pardons []bool, allTeamIds [6]shared.ClientID) (sanctionsAfterPardons []roles.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
-	finalSanctions := []roles.Sanction{}
+func processSingleTimeStep(sanctions []shared.Sanction, pardons []bool, allTeamIds [6]shared.ClientID) (sanctionsAfterPardons []shared.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	finalSanctions := []shared.Sanction{}
 	finalComms := generateEmptyCommunicationsMap(allTeamIds)
 	for entry, pardoned := range pardons {
 		if pardoned {
@@ -565,7 +533,7 @@ func processSingleTimeStep(sanctions []roles.Sanction, pardons []bool, allTeamId
 	return finalSanctions, finalComms
 }
 
-func generateCommunication(clientID shared.ClientID, pardonTier roles.IIGOSanctionTier) map[shared.CommunicationFieldName]shared.CommunicationContent {
+func generateCommunication(clientID shared.ClientID, pardonTier shared.IIGOSanctionsTier) map[shared.CommunicationFieldName]shared.CommunicationContent {
 	return map[shared.CommunicationFieldName]shared.CommunicationContent{
 		shared.PardonClientID: {
 			T:           shared.CommunicationInt,
@@ -578,11 +546,11 @@ func generateCommunication(clientID shared.ClientID, pardonTier roles.IIGOSancti
 	}
 }
 
-func validatePardons(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) bool {
+func validatePardons(sanctionCache map[int][]shared.Sanction, pardons map[int][]bool) bool {
 	return checkKeys(sanctionCache, pardons) && checkSizes(sanctionCache, pardons)
 }
 
-func checkKeys(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) bool {
+func checkKeys(sanctionCache map[int][]shared.Sanction, pardons map[int][]bool) bool {
 	for k := range sanctionCache {
 		if _, ok := pardons[k]; !ok {
 			return false
@@ -591,7 +559,7 @@ func checkKeys(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) b
 	return true
 }
 
-func checkSizes(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) bool {
+func checkSizes(sanctionCache map[int][]shared.Sanction, pardons map[int][]bool) bool {
 	for k := range sanctionCache {
 		if len(sanctionCache[k]) != len(pardons[k]) {
 			return false
@@ -600,10 +568,10 @@ func checkSizes(sanctionCache map[int][]roles.Sanction, pardons map[int][]bool) 
 	return true
 }
 
-func getBaseEvalResults(teamIDs [6]shared.ClientID) map[shared.ClientID]roles.EvaluationReturn {
-	baseResults := map[shared.ClientID]roles.EvaluationReturn{}
+func getBaseEvalResults(teamIDs [6]shared.ClientID) map[shared.ClientID]shared.EvaluationReturn {
+	baseResults := map[shared.ClientID]shared.EvaluationReturn{}
 	for _, teamID := range teamIDs {
-		baseResults[teamID] = roles.EvaluationReturn{
+		baseResults[teamID] = shared.EvaluationReturn{
 			Rules:       []rules.RuleMatrix{},
 			Evaluations: []bool{},
 		}
@@ -612,7 +580,7 @@ func getBaseEvalResults(teamIDs [6]shared.ClientID) map[shared.ClientID]roles.Ev
 }
 
 // cullCheckedRules removes any entries in the history that have been evaluated in evalResults (for historical retribution)
-func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[shared.ClientID]roles.EvaluationReturn, rulesCache map[string]rules.RuleMatrix, variableCache map[rules.VariableFieldName]rules.VariableValuePair) []shared.Accountability {
+func cullCheckedRules(iigoHistory []shared.Accountability, evalResults map[shared.ClientID]shared.EvaluationReturn, rulesCache map[string]rules.RuleMatrix, variableCache map[rules.VariableFieldName]rules.VariableValuePair) []shared.Accountability {
 	reducedAccountability := []shared.Accountability{}
 	for _, v := range iigoHistory {
 		pairsAffected := v.Pairs
@@ -647,7 +615,7 @@ func streamlineRulesAffected(input []string) []string {
 	return returnArray
 }
 
-func searchEvalReturnForRuleName(name string, evaluationReturn roles.EvaluationReturn) bool {
+func searchEvalReturnForRuleName(name string, evaluationReturn shared.EvaluationReturn) bool {
 	rulesAffected := evaluationReturn.Rules
 	for _, v := range rulesAffected {
 		if v.RuleName == name {
@@ -658,7 +626,7 @@ func searchEvalReturnForRuleName(name string, evaluationReturn roles.EvaluationR
 }
 
 // mergeEvaluationReturn takes two evaluation results and merges them to provide a unified set
-func mergeEvaluationReturn(set1 map[shared.ClientID]roles.EvaluationReturn, set2 map[shared.ClientID]roles.EvaluationReturn) map[shared.ClientID]roles.EvaluationReturn {
+func mergeEvaluationReturn(set1 map[shared.ClientID]shared.EvaluationReturn, set2 map[shared.ClientID]shared.EvaluationReturn) map[shared.ClientID]shared.EvaluationReturn {
 	for key, val := range set1 {
 		if set2Val, ok := set2[key]; ok {
 			defRules := set2Val.Rules
@@ -669,7 +637,7 @@ func mergeEvaluationReturn(set1 map[shared.ClientID]roles.EvaluationReturn, set2
 			copy(finalEvals, defEvals)
 			finalRules = append(finalRules, val.Rules...)
 			finalEvals = append(finalEvals, val.Evaluations...)
-			resolved := roles.EvaluationReturn{
+			resolved := shared.EvaluationReturn{
 				Rules:       finalRules,
 				Evaluations: finalEvals,
 			}

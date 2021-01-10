@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -60,6 +61,7 @@ func RunGame(this js.Value, args []js.Value) (ret interface{}) {
 		}
 	}()
 	timeStart := time.Now()
+	rand.Seed(timeStart.UTC().UnixNano())
 	gameConfig, err := getConfigFromArgs(args)
 	if err != nil {
 		return js.ValueOf(map[string]interface{}{
@@ -67,7 +69,12 @@ func RunGame(this js.Value, args []js.Value) (ret interface{}) {
 		})
 	}
 
-	s := server.NewSOMASServer(gameConfig)
+	s, err := server.NewSOMASServer(gameConfig)
+	if err != nil {
+		return js.ValueOf(map[string]interface{}{
+			"error": convertError(errors.Errorf("Failed to initialise SOMASServer: %v", err)),
+		})
+	}
 
 	var o output
 	var outputJSON string

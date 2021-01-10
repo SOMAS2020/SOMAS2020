@@ -369,6 +369,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 			shared.Speaker:   10,
 			shared.Judge:     10,
 		},
+		IIGORoleMonitoringCache: []shared.Accountability{},
 	}
 	cases := []struct {
 		name       string
@@ -383,7 +384,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: ""}},
 		},
@@ -395,7 +398,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "test"}},
 		},
@@ -407,7 +412,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
@@ -419,7 +426,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
@@ -431,7 +440,9 @@ func TestGetRuleForSpeaker(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameState:       &fakeGameState,
 				gameConf:        &config.IIGOConfig{},
-				monitoring:      &monitor{},
+				monitoring: &monitor{
+					gameState: &fakeGameState,
+				},
 			},
 			expected: []rules.RuleMatrix{{RuleName: "Somas"}, {RuleName: "2020"}, {RuleName: "Internal"}, {RuleName: "Server"}, {RuleName: "Roles"}, {RuleName: "President"}},
 		},
@@ -473,6 +484,7 @@ func TestGetRuleForSpeaker(t *testing.T) {
 }
 
 func TestGetAllocationRequests(t *testing.T) {
+	fakeClientMap := map[shared.ClientID]baseclient.Client{}
 	cases := []struct {
 		name       string
 		bPresident executive // base
@@ -492,6 +504,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team6: 30,
 				},
 				clientPresident: &baseclient.BasePresident{},
+				iigoClients:     fakeClientMap,
 			},
 			input: 100,
 			expected: map[shared.ClientID]shared.Resources{
@@ -516,6 +529,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team6: 30,
 				},
 				clientPresident: &baseclient.BasePresident{},
+				iigoClients:     fakeClientMap,
 			},
 			input: 150,
 			expected: map[shared.ClientID]shared.Resources{
@@ -539,6 +553,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team6: 30,
 				},
 				clientPresident: &baseclient.BasePresident{},
+				iigoClients:     fakeClientMap,
 			},
 			input: 100,
 			expected: map[shared.ClientID]shared.Resources{
@@ -562,6 +577,7 @@ func TestGetAllocationRequests(t *testing.T) {
 					shared.Team5: 25,
 					shared.Team6: 30},
 				clientPresident: &baseclient.BasePresident{},
+				iigoClients:     fakeClientMap,
 			},
 			input: 150,
 			expected: map[shared.ClientID]shared.Resources{
@@ -593,6 +609,7 @@ func TestGetAllocationRequests(t *testing.T) {
 }
 
 func TestReplyAllocationRequest(t *testing.T) {
+	fakeClientMap := map[shared.ClientID]baseclient.Client{}
 	var logging shared.Logger = func(format string, a ...interface{}) {}
 	cases := []struct {
 		name           string
@@ -608,6 +625,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
 				logger:          logging,
+				iigoClients:     fakeClientMap,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 5,
@@ -634,6 +652,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
 				logger:          logging,
+				iigoClients:     fakeClientMap,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 5,
@@ -660,6 +679,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				clientPresident: &baseclient.BasePresident{},
 				gameConf:        &config.IIGOConfig{},
 				logger:          logging,
+				iigoClients:     fakeClientMap,
 			},
 			clientRequests: map[shared.ClientID]shared.Resources{
 				shared.Team1: 0,
@@ -681,8 +701,16 @@ func TestReplyAllocationRequest(t *testing.T) {
 		},
 	}
 
-	rules.PullRuleIntoPlay("allocation_decision")
-	rules.PullRuleIntoPlay("check_allocation_rule")
+	rulesInPlay := map[string]rules.RuleMatrix{}
+
+	err := rules.PullRuleIntoPlayInternal("allocation_decision", generateRuleStore(), rulesInPlay)
+	if err != nil {
+		t.Errorf("Unexpected Error when pulling rule into play: %v", err)
+	}
+	err = rules.PullRuleIntoPlayInternal("check_allocation_rule", generateRuleStore(), rulesInPlay)
+	if err != nil {
+		t.Errorf("Unexpected Error when pulling rule into play: %v", err)
+	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -701,6 +729,9 @@ func TestReplyAllocationRequest(t *testing.T) {
 			}
 			fakeServer := fakeServerHandle{
 				PresidentID: tc.bPresident.PresidentID,
+				RuleInfo: gamestate.RulesContext{
+					CurrentRulesInPlay: rulesInPlay,
+				},
 			}
 
 			aliveID := []shared.ClientID{}
@@ -711,8 +742,7 @@ func TestReplyAllocationRequest(t *testing.T) {
 				newClient.Initialise(fakeServer)
 				fakeClientMap[clientID] = newClient
 			}
-
-			setIIGOClients(&fakeClientMap)
+			tc.bPresident.iigoClients = fakeClientMap
 			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
 			tc.bPresident.setAllocationRequest(tc.clientRequests)
 			tc.bPresident.replyAllocationRequest(tc.commonPool)
@@ -843,6 +873,7 @@ func expectedTax(r shared.ResourcesReport) shared.Resources {
 }
 
 func TestBroadcastTaxation(t *testing.T) {
+	rulesInPlay := map[string]rules.RuleMatrix{}
 	var logging shared.Logger = func(format string, a ...interface{}) {}
 	cases := []struct {
 		name          string
@@ -856,6 +887,11 @@ func TestBroadcastTaxation(t *testing.T) {
 				PresidentID:     shared.Team4,
 				clientPresident: &baseclient.BasePresident{},
 				logger:          logging,
+				gameState: &gamestate.GameState{
+					RulesInfo: gamestate.RulesContext{
+						CurrentRulesInPlay: rulesInPlay,
+					},
+				},
 			},
 			clientReports: map[shared.ClientID]shared.ResourcesReport{
 				shared.Team1: {ReportedAmount: 30, Reported: true},
@@ -873,6 +909,11 @@ func TestBroadcastTaxation(t *testing.T) {
 				PresidentID:     shared.Team1,
 				clientPresident: &baseclient.BasePresident{},
 				logger:          logging,
+				gameState: &gamestate.GameState{
+					RulesInfo: gamestate.RulesContext{
+						CurrentRulesInPlay: rulesInPlay,
+					},
+				},
 			},
 			clientReports: map[shared.ClientID]shared.ResourcesReport{
 				shared.Team1: {ReportedAmount: 30, Reported: true},
@@ -886,8 +927,14 @@ func TestBroadcastTaxation(t *testing.T) {
 		},
 	}
 
-	rules.PullRuleIntoPlay("tax_decision")
-	rules.PullRuleIntoPlay("check_taxation_rule")
+	err := rules.PullRuleIntoPlayInternal("tax_decision", generateRuleStore(), rulesInPlay)
+	if err != nil {
+		t.Errorf("Unexpected Error when pulling rule into play: %v", err)
+	}
+	err = rules.PullRuleIntoPlayInternal("check_taxation_rule", generateRuleStore(), rulesInPlay)
+	if err != nil {
+		t.Errorf("Unexpected Error when pulling rule into play: %v", err)
+	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -907,6 +954,9 @@ func TestBroadcastTaxation(t *testing.T) {
 			}
 			fakeServer := fakeServerHandle{
 				PresidentID: tc.bPresident.PresidentID,
+				RuleInfo: gamestate.RulesContext{
+					CurrentRulesInPlay: rulesInPlay,
+				},
 			}
 
 			aliveID := []shared.ClientID{}
@@ -918,9 +968,8 @@ func TestBroadcastTaxation(t *testing.T) {
 				fakeClientMap[clientID] = newClient
 			}
 
-			setIIGOClients(&fakeClientMap)
+			tc.bPresident.iigoClients = fakeClientMap
 			tc.bPresident.syncWithGame(&fakeGameState, &fakeGameConfig)
-
 			tc.bPresident.broadcastTaxation(tc.clientReports, aliveID)
 
 			for clientID, resources := range tc.clientReports {
@@ -966,6 +1015,7 @@ type fakeServerHandle struct {
 	PresidentID shared.ClientID
 	JudgeID     shared.ClientID
 	SpeakerID   shared.ClientID
+	RuleInfo    gamestate.RulesContext
 }
 
 func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
@@ -973,6 +1023,7 @@ func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
 		SpeakerID:   s.SpeakerID,
 		JudgeID:     s.JudgeID,
 		PresidentID: s.PresidentID,
+		RulesInfo:   s.RuleInfo,
 	}
 }
 
