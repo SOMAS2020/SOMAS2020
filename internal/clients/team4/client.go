@@ -61,6 +61,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		resourceReportImportance:                   mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0}),
 		getTaxContributionImportance:               mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0}),
 		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0}),
+		getGiftRequestsImportance:					mat.NewVecDense(4, []float64{2.0, 1.0, -1.0, -1.0}),
 	}
 
 	team4client := client{
@@ -106,6 +107,7 @@ type importances struct {
 	resourceReportImportance                   *mat.VecDense
 	getTaxContributionImportance               *mat.VecDense
 	decideIIGOMonitoringAnnouncementImportance *mat.VecDense
+	getGiftRequestsImportance				   *mat.VecDense
 }
 
 // Store extra information which is not in the server and is helpful for our client
