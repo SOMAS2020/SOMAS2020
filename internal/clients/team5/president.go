@@ -18,7 +18,6 @@ type president struct {
 
 func (c *client) GetClientPresidentPointer() roles.President {
 	c.Logf("Team 5 is now the President, Shalom to all")
-	// return &c.team5President
 	return &president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 }
 

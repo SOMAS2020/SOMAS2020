@@ -28,10 +28,6 @@ func createClient() *client {
 
 		disasterModel: disasterModel{},
 
-		taxAmount:      0,
-		allocation:     0,
-		sanctionAmount: 0,
-
 		config: getClientConfig(),
 	}
 }
@@ -60,6 +56,13 @@ func (c *client) StartOfTurn() {
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.opinionHistory[c.getTurn()] = c.opinions // assign last turn's opinions as default for this turn
 	c.cpResourceHistory[c.getTurn()] = c.getCP()
+
+	//update cpResourceHistory
+	turn := c.getTurn()
+	c.cpResourceHistory[turn] = c.getCP()
+
+	//evaluate the roles at every turn
+	c.evaluateRoles()
 
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {

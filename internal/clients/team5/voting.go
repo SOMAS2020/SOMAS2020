@@ -15,6 +15,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	for _, islandID := range candidateList {
 		if islandID != shared.Team5 && islandID != shared.Team3 {
 			refinedCandidateList = append(refinedCandidateList, islandID)
+
 		}
 	}
 	// translate to int
@@ -92,16 +93,16 @@ func (c *client) evaluateRoles() {
 	}
 	// compute total maximum tax to cp
 	var totalTax shared.Resources
+	expectedTax, _ := c.expectedTaxContribution()
 	numberAliveTeams := len(c.getAliveTeams(true)) //include us
 	for i := 0; i < numberAliveTeams; i++ {
-		totalTax += c.taxAmount
+		totalTax += expectedTax
 	}
 	// Not corrupt
 	if totalBudget <= totalTax {
 		c.opinions[speakerID].updateOpinion(generalBasis, 0.1) //arbitrary number
 		c.opinions[judgeID].updateOpinion(generalBasis, 0.1)
 		c.opinions[presidentID].updateOpinion(generalBasis, 0.1)
-
 	} else {
 		c.opinions[speakerID].updateOpinion(generalBasis, -0.1) //arbitrary number
 		c.opinions[judgeID].updateOpinion(generalBasis, -0.1)
