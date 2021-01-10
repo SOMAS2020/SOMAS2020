@@ -87,8 +87,8 @@ type internalParameters struct {
 	agentsTrust   []float64
 }
 
-type personality struct {
-}
+// type personality struct {
+// }
 
 //Overriding and extending the Initialise method of the BaseClient to initilise our client. This function happens after the init() function. At this point server has just initialised and the ServerReadHandle is available.
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
@@ -99,14 +99,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.internalParam = &internalParameters{agentsTrust: make([]float64, numClient)}
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
-	// numClient := len(shared.TeamIDs)
-	// v := make([]float64, numClient*numClient)
-	// for i := range v {
-	// 	v[i] = 1
-	// }
-	// c.internalParam = &internalParameters{
-	// 	trustMatrix: mat.NewDense(numClient, numClient, v),
-	// }
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
@@ -154,7 +146,11 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 
 			if currentAuxValue == 0 {
 				// ==0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue != 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 			} else if currentAuxValue == 1 {
 				// TODO: ACTUALLY IMPLEMENT THESE CONDITIONS
 				// >0 condition
@@ -164,7 +160,11 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 				distance += 10000
 			} else if currentAuxValue == 3 {
 				// !=0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue != 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 			} else if currentAuxValue == 4 {
 				distance += 10000
 				// it returns the value of the calculation
@@ -193,7 +193,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	for i := len(trustList) - 1; i >= 0; i-- {
 		// The idea is to have the very untrusted island to split the points in order
 		// to increase the gap with good islands that we include and that we want to be elected.
-		if trustList[i] > 0.25 { //TODO: calibrate the trustScore so we don't always not rank
+		if trustList[i] > 0.25 || (len(trustList)-1)-i < 2 { //TODO: calibrate the trustScore so we don't always not rank //currently the infra does not support not ranking someone
 			returnList = append(returnList, trustToID[trustList[i]])
 		}
 	}
