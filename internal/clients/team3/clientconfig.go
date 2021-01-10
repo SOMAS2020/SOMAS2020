@@ -6,7 +6,6 @@ func getislandParams() islandParams {
 		complianceLevel:         0.1, // 0-1
 		resourcesSkew:           1.3, // >1
 		saveCriticalIsland:      true,
-		escapeCritcaIsland:      true,
 		selfishness:             0.3,  //0-1
 		recidivism:              0.3,  // real number
 		riskFactor:              0.2,  // 0-1
@@ -15,7 +14,7 @@ func getislandParams() islandParams {
 		localPoolThreshold:      100,  // % of common pool
 		giftInflationPercentage: 0.1,  // 0-1
 		trustConstantAdjustor:   1,    // arbitrary
-		trustParameter:          0.25,  // 0-1
+		trustParameter:          0.25, // 0-1
 		NoRequestGiftParam:      0.01, // 0-1
 		intelligence:            true,
 	}

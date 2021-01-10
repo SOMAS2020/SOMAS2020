@@ -304,12 +304,12 @@ func (c *client) RequestAllocation() shared.Resources {
 	var takenAlloc shared.Resources
 	ourAllocation := c.iigoInfo.commonPoolAllocation
 	currentState := c.BaseClient.ServerReadHandle.GetGameState()
-	escapeCritical := c.params.escapeCritcaIsland && currentState.ClientInfo.LifeStatus == shared.Critical
 	distCriticalThreshold := c.criticalThreshold - ourAllocation
 
 	takenAlloc = ourAllocation
 
-	if escapeCritical && (ourAllocation < distCriticalThreshold) {
+	// Escape critical
+	if currentState.ClientInfo.LifeStatus == shared.Critical && (ourAllocation < distCriticalThreshold) {
 		// Get enough to save ourselves
 		takenAlloc = distCriticalThreshold
 	} else {
@@ -359,14 +359,12 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 
 	currentState := c.BaseClient.ServerReadHandle.GetGameState()
 	ourResources := currentState.ClientInfo.Resources
-	escapeCritical := c.params.escapeCritcaIsland && currentState.ClientInfo.LifeStatus == shared.Critical
 	distCriticalThreshold := c.criticalThreshold - ourResources
 
 	request = c.ServerReadHandle.GetGameConfig().CostOfLiving
-	if escapeCritical {
-		if request < distCriticalThreshold {
-			request = distCriticalThreshold
-		}
+	// Try to escape critical
+	if (currentState.ClientInfo.LifeStatus == shared.Critical) && (request < distCriticalThreshold) {
+		request = distCriticalThreshold
 	}
 	if c.shouldICheat() {
 		request += shared.Resources(float64(request) * c.params.selfishness)

@@ -29,8 +29,10 @@ func (m mockServerReadHandle) GetGameConfig() config.ClientConfig {
 // clientPrint is a wrapper for team3 Logf function, that only prints when
 // printTeam3Logs == true
 func (c *client) clientPrint(format string, a ...interface{}) {
+	turn := c.ServerReadHandle.GetGameState().Turn
+	season := c.ServerReadHandle.GetGameState().Season
 	if printTeam3Logs {
-		c.Logf("%v", fmt.Sprintf(format, a...))
+		c.Logf("[S:%v T%v] %v", season, turn, fmt.Sprintf(format, a...))
 	}
 }
 

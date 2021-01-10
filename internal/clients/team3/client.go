@@ -88,7 +88,6 @@ type islandParams struct {
 	complianceLevel         float64
 	resourcesSkew           float64
 	saveCriticalIsland      bool
-	escapeCritcaIsland      bool
 	selfishness             float64
 	recidivism              float64
 	riskFactor              float64

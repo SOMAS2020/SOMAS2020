@@ -110,7 +110,7 @@ func TestSetTaxationAmount(t *testing.T) {
 					},
 				}},
 				criticalThreshold: 10,
-				params:            islandParams{escapeCritcaIsland: true, selfishness: 0.3, riskFactor: 0.5, resourcesSkew: 1.3},
+				params:            islandParams{selfishness: 0.3, riskFactor: 0.5, resourcesSkew: 1.3},
 				trustScore: map[shared.ClientID]float64{
 					0: 50,
 					1: 50,
