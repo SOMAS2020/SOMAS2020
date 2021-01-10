@@ -190,12 +190,16 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 				clientHistory := *testClient.savedHistory
 
-				if !reflect.DeepEqual(expected, clientHistory[turn]) {
-					t.Errorf("Single history failed. expected %v,\n got %v", expected, clientHistory[turn])
+				if !reflect.DeepEqual(expected, clientHistory.history[turn]) {
+					t.Errorf("Single history failed. expected %v,\n got %v", expected, clientHistory.history[turn])
+				}
+
+				if !clientHistory.updated {
+					t.Errorf("Single history failed. History was not updated")
 				}
 			}
 
-			if !reflect.DeepEqual(wholeHistory, *testClient.savedHistory) {
+			if !reflect.DeepEqual(wholeHistory, testClient.savedHistory.history) {
 				t.Errorf("Whole history comparison failed. Saved history: %v", *testClient.savedHistory)
 			}
 

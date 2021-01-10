@@ -43,7 +43,10 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		iitoObs: &iitoObs,
 	}
 
-	judgeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
+	judgeHistory := accountabilityHistory{
+		history: map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		updated: false,
+	}
 
 	emptyRuleCache := map[string]rules.RuleMatrix{}
 
@@ -77,8 +80,9 @@ type client struct {
 	obs                *observation        //observation is the raw input into our client
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
-	savedHistory       *map[uint]map[shared.ClientID]judgeHistoryInfo
+	savedHistory       *accountabilityHistory
 	trustMatrix        *trust
+	historyUpdated     bool // indicates that judge has updated the
 }
 
 // Store extra information which is not in the server and is helpful for our client
@@ -111,10 +115,8 @@ type internalParameters struct {
 	fairness      float64
 	collaboration float64
 	riskTaking    float64
-	// agentsTrust   []float64
 
 	// Judge GetPardonIslands config
-
 	// days left on the sanction after which we can even considering pardoning other islands
 	maxPardonTime int
 	// specifies the maximum sanction tier after which we will no longer consider pardoning others
@@ -248,4 +250,14 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	}
 
 	return returnList
+}
+
+func (c *client) StartOfTurn() {
+	c.updateTrustFromSavedHistory()
+}
+
+func (c *client) updateTrustFromSavedHistory() {
+	if c.savedHistory.updated {
+
+	}
 }
