@@ -93,13 +93,44 @@ func TestUpdateForecastingReputations(t *testing.T) {
 }
 
 func TestAnalyseDisasterHistory(t *testing.T) {
-	di := disasterInfo{}
-	fi := forecastInfo{}
-	dh := disasterHistory{4: di, 8: di}
-	fh := forecastHistory{1: fi, 2: fi, 3: fi, 4: fi, 5: fi, 6: fi, 7: fi, 8: fi}
+	d1 := disasterInfo{report: disasters.DisasterReport{X: 1.0}}
+	d2 := disasterInfo{report: disasters.DisasterReport{X: 0.0}}
+	dh := disasterHistory{3: d1, 5: d2}
+	fh := forecastHistory{
+		1: forecastInfo{epiX: 0, period: 0},
+		2: forecastInfo{epiX: 0.5, period: 1},
+		3: forecastInfo{epiX: 0.75, period: 2},
+		4: forecastInfo{epiX: 0.5, period: 2},
+		5: forecastInfo{epiX: 0.5, period: 2},
+	}
+	periodSamples := [][]float64{{0, 1, 2}, {2, 2}}
+	periodTargets := []float64{2, 2}
 
-	analyseDisasterHistory(dh, fh)
-	t.Error("dummy error")
+	xSamples := [][]float64{{0, 0.5, 0.75}, {0.5, 0.5}}
+	xTargets := []float64{1, 0}
+
+	conf := createClient().config
+	decay := conf.forecastTemporalDecay
+
+	forecastErrors, err := analyseDisasterHistory(dh, fh, conf)
+
+	if err != nil {
+		t.Logf("Error analysing disaster history: %v", err)
+	}
+
+	for i := range dh.sortKeys() {
+		errorMap := forecastErrors[i]
+
+		expectedXError := univariateWeightedMSE(xSamples[i], xTargets[i], decay)
+		expectedPeriodError := univariateWeightedMSE(periodSamples[i], periodTargets[i], decay)
+
+		if errorMap[x] != expectedXError {
+			t.Logf("computed x epicentre error was incorrect. Expected %v, got %v", expectedXError, errorMap[x])
+		}
+		if errorMap[period] != expectedPeriodError {
+			t.Logf("computed period error was incorrect. Expected %v, got %v", expectedPeriodError, errorMap[period])
+		}
+	}
 }
 
 func initClient() *client {
