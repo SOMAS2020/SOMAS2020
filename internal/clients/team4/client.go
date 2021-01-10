@@ -29,7 +29,6 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		BaseClient:    baseclient.NewClient(id),
 		clientJudge:   judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
 		clientSpeaker: speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-		yes:           "",
 		obs: &observation{
 			iigoObs: iigoObs,
 			iifoObs: iifoObs,
@@ -45,11 +44,10 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 
 type client struct {
 	*baseclient.BaseClient //client struct has access to methods and fields of the BaseClient struct which implements implicitly the Client interface.
-	clientJudge            judge
-	clientSpeaker          speaker
 
 	//custom fields
-	yes                string              //this field is just for testing
+	clientJudge        judge
+	clientSpeaker      speaker
 	obs                *observation        //observation is the raw input into our client
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
@@ -58,9 +56,10 @@ type client struct {
 
 // Store extra information which is not in the server and is helpful for our client
 type observation struct {
-	iigoObs *iigoObservation
-	iifoObs *iifoObservation
-	iitoObs *iitoObservation
+	iigoObs           *iigoObservation
+	iifoObs           *iifoObservation
+	iitoObs           *iitoObservation
+	pastDisastersList baseclient.PastDisastersList
 }
 
 type iigoObservation struct {
@@ -69,6 +68,9 @@ type iigoObservation struct {
 }
 
 type iifoObservation struct {
+	receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
+	ourDisasterPrediction       shared.DisasterPredictionInfo
+	finalDisasterPrediction     shared.DisasterPrediction
 }
 
 type iitoObservation struct {
@@ -108,8 +110,8 @@ func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]
 }
 
 //Overriding the StartOfTurn method of the BaseClient
-func (c *client) StartOfTurn() {
-}
+// func (c *client) StartOfTurn() {
+// }
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
@@ -129,12 +131,11 @@ func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
 // decideRuleDistance returns the evaluated distance for the rule given in the argument
 func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 	// link rules
-	// rules with 0(==) as auxiliary vector element(s)
 
-	// find rule correspondent to the rule that you need to evaluate
+	// find rule corresponding to the rule that you need to evaluate
 	idealRuleMatrix := (*c.idealRulesCachePtr)[ruleMatrix.RuleName]
 
-	// calculate a distance and a distance
+	// calculate a distance
 	distance := 0.0
 	for i := 0; i < ruleMatrix.AuxiliaryVector.Len(); i++ {
 		currentAuxValue := ruleMatrix.AuxiliaryVector.AtVec(i)
