@@ -13,9 +13,7 @@ type speaker struct {
 }
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
-	c.Logf("Team 5 became speaker")
-	// return &c.team5Speaker
-
+	c.Logf("Team 5 became speaker, drop the mic")
 	return &speaker{c: c, BaseSpeaker: &baseclient.BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}}
 }
 

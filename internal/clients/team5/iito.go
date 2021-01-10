@@ -134,8 +134,8 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		switch {
 		// case we are RICH or Middle class
 		case c.wealth() >= 2:
-			opinionMulti := c.mapToRange(float64(c.opinions[team].getScore()), -1, 1, 0.2, 1) // Opinion = 0 then you get what we say, opinion = 1 get what they ask for
-			amount := ((opinionMulti * float64(receivedRequests[team])) +                     // opinion = 1 then they get what they asked for
+			opinionMulti := mapToRange(float64(c.opinions[team].getScore()), -1, 1, 0.2, 1) // Opinion = 0 then you get what we say, opinion = 1 get what they ask for
+			amount := ((opinionMulti * float64(receivedRequests[team])) +                   // opinion = 1 then they get what they asked for
 				((1 - opinionMulti) * c.config.offertoDyingIslands)) // opinion = -1 they get 0 of what they want and all of what we pay them
 			if status == shared.Critical {
 				if c.opinions[team].getScore() >= 0 {
@@ -160,8 +160,8 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			}
 		// we are POOR af people
 		default:
-			opinionMulti := c.mapToRange(float64(c.opinions[team].getScore()), -1, 1, 0, 0.5) // Opinion = 0 then you get what we say, opinion = 1 get what they ask for
-			amount := ((opinionMulti * float64(receivedRequests[team])) +                     // opinion = 1 then they get half of what they wanted
+			opinionMulti := mapToRange(float64(c.opinions[team].getScore()), -1, 1, 0, 0.5) // Opinion = 0 then you get what we say, opinion = 1 get what they ask for
+			amount := ((opinionMulti * float64(receivedRequests[team])) +                   // opinion = 1 then they get half of what they wanted
 				((1 - opinionMulti) * c.config.offertoDyingIslands)) // opinion = -1 they get 0 of what they want and all of what we pay them
 			if status == shared.Critical {
 				if c.opinions[team].getScore() >= 0 {
@@ -278,9 +278,7 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 	}
 	c.giftHistory[to].theirRequest[c.getTurn()] = newGiftRequest
 
-	c.Logf("Sent to %v amount = %v", sent, to)
-	c.Logf("Gift History theirRequest",
-		c.giftHistory[to])
+	c.Logf("[SentGift]: Sent to %v amount = %v", to, sent)
 }
 
 // ReceivedGift is executed at the end of each turn and notifies clients that
@@ -292,9 +290,7 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 		actualReceived: received,                                              // Amount they actually GAVE us
 	}
 	c.giftHistory[from].ourRequest[c.getTurn()] = newGiftRequest
-	c.Logf("Received from %v amount = %v", from, received)
-	c.Logf("Gift History theirRequest",
-		c.giftHistory[from])
+	c.Logf("[ReceivedGift]: Received from %v amount = %v", from, received)
 }
 
 func (c *client) updateGiftOpinions() {
@@ -307,7 +303,7 @@ func (c *client) updateGiftOpinions() {
 		// If we get OFFERED LESS than we Requested
 		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].offered) <
 			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].requested) {
-			c.opinions[team].updateOpinion(generalBasis, -0.01*c.getMood())
+			c.opinions[team].updateOpinion(generalBasis, -0.005*c.getMood())
 		}
 		// If we ACTUALLY get LESS than they OFFERED us
 		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].actualReceived) <

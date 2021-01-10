@@ -12,10 +12,7 @@ type judge struct {
 }
 
 func (c *client) GetClientJudgePointer() roles.Judge {
-	// c.Logf("Team 5 became Judge.")
-
-	// return &c.team5Judge
-
+	c.Logf("Team 5 became the Judge, the Jury and Executioner.")
 	return &judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
@@ -66,8 +63,7 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 		lst := make([]bool, len(sanctionList))
 		pardons[key] = lst
 		for index, sanction := range sanctionList {
-			if j.c.opinions[sanction.ClientID].getScore() > 0.5 && sanction.ClientID == shared.Team5 {
-				// if sanction.ClientID == shared.Team5 {
+			if j.c.opinions[sanction.ClientID].getScore() > 0.5 || sanction.ClientID == shared.Team5 {
 				pardons[key][index] = true
 			} else {
 				pardons[key][index] = false
@@ -75,7 +71,6 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 
 		}
 	}
-	// return map[int][]bool{}
 	return pardons
 }
 

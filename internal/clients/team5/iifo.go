@@ -3,6 +3,7 @@ package team5
 import (
 	"fmt"
 	"math"
+	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
@@ -184,7 +185,18 @@ func (c *client) updateForecastingReputations(receivedPredictions shared.Receive
 		}
 		// TODO: add more sophisticated opinion forming
 	}
+}
 
+func analyseDisasterHistory(dh disasterHistory, fh forecastHistory) {
+	forecastTurns := uintsAsFloats(fh.sortKeys())
+	prevTurn := 0.0
+	for turn := range dh {
+		indexes, _ := floats.Find([]int{}, func(x float64) bool {
+			return (x <= float64(turn)) && (x > prevTurn)
+		}, forecastTurns, -1)
+		prevTurn = float64(turn)
+		fmt.Printf("Indexes: %v", indexes)
+	}
 }
 
 func (f forecastVariable) String() string {
@@ -208,4 +220,17 @@ func (f forecastVariable) MarshalText() ([]byte, error) {
 // MarshalJSON implements RawMessage
 func (f forecastVariable) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(f.String())
+}
+
+func (fh forecastHistory) sortKeys() []uint {
+	keys := make([]int, 0)
+	for k := range fh {
+		keys = append(keys, int(k))
+	}
+	sort.Ints(keys)
+	finalKeys := make([]uint, 0)
+	for _, k := range keys {
+		finalKeys = append(finalKeys, uint(k))
+	}
+	return finalKeys
 }

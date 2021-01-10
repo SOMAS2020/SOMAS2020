@@ -237,9 +237,9 @@ func (c *client) normalForage() shared.ForageDecision {
 	}
 
 	if bestForagingMethod == shared.FishForageType {
-		bestInput = bestInput * shared.Resources(c.mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 1.8))
+		bestInput = bestInput * shared.Resources(mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 1.8))
 	} else if bestForagingMethod == shared.DeerForageType {
-		bestInput = bestInput * shared.Resources(c.mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 2.2))
+		bestInput = bestInput * shared.Resources(mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 2.2))
 	}
 
 	// Pick the minimum value between the best value and x% of our resources
@@ -332,7 +332,7 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	for _, team := range c.getAliveTeams(true) {
 		for _, gaveInfo := range forageInfos {
 			if team != gaveInfo.SharedFrom { // has to be meaningful forage
-				c.opinions[team].updateOpinion(generalBasis, -0.05*c.getMood()) // Thanks for the information dude
+				c.opinions[team].updateOpinion(generalBasis, -0.025*c.getMood()) // Thanks for the information dude
 			}
 		}
 	}
