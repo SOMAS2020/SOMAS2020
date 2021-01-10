@@ -170,7 +170,6 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 }
 
 func (c *client) updateForecastingReputations(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
-
 	for team, predInfo := range receivedPredictions {
 		// if teams make predictions with conf > 50% before first disaster, downgrade their rep by 75%
 		if len(c.disasterHistory) == 0 {
