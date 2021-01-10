@@ -28,8 +28,9 @@ type forecastInfo struct {
 	confidence float64
 }
 
-type forecastHistory map[uint]forecastInfo                                   // stores history of past disasters
-type receivedForecastHistory map[uint]shared.ReceivedDisasterPredictionsDict // stores history of received disasters
+type forecastHistory map[uint]forecastInfo                                       // stores history of past disasters
+type receivedForecastHistory map[uint]shared.ReceivedDisasterPredictionsDict     // stores history of received disasters
+type clientsForecastPerformance map[shared.ClientID]map[forecastVariable]float64 // stores current notion of prediction performance of other teams
 
 // MakeDisasterPrediction is called on each client for them to make a prediction about a disaster
 // Prediction includes location, magnitude, confidence etc
@@ -181,7 +182,7 @@ func (c *client) updateForecastingReputations(receivedPredictions shared.Receive
 		if predInfo.PredictionMade.Confidence > 98 {
 			c.opinions[team].updateOpinion(forecastingBasis, -0.3)
 		}
-		// TODO: add more sophisticated opinion forming
+		// note: more sophisticated updates happen in DisasterNotification()
 	}
 }
 
@@ -194,17 +195,18 @@ func (c *client) evaluateForecastingPerformance() (map[shared.ClientID]map[forec
 		return clientSkills, errors.Errorf("Turn of most recent disaster does not match current turn")
 	}
 	ourForecastErrors, errF := computeForecastingPerformance(c.disasterHistory, c.forecastHistory, c.config)
-	ourPerf, errP := c.aggregateForecastingError(ourForecastErrors, true)
+	ourErr, errP := c.aggregateForecastingError(ourForecastErrors, true)
 
 	if errF != nil || errP != nil {
 		return clientSkills, errors.Errorf("Encountered error while computing our forecasting performance: forecast err: %v, performance err: %v", errF, errP)
 	}
-	clientForecasts := map[shared.ClientID]map[uint]forecastInfo{}
+	clientForecasts := map[shared.ClientID]forecastHistory{}
 	clientErrors := map[shared.ClientID][]map[forecastVariable]float64{}
 
 	// collect history of client forecasts
 	for turn, forecastMap := range c.receivedForecastHistory {
 		for client, predInfo := range forecastMap {
+			clientForecasts[client] = forecastHistory{}
 			clientForecasts[client][turn] = c.parsePredictionInfo(predInfo.PredictionMade)
 		}
 	}
@@ -223,11 +225,12 @@ func (c *client) evaluateForecastingPerformance() (map[shared.ClientID]map[forec
 		if err != nil {
 			return clientSkills, errors.Errorf("Encountered error while computing client's forecasting performance. Client ID: %v, received error maps: %v", cID, clientErrMaps)
 		}
+		clientSkills[cID] = map[forecastVariable]float64{} // initialise in memory
 		for k, val := range clientErr {
-			if ourPerf[k] == 0 { // we're perfect at forecasting this variable - possible, but unlikely
+			if ourErr[k] == 0 { // we're perfect at forecasting this variable - possible, but unlikely
 				clientSkills[cID][k] = 0 // client skills are zero relative to us as we're infinitely good
 			}
-			clientSkills[cID][k] = 1 - math.Min((val/ourPerf[k]), 1) // 0 => on par with us. < 0 => worse than us (larger error). > 0 => better than us (smalle error).
+			clientSkills[cID][k] = absoluteCap(1-(val/ourErr[k]), 1) // 0 => on par with us. < 0 => worse than us (larger error). > 0 => better than us (smalle error).
 		}
 	}
 	return clientSkills, nil

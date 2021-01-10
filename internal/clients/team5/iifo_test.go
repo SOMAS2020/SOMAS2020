@@ -41,9 +41,6 @@ func TestGenerateForecast(t *testing.T) {
 				t.Errorf("period ans %.4f", ansPeriod)
 				t.Errorf("period: got %d, want %d", uint(ansPeriod.mean), tc.wantPeriod)
 			}
-			// if ansConf != tc.wantConf {
-			// 	t.Errorf("conf: got %.3f, want %.3f", ansConf, tc.wantConf)
-			// }
 		})
 	}
 }

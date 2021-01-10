@@ -92,7 +92,8 @@ type client struct {
 	opinions               opinionMap // opinions of each team
 	lastDisasterPrediction shared.DisasterPrediction
 
-	disasterModel disasterModel // estimates of disaster parameters
+	clientsForecastSkill clientsForecastPerformance // record of forecasting perf of other agents
+	disasterModel        disasterModel              // estimates of disaster parameters
 
 	config clientConfig
 }
