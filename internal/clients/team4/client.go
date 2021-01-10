@@ -156,9 +156,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.BaseClient.Initialise(serverReadHandle)
 
 	//custom things below, trust matrix initilised to values of 0
-	c.Logf("Initial trust matrix: %v", c.trustMatrix.trustMap)
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
-
 	c.updateParents()
 }
 
