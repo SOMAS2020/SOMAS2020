@@ -9,7 +9,7 @@ import (
 )
 
 const id = shared.Team3
-const printTeam3Logs = false
+const printTeam3Logs = true
 
 func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })

@@ -22,7 +22,7 @@ var (
 	)
 	initialResources = flag.Float64(
 		"initialResources",
-		100,
+		1000,
 		"The default number of resources at the start of the game.",
 	)
 	initialCommonPool = flag.Float64(
@@ -275,7 +275,7 @@ var (
 
 	iigoDefaultSanctionScore = flag.Uint(
 		"iigoDefaultSanctionScore",
-		5,
+		10,
 		"Default penalty score for breaking a rule",
 	)
 
@@ -299,7 +299,7 @@ var (
 
 	iigoSanctionLength = flag.Uint(
 		"iigoSanctionLength",
-		2,
+		5,
 		"Sanction length for all sanctions",
 	)
 

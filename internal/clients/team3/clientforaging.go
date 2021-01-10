@@ -27,6 +27,8 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		foragingInvestment = math.Max(float64(c.ServerReadHandle.GetGameState().ClientInfo.Resources)-minimumLeftoverResources, 0)
 	}
 
+	c.clientPrint("Foraging investment is %v", foragingInvestment)
+
 	var forageType shared.ForageType
 
 	fishingROI := c.computeRecentExpectedROI(shared.FishForageType)
