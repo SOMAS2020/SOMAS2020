@@ -176,7 +176,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			requests[island] = shared.GiftRequest(0.0)
 		} else {
 			var requestAmt float64
-			requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.trustParameter)
+			requestAmt = avgRequestAmt * math.Pow(c.trustScore[island], c.params.riskFactor)
 			requests[island] = shared.GiftRequest(requestAmt)
 		}
 	}
