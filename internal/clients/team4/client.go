@@ -54,6 +54,7 @@ type client struct {
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
 	savedHistory       *map[uint]map[shared.ClientID]judgeHistoryInfo
+	trustMatrix        *trust
 }
 
 // Store extra information which is not in the server and is helpful for our client
@@ -82,7 +83,7 @@ type internalParameters struct {
 	fairness      float64
 	collaboration float64
 	riskTaking    float64
-	agentsTrust   []float64
+	// agentsTrust   []float64
 }
 
 // type personality struct {
@@ -93,8 +94,14 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.BaseClient.Initialise(serverReadHandle)
 
 	//custom things below, trust matrix initilised to values of 0
-	numClient := len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)
-	c.internalParam = &internalParameters{agentsTrust: make([]float64, numClient)}
+	trustMap := map[shared.ClientID]float64{}
+	for clientID := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
+		trustMap[clientID] = 0.5
+	}
+	trustMatrix := trust{trustMap: trustMap}
+
+	c.trustMatrix = &trustMatrix
+
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
 }
@@ -183,7 +190,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	trustList := []float64{}
 	returnList := []shared.ClientID{}
 	for i := 0; i < len(candidateList); i++ {
-		trustScore := c.internalParam.agentsTrust[candidateList[i]]
+		trustScore := c.trustMatrix.GetClientTrust(candidateList[i]) //c.internalParam.agentsTrust[candidateList[i]]
 		trustToID[trustScore] = candidateList[i]
 		trustList = append(trustList, trustScore)
 	}

@@ -24,7 +24,7 @@ func (c *client) evaluateParamVector(decisionVector *mat.VecDense, agent shared.
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 		c.internalParam.riskTaking,
-		c.internalParam.agentsTrust[agent],
+		c.trustMatrix.GetClientTrust(agent),
 	})
 	return mat.Dot(decisionVector, parameters) - threshold
 }
@@ -147,8 +147,9 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	lyingThreshold := 3.0
 	reporting := true
 
+	presidentID := c.ServerReadHandle.GetGameState().PresidentID
 	// If collaboration and trust are above average chose to report, otherwise abstain!
-	if (c.internalParam.collaboration + c.internalParam.agentsTrust[0]) < 1 { // agent trust towards the president, TODO: change to president index
+	if (c.internalParam.collaboration + c.trustMatrix.GetClientTrust(presidentID)) < 1 { // agent trust towards the president, TODO: change to president index
 		reporting = false
 	}
 
