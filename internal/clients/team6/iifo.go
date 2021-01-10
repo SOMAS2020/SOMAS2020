@@ -5,26 +5,45 @@ import (
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"gonum.org/v1/gonum/stat/distuv"
 )
 
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	// similar to the baseclient implement: mean prediction
-	pastDisasters := c.disastersHistory
+	disastersHistory := c.disastersHistory
 	teamsOfferingTo := []shared.ClientID{}
 
-	if len(pastDisasters) == 0 {
-		return shared.DisasterPredictionInfo{
-			PredictionMade: shared.DisasterPrediction{},
-			TeamsOfferedTo: nil,
+	xMax := c.ServerReadHandle.GetGameState().Geography.XMax
+	xMin := c.ServerReadHandle.GetGameState().Geography.XMin
+	yMax := c.ServerReadHandle.GetGameState().Geography.YMax
+	yMin := c.ServerReadHandle.GetGameState().Geography.YMin
+
+	predictedX := distuv.Uniform{Min: xMin, Max: xMax}.Rand()
+	predictedY := distuv.Uniform{Min: yMin, Max: yMax}.Rand()
+	predictedLambda := float64(0)
+
+	// we can get these values only if there are set visible
+	if c.ServerReadHandle.GetGameConfig().DisasterConfig.DisasterPeriod.Valid {
+		disasterPeriod := c.ServerReadHandle.GetGameConfig().DisasterConfig.DisasterPeriod.Value
+
+		if c.ServerReadHandle.GetGameConfig().DisasterConfig.StochasticDisasters.Valid {
+			isStochastic := c.ServerReadHandle.GetGameConfig().DisasterConfig.StochasticDisasters.Value
+
+			if isStochastic {
+
+			} else {
+
+			}
+
+		} else {
+
 		}
-	}
+	} else {
+		if c.ServerReadHandle.GetGameConfig().DisasterConfig.StochasticDisasters.Valid {
+			isStochastic = c.ServerReadHandle.GetGameConfig().DisasterConfig.StochasticDisasters.Value
 
-	meanDisaster := getMeanDisaster(pastDisasters)
+		} else {
 
-	for team, friendship := range c.friendship {
-		// shares the information with good friends
-		if friendship > FriendshipLevel(float64(1/2)*float64(c.clientConfig.maxFriendship)) {
-			teamsOfferingTo = append(teamsOfferingTo, team)
 		}
 	}
 
