@@ -153,9 +153,9 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 				}
 			}
 			// Rule sanctions
-			if _, ok := data[shared.IIGOSanctionScore]; ok {
+			if _, ok := data[shared.RuleSanctionPenalty]; ok {
 				// c.clientPrint("Received sanction info: %+v", data)
-				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
+				c.iigoInfo.sanctions.rulePenalties[currentRuleID] = shared.IIGOSanctionsScore(data[shared.RuleSanctionPenalty].IntegerData)
 			}
 		case shared.RoleMonitored:
 			c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
@@ -163,7 +163,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		case shared.SanctionClientID:
 			c.iigoInfo.sanctions.islandSanctions[shared.ClientID(content.IntegerData)] = shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)
 		case shared.IIGOSanctionTier:
-			c.iigoInfo.sanctions.tierInfo[shared.IIGOSanctionsTier(content.IntegerData)] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
+			c.iigoInfo.sanctions.tierInfo[shared.IIGOSanctionsTier(content.IntegerData)] = shared.IIGOSanctionsScore(data[shared.RuleSanctionPenalty].IntegerData)
 		case shared.SanctionAmount:
 			c.iigoInfo.sanctions.ourSanction = shared.IIGOSanctionsScore(content.IntegerData)
 		}
