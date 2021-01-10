@@ -31,7 +31,6 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
-					trustParameter:          0.5,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -72,7 +71,6 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
-					trustParameter:          0.5,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -113,7 +111,6 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
-					trustParameter:          0.5,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -177,7 +174,6 @@ func TestGetGiftOffers(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.5,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -227,7 +223,6 @@ func TestGetGiftOffers(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.5,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -279,7 +274,6 @@ func TestGetGiftOffers(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.5,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -331,7 +325,6 @@ func TestGetGiftOffers(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.5,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
