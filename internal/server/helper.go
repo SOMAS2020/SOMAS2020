@@ -125,11 +125,16 @@ func (s *SOMASServer) takeResources(clientID shared.ClientID, resources shared.R
 }
 
 // giveResources gives resources to client, logging it and mentioning reason
-func (s *SOMASServer) giveResources(clientID shared.ClientID, resources shared.Resources, reason string) {
-	s.logf("Gave %v to %v (reason: %s)", resources, clientID, reason)
+func (s *SOMASServer) giveResources(clientID shared.ClientID, resources shared.Resources, reason string) error {
+	s.logf("Trying to give %v to %v (reason: %s)", resources, clientID, reason)
+	if math.IsNaN(float64(resources)) || resources < 0 {
+		return errors.Errorf("Cannot give invalid number of resources %v to client %v", resources, clientID)
+	}
 
 	participantInfo := s.gameState.ClientInfos[clientID]
 	participantInfo.Resources += resources
 	s.gameState.ClientInfos[clientID] = participantInfo
 
+	s.logf("Gave %v to %v (reason: %s)", resources, clientID, reason)
+	return nil
 }
