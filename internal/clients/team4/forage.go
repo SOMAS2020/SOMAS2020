@@ -24,5 +24,5 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 // analyse their returns - resources returned to them, as well as number of fish/deer caught.
 func (c *client) ForageUpdate(initialDecision shared.ForageDecision, resourceReturn shared.Resources, numberCaught uint) {
 	//	dump("./forage.txt", "Call: %v\nResources: %v\n, numberCaught%v\n\n", initialDecision, resourceReturn, numberCaught)
-	/
+
 }

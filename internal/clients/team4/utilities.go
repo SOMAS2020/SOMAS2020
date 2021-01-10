@@ -52,6 +52,10 @@ func (c *client) getSafeResourceLevel() shared.Resources {
 	return 0
 }
 
+func (c *client) getTrust(clientID shared.ClientID) float64 {
+	return c.trustMatrix.GetClientTrust(clientID)
+}
+
 func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo, ok bool) {
 	resourceOK := 0
 	taxOK := 0
@@ -111,6 +115,27 @@ func dump(filename string, format string, v ...interface{}) {
 	if err2 != nil {
 		log.Fatal(err2)
 	}
+}
+
+func (c *client) getPresident() shared.ClientID {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().PresidentID
+	}
+	return 0
+}
+
+func (c *client) getSpeaker() shared.ClientID {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().SpeakerID
+	}
+	return 0
+}
+
+func (c *client) getJudge() shared.ClientID {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().JudgeID
+	}
+	return 0
 }
 
 func boolToFloat(input bool) float64 {

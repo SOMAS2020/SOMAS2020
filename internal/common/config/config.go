@@ -102,6 +102,7 @@ type IIGOConfig struct {
 	InspectBallotActionCost         shared.Resources
 	InspectAllocationActionCost     shared.Resources
 	AppointNextPresidentActionCost  shared.Resources
+	DefaultSanctionScore            shared.IIGOSanctionsScore
 	SanctionCacheDepth              uint
 	HistoryCacheDepth               uint
 	AssumedResourcesNoReport        shared.Resources
