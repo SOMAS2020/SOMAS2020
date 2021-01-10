@@ -19,15 +19,13 @@ func (c *client) rolesInfro() map[shared.Role]shared.ClientID {
 	return rolesInfro
 }
 
+//Figure out weather we already have role(s) except for the one to be changed. 
 func (c *client) doWeHaveRoles(roleToElect shared.Role) bool {
 	doWeHaveRoles := false
 	numOfRoles := 0
 	for role, roleID := range c.rolesInfro() {
-		if roleID == id {
+		if roleID == id && role != roleToElect {
 			numOfRoles++
-			if role == roleToElect {
-				numOfRoles--
-			}
 		}
 	}
 	if numOfRoles > 0 {
