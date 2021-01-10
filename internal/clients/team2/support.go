@@ -237,9 +237,21 @@ func Min(i shared.Resources, j shared.Resources) shared.Resources {
 	}
 }
 
-func checkDivZero(denom shared.Resources) shared.Resources {
+func checkDivZero(denom float64) float64 {
 	if denom == 0 {
 		return 1.0
 	}
 	return denom
+}
+
+func (c *client) isAlive(islandCheck shared.ClientID) bool {
+	for island, status := range c.gameState().ClientLifeStatuses {
+		if island == islandCheck {
+			if status == shared.Dead {
+				return false
+			}
+			return true
+		}
+	}
+	return false
 }

@@ -68,7 +68,7 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 
 	//c.Logf("island opinions", c.opinionHist[shared.ClientID(4)])
 	c.opinionHist[otherIsland].Performances[situation] = islandSituationPerf
-	//c.Logf("[returning full object]:", c.opinionHist[otherIsland])
+	c.Logf("[returning full object]:", c.opinionHist[otherIsland])
 	return trust
 
 }
@@ -97,14 +97,13 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 		situationReal := islandSituationPerf.real
 		c.Logf("[current performance]:", islandSituationPerf)
 
-		var updatedHist []int
 		percentageDiff := situationReal
 		if situationExp != 0 { // Forgiveness principle: if we had 0 expectation, give them a chance to improve
 			// between -100 and 100
 			percentageDiff = 100 * (situationReal - situationExp) / situationExp
 		}
 		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
-		updatedHist = append(situationHist, c.setLimits(newConf))
+		updatedHist := append(situationHist, c.setLimits(newConf))
 		c.Logf("[situation after]:", updatedHist)
 		c.Logf("[appended yuhuuu]:", len(updatedHist))
 
@@ -182,24 +181,23 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	c.Logf("Bufferlen %v", bufferLen)
 	for i := 0; i < MinInt(bufferLen, len(ourKeys)); i++ {
 		// Get the transaction distance to the previous transaction
-		ourTransDist := turn - uint(ourKeys[i])
+		ourTransDist := turn - uint(ourKeys[i]) + 1
 		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
 		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
 		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
 	}
 	for i := 0; i < MinInt(bufferLen, len(theirKeys)); i++ {
 		// Get the transaction distance to the previous transaction
-		theirTransDist := turn - uint(theirKeys[i])
+		theirTransDist := turn - uint(theirKeys[i]) + 1
 		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
 		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
 		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
 	}
 
 	// TODO: is there a potential divide by 0 here?
-	usRatio := runMeanTheyDon / runMeanWeReq   // between 0 and 1
-	themRatio := runMeanWeDon / runMeanTheyReq // between 0 and 1
-
-	diff := usRatio - themRatio // between -1 and 1
+	usRatio := runMeanTheyDon / checkDivZero(runMeanWeReq)   // between 0 and 1
+	themRatio := runMeanWeDon / checkDivZero(runMeanTheyReq) // between 0 and 1
+	diff := usRatio - themRatio                              // between -1 and 1
 	// confidence increases if usRatio >= themRatio
 	// confidence decreases if not
 
@@ -225,7 +223,14 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 
 	// TODO: improve how ratios are used to improve pastConfidence
 	// pastConfidence = (pastConfidence + sensitivity*diff*100) / 2
+	c.Logf("[Past confidence (GIFTS)]:", pastConfidence)
+	c.Logf("[Diff added (GIFTS)]: ", diff)
 	pastConfidence = int((pastConfidence + int(diff*100)) / 2)
+	updatedHist := append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
+	c.Logf("[Gift situation updated]:", updatedHist)
+	c.Logf("[Length of gift situation after update]:", len(updatedHist))
+
+	c.opinionHist[island].Histories["Gifts"] = updatedHist
 
 	return pastConfidence
 }
@@ -255,9 +260,9 @@ func (c *client) updatePresidentTrust() {
 			div++
 		}
 
-		percChangeTax := 100 * (c.taxAmount - runMeanTax) / checkDivZero(runMeanTax)
-		percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / checkDivZero(runMeanWeAllocated) // How much less we're giveen
-		percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / checkDivZero(runMeanWeTake)        // How much more we've taken
+		percChangeTax := 100 * (c.taxAmount - runMeanTax) / shared.Resources(checkDivZero(float64(runMeanTax)))
+		percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / shared.Resources(checkDivZero(float64(runMeanWeAllocated))) // How much less we're giveen
+		percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / shared.Resources(checkDivZero(float64(runMeanWeTake)))        // How much more we've taken
 
 		reality = c.setLimits(int(100 - percWeGet - percChangeTax + percWeTake))
 	}
@@ -380,26 +385,29 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 	c.Logf("IslandInfo ", islandInfo)
 
 	for _, accountability := range iigoHistory {
-		for _, pair := range accountability.Pairs {
-			switch pair.VariableName {
-			case 24: // ExpectedTaxContribution
-				islandInfo[accountability.ClientID].ExpectedTaxContribution = pair.Values
-			case 25: // ExpectedAllocation
-				islandInfo[accountability.ClientID].ExpectedAllocation = pair.Values
-			case 26: // IslandTaxContribution
-				islandInfo[accountability.ClientID].IslandTaxContribution = pair.Values
-			case 27: // IslandAllocation
-				islandInfo[accountability.ClientID].IslandAllocation = pair.Values
-			case 31: // SanctionPaid
-				islandInfo[accountability.ClientID].SanctionPaid = pair.Values
-			case 32: // SanctionExpected
-				islandInfo[accountability.ClientID].SanctionExpected = pair.Values
-			case 52: // IslandActualPrivateResources
-				islandInfo[accountability.ClientID].IslandActualPrivateResources = pair.Values
-			case 53: // IslandReportedPrivateResources
-				islandInfo[accountability.ClientID].IslandReportedPrivateResources = pair.Values
+		if c.isAlive(accountability.ClientID) {
+			for _, pair := range accountability.Pairs {
+				switch pair.VariableName {
+				case 24: // ExpectedTaxContribution
+					islandInfo[accountability.ClientID].ExpectedTaxContribution = pair.Values
+				case 25: // ExpectedAllocation
+					islandInfo[accountability.ClientID].ExpectedAllocation = pair.Values
+				case 26: // IslandTaxContribution
+					islandInfo[accountability.ClientID].IslandTaxContribution = pair.Values
+				case 27: // IslandAllocation
+					islandInfo[accountability.ClientID].IslandAllocation = pair.Values
+				case 31: // SanctionPaid
+					islandInfo[accountability.ClientID].SanctionPaid = pair.Values
+				case 32: // SanctionExpected
+					islandInfo[accountability.ClientID].SanctionExpected = pair.Values
+				case 52: // IslandActualPrivateResources
+					islandInfo[accountability.ClientID].IslandActualPrivateResources = pair.Values
+				case 53: // IslandReportedPrivateResources
+					islandInfo[accountability.ClientID].IslandReportedPrivateResources = pair.Values
+				}
 			}
 		}
+
 	}
 	for island, accountability := range islandInfo {
 		allocationDiff := 0
@@ -471,26 +479,36 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 
 //This function is called when a disaster occurs to update our confidence on others' predictions
 func (c *client) updateDisasterConf() {
-	//if val, ok := c.disasterHistory
-	disasterMag := c.disasterHistory[len(c.disasterHistory)-1].Report.Magnitude
-	disasterTurn := c.disasterHistory[len(c.disasterHistory)-1].Turn
+
+	// If a disaster has occurred
+	disasterMag := 0.0
+	disasterTurn := uint(0)
+	if len(c.disasterHistory) > 1 {
+		disasterMag = c.disasterHistory[len(c.disasterHistory)-1].Report.Magnitude
+		disasterTurn = c.disasterHistory[len(c.disasterHistory)-1].Turn
+
+	}
+
 	for island, predictions := range c.predictionHist {
+		// If we have received predictions from others
 		avgMag := 0.0
 		avgConf := 0.0
 		avgTurn := 0
-		for _, prediction := range predictions {
-			avgMag += prediction.Prediction.Magnitude
-			avgConf += prediction.Prediction.Confidence
-			avgTurn += int(prediction.Turn)
+		if len(predictions) > 0 {
+			for _, prediction := range predictions {
+				avgMag += prediction.Prediction.Magnitude
+				avgConf += prediction.Prediction.Confidence
+				avgTurn += int(prediction.Turn)
+			}
+
+			// The three metrics we will assess an island by
+			avgTurn = avgTurn / len(predictions)
+			avgMag = avgMag / float64(len(predictions))
+			avgConf = avgConf / float64(len(predictions))
 		}
 
-		// The three metrics we will assess an island by
-		avgTurn = avgTurn / len(predictions)
-		avgMag = avgMag / float64(len(predictions))
-		avgConf = avgConf / float64(len(predictions))
-
-		magError := int(100 * math.Abs(avgMag-disasterMag) / disasterMag)                    // percentage error
-		turnError := int(100 * math.Abs(float64((uint(avgTurn)-disasterTurn)/disasterTurn))) // percentage error
+		magError := int(100 * math.Abs(avgMag-disasterMag) / checkDivZero(disasterMag))                           // percentage error
+		turnError := int(100 * math.Abs(float64(uint(avgTurn)-disasterTurn)/checkDivZero(float64(disasterTurn)))) // percentage error
 
 		predError := int(avgConf) * (magError + turnError)
 

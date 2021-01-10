@@ -32,12 +32,14 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 		var trustRank IslandTrustList
 
 		for _, team := range c.getAliveClients() {
-			islandConf := IslandTrust{
-				island: team,
-				trust:  c.confidence("Gifts", team),
-			}
+			if team != c.GetID() {
+				islandConf := IslandTrust{
+					island: team,
+					trust:  c.confidence("Gifts", team),
+				}
 
-			trustRank = append(trustRank, islandConf)
+				trustRank = append(trustRank, islandConf)
+			}
 		}
 
 		// keep a ranked list of the teams
