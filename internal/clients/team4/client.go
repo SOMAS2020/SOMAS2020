@@ -26,7 +26,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		collaboration:    0,
 		riskTaking:       0,
 		agentsTrust:      []float64{},
-		minPardonTime:    3,
+		maxPardonTime:    3,
 		maxTierToPardon:  shared.SanctionTier3,
 		minTrustToPardon: 0.6,
 	}
@@ -117,7 +117,7 @@ type internalParameters struct {
 	// Judge GetPardonIslands config
 
 	// days left on the sanction after which we can even considering pardoning other islands
-	minPardonTime int
+	maxPardonTime int
 	// specifies the maximum sanction tier after which we will no longer consider pardoning others
 	maxTierToPardon shared.IIGOSanctionsTier
 	// we will only consider pardoning islands which we trust with at least this value
