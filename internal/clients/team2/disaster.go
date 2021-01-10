@@ -36,7 +36,7 @@ func (c *client) getIslandDVPs(archipelagoGeography disasters.ArchipelagoGeograp
 
 	// For each island, find the overlap between the archipelago and the shifted outline which
 	// is centred around the island's position
-	c.Logf("[TEAM2] DVP for Islands...")
+	c.Logf("[TEAM2] DVP for Islands in Archipelago with centre (%v,%v)...", archipelagoCentre.X, archipelagoCentre.Y)
 	for islandID, locationInfo := range archipelagoGeography.Islands {
 		relativeOffset := CartesianCoordinates{
 			X: locationInfo.X - archipelagoCentre.X,
@@ -287,7 +287,7 @@ func combinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPr
 		// Get the combination confidence = (our confidence in island x their confidence in their prediction)/100
 		combinationConfidence := (float64(islandConfidences[islandID]) * prediction.PredictionMade.Confidence) / 100
 		c.Logf("[TEAM2] Island %v Combined Confidence: %v", islandID, combinationConfidence)
-		c.Logf("[TEAM2] Island %v Prediction Recieved: Location: (%v,%v)\n Magnitude: %v\n TimeLeft: %v\n Confidence: %v",
+		c.Logf("[TEAM2] Island %v Prediction Recieved:\n Location: (%v,%v)\n Magnitude: %v\n TimeLeft: %v\n Confidence: %v",
 			islandID, prediction.PredictionMade.CoordinateX, prediction.PredictionMade.CoordinateY,
 			prediction.PredictionMade.Magnitude, prediction.PredictionMade.TimeLeft, prediction.PredictionMade.Confidence)
 
