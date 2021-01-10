@@ -123,6 +123,8 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 		}
 		c.giftHistory[team].ourRequest[c.getTurn()] = newGiftRequest
 	}
+	c.Logf("Gift History OUR Request %v",
+		c.giftHistory[shared.Team3].ourRequest[c.getTurn()])
 	return requests
 }
 
@@ -160,8 +162,8 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			}
 		// we are POOR af people
 		default:
-			opinionMulti := mapToRange(float64(c.opinions[team].getScore()), -1, 1, 0, 0.5) // Opinion = 0 then you get what we say, opinion = 1 get what they ask for
-			amount := ((opinionMulti * float64(receivedRequests[team])) +                   // opinion = 1 then they get half of what they wanted
+			opinionMulti := mapToRange(float64(c.opinions[team].getScore()), -1, 1, 0.1, 0.5) // Opinion = 0 then you get what we say, opinion = 1 get what they ask for
+			amount := ((opinionMulti * float64(receivedRequests[team])) +                     // opinion = 1 then they get half of what they wanted
 				((1 - opinionMulti) * c.config.offertoDyingIslands)) // opinion = -1 they get 0 of what they want and all of what we pay them
 			if status == shared.Critical {
 				if c.opinions[team].getScore() >= 0 {
@@ -189,6 +191,9 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			offered:   offers[team],           // Amount WE offered
 		}
 		c.giftHistory[team].theirRequest[c.getTurn()] = newGiftRequest
+
+		c.Logf("Gift History THEIR Request %v",
+			c.giftHistory[shared.Team3].theirRequest[c.getTurn()])
 	}
 	return offers
 }
@@ -220,6 +225,8 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 		}
 		c.giftHistory[team].ourRequest[c.getTurn()] = newGiftRequest
 	}
+	c.Logf("Gift History OUR offers %v",
+		c.giftHistory[shared.Team3].ourRequest[c.getTurn()])
 	return responses
 }
 
@@ -243,6 +250,8 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 		}
 		c.giftHistory[team].theirRequest[c.getTurn()] = newGiftRequest
 	}
+	c.Logf("Gift History their response %v",
+		c.giftHistory[shared.Team3].theirRequest[c.getTurn()])
 }
 
 // ===================================== Has sending / recv gifts been implemented? ===============================
@@ -261,10 +270,14 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 	}
 	c.giftHistory[toTeam].theirRequest[c.getTurn()] = newGiftRequest
 
-	return giftOff
+	c.Logf("Gift History TheirRequest + received %v",
+		c.giftHistory[shared.Team3].theirRequest[c.getTurn()])
+
+	return giftOffer
 	// Debugging for gift
 	// c.Logf("[Debug] ourRequest [%v]", c.giftHistory[toTeam].ourRequest[c.getTurn()])
 	// c.Logf("[Debug] theirRequest [%v]", c.giftHistory[toTeam].theirRequest[c.getTurn()])
+
 }
 
 // ===================================== Has sending / recv gifts been implemented? ===============================
