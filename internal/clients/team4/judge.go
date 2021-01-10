@@ -41,8 +41,21 @@ type judgeHistoryInfo struct {
 }
 
 type accountabilityHistory struct {
-	history map[uint]map[shared.ClientID]judgeHistoryInfo // stores accountablity history of all turns
-	updated bool                                          // indicates whether a judge has updated the history
+	history     map[uint]map[shared.ClientID]judgeHistoryInfo // stores accountablity history of all turns
+	updated     bool                                          // indicates whether a judge has updated the history
+	updatedTurn uint                                          // indicates a turn which was updated
+}
+
+func (h *accountabilityHistory) getNewInfo() map[shared.ClientID]judgeHistoryInfo {
+	if newInfo, ok := h.history[h.updatedTurn]; ok {
+		return newInfo
+	}
+	return map[shared.ClientID]judgeHistoryInfo{}
+}
+
+func (h *accountabilityHistory) update(turn uint) {
+	h.updated = true
+	h.updatedTurn = turn
 }
 
 func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts *map[shared.ClientID]int, turn uint) {
@@ -66,7 +79,7 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 			} else {
 				j.parent.savedHistory.history[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
 			}
-			j.parent.savedHistory.updated = true
+			j.parent.savedHistory.update(turn)
 		}
 	}
 }

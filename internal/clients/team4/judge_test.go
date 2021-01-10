@@ -197,6 +197,10 @@ func TestSaveHistoryInfo(t *testing.T) {
 				if !clientHistory.updated {
 					t.Errorf("Single history failed. History was not updated")
 				}
+
+				if clientHistory.updatedTurn != turn {
+					t.Errorf("Single history failed. Expected updated turn: %v, got turn: %v", turn, clientHistory.updatedTurn)
+				}
 			}
 
 			if !reflect.DeepEqual(wholeHistory, testClient.savedHistory.history) {

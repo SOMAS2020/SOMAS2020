@@ -45,8 +45,9 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	}
 
 	judgeHistory := accountabilityHistory{
-		history: map[uint]map[shared.ClientID]judgeHistoryInfo{},
-		updated: false,
+		history:     map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		updated:     false,
+		updatedTurn: 0,
 	}
 
 	emptyRuleCache := map[string]rules.RuleMatrix{}
@@ -163,7 +164,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 func (c *client) updateParents() {
 	c.clientJudge.parent = c
 	c.clientSpeaker.parent = c
-
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
@@ -273,6 +273,9 @@ func (c *client) StartOfTurn() {
 func (c *client) updateTrustFromSavedHistory() {
 	if c.savedHistory.updated {
 
+		// newInfo := c.savedHistory.getNewInfo()
+
+		c.savedHistory.updated = false
 	}
 }
 
