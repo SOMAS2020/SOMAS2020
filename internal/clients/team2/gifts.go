@@ -27,28 +27,27 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
 
 	// check our critical and threshold - if either is off - request
-	ourAgentCritical := shared.Critical == shared.ClientLifeStatus(1)
+	ourAgentCritical := c.criticalStatus()
+
 	// Minimum we need to survive a round
-	requestAmount := (c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold) * c.giftReliance()
+	giftTarget := 1.5 * (c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold) * c.giftReliance()
 
 	// confidence[island] * requestAmount until -> target
-	if ourAgentCritical || requestAmount > 0 {
-		target := 1.5 * requestAmount //TODO config: cushion
-		var trustRank IslandTrustList
+	if ourAgentCritical || giftTarget != 0 {
+		var trustRank []IslandTrust
 
 		for team, status := range c.gameState().ClientLifeStatuses {
-
-			// get our confidence in the team
-			// TODO: this should be whether or not that team is critical not us
 			if status != shared.ClientLifeStatus(2) {
 				islandConf := IslandTrust{
 					island: team,
 					trust:  c.confidence("Gifts", team),
 				}
+
 				trustRank = append(trustRank, islandConf)
 			}
-
 		}
+
+		//**** we haven't looked beyond this point ****//
 
 		// keep a ranked list of the teams
 		sort.Sort(trustRank)

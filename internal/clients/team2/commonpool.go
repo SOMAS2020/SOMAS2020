@@ -34,16 +34,15 @@ func (c *client) presCommonPoolUpdate(request shared.Resources) {
 		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
 		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 
-		c.Logf("Initialised presCommonPoolHist")
+		c.Logf("Initialised presCommonPoolHist and added request", c.presCommonPoolHist)
 	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
 		// If we have a previous entry, update the requestedToPres
 		commonPool = pastCommonPool
 		commonPool.requestedToPres = request
+		c.Logf("President Common Pool History updated", c.presCommonPoolHist)
+
 	}
-	c.Logf("Common pool (how much we request obj)", commonPool)
-	c.Logf("Common pool (how much we request)", request)
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
-	c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 }
 
 // Returns a resource request to ask the President for from the common pool
@@ -54,13 +53,13 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 
 	// 1 + agentDVP - 1.25x if vuln 1.8x
 	// Base request is amount needed to survive 1 more turn
-	request := c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold
+	request := c.taxAmount + c.gameConfig().CostOfLiving
 
 	if c.criticalStatus() {
-		request += 2 * (c.taxAmount + c.gameConfig().CostOfLiving)
+		request = request*3 + c.gameConfig().MinimumResourceThreshold
 		c.Logf("Critical status! Set Common Pool request to: ", request)
 	} else if c.getAgentExcessResources() == shared.Resources(0) || agentDVP > 0.6 {
-		request *= 2
+		request = request*2 + c.gameConfig().MinimumResourceThreshold
 		c.Logf("Resources getting LOW or at risk! Gather up resources for one turn to stay safe")
 	} else if c.getAgentExcessResources() > shared.Resources(0) {
 		multiplier := shared.Resources(0)
@@ -72,7 +71,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 		case Selfish:
 			multiplier = 1
 		}
-		request *= multiplier
+		request = request*multiplier + c.gameConfig().MinimumResourceThreshold
 		c.Logf("Resources in Excess! Request based on agent Strategy: ", c.taxAmount)
 	} else {
 		request = c.taxAmount
@@ -113,15 +112,14 @@ func (c *client) RequestAllocation() shared.Resources {
 	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
 		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
 		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
-
-		c.Logf("Initialised presCommonPoolHist")
+		c.Logf("Initialised presCommonPoolHist and added request", c.presCommonPoolHist)
 	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
 		// If we have a previous entry, update the requestedToPres
 		commonPool = pastCommonPool
 		commonPool.takenFromCP = request
+		c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 	}
-	c.Logf("Common pool (how much we take)", request)
-	c.Logf("Common pool (how much we take obj)", commonPool)
+
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 
 	return request
