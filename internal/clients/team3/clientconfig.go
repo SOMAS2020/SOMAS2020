@@ -19,6 +19,6 @@ func getislandParams() islandParams {
 		giftInflationPercentage:     0.1,  // 0-1
 		trustConstantAdjustor:       1,    // arbitrary
 		trustParameter:              0.25, // 0-1
-		NoRequestGiftParam:          0.05, // 0-1
+		NoRequestGiftParam:          0.01, // 0-1
 	}
 }
