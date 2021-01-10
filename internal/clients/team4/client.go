@@ -2,9 +2,7 @@
 package team4
 
 import (
-	"fmt"
 	"math"
-	"reflect"
 	"sort"
 	"testing"
 
@@ -54,7 +52,6 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		BaseClient:         baseclient.NewClient(id),
 		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: nil},
 		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
-		yes:                "",
 		obs:                &obs,
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
@@ -75,11 +72,10 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 
 type client struct {
 	*baseclient.BaseClient //client struct has access to methods and fields of the BaseClient struct which implements implicitly the Client interface.
-	clientJudge            judge
-	clientSpeaker          speaker
 
 	//custom fields
-	yes                string              //this field is just for testing
+	clientJudge        judge
+	clientSpeaker      speaker
 	obs                *observation        //observation is the raw input into our client
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
@@ -88,9 +84,10 @@ type client struct {
 
 // Store extra information which is not in the server and is helpful for our client
 type observation struct {
-	iigoObs *iigoObservation
-	iifoObs *iifoObservation
-	iitoObs *iitoObservation
+	iigoObs           *iigoObservation
+	iifoObs           *iifoObservation
+	iitoObs           *iitoObservation
+	pastDisastersList baseclient.PastDisastersList
 }
 
 type iigoObservation struct {
@@ -99,6 +96,9 @@ type iigoObservation struct {
 }
 
 type iifoObservation struct {
+	receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
+	ourDisasterPrediction       shared.DisasterPredictionInfo
+	finalDisasterPrediction     shared.DisasterPrediction
 }
 
 type iitoObservation struct {
@@ -124,8 +124,8 @@ type internalParameters struct {
 	minTrustToPardon float64
 }
 
-type personality struct {
-}
+// type personality struct {
+// }
 
 //Overriding and extending the Initialise method of the BaseClient to initilise our client. This function happens after the init() function. At this point server has just initialised and the ServerReadHandle is available.
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
@@ -137,14 +137,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.internalParam.agentsTrust = trustVector
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
-	// numClient := len(shared.TeamIDs)
-	// v := make([]float64, numClient*numClient)
-	// for i := range v {
-	// 	v[i] = 1
-	// }
-	// c.internalParam = &internalParameters{
-	// 	trustMatrix: mat.NewDense(numClient, numClient, v),
-	// }
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
@@ -156,15 +148,8 @@ func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]
 }
 
 //Overriding the StartOfTurn method of the BaseClient
-func (c *client) StartOfTurn() {
-	c.yes = "yes"
-	c.Logf(`what are you doing?
-	=========================================
-	==============================================
-	================================================`)
-	c.Logf("this is a %v for you ", c.yes)
-	fmt.Println(reflect.TypeOf(c))
-}
+// func (c *client) StartOfTurn() {
+// }
 
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
@@ -184,12 +169,11 @@ func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
 // decideRuleDistance returns the evaluated distance for the rule given in the argument
 func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 	// link rules
-	// rules with 0(==) as auxiliary vector element(s)
 
-	// find rule correspondent to the rule that you need to evaluate
+	// find rule corresponding to the rule that you need to evaluate
 	idealRuleMatrix := (*c.idealRulesCachePtr)[ruleMatrix.RuleName]
 
-	// calculate a distance and a distance
+	// calculate a distance
 	distance := 0.0
 	for i := 0; i < ruleMatrix.AuxiliaryVector.Len(); i++ {
 		currentAuxValue := ruleMatrix.AuxiliaryVector.AtVec(i)
@@ -200,7 +184,11 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 
 			if currentAuxValue == 0 {
 				// ==0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue != 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 			} else if currentAuxValue == 1 {
 				// TODO: ACTUALLY IMPLEMENT THESE CONDITIONS
 				// >0 condition
@@ -210,7 +198,11 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 				distance += 10000
 			} else if currentAuxValue == 3 {
 				// !=0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue != 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 			} else if currentAuxValue == 4 {
 				distance += 10000
 				// it returns the value of the calculation
