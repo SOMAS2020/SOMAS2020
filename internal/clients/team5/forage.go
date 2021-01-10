@@ -70,7 +70,7 @@ func (c *client) InitialForage() shared.ForageDecision {
 		}
 	}
 
-	c.Logf("[DecideForage]:[Inital Forage] [%v] | [%v]", forageType, forageContribution)
+	c.Logf("[DecideForage]:[Initial Forage] [%v] | [%v]", forageType, forageContribution)
 
 	return shared.ForageDecision{
 		Type:         forageType,
@@ -92,7 +92,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 				returnOI += 0
 			}
 		}
-		returnOI = returnOI / float64(len(outcomes)) // Lenght cant be 0 because of initial foraging //Average RoI for the type
+		returnOI = returnOI / float64(len(outcomes)) // Length cant be 0 because of initial foraging //Average RoI for the type
 
 		if returnOI > bestReturn && returnOI > 0 { // Compares the type to the previous type and 0
 			bestReturn = returnOI // If its greater than 0 then it has some return
