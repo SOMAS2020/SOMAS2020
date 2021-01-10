@@ -35,13 +35,13 @@ func TestGetTrustMatrix(t *testing.T) {
 	}
 }
 
-func TestNormalize(t *testing.T) {
+func TestNormalise(t *testing.T) {
 	cases := []struct {
 		name      string
 		clientMap map[shared.ClientID]float64
 	}{
 		{
-			name: "simple normalize",
+			name: "simple normalise",
 			clientMap: map[shared.ClientID]float64{
 				shared.Team1: 0.5,
 				shared.Team2: 0.7,
@@ -50,7 +50,7 @@ func TestNormalize(t *testing.T) {
 			},
 		},
 		{
-			name: "simple normalize 2",
+			name: "simple normalise 2",
 			clientMap: map[shared.ClientID]float64{
 				shared.Team1: 0.2,
 				shared.Team2: 0.7,
@@ -62,7 +62,7 @@ func TestNormalize(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tr := trust{tc.clientMap}
-			tr.normalize()
+			tr.normalise()
 
 			totalTrust := 0.0
 			for _, trust := range tr.trustMap {

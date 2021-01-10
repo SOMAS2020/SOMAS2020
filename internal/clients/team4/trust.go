@@ -29,7 +29,7 @@ func (t *trust) ChangeClientTrust(clientID shared.ClientID, diff float64) {
 	// diff is percentage to change trust for clientID ie. diff in range [-1,1]
 	if _, ok := t.trustMap[clientID]; ok {
 		t.trustMap[clientID] = t.trustMap[clientID] * (1 + diff)
-		t.normalize()
+		t.normalise()
 	}
 }
 
@@ -37,7 +37,7 @@ func (t *trust) SetClientTrust(clientID shared.ClientID, newValue float64) {
 	// diff is percentage to change trust for clientID ie. diff in range [-1,1]
 	if _, ok := t.trustMap[clientID]; ok {
 		t.trustMap[clientID] = newValue
-		t.normalize()
+		t.normalise()
 	}
 }
 
@@ -53,13 +53,13 @@ func (t *trust) expectedTrustSum() float64 {
 	return 0.5 * float64(len(t.trustMap))
 }
 
-//normalize ensures that trust values are always in range [0,1]
-func (t *trust) normalize() {
+//normalise ensures that trust values are always in range [0,1]
+func (t *trust) normalise() {
 	// diff is percentage to increase trust for clientID ie. diff in range [0,1]
 	if len(t.trustMap) > 0 {
-		normalizeCoef := t.expectedTrustSum() / t.totalTrustSum()
+		normaliseCoef := t.expectedTrustSum() / t.totalTrustSum()
 		for clientID, trust := range t.trustMap {
-			t.trustMap[clientID] = trust * normalizeCoef
+			t.trustMap[clientID] = trust * normaliseCoef
 		}
 	}
 }
@@ -68,5 +68,5 @@ func (t *trust) initialise() {
 	for _, clientID := range shared.TeamIDs {
 		t.trustMap[clientID] = 0.5
 	}
-	t.normalize()
+	t.normalise()
 }
