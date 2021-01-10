@@ -1,10 +1,10 @@
 package team3
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"math"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -96,7 +96,7 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	}
 	// p.c.clientPrint("Allocation wieghts: %+v\n", allocWeights)
 
-	commonPoolThreshold = float64(availCommonPool) * (1.0 - p.c.params.riskFactor)
+	commonPoolThreshold = math.Min(float64(availCommonPool)*(1.0-p.c.params.riskFactor), sumRequest)
 	if p.c.params.saveCriticalIsland {
 		for island := range resourceRequest {
 			if resources[island] < p.c.criticalThreshold {
