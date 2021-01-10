@@ -137,7 +137,11 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 	// You can check your updated resources like this:
 	myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	percentageDonated := float64(sent / (sent + myResources))
+	percentageDonated := 0.0
+	// avoid div 0
+	if float64(sent + myResources) > 0 {
+		percentageDonated = float64(sent / (sent + myResources))
+	}
 	bumpThreshold := 0.2
 	currentGreediness := c.internalParam.greediness
 	maxGreedBump := math.Min(currentGreediness + bumpThreshold, 1.0)
@@ -159,7 +163,11 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 	// You can check your updated resources like this:
 	myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	percentageDonated := float64(received) / float64(myResources)
+	percentageDonated := 0.0
+	// avoid div 0
+	if float64(myResources) > 0 {
+		percentageDonated = float64(received / myResources)
+	}
 	bumpThreshold := 0.2
 
 	currentCollab := c.internalParam.collaboration
