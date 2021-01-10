@@ -124,3 +124,6 @@ func boolToFloat(input bool) float64 {
 	return 0
 }
 
+func (c *client) getOurResources() shared.Resources {
+	return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+}

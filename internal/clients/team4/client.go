@@ -286,6 +286,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
 	clientID := id
+	ourResources:= c.getOurResources()
 	// TODO: Choose sensible thresholds!
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)
@@ -295,18 +296,18 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 		// If we are the president.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 
 	case speakerID:
 		// If we are the Speaker.
 		monitoring = (c.getTrust(presidentID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 	case judgeID:
 		// If we are the Judge.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 	}
 	return monitoring
 }

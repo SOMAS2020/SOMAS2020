@@ -91,7 +91,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 
 	// available observations
 	commonPoolLevel := c.ServerReadHandle.GetGameState().CommonPool
-	ourResource := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	ourResource := c.getOurResources()
 	ourLifeStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
 	otherAgentsLifeStatuses := c.ServerReadHandle.GetGameState().ClientLifeStatuses
 
@@ -136,7 +136,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 
 func (c *client) ResourceReport() shared.ResourcesReport {
 	// Parameters initialisation.
-	currentResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	currentResources := c.getOurResources()
 	lyingThreshold := 3.0
 	reporting := true
 
@@ -182,7 +182,7 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 // COMPULSORY
 func (c *client) GetTaxContribution() shared.Resources {
 	valToBeReturned := shared.Resources(0)
-	currentWealth := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	currentWealth := c.getOurResources()
 
 	collaborationThreshold := 1.0
 	wealthThreshold := 5 * valToBeReturned

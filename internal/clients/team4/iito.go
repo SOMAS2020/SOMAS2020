@@ -11,7 +11,7 @@ import (
 // COMPULSORY, you need to implement this method
 func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
-	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	ourResources := c.getOurResources()
 	importance := c.importances.getGiftRequestsImportance
 	
 	parameters := mat.NewVecDense(4, []float64{
@@ -46,7 +46,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 
-	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	ourResources := c.getOurResources()
 	// same as for requests. Now we will consider when you are more collaborative than greedy.
 	importance := c.importances.getGiftRequestsImportance
 
@@ -71,7 +71,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 	// You can fetch the clients which are alive like this:
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		teamTrust := c.trustMatrix.GetClientTrust(team)
+		teamTrust := c.getTrust(team)
 		offerSize:= 0.0
 		if status == shared.Critical &&
 		   giftSize > 0 {
@@ -100,7 +100,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
 	
 	// THIS JUST REPLICATES THE CODE IN "GetGiftOffers" to find our wealthGoal
-	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	ourResources := c.getOurResources()
 	// same as for requests. Now we will consider when you are more collaborative than greedy.
 	importance := c.importances.getGiftRequestsImportance
 
