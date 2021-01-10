@@ -85,8 +85,9 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, truthfulne
 }
 
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool) {
-
+	j.parent.Logf("InspectHistory: %v", iigoHistory)
 	outputmap, state := j.BaseJudge.InspectHistory(iigoHistory, turnsAgo)
+	j.parent.Logf("Outputmap: %v", outputmap)
 
 	turn := j.parent.getTurn() - uint(turnsAgo)
 	truthfulness := map[shared.ClientID]float64{}
@@ -101,13 +102,15 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 		}
 		switch len(eval.Evaluations) {
 		case 0:
-			truthfulness[client] = 0
+			truthfulness[client] = 1
 		case 1:
 			truthfulness[client] = 1 - float64(lieCount)/float64(len(eval.Evaluations))
 
 		}
 		// lieCounts[client] = float64(lieCount) / float64(len(eval.Evaluations))
 	}
+
+	j.parent.Logf("Truthfulness: %v", truthfulness)
 
 	j.saveHistoryInfo(&iigoHistory, &truthfulness, turn)
 

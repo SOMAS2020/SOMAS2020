@@ -64,10 +64,13 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0}),
 	}
 
+	baseJudge := baseclient.BaseJudge{}
+	baseSpeaker := baseclient.BaseSpeaker{}
+
 	team4client := client{
 		BaseClient:         baseclient.NewClient(id),
-		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
-		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		clientJudge:        judge{BaseJudge: &baseJudge, t: testing},
+		clientSpeaker:      speaker{BaseSpeaker: &baseSpeaker},
 		obs:                &obs,
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
@@ -272,15 +275,32 @@ func (c *client) StartOfTurn() {
 
 func (c *client) updateTrustFromSavedHistory() {
 	if c.savedHistory.updated {
-
+		c.Logf("Updating history. Trust before: %v", c.trustMatrix.trustMap)
 		newInfo := c.savedHistory.getNewInfo()
+		c.Logf("Updating history. NewInfo: %v", newInfo)
 
-		for clientID, history := range newInfo {
-			lieRatio := history.TruthfulRatio
-			c.trustMatrix.ChangeClientTrust(clientID, lieRatio)
+		if len(newInfo) > 0 {
+			var truthfulnessSum float64
+
+			for _, history := range newInfo {
+				truthfulnessSum += history.TruthfulRatio
+			}
+			averageTruthfulness := truthfulnessSum / float64(len(newInfo))
+
+			for clientID, history := range newInfo {
+				truthfulness := history.TruthfulRatio
+				c.Logf("%v, %v", clientID, truthfulness)
+
+				c.trustMatrix.ChangeClientTrust(clientID, truthfulness-averageTruthfulness) //potentially add * historyWeight to scale the update
+
+				if floatEqual(truthfulness, 1) { //bonus for being fully truthful
+					c.trustMatrix.ChangeClientTrust(clientID, 0.1)
+				}
+			}
 		}
-
 		c.savedHistory.updated = false
+		c.Logf("History updated. Trust after: %v", c.trustMatrix.trustMap)
+
 	}
 }
 

@@ -9,10 +9,12 @@ import (
 )
 
 func (c *client) GetClientJudgePointer() roles.Judge {
+	c.clientJudge.GameState = c.ServerReadHandle.GetGameState()
 	return &c.clientJudge
 }
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
+	c.clientSpeaker.GameState = c.ServerReadHandle.GetGameState()
 	return &c.clientSpeaker
 }
 
