@@ -38,17 +38,17 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 			forageType = shared.FishForageType
 		}
 	} else {
-		if deerHuntingROI == 0 {
-			forageType = shared.DeerForageType
-		}
 		if fishingROI == 0 {
 			forageType = shared.FishForageType
+		}
+		if deerHuntingROI == 0 {
+			forageType = shared.DeerForageType
 		}
 	}
 
 	return shared.ForageDecision{
 		Type:         forageType,
-		Contribution: shared.Resources(foragingInvestment * ((1 + (1 - c.params.riskFactor)) / 2)),
+		Contribution: shared.Resources(foragingInvestment * (1 - c.params.riskFactor)),
 	}, nil
 }
 
