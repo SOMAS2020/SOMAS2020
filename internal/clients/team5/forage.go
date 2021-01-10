@@ -237,7 +237,7 @@ func (c *client) normalForage() shared.ForageDecision {
 		bestInput += bestInput * shared.Resources(rand.Float64()*c.config.NormalRandomChange)
 	}
 
-	bestInput = bestInput * shared.Resources(c.mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 1.5))
+	bestInput = bestInput * shared.Resources(mapToRange(float64(len(c.getAliveTeams(true))), 6, 1, 1, 1.5))
 
 	// Pick the minimum value between the best value and x% of our resources
 	bestInput = shared.Resources(math.Min(
