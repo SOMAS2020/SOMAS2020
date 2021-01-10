@@ -20,6 +20,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		gameState:   g,
 		iigoClients: iIGOClients,
 		logger:      logger,
+		config:      gameConf,
 	}
 
 	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)

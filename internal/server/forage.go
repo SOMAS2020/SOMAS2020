@@ -161,7 +161,10 @@ func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]s
 			}
 		}
 
-		s.giveResources(participantID, participantReturn, retReason)
+		err := s.giveResources(participantID, participantReturn, retReason)
+		if err != nil {
+			s.logf("Ignoring failure to give resources in distributeForageReturn: %v", err)
+		}
 		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
 			Type:         huntReport.ForageType,
 			Contribution: contribution,
