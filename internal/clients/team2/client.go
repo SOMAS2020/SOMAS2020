@@ -223,7 +223,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 	// Compute DVP for each Island based on Geography
 	c.islandDVPs = DisasterVulnerabilityDict{}
-	c.GetIslandDVPs(c.gameState().Geography)
+	c.getIslandDVPs(c.gameState().Geography)
 
 	// Initialise Roles
 	c.currSpeaker = Speaker{c: c}
