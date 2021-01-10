@@ -2,6 +2,7 @@ package team3
 
 import (
 	"math"
+	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -252,7 +253,7 @@ func (c *client) RuleProposal() rules.RuleMatrix {
 	c.localInputsCache = inputMap
 	shortestSoFar := -2.0
 	selectedRule := ""
-	if c.params.intelligence {
+	if rand.Int()%2 == 0 {
 		newMat, success := c.intelligentShift()
 		if success {
 			return newMat

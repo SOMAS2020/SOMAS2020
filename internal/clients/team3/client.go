@@ -98,7 +98,6 @@ type islandParams struct {
 	sensitivity             float64
 	localPoolThreshold      float64
 	giftInflationPercentage float64
-	intelligence            bool
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
 
