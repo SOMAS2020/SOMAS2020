@@ -83,6 +83,10 @@ func floatsAsUints(x []float64) []uint {
 }
 
 func (c client) getMood() float64 {
+	if c.gameState().ClientInfo.Resources >= getClientConfig().jbThreshold {
+		return mapToRange(float64(c.gameState().ClientInfo.Resources),
+			float64(c.gameState().ClientInfo.Resources), 0, 0.5, 1.5)
+	}
 	return mapToRange(float64(c.gameState().ClientInfo.Resources),
 		float64(c.config.jbThreshold), 0, 0.5, 1.5)
 }

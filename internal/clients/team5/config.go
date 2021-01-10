@@ -24,6 +24,7 @@ type clientConfig struct {
 	SkipForage          uint // Skip for X turns if no positive RoI
 	NormalRandomChange  float64
 	MaxForagePercentage float64
+	bestInputProfitPerc float64
 
 	//==================== Thresholds ====================
 	// Thresholds for the amount of money we have
@@ -38,13 +39,10 @@ type clientConfig struct {
 	imperialGiftRequestAmount float64 // How much to request when we are at Imperial
 	middleGiftRequestAmount   float64 // How much to request when we are dying
 	offertoDyingIslands       float64 // How much to give to islands dying 1/3 when we are poor
-	normalGift                float64
 
 	//Gift modifiers for opinions
 	opinionRequestMultiplier float64
 	opinionThresholdRequest  opinionScore
-	giftBoosting             shared.Resources
-	giftReduct               shared.Resources
 
 	//==================== Disasters and IIFO ====================
 	forecastTrustTreshold   opinionScore // min opinion score of another team to consider their forecast in creating ours
@@ -64,17 +62,18 @@ func getClientConfig() clientConfig {
 		JBForagePercentage:      0.30, // % of our resources when JB is Normal< X < JB
 
 		// Deciding foraging type
-		RandomChanceToFish:           0.1, // Chacne to switch to Hunting/Fishing
-		RandomChanceToHunt:           0.4,
-		IncreasePerHunterLastTurn:    0.00, // % increase for each Hunter
-		IncreasePerFisherMenLastTurn: 0.00, // % incrase for each Fisher
-		DeerTurnsToLookBack:          3,    // Number of turns to look back at for deer (not including last)
-		DecreasePerHunterInLookBack:  0.04, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
+		RandomChanceToFish:           0.10, // Chacne to switch to Hunting/Fishing
+		RandomChanceToHunt:           0.25,
+		IncreasePerHunterLastTurn:    0.00,  // % increase for each Hunter
+		IncreasePerFisherMenLastTurn: 0.00,  // % incrase for each Fisher
+		DeerTurnsToLookBack:          3,     // Number of turns to look back at for deer (not including last)
+		DecreasePerHunterInLookBack:  0.035, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
 
 		// Normal Forage
 		SkipForage:          1,
 		NormalRandomChange:  0.05,
 		MaxForagePercentage: 0.40,
+		bestInputProfitPerc: 0.8,
 
 		// Threshold for wealth as multiplier
 		jbThreshold:       2.0,
@@ -82,17 +81,14 @@ func getClientConfig() clientConfig {
 		imperialThreshold: 0.3, // surely should be - 100e6? (your right we are so far indebt)
 		//  Dying threshold is 0 < Dying < Imperial
 
-		// Gifts Config
-		dyingGiftRequestAmount:    25,
-		imperialGiftRequestAmount: 15,
-		middleGiftRequestAmount:   5,
-		offertoDyingIslands:       15,
-		normalGift:                1,
+		// Gifts Config (multipliers of cost of living)
+		dyingGiftRequestAmount:    2,   // multiplier of the cost of living
+		imperialGiftRequestAmount: 1,   // The cost of living
+		middleGiftRequestAmount:   0.5, //
+		offertoDyingIslands:       1.5, // is a multiple of cost of living
 
-		opinionThresholdRequest:  0.5, // Above opinion we request less this people
-		opinionRequestMultiplier: 0.5, // We request half as much above this threshold
-		giftBoosting:             1.4,
-		giftReduct:               0.5,
+		opinionThresholdRequest:  0.3, // Above opinion we request less this people (0.1 lowest)
+		opinionRequestMultiplier: 0.3, // We request the threshold at the above amount of opinion
 
 		// Disasters and IIFO
 		forecastTrustTreshold: 0.0, // neutral opinion

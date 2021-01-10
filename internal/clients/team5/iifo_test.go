@@ -41,9 +41,6 @@ func TestGenerateForecast(t *testing.T) {
 				t.Errorf("period ans %.4f", ansPeriod)
 				t.Errorf("period: got %d, want %d", uint(ansPeriod.mean), tc.wantPeriod)
 			}
-			// if ansConf != tc.wantConf {
-			// 	t.Errorf("conf: got %.3f, want %.3f", ansConf, tc.wantConf)
-			// }
 		})
 	}
 }
@@ -92,7 +89,7 @@ func TestUpdateForecastingReputations(t *testing.T) {
 
 }
 
-func TestAnalyseDisasterHistory(t *testing.T) {
+func TestComputeForecastPerformance(t *testing.T) {
 	d1 := disasterInfo{report: disasters.DisasterReport{X: 1.0}}
 	d2 := disasterInfo{report: disasters.DisasterReport{X: 0.0}}
 	dh := disasterHistory{3: d1, 5: d2}
@@ -112,7 +109,7 @@ func TestAnalyseDisasterHistory(t *testing.T) {
 	conf := createClient().config
 	decay := conf.forecastTemporalDecay
 
-	forecastErrors, err := analyseDisasterHistory(dh, fh, conf)
+	forecastErrors, err := computeForecastingPerformance(dh, fh, conf)
 
 	if err != nil {
 		t.Logf("Error analysing disaster history: %v", err)

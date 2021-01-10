@@ -28,8 +28,9 @@ type forecastInfo struct {
 	confidence float64
 }
 
-type forecastHistory map[uint]forecastInfo                                   // stores history of past disasters
-type receivedForecastHistory map[uint]shared.ReceivedDisasterPredictionsDict // stores history of received disasters
+type forecastHistory map[uint]forecastInfo                                       // stores history of past disasters
+type receivedForecastHistory map[uint]shared.ReceivedDisasterPredictionsDict     // stores history of received disasters
+type clientsForecastPerformance map[shared.ClientID]map[forecastVariable]float64 // stores current notion of prediction performance of other teams
 
 // MakeDisasterPrediction is called on each client for them to make a prediction about a disaster
 // Prediction includes location, magnitude, confidence etc
@@ -141,11 +142,10 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 
 	c.updateForecastingReputations(receivedPredictions) // update our perceptions of other teams
 
+	c.receivedForecastHistory[c.getTurn()] = receivedPredictions // update rxForecastsHistor
+
 	//c.lastDisasterForecast.Confidence *= 1.3 // inflate confidence of our prediction above others
 	receivedPredictions[ourClientID] = shared.ReceivedDisasterPredictionInfo{PredictionMade: c.lastDisasterPrediction, SharedFrom: ourClientID}
-
-	//TODO: decide whether our prediction should be included in this history or not
-	c.receivedForecastHistory[c.getTurn()] = receivedPredictions // update rxForecastsHistory
 
 	// weight predictions by their confidence and our assessment of their forecasting reputation
 	for rxTeam, pred := range receivedPredictions {
@@ -171,7 +171,6 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 }
 
 func (c *client) updateForecastingReputations(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
-
 	for team, predInfo := range receivedPredictions {
 		// if teams make predictions with conf > 50% before first disaster, downgrade their rep by 75%
 		if len(c.disasterHistory) == 0 {
@@ -183,11 +182,97 @@ func (c *client) updateForecastingReputations(receivedPredictions shared.Receive
 		if predInfo.PredictionMade.Confidence > 98 {
 			c.opinions[team].updateOpinion(forecastingBasis, -0.3)
 		}
-		// TODO: add more sophisticated opinion forming
+		// note: more sophisticated updates happen in DisasterNotification()
 	}
 }
 
-func analyseDisasterHistory(dh disasterHistory, fh forecastHistory, conf clientConfig) (forecastErrors []map[forecastVariable]float64, err error) {
+// This should be called after every disaster occurs. Evaluates historical performance of clients' forecasts
+// compared to ours
+func (c *client) evaluateForecastingPerformance() (map[shared.ClientID]map[forecastVariable]float64, error) {
+	clientSkills := map[shared.ClientID]map[forecastVariable]float64{}
+
+	if c.getTurn() != c.disasterHistory.getLastDisasterTurn() {
+		return clientSkills, errors.Errorf("Turn of most recent disaster does not match current turn")
+	}
+	ourForecastErrors, errF := computeForecastingPerformance(c.disasterHistory, c.forecastHistory, c.config)
+	ourErr, errP := c.aggregateForecastingError(ourForecastErrors, true)
+
+	if errF != nil || errP != nil {
+		return clientSkills, errors.Errorf("Encountered error while computing our forecasting performance: forecast err: %v, performance err: %v", errF, errP)
+	}
+	clientForecasts := map[shared.ClientID]forecastHistory{}
+	clientErrors := map[shared.ClientID][]map[forecastVariable]float64{}
+
+	// collect history of client forecasts
+	for turn, forecastMap := range c.receivedForecastHistory {
+		for client, predInfo := range forecastMap {
+			clientForecasts[client] = forecastHistory{}
+			clientForecasts[client][turn] = c.parsePredictionInfo(predInfo.PredictionMade)
+		}
+	}
+
+	for cID, fHist := range clientForecasts {
+		errorMap, err := computeForecastingPerformance(c.disasterHistory, fHist, c.config)
+
+		if err != nil {
+			return clientSkills, errors.Errorf("Encountered error while computing client's forecasting errors. Client ID: %v, received forecast history: %v", cID, fHist)
+		}
+		clientErrors[cID] = errorMap
+	}
+
+	for cID, clientErrMaps := range clientErrors {
+		clientErr, err := c.aggregateForecastingError(clientErrMaps, true)
+		if err != nil {
+			return clientSkills, errors.Errorf("Encountered error while computing client's forecasting performance. Client ID: %v, received error maps: %v", cID, clientErrMaps)
+		}
+		clientSkills[cID] = map[forecastVariable]float64{} // initialise in memory
+		for k, val := range clientErr {
+			if ourErr[k] == 0 { // we're perfect at forecasting this variable - possible, but unlikely
+				clientSkills[cID][k] = 0 // client skills are zero relative to us as we're infinitely good
+			}
+			clientSkills[cID][k] = absoluteCap(1-(val/ourErr[k]), 1) // 0 => on par with us. < 0 => worse than us (larger error). > 0 => better than us (smalle error).
+		}
+	}
+	return clientSkills, nil
+}
+
+// function to perform exp-weighted average of historical forecast errors
+func (c client) aggregateForecastingError(errorMaps []map[forecastVariable]float64, useExpWeighting bool) (map[forecastVariable]float64, error) {
+	n := len(errorMaps)
+	result := map[forecastVariable]float64{}
+
+	if n == 0 {
+		return result, errors.Errorf("Cannot create aggregated perfromance with no samples (len = 0)")
+	}
+	decay := 1.0
+	if useExpWeighting {
+		decay = c.config.forecastTemporalDecay
+	}
+	weights := make([]float64, n)
+	for i, errorMap := range errorMaps {
+		for k, val := range errorMap {
+			w := math.Pow(decay, float64(n-i-1)) // exponential weighting (decay = 1 has no effect)
+			result[k] += val * w
+			weights[i] = w
+		}
+	}
+	for k := range result {
+		result[k] /= math.Max(floats.Sum(weights), 1) // sum of weights will be > 1 if len > 0 since decay^0 = 1
+	}
+	return result, nil
+}
+
+func (c client) parsePredictionInfo(p shared.DisasterPrediction) forecastInfo {
+	period := c.getTurn() - c.disasterHistory.getLastDisasterTurn() + p.TimeLeft
+	return forecastInfo{
+		epiX:   p.CoordinateX,
+		epiY:   p.CoordinateY,
+		mag:    p.Magnitude,
+		period: period,
+	}
+}
+
+func computeForecastingPerformance(dh disasterHistory, fh forecastHistory, conf clientConfig) (forecastErrors []map[forecastVariable]float64, err error) {
 	disasterPeriodHistory := dh.getPastDisasterPeriods()
 	forecastTurns := uintsAsFloats(fh.sortKeys())
 	prevTurn := 0.0
