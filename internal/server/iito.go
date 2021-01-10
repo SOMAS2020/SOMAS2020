@@ -244,7 +244,10 @@ func (s *SOMASServer) executeTransactions(transactions map[shared.ClientID]share
 			if errTake != nil {
 				s.logf("[IITO]: Error deducting amount: %v", errTake)
 			} else {
-				s.giveResources(toTeam, giftAmount, "GIVE: "+transactionMsg)
+				err := s.giveResources(toTeam, giftAmount, "GIVE: "+transactionMsg)
+				if err != nil {
+					s.logf("Ignoring failure to give resources in executeTransactions: %v", err)
+				}
 				s.clientMap[toTeam].ReceivedGift(giftAmount, fromTeam)
 				s.clientMap[fromTeam].SentGift(giftAmount, toTeam)
 			}
