@@ -315,9 +315,9 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	for clientID, response := range receivedResponses {
 		if response.Reason == shared.DeclineDontLikeYou {
-			c.giftOpinions[clientID] -= 2
+			c.updatetrustMapAgg(clientID, -float64(5))
 		} else if response.Reason == shared.Ignored {
-			c.giftOpinions[clientID]--
+			c.updatetrustMapAgg(clientID, -float64(2.5))
 		}
 	}
 }
