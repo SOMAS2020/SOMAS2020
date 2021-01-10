@@ -48,7 +48,7 @@ const Payments = (props: { output: OutputJSONType }) => {
           <Bar dataKey="expectedAlloc" fill="#cf1763" />
           <Bar dataKey="actualAlloc" fill="#c76f94" />
           <Bar dataKey="expectedSanction" fill="#EBA421" />
-          <Bar dataKey="actualSanction" fill="#DBB163" />
+          <Bar dataKey="actualSanction" fill="#e6c891" />
         </BarChart>
       </ResponsiveContainer>
       <p className={styles.graphLabel}>Team</p>
