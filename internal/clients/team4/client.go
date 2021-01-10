@@ -288,7 +288,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	presidentID := c.getPresident()
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
-	clientID := shared.ClientID(4)
+	clientID := id
 	// TODO: Choose sensible thresholds!
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)
