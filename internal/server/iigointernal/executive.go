@@ -206,6 +206,7 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 	} else {
 		appointedSpeaker = currentSpeaker
 	}
+	e.gameState.IIGOElection = append(e.gameState.IIGOElection, election.GetVotingInfo())
 	return appointedSpeaker, nil
 }
 
@@ -248,7 +249,7 @@ func (e *executive) requestRuleProposal() error { //TODO: add checks for if immu
 	var ruleProposals []rules.RuleMatrix
 	for _, island := range e.getIslandAlive() {
 		proposedRuleMatrix := e.iigoClients[shared.ClientID(int(island))].RuleProposal()
-		if checkRuleIsValid(proposedRuleMatrix.RuleName, rules.AvailableRules) {
+		if checkRuleIsValid(proposedRuleMatrix.RuleName, e.gameState.RulesInfo.AvailableRules) {
 			ruleProposals = append(ruleProposals, proposedRuleMatrix)
 		}
 	}

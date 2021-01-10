@@ -281,7 +281,7 @@ func convertInput(inp dynamics.Input) rules.VariableValuePair {
 }
 
 func buildInput(pair rules.VariableValuePair) (dynamics.Input, bool) {
-	if isAdjustable, ok := IsChangeable[pair.VariableName]; ok {
+	if isAdjustable, ok := IsChangeable()[pair.VariableName]; ok {
 		return dynamics.Input{
 			Name:             pair.VariableName,
 			ClientAdjustable: isAdjustable,
@@ -297,31 +297,33 @@ func buildInput(pair rules.VariableValuePair) (dynamics.Input, bool) {
 
 }
 
-var IsChangeable = map[rules.VariableFieldName]bool{
-	rules.NumberOfIslandsContributingToCommonPool: false,
-	rules.NumberOfFailedForages:                   false,
-	rules.NumberOfBrokenAgreements:                false,
-	rules.MaxSeverityOfSanctions:                  false,
-	rules.NumberOfIslandsAlive:                    false,
-	rules.NumberOfBallotsCast:                     false,
-	rules.NumberOfAllocationsSent:                 false,
-	rules.AllocationRequestsMade:                  false,
-	rules.AllocationMade:                          false,
-	rules.IslandsAlive:                            false,
-	rules.SpeakerSalary:                           true,
-	rules.JudgeSalary:                             true,
-	rules.PresidentSalary:                         true,
-	rules.RuleSelected:                            false,
-	rules.VoteCalled:                              false,
-	rules.ExpectedTaxContribution:                 false,
-	rules.ExpectedAllocation:                      false,
-	rules.IslandTaxContribution:                   true,
-	rules.IslandAllocation:                        true,
-	rules.IslandReportedResources:                 false,
-	rules.ConstSanctionAmount:                     false,
-	rules.TurnsLeftOnSanction:                     false,
-	rules.SanctionPaid:                            true,
-	rules.SanctionExpected:                        false,
-	rules.TestVariable:                            false,
-	rules.JudgeInspectionPerformed:                false,
+func IsChangeable() map[rules.VariableFieldName]bool {
+	return map[rules.VariableFieldName]bool{
+		rules.NumberOfIslandsContributingToCommonPool: false,
+		rules.NumberOfFailedForages:                   false,
+		rules.NumberOfBrokenAgreements:                false,
+		rules.MaxSeverityOfSanctions:                  false,
+		rules.NumberOfIslandsAlive:                    false,
+		rules.NumberOfBallotsCast:                     false,
+		rules.NumberOfAllocationsSent:                 false,
+		rules.AllocationRequestsMade:                  false,
+		rules.AllocationMade:                          false,
+		rules.IslandsAlive:                            false,
+		rules.SpeakerSalary:                           true,
+		rules.JudgeSalary:                             true,
+		rules.PresidentSalary:                         true,
+		rules.RuleSelected:                            false,
+		rules.VoteCalled:                              false,
+		rules.ExpectedTaxContribution:                 false,
+		rules.ExpectedAllocation:                      false,
+		rules.IslandTaxContribution:                   true,
+		rules.IslandAllocation:                        true,
+		rules.IslandReportedResources:                 false,
+		rules.ConstSanctionAmount:                     false,
+		rules.TurnsLeftOnSanction:                     false,
+		rules.SanctionPaid:                            true,
+		rules.SanctionExpected:                        false,
+		rules.TestVariable:                            false,
+		rules.JudgeInspectionPerformed:                false,
+	}
 }

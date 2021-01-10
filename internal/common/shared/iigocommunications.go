@@ -81,7 +81,7 @@ const (
 	RoleMonitored
 	MonitoringResult
 	IIGOSanctionTier
-	IIGOSanctionScore
+	RuleSanctionPenalty
 	IIGOTaxDecision
 	IIGOAllocationDecision
 	SanctionClientID
@@ -102,7 +102,7 @@ func (c CommunicationFieldName) String() string {
 		"RoleMonitored",
 		"MonitoringResult",
 		"IIGOSanctionTier",
-		"IIGOSanctionScore",
+		"RuleSanctionPenalty",
 		"IIGOTaxDecision",
 		"IIGOAllocationDecision",
 		"SanctionClientID",

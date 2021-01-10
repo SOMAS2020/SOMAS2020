@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -11,11 +12,10 @@ import (
 )
 
 type monitor struct {
-	gameState         *gamestate.GameState
-	internalIIGOCache []shared.Accountability
-	TermLengths       map[shared.Role]uint
-	iigoClients       map[shared.ClientID]baseclient.Client
-	logger            shared.Logger
+	gameState   *gamestate.GameState
+	config      *config.Config
+	iigoClients map[shared.ClientID]baseclient.Client
+	logger      shared.Logger
 }
 
 func (m *monitor) Logf(format string, a ...interface{}) {
@@ -28,7 +28,7 @@ func (m *monitor) addToCache(roleToMonitorID shared.ClientID, variables []rules.
 		for index, variable := range variables {
 			pairs = append(pairs, rules.MakeVariableValuePair(variable, values[index]))
 		}
-		m.internalIIGOCache = append(m.internalIIGOCache, shared.Accountability{
+		m.gameState.IIGORoleMonitoringCache = append(m.gameState.IIGORoleMonitoringCache, shared.Accountability{
 			ClientID: roleToMonitorID,
 			Pairs:    pairs,
 		})
@@ -41,7 +41,11 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
 		evaluationResult := false
 		if decideToMonitor {
-			evaluationResult = m.evaluateCache(roleToMonitor, rules.RulesInPlay)
+			evaluationResult = m.evaluateCache(roleToMonitor, m.gameState.RulesInfo.CurrentRulesInPlay)
+		}
+
+		if !evaluationResult {
+			m.gameState.IIGOTurnsInPower[roleName] = m.config.IIGOConfig.IIGOTermLengths[roleName] + 1
 		}
 
 		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)
@@ -61,8 +65,6 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 
 			message := generateMonitoringMessage(roleName, evaluationResult)
 			broadcastToAllIslands(m.iigoClients, roleAccountable.GetID(), message, *m.gameState)
-
-			m.gameState.IIGOTurnsInPower[roleName] = m.TermLengths[roleName] + 1
 		}
 
 		result := shared.MonitorResult{Performed: decideToMonitor, Result: evaluationResult}
@@ -74,25 +76,25 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 
 func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[string]rules.RuleMatrix) bool {
 	performedRoleCorrectly := true
-	for _, entry := range m.internalIIGOCache {
+	var rulesAffected []string
+	for _, entry := range m.gameState.IIGORoleMonitoringCache {
 		if entry.ClientID == roleToMonitorID {
 			variablePairs := entry.Pairs
-			var rulesAffected []string
 			for _, variable := range variablePairs {
 				valuesToBeAdded, foundRules := rules.PickUpRulesByVariable(variable.VariableName, ruleStore, m.gameState.RulesInfo.VariableMap)
 				if foundRules {
 					rulesAffected = append(rulesAffected, valuesToBeAdded...)
 				}
-				rules.UpdateVariableInternal(variable.VariableName, variable, m.gameState.RulesInfo.VariableMap)
+				m.gameState.UpdateVariable(variable.VariableName, variable)
 			}
-			for _, rule := range rulesAffected {
-				ret := rules.EvaluateRuleFromCaches(rule, ruleStore, m.gameState.RulesInfo.VariableMap)
-				if ret.EvalError == nil {
-					performedRoleCorrectly = ret.RulePasses && performedRoleCorrectly
-					if !ret.RulePasses {
-						m.Logf("Rule: %v , broken by: %v", rule, roleToMonitorID)
-					}
-				}
+		}
+	}
+	for _, rule := range rulesAffected {
+		ret := rules.EvaluateRuleFromCaches(rule, ruleStore, m.gameState.RulesInfo.VariableMap)
+		if ret.EvalError == nil {
+			performedRoleCorrectly = ret.RulePasses && performedRoleCorrectly
+			if !ret.RulePasses {
+				m.Logf("Rule: %v , broken by: %v", rule, roleToMonitorID)
 			}
 		}
 	}
@@ -128,5 +130,5 @@ func generateMonitoringMessage(role shared.Role, result bool) map[shared.Communi
 }
 
 func (m *monitor) clearCache() {
-	m.internalIIGOCache = []shared.Accountability{}
+	m.gameState.IIGORoleMonitoringCache = []shared.Accountability{}
 }
