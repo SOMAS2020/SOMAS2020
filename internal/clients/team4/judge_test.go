@@ -305,13 +305,13 @@ func TestGetPardonedIslands(t *testing.T) {
 		name      string
 		sanctions map[int][]shared.Sanction
 		pardons   map[int][]bool
-		trust     []float64
+		trust     map[shared.ClientID]float64
 	}{
 		{
 			name:      "empty sanctions",
 			sanctions: make(map[int][]shared.Sanction),
 			pardons:   make(map[int][]bool),
-			trust:     make([]float64, 6),
+			trust:     make(map[shared.ClientID]float64),
 		},
 		{
 			name: "no sanction",
@@ -332,7 +332,10 @@ func TestGetPardonedIslands(t *testing.T) {
 			pardons: map[int][]bool{
 				0: {false, false},
 			},
-			trust: []float64{0.5, 0.5},
+			trust: map[shared.ClientID]float64{
+				shared.Team1: 0.5,
+				shared.Team2: 0.5,
+			},
 		},
 		{
 			name: "get pardon",
@@ -348,7 +351,10 @@ func TestGetPardonedIslands(t *testing.T) {
 			pardons: map[int][]bool{
 				0: {true},
 			},
-			trust: []float64{0.7},
+			trust: map[shared.ClientID]float64{
+				shared.Team1: 0.8,
+				shared.Team2: 0.2,
+			},
 		},
 		{
 			name: "get one pardon",
@@ -369,17 +375,27 @@ func TestGetPardonedIslands(t *testing.T) {
 			pardons: map[int][]bool{
 				0: {true, false},
 			},
-			trust: []float64{0.61, 0.99},
+			trust: map[shared.ClientID]float64{
+				shared.Team1: 0.7,
+				shared.Team2: 0.3,
+			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			testServer := fakeServerHandle{}
+			clients := []shared.ClientID{}
+			for clientID := range tc.trust {
+				clients = append(clients, clientID)
+			}
+
+			testServer := fakeServerHandle{clients: clients}
 			testClient := newClientInternal(id, t)
 			testClient.Initialise(testServer)
 
-			testClient.internalParam.agentsTrust = tc.trust
+			for client, clientTrust := range tc.trust {
+				testClient.trustMatrix.SetClientTrust(client, clientTrust)
+			}
 
 			j := testClient.GetClientJudgePointer()
 

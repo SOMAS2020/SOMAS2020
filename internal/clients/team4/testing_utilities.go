@@ -15,18 +15,27 @@ type fakeServerHandle struct {
 	JudgeID            shared.ClientID
 	SpeakerID          shared.ClientID
 	TermLengths        map[shared.Role]uint
+	clients            []shared.ClientID
 	ElectionRuleInPlay bool
 }
 
 func (s fakeServerHandle) GetGameState() gamestate.ClientGameState {
-	fakeGS := gamestate.ClientGameState{
-		SpeakerID:   s.SpeakerID,
-		JudgeID:     s.JudgeID,
-		PresidentID: s.PresidentID,
+	lifeStatuses := map[shared.ClientID]shared.ClientLifeStatus{}
+	for _, clientID := range s.clients {
+		lifeStatuses[clientID] = shared.Alive
 	}
+
+	fakeGS := gamestate.ClientGameState{
+		SpeakerID:          s.SpeakerID,
+		JudgeID:            s.JudgeID,
+		PresidentID:        s.PresidentID,
+		ClientLifeStatuses: lifeStatuses,
+	}
+
 	if s.ElectionRuleInPlay {
 		fakeGS.RulesInfo.CurrentRulesInPlay = registerTestElectionRule()
 	}
+
 	return fakeGS
 }
 

@@ -57,8 +57,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		savedHistory:       &judgeHistory,
 	}
 
-	team4client.clientJudge.parent = &team4client
-	team4client.clientSpeaker.parent = &team4client
+	team4client.updateParents()
 
 	return team4client
 }
@@ -143,6 +142,12 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 	c.idealRulesCachePtr = deepCopyRulesCache(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 
+	c.updateParents()
+}
+
+func (c *client) updateParents() {
+	c.clientJudge.parent = c
+	c.clientSpeaker.parent = c
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {

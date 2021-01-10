@@ -33,6 +33,14 @@ func (t *trust) ChangeClientTrust(clientID shared.ClientID, diff float64) {
 	}
 }
 
+func (t *trust) SetClientTrust(clientID shared.ClientID, newValue float64) {
+	// diff is percentage to change trust for clientID ie. diff in range [-1,1]
+	if _, ok := t.trustMap[clientID]; ok {
+		t.trustMap[clientID] = newValue
+		t.normalize()
+	}
+}
+
 func (t *trust) totalTrustSum() float64 {
 	totalTrust := 0.0
 	for _, trust := range t.trustMap {

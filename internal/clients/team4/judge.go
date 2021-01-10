@@ -65,6 +65,7 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 			j.parent.savedHistory = &savedHistory
 		}
 	}
+	j.parent.updateParents()
 }
 
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool) {
@@ -95,18 +96,13 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
 	pardons := map[int][]bool{}
 
-	internalParams := j.parent.internalParam
-	maxPardonTime := internalParams.maxPardonTime
-	maxTierToPardon := internalParams.maxTierToPardon
-	minTrustToPardon := internalParams.minTrustToPardon
-
 	for turn, sanctions := range currentSanctions {
 		pardons[turn] = make([]bool, len(sanctions))
 		for index, sanction := range sanctions {
 			if sanction.SanctionTier != shared.NoSanction {
-				considerTime := sanction.TurnsLeft <= maxPardonTime
-				considerSeverity := sanction.SanctionTier <= maxTierToPardon
-				considerTrust := minTrustToPardon <= j.parent.getTrust(sanction.ClientID)
+				considerTime := sanction.TurnsLeft <= j.parent.internalParam.maxPardonTime
+				considerSeverity := sanction.SanctionTier <= j.parent.internalParam.maxTierToPardon
+				considerTrust := j.parent.internalParam.minTrustToPardon <= j.parent.getTrust(sanction.ClientID)
 				if considerTime && considerSeverity && considerTrust {
 					pardons[turn][index] = true
 				}
