@@ -28,7 +28,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	ourAgentCritical := c.criticalStatus()
 	giftTarget := c.giftReliance() * (c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold)
 
-	c.Logf("TARGETGIFT : %v", giftTarget)
+	// c.Logf("TARGETGIFT : %v", giftTarget)
 
 	if ourAgentCritical || giftTarget != 0 {
 		var trustRank IslandTrustList
