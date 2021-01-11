@@ -84,7 +84,9 @@ func (c *client) RequestAllocation() shared.Resources {
 			}
 		}
 	}
+	c.Logf("Allocation granted: %v", allocationGranted)
 
+	c.Logf("Allocation demanded: %v", allocDemanded)
 	return allocDemanded
 }
 
@@ -144,13 +146,14 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	if ourLifeStatus != shared.Dead {
 		if numClientAlive != 0 {
 			eachClient := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
-			resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - ourResource
+
 			if ourLifeStatus == shared.Alive {
-				resNeeded *= shared.Resources(2)
+				resNeeded = shared.Resources(2) * c.getSafeResourceLevel()
 				resNeeded += shared.Resources(numClientAlive * 10)
 				c.internalParam.giftExtra = true
 
 			} else if ourLifeStatus == shared.Critical {
+				resNeeded = c.getSafeResourceLevel() - ourResource
 				resNeeded *= shared.Resources(3)
 			}
 			resNeeded = shared.Resources(math.Min(float64(eachClient), float64(resNeeded)))
@@ -176,6 +179,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	if greedyLevel > 0 {
 		allocRequested = resNeeded * shared.Resources((greedyLevel + 1))
 	}
+	c.Logf("Allocation requested: %v", allocRequested)
 
 	return allocRequested
 }
