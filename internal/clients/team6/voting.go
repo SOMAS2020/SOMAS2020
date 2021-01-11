@@ -4,6 +4,64 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
+func findSameVariables(originalOne []rules.VariableFieldName, newOne []rules.VariableFieldName) []rules.VariableFieldName {
+	sharedVariables := []rules.VariableFieldName{}
+	for _, oVar := range originalOne {
+		for _, nVar := range newOne {
+			if oVar == nVar {
+				sharedVariables = append(sharedVariables, oVar)
+			}
+		}
+	}
+	return sharedVariables
+}
+
+//VoteForRule returns the client's vote in favour of or against a rule.
+//If the corresponding varlables are what we care about, then we vote approve, otherwise abstain
+func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
+	ourAttitude := shared.Abstain
+	isItImportant := false
+	//doesItFitUs := false
+	numOfIslandsAlive := 6
+	variablesIncreasePrefered := []rules.VariableFieldName{}
+	variablesDecreasePrefered := []rules.VariableFieldName{}
+
+	if numOfIslandsAlive > 3 {
+		variablesIncreasePrefered = append(variablesIncreasePrefered, rules.ExpectedAllocation)
+		variablesDecreasePrefered = append(variablesDecreasePrefered, rules.ExpectedTaxContribution)
+	} else {
+		variablesIncreasePrefered = append(variablesIncreasePrefered, rules.ExpectedTaxContribution)
+		variablesDecreasePrefered = append(variablesDecreasePrefered, rules.ExpectedAllocation)
+	}
+
+	variablesIncreasePrefered = append(variablesIncreasePrefered, rules.SanctionExpected)
+
+	for role, roleID := range c.rolesInfro() {
+		if role == shared.President && roleID == id {
+			variablesIncreasePrefered = append(variablesIncreasePrefered, rules.PresidentSalary)
+			variablesDecreasePrefered = append(variablesDecreasePrefered, rules.PresidentPayment)
+		} else if role == shared.Judge && roleID == id {
+			variablesIncreasePrefered = append(variablesIncreasePrefered, rules.JudgeSalary)
+			variablesDecreasePrefered = append(variablesDecreasePrefered, rules.JudgePayment)
+		} else if role == shared.Speaker && roleID == id {
+			variablesIncreasePrefered = append(variablesIncreasePrefered, rules.SpeakerSalary)
+			variablesDecreasePrefered = append(variablesDecreasePrefered, rules.SpeakerPayment)
+		}
+	}
+
+	variablesWeCareAbout := append(variablesIncreasePrefered, variablesDecreasePrefered...)
+	if len(findSameVariables(ruleMatrix.RequiredVariables, variablesWeCareAbout)) > 0 {
+		isItImportant = true
+	}
+
+
+	if isItImportant {
+		ourAttitude = shared.Approve
+	} 
+
+	return ourAttitude
+}
+
 func (c *client) rolesInfro() map[shared.Role]shared.ClientID {
 	rolesInfro := make(map[shared.Role]shared.ClientID)
 	rolesInfro[shared.President] = c.ServerReadHandle.GetGameState().PresidentID
