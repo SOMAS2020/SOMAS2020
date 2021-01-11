@@ -235,7 +235,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	}
 	if roleID == shared.Team5 {
 		return false
-	} else if c.opinions[roleID].getScore() > 0.5 && roleID != shared.Team3 {
+	} else if c.opinions[roleID].getScore() > 0.5 {
 		return false
 	}
 	return true

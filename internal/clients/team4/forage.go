@@ -5,9 +5,8 @@ import (
 )
 
 type forageStorage struct {
-	preferedForageMethod shared.ForageType
-	forageHistory        []forageHistory
-	receivedForageData   [][]shared.ForageShareInfo
+	forageHistory      []forageHistory
+	receivedForageData [][]shared.ForageShareInfo
 }
 
 type forageHistory struct {
@@ -56,7 +55,7 @@ func (c *client) analyseHistory() shared.ForageType {
 			totalResources[teamEntry.DecisionMade.Type] = totalResources[teamEntry.DecisionMade.Type] * ratio
 		}
 	}
-	c.Logf("Foraging: FishingRatio %v, DeerRatio %", totalResources[shared.DeerForageType], totalResources[shared.FishForageType])
+	c.Logf("Foraging: FishingRatio %v, DeerRatio %v", totalResources[shared.DeerForageType], totalResources[shared.FishForageType])
 	if totalResources[shared.DeerForageType] >= totalResources[shared.FishForageType] {
 		return shared.DeerForageType
 	}
