@@ -99,6 +99,20 @@ func (c *client) getJudge() shared.ClientID {
 	return 0
 }
 
+func (c *client) getRole(role shared.Role) shared.ClientID {
+	if c.ServerReadHandle != nil {
+		switch role {
+		case shared.Judge:
+			return c.getJudge()
+		case shared.President:
+			return c.getPresident()
+		case shared.Speaker:
+			return c.getSpeaker()
+		}
+	}
+	return 0
+}
+
 // func dump(filename string, format string, v ...interface{}) {
 // 	//f, err := os.Create(filename)
 // 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

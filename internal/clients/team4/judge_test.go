@@ -9,7 +9,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName, lieCounts map[shared.ClientID]int) (history []shared.Accountability, expected map[shared.ClientID]judgeHistoryInfo) {
+func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName, lawfulness map[shared.ClientID]float64) (history []shared.Accountability, expected map[shared.ClientID]judgeHistoryInfo) {
 	history = []shared.Accountability{}
 	expected = map[shared.ClientID]judgeHistoryInfo{}
 	for client, vars := range clientVars {
@@ -26,7 +26,7 @@ func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName, lieCo
 		}
 		got, ok := buildHistoryInfo(pairs)
 		if ok {
-			got.Lied = lieCounts[client]
+			got.LawfulRatio = lawfulness[client]
 			expected[client] = got
 		}
 	}
@@ -38,7 +38,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 	cases := []struct {
 		name            string
 		clientVariables map[shared.ClientID][]rules.VariableFieldName
-		lieCounts       map[shared.ClientID]int
+		truthfulness    map[shared.ClientID]float64
 		turn            uint
 		reps            uint
 	}{
@@ -54,8 +54,8 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.ExpectedAllocation,
 				},
 			},
-			lieCounts: map[shared.ClientID]int{
-				shared.Team1: 6,
+			truthfulness: map[shared.ClientID]float64{
+				shared.Team1: 0.6,
 			},
 			turn: 12,
 			reps: 1,
@@ -88,10 +88,10 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.ExpectedAllocation,
 				},
 			},
-			lieCounts: map[shared.ClientID]int{
-				shared.Team1: 5,
-				shared.Team2: 12,
-				shared.Team3: 0,
+			truthfulness: map[shared.ClientID]float64{
+				shared.Team1: 0.99,
+				shared.Team2: 1,
+				shared.Team3: 0.2,
 			},
 			turn: 1,
 			reps: 1,
@@ -126,10 +126,10 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.IslandAllocation,
 				},
 			},
-			lieCounts: map[shared.ClientID]int{
-				shared.Team1: 1,
-				shared.Team2: 7,
-				shared.Team3: 22,
+			truthfulness: map[shared.ClientID]float64{
+				shared.Team1: 0.99,
+				shared.Team2: 1,
+				shared.Team3: 0.2,
 			},
 			turn: 13,
 			reps: 1,
@@ -164,10 +164,10 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.IslandAllocation,
 				},
 			},
-			lieCounts: map[shared.ClientID]int{
-				shared.Team1: 1,
-				shared.Team2: 7,
-				shared.Team3: 22,
+			truthfulness: map[shared.ClientID]float64{
+				shared.Team1: 0.99,
+				shared.Team2: 1,
+				shared.Team3: 0.5,
 			},
 			turn: 13,
 			reps: 3,
@@ -182,11 +182,11 @@ func TestSaveHistoryInfo(t *testing.T) {
 			wholeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
 
 			for i := uint(0); i < tc.reps; i++ {
-				fakeHistory, expected := makeHistory(tc.clientVariables, tc.lieCounts)
+				fakeHistory, expected := makeHistory(tc.clientVariables, tc.truthfulness)
 				turn := tc.turn + i
 				wholeHistory[turn] = expected
 
-				j.saveHistoryInfo(&fakeHistory, &tc.lieCounts, turn)
+				j.saveHistoryInfo(&fakeHistory, &tc.truthfulness, turn)
 
 				clientHistory := *testClient.savedHistory
 
@@ -196,6 +196,10 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 				if !clientHistory.updated {
 					t.Errorf("Single history failed. History was not updated")
+				}
+
+				if clientHistory.updatedTurn != turn {
+					t.Errorf("Single history failed. Expected updated turn: %v, got turn: %v", turn, clientHistory.updatedTurn)
 				}
 			}
 
