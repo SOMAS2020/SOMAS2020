@@ -382,8 +382,8 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 
 	request = c.ServerReadHandle.GetGameConfig().CostOfLiving
 	// Try to escape critical
-	if (currentState.ClientInfo.LifeStatus == shared.Critical) && (request < distCriticalThreshold) {
-		request = distCriticalThreshold
+	if currentState.ClientInfo.LifeStatus == shared.Critical {
+		request += distCriticalThreshold
 	}
 	if c.shouldICheat() {
 		request += shared.Resources(float64(request) * c.params.selfishness)

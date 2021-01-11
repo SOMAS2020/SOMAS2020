@@ -22,7 +22,7 @@ var (
 	)
 	initialResources = flag.Float64(
 		"initialResources",
-		1000,
+		100,
 		"The default number of resources at the start of the game.",
 	)
 	initialCommonPool = flag.Float64(

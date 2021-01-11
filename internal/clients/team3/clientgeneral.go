@@ -27,6 +27,8 @@ func (c *client) StartOfTurn() {
 
 	// update Trust Scores at the start of every turn
 	c.updateTrustScore(c.trustMapAgg)
+	c.Logf("[TEAM3]: Trust Score Map: %v", c.trustScore)
+
 	c.updateTheirTrustScore(c.theirTrustMapAgg)
 
 	// Initialise trustMap and theirtrustMap local cache to empty maps
@@ -84,6 +86,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	}
 
 	c.criticalThreshold = serverReadHandle.GetGameConfig().MinimumResourceThreshold
+	c.minimumResourcesWeWant = c.criticalThreshold * (2 - shared.Resources(c.params.riskFactor))
 }
 
 // updatetrustMapAgg adds the amount to the aggregate trust map list for given client

@@ -27,7 +27,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		foragingInvestment = math.Max(float64(c.ServerReadHandle.GetGameState().ClientInfo.Resources)-minimumLeftoverResources, 0)
 	}
 
-	c.clientPrint("Foraging investment is %v", foragingInvestment)
+	c.clientPrint("Foraging investment is %v", foragingInvestment*c.params.riskFactor)
 
 	var forageType shared.ForageType
 
@@ -46,6 +46,10 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		if deerHuntingROI == 0 {
 			forageType = shared.DeerForageType
 		}
+	}
+
+	if c.getLocalResources() < c.minimumResourcesWeWant {
+		foragingInvestment = 0.0
 	}
 
 	return shared.ForageDecision{

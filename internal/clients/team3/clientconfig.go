@@ -6,7 +6,7 @@ func getislandParams() islandParams {
 		complianceLevel:         0.1, // 0-1
 		resourcesSkew:           1.3, // >1
 		saveCriticalIsland:      true,
-		selfishness:             0.3, //0-1
+		selfishness:             0.9, //0-1
 		recidivism:              0.3, // real number
 		riskFactor:              0.2, // 0-1
 		friendliness:            0.3, // 0-1

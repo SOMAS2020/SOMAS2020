@@ -84,6 +84,8 @@ type client struct {
 	lastSanction shared.IIGOSanctionsScore
 
 	forageData map[shared.ForageType][]ForageData
+
+	minimumResourcesWeWant shared.Resources
 }
 
 type islandParams struct {
