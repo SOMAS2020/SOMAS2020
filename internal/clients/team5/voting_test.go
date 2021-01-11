@@ -21,7 +21,7 @@ func TestGetVoteForElection(t *testing.T) {
 
 	var w []shared.ClientID
 	w = append(w, shared.Team5, shared.Team6, shared.Team4,
-		shared.Team2, shared.Team1, shared.Team3)
+		shared.Team3, shared.Team2, shared.Team1)
 	for i := 0; i < 6; i++ {
 		if w[i] != ballot[i] {
 			t.Errorf("Ballot not generating properly. Want %v, got %v", w, ballot)

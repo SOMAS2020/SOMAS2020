@@ -11,6 +11,7 @@ import {
   resourcesvisualisation,
   rolesvisualisation,
   achievementsvisualisation,
+  iigopaymentsvisualisation,
 } from '../../consts/paths'
 import { OutputJSONType } from '../../consts/types'
 import { GitHash } from '../../consts/info'
@@ -29,6 +30,7 @@ import Transactions from './Transactions/Transactions'
 import IIGO from './IIGO/IIGO'
 import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
+import IIGOPayments from './IIGOPayments/IIGOPayments'
 import Achievements from './Achievements/Achievements'
 import FourOhFour from '../FourOhFour/FourOhFour'
 
@@ -183,6 +185,11 @@ const Visualisations = () => {
                     path={resourcesvisualisation}
                     exact
                     component={() => <Resources output={output} />}
+                  />
+                  <Route
+                    path={iigopaymentsvisualisation}
+                    exact
+                    component={() => <IIGOPayments output={output} />}
                   />
                   <Route component={FourOhFour} />
                 </Switch>
