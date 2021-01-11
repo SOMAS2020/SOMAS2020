@@ -3,6 +3,7 @@ package team2
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"math"
 )
 
 //CommonPoolUpdate Records history of common pool levels
@@ -39,7 +40,7 @@ func determineAllocation(c *client) shared.Resources {
 }
 
 func (c *client) RequestAllocation() shared.Resources {
-	return determineAllocation(c) * 0.6
+	return shared.Resources(math.Max(float64(determineAllocation(c)*0.6), 0))
 }
 
 //GetTaxContribution determines how much we put into pool

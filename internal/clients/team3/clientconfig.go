@@ -13,5 +13,6 @@ func getislandParams() islandParams {
 		aggression:              0.4, // 0-1
 		localPoolThreshold:      100, // % of common pool
 		giftInflationPercentage: 0.1, // 0-1
+		adv:                     nil,
 	}
 }

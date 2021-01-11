@@ -27,6 +27,14 @@ func (j *judge) PayPresident() (shared.Resources, bool) {
 
 // InspectHistory returns an evaluation on whether islands have adhered to the rules for that turn as a boolean.
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool) {
+
+	if j.c.params.adv != nil {
+		ret, bl, done := j.c.params.adv.InspectHistory(iigoHistory, turnsAgo)
+		if done {
+			return ret, bl
+		}
+	}
+
 	outMap := map[shared.ClientID]shared.EvaluationReturn{}
 
 	// Carry out base implementation of iterating through history to find rules to sanction
@@ -80,6 +88,13 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 // CallPresidentElection sets the election settings for the next president election
 func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+
+	if j.c.params.adv != nil {
+		ret, done := j.c.params.adv.CallPresidentElection(monitoring, turnsInPower, allIslands)
+		if done {
+			return ret
+		}
+	}
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.InstantRunoff,
 		IslandsToVote: allIslands,
@@ -101,6 +116,13 @@ func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 	// If the election winner's trust score is high, we will declare them as the next President.
 	// If not, we will replace it with the island who's trust score is the highest.
+	if j.c.params.adv != nil {
+		ret, done := j.c.params.adv.DecideNextPresident(winner)
+		if done {
+			return ret
+		}
+	}
+
 	if j.c.trustScore[winner] < 70 {
 		// we can change this to be mailicious everytime
 		for island := range j.c.trustScore {
@@ -116,6 +138,12 @@ func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 // how severe the sanction should be for transgressing them
 // If a rule is not named here, the default sanction value added is 1
 func (j *judge) GetRuleViolationSeverity() map[string]shared.IIGOSanctionsScore {
+	if j.c.params.adv != nil {
+		ret, done := j.c.params.adv.GetRuleViolationSeverity()
+		if done {
+			return ret
+		}
+	}
 	return map[string]shared.IIGOSanctionsScore{}
 }
 
@@ -128,6 +156,12 @@ func (j *judge) GetSanctionThresholds() map[shared.IIGOSanctionsTier]shared.IIGO
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
 // COMPULSORY: decide which islands, if any, to forgive
 func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
+	if j.c.params.adv != nil {
+		ret, done := j.c.params.adv.GetPardonedIslands(currentSanctions)
+		if done {
+			return ret
+		}
+	}
 	pardons := make(map[int][]bool)
 	for key, sanctionList := range currentSanctions {
 		lst := make([]bool, len(sanctionList))
