@@ -1,15 +1,8 @@
 package team6
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
-
-// VoteForRule returns the client's vote in favour of or against a rule.
-func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
-	// TODO implement decision on voting that considers the rule
-	return shared.Abstain
-}
 
 func (c *client) rolesInfro() map[shared.Role]shared.ClientID {
 	rolesInfro := make(map[shared.Role]shared.ClientID)
