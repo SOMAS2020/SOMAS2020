@@ -9,7 +9,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName, truthfulness map[shared.ClientID]float64) (history []shared.Accountability, expected map[shared.ClientID]judgeHistoryInfo) {
+func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName, lawfulness map[shared.ClientID]float64) (history []shared.Accountability, expected map[shared.ClientID]judgeHistoryInfo) {
 	history = []shared.Accountability{}
 	expected = map[shared.ClientID]judgeHistoryInfo{}
 	for client, vars := range clientVars {
@@ -26,7 +26,7 @@ func makeHistory(clientVars map[shared.ClientID][]rules.VariableFieldName, truth
 		}
 		got, ok := buildHistoryInfo(pairs)
 		if ok {
-			got.TruthfulRatio = truthfulness[client]
+			got.LawfulRatio = lawfulness[client]
 			expected[client] = got
 		}
 	}

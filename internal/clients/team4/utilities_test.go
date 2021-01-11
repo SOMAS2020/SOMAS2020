@@ -42,7 +42,7 @@ func TestBuildHistoryInfo(t *testing.T) {
 					actual:   5463.1,
 					expected: 865.124,
 				},
-				TruthfulRatio: 0,
+				LawfulRatio: 0,
 			},
 		},
 		{
@@ -71,7 +71,7 @@ func TestBuildHistoryInfo(t *testing.T) {
 					actual:   5463.1,
 					expected: 865.124,
 				},
-				TruthfulRatio: 0,
+				LawfulRatio: 0,
 			},
 		},
 		{

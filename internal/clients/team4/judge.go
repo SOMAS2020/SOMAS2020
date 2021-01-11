@@ -34,10 +34,10 @@ type valuePair struct {
 }
 
 type judgeHistoryInfo struct {
-	Resources     valuePair // amount of resources available and reported by the island
-	Taxation      valuePair // amount of tax paid and expected
-	Allocation    valuePair // amount of allocation taken and granted
-	TruthfulRatio float64   // ratio of truth/all in each island report
+	Resources   valuePair // amount of resources available and reported by the island
+	Taxation    valuePair // amount of tax paid and expected
+	Allocation  valuePair // amount of allocation taken and granted
+	LawfulRatio float64   // ratio of truth/all in each island report
 }
 
 type accountabilityHistory struct {
@@ -73,7 +73,7 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, truthfulne
 		clientInfo, ok := buildHistoryInfo(pairs)
 		if ok {
 			truthfulRatio := (*truthfulness)[client]
-			clientInfo.TruthfulRatio = truthfulRatio
+			clientInfo.LawfulRatio = truthfulRatio
 			if j.parent.savedHistory.history[turn] != nil {
 				j.parent.savedHistory.history[turn][client] = clientInfo
 			} else {

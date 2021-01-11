@@ -288,19 +288,19 @@ func (c *client) updateTrustFromSavedHistory() {
 		newInfo := c.savedHistory.getNewInfo()
 
 		if len(newInfo) > 0 {
-			var truthfulnessSum float64
+			var lawfulnessSum float64
 
 			for _, history := range newInfo {
-				truthfulnessSum += history.TruthfulRatio
+				lawfulnessSum += history.LawfulRatio
 			}
-			averageTruthfulness := truthfulnessSum / float64(len(newInfo))
+			averageTruthfulness := lawfulnessSum / float64(len(newInfo))
 
 			for clientID, history := range newInfo {
-				truthfulness := history.TruthfulRatio
+				lawfulness := history.LawfulRatio
 
-				c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyWeight*(truthfulness-averageTruthfulness)) //potentially add * historyWeight to scale the update
+				c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyWeight*(lawfulness-averageTruthfulness)) //potentially add * historyWeight to scale the update
 
-				if floatEqual(truthfulness, 1) { //bonus for being fully truthful
+				if floatEqual(lawfulness, 1) { //bonus for being fully truthful
 					c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyFullTruthfulnessBonus)
 				}
 			}
@@ -310,20 +310,16 @@ func (c *client) updateTrustFromSavedHistory() {
 }
 
 func (c *client) updateTrustMonitoring(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
-	if roleMonitored, ok := data[shared.RoleMonitored]; ok {
-		if roleMonitored.T == shared.CommunicationIIGORole {
-			if monitoringResult, ok := data[shared.MonitoringResult]; ok {
-				if monitoringResult.T == shared.CommunicationBool {
-					roleID := c.getRole(roleMonitored.IIGORoleData)
+	if roleMonitored, ok := data[shared.RoleMonitored]; ok && roleMonitored.T == shared.CommunicationIIGORole {
+		if monitoringResult, ok := data[shared.MonitoringResult]; ok && monitoringResult.T == shared.CommunicationBool {
+			roleID := c.getRole(roleMonitored.IIGORoleData)
 
-					if monitoringResult.BooleanData {
-						// Monitored role was truthful
-						c.trustMatrix.ChangeClientTrust(roleID, c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange) // config?
-					} else {
-						// Monitored role cheated
-						c.trustMatrix.ChangeClientTrust(roleID, -c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange)
-					}
-				}
+			if monitoringResult.BooleanData {
+				// Monitored role was truthful
+				c.trustMatrix.ChangeClientTrust(roleID, c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange) // config?
+			} else {
+				// Monitored role cheated
+				c.trustMatrix.ChangeClientTrust(roleID, -c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange)
 			}
 		}
 	}
