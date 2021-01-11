@@ -195,6 +195,10 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for legislativeBranch setVotingResult"
 	}
+	err := legislativeBranch.updateRules(legislativeBranch.ruleToVote, legislativeBranch.votingResult)
+	if err != nil {
+		logger("Error updating rules with result: %v", err)
+	}
 	resultAnnounced, insufficientBudget := legislativeBranch.announceVotingResult()
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for legislativeBranch announceVotingResult"
