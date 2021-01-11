@@ -30,9 +30,11 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 	// You can fetch the clients which are alive like this:
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if status == shared.Critical ||
-			wealthGoal > ourResources {
+
+		if status == shared.Alive && wealthGoal > ourResources {
 			requests[team] = shared.GiftRequest(giftSize)
+		} else if status == shared.Critical {
+			requests[team] = shared.GiftRequest(c.getSafeResourceLevel() * 2)
 		} else {
 			requests[team] = shared.GiftRequest(0.0)
 		}
