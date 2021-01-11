@@ -256,6 +256,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 	}
 
+	c.Logf("Tax paid: %v", valToBeReturned)
 	return valToBeReturned
 
 }
