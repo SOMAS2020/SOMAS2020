@@ -3,31 +3,23 @@ package team2
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 const id = shared.Team2
 
-type CommonPoolHistory map[uint]float64
-type ResourcesLevelHistory map[uint]shared.Resources
-
-// Type for Empathy level assigned to each other team
-type EmpathyLevel int
+type AgentStrategy uint
 
 const (
-	Selfish EmpathyLevel = iota
+	Selfish AgentStrategy = iota
 	FairSharer
 	Altruist
 )
 
-type IslandEmpathies map[shared.ClientID]EmpathyLevel
+type IslandEmpathies map[shared.ClientID]AgentStrategy
 
-// Could be used to store our expectation on an island's behaviour (about anything)
-// vs what they actually did
 type ExpectationReality struct {
 	exp  int
 	real int
@@ -35,15 +27,12 @@ type ExpectationReality struct {
 
 type Situation string
 
-// us -> others: ReceivedRequests
-// others -> us: GiftWeRequest
-
 const (
-	President     Situation = "President"
-	Judge         Situation = "Judge"
-	Speaker       Situation = "Speaker"
-	Foraging      Situation = "Foraging"
-	GiftWeRequest Situation = "Gifts"
+	PresidentOp Situation = "President"
+	JudgeOp     Situation = "Judge"
+	RoleOpinion Situation = "RoleOpinion"
+	Disaster    Situation = "Disaster"
+	Gifts       Situation = "Gifts"
 )
 
 type Opinion struct {
@@ -67,35 +56,81 @@ type GiftExchange struct {
 	OurRequest    map[uint]GiftInfo
 }
 
-type DisasterOccurence struct {
-	Turn   float64
+type DisasterOccurrence struct {
+	Turn   uint
 	Report disasters.DisasterReport
 }
 
-// Currently what want to use to get archipelago geography but talking to Yannis to get this fixed
-// Because it doesn't work atm
-//archipelagoGeography := c.gamestate().Environment.Geography
+type PredictionInfo struct {
+	Prediction shared.DisasterPrediction
+	Turn       uint
+}
+
+type IslandSanctionInfo struct {
+	Turn   uint
+	Tier   int
+	Amount int
+}
+
+type CommonPoolInfo struct {
+	tax             shared.Resources
+	requestedToPres shared.Resources
+	allocatedByPres shared.Resources
+	takenFromCP     shared.Resources
+}
 
 // A set of constants that define tuning parameters
-const (
-	// Disasters
-	TuningParamK             float64 = 1
-	VarianceCapTimeRemaining float64 = 10000
-	TuningParamG             float64 = 1
-	VarianceCapMagnitude     float64 = 10000
-)
+type clientConfig struct {
+	TuningParamK                     float64
+	VarianceCapTimeRemaining         float64
+	TuningParamG                     float64
+	VarianceCapMagnitude             float64
+	BaseResourcesToGiveDivisor       shared.Resources
+	InitialThresholdProportionGuess  float64
+	TimeLeftIncreaseDisProtection    uint
+	DisasterSoonProtectionMultiplier float64
+	DefaultContribution              shared.Resources
+	SelfishStartTurns                uint
+	SwitchToSelfishFactor            float64
+	SwitchToAltruistFactor           float64
+	FairShareFactorOfAvToGive        float64
+	AltruistFactorOfAvToGive         float64
+	ConfidenceRetrospectFactor       float64
+	ForageDecisionThreshold          float64
+	PatientTurns                     uint
+	SlightRiskForageDivisor          shared.Resources
+	HelpCritOthersDivisor            shared.Resources
+	InitialDisasterTurnGuess         uint
+	CombinedDisasterPred             shared.DisasterPrediction
+	InitialCommonPoolThresholdGuess  shared.Resources
+	TargetRequestGift                shared.Resources
+	MaxGiftOffersMultiplier          shared.Resources
+	AltruistMultiplier               shared.Resources
+	FreeRiderMultipler               shared.Resources
+	FairSharerMultipler              shared.Resources
+}
 
 type OpinionHist map[shared.ClientID]Opinion
-type PredictionsHist map[shared.ClientID][]shared.DisasterPrediction
+type PredictionsHist map[shared.ClientID][]PredictionInfo
 type ForagingReturnsHist map[shared.ClientID][]ForageInfo
 type GiftHist map[shared.ClientID]GiftExchange
-type DisasterHistory map[int]DisasterOccurence
+type CommonPoolHistory map[uint]shared.Resources
+type ResourcesLevelHistory map[uint]shared.Resources
+type DisasterHistory []DisasterOccurrence
+type IslandSanctions map[shared.ClientID]IslandSanctionInfo
+type TierLevels map[int]int
+type SanctionHist map[shared.ClientID][]IslandSanctionInfo
+type PresCommonPoolHist map[shared.ClientID]map[uint]CommonPoolInfo
 
-// we have to initialise our client somehow
+// DisasterVulnerabilityDict is a map from island ID to an islands DVP
+type DisasterVulnerabilityDict map[shared.ClientID]float64
+
+type StrategyHistory map[uint]AgentStrategy
+
 type client struct {
-	// should this have a * in front?
 	*baseclient.BaseClient
 
+	// TODO: naming convention on history objects is inconsistent
 	islandEmpathies      IslandEmpathies
 	commonPoolHistory    CommonPoolHistory
 	resourceLevelHistory ResourcesLevelHistory
@@ -104,102 +139,111 @@ type client struct {
 	foragingReturnsHist  ForagingReturnsHist
 	giftHist             GiftHist
 	disasterHistory      DisasterHistory
+	sanctionHist         SanctionHist
+	presCommonPoolHist   PresCommonPoolHist
+	strategyHistory      StrategyHistory
+
+	currStrategy  AgentStrategy
+	currPresident President
+	currJudge     Judge
+	currSpeaker   Speaker
+
+	islandDVPs DisasterVulnerabilityDict
+
+	// Define a global variable that holds the last prediction we shared
+	AgentDisasterPred    shared.DisasterPredictionInfo
+	CombinedDisasterPred shared.DisasterPrediction
+
+	taxAmount            shared.Resources
+	commonPoolAllocation shared.Resources
+	islandSanctions      IslandSanctions
+	tierLevels           TierLevels
+
+	config clientConfig
+
+	declaredResources map[shared.ClientID]shared.Resources
+
+	lastForageType   shared.ForageType
+	lastForageAmount shared.Resources
 }
 
 func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
-// TODO: are we using all of these or can they be removed
-// TODO: we could experiment with how being more/less trustful affects agent performance
-// i.e. start with assuming all islands selfish, normal, altruistic
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
 		BaseClient:           baseclient.NewClient(clientID),
 		commonPoolHistory:    CommonPoolHistory{},
 		resourceLevelHistory: ResourcesLevelHistory{},
+		strategyHistory:      StrategyHistory{},
 		opinionHist:          OpinionHist{},
 		predictionHist:       PredictionsHist{},
 		foragingReturnsHist:  ForagingReturnsHist{},
 		giftHist:             GiftHist{},
 		islandEmpathies:      IslandEmpathies{},
+		sanctionHist:         SanctionHist{},
+		tierLevels:           TierLevels{},
+		islandSanctions:      IslandSanctions{},
+		presCommonPoolHist:   PresCommonPoolHist{},
 		disasterHistory:      DisasterHistory{},
-
-		//TODO: implement config to gather all changeable parameters in one place
+		config: clientConfig{
+			TuningParamK:                     1.0,
+			PatientTurns:                     2,
+			VarianceCapTimeRemaining:         10000,
+			TuningParamG:                     1.0,
+			VarianceCapMagnitude:             10000,
+			BaseResourcesToGiveDivisor:       4.0,
+			InitialThresholdProportionGuess:  0.3,
+			TimeLeftIncreaseDisProtection:    3.0,
+			DisasterSoonProtectionMultiplier: 1.2,
+			DefaultContribution:              20,
+			SelfishStartTurns:                3,
+			SwitchToSelfishFactor:            0.3,
+			SwitchToAltruistFactor:           0.9,
+			FairShareFactorOfAvToGive:        1.0,
+			AltruistFactorOfAvToGive:         2.0,
+			ConfidenceRetrospectFactor:       0.5,
+			ForageDecisionThreshold:          0.6,
+			SlightRiskForageDivisor:          2.0,
+			HelpCritOthersDivisor:            2.0,
+			InitialDisasterTurnGuess:         7.0,
+			InitialCommonPoolThresholdGuess:  100, // this value is meaningless for now
+			TargetRequestGift:                1.5,
+			MaxGiftOffersMultiplier:          0.5,
+			AltruistMultiplier:               7.2,
+			FreeRiderMultipler:               4.8,
+			FairSharerMultipler:              6.4,
+		},
 	}
 }
 
-func (c *client) islandEmpathyLevel() EmpathyLevel {
-	clientInfo := c.gameState().ClientInfo
-
-	// switch statement to toggle between three levels
-	// change our state based on these cases
-	switch {
-	case clientInfo.LifeStatus == shared.Critical:
-		return Selfish
-		// replace with some expression
-	case (true):
-		return Altruist
-	default:
-		return FairSharer
-	}
-}
-
-func criticalStatus(c *client) bool {
-	clientInfo := c.gameState().ClientInfo
-	if clientInfo.LifeStatus == shared.Critical { //not sure about shared.Critical
-		return true
-	}
-	return false
-}
-
-//TODO: how does this work?
-func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
-	c.disasterHistory[len(c.disasterHistory)] = DisasterOccurence{
-		Turn:   float64(c.gameState().Turn),
-		Report: report,
-	}
-}
-
-//checkOthersCrit checks if anyone else is critical
-func checkOthersCrit(c *client) bool {
-	for clientID, status := range c.gameState().ClientLifeStatuses {
-		if status == shared.Critical && clientID != c.GetID() {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *client) gameState() gamestate.ClientGameState {
-	return c.BaseClient.ServerReadHandle.GetGameState()
-}
-
-func (c *client) gameConfig() config.ClientConfig {
-	return c.BaseClient.ServerReadHandle.GetGameConfig()
-}
-
-// Initialise initialises the base client.
-// OPTIONAL: Overwrite, and make sure to keep the value of ServerReadHandle.
-// You will need it to access the game state through its GetGameStateMethod.
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ServerReadHandle = serverReadHandle
-	c.LocalVariableCache = rules.CopyVariableMap(c.ServerReadHandle.GetGameState().RulesInfo.VariableMap)
-	// loop through each island (there might not be 6)
+	c.LocalVariableCache = rules.CopyVariableMap(c.gameState().RulesInfo.VariableMap)
+
+	// We should probably initialise out empathy level
 	for clientID := range c.gameState().ClientLifeStatuses {
-		// set the confidence to 50 and initialise any other stuff
-		Histories := make(map[Situation][]int)
-		Histories["President"] = []int{50}
-		Histories["Speaker"] = []int{50}
-		Histories["Judge"] = []int{50}
-		Histories["Foraging"] = []int{50}
-		Histories["Gifts"] = []int{50}
-		c.opinionHist[clientID] = Opinion{
-			Histories:    Histories,
-			Performances: map[Situation]ExpectationReality{},
-		}
-		c.giftHist[clientID] = GiftExchange{IslandRequest: map[uint]GiftInfo{},
-			OurRequest: map[uint]GiftInfo{},
+		c.giftHist[clientID] = GiftExchange{
+			IslandRequest: map[uint]GiftInfo{},
+			OurRequest:    map[uint]GiftInfo{},
 		}
 	}
+
+	// Set the initial strategy to selfish (can put anything here)
+	c.currStrategy = Selfish
+
+	// Initialise Disaster Prediction variables
+	c.CombinedDisasterPred = shared.DisasterPrediction{}
+	c.AgentDisasterPred = shared.DisasterPredictionInfo{}
+	c.strategyHistory = StrategyHistory{}
+
+	// Compute DVP for each Island based on Geography
+	c.islandDVPs = DisasterVulnerabilityDict{}
+	c.getIslandDVPs(c.gameState().Geography)
+
+	// Initialise Roles
+	c.currSpeaker = Speaker{c: c}
+	c.currJudge = Judge{c: c}
+	c.currPresident = President{c: c}
 }

@@ -39,8 +39,9 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 		case resources < 2*livingCost:
 			taxRate = 0
 		case resources < 10*livingCost:
-			taxRate = 0.05
-		case resources < 50*livingCost:
+			taxRate = 0.1
+		case resources < 50*livingCost || clientID == c.GetID():
+			// Common pool feels empty :/
 			taxRate = 0.3
 		case resources < 100*livingCost:
 			taxRate = 0.4
@@ -51,6 +52,7 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 		// https://bit.ly/3s7dRXt
 		taxAmountMap[clientID] = shared.Resources(float64(clientReport.ReportedAmount) * taxRate)
 	}
+	c.Logf("[IIGO] taxAmountMap: %v", taxAmountMap)
 	return shared.PresidentReturnContent{
 		ContentType: shared.PresidentTaxation,
 		ResourceMap: taxAmountMap,
@@ -122,7 +124,7 @@ func (c *client) VoteForElection(
 /*************************/
 
 func (c *client) GetTaxContribution() shared.Resources {
-	contribution, success := c.BaseClient.GetRecommendation(rules.IslandTaxContribution)
+	contribution, success := c.BaseClient.GetRecommendation(rules.ExpectedTaxContribution)
 	if !success {
 		c.Logf("Cannot determine correct tax, paying 0")
 		return 0
@@ -131,12 +133,14 @@ func (c *client) GetTaxContribution() shared.Resources {
 		c.Logf("Evading tax")
 		return 0
 	}
-	c.Logf("Paying tax: %v", contribution)
+	c.Logf("[IIGO]: Paying tax: %v", contribution)
 	return shared.Resources(contribution.Values[0])
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	switch c.emotionalState() {
+	case Normal:
+		return shared.Resources(2 * float64(c.gameConfig().CostOfLiving))
 	case Desperate, Anxious:
 		amount := shared.Resources(c.config.resourceRequestScale) * c.gameConfig().CostOfLiving
 		c.Logf("Common pool request: %v", amount)
@@ -146,6 +150,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 }
 
+// Gets called at the end of IIGO
 func (c *client) RequestAllocation() shared.Resources {
 	if c.emotionalState() == Desperate && c.config.desperateStealAmount != 0 {
 		allocation := c.config.desperateStealAmount
@@ -155,17 +160,13 @@ func (c *client) RequestAllocation() shared.Resources {
 		)
 	}
 
-	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
-		VariableName: rules.IslandAllocation,
-		Values:       []float64{float64(c.gameState().CommonPool)},
-	}
-
 	allocationPair, success := c.GetRecommendation(rules.IslandAllocation)
 	if !success {
 		c.Logf("Cannot determine allocation, trying to get all resources in CP.")
 		return c.gameState().CommonPool
 	}
 
+	// Unintentionally nicking from commonPool so limiting amount. GetRecommendation is too powerful.
 	allocation := allocationPair.Values[0]
 	if allocation != 0 {
 		c.Logf("Taking %v from common pool", allocation)
@@ -173,4 +174,16 @@ func (c *client) RequestAllocation() shared.Resources {
 	return shared.Resources(
 		math.Min(allocation, float64(c.gameState().CommonPool)),
 	)
+}
+
+// ResourceReport is an island's self-report of its own resources. This is called by
+// the President to help work out how many resources to allocate each island.
+func (c *client) ResourceReport() shared.ResourcesReport {
+	amountReported := c.gameState().ClientInfo.Resources
+	c.Logf("[IIGO]: amountReported %v", amountReported)
+	c.LocalVariableCache[rules.IslandReportedResources] = rules.MakeVariableValuePair(rules.IslandReportedResources, []float64{float64(amountReported)})
+	return shared.ResourcesReport{
+		ReportedAmount: amountReported,
+		Reported:       true,
+	}
 }
