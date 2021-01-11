@@ -39,7 +39,7 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 	roleToMonitor, roleName, err := m.findRoleToMonitor(roleAccountable.GetID())
 	if err == nil {
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
-		evaluationResult := false
+		evaluationResult := true
 		if decideToMonitor {
 			evaluationResult = m.evaluateCache(roleToMonitor, m.gameState.RulesInfo.CurrentRulesInPlay)
 		}
