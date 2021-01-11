@@ -42,8 +42,8 @@ func (p IslandRequestPairList) Less(i, j int) bool { return p[i].Value < p[j].Va
 // EvaluateAllocationRequests sets allowed resource allocation based on each islands requests
 func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
 	_, budgetRuleInPay := p.GameState.RulesInfo.CurrentRulesInPlay["president_over_budget"]
-	actionOverBudget := p.parent.ServerReadHandle.GetGameState().IIGORolesBudget[shared.President]-
-		p.parent.ServerReadHandle.GetGameConfig().IIGOClientConfig.ReplyAllocationRequestsActionCost < 0
+	actionOverBudget := p.parent.getRoleBudget(shared.President)-
+		p.parent.getIIGOConfig().ReplyAllocationRequestsActionCost < 0
 
 	if budgetRuleInPay && actionOverBudget {
 		return shared.PresidentReturnContent{
@@ -74,17 +74,16 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	//Limit resources to be distributed from the CP in a linear manner
 	disasterPrediction := p.parent.obs.iifoObs.finalDisasterPrediction
 	resourceThreshold := shared.Resources(0)
-	if p.parent.ServerReadHandle.GetGameState().Season != 1 && disasterPrediction.Confidence >= 0.5 {
+	if p.parent.getSeason() != 1 && disasterPrediction.Confidence >= 0.5 {
 		if disasterPrediction.TimeLeft != 0 {
 			resourceThreshold = shared.Resources(
-				float64(p.parent.ServerReadHandle.GetGameState().Turn) *
-					disasterPrediction.Magnitude /
-					(float64(disasterPrediction.TimeLeft) + float64(p.parent.ServerReadHandle.GetGameState().Turn)))
+				float64(p.parent.getTurn()) * float64(p.parent.getMinimumThreshold()) /
+					(float64(disasterPrediction.TimeLeft) + float64(p.parent.getTurn())))
 		} else if disasterPrediction.TimeLeft == 0 {
-			resourceThreshold = shared.Resources(disasterPrediction.Magnitude)
+			resourceThreshold = p.parent.getMinimumThreshold()
 		}
 	}
-	remainingResources := p.parent.ServerReadHandle.GetGameState().CommonPool - resourceThreshold
+	remainingResources := p.parent.getCommonPool() - resourceThreshold
 
 	//Allocations for critical islands
 	for i := 0; i < len(sortedCriticalIslands); i++ {
@@ -117,19 +116,19 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 
 func (p *president) allocationLimiter(request IslandRequestPair) shared.Resources {
 	ret := shared.Resources(0)
-	if request.Value*5 >= 5*p.parent.ServerReadHandle.GetGameConfig().CostOfLiving {
-		ret = 5 * p.parent.ServerReadHandle.GetGameConfig().CostOfLiving
+	if request.Value*5 >= 5*p.parent.getcostOfLiving() {
+		ret = 5 * p.parent.getcostOfLiving()
 	}
 	//weigh by trust
-	ret = shared.Resources(float64(ret) * 2 * p.parent.trustMatrix.GetClientTrust(request.Key))
+	ret = shared.Resources(float64(ret) * 2 * p.parent.getTrust(request.Key))
 	return ret
 }
 
 // PickRuleToVote chooses a rule proposal from all the proposals
 func (p *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.PresidentReturnContent {
 	_, budgetRuleInPay := p.GameState.RulesInfo.CurrentRulesInPlay["president_over_budget"]
-	actionOverBudget := p.parent.ServerReadHandle.GetGameState().IIGORolesBudget[shared.President]-
-		p.parent.ServerReadHandle.GetGameConfig().IIGOClientConfig.GetRuleForSpeakerActionCost < 0
+	actionOverBudget := p.parent.getRoleBudget(shared.President)-
+		p.parent.getIIGOConfig().GetRuleForSpeakerActionCost < 0
 
 	if budgetRuleInPay && actionOverBudget {
 		return shared.PresidentReturnContent{
@@ -160,8 +159,8 @@ func (p *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.Pre
 // islandsResources: map of all the living islands and their reported resources
 func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
 	_, budgetRuleInPay := p.GameState.RulesInfo.CurrentRulesInPlay["president_over_budget"]
-	actionOverBudget := p.parent.ServerReadHandle.GetGameState().IIGORolesBudget[shared.President]-
-		p.parent.ServerReadHandle.GetGameConfig().IIGOClientConfig.BroadcastTaxationActionCost < 0
+	actionOverBudget := p.parent.getRoleBudget(shared.President)-
+		p.parent.getIIGOConfig().BroadcastTaxationActionCost < 0
 
 	if budgetRuleInPay && actionOverBudget {
 		return shared.PresidentReturnContent{
@@ -173,8 +172,8 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	taxAmountMap := make(map[shared.ClientID]shared.Resources)
 
 	for clientID, clientReport := range islandsResources {
-		weAreRichThreshold, weAreRichThresholdIsApplicable := p.generateWeAreRichThreshold()
-		if weAreRichThresholdIsApplicable && p.parent.ServerReadHandle.GetGameState().CommonPool > weAreRichThreshold {
+		weAreRichThreshold := p.generateWeAreRichThreshold()
+		if p.parent.getCommonPool() > weAreRichThreshold {
 			//Excuse everyone if its not season one and there are a lot of resources
 			taxAmountMap[clientID] = shared.Resources(0)
 		} else if p.parent.ServerReadHandle.GetGameState().ClientLifeStatuses[clientID] == shared.Critical {
@@ -183,10 +182,10 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		} else if clientReport.Reported {
 			//Excuse if the reports have to be true and the island is poor
 			//TODO: remove magik numbers
-			_, reportTruthfulnessRuleInPay := p.GameState.RulesInfo.CurrentRulesInPlay["island_must_report_actual_private_resource"]
-			if reportTruthfulnessRuleInPay && clientReport.ReportedAmount*3 <= p.parent.ServerReadHandle.GetGameConfig().CostOfLiving {
+			_, reportTruthfulnessRuleInPay := p.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["island_must_report_actual_private_resource"]
+			if reportTruthfulnessRuleInPay && clientReport.ReportedAmount*3 <= p.parent.getcostOfLiving() {
 				taxAmountMap[clientID] = shared.Resources(0)
-			} else if clientReport.ReportedAmount*1.5 <= p.parent.ServerReadHandle.GetGameConfig().CostOfLiving {
+			} else if clientReport.ReportedAmount*1.5 <= p.parent.getcostOfLiving() {
 				taxAmountMap[clientID] = shared.Resources(0)
 			}
 			taxAmountMap[clientID] = p.generateTaxAmount(clientID, clientReport.ReportedAmount)
@@ -207,29 +206,26 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	}
 }
 
-func (p *president) generateWeAreRichThreshold() (shared.Resources, bool) {
+func (p *president) generateWeAreRichThreshold() shared.Resources {
 	disasterPrediction := p.parent.obs.iifoObs.finalDisasterPrediction
-	if p.parent.ServerReadHandle.GetGameState().Season == 1 {
-		return 0, false
+	if p.parent.getSeason() == 1 {
+		return p.parent.getMinimumThreshold()
 	} else {
-		return shared.Resources(disasterPrediction.Magnitude * 1.5 * disasterPrediction.Confidence), true
+		return shared.Resources(disasterPrediction.Magnitude * disasterPrediction.Confidence)
 	}
 }
 
 func (p *president) generateTaxAmount(clientID shared.ClientID, clientReport shared.Resources) shared.Resources {
-	if p.parent.ServerReadHandle.GetGameState().Season == 1 {
+	if p.parent.getSeason() == 1 {
 		//Static tax for when there is little information
 		return 0.2 * clientReport
 	}
 	disasterPrediction := p.parent.obs.iifoObs.finalDisasterPrediction
 	var averageTax shared.Resources
 	if disasterPrediction.TimeLeft == 0 {
-		averageTax = shared.Resources((disasterPrediction.Magnitude -
-			float64(p.parent.ServerReadHandle.GetGameState().CommonPool)) /
-			p.numIslandsAlive())
+		averageTax = shared.Resources((disasterPrediction.Magnitude - float64(p.parent.getCommonPool())) / p.numIslandsAlive())
 	} else {
-		averageTax = shared.Resources((disasterPrediction.Magnitude -
-			float64(p.parent.ServerReadHandle.GetGameState().CommonPool)) /
+		averageTax = shared.Resources((disasterPrediction.Magnitude - float64(p.parent.getCommonPool())) /
 			(p.numIslandsAlive()) * float64(disasterPrediction.TimeLeft))
 	}
 	return averageTax
@@ -254,8 +250,7 @@ func (p *president) PaySpeaker() shared.PresidentReturnContent {
 func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
 	//Compliance with budget rule
 	_, budgetRuleInPay := p.GameState.RulesInfo.CurrentRulesInPlay["president_over_budget"]
-	actionOverBudget := p.parent.ServerReadHandle.GetGameState().IIGORolesBudget[shared.President]-
-		p.parent.ServerReadHandle.GetGameConfig().IIGOClientConfig.AppointNextSpeakerActionCost < 0
+	actionOverBudget := p.parent.getRoleBudget(shared.President)-p.parent.getIIGOConfig().AppointNextSpeakerActionCost < 0
 
 	if budgetRuleInPay && actionOverBudget {
 		return shared.ElectionSettings{
@@ -267,8 +262,8 @@ func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsIn
 
 	//Compliance with election rule
 	_, electionRuleInPay := p.GameState.RulesInfo.CurrentRulesInPlay["roles_must_hold_election"]
-	speakerOverTerm := p.parent.ServerReadHandle.GetGameState().IIGOTurnsInPower[shared.Speaker] >
-		p.parent.ServerReadHandle.GetGameConfig().IIGOClientConfig.IIGOTermLengths[shared.Speaker]
+	speakerOverTerm := p.parent.getTurnsInPower(shared.Speaker) >
+		p.parent.getTermLength(shared.Speaker)
 	if electionRuleInPay {
 		if speakerOverTerm {
 			return shared.ElectionSettings{
@@ -288,7 +283,7 @@ func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsIn
 	//Hold an election if they broke some rules
 	if monitoring.Result {
 		//If we trust the judge
-		if p.parent.trustMatrix.GetClientTrust(p.parent.ServerReadHandle.GetGameState().JudgeID) > 0.4 {
+		if p.parent.getTrust(p.parent.ServerReadHandle.GetGameState().JudgeID) > 0.4 {
 			return shared.ElectionSettings{
 				VotingMethod:  shared.InstantRunoff,
 				IslandsToVote: allIslands,
@@ -298,7 +293,7 @@ func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsIn
 	}
 
 	//If we dont trust the Speaker
-	if p.parent.trustMatrix.GetClientTrust(p.parent.ServerReadHandle.GetGameState().SpeakerID) < 0.4 {
+	if p.parent.getTrust(p.parent.ServerReadHandle.GetGameState().SpeakerID) < 0.4 {
 		return shared.ElectionSettings{
 			VotingMethod:  shared.InstantRunoff,
 			IslandsToVote: allIslands,
@@ -316,9 +311,9 @@ func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsIn
 // DecideNextSpeaker returns the ID of chosen next Speaker
 func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	//No manipulate. Our agent trust democracy
-	_, resultRuleInPay := p.GameState.RulesInfo.CurrentRulesInPlay["must_appoint_elected_island"]
+	_, resultRuleInPay := p.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["must_appoint_elected_island"]
 	if !resultRuleInPay {
-		if p.parent.trustMatrix.GetClientTrust(winner) < 0.3 {
+		if p.parent.getTrust(winner) < 0.3 {
 			//Assign at random if we dont like the result
 			return p.selectRandomAliveIsland(winner)
 		}

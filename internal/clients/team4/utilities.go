@@ -1,6 +1,7 @@
 package team4
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -12,6 +13,20 @@ func (c *client) getTurn() uint {
 	return 0
 }
 
+func (c *client) getMinimumThreshold() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+	}
+	return 0
+}
+
+func (c *client) getcostOfLiving() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameConfig().CostOfLiving
+	}
+	return 0
+}
+
 func (c *client) getSeason() uint {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameState().Season
@@ -19,7 +34,14 @@ func (c *client) getSeason() uint {
 	return 0
 }
 
-func (c *client) getTurnLength(role shared.Role) uint {
+func (c *client) getCommonPool() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().CommonPool
+	}
+	return 0
+}
+
+func (c *client) getTermLength(role shared.Role) uint {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameConfig().IIGOClientConfig.IIGOTermLengths[role]
 	}
@@ -28,6 +50,24 @@ func (c *client) getTurnLength(role shared.Role) uint {
 
 func (c *client) getTrust(clientID shared.ClientID) float64 {
 	return c.trustMatrix.GetClientTrust(clientID)
+}
+
+func (c *client) getTurnsInPower(role shared.Role) uint {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().IIGOTurnsInPower[role]
+	}
+	return 0
+}
+
+func (c *client) getRoleBudget(role shared.Role) shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().IIGORolesBudget[role]
+	}
+	return 0
+}
+
+func (c *client) getIIGOConfig() config.IIGOConfig {
+	return c.ServerReadHandle.GetGameConfig().IIGOClientConfig
 }
 
 func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo, ok bool) {
@@ -78,7 +118,6 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 	return retInfo, ok
 }
 
-
 func (c *client) getPresident() shared.ClientID {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameState().PresidentID
@@ -123,4 +162,3 @@ func boolToFloat(input bool) float64 {
 	}
 	return 0
 }
-
