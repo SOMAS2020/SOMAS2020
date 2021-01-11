@@ -11,11 +11,18 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-const id = shared.Team4
-const clientConfiguration = honest // used to tweak the behavouir of our agent
+// DefaultClient creates the client that will be used for most simulations. All
+// other personalities are considered alternatives. To give a different
+// personality for your agent simply create another (exported) function with the
+// same signature as "DefaultClient" that creates a different agent, and inform
+// someone on the simulation team that you would like it to be included in
+// testing
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id, honest)
+}
 
-func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+func DishonestClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id, dishonest)
 }
 
 func newClientInternal(clientID shared.ClientID, clientConfig ClientConfig) client {
@@ -62,7 +69,7 @@ func newClientInternal(clientID shared.ClientID, clientConfig ClientConfig) clie
 	basePresident := baseclient.BasePresident{}
 
 	team4client := client{
-		BaseClient:  baseclient.NewClient(id),
+		BaseClient:  baseclient.NewClient(clientID),
 		clientJudge: judge{BaseJudge: &baseJudge},
 		clientSpeaker: speaker{
 			BaseSpeaker: &baseSpeaker,
@@ -100,8 +107,8 @@ func newClientInternal(clientID shared.ClientID, clientConfig ClientConfig) clie
 }
 
 // NewClient is a function that creates a new empty client
-func NewClient(clientID shared.ClientID) baseclient.Client {
-	team4client := newClientInternal(clientID, clientConfiguration)
+func NewClient(clientID shared.ClientID, clientConfig ClientConfig) baseclient.Client {
+	team4client := newClientInternal(clientID, clientConfig)
 	return &team4client
 }
 
@@ -361,13 +368,12 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	presidentID := c.getPresident()
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
-	clientID := id
 	ourResources := c.getOurResources()
 	// TODO: Choose sensible thresholds!
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)
 	monitoring := false
-	switch clientID {
+	switch c.GetID() {
 	case presidentID:
 		// If we are the president.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
@@ -384,6 +390,8 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
 			(ourResources > resourcesThreshold)
+	default:
+		break
 	}
 	return monitoring
 }

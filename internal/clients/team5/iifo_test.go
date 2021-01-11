@@ -106,7 +106,7 @@ func TestComputeForecastPerformance(t *testing.T) {
 	xSamples := [][]float64{{0, 0.5, 0.75}, {0.5, 0.5}}
 	xTargets := []float64{1, 0}
 
-	conf := createClient().config
+	conf := createClient(shared.Team5).config
 	decay := conf.forecastTemporalDecay
 
 	forecastErrors, err := computeForecastingPerformance(dh, fh, conf)
@@ -131,6 +131,6 @@ func TestComputeForecastPerformance(t *testing.T) {
 }
 
 func initClient() *client {
-	c := createClient()
+	c := createClient(shared.Team5)
 	return c
 }

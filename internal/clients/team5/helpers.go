@@ -34,7 +34,7 @@ func (c client) getGameConfig() config.ClientConfig {
 func (c client) getAliveTeams(includeUs bool) (aliveTeams []shared.ClientID) {
 	for team, status := range c.gameState().ClientLifeStatuses {
 		if status == shared.Alive {
-			if includeUs || team != ourClientID {
+			if includeUs || team != c.GetID() {
 				aliveTeams = append(aliveTeams, team)
 			}
 		}
