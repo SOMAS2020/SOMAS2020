@@ -48,7 +48,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		}
 	}
 
-	if c.getLocalResources() < c.minimumResourcesWeWant {
+	if c.getLocalResources() < c.minimumResourcesWeWant && c.computeRecentExpectedROI(forageType) < 100 {
 		foragingInvestment = 0.0
 	}
 
@@ -76,7 +76,7 @@ func (c *client) computeRecentExpectedROI(forageType shared.ForageType) float64 
 		return 0
 	}
 
-	c.Logf("Expected return of %v: %v", forageType, (sumOfROI / float64(numberOfROI)))
+	c.Logf("Expected return of %v: %v per cent", forageType, (sumOfROI / float64(numberOfROI)))
 	return sumOfROI / float64(numberOfROI)
 }
 
