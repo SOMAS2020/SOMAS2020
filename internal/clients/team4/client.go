@@ -14,7 +14,7 @@ import (
 const id = shared.Team4
 
 func DefaultClient(id shared.ClientID) baseclient.Client {
-	return NewClient(id);
+	return NewClient(id)
 }
 
 func newClientInternal(clientID shared.ClientID) client {
