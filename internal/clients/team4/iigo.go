@@ -53,22 +53,29 @@ func (c *client) RequestAllocation() shared.Resources {
 	// until the very last turns in which we're about to die and take all we need to get out of critical state.
 	// c.ServerReadHandle.GetGameConfig().maxCriticalConsecutiveTurns
 	allocDemanded := allocationGranted
+	resNeeded := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - c.getOurResources()
 	if uncomplianceLevel > 0 {
-		allocDemanded = allocationGranted * shared.Resources((uncomplianceLevel + 1))
+		if allocationGranted == 0 {
+			c.internalParam.giftExtra = false
+			allocDemanded = shared.Resources(math.Min(float64(resNeeded*2), float64(commonPool))) * shared.Resources((uncomplianceLevel + 1))
+		} else {
+			allocDemanded = allocationGranted * shared.Resources((uncomplianceLevel + 1))
+		}
 	}
 	if ourLifeStatus == shared.Critical {
+		c.internalParam.giftExtra = false
 		maxTurnsInCritical := c.ServerReadHandle.GetGameConfig().MaxCriticalConsecutiveTurns
 		turnsInCritical := c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter
-		resNeeded := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - c.getOurResources()
 		if turnsInCritical == maxTurnsInCritical {
 			allocDemanded = shared.Resources(math.Min(float64(resNeeded*5), float64(commonPool)))
 		} else if turnsInCritical == maxTurnsInCritical-1 {
 			allocDemanded = shared.Resources(math.Min(float64(resNeeded*3), float64(commonPool)))
 		} else if turnsInCritical == maxTurnsInCritical-2 {
-			allocDemanded = shared.Resources(math.Min(float64(resNeeded*1.5), float64(commonPool)))
+			allocDemanded = shared.Resources(math.Min(float64(resNeeded*2), float64(commonPool)))
 
 		}
 	} else if ourLifeStatus == shared.Dead {
+		c.internalParam.giftExtra = false
 		allocDemanded = shared.Resources(0)
 	}
 
@@ -114,6 +121,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	// TODO: Implement needs based on resource request.
 
 	// available observations
+	c.internalParam.giftExtra = false
 	commonPoolLevel := c.ServerReadHandle.GetGameState().CommonPool
 	ourResource := c.getOurResources()
 	ourLifeStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
@@ -127,17 +135,22 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 
 	resNeeded := shared.Resources(0)
-	if numClientAlive != 0 && ourLifeStatus != shared.Dead {
-		eachClient := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
-		resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - ourResource
-		if ourLifeStatus == shared.Alive {
-			resNeeded *= shared.Resources(1.1)
-		} else if ourLifeStatus == shared.Critical {
-			resNeeded *= shared.Resources(2)
+	if ourLifeStatus != shared.Dead {
+		if numClientAlive != 0 {
+			eachClient := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
+			resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - ourResource
+			if ourLifeStatus == shared.Alive {
+				resNeeded *= shared.Resources(2)
+				resNeeded += shared.Resources(numClientAlive * 10)
+				c.internalParam.giftExtra = true
+
+			} else if ourLifeStatus == shared.Critical {
+				resNeeded *= shared.Resources(3)
+			}
+			resNeeded = shared.Resources(math.Min(float64(eachClient), float64(resNeeded)))
+		} else {
+			resNeeded = commonPoolLevel * shared.Resources(rand.Float64())
 		}
-		resNeeded = shared.Resources(math.Min(float64(eachClient), float64(resNeeded)))
-	} else {
-		resNeeded = commonPoolLevel * shared.Resources(rand.Float64())
 	}
 
 	greedyThreshold := 2.5
