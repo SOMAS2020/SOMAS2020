@@ -114,9 +114,9 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 		c.Logf("[Exp [%v] Real [%v]]:", situationExp, situationReal)
 		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
 		c.Logf("Calculated new confidence: %v", newConf)
-		updatedHist := append(situationHist, c.setLimits(newConf))
+		situationHist = append(situationHist, c.setLimits(newConf))
 
-		c.opinionHist[otherIsland].Histories[situation] = updatedHist
+		c.opinionHist[otherIsland].Histories[situation] = situationHist
 		c.Logf("[did it really append?]:", c.opinionHist[otherIsland].Histories[situation])
 	}
 }
@@ -185,8 +185,7 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 		// The individual turn values will be scaled wrt to the "distance" from the current turn
 		// ie transactions further in the past are valued less
 		if MinInt(len(ourKeys), len(theirKeys)) == 0 {
-			updatedHist := append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
-			c.opinionHist[island].Histories["Gifts"] = updatedHist
+			c.opinionHist[island].Histories["Gifts"] = append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
 			return pastConfidence
 		}
 		c.Logf("Bufferlen %v", bufferLen)
@@ -221,11 +220,9 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 		pastConfidence = int((pastConfidence + int(diff*100)) / 2)
 	}
 
-	updatedHist := append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
-	c.Logf("[Gift situation updated]:", updatedHist)
-	c.Logf("[Length of gift situation after update]:", len(updatedHist))
-
-	c.opinionHist[island].Histories["Gifts"] = updatedHist
+	c.opinionHist[island].Histories["Gifts"] = append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
+	c.Logf("[Gift situation updated]:", c.opinionHist[island].Histories["Gifts"])
+	c.Logf("[Length of gift situation after update]:", len(c.opinionHist[island].Histories["Gifts"]))
 
 	return pastConfidence
 }
