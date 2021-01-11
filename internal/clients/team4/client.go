@@ -399,6 +399,8 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
 			(ourResources > resourcesThreshold)
+	default:
+		break
 	}
 	return monitoring
 }
