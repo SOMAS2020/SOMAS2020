@@ -5,214 +5,276 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-//CommonPoolUpdate Records history of common pool levels
-func CommonPoolUpdate(c *client, commonPoolHistory CommonPoolHistory) {
-	currentPool := c.gameState().CommonPool
-	c.commonPoolHistory[c.gameState().Turn] = float64(currentPool)
+// Updates Common Pool History with current Common Pool Level
+func (c *client) commonPoolUpdate() {
+	c.commonPoolHistory[c.gameState().Turn] = c.gameState().CommonPool
 }
 
-//Records our resources level each turn
-func ourResourcesHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHistory) {
-	currentLevel := c.gameState().ClientInfo.Resources
-	c.resourceLevelHistory[c.gameState().Turn] = currentLevel
+// Updates Resource Level History with our current resource Level
+func (c *client) resourceHistoryUpdate(resourceLevelHistory ResourcesLevelHistory) {
+	c.resourceLevelHistory[c.gameState().Turn] = c.gameState().ClientInfo.Resources
 }
 
-//determines how much to request from the pool
+// Updates Pres Common Pool History with current resource request
+func (c *client) presCommonPoolUpdate(request shared.Resources) {
+	// Initialises a complete commonPool update
+	commonPool := CommonPoolInfo{
+		tax:             0,
+		requestedToPres: request,
+		allocatedByPres: 0,
+		takenFromCP:     0,
+	}
+	// Checks if the map is not initialised
+	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
+		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
+		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
+		// If we have a previous entry, update the requestedToPres
+		commonPool = pastCommonPool
+		commonPool.requestedToPres = request
+	}
+
+	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+}
+
+// Returns a resource request to ask the President for from the common pool
+// of type shared.Resources and updates presCommonPoolHist
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	return determineAllocation(c) * 0.6
+	// DVP - if we are heavily affected - worry more about ours - 0.25 - 1 (1 highly vulnerable)
+	agentDVP := c.islandDVPs[c.GetID()]
+
+	// 1 + agentDVP - 1.25x if vuln 1.8x
+	// Base request is amount needed to survive 1 more turn
+	request := c.taxAmount + c.gameConfig().CostOfLiving
+
+	if c.criticalStatus() {
+		request = request*3 + c.gameConfig().MinimumResourceThreshold
+	} else if c.getAgentExcessResources() == shared.Resources(0) || agentDVP > 0.6 {
+		request = request*2 + c.gameConfig().MinimumResourceThreshold
+	} else if c.getAgentExcessResources() > shared.Resources(0) {
+		multiplier := shared.Resources(0)
+		switch c.getAgentStrategy() {
+		case Altruist:
+			multiplier = 0.8
+		case FairSharer:
+			multiplier = 1
+		case Selfish:
+			multiplier = 2
+		}
+		request = request*multiplier + c.gameConfig().MinimumResourceThreshold
+	} else {
+		request = c.taxAmount
+	}
+
+	c.presCommonPoolUpdate(request)
+
+	return request
 }
 
-//determines how many resources you actually take - currrently going to take however much we say (playing nicely)
-func determineAllocation(c *client) shared.Resources {
-	ourResources := c.gameState().ClientInfo.Resources
-	if criticalStatus(c) {
-		return c.determineThreshold() //not sure about this amount
-	}
-	if determineTax(c)+c.determineThreshold() > ourResources {
-		return (determineTax(c) - ourResources)
-	}
-	if c.gameState().ClientInfo.Resources < c.internalThreshold() {
-		return (c.internalThreshold() - ourResources)
-	}
-	//TODO: maybe separate standard gameplay when no-one is critical vs when others are critical
-	return 0
-}
-
+// Determines how many resources you actually take
 func (c *client) RequestAllocation() shared.Resources {
-	return determineAllocation(c) * 0.6
+	// this ignores the presidents allocation
+	request := c.CommonPoolResourceRequest()
+
+	switch c.getAgentStrategy() {
+	case Selfish:
+		spiteFactor := shared.Resources(1.2)
+
+		if request > c.commonPoolAllocation {
+			return request * spiteFactor
+		}
+
+		request = c.commonPoolAllocation
+	case Altruist:
+		request = Min(request, c.commonPoolAllocation)
+
+		if request == 0 {
+			request = c.gameConfig().CostOfLiving
+		}
+
+	default:
+		// Leave request as is if Fair Strategy
+	}
+
+	commonPool := CommonPoolInfo{
+		tax:             0,
+		requestedToPres: 0,
+		allocatedByPres: 0,
+		takenFromCP:     request,
+	}
+
+	// Checks if the map is not initialised
+	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
+		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
+		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
+		// If we have a previous entry, update the requestedToPres
+		commonPool = pastCommonPool
+		commonPool.takenFromCP = request
+	}
+
+	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+
+	return request
 }
 
-//GetTaxContribution determines how much we put into pool
+// GetTaxContribution determines how much we put into pool
 func (c *client) GetTaxContribution() shared.Resources {
-	ourResources := c.gameState().ClientInfo.Resources
-	Taxmin := determineTax(c)
-	allocation := AverageCommonPoolDilemma(c) + Taxmin //This is our default allocation, this determines how much to give based off of previous common pool level
-	if criticalStatus(c) {
-		return 0 //tax evasion
-	}
-	if determineTax(c)+c.determineThreshold() > ourResources {
-		return 0 //tax evasion
-	}
-	if ourResources < c.internalThreshold() {
-		return Taxmin
-	}
-	if checkOthersCrit(c) {
-		return (ourResources - c.internalThreshold() - Taxmin) / 2
+	contribution := shared.Resources(0)
+	strategicContribution := c.getStrategicContribution()
+
+	if c.getAgentExcessResources() == 0 || c.criticalStatus() {
+		contribution = shared.Resources(0)
+	} else if c.getAgentExcessResources() < strategicContribution {
+		// Not enough excess to mitigate disasters oh no...
+		// hoard some for ourselves
+		contribution = c.getAgentExcessResources() / 2
+	} else if c.getAgentExcessResources() < strategicContribution+c.taxAmount {
+		// enough to mitigate disasters but not pay tax so screw tax
+		contribution = strategicContribution
+	} else {
+		// enough to mitigate disasters and pay tax
+		contribution = strategicContribution + c.taxAmount
 	}
 
-	allocation = AverageCommonPoolDilemma(c) + Taxmin
-	return allocation
+	c.updatePresidentTrust()
+	c.confidenceRestrospect("President", c.gameState().PresidentID)
+
+	return contribution
 }
 
-//determineTax returns how much tax we have to pay
-func determineTax(c *client) shared.Resources {
-	return shared.Resources(c.BaseClient.LocalVariableCache[rules.ExpectedTaxContribution].Values[0]) //TODO: not sure if this is correct tax amount to use
+// Returns the number of turns until the next disaster (could be prediction/known value)
+func (c *client) getTurnsUntilDisaster() uint {
+	currentTurn := c.gameState().Turn
+
+	// add extra when disaster is soon
+	if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
+		period := c.gameConfig().DisasterConfig.DisasterPeriod.Value
+		return period - (currentTurn % period)
+	}
+
+	// Not able to predict disasters in first season as no prev known data
+	if c.gameState().Season == 1 {
+		return c.config.InitialDisasterTurnGuess - currentTurn
+	} else {
+		return c.CombinedDisasterPred.TimeLeft
+	}
 }
 
-//internalThreshold determines our internal threshold for survival, allocationrec is the output of the function AverageCommonPool which determines which role we will be
-func (c *client) internalThreshold() shared.Resources {
-	gameThreshold := c.determineThreshold()
-	allocationrec := AverageCommonPoolDilemma(c)
-	ourVulnerability := GetIslandDVPs(c.gameState().Geography)[c.GetID()] //TODO: get value from init function
-	//turnsLeftUntilDisaster := 3           //TODO: get this value when known
-	totalTurns := float64(c.gameState().Turn)
-	sampleMeanX, timeRemainingPrediction := GetTimeRemainingPrediction(c, totalTurns)
-	turnsLeftConfidence := GetTimeRemainingConfidence(totalTurns, sampleMeanX)
-	//TODO: Update these to be functions more specific to our island rather than general mag
-	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
-	confidenceMagnitude := GetMagnitudeConfidence(totalTurns, sampleMeanM)
-
-	if magnitudePrediction > sampleMeanM { //larger mag than average expected
-		return (gameThreshold + allocationrec) * shared.Resources((confidenceMagnitude/10)*(1+ourVulnerability)) //tune
-	}
-	if timeRemainingPrediction < 3 { //tune
-		return (gameThreshold + allocationrec) * shared.Resources((turnsLeftConfidence/10)*(1+ourVulnerability)) //tune
-	}
-	return gameThreshold + allocationrec
+// Determines resources we need to be above critical, pay tax and cost of living, put resources aside proportional to incoming disaster
+// TODO: could also be used to return negatives and pass that on to gifts and common pool request to know how much we need
+// How much we can spend
+func (c *client) getAgentExcessResources() shared.Resources {
+	// At a minimum we should be able to pay cost of living
+	excess := c.gameState().ClientInfo.Resources
+	excess -= c.gameConfig().CostOfLiving - c.gameConfig().MinimumResourceThreshold
+	return Max(0, excess)
 }
 
-//Checks if there was a disaster in the previous turn
-func checkForDisaster(c *client) bool {
-	var prevSeason uint
+// getStrategicContribution finds the best contribution to the common pool based on the method of play we
+// are in and whether the threshold is known. If so we should use our disaster prediction also.
+// Returns  proposed contribution as shared.Resources
+func (c *client) getStrategicContribution() shared.Resources {
+	strategicContribution := c.config.DefaultContribution
+	disasterContribution := c.config.DefaultContribution
+
 	if c.gameState().Turn == 1 {
-		prevSeason = 1
-		return false
+		return strategicContribution
 	}
-	if prevSeason != c.gameState().Season {
-		prevSeason++
-		return true
-	}
-	return false
-}
 
-//Finds the game threshold if this information is available or works it out based on history of turns
-func (c *client) determineThreshold() shared.Resources {
-	costOfLiving := c.gameConfig().CostOfLiving
 	if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid {
-		var threshold = (c.gameConfig().DisasterConfig.CommonpoolThreshold.Value) / 6
-		return threshold*1.1 + costOfLiving //*1.1 as threshold may not always be enough
-	}
-	ourResources := c.gameState().ClientInfo.Resources
-	turn := c.gameState().Turn
-	season := c.gameState().Season
-	var disasterBasedAdjustment float64
-	ourVulnerability := GetIslandDVPs(c.gameState().Geography)[c.GetID()] //TODO: get value from init function
-	//turnsLeftUntilDisaster := 3           //TODO: get this value when available in client config
-	totalTurns := float64(c.gameState().Turn)
-	sampleMeanM, magnitudePrediction := GetMagnitudePrediction(c, totalTurns)
-
-	if turn == 1 {
-		return ourResources / 4 //TODO: tune initial threshold guess when we start playing
-	}
-	baseThreshold := c.resourceLevelHistory[1] / 4
-	if season == 1 || sampleMeanM == 0.0 { //keep threshold from first turn
-		return baseThreshold
-	}
-	if checkForDisaster(c) {
-		if c.resourceLevelHistory[turn] >= c.resourceLevelHistory[turn-1] { //no resources taken by disaster
-			if disasterBasedAdjustment > 5 {
-				disasterBasedAdjustment -= 5
-			}
-		}
-		//disaster took our resources
-		disasterBasedAdjustment += 5
-	}
-	//change factor by if next mag > or < prev mag
-	return shared.Resources(float64(baseThreshold)*(magnitudePrediction/sampleMeanM)*(1+ourVulnerability)+disasterBasedAdjustment) + costOfLiving
-}
-
-//this function determines how much to contribute to the common pool depending on whether other agents are altruists,fair sharers etc
-//it only needs the current resource level and the current turn as inputs
-//the output will be an integer which is a recommendation on how much to add to the pool, with this recommendation there will be a weighting of how important it is we contribute that exact amount
-//this will be a part of other decision making functions which will have their own weights
-
-//tunable parameters:
-//how much to give the pool on our first turn: default_strat
-//after how many rounds of struggling pool to intervene and become altruist: intervene
-//the number of turns at the beginning we cannot free ride: no_freeride
-//the factor in which the common pool increases by to decide if we should free ride: freeride
-//the factor which we multiply the fair_sharer average by: tune_average
-//the factor which we multiply the altruist value by: tune_alt
-
-//Extra Functionality TODO: The bigger the drop in the common pool, the more we give in the altruistic mode
-//TODO: inside determine_fair and determine_altruist make the 6 how many alive agents there are
-func AverageCommonPoolDilemma(c *client) shared.Resources {
-	ResourceHistory := c.commonPoolHistory
-	turn := c.gameState().Turn
-	var default_strat float64 = 50 //this parameter will determine how much we contribute on the first turn when there is no data to make a decision
-
-	var fair_sharer float64 //this is how much we contribute when we are a fair sharer and altruist
-	var altruist float64
-
-	//var decreasing_pool float64 //records for how many turns the common pool is decreasing
-	var no_freeride float64 = 3 //how many turns at the beginning we cannot free ride for
-	var freeride float64 = 5    //what factor the common pool must increase by for us to considered free riding
-
-	if turn == 1 { //if there is no historical data then use default strategy
-		return shared.Resources(default_strat)
-	}
-
-	altruist = c.determine_altruist(turn) //determines altruist amount
-	fair_sharer = c.determine_fair(turn)  //determines fair sharer amount
-
-	prevTurn := turn - 1
-	prevTurn2 := turn - 2
-	if ResourceHistory[prevTurn] > ResourceHistory[turn] { //decreasing common pool means consider altruist
-		if ResourceHistory[prevTurn2] > ResourceHistory[prevTurn] {
-			return shared.Resources(altruist)
-		}
-	}
-
-	if float64(turn) > no_freeride { //we will not allow ourselves to use free riding at the start of the game
-		if ResourceHistory[prevTurn] < (ResourceHistory[turn] * freeride) {
-			if ResourceHistory[prevTurn2] < (ResourceHistory[prevTurn] * freeride) { //two large jumps then we free ride
-				return 0
+		missingResources := Max(0, c.gameConfig().DisasterConfig.CommonpoolThreshold.Value-c.gameState().CommonPool)
+		if missingResources != 0 {
+			// If we know the threshold get a disaster contribution, if not always use strategic
+			// trust no one - not even the server to stop the game
+			if c.getNumAliveClients() != 0 && c.getTurnsUntilDisaster() != 0 {
+				disasterContribution = missingResources / shared.Resources(c.getTurnsUntilDisaster()) / shared.Resources(c.getNumAliveClients())
+			} else if c.getNumAliveClients() != 0 {
+				disasterContribution = missingResources / shared.Resources(c.getNumAliveClients())
 			}
 		}
 	}
-	return shared.Resources(fair_sharer) //by default we contribute a fair share
+
+	switch c.getAgentStrategy() {
+	case FairSharer:
+		// contribute the weighted average contribution
+		ResourceHistory := c.commonPoolHistory
+		runningAverageCPChange := shared.Resources(0)
+
+		// compute running average
+		for j := c.gameState().Turn; j > 0; j-- {
+			runningAverageCPChange = runningAverageCPChange + (ResourceHistory[j]-ResourceHistory[j-1]-runningAverageCPChange)/shared.Resources(j)
+		}
+
+		// trust no one - not even the server to stop the game
+		if shared.Resources(c.getNumAliveClients()) != 0 {
+			strategicContribution = runningAverageCPChange / shared.Resources(c.getNumAliveClients())
+		}
+
+		// If we know the threshold take average between strategic and disaster contributions
+		if c.gameConfig().DisasterConfig.CommonpoolThreshold.Valid {
+			return (strategicContribution + disasterContribution) / shared.Resources(2)
+		}
+
+		// otherwise just return strategic
+		return strategicContribution
+	case Altruist:
+		// contribute weighted average contribution multiplied by a factor
+		ResourceHistory := c.commonPoolHistory
+		runningAverageCPChange := shared.Resources(0)
+
+		// compute running average
+		for j := c.gameState().Turn; j > 0; j-- {
+			runningAverageCPChange = runningAverageCPChange + (ResourceHistory[j]-ResourceHistory[j-1]-runningAverageCPChange)/shared.Resources(j)
+		}
+
+		// TODO: setting this multiplier in the config
+		// do not trust anyone - even the server - check for divide by 0
+		if shared.Resources(c.getNumAliveClients()) == shared.Resources(0) {
+			strategicContribution = runningAverageCPChange * 1.2 / shared.Resources(c.getNumAliveClients())
+		}
+
+		return Max(strategicContribution, disasterContribution)
+	default:
+		// if we are Selfish contribute nothing shared.Resources(0)
+		return shared.Resources(0)
+	}
 }
 
-func (c *client) determine_altruist(turn uint) float64 { //identical to fair sharing but a larger factor to multiple the average contribution by
-	ResourceHistory := c.commonPoolHistory
-	var tune_alt float64 = 2    //what factor of the average to contribute when being altruistic, will be much higher than fair sharing
-	for j := turn; j > 0; j-- { //we are trying to find the most recent instance of the common pool increasing and then use that value
-		prevTurn := j - 1
-		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / 6) * tune_alt
+// Pays sanction unless we are being selfish or if we are critical
+func (c *client) GetSanctionPayment() shared.Resources {
+	if value, ok := c.LocalVariableCache[rules.SanctionExpected]; ok {
+		if c.criticalStatus() || c.getAgentStrategy() == Selfish {
+			return 0
+
+		} else {
+			return shared.Resources(value.Values[rules.SingleValueVariableEntry])
 		}
 	}
 	return 0
 }
 
-func (c *client) determine_fair(turn uint) float64 { //can make more sophisticated! Right now just contribute the average, default matters the most
-	ResourceHistory := c.commonPoolHistory
-	var tune_average float64 = 1 //what factor of the average to contribute when fair sharing, default is 1 to give the average
-	for j := turn; j > 0; j-- {  //we are trying to find the most recent instance of the common pool increasing and then use that value
-		prevTurn := j - 1
-		if ResourceHistory[j]-ResourceHistory[prevTurn] > 0 {
-			return ((ResourceHistory[j] - ResourceHistory[prevTurn]) / 6) * tune_average //make 6 variable for no of agents
+// Returns the intended Contribution to the teams selected to share it with
+func (c *client) ShareIntendedContribution() shared.IntendedContribution {
+	shareWith := make([]shared.ClientID, 0)
+	aliveClients := c.getAliveClients()
+
+	// Share contributions with our friends
+	for _, island := range aliveClients {
+		if c.confidence("Gifts", island) > 30 {
+			shareWith = append(shareWith, island)
 		}
 	}
-	return 0
+
+	return shared.IntendedContribution{
+		Contribution:   c.GetTaxContribution(),
+		TeamsOfferedTo: shareWith,
+	}
 }
+
+// func (c *client) ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict) {
+// we check how much each island intends to contribute
+// Compute the average amount needed for the common pool threshold
+// form an opinion based on how far their contribution is from the average
+// could help us determine empathy level? (ie altruist, etc)
+// }

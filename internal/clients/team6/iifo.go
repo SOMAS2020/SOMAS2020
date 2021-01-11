@@ -1,39 +1,133 @@
 package team6
 
 import (
-	"math"
-
-	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"gonum.org/v1/gonum/stat/distuv"
 )
 
-func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
-	// similar to the baseclient implement: mean prediction
-	pastDisasters := c.disastersHistory
-	teamsOfferingTo := []shared.ClientID{}
+func (c client) checkIsStochastic() bool {
+	isStochastic := false
 
-	if len(pastDisasters) == 0 {
-		return shared.DisasterPredictionInfo{
-			PredictionMade: shared.DisasterPrediction{},
-			TeamsOfferedTo: nil,
+	if len(c.disastersHistory) < 3 {
+		// treats this as stochastic when data not enough to judge
+		isStochastic = true
+	}
+
+	for i := 0; i < len(c.disastersHistory)-2; i++ {
+		if c.disastersHistory[i+1].Turn-c.disastersHistory[i].Turn != c.disastersHistory[i+2].Turn-c.disastersHistory[i+1].Turn {
+			isStochastic = true
 		}
 	}
 
-	meanDisaster := getMeanDisaster(pastDisasters)
+	return isStochastic
+}
 
-	for team, friendship := range c.friendship {
-		// shares the information with good friends
-		if friendship > FriendshipLevel(float64(1/2)*float64(c.clientConfig.maxFriendship)) {
-			teamsOfferingTo = append(teamsOfferingTo, team)
+func (c client) getPseudoPeriod(isStochastic bool) float64 {
+	pseudoPeriod := float64(0)
+
+	if len(c.disastersHistory) < 1 {
+		return pseudoPeriod
+	}
+
+	if isStochastic {
+		pseudoPeriod = float64(c.ServerReadHandle.GetGameState().Turn) / float64(len(c.disastersHistory))
+	} else {
+		pseudoPeriod = float64(c.disastersHistory[len(c.disastersHistory)-1].Turn) / float64(len(c.disastersHistory))
+	}
+
+	return pseudoPeriod
+}
+
+func (c client) getMeanMagnitude() float64 {
+	meanMagnitudeFromHistory := float64(0)
+	meanMagnitudeFromPredictions := float64(0)
+	magnitudeSumOfHistory := float64(0)
+	magnitudeSumOfPredictions := float64(0)
+
+	if len(c.disastersHistory)+len(c.disasterPredictions) < 1 {
+		return float64(0)
+	}
+
+	if len(c.disastersHistory) != 0 {
+		for _, disaster := range c.disastersHistory {
+			magnitudeSumOfHistory += disaster.Magnitude
 		}
+
+		meanMagnitudeFromHistory = magnitudeSumOfHistory / float64(len(c.disastersHistory))
+	}
+
+	if len(c.disasterPredictions) != 0 {
+		for _, disaster := range c.disasterPredictions {
+			magnitudeSumOfPredictions += disaster.Magnitude * (disaster.Confidence) / float64(100)
+		}
+
+		meanMagnitudeFromPredictions = magnitudeSumOfPredictions / float64(len(c.disasterPredictions))
+	}
+
+	return (meanMagnitudeFromHistory + meanMagnitudeFromPredictions) / float64(2)
+}
+
+func (c client) getTimeLeft(isStochastic bool, period float64) uint {
+	timeLeft := uint(0)
+	turnOfLastDisaster := uint(0)
+
+	if !isStochastic {
+		if len(c.disastersHistory) != 0 {
+			turnOfLastDisaster = c.disastersHistory[len(c.disastersHistory)-1].Turn
+		}
+
+		timeLeft = uint(period) - (c.ServerReadHandle.GetGameState().Turn - turnOfLastDisaster)
+	}
+
+	return timeLeft
+}
+
+func (c client) determineConfidence(isStochastic bool, pseudoPeriod float64) float64 {
+	confidence := float64(100)
+
+	if isStochastic {
+		confidence = confidence / pseudoPeriod
+	}
+
+	return confidence
+}
+
+func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
+	xMax := c.ServerReadHandle.GetGameState().Geography.XMax
+	xMin := c.ServerReadHandle.GetGameState().Geography.XMin
+	yMax := c.ServerReadHandle.GetGameState().Geography.YMax
+	yMin := c.ServerReadHandle.GetGameState().Geography.YMin
+
+	// two random variables generated from uniform distribution
+	predictedX := distuv.Uniform{Min: xMin, Max: xMax}.Rand()
+	predictedY := distuv.Uniform{Min: yMin, Max: yMax}.Rand()
+
+	// check if if these parameters are exposed
+	isIsStochasticExposed := c.ServerReadHandle.GetGameConfig().DisasterConfig.StochasticDisasters.Valid
+	isPeriodExposed := c.ServerReadHandle.GetGameConfig().DisasterConfig.DisasterPeriod.Valid
+	isStochastic := c.ServerReadHandle.GetGameConfig().DisasterConfig.StochasticDisasters.Value
+	period := float64(c.ServerReadHandle.GetGameConfig().DisasterConfig.DisasterPeriod.Value)
+
+	if !isPeriodExposed && !isIsStochasticExposed {
+		isStochastic = c.checkIsStochastic()
+		period = c.getPseudoPeriod(isStochastic)
+	} else if !isIsStochasticExposed {
+		isStochastic = c.checkIsStochastic()
+	} else if !isPeriodExposed {
+		period = c.getPseudoPeriod(isStochastic)
 	}
 
 	prediction := shared.DisasterPrediction{
-		CoordinateX: meanDisaster.CoordinateX,
-		CoordinateY: meanDisaster.CoordinateY,
-		Magnitude:   meanDisaster.Magnitude,
-		TimeLeft:    meanDisaster.Turn,
-		Confidence:  determineConfidence(pastDisasters, meanDisaster, 100.0),
+		CoordinateX: predictedX,
+		CoordinateY: predictedY,
+		Magnitude:   c.getMeanMagnitude(),
+	}
+	teamsOfferingTo := []shared.ClientID{}
+
+	if period != 0 {
+		prediction.TimeLeft = c.getTimeLeft(isStochastic, period)
+		prediction.Confidence = c.determineConfidence(isStochastic, period)
+		teamsOfferingTo = shared.TeamIDs[:]
 	}
 
 	c.disasterPredictions[c.GetID()] = prediction
@@ -45,90 +139,17 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 }
 
 func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedDisasterPredictionsDict) {
-	numberOfPredictions := float64(len(receivedPredictions) + 1)
-	ourPrediction := c.disasterPredictions[c.GetID()]
-	selfConfidence := ourPrediction.Confidence
-
-	if len(receivedPredictions) == 0 && selfConfidence == 0 {
-		defer c.Logf("No prediction can be made")
-		return
+	for _, prediction := range receivedPredictions {
+		c.disasterPredictions[prediction.SharedFrom] = shared.DisasterPrediction{
+			CoordinateX: c.trustRank[prediction.SharedFrom] * prediction.PredictionMade.CoordinateX,
+			CoordinateY: c.trustRank[prediction.SharedFrom] * prediction.PredictionMade.CoordinateY,
+			Magnitude:   c.trustRank[prediction.SharedFrom] * prediction.PredictionMade.Magnitude,
+			TimeLeft:    uint(c.trustRank[prediction.SharedFrom]) * prediction.PredictionMade.TimeLeft,
+			Confidence:  prediction.PredictionMade.Confidence,
+		}
 	}
 
-	// Initialise running totals using our own island's predictions
-	totalCoordinateX := selfConfidence * ourPrediction.CoordinateX
-	totalCoordinateY := selfConfidence * ourPrediction.CoordinateY
-	totalMagnitude := selfConfidence * ourPrediction.Magnitude
-	totalTimeLeft := uint(math.Round(selfConfidence)) * ourPrediction.TimeLeft
-	totalConfidence := selfConfidence
-
-	// Add other island's predictions using their confidence values
-	for team, prediction := range receivedPredictions {
-		c.disasterPredictions[team] = prediction.PredictionMade
-
-		totalCoordinateX += c.trustRank[team] * prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateX
-		totalCoordinateY += c.trustRank[team] * prediction.PredictionMade.Confidence * prediction.PredictionMade.CoordinateY
-		totalMagnitude += c.trustRank[team] * prediction.PredictionMade.Confidence * prediction.PredictionMade.Magnitude
-		totalTimeLeft += prediction.PredictionMade.TimeLeft * uint(math.Round(c.trustRank[team]*prediction.PredictionMade.Confidence))
-		totalConfidence += c.trustRank[team] * prediction.PredictionMade.Confidence
-	}
-
-	// Finally get the final prediction generated by considering predictions from all islands that we have available
-	// This result is currently unused but would be used in decision making in full implementation
-	finalPrediction := shared.DisasterPrediction{
-		CoordinateX: totalCoordinateX / numberOfPredictions,
-		CoordinateY: totalCoordinateY / numberOfPredictions,
-		Magnitude:   totalMagnitude / numberOfPredictions,
-		TimeLeft:    uint((float64(totalTimeLeft) / numberOfPredictions) + 0.5),
-		Confidence:  totalConfidence / numberOfPredictions,
-	}
-
-	c.Logf("Final Prediction: [%v]", finalPrediction)
-}
-
-func getMeanDisaster(pastDisastersList baseclient.PastDisastersList) baseclient.DisasterInfo {
-	totalCoordinateX, totalCoordinateY, totalMagnitude, totalTurn := 0.0, 0.0, 0.0, 0.0
-	numberDisastersPassed := float64(len(pastDisastersList))
-
-	for _, disaster := range pastDisastersList {
-		totalCoordinateX += disaster.CoordinateX
-		totalCoordinateY += disaster.CoordinateY
-		totalMagnitude += float64(disaster.Magnitude)
-		totalTurn += float64(disaster.Turn)
-	}
-
-	meanDisaster := baseclient.DisasterInfo{
-		CoordinateX: totalCoordinateX / numberDisastersPassed,
-		CoordinateY: totalCoordinateY / numberDisastersPassed,
-		Magnitude:   totalMagnitude / numberDisastersPassed,
-		Turn:        uint(math.Round(totalTurn / numberDisastersPassed)),
-	}
-
-	return meanDisaster
-}
-
-func determineConfidence(pastDisastersList baseclient.PastDisastersList, meanDisaster baseclient.DisasterInfo, varianceLimit float64) float64 {
-	totalDisaster := baseclient.DisasterInfo{}
-	numberDisastersPassed := float64(len(pastDisastersList))
-
-	// Find the sum of the square of the difference between the actual and mean, for each field
-	for _, disaster := range pastDisastersList {
-		totalDisaster.CoordinateX += math.Pow(disaster.CoordinateX-meanDisaster.CoordinateX, 2)
-		totalDisaster.CoordinateY += math.Pow(disaster.CoordinateY-meanDisaster.CoordinateY, 2)
-		totalDisaster.Magnitude += math.Pow(disaster.Magnitude-meanDisaster.Magnitude, 2)
-		totalDisaster.Turn += uint(math.Round(math.Pow(float64(disaster.Turn-meanDisaster.Turn), 2)))
-	}
-
-	// Find the sum of the variances and the average variance
-	varianceSum := (totalDisaster.CoordinateX + totalDisaster.CoordinateY + totalDisaster.Magnitude + float64(totalDisaster.Turn)) / numberDisastersPassed
-	averageVariance := varianceSum / 4
-
-	// Implement the variance cap chosen
-	if averageVariance > varianceLimit {
-		averageVariance = varianceLimit
-	}
-
-	// Return the confidence of the prediction
-	return math.Round(varianceLimit - averageVariance)
+	c.Logf("Final Prediction: [%v]", c.disasterPredictions[c.GetID()])
 }
 
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
