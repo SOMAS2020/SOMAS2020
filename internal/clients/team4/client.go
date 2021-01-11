@@ -21,14 +21,18 @@ func init() {
 func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	// have some config json file or something?
 	internalConfig := internalParameters{
-		greediness:       0,
-		selfishness:      0,
-		fairness:         0,
-		collaboration:    0,
-		riskTaking:       0,
-		maxPardonTime:    3,
-		maxTierToPardon:  shared.SanctionTier3,
-		minTrustToPardon: 0.6,
+		greediness:                   0,
+		selfishness:                  0,
+		fairness:                     0,
+		collaboration:                0,
+		riskTaking:                   0,
+		maxPardonTime:                3,
+		maxTierToPardon:              shared.SanctionTier3,
+		minTrustToPardon:             0.6,
+		historyWeight:                1,   // in range [0,1]
+		historyFullTruthfulnessBonus: 0.1, // in range [0,1]
+		monitoringWeight:             1,   // in range [0,1]
+		monitoringResultChange:       0.1, // in range [0,1]
 	}
 
 	iigoObs := iigoObservation{
@@ -46,8 +50,9 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	}
 
 	judgeHistory := accountabilityHistory{
-		history: map[uint]map[shared.ClientID]judgeHistoryInfo{},
-		updated: false,
+		history:     map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		updated:     false,
+		updatedTurn: 0,
 	}
 
 	emptyRuleCache := map[string]rules.RuleMatrix{}
@@ -62,13 +67,17 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		resourceReportImportance:                   mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0}),
 		getTaxContributionImportance:               mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0}),
 		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0}),
+		getGiftRequestsImportance:                  mat.NewVecDense(4, []float64{2.0, 1.0, -1.0, -1.0}),
 	}
+
+	baseJudge := baseclient.BaseJudge{}
+	baseSpeaker := baseclient.BaseSpeaker{}
 
 	team4client := client{
 		BaseClient:  baseclient.NewClient(id),
-		clientJudge: judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
+		clientJudge: judge{BaseJudge: &baseJudge, t: testing},
 		clientSpeaker: speaker{
-			BaseSpeaker: &baseclient.BaseSpeaker{},
+			BaseSpeaker: &baseSpeaker,
 			SpeakerActionOrder: []string{
 				"SetVotingResult",
 				"SetRuleToVote",
@@ -123,6 +132,7 @@ type importances struct {
 	resourceReportImportance                   *mat.VecDense
 	getTaxContributionImportance               *mat.VecDense
 	decideIIGOMonitoringAnnouncementImportance *mat.VecDense
+	getGiftRequestsImportance                  *mat.VecDense
 }
 
 // Store extra information which is not in the server and is helpful for our client
@@ -140,9 +150,9 @@ type iigoObservation struct {
 }
 
 type iifoObservation struct {
-	receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
-	ourDisasterPrediction       shared.DisasterPredictionInfo
-	finalDisasterPrediction     shared.DisasterPrediction
+	// receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
+	ourDisasterPrediction   shared.DisasterPredictionInfo
+	finalDisasterPrediction shared.DisasterPrediction
 }
 
 type iitoObservation struct {
@@ -164,6 +174,12 @@ type internalParameters struct {
 	maxTierToPardon shared.IIGOSanctionsTier
 	// we will only consider pardoning islands which we trust with at least this value
 	minTrustToPardon float64
+
+	// Trust config
+	historyWeight                float64
+	historyFullTruthfulnessBonus float64
+	monitoringWeight             float64
+	monitoringResultChange       float64
 }
 
 // type personality struct {
@@ -181,7 +197,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 func (c *client) updateParents() {
 	c.clientJudge.parent = c
 	c.clientSpeaker.parent = c
-
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
@@ -199,7 +214,6 @@ func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
 func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
-	// TODO implement decision on voting that considers the rule
 	ruleDistance := c.decideRuleDistance(ruleMatrix)
 	if ruleDistance < 5 { // TODO: calibrate the distance ranges
 		return shared.Reject
@@ -229,7 +243,7 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 
 			if currentAuxValue == 0 {
 				// ==0 condition
-				if idealValue != 0 {
+				if idealValue > 0 {
 					distance += math.Abs(idealValue-actualValue) / idealValue
 				} else {
 					distance += math.Abs(idealValue - actualValue)
@@ -237,19 +251,31 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 			} else if currentAuxValue == 1 {
 				// TODO: ACTUALLY IMPLEMENT THESE CONDITIONS
 				// >0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 			} else if currentAuxValue == 2 {
 				// <=0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += idealValue - actualValue
+				}
 			} else if currentAuxValue == 3 {
 				// !=0 condition
 				if idealValue != 0 {
 					distance += math.Abs(idealValue-actualValue) / idealValue
 				} else {
-					distance += math.Abs(idealValue - actualValue)
+					distance += idealValue - actualValue
 				}
 			} else if currentAuxValue == 4 {
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 				// it returns the value of the calculation
 			}
 		}
@@ -290,7 +316,43 @@ func (c *client) StartOfTurn() {
 
 func (c *client) updateTrustFromSavedHistory() {
 	if c.savedHistory.updated {
+		newInfo := c.savedHistory.getNewInfo()
 
+		if len(newInfo) > 0 {
+			var lawfulnessSum float64
+
+			for _, history := range newInfo {
+				lawfulnessSum += history.LawfulRatio
+			}
+			averageTruthfulness := lawfulnessSum / float64(len(newInfo))
+
+			for clientID, history := range newInfo {
+				lawfulness := history.LawfulRatio
+
+				c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyWeight*(lawfulness-averageTruthfulness)) //potentially add * historyWeight to scale the update
+
+				if floatEqual(lawfulness, 1) { //bonus for being fully truthful
+					c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyFullTruthfulnessBonus)
+				}
+			}
+		}
+		c.savedHistory.updated = false
+	}
+}
+
+func (c *client) updateTrustMonitoring(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	if roleMonitored, ok := data[shared.RoleMonitored]; ok && roleMonitored.T == shared.CommunicationIIGORole {
+		if monitoringResult, ok := data[shared.MonitoringResult]; ok && monitoringResult.T == shared.CommunicationBool {
+			roleID := c.getRole(roleMonitored.IIGORoleData)
+
+			if monitoringResult.BooleanData {
+				// Monitored role was truthful
+				c.trustMatrix.ChangeClientTrust(roleID, c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange) // config?
+			} else {
+				// Monitored role cheated
+				c.trustMatrix.ChangeClientTrust(roleID, -c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange)
+			}
+		}
 	}
 }
 
@@ -302,6 +364,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
 	clientID := id
+	ourResources := c.getOurResources()
 	// TODO: Choose sensible thresholds!
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)
@@ -311,18 +374,18 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 		// If we are the president.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 
 	case speakerID:
 		// If we are the Speaker.
 		monitoring = (c.getTrust(presidentID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 	case judgeID:
 		// If we are the Judge.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 	}
 	return monitoring
 }

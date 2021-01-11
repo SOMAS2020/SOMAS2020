@@ -78,7 +78,6 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 	return retInfo, ok
 }
 
-
 func (c *client) getPresident() shared.ClientID {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameState().PresidentID
@@ -96,6 +95,20 @@ func (c *client) getSpeaker() shared.ClientID {
 func (c *client) getJudge() shared.ClientID {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameState().JudgeID
+	}
+	return 0
+}
+
+func (c *client) getRole(role shared.Role) shared.ClientID {
+	if c.ServerReadHandle != nil {
+		switch role {
+		case shared.Judge:
+			return c.getJudge()
+		case shared.President:
+			return c.getPresident()
+		case shared.Speaker:
+			return c.getSpeaker()
+		}
 	}
 	return 0
 }
@@ -124,3 +137,9 @@ func boolToFloat(input bool) float64 {
 	return 0
 }
 
+func (c *client) getOurResources() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	}
+	return 0
+}
