@@ -135,14 +135,18 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 
 	for team, prediction := range c.disasterPredictions {
 		theirDiff = math.Abs(prediction.Magnitude - disasterhappening.Magnitude)
-		
+
 		if ourDiff != 0 {
 			c.trustRank[team] += (ourDiff - theirDiff) / ourDiff
+		} else {
+			c.trustRank[team] = c.trustRank[team] / float64(2)
 		}
 
+		// sets the cap of trust rank from 0 to 1
 		if c.trustRank[team] < 0 {
 			c.trustRank[team] = 0
-			continue
+		} else if c.turstRank[team] > 1 {
+			c.trustRank[team] = 1
 		}
 	}
 
