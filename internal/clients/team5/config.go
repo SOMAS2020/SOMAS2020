@@ -63,11 +63,11 @@ func getClientConfig() clientConfig {
 
 		// Deciding foraging type
 		RandomChanceToFish:           0.10, // Chacne to switch to Hunting/Fishing
-		RandomChanceToHunt:           0.25,
-		IncreasePerHunterLastTurn:    0.00,  // % increase for each Hunter
-		IncreasePerFisherMenLastTurn: 0.00,  // % incrase for each Fisher
-		DeerTurnsToLookBack:          3,     // Number of turns to look back at for deer (not including last)
-		DecreasePerHunterInLookBack:  0.035, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
+		RandomChanceToHunt:           0.15,
+		IncreasePerHunterLastTurn:    0.05, // % increase for each Hunter
+		IncreasePerFisherMenLastTurn: 0.00, // % incrase for each Fisher
+		DeerTurnsToLookBack:          3,    // Number of turns to look back at for deer (not including last)
+		DecreasePerHunterInLookBack:  0.05, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
 
 		// Normal Forage
 		SkipForage:          1,
@@ -87,8 +87,8 @@ func getClientConfig() clientConfig {
 		middleGiftRequestAmount:   0.5, //
 		offertoDyingIslands:       1.5, // is a multiple of cost of living
 
-		opinionThresholdRequest:  0.3, // Above opinion we request less this people (0.1 lowest)
-		opinionRequestMultiplier: 0.3, // We request the threshold at the above amount of opinion
+		opinionThresholdRequest:  0.2, // Above opinion we request less this people (0.1 lowest)
+		opinionRequestMultiplier: 0.2, // We request the threshold at the above amount of opinion
 
 		// Disasters and IIFO
 		forecastTrustTreshold: 0.0, // neutral opinion
