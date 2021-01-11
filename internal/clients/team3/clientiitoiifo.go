@@ -11,7 +11,7 @@ import (
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	var predictionInfo shared.DisasterPredictionInfo
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClientFactories))
+	trustedIslands := make([]shared.ClientID, len(c.BaseClient.ServerReadHandle.GetGameState().ClientLifeStatuses))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
@@ -363,7 +363,7 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
 
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClientFactories))
+	trustedIslands := make([]shared.ClientID, len(c.ServerReadHandle.GetGameState().ClientLifeStatuses))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}

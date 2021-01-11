@@ -12,8 +12,8 @@ import (
 const id = shared.Team3
 const printTeam3Logs = false
 
-func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id)
 }
 
 type client struct {
