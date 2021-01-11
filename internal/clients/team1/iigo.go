@@ -1,7 +1,6 @@
 package team1
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -139,9 +138,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	switch c.emotionalState() {
 	case Desperate, Anxious:
-		amount := shared.Resources(c.config.resourceRequestScale) *
-			c.gameConfig().CostOfLiving
-		fmt.Printf("Amount %v", amount)
+		amount := shared.Resources(c.config.resourceRequestScale) * c.gameConfig().CostOfLiving
 		c.Logf("Common pool request: %v", amount)
 		return amount
 	default:
@@ -176,4 +173,39 @@ func (c *client) RequestAllocation() shared.Resources {
 	return shared.Resources(
 		math.Min(allocation, float64(c.gameState().CommonPool)),
 	)
+}
+
+/**********************************/
+/*** 		Communications		  */
+/**********************************/
+// ReceiveCommunication is a function called by IIGO to pass the communication sent to the client.
+// This function is overridden to receive information and update local info accordingly.
+func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	c.Logf("[IIGO]: Sent from %v", sender)
+	for contentType, content := range data {
+		switch contentType {
+		case shared.RuleName:
+			// currentRuleID := content.TextData
+			// // Rule voting
+			// if _, ok := data[shared.RuleVoteResult]; ok {
+			// 	if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
+			// 		c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
+			// 		c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
+			// 	} else {
+			// 		c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
+			// 	}
+			// }
+			// Rule sanctions
+			if _, ok := data[shared.IIGOSanctionScore]; ok {
+				c.Logf("[IIGO]: Received sanction info: %+v", data)
+				// c.iigoInfo.sanctions.rulePenalties[currentRuleID] = shared.IIGOSanctionsScore(data[shared.IIGOSanctionScore].IntegerData)
+			}
+		case shared.SanctionClientID:
+			c.Logf("[IIGO]: Islands Sanctioned: %v with Tier: %v", shared.ClientID(content.IntegerData), shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData))
+		case shared.IIGOSanctionTier:
+			c.Logf("[IIGO]: Sanction Tier %v has score %v", shared.IIGOSanctionsTier(content.IntegerData), data[shared.IIGOSanctionScore].IntegerData)
+		case shared.SanctionAmount:
+			c.Logf("[IIGO]: Sanction Amount %v", shared.IIGOSanctionsScore(content.IntegerData))
+		}
+	}
 }

@@ -47,6 +47,7 @@ func TestRequestsResourcesWhenAnxious(t *testing.T) {
 		},
 		CommonPool: 300,
 	})
+	c.config.resourceRequestScale = 1
 	c.config.anxietyThreshold = 100
 
 	gotRequest := c.CommonPoolResourceRequest()
