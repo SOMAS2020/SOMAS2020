@@ -25,7 +25,10 @@ const Agent2Desc =
   "Our agent will counteract the strategies of the other agents in order to keep the common pool stable, for example if the other agents are free riders on average then our agent will become an altruist for a limited number of turns in order to try and help save the common pool and game. We apply a strategy of 'herd mentality' in terms of resource allocation, by only contributing factors of the average contribution to the pool depending on situations and own internal state."
 
 const Agent3Desc =
-  'Team 3 agent has an emphasis on being highly parameterised. The behaviour of each function depends on the value of the parameters. This allows to agent to work in a broader scenario  and also allow multiple behaviours of agents by simply changing the parameters.'
+  "Team 3's agent has an emphasis on being highly parameterised. The behaviour of each function depends on the value of the parameters. This allows the agent to work in a broader scenario and also allow multiple behaviours of agents by simply changing the parameters. Our agent also includes geometric analysis of the matrix based rules, allowing us to more accurately make quantitative judgements on the effects of newly proposed rules on our agents performance. We use the same geometric analysis to propose modifications to rules to better suit our current circumstances. This system is combined with our parameterized  compliance approach to investigate elements of game theory and are useful in the study of exploitation of the IIGO system."
+
+const Agent4Desc =
+  "We have implemented a truthful agent, which is only be able to deviate from following rules based on the personality parameters it might get. It is a 'vanilla' agent implementation, which does not do anything based on randomness, but rather rules."
 
 const Agent5Desc =
   "Team 5's agent is driven by historical data to form opinions on other agents. This knowledge formation is used to evaluate future steps of action that include foraging decisions, gifting decisions,  common pool contributions and role management, as well as disaster forecasting. This enables our agent to engage in more complex yet more stochastic decision making. Our agent can be characterised as  fair and generous, and it has been designed to support the rest of the agent community when necessary. The latter is particularly true when there's open communication of data between islands. However,  our agent can be biased at times in order to ensure our island's survival when resources are scarce."
@@ -37,7 +40,7 @@ const rows = [
   createData('Team 1', Agent1Desc),
   createData('Team 2', Agent2Desc),
   createData('Team 3', Agent3Desc),
-  createData('Team 4', 'Description of agent'),
+  createData('Team 4', Agent4Desc),
   createData('Team 5', Agent5Desc),
   createData('Team 6', Agent6Desc),
 ]

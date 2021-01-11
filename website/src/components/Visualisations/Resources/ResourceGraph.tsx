@@ -61,6 +61,7 @@ class ResourceGraph extends React.Component<IProps, any> {
         team5: '#FFBB28',
         team6: '#FF8042',
         CommonPool: '#ACE600',
+        TotalResources: '	#FF69B4',
         CriticalThreshold: '#B7B4B0',
       },
       datapaths: {
@@ -71,6 +72,7 @@ class ResourceGraph extends React.Component<IProps, any> {
         team5: 'ClientInfos.Team5.Resources',
         team6: 'ClientInfos.Team6.Resources',
         CommonPool: 'CommonPool',
+        TotalResources: 'ClientInfos.Team1.Resources',
       },
       chartData: this.props.output,
     }
@@ -142,6 +144,16 @@ class ResourceGraph extends React.Component<IProps, any> {
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
         >
           {_.toPairs<string>(this.state.legendColours)
+            .filter((pair) => !_.includes(this.state.disabled, pair[0]))
+            .map((pair) => (
+              <Line
+                name={pair[0]}
+                type="monotone"
+                dataKey={this.state.datapaths[pair[0]]}
+                stroke={pair[1]}
+              />
+            ))}
+          {_.toPairs<string>(this.state.legendColours.TotalResources)
             .filter((pair) => !_.includes(this.state.disabled, pair[0]))
             .map((pair) => (
               <Line

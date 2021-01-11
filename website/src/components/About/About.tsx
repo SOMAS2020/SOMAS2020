@@ -28,7 +28,7 @@ const About = () => {
           from islands and the turn ends.{' '}
         </p>
         <p>
-          A season is made up of one or more turns and ends when a disaster
+          A season is made up of one or more turns, and ends when a disaster
           happens.{' '}
         </p>
         <p>
