@@ -120,7 +120,7 @@ func defaultConfig() team1Config {
 		flipForageScale:                0.3,
 		forageContributionCapPercent:   0.2,
 		forageContributionNoisePercent: 0.01,
-		evadeTaxes:                     true,
+		evadeTaxes:                     false,
 		kickstartTaxPercent:            0,
 		desperateStealAmount:           30,
 		maxOpinion:                     10,
@@ -159,7 +159,9 @@ func (c *client) StartOfTurn() {
 	c.Logf("Emotional state: %v", c.emotionalState())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
 
-	// Initialise President with gamestate
+	// c.Logf("[IIGO] WHO DAFUQ IS JUDGE, PRESIDENT, SPEAKER: %v, %v, %v", c.gameState().JudgeID, c.gameState().PresidentID, c.gameState().SpeakerID)
+
+	// Initialise President with gamestate1
 	c.BasePresident.GameState = c.gameState()
 
 	// This should only happen at the start of the game.
