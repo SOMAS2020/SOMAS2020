@@ -77,9 +77,8 @@ func (c *client) StartOfTurn() {
 
 // updateConfig will be called at the start of each turn to set the newest config
 func (c *client) updateConfig() {
-	defer c.Logf("Configuration has been updated")
+	defer c.Logf("Configuration status: %v", c.clientConfig)
 
-	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
 	costOfLiving := c.ServerReadHandle.GetGameConfig().CostOfLiving
 
@@ -87,8 +86,8 @@ func (c *client) updateConfig() {
 		minFriendship:          c.clientConfig.minFriendship,
 		maxFriendship:          c.clientConfig.maxFriendship,
 		friendshipChangingRate: c.clientConfig.friendshipChangingRate,
-		selfishThreshold:       minThreshold + 3.0*costOfLiving + ourResources/10.0,
-		normalThreshold:        minThreshold + 6.0*costOfLiving + ourResources/10.0,
+		selfishThreshold:       minThreshold + 3.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/6.0,
+		normalThreshold:        minThreshold + 9.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/6.0,
 		multiplier:             c.clientConfig.multiplier,
 	}
 
@@ -97,7 +96,7 @@ func (c *client) updateConfig() {
 
 // updateFriendship will be called at the start of each turn to update our friendships
 func (c *client) updateFriendship() {
-	defer c.Logf("Friendship information has been updated")
+	defer c.Logf("Friendship status: %v", c.friendship)
 
 	for team, requested := range c.giftsRequestedHistory {
 		if c.ServerReadHandle.GetGameState().ClientLifeStatuses[team] != shared.Alive {
@@ -121,6 +120,8 @@ func (c *client) updateFriendship() {
 }
 
 func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disasters.DisasterEffects) {
+	defer c.Logf("Trust rank status: %v", c.trustRank)
+
 	currTurn := c.ServerReadHandle.GetGameState().Turn
 
 	disasterhappening := baseclient.DisasterInfo{
