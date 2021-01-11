@@ -99,7 +99,9 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		// }
 		// Subtract the offer just made from the giftSize so that we don't offer too much.
 		giftSize -= offerSize
+		c.Logf("Team4 offers to give %v %v resources", team, offers)
 	}
+	c.Logf("Team4 gift offers: %v", offers)
 	return offers
 }
 
