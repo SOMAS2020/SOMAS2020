@@ -56,7 +56,7 @@ func (t *trust) expectedTrustSum() float64 {
 //normalise ensures that trust values are always in range [0,1]
 func (t *trust) normalise() {
 	// it ensures that the general trust sums to 0.5 * number of clients
-	if len(t.trustMap) > 0 {
+	if len(t.trustMap) > 0 && t.totalTrustSum() > 0 {
 		normaliseCoef := t.expectedTrustSum() / t.totalTrustSum()
 		for clientID, trust := range t.trustMap {
 			t.trustMap[clientID] = trust * normaliseCoef
