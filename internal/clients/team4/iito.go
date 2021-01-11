@@ -99,7 +99,6 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		// }
 		// Subtract the offer just made from the giftSize so that we don't offer too much.
 		giftSize -= offerSize
-		c.Logf("Team4 offers to give %v %v resources", team, offers)
 	}
 	c.Logf("Team4 gift offers: %v", offers)
 	return offers
@@ -145,27 +144,28 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 // SentGift is executed at the end of each turn and notifies clients that
 // their gift was successfully sent, along with the offer details.
 // COMPULSORY, you need to implement this method
-func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
-	// You can check your updated resources like this:
-	myResources := c.getOurResources()
-	percentageDonated := 0.0
-	// avoid div 0
-	if float64(sent+myResources) > 0 {
-		percentageDonated = float64(sent / (sent + myResources))
-	}
-	bumpThreshold := 0.2
-	currentGreediness := c.internalParam.greediness
-	maxGreedBump := math.Min(currentGreediness+bumpThreshold, 1.0)
 
-	currentSelfishness := c.internalParam.selfishness
-	maxSelfishBump := math.Min(currentSelfishness+bumpThreshold, 1.0)
+// func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
+// 	// You can check your updated resources like this:
+// 	myResources := c.getOurResources()
+// 	percentageDonated := 0.0
+// 	// avoid div 0
+// 	if float64(sent+myResources) > 0 {
+// 		percentageDonated = float64(sent / (sent + myResources))
+// 	}
+// 	bumpThreshold := 0.2
+// 	currentGreediness := c.internalParam.greediness
+// 	maxGreedBump := math.Min(currentGreediness+bumpThreshold, 1.0)
 
-	// Bump up greediness and selfishness.
-	// We use a maximum bump to cap at 1 and reduce the volatility.
-	c.internalParam.greediness = math.Min(currentGreediness+percentageDonated, maxGreedBump)
-	c.internalParam.selfishness = math.Min(currentSelfishness+percentageDonated, maxSelfishBump)
+// 	currentSelfishness := c.internalParam.selfishness
+// 	maxSelfishBump := math.Min(currentSelfishness+bumpThreshold, 1.0)
 
-}
+// 	// Bump up greediness and selfishness.
+// 	// We use a maximum bump to cap at 1 and reduce the volatility.
+// 	c.internalParam.greediness = math.Min(currentGreediness+percentageDonated, maxGreedBump)
+// 	c.internalParam.selfishness = math.Min(currentSelfishness+percentageDonated, maxSelfishBump)
+
+// }
 
 // ReceivedGift is executed at the end of each turn and notifies clients that
 // their gift was successfully received, along with the offer details.
