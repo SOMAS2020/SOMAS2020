@@ -54,7 +54,14 @@ const About = () => {
             run the game with the default flags, or you can customize the game
             by changing the flags. Click to run the game. From here, you can
             either download the outputs or click Visualise and explore different
-            diagrams showing the progression of the game ran.{' '}
+            diagrams showing the progression of the game ran. The CI Output
+            (continuous integration output) tab gives the automated outputs of
+            the run generated from our code. The code for this can be seen{' '}
+            <a href="https://github.com/SOMAS2020/SOMAS2020">here.</a>
+          </p>
+          <p>
+            The Visualisation tab will display the results of your own runs and
+            it will persist your visualisations until you run a new game.
           </p>
         </div>
       </div>
