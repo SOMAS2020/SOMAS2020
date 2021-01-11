@@ -117,14 +117,11 @@ func (s *speaker) PayJudge() shared.SpeakerReturnContent {
 //who sets the vote to be voted on to be the rule the President provided
 func (s *speaker) DecideAgenda(ruleMatrix rules.RuleMatrix) shared.SpeakerReturnContent {
 	s.reorderPriorities()
-	//there are more important things to do...
-	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("SetRuleToVote") {
+	//(there are more important things to do) or (there is no rule to put on the agenda)
+	if (s.getSpeakerBudget() < s.getHigherPriorityActionsCost("SetRuleToVote")) || ruleMatrix.RuleMatrixIsEmpty() {
 		return shared.SpeakerReturnContent{
 			ActionTaken: false,
 		}
-	}
-	if ruleMatrix.RuleMatrixIsEmpty() {
-		//president has not selected a rule
 	}
 	return shared.SpeakerReturnContent{
 		ContentType: shared.SpeakerAgenda,
@@ -137,8 +134,8 @@ func (s *speaker) DecideAgenda(ruleMatrix rules.RuleMatrix) shared.SpeakerReturn
 //who calls a vote on the proposed rule and asks all available islands to vote.
 //Return an empty string or empty []shared.ClientID for no vote to occur
 func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.ClientID) shared.SpeakerReturnContent {
-	//there are more important things to do...
-	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("SetVotingResult") {
+	//(there are more important things to do) or (there is no rule to vote on)
+	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("SetVotingResult") || ruleMatrix.RuleMatrixIsEmpty() {
 		return shared.SpeakerReturnContent{
 			ActionTaken: false,
 		}
@@ -155,8 +152,8 @@ func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 //A well behaved speaker announces what had been voted on and the corresponding result
 //Return "", _ for no announcement to occur
 func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
-	//there are more important things to do...
-	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("AnnounceVotingResult") {
+	//(there are more important things to do) or (there is no result to announce)
+	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("AnnounceVotingResult") || ruleMatrix.RuleMatrixIsEmpty() {
 		return shared.SpeakerReturnContent{
 			ActionTaken: false,
 		}
@@ -179,7 +176,7 @@ func (s *speaker) CallJudgeElection(monitoring shared.MonitorResult, turnsInPowe
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
-	//there are more important things to do...
+	//there are more important things to do
 	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("AppointNextJudge") {
 		return electionsettings
 	}
