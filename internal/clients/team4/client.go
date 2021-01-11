@@ -66,6 +66,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		resourceReportImportance:                   mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0}),
 		getTaxContributionImportance:               mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0}),
 		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0}),
+		getGiftRequestsImportance:                  mat.NewVecDense(4, []float64{2.0, 1.0, -1.0, -1.0}),
 	}
 
 	baseJudge := baseclient.BaseJudge{}
@@ -114,6 +115,7 @@ type importances struct {
 	resourceReportImportance                   *mat.VecDense
 	getTaxContributionImportance               *mat.VecDense
 	decideIIGOMonitoringAnnouncementImportance *mat.VecDense
+	getGiftRequestsImportance                  *mat.VecDense
 }
 
 // Store extra information which is not in the server and is helpful for our client
@@ -194,7 +196,6 @@ func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
 func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
-	// TODO implement decision on voting that considers the rule
 	ruleDistance := c.decideRuleDistance(ruleMatrix)
 	if ruleDistance < 5 { // TODO: calibrate the distance ranges
 		return shared.Reject
@@ -224,7 +225,7 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 
 			if currentAuxValue == 0 {
 				// ==0 condition
-				if idealValue != 0 {
+				if idealValue > 0 {
 					distance += math.Abs(idealValue-actualValue) / idealValue
 				} else {
 					distance += math.Abs(idealValue - actualValue)
@@ -232,19 +233,31 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 			} else if currentAuxValue == 1 {
 				// TODO: ACTUALLY IMPLEMENT THESE CONDITIONS
 				// >0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 			} else if currentAuxValue == 2 {
 				// <=0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += idealValue - actualValue
+				}
 			} else if currentAuxValue == 3 {
 				// !=0 condition
 				if idealValue != 0 {
 					distance += math.Abs(idealValue-actualValue) / idealValue
 				} else {
-					distance += math.Abs(idealValue - actualValue)
+					distance += idealValue - actualValue
 				}
 			} else if currentAuxValue == 4 {
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 				// it returns the value of the calculation
 			}
 		}
@@ -333,6 +346,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
 	clientID := id
+	ourResources := c.getOurResources()
 	// TODO: Choose sensible thresholds!
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)
@@ -342,18 +356,18 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 		// If we are the president.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 
 	case speakerID:
 		// If we are the Speaker.
 		monitoring = (c.getTrust(presidentID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 	case judgeID:
 		// If we are the Judge.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
+			(ourResources > resourcesThreshold)
 	}
 	return monitoring
 }
