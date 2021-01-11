@@ -24,7 +24,7 @@ type GiftsReceivedHistory map[shared.ClientID]shared.Resources
 type GiftsRequestedHistory map[shared.ClientID]shared.Resources
 
 // DisastersHistory records the sequences of disastered happened
-type DisastersHistory []baseclient.DisasterInfo
+type DisastersHistory baseclient.PastDisastersList
 
 // DisasterPredictions records the disasater disasters from other islands
 type DisasterPredictions map[shared.ClientID]shared.DisasterPrediction
@@ -66,6 +66,6 @@ func getClientConfig() ClientConfig {
 		friendshipChangingRate: 20.0,
 		selfishThreshold:       50.0,
 		normalThreshold:        150.0,
-		multiplier:             0.2,
+		multiplier:             0.3,
 	}
 }
