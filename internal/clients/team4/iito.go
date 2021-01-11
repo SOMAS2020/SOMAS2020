@@ -82,12 +82,17 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			offerSize = math.Min(float64(receivedRequests[team]), giftSize)
 			offers[team] = shared.GiftOffer(offerSize)
 		} else if giftSize > 0 &&
-			teamTrust > trustThreshold {
+			teamTrust > trustThreshold &&
+			status == shared.Alive {
 			// If an island is not critical and we can still donate something.
 			// We offer them a proportional amount based on how much we trust them.
 			// teamTrust is less or equal to 1.
 			offerSize = giftSize * teamTrust
-			offers[team] = shared.GiftOffer(offerSize)
+			if c.internalParam.giftExtra {
+				offers[team] = shared.GiftOffer(offerSize + 10)
+			} else {
+				offers[team] = shared.GiftOffer(offerSize)
+			}
 		}
 		// Subtract the offer just made from the giftSize so that we don't offer too much.
 		giftSize -= offerSize
