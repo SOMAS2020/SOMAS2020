@@ -168,7 +168,6 @@ func (c *client) getAgentExcessResources() shared.Resources {
 	// At a minimum we should be able to pay cost of living
 	excess := c.gameState().ClientInfo.Resources
 	excess -= c.gameConfig().CostOfLiving - c.gameConfig().MinimumResourceThreshold
-	c.Logf("Excess:", excess)
 	return Max(0, excess)
 }
 
