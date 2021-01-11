@@ -7,8 +7,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// TODO: Future work - initialise confidence to something more (based on strategy)
-
 type IslandTrustMap map[int]GiftInfo
 
 // Overwrite default sort implementation
@@ -39,18 +37,12 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 
 	if _, ok := c.opinionHist[otherIsland]; !ok {
 		c.initialiseOpinionForIsland(otherIsland)
-		c.Logf("Initialised opinions: ", c.opinionHist)
 	}
 
 	// We have initialised the histories
 	islandHist := c.opinionHist[otherIsland].Histories
-	c.Logf("Situation ", situation)
-	c.Logf("Island ", otherIsland)
-	c.Logf("History with island ", islandHist)
 
 	situationHist := islandHist[situation]
-
-	c.Logf("did something fucked up", situationHist)
 
 	// Check if there is a history to take a weighted average from
 	if len(situationHist) != 0 {
@@ -72,14 +64,9 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 	}
 	if perf, ok := c.opinionHist[otherIsland].Performances[situation]; ok {
 		islandSituationPerf.real = perf.real
-		c.Logf("updated island situation performance here tho", islandSituationPerf)
 	}
 
-	c.Logf("[Situation Performance (exp)]:", islandSituationPerf)
-
-	//c.Logf("island opinions", c.opinionHist[shared.ClientID(4)])
 	c.opinionHist[otherIsland].Performances[situation] = islandSituationPerf
-	c.Logf("[returning full object]:", c.opinionHist[otherIsland])
 	return trust
 
 }
@@ -97,11 +84,8 @@ func (c *client) setLimits(confidence int) int {
 // performance with the reality
 // Should be called after an action (with an island) has occurred
 func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.ClientID) {
-	c.Logf("Our opinion of %v:%v", otherIsland, c.opinionHist[otherIsland])
 	if opinion, ok := c.opinionHist[otherIsland]; ok {
 		situationHist := opinion.Histories[situation]
-		c.Logf("situation we're dealing with ", situation)
-		c.Logf("[situation before]:", situationHist)
 		islandSituationPerf := opinion.Performances[situation]
 		situationExp := islandSituationPerf.exp
 		situationReal := islandSituationPerf.real
@@ -111,13 +95,10 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 			// between -100 and 100
 			percentageDiff = situationReal - situationExp
 		}
-		c.Logf("[Exp [%v] Real [%v]]:", situationExp, situationReal)
 		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
-		c.Logf("Calculated new confidence: %v", newConf)
 		updatedHist := append(situationHist, c.setLimits(newConf))
 
 		c.opinionHist[otherIsland].Histories[situation] = updatedHist
-		c.Logf("[did it really append?]:", c.opinionHist[otherIsland].Histories[situation])
 	}
 }
 
@@ -188,7 +169,6 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 			c.opinionHist[island].Histories["Gifts"] = append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
 			return pastConfidence
 		}
-		c.Logf("Bufferlen %v", bufferLen)
 		for i := 0; i < MinInt(bufferLen, len(ourKeys)); i++ {
 			// Get the transaction distance to the previous transaction
 			ourTransDist := turn - uint(ourKeys[i]) + 1
@@ -232,7 +212,6 @@ func (c *client) updatePresidentTrust() {
 	reality := 50
 
 	if presHist, ok := c.presCommonPoolHist[currPres]; ok {
-		c.Logf("c.presCommonPoolHist", presHist)
 		runMeanTax := shared.Resources(0)
 		runMeanWeRequest := shared.Resources(0)
 		runMeanWeAllocated := shared.Resources(0)
@@ -252,8 +231,6 @@ func (c *client) updatePresidentTrust() {
 		percWeTake := shared.Resources(0)
 		percWeGet := shared.Resources(0)
 
-		c.Logf("are there taxes", c.taxAmount)
-
 		if runMeanTax != 0 {
 			percChangeTax = 100.0 * (c.taxAmount - runMeanTax) / runMeanTax
 		}
@@ -268,10 +245,6 @@ func (c *client) updatePresidentTrust() {
 			percWeTake = 100.0 * (runMeanWeAllocated - runMeanWeTake) / runMeanWeTake
 		}
 
-		c.Logf("percChangeTax: % v", percChangeTax)
-		c.Logf("percWeTake: %v", percWeGet)
-		c.Logf("percPercWeGet: % v", percWeTake)
-
 		reality = c.setLimits(int(100 - percWeGet - percChangeTax + percWeTake))
 	}
 
@@ -282,15 +255,12 @@ func (c *client) updatePresidentTrust() {
 
 	if history, ok := c.opinionHist[currPres].Histories["President"]; ok {
 		tempsum := 0.0
+
 		for _, item := range history {
 			tempsum += (float64(item) / float64(len(history)))
 		}
-		islandSituationPerf.exp = int(tempsum)
-		c.Logf("updated island  s ituation performance here tho", islandSituationPerf)
 	}
 
-	// TODO: shouldn't this be inside the if...if it doesn't exist we're accessing something that doesnt
-	c.Logf("Previous performance for President", c.opinionHist[currPres].Performances["President"])
 	c.Logf("Updated performance for President", islandSituationPerf)
 	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
 }
@@ -312,6 +282,7 @@ func (c *client) updateJudgeTrust() {
 			div := i + 1
 
 			runMeanScore = runMeanScore + (sanction.Amount-runMeanScore)/div
+
 			if prevTier == sanction.Tier {
 				numConsecTier++
 			} else {
@@ -327,7 +298,12 @@ func (c *client) updateJudgeTrust() {
 		// We want the judge to be "fair"
 
 		lastScore := c.sanctionHist[currJudge][len(c.sanctionHist[currJudge])-1]
-		percChangeScore := int(100 * int((lastScore.Amount-runMeanScore)/runMeanScore))
+		percChangeScore := 0
+
+		if runMeanScore != 0 {
+			percChangeScore = int(100 * int((lastScore.Amount-runMeanScore)/runMeanScore))
+		}
+
 		reality = c.setLimits(100 - (avgTurnsPerTier * percChangeScore))
 	}
 
@@ -339,17 +315,13 @@ func (c *client) updateJudgeTrust() {
 	if perf, ok := c.opinionHist[currJudge].Performances["Judge"]; ok {
 		islandSituationPerf.exp = perf.exp
 	} else {
-		c.Logf("THIS SHOULDNT BE HAPPENING")
 		c.initialiseOpinionForIsland(currJudge)
 	}
 
 	islandSituationPerf.real = reality
 
-	c.Logf("Updated performance for Judge", islandSituationPerf)
-
 	c.opinionHist[currJudge].Performances["Judge"] = islandSituationPerf
 	c.confidenceRestrospect("Judge", currJudge)
-
 }
 
 type AccountabilityInfo struct {
@@ -400,9 +372,8 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 			IslandActualPrivateResources:   emptyInt,
 			IslandReportedPrivateResources: emptyInt,
 		}
+		c.Logf("IslandInfo ", islandInfo)
 	}
-
-	c.Logf("IslandInfo ", islandInfo)
 
 	for _, accountability := range iigoHistory {
 		if c.isAlive(accountability.ClientID) {
@@ -427,8 +398,8 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 				}
 			}
 		}
-
 	}
+
 	for island, accountability := range islandInfo {
 		allocationDiff := 0
 		taxContribDiff := 0
@@ -463,28 +434,22 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 			}
 		}
 
-		c.Logf("Role trust for turn %v and island %v", c.gameState().Turn, island)
-		c.Logf("Accountability map", accountability)
-		c.Logf("IIGO History", iigoHistory)
-		c.Logf("taxContribDiff", taxContribDiff)
-		c.Logf("allocationDiff", allocationDiff)
-		c.Logf("sanctionDiff", sanctionDiff)
 		c.Logf("islandResourceDiff", islandResourceDiff)
 		reality := c.setLimits(100 - taxContribDiff - allocationDiff - sanctionDiff - islandResourceDiff)
 		islandSituationPerf := ExpectationReality{
 			exp:  50,
 			real: reality,
 		}
+
 		if _, ok := c.opinionHist[island]; ok {
 			islandSituationPerf.exp = c.opinionHist[island].Performances["RoleOpinion"].exp
 		} else {
 			c.initialiseOpinionForIsland(island)
 		}
-		c.confidence("RoleOpinion", island)
+
 		c.Logf("Updated performance    ", islandSituationPerf)
 		c.opinionHist[island].Performances["RoleOpinion"] = islandSituationPerf
 	}
-
 }
 
 // disasters:

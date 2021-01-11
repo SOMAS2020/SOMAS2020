@@ -36,7 +36,6 @@ func (c *client) getIslandDVPs(archipelagoGeography disasters.ArchipelagoGeograp
 
 	// For each island, find the overlap between the archipelago and the shifted outline which
 	// is centred around the island's position
-	c.Logf("[TEAM2] DVP for Islands in Archipelago with centre (%v,%v)...", archipelagoCentre.X, archipelagoCentre.Y)
 	for islandID, locationInfo := range archipelagoGeography.Islands {
 		relativeOffset := CartesianCoordinates{
 			X: locationInfo.X - archipelagoCentre.X,
@@ -63,7 +62,6 @@ func (c *client) getIslandDVPs(archipelagoGeography disasters.ArchipelagoGeograp
 			// Assume all islands have DVP = max value = 1 in this unlikely case
 			c.islandDVPs[islandID] = 1.0
 		}
-		c.Logf("[TEAM2] Island: %v, Location: (%v,%v), DVP: %v", islandID, locationInfo.X, locationInfo.Y, c.islandDVPs[islandID])
 	}
 }
 
@@ -86,12 +84,10 @@ func getMinMaxFloat(minOrMax bool, value1 float64, value2 float64) float64 {
 
 // MakeDisasterPrediction is used to provide our island's prediction on the next disaster
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
-	c.Logf("[TEAM2] Our Disaster Prediction...")
 	totalTurns := float64(c.gameState().Turn)
 
 	// If no disasters have occurred then we cannot make a valid prediction
 	if len(c.disasterHistory) == 0 {
-		c.Logf("[TEAM2] Returned the nil prediction.")
 		return nilPrediction()
 	}
 
@@ -124,10 +120,9 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 		PredictionMade: disasterPrediction,
 		TeamsOfferedTo: islandsToShareWith,
 	}
+
 	c.AgentDisasterPred = disasterPredictionInfo
-	c.Logf("[TEAM2] Location: (%v,%v)\n Magnitude: %v\n TimeLeft: %v\n Confidence: %v",
-		disasterPrediction.CoordinateX, disasterPrediction.CoordinateY, disasterPrediction.Magnitude,
-		disasterPrediction.TimeLeft, disasterPrediction.Confidence)
+
 	return disasterPredictionInfo
 }
 
@@ -220,10 +215,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	// Combine each islands prediction
 	finalPrediction := combinePredictions(c, receivedPredictions, islandConfidences)
 	c.CombinedDisasterPred = finalPrediction
-	c.Logf("[TEAM2] Combined Disaster Prediction...")
-	c.Logf("[TEAM2] Location: (%v,%v)\n Magnitude: %v\n TimeLeft: %v\n Confidence: %v",
-		finalPrediction.CoordinateX, finalPrediction.CoordinateY, finalPrediction.Magnitude,
-		finalPrediction.TimeLeft, finalPrediction.Confidence)
+
 }
 
 // updatePredictionHistory updates the history of predictions we have recieved from other islands with
@@ -260,7 +252,6 @@ func combinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPr
 		}
 	}
 	if numZeroTerms == len(islandConfidences) {
-		c.Logf("[TEAM2] Combine Prediction divide by zero protection occurred...")
 		return c.AgentDisasterPred.PredictionMade
 	}
 
@@ -283,10 +274,6 @@ func combinePredictions(c *client, receivedPredictions shared.ReceivedDisasterPr
 
 		// Get the combination confidence = (our confidence in island x their confidence in their prediction)/100
 		combinationConfidence := (float64(islandConfidences[islandID]) * prediction.PredictionMade.Confidence) / 100
-		c.Logf("[TEAM2] Island %v Combined Confidence: %v", islandID, combinationConfidence)
-		c.Logf("[TEAM2] Island %v Prediction Recieved:\n Location: (%v,%v)\n Magnitude: %v\n TimeLeft: %v\n Confidence: %v",
-			islandID, prediction.PredictionMade.CoordinateX, prediction.PredictionMade.CoordinateY,
-			prediction.PredictionMade.Magnitude, prediction.PredictionMade.TimeLeft, prediction.PredictionMade.Confidence)
 
 		// Get the weighted sum for each sub-prediction (except confidence)
 		wsCoordinateX += combinationConfidence * prediction.PredictionMade.CoordinateX

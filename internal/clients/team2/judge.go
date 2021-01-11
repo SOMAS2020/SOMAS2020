@@ -13,7 +13,6 @@ type Judge struct {
 
 // Pay President default amount
 func (j *Judge) PayPresident() (shared.Resources, bool) {
-	j.c.Logf("Pay President default amount")
 
 	return j.BaseJudge.PayPresident()
 }
@@ -87,7 +86,7 @@ func (j *Judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 
 		for index, sanction := range List {
 			// If we are very confident in the other island and not being selfish
-			if _, ok := j.c.opinionHist[sanction.ClientID]; ok && j.c.setAgentStrategy() != Selfish {
+			if _, ok := j.c.opinionHist[sanction.ClientID]; ok && j.c.getAgentStrategy() != Selfish {
 				if j.c.confidence("RoleOpinion", sanction.ClientID) > 80 {
 					PardonedIslands[i][index] = true
 				}
@@ -97,15 +96,11 @@ func (j *Judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 		}
 	}
 
-	j.c.Logf("Pardoned Islands", PardonedIslands)
-
 	return PardonedIslands
 }
 
 // HistoricalRetributionEnabled allows you to punish more than the previous turns transgressions
 func (j *Judge) HistoricalRetributionEnabled() bool {
-	j.c.Logf("Historical Retribution Enabled")
-
 	return true
 }
 
@@ -120,13 +115,9 @@ func (j *Judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 		HoldElection:  false,
 	}
 
-	// TODO: This could be a config value - is there a rule on turns for power transfer?
-	// TODO: could use confidence to try to keep friends in power - cheat the accountability cycle
 	if (monitoring.Performed && !monitoring.Result) || turnsInPower >= 2 {
 		electionSettings.HoldElection = true
 	}
-
-	j.c.Logf("Election Settings: ", electionSettings)
 
 	return electionSettings
 }
@@ -148,8 +139,6 @@ func (j *Judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
 			}
 		}
 	}
-
-	j.c.Logf("Aaaaaand the next president is...: ", winner)
 
 	return winner
 }

@@ -163,7 +163,6 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 		c.giftHist[client].OurRequest[turn] = newGiftRequest
 	}
 
-	c.Logf("[TEAM2]: It's rude not to accept gifts. :-)")
 	return responses
 }
 
@@ -173,7 +172,7 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 // COMPULSORY, you need to implement this method
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	for island, response := range receivedResponses {
-		c.Logf("[TEAM2]: Island[%v] accepted [%v] Resources ", island, response.AcceptedAmount)
+		c.Logf("Island[%v] accepted [%v] Resources ", island, response.AcceptedAmount)
 	}
 }
 
@@ -193,8 +192,6 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 		gifted:    shared.GiftOffer(sent),
 		reason:    shared.Accept,
 	}
-
-	c.Logf("[TEAM2]: Gift successfully sent to Island[%v], with [%v] Resources ", to, theyRequested)
 
 	c.giftHist[to].IslandRequest[turn] = newGiftRequest
 	// because received gift is called first we call this here
@@ -218,8 +215,6 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 		reason:    shared.Accept,
 	}
 
-	c.Logf("[TEAM2]: Gift successfully received from Island[%v], with [%v] Resources ", from, received)
-
 	c.giftHist[from].OurRequest[turn] = newGiftRequest
 }
 
@@ -239,7 +234,7 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 func (c *client) giftReliance() shared.Resources {
 	var multiplier shared.Resources
 
-	switch c.setAgentStrategy() {
+	switch c.getAgentStrategy() {
 	case Altruist:
 		// Pool Level is LOW, rely 80% on gifts
 		multiplier = 0.8

@@ -34,7 +34,7 @@ func (p *President) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	}
 
 	// Scale resources that could be allocated from Common Pool according to AgentStrategy
-	switch p.c.setAgentStrategy() {
+	switch p.c.getAgentStrategy() {
 	case Selfish:
 		// pool is scarce - be cautious
 		modeMult = 0.4

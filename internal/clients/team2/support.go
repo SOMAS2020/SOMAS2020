@@ -20,6 +20,8 @@ func (c *client) criticalStatus() bool {
 
 func (c *client) StartOfTurn() {
 	c.commonPoolUpdate()
+	c.setAgentStrategy()
+	c.Logf("Set New Agent Strategy: ", c.getAgentStrategy())
 }
 
 // If a disaster is reported, append the turn and report of the latest disaster to the disaster history
@@ -28,8 +30,6 @@ func (c *client) DisasterNotification(report disasters.DisasterReport, effects d
 		Turn:   c.gameState().Turn,
 		Report: report,
 	}
-
-	c.Logf("THERE HAS BEEN A DISASTER")
 
 	c.disasterHistory = append(c.disasterHistory, disaster)
 	c.updateDisasterConf()
@@ -107,12 +107,9 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			}
 			c.taxAmount = shared.Resources(content.IntegerData)
 			commonPool.tax = shared.Resources(content.IntegerData)
-			c.Logf("Common pool (how much the tax is)", shared.Resources(content.IntegerData))
-			c.Logf("Common pool (how much the tax is obj)", commonPool)
 
 			// Update the history
 			c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
-			c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 
 		// How many resources we've been allocated from the CP by the President
 		case shared.IIGOAllocationDecision:
@@ -129,12 +126,9 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			}
 			c.commonPoolAllocation = shared.Resources(content.IntegerData)
 			commonPool.allocatedByPres = shared.Resources(content.IntegerData)
-			c.Logf("Common pool (how we are allocated)", shared.Resources(content.IntegerData))
-			c.Logf("Common pool (how we are allocated obj)", commonPool)
 
 			// Update the history
 			c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
-			c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 
 		// What islands have a sanction (and the sanction tier)
 		case shared.SanctionClientID:
@@ -175,20 +169,19 @@ func (c *client) getAgentStrategy() AgentStrategy {
 
 // TODO: it makes more sense to start by free riding to make our selves secure tbh
 // Sets the current AgentStrategy and returns an AgentStrategy Type
-func (c *client) setAgentStrategy() AgentStrategy {
+func (c *client) setAgentStrategy() {
+
 	currTurn := c.gameState().Turn
 	// Factor the common pool must increase by for us to considered free riding
 	freeRide := shared.Resources(c.config.SwitchToSelfishFactor)
 
 	// Factor the common pool must drop by for us to consider altruist
-	altFactor := c.config.SwitchToSelfishFactor
+	altFactor := c.config.SwitchToAltruistFactor
 
 	// Explore and test limits by playing a selfish strategy for a few turns
 	if currTurn <= c.config.SelfishStartTurns {
-		return Selfish
-	}
-
-	if len(c.commonPoolHistory) != 0 {
+		c.currStrategy = Selfish
+	} else if len(c.commonPoolHistory) != 0 {
 		runningMean := shared.Resources(0)
 
 		for _, resources := range c.commonPoolHistory {
@@ -197,16 +190,33 @@ func (c *client) setAgentStrategy() AgentStrategy {
 
 		// Percentage change in common pool from previous running mean
 		percentageChange := (c.commonPoolHistory[c.gameState().Turn] - runningMean) / runningMean
+		c.Logf("Percentage change: ", percentageChange)
 
-		// if the pool decreases on average by a factor above altFactor set AgentStrategy to Altruist
-		if percentageChange < 0 && math.Abs(float64(percentageChange)) > altFactor {
-			return Altruist
+		if c.gameState().Turn > c.config.PatientTurns && c.patienceRunOut() {
+			c.currStrategy = Selfish
+		} else if percentageChange < 0 && math.Abs(float64(percentageChange)) > altFactor {
+			// if the pool decreases on average by a factor above altFactor set AgentStrategy to Altruist
+			c.currStrategy = Altruist
 		} else if percentageChange > 0 && percentageChange > freeRide {
-			return Selfish
+			c.currStrategy = Selfish
+		} else {
+			c.currStrategy = FairSharer
 		}
+	} else {
+		c.currStrategy = FairSharer
 	}
 
-	return FairSharer
+	// Store our strategy for this turn
+	c.strategyHistory[c.gameState().Turn] = c.currStrategy
+}
+
+func (c *client) patienceRunOut() bool {
+	for i := uint(1); i <= c.config.PatientTurns; i++ {
+		if c.strategyHistory[c.gameState().Turn-i] != Altruist {
+			return false
+		}
+	}
+	return true
 }
 
 // Takes as input a sanction score and returns what sanction tier is corresponds to from the latest score-sanction threshold we have

@@ -33,9 +33,6 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	c.lastForageType = forageDecision
 	c.lastForageAmount = shared.Resources(c.DecideForageAmount(threshold))
 
-	c.Logf("[TEAM2 ForageType decision]: ", forageDecision)
-	c.Logf("[TEAM2 Forage Amount decision]: ", shared.Resources(c.DecideForageAmount(threshold)))
-
 	return shared.ForageDecision{
 		Type:         forageDecision,
 		Contribution: shared.Resources(c.DecideForageAmount(threshold)),
@@ -52,7 +49,6 @@ func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Re
 	// Otherwise we have excess to allocate to foraging
 
 	resourcesForForaging := c.getAgentExcessResources()
-	c.Logf("[TEAM2 Resources allocated to foraging]: ", resourcesForForaging)
 
 	return shared.Resources(resourcesForForaging)
 }
@@ -65,7 +61,7 @@ func (c *client) decideHuntingLikelihood() float64 {
 	multiplier := 1.0
 
 	// We want to shift our likelihood of hunting up if it likely hunting will result in higher utility
-	switch c.setAgentStrategy() {
+	switch c.getAgentStrategy() {
 	case Selfish:
 		multiplier = 1.2
 	case Altruist:

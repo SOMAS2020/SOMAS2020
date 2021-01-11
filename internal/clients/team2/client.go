@@ -97,6 +97,7 @@ type clientConfig struct {
 	AltruistFactorOfAvToGive         float64
 	ConfidenceRetrospectFactor       float64
 	ForageDecisionThreshold          float64
+	PatientTurns                     uint
 	SlightRiskForageDivisor          shared.Resources
 	HelpCritOthersDivisor            shared.Resources
 	InitialDisasterTurnGuess         uint
@@ -121,6 +122,8 @@ type PresCommonPoolHist map[shared.ClientID]map[uint]CommonPoolInfo
 // DisasterVulnerabilityDict is a map from island ID to an islands DVP
 type DisasterVulnerabilityDict map[shared.ClientID]float64
 
+type StrategyHistory map[uint]AgentStrategy
+
 type client struct {
 	*baseclient.BaseClient
 
@@ -135,6 +138,7 @@ type client struct {
 	disasterHistory      DisasterHistory
 	sanctionHist         SanctionHist
 	presCommonPoolHist   PresCommonPoolHist
+	strategyHistory      StrategyHistory
 
 	currStrategy  AgentStrategy
 	currPresident President
@@ -169,6 +173,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		BaseClient:           baseclient.NewClient(clientID),
 		commonPoolHistory:    CommonPoolHistory{},
 		resourceLevelHistory: ResourcesLevelHistory{},
+		strategyHistory:      StrategyHistory{},
 		opinionHist:          OpinionHist{},
 		predictionHist:       PredictionsHist{},
 		foragingReturnsHist:  ForagingReturnsHist{},
@@ -181,6 +186,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		disasterHistory:      DisasterHistory{},
 		config: clientConfig{
 			TuningParamK:                     1.0,
+			PatientTurns:                     2,
 			VarianceCapTimeRemaining:         10000,
 			TuningParamG:                     1.0,
 			VarianceCapMagnitude:             10000,
@@ -191,7 +197,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			DefaultContribution:              20,
 			SelfishStartTurns:                3,
 			SwitchToSelfishFactor:            0.3,
-			SwitchToAltruistFactor:           0.5,
+			SwitchToAltruistFactor:           0.9,
 			FairShareFactorOfAvToGive:        1.0,
 			AltruistFactorOfAvToGive:         2.0,
 			ConfidenceRetrospectFactor:       0.5,
@@ -224,6 +230,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Initialise Disaster Prediction variables
 	c.CombinedDisasterPred = shared.DisasterPrediction{}
 	c.AgentDisasterPred = shared.DisasterPredictionInfo{}
+	c.strategyHistory = StrategyHistory{}
 
 	// Compute DVP for each Island based on Geography
 	c.islandDVPs = DisasterVulnerabilityDict{}

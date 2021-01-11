@@ -31,8 +31,6 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		situation = "Gifts"
 	}
 
-	c.Logf("Voting for ", situation)
-
 	var trustRank IslandTrustList
 	for _, candidate := range candidateList {
 		islandConf := IslandTrust{
@@ -75,7 +73,7 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 // Returns a ResourceReport - if Agent Strategy is selfish lies about resources
 // Otherwise accurately shares resources
 func (c *client) ResourceReport() shared.ResourcesReport {
-	mood := c.setAgentStrategy()
+	mood := c.getAgentStrategy()
 	switch mood {
 	case Selfish:
 		return shared.ResourcesReport{

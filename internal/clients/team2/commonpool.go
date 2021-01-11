@@ -8,19 +8,16 @@ import (
 // Updates Common Pool History with current Common Pool Level
 func (c *client) commonPoolUpdate() {
 	c.commonPoolHistory[c.gameState().Turn] = c.gameState().CommonPool
-	c.Logf("Common Pool History updated: ", c.commonPoolHistory)
 }
 
 // Updates Resource Level History with our current resource Level
 func (c *client) resourceHistoryUpdate(resourceLevelHistory ResourcesLevelHistory) {
 	c.resourceLevelHistory[c.gameState().Turn] = c.gameState().ClientInfo.Resources
-	c.Logf("Resource Level History updated: ", resourceLevelHistory)
 }
 
 // Updates Pres Common Pool History with current resource request
 func (c *client) presCommonPoolUpdate(request shared.Resources) {
 	// Initialises a complete commonPool update
-	c.Logf("We request ", request)
 	commonPool := CommonPoolInfo{
 		tax:             0,
 		requestedToPres: request,
@@ -31,15 +28,12 @@ func (c *client) presCommonPoolUpdate(request shared.Resources) {
 	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
 		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
 		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
-
-		c.Logf("Initialised presCommonPoolHist and added request", c.presCommonPoolHist)
 	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
 		// If we have a previous entry, update the requestedToPres
 		commonPool = pastCommonPool
 		commonPool.requestedToPres = request
-		c.Logf("President Common Pool History updated", c.presCommonPoolHist)
-
 	}
+
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 }
 
@@ -55,13 +49,11 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 
 	if c.criticalStatus() {
 		request = request*3 + c.gameConfig().MinimumResourceThreshold
-		c.Logf("Critical status! Set Common Pool request to: ", request)
 	} else if c.getAgentExcessResources() == shared.Resources(0) || agentDVP > 0.6 {
 		request = request*2 + c.gameConfig().MinimumResourceThreshold
-		c.Logf("Resources getting LOW or at risk! Gather up resources for one turn to stay safe")
 	} else if c.getAgentExcessResources() > shared.Resources(0) {
 		multiplier := shared.Resources(0)
-		switch c.setAgentStrategy() {
+		switch c.getAgentStrategy() {
 		case Altruist:
 			multiplier = 0.4
 		case FairSharer:
@@ -70,7 +62,6 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 			multiplier = 1
 		}
 		request = request*multiplier + c.gameConfig().MinimumResourceThreshold
-		c.Logf("Resources in Excess! Request based on agent Strategy: ", c.taxAmount)
 	} else {
 		request = c.taxAmount
 	}
@@ -110,12 +101,10 @@ func (c *client) RequestAllocation() shared.Resources {
 	if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
 		c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
 		c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
-		c.Logf("Initialised presCommonPoolHist and added request", c.presCommonPoolHist)
 	} else if pastCommonPool, ok := c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn]; ok {
 		// If we have a previous entry, update the requestedToPres
 		commonPool = pastCommonPool
 		commonPool.takenFromCP = request
-		c.Logf("President Common Pool History updated", c.presCommonPoolHist)
 	}
 
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
@@ -144,7 +133,6 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 	c.updatePresidentTrust()
 	c.confidenceRestrospect("President", c.gameState().PresidentID)
-	c.Logf("Common Pool Contribution: ", contribution)
 
 	return contribution
 }
@@ -201,7 +189,7 @@ func (c *client) getStrategicContribution() shared.Resources {
 		}
 	}
 
-	switch c.setAgentStrategy() {
+	switch c.getAgentStrategy() {
 	case FairSharer:
 		// contribute the weighted average contribution
 		ResourceHistory := c.commonPoolHistory
@@ -251,11 +239,9 @@ func (c *client) getStrategicContribution() shared.Resources {
 func (c *client) GetSanctionPayment() shared.Resources {
 	if value, ok := c.LocalVariableCache[rules.SanctionExpected]; ok {
 		if c.criticalStatus() || c.getAgentStrategy() == Selfish {
-			c.Logf("Yeah I don't know about those sanctions...not feeling like it :P")
 			return 0
 
 		} else {
-			c.Logf("Not happy about it but okay...we'll pay your sanction")
 			return shared.Resources(value.Values[rules.SingleValueVariableEntry])
 		}
 	}
@@ -280,7 +266,6 @@ func (c *client) ShareIntendedContribution() shared.IntendedContribution {
 	}
 }
 
-// TODO: this is completely empty
 // func (c *client) ReceiveIntendedContribution(receivedIntendedContributions shared.ReceivedIntendedContributionDict) {
 // we check how much each island intends to contribute
 // Compute the average amount needed for the common pool threshold
