@@ -22,7 +22,7 @@ var (
 	)
 	initialResources = flag.Float64(
 		"initialResources",
-		100,
+		200,
 		"The default number of resources at the start of the game.",
 	)
 	initialCommonPool = flag.Float64(
@@ -32,7 +32,7 @@ var (
 	)
 	costOfLiving = flag.Float64(
 		"costOfLiving",
-		10,
+		5,
 		"Subtracted from an islands pool before the next turn.\n"+
 			"This is the simulation-level equivalent to using resources to stay \n"+
 			"alive (e.g. food consumed). These resources are permanently consumed and do \n"+
@@ -72,7 +72,7 @@ var (
 	)
 	foragingDeerInputScaler = flag.Float64(
 		"foragingDeerInputScaler",
-		12,
+		10,
 		"scalar value that adjusts deer input resources to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerOutputScaler = flag.Float64(
