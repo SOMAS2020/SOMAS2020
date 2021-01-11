@@ -44,18 +44,21 @@ func (s *speaker) getActionsCost(actions []string) shared.Resources {
 }
 
 func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resources {
+	//find where the action is in the order
 	actionindex := len(SpeakerActionOrder)
 	for i, action := range SpeakerActionOrder {
 		if action == baseaction {
 			actionindex = i
 		}
 	}
+	//find where the action is in the priorities
 	priorityindex := len(SpeakerActionPriorities)
 	for i, action := range SpeakerActionPriorities {
 		if action == baseaction {
 			priorityindex = i
 		}
 	}
+	//add to return slice if the higher priority action has not been executed yet
 	var SAPcopy = make([]string, 0)
 	for _, action1 := range SpeakerActionPriorities[:priorityindex] {
 		alreadyExecuted := false
