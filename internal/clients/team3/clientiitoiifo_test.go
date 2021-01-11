@@ -11,14 +11,15 @@ import (
 
 func TestGetGiftRequests(t *testing.T) {
 	cases := []struct {
-		name        string
-		ourClient   client
-		expectedVal shared.GiftRequestDict
+		name             string
+		serverReadHandle baseclient.ServerReadHandle
+		ourClient        client
+		expectedVal      shared.GiftRequestDict
 	}{
 		{
 			name: "Basic test: all islands alive and trusted equally",
-			ourClient: client{
-				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
+			serverReadHandle: mockServerReadHandle{
+				gameState: gamestate.ClientGameState{
 					ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
 						shared.Team1: shared.Alive,
 						shared.Team2: shared.Alive,
@@ -27,7 +28,9 @@ func TestGetGiftRequests(t *testing.T) {
 						shared.Team5: shared.Alive,
 						shared.Team6: shared.Alive,
 					},
-					ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
+					ClientInfo: gamestate.ClientInfo{Resources: 600.0}}},
+			ourClient: client{
+				BaseClient: baseclient.NewClient(shared.Team3),
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
@@ -58,17 +61,18 @@ func TestGetGiftRequests(t *testing.T) {
 		},
 		{
 			name: "Basic test: Half islands are critical, other half are dead and trusted equally",
+			serverReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
+				ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
+					shared.Team1: shared.Critical,
+					shared.Team2: shared.Dead,
+					shared.Team3: shared.Critical,
+					shared.Team4: shared.Dead,
+					shared.Team5: shared.Critical,
+					shared.Team6: shared.Dead,
+				},
+				ClientInfo: gamestate.ClientInfo{Resources: 600.0}}},
 			ourClient: client{
-				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
-					ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
-						shared.Team1: shared.Critical,
-						shared.Team2: shared.Dead,
-						shared.Team3: shared.Critical,
-						shared.Team4: shared.Dead,
-						shared.Team5: shared.Critical,
-						shared.Team6: shared.Dead,
-					},
-					ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
+				BaseClient: baseclient.NewClient(shared.Team3),
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
@@ -99,17 +103,18 @@ func TestGetGiftRequests(t *testing.T) {
 		},
 		{
 			name: "Complex test: All islands are alive, but are trusted differently",
+			serverReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
+				ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
+					shared.Team1: shared.Alive,
+					shared.Team2: shared.Alive,
+					shared.Team3: shared.Alive,
+					shared.Team4: shared.Alive,
+					shared.Team5: shared.Alive,
+					shared.Team6: shared.Alive,
+				},
+				ClientInfo: gamestate.ClientInfo{Resources: 10.0}}},
 			ourClient: client{
-				BaseClient: &baseclient.BaseClient{ServerReadHandle: mockServerReadHandle{gameState: gamestate.ClientGameState{
-					ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
-						shared.Team1: shared.Alive,
-						shared.Team2: shared.Alive,
-						shared.Team3: shared.Alive,
-						shared.Team4: shared.Alive,
-						shared.Team5: shared.Alive,
-						shared.Team6: shared.Alive,
-					},
-					ClientInfo: gamestate.ClientInfo{Resources: 10.0}}}},
+				BaseClient: baseclient.NewClient(shared.Team3),
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
@@ -141,6 +146,7 @@ func TestGetGiftRequests(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			tc.ourClient.BaseClient.ServerReadHandle = tc.serverReadHandle
 			res := tc.ourClient.GetGiftRequests()
 			if !reflect.DeepEqual(res, tc.expectedVal) {
 				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, res)

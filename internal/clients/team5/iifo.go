@@ -145,7 +145,7 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 	c.receivedForecastHistory[c.getTurn()] = receivedPredictions // update rxForecastsHistor
 
 	//c.lastDisasterForecast.Confidence *= 1.3 // inflate confidence of our prediction above others
-	receivedPredictions[ourClientID] = shared.ReceivedDisasterPredictionInfo{PredictionMade: c.lastDisasterPrediction, SharedFrom: ourClientID}
+	receivedPredictions[c.GetID()] = shared.ReceivedDisasterPredictionInfo{PredictionMade: c.lastDisasterPrediction, SharedFrom: c.GetID()}
 
 	// weight predictions by their confidence and our assessment of their forecasting reputation
 	for rxTeam, pred := range receivedPredictions {

@@ -12,7 +12,36 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = shared.Team1
+// DefaultClient creates the client that will be used for most simulations. All
+// other personalities are considered alternatives. To give a different
+// personality for your agent simply create another (exported) function with the
+// same signature as "DefaultClient" that creates a different agent, and inform
+// someone on the simulation team that you would like it to be included in
+// testing
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return &client{
+		BaseClient:    baseclient.NewClient(id),
+		BasePresident: &baseclient.BasePresident{},
+		config: team1Config{
+			anxietyThreshold:               50,
+			randomForageTurns:              0,
+			flipForageScale:                0.3,
+			forageContributionCapPercent:   0.2,
+			forageContributionNoisePercent: 0.01,
+			evadeTaxes:                     false,
+			kickstartTaxPercent:            0,
+			desperateStealAmount:           30,
+			maxOpinion:                     10,
+			soloDeerHuntContribution:       40,
+		},
+
+		forageHistory:     ForageHistory{},
+		reportedResources: map[shared.ClientID]bool{},
+		teamOpinions:      map[shared.ClientID]Opinion{},
+		receivedOffer:     map[shared.ClientID]shared.Resources{},
+		trustTeams:        map[shared.ClientID]float64{},
+	}
+}
 
 type EmotionalState int
 type Opinion int
@@ -29,10 +58,6 @@ func (st EmotionalState) String() string {
 		return strings[st]
 	}
 	return fmt.Sprintf("UNKNOWN EmotionalState '%v'", int(st))
-}
-
-func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
 type team1Config struct {
@@ -111,36 +136,6 @@ type client struct {
 	forageType shared.ForageType
 
 	config team1Config
-}
-
-func defaultConfig() team1Config {
-	return team1Config{
-		anxietyThreshold:               50,
-		randomForageTurns:              0,
-		flipForageScale:                0.3,
-		forageContributionCapPercent:   0.2,
-		forageContributionNoisePercent: 0.01,
-		evadeTaxes:                     false,
-		kickstartTaxPercent:            0,
-		desperateStealAmount:           30,
-		maxOpinion:                     10,
-		soloDeerHuntContribution:       40,
-	}
-}
-
-// NewClient cause we have to
-func NewClient(clientID shared.ClientID) baseclient.Client {
-	return &client{
-		BaseClient:    baseclient.NewClient(clientID),
-		BasePresident: &baseclient.BasePresident{},
-		config:        defaultConfig(),
-
-		forageHistory:     ForageHistory{},
-		reportedResources: map[shared.ClientID]bool{},
-		teamOpinions:      map[shared.ClientID]Opinion{},
-		receivedOffer:     map[shared.ClientID]shared.Resources{},
-		trustTeams:        map[shared.ClientID]float64{},
-	}
 }
 
 func (c client) emotionalState() EmotionalState {
