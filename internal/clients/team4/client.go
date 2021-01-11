@@ -18,9 +18,9 @@ func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
-func newClientInternal(clientID shared.ClientID) client {
+func newClientInternal(clientID shared.ClientID, clientConfig ClientConfig) client {
 	// have some config json file or something?
-	internalConfig := configureClient(clientConfiguration)
+	internalConfig := configureClient(clientConfig)
 
 	iigoObs := iigoObservation{
 		allocationGranted: shared.Resources(0),
@@ -101,7 +101,7 @@ func newClientInternal(clientID shared.ClientID) client {
 
 // NewClient is a function that creates a new empty client
 func NewClient(clientID shared.ClientID) baseclient.Client {
-	team4client := newClientInternal(clientID)
+	team4client := newClientInternal(clientID, clientConfiguration)
 	return &team4client
 }
 
