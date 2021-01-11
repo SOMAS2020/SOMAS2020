@@ -20,7 +20,7 @@ func (c *client) getMinimumThreshold() shared.Resources {
 	return 0
 }
 
-func (c *client) getcostOfLiving() shared.Resources {
+func (c *client) getCostOfLiving() shared.Resources {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameConfig().CostOfLiving
 	}
@@ -229,4 +229,3 @@ func (c *client) getRole(role shared.Role) shared.ClientID {
 	}
 	return 0
 }
-

@@ -116,8 +116,8 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 
 func (p *president) allocationLimiter(request IslandRequestPair) shared.Resources {
 	ret := shared.Resources(0)
-	if request.Value*5 >= 5*p.parent.getcostOfLiving() {
-		ret = 5 * p.parent.getcostOfLiving()
+	if request.Value*5 >= 5*p.parent.getCostOfLiving() {
+		ret = 5 * p.parent.getCostOfLiving()
 	}
 	//weigh by trust
 	ret = shared.Resources(float64(ret) * 2 * p.parent.getTrust(request.Key))
@@ -183,9 +183,9 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 			//Excuse if the reports have to be true and the island is poor
 			//TODO: remove magik numbers
 			_, reportTruthfulnessRuleInPay := p.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["island_must_report_actual_private_resource"]
-			if reportTruthfulnessRuleInPay && clientReport.ReportedAmount*3 <= p.parent.getcostOfLiving() {
+			if reportTruthfulnessRuleInPay && clientReport.ReportedAmount*3 <= p.parent.getCostOfLiving() {
 				taxAmountMap[clientID] = shared.Resources(0)
-			} else if clientReport.ReportedAmount*1.5 <= p.parent.getcostOfLiving() {
+			} else if clientReport.ReportedAmount*1.5 <= p.parent.getCostOfLiving() {
 				taxAmountMap[clientID] = shared.Resources(0)
 			}
 			taxAmountMap[clientID] = p.generateTaxAmount(clientID, clientReport.ReportedAmount)
