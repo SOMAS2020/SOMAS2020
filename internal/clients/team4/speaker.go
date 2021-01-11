@@ -16,6 +16,7 @@ var SpeakerActionOrder = []string{
 	"SetVotingResult",
 	"SetRuleToVote",
 	"AnnounceVotingResult",
+	"UpdateRules",
 	"AppointNextJudge",
 }
 
@@ -55,7 +56,7 @@ func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resourc
 			priorityindex = i
 		}
 	}
-	var SAPcopy []string = SpeakerActionPriorities[:0]
+	var SAPcopy = make([]string, 0)
 	for _, action1 := range SpeakerActionPriorities[:priorityindex] {
 		alreadyExecuted := false
 		for _, action2 := range SpeakerActionOrder[:actionindex] {
@@ -187,10 +188,7 @@ func (s *speaker) CallJudgeElection(monitoring shared.MonitorResult, turnsInPowe
 	if s.getSpeakerBudget() < s.getHigherPriorityActionsCost("AppointNextJudge") {
 		return electionsettings
 	}
-	if monitoring.Performed && !monitoring.Result {
-		electionsettings.HoldElection = true
-	}
-	if turnsInPower >= 2 {
+	if (monitoring.Performed && !monitoring.Result) || turnsInPower >= 2 {
 		electionsettings.HoldElection = true
 	}
 	return electionsettings
