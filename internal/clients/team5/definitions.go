@@ -90,12 +90,10 @@ type client struct {
 
 	// current states
 	opinions               opinionMap // opinions of each team
-	taxAmount              shared.Resources
-	allocation             shared.Resources
-	sanctionAmount         shared.Resources
 	lastDisasterPrediction shared.DisasterPrediction
 
-	disasterModel disasterModel // estimates of disaster parameters
+	clientsForecastSkill clientsForecastPerformance // record of forecasting perf of other agents
+	disasterModel        disasterModel              // estimates of disaster parameters
 
 	config clientConfig
 }

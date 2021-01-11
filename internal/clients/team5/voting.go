@@ -15,6 +15,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	for _, islandID := range candidateList {
 		if islandID != shared.Team5 && islandID != shared.Team3 {
 			refinedCandidateList = append(refinedCandidateList, islandID)
+
 		}
 	}
 	// translate to int
@@ -75,36 +76,4 @@ func (c *client) sortedMapOfOpinion(rank []int, candidateList []int) (sortedTeam
 		sortedTeamByOpinion = append(sortedTeamByOpinion, shared.ClientID(clientID))
 	}
 	return sortedTeamByOpinion
-}
-
-//Evaluate if the roles are corrupted or not based on their budget spending versus total tax paid to common pool
-//Either everyone is corrupted or not
-func (c *client) evaluateRoles() {
-	speakerID := c.gameState().SpeakerID
-	judgeID := c.gameState().JudgeID
-	presidentID := c.gameState().PresidentID
-	c.Logf("[DEBUG] - speakerID: %v, judgeID: %v, presidentID: %v", speakerID, judgeID, presidentID)
-	//compute total budget
-	budget := c.ServerReadHandle.GetGameState().IIGORolesBudget
-	var totalBudget shared.Resources = 0
-	for role := range budget {
-		totalBudget += budget[role]
-	}
-	// compute total maximum tax to cp
-	var totalTax shared.Resources
-	numberAliveTeams := len(c.getAliveTeams(true)) //include us
-	for i := 0; i < numberAliveTeams; i++ {
-		totalTax += c.taxAmount
-	}
-	// Not corrupt
-	if totalBudget <= totalTax {
-		c.opinions[speakerID].updateOpinion(generalBasis, 0.1) //arbitrary number
-		c.opinions[judgeID].updateOpinion(generalBasis, 0.1)
-		c.opinions[presidentID].updateOpinion(generalBasis, 0.1)
-
-	} else {
-		c.opinions[speakerID].updateOpinion(generalBasis, -0.1) //arbitrary number
-		c.opinions[judgeID].updateOpinion(generalBasis, -0.1)
-		c.opinions[presidentID].updateOpinion(generalBasis, -0.1)
-	}
 }

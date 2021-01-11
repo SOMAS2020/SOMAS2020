@@ -60,6 +60,7 @@ type RawRuleSpecification struct {
 func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMatrix {
 	ruleSpecs := []RawRuleSpecification{
 		{
+			//Deprecated
 			Name: "inspect_ballot_rule",
 			ReqVar: []VariableFieldName{
 				NumberOfIslandsAlive,
@@ -73,10 +74,9 @@ func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMa
 		{
 			Name: "allocations_made_rule",
 			ReqVar: []VariableFieldName{
-				AllocationRequestsMade,
 				AllocationMade,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
 			Linked:  false,
@@ -138,10 +138,9 @@ func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMa
 		{
 			Name: "islands_allowed_to_vote_rule",
 			ReqVar: []VariableFieldName{
-				NumberOfIslandsAlive,
-				IslandsAllowedToVote,
+				AllIslandsAllowedToVote,
 			},
-			Values:  []float64{1, -1, 0},
+			Values:  []float64{1, -1},
 			Aux:     []float64{0},
 			Mutable: false,
 			Linked:  false,
@@ -283,7 +282,7 @@ func registerRulesByMass(availableRules map[string]RuleMatrix) map[string]RuleMa
 			Name: "obl_to_propose_rule_if_some_are_given",
 			ReqVar: []VariableFieldName{
 				IslandsProposedRules,
-				RuleSelected,
+				PresidentRuleProposal,
 			},
 			Values:  []float64{1, -1, 0},
 			Aux:     []float64{0},

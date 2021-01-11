@@ -28,10 +28,6 @@ func createClient() *client {
 
 		disasterModel: disasterModel{},
 
-		taxAmount:      0,
-		allocation:     0,
-		sanctionAmount: 0,
-
 		config: getClientConfig(),
 	}
 }
@@ -46,27 +42,36 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.config.middleThreshold = (c.gameState().ClientInfo.Resources) * c.config.middleThreshold
 	c.config.imperialThreshold = (c.gameState().ClientInfo.Resources) * c.config.imperialThreshold
 
-	// Print the Thresholds
-	c.Logf("[Debug] - [Start of Turn] JB TH %v | Middle TH %v | Imperial TH %v",
-		c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
+	// Gift Requests
+	c.config.dyingGiftRequestAmount = float64(c.getGameConfig().CostOfLiving) * c.config.dyingGiftRequestAmount
+	c.config.imperialGiftRequestAmount = float64(c.getGameConfig().CostOfLiving) * c.config.imperialGiftRequestAmount
+	c.config.middleGiftRequestAmount = float64(c.getGameConfig().CostOfLiving) * c.config.middleGiftRequestAmount
 
+	// Gift offers
+	c.config.offertoDyingIslands = (float64(c.getGameConfig().CostOfLiving)) * c.config.offertoDyingIslands
+	// Print the Thresholds
+	c.Logf("[Initialise [%v]] JB TH %v | Middle TH %v | Imperial TH %v",
+		c.getTurn(), c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn
 func (c *client) StartOfTurn() {
-	c.Logf("[Start of Turn] Wealth: %v | Money In the Bank: %v", c.wealth(), c.gameState().ClientInfo.Resources)
-	c.Logf("[Teams still alive]: Teams %v", c.gameState().ClientLifeStatuses)
+	c.Logf("[StartOfTurn][%v]: Wealth class: %v | Money In the Bank: %v | Teams still alive: %v ", c.getTurn(), c.wealth(), c.gameState().ClientInfo.Resources, c.gameState().ClientLifeStatuses)
 
 	c.updateResourceHistory(c.resourceHistory) // First update the history of our resources
 	c.opinionHistory[c.getTurn()] = c.opinions // assign last turn's opinions as default for this turn
 	c.cpResourceHistory[c.getTurn()] = c.getCP()
+
+	//update cpResourceHistory
+	turn := c.getTurn()
+	c.cpResourceHistory[turn] = c.getCP()
 
 	for clientID, status := range c.gameState().ClientLifeStatuses { //if not dead then can start the turn, else no return
 		if status != shared.Dead && clientID != c.GetID() {
 			return
 		}
 	}
-	c.Logf("Died-ed lol")
+	c.Logf("Team 5 Died-ed lol")
 }
 
 //================================================================
@@ -98,9 +103,9 @@ func (c *client) updateResourceHistory(resourceHistory resourceHistory) {
 	c.resourceHistory[c.gameState().Turn] = currentResources
 	if c.gameState().Turn >= 2 {
 		amount := c.resourceHistory[c.gameState().Turn-1]
-		c.Logf("[Resource History] Previous round (%v) amount: %v", c.getTurn(), amount)
+		c.Logf("[updateResourceHistory]: Previous round: (%v) | Amount: %v", c.getTurn(), amount)
 	}
-	c.Logf("[Resource History] Current round (%v) amount: %v", c.getTurn(), currentResources)
+	c.Logf("[updateResourceHistory]: Current round: (%v) | Amount: %v", c.getTurn(), currentResources)
 }
 
 func (c client) gameState() gamestate.ClientGameState {

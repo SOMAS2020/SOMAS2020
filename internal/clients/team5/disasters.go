@@ -49,6 +49,24 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 		season:  c.getSeason(),
 	}
 	c.disasterModel.updateModel(dR, period)
+
+	updatedPerf, err := c.evaluateForecastingPerformance()
+	if err != nil {
+		c.Logf("Encountered an error when evaluating forecasting performance: %v", err)
+	} else {
+		c.clientsForecastSkill = updatedPerf
+		c.Logf("Updated our record of other agents' forecasting skill: %+v", updatedPerf)
+
+		// now, update forecasting reputation of other teams based on their performance in forecasting last disaster
+		for cID, perfMap := range updatedPerf {
+			valSum := 0.0
+			for _, val := range perfMap {
+				valSum += val
+			}
+			meanPerf := valSum / float64(len(perfMap))                    // this len is always > 0
+			c.opinions[cID].updateOpinion(forecastingBasis, meanPerf*0.4) // 0.4 to control size of update
+		}
+	}
 }
 
 func (d disasterHistory) sortKeys() []uint {

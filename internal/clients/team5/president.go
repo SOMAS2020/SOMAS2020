@@ -18,7 +18,6 @@ type president struct {
 
 func (c *client) GetClientPresidentPointer() roles.President {
 	c.Logf("Team 5 is now the President, Shalom to all")
-	// return &c.team5President
 	return &president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 }
 
@@ -89,7 +88,11 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 
 	for id, resourceLeft := range islandsResources {
 		if resourceLeft.Reported {
-			taxAmountMap[id] = (resourceLeft.ReportedAmount * resourceLeft.ReportedAmount / totalrecleft) //instead of applying random taxation, the taxation is now directly proportional to each islands remaining resources/total remaining resources
+			if totalrecleft != 0 {
+				taxAmountMap[id] = (resourceLeft.ReportedAmount * resourceLeft.ReportedAmount / totalrecleft) //instead of applying random taxation, the taxation is now directly proportional to each islands remaining resources/total remaining resources
+			} else {
+				taxAmountMap[id] = 0 //If reported is 0 we avoid dividing by 0
+			}
 		} else {
 			taxAmountMap[id] = 20 // Flat tax rate which high enough, in order to encourage islands to share their resources
 		}
