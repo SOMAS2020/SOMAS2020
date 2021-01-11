@@ -18,25 +18,22 @@ import (
 // someone on the simulation team that you would like it to be included in
 // testing
 func DefaultClient(id shared.ClientID) baseclient.Client {
-	return NewClient(id)
+	return NewClient(id, honest)
 }
 
-func newClientInternal(clientID shared.ClientID) client {
+// DishonestClient creates a dishonest client
+func DishonestClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id, dishonest)
+}
+
+// ModerateClient creates a moderate client
+func ModerateClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id, moderate)
+}
+
+func newClientInternal(clientID shared.ClientID, clientConfig ClientConfig) client {
 	// have some config json file or something?
-	internalConfig := internalParameters{
-		greediness:                   0,
-		selfishness:                  0,
-		fairness:                     0,
-		collaboration:                0,
-		riskTaking:                   0,
-		maxPardonTime:                3,
-		maxTierToPardon:              shared.SanctionTier3,
-		minTrustToPardon:             0.6,
-		historyWeight:                1,   // in range [0,1]
-		historyFullTruthfulnessBonus: 0.1, // in range [0,1]
-		monitoringWeight:             1,   // in range [0,1]
-		monitoringResultChange:       0.1, // in range [0,1]
-	}
+	internalConfig := configureClient(clientConfig)
 
 	iigoObs := iigoObservation{
 		allocationGranted: shared.Resources(0),
@@ -105,9 +102,8 @@ func newClientInternal(clientID shared.ClientID) client {
 		trustMatrix:        &trustMatrix,
 		importances:        &importancesMatrix,
 		forage: &forageStorage{
-			preferedForageMethod: 0,
-			forageHistory:        nil,
-			receivedForageData:   nil,
+			forageHistory:      nil,
+			receivedForageData: nil,
 		},
 	}
 
@@ -117,8 +113,8 @@ func newClientInternal(clientID shared.ClientID) client {
 }
 
 // NewClient is a function that creates a new empty client
-func NewClient(clientID shared.ClientID) baseclient.Client {
-	team4client := newClientInternal(clientID)
+func NewClient(clientID shared.ClientID, clientConfig ClientConfig) baseclient.Client {
+	team4client := newClientInternal(clientID, clientConfig)
 	return &team4client
 }
 
@@ -326,6 +322,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 
 func (c *client) StartOfTurn() {
 	c.updateTrustFromSavedHistory()
+	c.printConfig()
 }
 
 func (c *client) updateTrustFromSavedHistory() {
