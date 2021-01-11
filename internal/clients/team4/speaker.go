@@ -49,7 +49,7 @@ func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resourc
 		}
 	}
 	//add to return slice if the higher priority action has not been executed yet
-	var SAPcopy = make([]string, 0)
+	var HigherPriorityActions = make([]string, 0)
 	for _, action1 := range s.SpeakerActionPriorities[:priorityindex] {
 		alreadyExecuted := false
 		for _, action2 := range s.SpeakerActionOrder[:actionindex] {
@@ -58,10 +58,10 @@ func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resourc
 			}
 		}
 		if !alreadyExecuted {
-			SAPcopy = append(SAPcopy, action1)
+			HigherPriorityActions = append(HigherPriorityActions, action1)
 		}
 	}
-	return s.getActionsCost(SAPcopy)
+	return s.getActionsCost(HigherPriorityActions)
 }
 
 func (s *speaker) sendActionToBack(str string) {
