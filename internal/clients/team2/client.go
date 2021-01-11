@@ -164,8 +164,8 @@ type client struct {
 	lastForageAmount shared.Resources
 }
 
-func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id);
 }
 
 func NewClient(clientID shared.ClientID) baseclient.Client {
