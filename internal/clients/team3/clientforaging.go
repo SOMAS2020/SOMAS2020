@@ -50,7 +50,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 
 	return shared.ForageDecision{
 		Type:         forageType,
-		Contribution: shared.Resources(foragingInvestment * (1 - c.params.riskFactor)),
+		Contribution: shared.Resources(foragingInvestment * c.params.riskFactor),
 	}, nil
 }
 

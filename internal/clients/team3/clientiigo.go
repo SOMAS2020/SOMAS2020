@@ -209,6 +209,10 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		case shared.SanctionAmount:
 			c.clientPrint("Got our sanction :( %+v", content)
 			c.iigoInfo.sanctions.ourSanction = shared.IIGOSanctionsScore(content.IntegerData)
+			c.LocalVariableCache[rules.SanctionExpected] = rules.VariableValuePair{
+				VariableName: rules.SanctionExpected,
+				Values:       []float64{float64(content.IntegerData)},
+			}
 		}
 	}
 }
@@ -228,7 +232,7 @@ func (c *client) VoteForRule(matrix rules.RuleMatrix) shared.RuleVoteType {
 	if _, ok := c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[matrix.RuleName]; ok {
 		delete(newRulesInPlay, matrix.RuleName)
 	} else {
-		newRulesInPlay[matrix.RuleName] = c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules[matrix.RuleName]
+		newRulesInPlay[matrix.RuleName] = matrix
 	}
 
 	// TODO: define postion -> list of variables and values associated with the rule (obtained from IIGO communications)
@@ -247,6 +251,12 @@ func (c *client) VoteForRule(matrix rules.RuleMatrix) shared.RuleVoteType {
 }
 
 func (c *client) RuleProposal() rules.RuleMatrix {
+	if c.params.adv != nil {
+		ret, done := c.params.adv.ProposeRule(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
+		if done {
+			return ret
+		}
+	}
 	return c.generalRuleSelection(c.ServerReadHandle.GetGameState().RulesInfo.AvailableRules)
 }
 

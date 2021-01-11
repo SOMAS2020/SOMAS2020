@@ -40,6 +40,11 @@ type judgeHistoryInfo struct {
 	Lied       int       // number of times the island has lied
 }
 
+type accountabilityHistory struct {
+	history map[uint]map[shared.ClientID]judgeHistoryInfo // stores accountablity history of all turns
+	updated bool                                          // indicates whether a judge has updated the history
+}
+
 func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts *map[shared.ClientID]int, turn uint) {
 	accountabilityMap := map[shared.ClientID][]rules.VariableValuePair{}
 	for _, clientID := range shared.TeamIDs {
@@ -56,13 +61,12 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 		if ok {
 			clientLied := (*lieCounts)[client]
 			clientInfo.Lied = clientLied
-			savedHistory := *j.parent.savedHistory
-			if savedHistory[turn] != nil {
-				savedHistory[turn][client] = clientInfo
+			if j.parent.savedHistory.history[turn] != nil {
+				j.parent.savedHistory.history[turn][client] = clientInfo
 			} else {
-				savedHistory[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
+				j.parent.savedHistory.history[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
 			}
-			j.parent.savedHistory = &savedHistory
+			j.parent.savedHistory.updated = true
 		}
 	}
 }
@@ -92,6 +96,25 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
 // COMPULSORY: decide which islands, if any, to forgive
+func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) map[int][]bool {
+	pardons := map[int][]bool{}
+
+	for turn, sanctions := range currentSanctions {
+		pardons[turn] = make([]bool, len(sanctions))
+		for index, sanction := range sanctions {
+			if sanction.SanctionTier != shared.NoSanction {
+				considerTime := sanction.TurnsLeft <= j.parent.internalParam.maxPardonTime
+				considerSeverity := sanction.SanctionTier <= j.parent.internalParam.maxTierToPardon
+				considerTrust := j.parent.internalParam.minTrustToPardon <= j.parent.getTrust(sanction.ClientID)
+				if considerTime && considerSeverity && considerTrust {
+					pardons[turn][index] = true
+				}
+			}
+		}
+	}
+
+	return pardons
+}
 
 // HistoricalRetributionEnabled allows you to punish more than the previous turns transgressions
 // OPTIONAL: override if you want to punish historical transgressions
@@ -102,29 +125,45 @@ func (j *judge) HistoricalRetributionEnabled() bool {
 // CallPresidentElection is called by the judiciary to decide on power-transfer
 // COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
 func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
-	// example implementation calls an election if monitoring was performed and the result was negative
-	// or if the number of turnsInPower exceeds 3
+
 	var electionsettings = shared.ElectionSettings{
 		VotingMethod:  shared.Runoff,
 		IslandsToVote: allIslands,
 		HoldElection:  false,
 	}
+
+	// calculate whether the term has ended
+	termEnded := uint(turnsInPower) > j.parent.getTurnLength(shared.President)
+
+	j.parent.LocalVariableCache[rules.TermEnded] = rules.VariableValuePair{
+		VariableName: rules.TermEnded,
+		Values:       []float64{boolToFloat(termEnded)},
+	}
+
+	// try not holding election
+	j.parent.LocalVariableCache[rules.ElectionHeld] = rules.VariableValuePair{
+		VariableName: rules.ElectionHeld,
+		Values:       []float64{boolToFloat(false)},
+	}
+
+	compliantWithRules := j.parent.CheckCompliance(rules.ElectionHeld)
+
 	if monitoring.Performed && !monitoring.Result {
+		// If president didn't perform it's duties we can try to elect new president. Potentially decide based on trust or something
+		electionsettings.HoldElection = true
+	} else if compliantWithRules {
+		// If we are compliant with rules ie. we don't have to (are not obliged) hold election
+		electionsettings.HoldElection = false
+	} else {
+		// Now we know that we have to hold elections. We can check whether we want to hold election based on trust or something
 		electionsettings.HoldElection = true
 	}
-	if turnsInPower >= 2 {
-		electionsettings.HoldElection = true
-	}
+
 	return electionsettings
 }
 
 // DecideNextPresident returns the ID of chosen next President
 // OPTIONAL: override to manipulate the result of the election
-func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
-	// overloaded
-	j.logf("hello world %v", winner)
-	return id
-}
 
 func (j *judge) logf(format string, a ...interface{}) {
 	if j.t != nil {

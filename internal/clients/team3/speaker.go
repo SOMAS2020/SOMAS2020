@@ -33,7 +33,7 @@ func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 	}
 	if s.c.shouldICheat() {
 		for _, islandID := range aliveClients {
-			if s.c.trustScore[islandID] > 0.5 {
+			if s.c.trustScore[islandID] > 50 {
 				chosenClients = append(chosenClients, islandID)
 			}
 		}
@@ -49,6 +49,7 @@ func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 }
 
 func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
+
 	if s.c.shouldICheat() {
 		res := s.c.iigoInfo.ruleVotingResults[ruleMatrix.RuleName].ourVote
 		if res == shared.Approve {
@@ -68,5 +69,24 @@ func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) s
 }
 
 func (s *speaker) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	if s.c.params.adv != nil {
+		ret, done := s.c.params.adv.CallJudgeElection(monitoring, turnsInPower, allIslands)
+		if done {
+			return ret
+		}
+	}
+
 	return s.BaseSpeaker.CallJudgeElection(monitoring, turnsInPower, allIslands)
+}
+
+// DecideNextJudge returns the ID of chosen next Judge
+// OPTIONAL: override to manipulate the result of the election
+func (s *speaker) DecideNextJudge(winner shared.ClientID) shared.ClientID {
+	if s.c.params.adv != nil {
+		ret, done := s.c.params.adv.DecideNextJudge(winner)
+		if done {
+			return ret
+		}
+	}
+	return winner
 }

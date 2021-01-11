@@ -1,6 +1,7 @@
 package dynamics
 
 import (
+	"fmt"
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/ruleevaluation"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
@@ -444,6 +445,9 @@ func DecodeValues(rm rules.RuleMatrix, values map[rules.VariableFieldName][]floa
 			return nil
 		}
 	}
+	if len(finalVariableVect) == 0 {
+		_ = fmt.Sprintf("Hello")
+	}
 	varVect := mat.NewVecDense(len(finalVariableVect), finalVariableVect)
 	return varVect
 }
@@ -492,7 +496,10 @@ func IdentifyDeficiencies(b mat.VecDense, aux mat.VecDense) ([]int, error) {
 
 func CollapseRuleMap(input map[string]rules.RuleMatrix) []rules.RuleMatrix {
 	newInput := []rules.RuleMatrix{}
-	for _, inp := range input {
+	for key, inp := range input {
+		if inp.RuleName == "" {
+			fmt.Sprintf("hello %v", key)
+		}
 		newInput = append(newInput, inp)
 	}
 	return newInput
