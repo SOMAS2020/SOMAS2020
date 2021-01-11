@@ -80,24 +80,25 @@ func sendToBack(str string, array []string) {
 	if index != len(array)-1 {
 		array = append(append(array[:index], array[(index+1):]...), array[index])
 	}
+
 }
 
 func (s *speaker) reorderPriorities() {
 	SpeakerActionPriorities = SpeakerActionOrder
 	_, ok := s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["vote_called_rule"]
-	if ok {
+	if !ok {
 		sendToBack("SetRuleToVote", SpeakerActionPriorities)
 	}
 	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["islands_allowed_to_vote_rule"]
-	if ok {
+	if !ok {
 		sendToBack("SetVotingResult", SpeakerActionPriorities)
 	}
 	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["vote_result_rule"]
-	if ok {
+	if !ok {
 		sendToBack("AnnounceVotingResult", SpeakerActionPriorities)
 	}
 	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["roles_must_hold_election"]
-	if ok {
+	if !ok {
 		sendToBack("AppointNextJudge", SpeakerActionPriorities)
 	}
 }

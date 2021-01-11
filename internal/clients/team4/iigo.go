@@ -79,14 +79,24 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			// TODO: modify trust matrix based on monitor result
 			// c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
 			// c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
+		case shared.SanctionClientID:
+			if sanctionTier, ok := data[shared.IIGOSanctionTier]; ok {
+				sanctionedClient := shared.ClientID(content.IntegerData)
+				sanctionTierData := shared.IIGOSanctionsTier(sanctionTier.IntegerData)
+				c.obs.iigoObs.sanctionTiers[sanctionedClient] = sanctionTierData
+			}
 		default: //[exhaustive] reported by reviewdog 🐶
 			//missing cases in switch of type shared.CommunicationFieldName: BallotID, IIGOSanctionScore, IIGOSanctionTier, MonitoringResult, PardonClientID, PardonTier, PresidentID, ResAllocID, RoleConducted, RuleVoteResult, SanctionAmount, SanctionClientID, SpeakerID (exhaustive)
 
 		}
 	}
-	if _, ok := data[shared.SanctionClientID]; ok {
-		c.obs.iigoObs.sanctionTiers[shared.ClientID(data[shared.SanctionClientID].IntegerData)] = shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)
-	}
+	// if , ok := data[shared.SanctionClientID]; ok {
+	//     if , ok := data[shared.IIGOSanctionTier]; ok {
+	//         sanctionedClient := shared.ClientID(data[shared.SanctionClientID].IntegerData)
+	//         sanctionTier := shared.IIGOSanctionsTier(data[shared.IIGOSanctionTier].IntegerData)
+	//         c.obs.iigoObs.sanctionTiers[sanctionedClient] = sanctionTier
+	//     }
+	// }
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
