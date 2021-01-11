@@ -11,8 +11,6 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-const id = shared.Team4
-
 // DefaultClient creates the client that will be used for most simulations. All
 // other personalities are considered alternatives. To give a different
 // personality for your agent simply create another (exported) function with the
@@ -80,7 +78,7 @@ func newClientInternal(clientID shared.ClientID) client {
 	basePresident := baseclient.BasePresident{}
 
 	team4client := client{
-		BaseClient:  baseclient.NewClient(id),
+		BaseClient:  baseclient.NewClient(clientID),
 		clientJudge: judge{BaseJudge: &baseJudge},
 		clientSpeaker: speaker{
 			BaseSpeaker: &baseSpeaker,
@@ -379,13 +377,12 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	presidentID := c.getPresident()
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
-	clientID := id
 	ourResources := c.getOurResources()
 	// TODO: Choose sensible thresholds!
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)
 	monitoring := false
-	switch clientID {
+	switch c.GetID() {
 	case presidentID:
 		// If we are the president.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
