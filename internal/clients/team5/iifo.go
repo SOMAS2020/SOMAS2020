@@ -175,12 +175,12 @@ func (c *client) updateForecastingReputations(receivedPredictions shared.Receive
 		// if teams make predictions with conf > 50% before first disaster, downgrade their rep by 75%
 		if len(c.disasterHistory) == 0 {
 			if predInfo.PredictionMade.Confidence > 50 {
-				c.opinions[team].updateOpinion(forecastingBasis, -0.75)
+				c.opinions[team].updateOpinion(forecastingBasis, c.changeOpinion(-0.75))
 			}
 		}
 		// decrease trust in teams who are overly confident
 		if predInfo.PredictionMade.Confidence > 98 {
-			c.opinions[team].updateOpinion(forecastingBasis, -0.3)
+			c.opinions[team].updateOpinion(forecastingBasis, c.changeOpinion(-0.3))
 		}
 		// note: more sophisticated updates happen in DisasterNotification()
 	}
