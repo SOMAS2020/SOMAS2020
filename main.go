@@ -37,7 +37,7 @@ var (
 	)
 	logLevel = flag.Uint(
 		"logLevel",
-		2,
+		0,
 		"Logging verbosity level. Note that output artifacts will remain the same.\n"+
 			"0: No logs at all\n"+
 			"1: Game logs (identical to logs.txt) (to stderr)\n"+

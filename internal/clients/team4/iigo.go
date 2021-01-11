@@ -96,6 +96,12 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		// } else {
 		// 	c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
 		// }
+		case shared.SanctionClientID:
+			if sanctionTier, ok := data[shared.IIGOSanctionTier]; ok {
+				sanctionedClient := shared.ClientID(content.IntegerData)
+				sanctionTierData := shared.IIGOSanctionsTier(sanctionTier.IntegerData)
+				c.obs.iigoObs.sanctionTiers[sanctionedClient] = sanctionTierData
+			}
 		default: //[exhaustive] reported by reviewdog 🐶
 			return
 			//missing cases in switch of type shared.CommunicationFieldName: BallotID, IIGOSanctionScore, IIGOSanctionTier, MonitoringResult, PardonClientID, PardonTier, PresidentID, ResAllocID, RoleConducted, RuleVoteResult, SanctionAmount, SanctionClientID, SpeakerID (exhaustive)
