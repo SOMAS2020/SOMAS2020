@@ -67,12 +67,11 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 
 	ft := c.analyseHistory()
 
-	scale := 1.4 * c.getSafeResourceLevel()
-	forageContribution := c.getResources() - (2-shared.Resources(c.internalParam.riskTaking))*scale
+	forageContribution := c.getResources() - (2-shared.Resources(c.internalParam.riskTaking))*c.getSafeResourceLevel()
 	c.Logf("team4 resource level: %v", c.getResources())
-	if c.getSafeResourceLevel()*2 > c.getResources()-forageContribution {
+	/*if c.getSafeResourceLevel()*2 > c.getResources()-forageContribution {
 		forageContribution = c.getResources() - c.getSafeResourceLevel()*2
-	}
+	}*/
 	if forageContribution < 0 {
 		forageContribution = 0
 	}
