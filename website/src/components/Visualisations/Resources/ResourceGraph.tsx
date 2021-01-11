@@ -48,8 +48,8 @@ interface IProps {
   output: OutputJSONType
 }
 
-class LineRechartComponent extends React.Component<IProps, any> {
-  constructor(props: IProps | Readonly<IProps>) {
+class ResourceGraph extends React.Component<IProps, any> {
+  constructor(props) {
     super(props)
     this.state = {
       disabled: [],
@@ -104,8 +104,7 @@ class LineRechartComponent extends React.Component<IProps, any> {
       <div className="customized-legend">
         {payload?.map((entry) => {
           const { value, color } = entry
-          const { disabled } = this.state
-          const active = disabled.includes(value)
+          const active = this.state.disabled.includes(value)
           const style = {
             marginRight: 10,
             colour: active ? '#AAA' : '#000',
@@ -208,4 +207,4 @@ class LineRechartComponent extends React.Component<IProps, any> {
   }
 }
 
-export default LineRechartComponent
+export default ResourceGraph
