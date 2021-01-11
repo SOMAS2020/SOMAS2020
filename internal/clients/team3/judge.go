@@ -159,10 +159,10 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 // Strategy: If the rule is in play, we adhere to it else we will break it.
 func (j *judge) HistoricalRetributionEnabled() bool {
 
-	var ans bool = false
+	var ans bool = true
 	res := rules.EvaluateRuleFromCaches("judge_historical_retribution_permission", j.GameState.RulesInfo.CurrentRulesInPlay, j.GameState.RulesInfo.VariableMap)
 	if res.RulePasses && res.EvalError == nil {
-		ans = true
+		ans = false
 	}
 	return ans
 }
