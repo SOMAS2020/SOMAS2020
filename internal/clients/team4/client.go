@@ -101,10 +101,8 @@ func newClientInternal(clientID shared.ClientID) client {
 		trustMatrix:        &trustMatrix,
 		importances:        &importancesMatrix,
 		forage: &forageStorage{
-			preferedForageMethod: shared.DeerForageType,
-			forageHistory:        nil,
-			receivedForageData:   nil,
-			turnsSinceChange:     0,
+			forageHistory:      nil,
+			receivedForageData: nil,
 		},
 	}
 

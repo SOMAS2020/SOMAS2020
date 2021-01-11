@@ -8,7 +8,6 @@ type forageStorage struct {
 	preferedForageMethod shared.ForageType
 	forageHistory        []forageHistory
 	receivedForageData   [][]shared.ForageShareInfo
-	turnsSinceChange     int
 }
 
 type forageHistory struct {
@@ -17,11 +16,10 @@ type forageHistory struct {
 	numberCaught   uint
 }
 
-func (c *client) analyseHistory() {
+func (c *client) analyseHistory() shared.ForageType {
 	constLookBack := 5
 	if c.getTurn() < 5 {
-		c.forage.preferedForageMethod = shared.DeerForageType
-		return
+		return shared.DeerForageType
 	}
 
 	totalResources := make(map[shared.ForageType]float64)
@@ -52,19 +50,20 @@ func (c *client) analyseHistory() {
 			} else {
 				ratio = float64(teamEntry.ResourceObtained) / float64(teamEntry.DecisionMade.Contribution)
 			}
+			if ratio > 2 {
+				ratio = 2
+			}
 			totalResources[teamEntry.DecisionMade.Type] = totalResources[teamEntry.DecisionMade.Type] * ratio
 		}
-		if totalResources[shared.DeerForageType] >= totalResources[shared.FishForageType] {
-			c.forage.preferedForageMethod = shared.DeerForageType
-		} else {
-			c.forage.preferedForageMethod = shared.FishForageType
-		}
 	}
+	if totalResources[shared.DeerForageType] >= totalResources[shared.FishForageType] {
+		return shared.DeerForageType
+	}
+	return shared.FishForageType
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	c.analyseHistory()
-	ft := c.forage.preferedForageMethod
+	ft := c.analyseHistory()
 	scale := 5 * c.getSafeResourceLevel()
 	resources := c.getResources() - (2-shared.Resources(c.internalParam.riskTaking))*scale
 	if resources < c.getSafeResourceLevel() {
