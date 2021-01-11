@@ -160,6 +160,11 @@ func (c *client) RequestAllocation() shared.Resources {
 		)
 	}
 
+	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
+		VariableName: rules.IslandAllocation,
+		Values:       []float64{float64(c.ServerReadHandle.GetGameState().CommonPool)},
+	}
+
 	allocationPair, success := c.GetRecommendation(rules.IslandAllocation)
 	if !success {
 		c.Logf("Cannot determine allocation, trying to get all resources in CP.")
