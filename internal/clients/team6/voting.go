@@ -2,6 +2,7 @@ package team6
 
 import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 )
 
 func findSameVariables(originalOne []rules.VariableFieldName, newOne []rules.VariableFieldName) []rules.VariableFieldName {
