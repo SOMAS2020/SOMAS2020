@@ -11,7 +11,6 @@ import (
 
 const printTeam3Logs = false
 
-
 // DefaultClient creates the client that will be used for most simulations. All
 // other personalities are considered alternatives. To give a different
 // personality for your agent simply create another (exported) function with the
@@ -94,6 +93,8 @@ type client struct {
 	minimumResourcesWeWant shared.Resources
 
 	initialResourcesAtStartOfGame shared.Resources
+
+	account dynamics.Account
 }
 
 type islandParams struct {
