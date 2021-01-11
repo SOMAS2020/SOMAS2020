@@ -61,7 +61,7 @@ const About = () => {
           </p>
           <p>
             The Visualisation tab will display the results of your own runs and
-            it will persist your visualisations until you run a new game.
+            it will persist your visualisations until you visualise a new game.
           </p>
         </div>
       </div>
