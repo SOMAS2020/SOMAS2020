@@ -61,7 +61,7 @@ func (c client) getMeanMagnitude() float64 {
 			magnitudeSumOfPredictions += disaster.Magnitude * (disaster.Confidence) / float64(100)
 		}
 
-		meanMagnitudeFromPredictions = magnitudeSumOfPredictions / float64(len(c.disastersHistory))
+		meanMagnitudeFromPredictions = magnitudeSumOfPredictions / float64(len(c.disasterPredictions))
 	}
 
 	return (meanMagnitudeFromHistory + meanMagnitudeFromPredictions) / float64(2)
