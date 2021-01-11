@@ -639,6 +639,110 @@ func TestFindClosestApproachInSubspace(t *testing.T) {
 	}
 }
 
+func TestShift(t *testing.T) {
+	_, medMap, _ := generateInputMaps()
+	cases := []struct {
+		name        string
+		inputMatrix rules.RuleMatrix
+		inputMap    map[rules.VariableFieldName]Input
+		edited      bool
+		outputMat   rules.RuleMatrix
+	}{
+		{
+			name: "Basic non edit test",
+			inputMatrix: rules.RuleMatrix{
+				RuleName: "Basic rule",
+				RequiredVariables: []rules.VariableFieldName{
+					rules.NumberOfBallotsCast,
+					rules.NumberOfIslandsAlive,
+				},
+				ApplicableMatrix: *mat.NewDense(2, 3, []float64{1, 1, 1, 1, 1, 1}),
+				AuxiliaryVector:  *mat.NewVecDense(2, []float64{1, 1}),
+				Mutable:          false,
+				Link:             rules.RuleLink{},
+			},
+			inputMap: medMap,
+			outputMat: rules.RuleMatrix{
+				RuleName: "Basic rule",
+				RequiredVariables: []rules.VariableFieldName{
+					rules.NumberOfBallotsCast,
+					rules.NumberOfIslandsAlive,
+				},
+				ApplicableMatrix: *mat.NewDense(2, 3, []float64{1, 1, 1, 1, 1, 1}),
+				AuxiliaryVector:  *mat.NewVecDense(2, []float64{1, 1}),
+				Mutable:          false,
+				Link:             rules.RuleLink{},
+			},
+			edited: false,
+		},
+		{
+			name: "Basic edit test",
+			inputMatrix: rules.RuleMatrix{
+				RuleName: "Basic rule",
+				RequiredVariables: []rules.VariableFieldName{
+					rules.NumberOfBallotsCast,
+					rules.NumberOfIslandsAlive,
+				},
+				ApplicableMatrix: *mat.NewDense(2, 3, []float64{1, 1, 1, 1, 1, 1}),
+				AuxiliaryVector:  *mat.NewVecDense(2, []float64{0, 1}),
+				Mutable:          false,
+				Link:             rules.RuleLink{},
+			},
+			inputMap: medMap,
+			outputMat: rules.RuleMatrix{
+				RuleName: "Basic rule",
+				RequiredVariables: []rules.VariableFieldName{
+					rules.NumberOfBallotsCast,
+					rules.NumberOfIslandsAlive,
+				},
+				ApplicableMatrix: *mat.NewDense(2, 3, []float64{1, 1, -12, 1, 1, 1}),
+				AuxiliaryVector:  *mat.NewVecDense(2, []float64{0, 1}),
+				Mutable:          false,
+				Link:             rules.RuleLink{},
+			},
+			edited: true,
+		},
+		{
+			name: "Complex edit test",
+			inputMatrix: rules.RuleMatrix{
+				RuleName: "Basic rule",
+				RequiredVariables: []rules.VariableFieldName{
+					rules.NumberOfBallotsCast,
+					rules.NumberOfIslandsAlive,
+				},
+				ApplicableMatrix: *mat.NewDense(2, 3, []float64{1, 1, 1, 1, 0, 1}),
+				AuxiliaryVector:  *mat.NewVecDense(2, []float64{0, 0}),
+				Mutable:          false,
+				Link:             rules.RuleLink{},
+			},
+			inputMap: medMap,
+			outputMat: rules.RuleMatrix{
+				RuleName: "Basic rule",
+				RequiredVariables: []rules.VariableFieldName{
+					rules.NumberOfBallotsCast,
+					rules.NumberOfIslandsAlive,
+				},
+				ApplicableMatrix: *mat.NewDense(2, 3, []float64{1, 1, -12, 1, 0, -5}),
+				AuxiliaryVector:  *mat.NewVecDense(2, []float64{0, 0}),
+				Mutable:          false,
+				Link:             rules.RuleLink{},
+			},
+			edited: true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, succ := Shift(tc.inputMatrix, tc.inputMap)
+			if !reflect.DeepEqual(res, tc.outputMat) {
+				t.Errorf("Expected %v got %v", tc.outputMat, res)
+			}
+			if succ != tc.edited {
+				t.Errorf("Expected %v got %v", succ, tc.edited)
+			}
+		})
+	}
+}
+
 // Oh boy
 func TestFindClosestApproach(t *testing.T) {
 	cases := []struct {
