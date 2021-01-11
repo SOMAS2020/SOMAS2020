@@ -1,6 +1,7 @@
 package dynamics
 
 import (
+	"fmt"
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/ruleevaluation"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/pkg/errors"
@@ -88,6 +89,69 @@ func FindClosestApproach(ruleMatrix rules.RuleMatrix, namedInputs map[rules.Vari
 		}
 	}
 	return map[rules.VariableFieldName]Input{}
+}
+
+func Shift(ruleMatrix rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) (newMatrix rules.RuleMatrix, edited bool) {
+	droppedInputs := DropAllInputStructs(namedInputs)
+	results, success := evaluateSingle(ruleMatrix, droppedInputs)
+	if success {
+		// Find any results in the vector that indicate a failure condition
+		deficient, err := IdentifyDeficiencies(results, ruleMatrix.AuxiliaryVector)
+		if err != nil {
+			return ruleMatrix, false
+		}
+		if len(deficient) == 0 {
+			// If none are given, the submitted position is good, return
+			return ruleMatrix, false
+		}
+		allDynamics := BuildAllDynamics(ruleMatrix, ruleMatrix.AuxiliaryVector)
+		if len(allDynamics) == 0 {
+			return ruleMatrix, false
+		}
+		for _, row := range deficient {
+			copyOfMatrix := mat.DenseCopyOf(&ruleMatrix.ApplicableMatrix)
+			if row < len(allDynamics) {
+				newDynamic := shiftDynamic(allDynamics[row], DecodeValues(ruleMatrix, droppedInputs))
+				newRow := translateDynamic(newDynamic)
+				copyOfMatrix.SetRow(row, newRow)
+				ruleMatrix.ApplicableMatrix = *copyOfMatrix
+			}
+		}
+		return ruleMatrix, true
+	}
+	return ruleMatrix, false
+}
+
+func translateDynamic(inputDyn dynamic) []float64 {
+	w := inputDyn.w
+	nRows, _ := w.Dims()
+	outputVect := []float64{}
+	for i := 0; i < nRows; i++ {
+		outputVect = append(outputVect, w.AtVec(i))
+	}
+	outputVect = append(outputVect, inputDyn.b)
+	return outputVect
+}
+
+func shiftDynamic(inputDyn dynamic, input mat.Vector) (outputDyn dynamic) {
+	res := mat.Dot(&inputDyn.w, input) + inputDyn.b
+	switch inputDyn.aux {
+	case 0:
+		inputDyn.b -= res
+		return inputDyn
+	case 1:
+		inputDyn.b -= res
+		inputDyn.b += 1
+		return inputDyn
+	case 2:
+		inputDyn.b -= res
+		return inputDyn
+	case 3:
+		inputDyn.b += 1
+		return inputDyn
+	default:
+		return inputDyn
+	}
 }
 
 // findClosestApproachInSubspace works out the closest point in the rule subspace to the current location
@@ -381,6 +445,9 @@ func DecodeValues(rm rules.RuleMatrix, values map[rules.VariableFieldName][]floa
 			return nil
 		}
 	}
+	if len(finalVariableVect) == 0 {
+		_ = fmt.Sprintf("Hello")
+	}
 	varVect := mat.NewVecDense(len(finalVariableVect), finalVariableVect)
 	return varVect
 }
@@ -429,7 +496,10 @@ func IdentifyDeficiencies(b mat.VecDense, aux mat.VecDense) ([]int, error) {
 
 func CollapseRuleMap(input map[string]rules.RuleMatrix) []rules.RuleMatrix {
 	newInput := []rules.RuleMatrix{}
-	for _, inp := range input {
+	for key, inp := range input {
+		if inp.RuleName == "" {
+			fmt.Sprintf("hello %v", key)
+		}
 		newInput = append(newInput, inp)
 	}
 	return newInput

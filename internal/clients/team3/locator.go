@@ -44,15 +44,15 @@ func (l *locator) calculateMetaStrategy() {
 	newMetaStrategy := metaStrategy{}
 	currentParams := l.islandParamsCache
 
-	newMetaStrategy.conquest = !currentParams.saveCriticalIsland && currentParams.aggression > 70 && currentParams.friendliness < 50
-	newMetaStrategy.saviour = currentParams.saveCriticalIsland && currentParams.friendliness >= 50 && currentParams.aggression <= 70
-	newMetaStrategy.democrat = currentParams.complianceLevel > 50 && currentParams.selfishness < 50
-	newMetaStrategy.generous = currentParams.selfishness < 50 && currentParams.saveCriticalIsland && currentParams.recidivism < 050 && currentParams.friendliness > 50
-	newMetaStrategy.lawful = currentParams.complianceLevel > 50 && currentParams.selfishness < 50
-	newMetaStrategy.legislative = currentParams.equity > 50
-	newMetaStrategy.executive = currentParams.recidivism < 50
-	newMetaStrategy.fury = !currentParams.saveCriticalIsland && currentParams.aggression > 60 && currentParams.anger > 80
-	newMetaStrategy.independent = currentParams.recidivism > 50
+	newMetaStrategy.conquest = !currentParams.saveCriticalIsland && currentParams.aggression > 0.7 && currentParams.friendliness < 0.5
+	newMetaStrategy.saviour = currentParams.saveCriticalIsland && currentParams.friendliness >= 0.5 && currentParams.aggression <= 0.7
+	newMetaStrategy.democrat = currentParams.complianceLevel > 0.5 && currentParams.selfishness < 0.5
+	newMetaStrategy.generous = currentParams.selfishness < 0.5 && currentParams.saveCriticalIsland && currentParams.recidivism < 0.5 && currentParams.friendliness > 0.3
+	newMetaStrategy.lawful = currentParams.complianceLevel > 0.50 && currentParams.selfishness < 0.50
+	newMetaStrategy.legislative = currentParams.equity > 0.50
+	newMetaStrategy.executive = currentParams.recidivism < 0.50
+	newMetaStrategy.fury = !currentParams.saveCriticalIsland && currentParams.aggression > 0.60 && currentParams.aggression > 0.8
+	newMetaStrategy.independent = currentParams.recidivism > 0.50
 	l.locationStrategy = newMetaStrategy
 }
 
