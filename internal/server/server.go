@@ -40,8 +40,13 @@ type SOMASServer struct {
 
 // NewSOMASServer returns an instance of the main server we use.
 func NewSOMASServer(gameConfig config.Config) (Server, error) {
+	clients := map[shared.ClientID]baseclient.Client{}
+	for id, factory := range DefaultClientConfig() {
+		clients[id] = factory(id)
+	}
+
 	clientInfos, clientMap := getClientInfosAndMapFromRegisteredClients(
-		DefaultClientMap(),
+		clients,
 		gameConfig.InitialResources,
 	)
 

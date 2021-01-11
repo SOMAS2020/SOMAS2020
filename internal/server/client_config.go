@@ -11,13 +11,15 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func DefaultClientMap() map[shared.ClientID]baseclient.Client {
-	return map[shared.ClientID]baseclient.Client{
-		shared.Team1: team1.DefaultClient(shared.Team1),
-		shared.Team2: team2.DefaultClient(shared.Team2),
-		shared.Team3: team3.DefaultClient(shared.Team3),
-		shared.Team4: team4.DefaultClient(shared.Team4),
-		shared.Team5: team5.DefaultClient(shared.Team5),
-		shared.Team6: team6.DefaultClient(shared.Team6),
+type ClientFactory func(shared.ClientID) baseclient.Client
+
+func DefaultClientConfig() map[shared.ClientID]ClientFactory {
+	return map[shared.ClientID]ClientFactory{
+		shared.Team1: team1.DefaultClient,
+		shared.Team2: team2.DefaultClient,
+		shared.Team3: team3.DefaultClient,
+		shared.Team4: team4.DefaultClient,
+		shared.Team5: team5.DefaultClient,
+		shared.Team6: team6.DefaultClient,
 	}
 }
