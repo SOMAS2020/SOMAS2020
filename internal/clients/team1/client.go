@@ -131,8 +131,9 @@ func defaultConfig() team1Config {
 // NewClient cause we have to
 func NewClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
-		BaseClient: baseclient.NewClient(clientID),
-		config:     defaultConfig(),
+		BaseClient:    baseclient.NewClient(clientID),
+		BasePresident: &baseclient.BasePresident{},
+		config:        defaultConfig(),
 
 		forageHistory:     ForageHistory{},
 		reportedResources: map[shared.ClientID]bool{},
@@ -157,6 +158,9 @@ func (c client) emotionalState() EmotionalState {
 func (c *client) StartOfTurn() {
 	c.Logf("Emotional state: %v", c.emotionalState())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
+
+	// Initialise President with gamestate
+	c.BasePresident.GameState = c.gameState()
 
 	// This should only happen at the start of the game.
 	if c.gameState().Turn == 1 {
