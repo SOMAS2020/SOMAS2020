@@ -19,6 +19,17 @@ func (c *client) getSeason() uint {
 	return 0
 }
 
+func (c *client) getTurnLength(role shared.Role) uint {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameConfig().IIGOClientConfig.IIGOTermLengths[role]
+	}
+	return 0
+}
+
+func (c *client) getTrust(clientID shared.ClientID) float64 {
+	return c.trustMatrix.GetClientTrust(clientID)
+}
+
 func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo, ok bool) {
 	resourceOK := 0
 	taxOK := 0
@@ -67,6 +78,27 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 	return retInfo, ok
 }
 
+func (c *client) getPresident() shared.ClientID {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().PresidentID
+	}
+	return 0
+}
+
+func (c *client) getSpeaker() shared.ClientID {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().SpeakerID
+	}
+	return 0
+}
+
+func (c *client) getJudge() shared.ClientID {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().JudgeID
+	}
+	return 0
+}
+
 // func dump(filename string, format string, v ...interface{}) {
 // 	//f, err := os.Create(filename)
 // 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -84,3 +116,16 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 // 	}
 
 // }
+func boolToFloat(input bool) float64 {
+	if input {
+		return 1
+	}
+	return 0
+}
+
+func (c *client) getOurResources() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	}
+	return 0
+}
