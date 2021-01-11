@@ -93,6 +93,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			} else {
 				offers[team] = shared.GiftOffer(offerSize)
 			}
+			c.Logf("Team4 gifted %v %v resources", team, offerSize)
 		}
 		// else if giftSize < 0 && c.internalParam.giftExtra && (status == shared.Alive || status == shared.Critical) {
 		// 	offers[team] = shared.GiftOffer(10)

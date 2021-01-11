@@ -76,7 +76,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if forageContribution < 0 {
 		forageContribution = 0
 	}
-	if forageContribution < forageMax {
+	if forageContribution > forageMax {
 		forageContribution = forageMax
 	}
 	c.Logf("Foraging: Decision %v, Resources %v", ft, forageContribution)
