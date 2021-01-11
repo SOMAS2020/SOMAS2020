@@ -31,8 +31,7 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
-					trustParameter:          0.5,
-					trustConstantAdjustor:   1,
+					riskFactor:              0.2,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -42,19 +41,19 @@ func TestGetGiftRequests(t *testing.T) {
 					shared.Team6: 50,
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
-					shared.Team1: 11.785113019775793,
-					shared.Team2: 11.785113019775793,
-					shared.Team4: 11.785113019775793,
-					shared.Team5: 11.785113019775793,
-					shared.Team6: 11.785113019775793,
+					shared.Team1: 3.644540246477594,
+					shared.Team2: 3.644540246477594,
+					shared.Team4: 3.644540246477594,
+					shared.Team5: 3.644540246477594,
+					shared.Team6: 3.644540246477594,
 				},
 			},
 			expectedVal: shared.GiftRequestDict{
-				shared.Team1: 11.785113019775793,
-				shared.Team2: 11.785113019775793,
-				shared.Team4: 11.785113019775793,
-				shared.Team5: 11.785113019775793,
-				shared.Team6: 11.785113019775793,
+				shared.Team1: 3.644540246477594,
+				shared.Team2: 3.644540246477594,
+				shared.Team4: 3.644540246477594,
+				shared.Team5: 3.644540246477594,
+				shared.Team6: 3.644540246477594,
 			},
 		},
 		{
@@ -73,8 +72,7 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
-					trustParameter:          0.5,
-					trustConstantAdjustor:   1,
+					riskFactor:              0.2,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -115,8 +113,7 @@ func TestGetGiftRequests(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      100,
-					trustParameter:          0.5,
-					trustConstantAdjustor:   1,
+					riskFactor:              0.2,
 				},
 				trustScore: map[shared.ClientID]float64{
 					shared.Team1: 50,
@@ -126,19 +123,19 @@ func TestGetGiftRequests(t *testing.T) {
 					shared.Team6: 90,
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
-					shared.Team1: 116.67261889578037,
-					shared.Team2: 127.80845042484479,
-					shared.Team4: 138.0489043781225,
-					shared.Team5: 147.58048651498615,
-					shared.Team6: 156.5327441783348,
+					shared.Team1: 43.87594114979616,
+					shared.Team2: 45.92210178127672,
+					shared.Team4: 47.726375540564796,
+					shared.Team5: 49.34650978030029,
+					shared.Team6: 50.821159755976886,
 				},
 			},
 			expectedVal: shared.GiftRequestDict{
-				shared.Team1: 116.67261889578037,
-				shared.Team2: 127.80845042484479,
-				shared.Team4: 138.0489043781225,
-				shared.Team5: 147.58048651498615,
-				shared.Team6: 156.5327441783348,
+				shared.Team1: 36.08094844012818,
+				shared.Team2: 37.4208970618899,
+				shared.Team4: 38.59255681756235,
+				shared.Team5: 39.637106321387236,
+				shared.Team6: 40.58190651651451,
 			},
 		},
 	}
@@ -180,9 +177,6 @@ func TestGetGiftOffers(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.5,
-					trustConstantAdjustor:   0.5,
-					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -232,9 +226,6 @@ func TestGetGiftOffers(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.5,
-					trustConstantAdjustor:   0.5,
-					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -286,9 +277,6 @@ func TestGetGiftOffers(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.5,
-					trustConstantAdjustor:   0.5,
-					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -340,9 +328,6 @@ func TestGetGiftOffers(t *testing.T) {
 				params: islandParams{
 					giftInflationPercentage: 0.1,
 					localPoolThreshold:      150,
-					trustParameter:          0.5,
-					trustConstantAdjustor:   0.5,
-					NoRequestGiftParam:      0.25,
 					selfishness:             0.3,
 				},
 				trustScore: map[shared.ClientID]float64{
@@ -473,7 +458,7 @@ func TestUpdateGiftInfo(t *testing.T) {
 		name              string
 		ourClient         client
 		receivedResponses shared.GiftResponseDict
-		expectedVal       map[shared.ClientID]int
+		expectedVal       map[shared.ClientID][]float64
 	}{
 		{
 			name: "Basic test: all islands are alive and all requested amounts are complied to",
@@ -489,12 +474,12 @@ func TestUpdateGiftInfo(t *testing.T) {
 							shared.Team6: shared.Alive,
 						},
 						ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
-				giftOpinions: map[shared.ClientID]int{
-					0: 10,
-					1: 10,
-					3: 10,
-					4: 10,
-					5: 10,
+				trustMapAgg: map[shared.ClientID][]float64{
+					0: {},
+					1: {},
+					3: {},
+					4: {},
+					5: {},
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
 					shared.Team1: 40,
@@ -511,12 +496,12 @@ func TestUpdateGiftInfo(t *testing.T) {
 				shared.Team5: {AcceptedAmount: 70, Reason: 0},
 				shared.Team6: {AcceptedAmount: 80, Reason: 0},
 			},
-			expectedVal: map[shared.ClientID]int{
-				0: 10,
-				1: 10,
-				3: 10,
-				4: 10,
-				5: 10,
+			expectedVal: map[shared.ClientID][]float64{
+				0: {},
+				1: {},
+				3: {},
+				4: {},
+				5: {},
 			},
 		},
 
@@ -534,12 +519,12 @@ func TestUpdateGiftInfo(t *testing.T) {
 							shared.Team6: shared.Alive,
 						},
 						ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
-				giftOpinions: map[shared.ClientID]int{
-					0: 10,
-					1: 10,
-					3: 10,
-					4: 10,
-					5: 10,
+				trustMapAgg: map[shared.ClientID][]float64{
+					0: {},
+					1: {},
+					3: {},
+					4: {},
+					5: {},
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
 					shared.Team1: 40,
@@ -556,20 +541,20 @@ func TestUpdateGiftInfo(t *testing.T) {
 				shared.Team5: {AcceptedAmount: 39.999, Reason: 2},
 				shared.Team6: {AcceptedAmount: 40.001, Reason: 0},
 			},
-			expectedVal: map[shared.ClientID]int{
-				0: 10,
-				1: 10,
-				3: 8,
-				4: 8,
-				5: 10,
+			expectedVal: map[shared.ClientID][]float64{
+				0: {},
+				1: {},
+				3: {-5},
+				4: {-5},
+				5: {},
 			},
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.ourClient.UpdateGiftInfo(tc.receivedResponses)
-			if !reflect.DeepEqual(tc.ourClient.giftOpinions, tc.expectedVal) {
-				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, tc.ourClient.giftOpinions)
+			if !reflect.DeepEqual(tc.ourClient.trustMapAgg, tc.expectedVal) {
+				t.Errorf("Expected final transgressions to be %v got %v", tc.expectedVal, tc.ourClient.trustMapAgg)
 			}
 		})
 	}
@@ -598,11 +583,11 @@ func TestReceivedGift(t *testing.T) {
 						},
 						ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
 				trustMapAgg: map[shared.ClientID][]float64{
-					0: []float64{},
-					1: []float64{},
-					3: []float64{},
-					4: []float64{},
-					5: []float64{},
+					0: {},
+					1: {},
+					3: {},
+					4: {},
+					5: {},
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
 					shared.Team1: 40,
@@ -615,11 +600,11 @@ func TestReceivedGift(t *testing.T) {
 			received: 100,
 			from:     shared.Team1,
 			expectedVal: map[shared.ClientID][]float64{
-				0: []float64{22},
-				1: []float64{},
-				3: []float64{},
-				4: []float64{},
-				5: []float64{},
+				0: {22},
+				1: {},
+				3: {},
+				4: {},
+				5: {},
 			},
 		},
 
@@ -638,11 +623,11 @@ func TestReceivedGift(t *testing.T) {
 						},
 						ClientInfo: gamestate.ClientInfo{Resources: 600.0}}}},
 				trustMapAgg: map[shared.ClientID][]float64{
-					0: []float64{},
-					1: []float64{},
-					3: []float64{},
-					4: []float64{},
-					5: []float64{},
+					0: {},
+					1: {},
+					3: {},
+					4: {},
+					5: {},
 				},
 				requestedGiftAmounts: map[shared.ClientID]shared.GiftRequest{
 					shared.Team1: 40,
@@ -655,11 +640,11 @@ func TestReceivedGift(t *testing.T) {
 			received: 40,
 			from:     shared.Team4,
 			expectedVal: map[shared.ClientID][]float64{
-				0: []float64{},
-				1: []float64{},
-				3: []float64{-6},
-				4: []float64{},
-				5: []float64{},
+				0: {},
+				1: {},
+				3: {-6},
+				4: {},
+				5: {},
 			},
 		},
 	}

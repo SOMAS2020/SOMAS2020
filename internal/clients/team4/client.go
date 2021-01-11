@@ -179,6 +179,7 @@ type internalParameters struct {
 	historyFullTruthfulnessBonus float64
 	monitoringWeight             float64
 	monitoringResultChange       float64
+	giftExtra                    bool
 }
 
 // type personality struct {
