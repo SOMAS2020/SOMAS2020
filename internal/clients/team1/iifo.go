@@ -88,6 +88,9 @@ func (c client) findConfidence() float64 {
 	}
 
 	disasterHistorySize := float64(len(disasterHistory))
+	if disasterHistorySize == 0 {
+		return 0
+	}
 	sqrtDisasterHistory := math.Sqrt(disasterHistorySize)
 	xSD := math.Sqrt(totalDisaster.X / disasterHistorySize)
 	ySD := math.Sqrt(totalDisaster.Y / disasterHistorySize)
