@@ -27,8 +27,10 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
 
 	// check our critical and threshold - if either is off - request
-	ourAgentCritical := shared.Critical == shared.ClientLifeStatus(1)
+	ourAgentCritical := c.criticalStatus()
 	requestAmount := c.determineBaseCommonPoolRequest() * c.giftReliance()
+	c.Logf("stupid amount: %v", requestAmount)
+	c.Logf("island chcik status: %v", ourAgentCritical)
 
 	// confidence[island] * requestAmount until -> target
 	if ourAgentCritical || requestAmount > 0 {
@@ -69,11 +71,12 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			targetFulfilled -= requestAmount
 
 			if targetFulfilled <= 0 {
+				c.Logf("doink requests : %v", requests)
 				return requests
 			}
 		}
 	}
-
+	c.Logf("doink requests 2 : %v", requests)
 	return requests
 }
 
@@ -85,18 +88,26 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	offers := shared.GiftOfferDict{}
 	turn := c.gameState().Turn
 
+	for island := range offers {
+		offers[island] = 0
+	}
+
 	// if we are critical do not offer gifts-> there should be a way to see which other islands are critical
 	// if we are not critical and another island is critical offer gift
 	// do not offer more than proportion of total resources we have
-	ourAgentCritical := shared.Critical == shared.ClientLifeStatus(1)
+	ourAgentCritical := c.criticalStatus()
+	// ourAgentCritical := true
 
 	// prioritize giving gifts to islands we trust (for now confidence)
 
 	// Give no more than half of amount before we reach threshold
-	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) / (shared.Resources(1) / (c.giftReliance() / shared.Resources(2)))
-
+	maxToGive := (c.gameState().ClientInfo.Resources - c.agentThreshold()) * (c.giftReliance() / shared.Resources(2))
+	c.Logf("MAXTOGIVE : %v", maxToGive)
+	c.Logf("our agent critical: %v", ourAgentCritical)
 	var trustRank IslandTrustList
-	if !ourAgentCritical || maxToGive <= 0 {
+	//checks if we are not critical or maxtogive is -ve
+	if !ourAgentCritical && maxToGive >= 0 {
+		c.Logf("WAKA WAKA ENtered LOOP")
 		for team := range receivedRequests {
 			// max would be 200
 			// c.confidence("ReceivedRequests", team) should reflect the status of an island and int,float64 requests hist
@@ -111,14 +122,18 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 				trustRank = append(trustRank, islandConf)
 			}
 		}
+
+		//TODO: Our trust rank is always empty
 		if len(trustRank) != 0 {
 			sort.Sort(trustRank)
 		}
 
+		c.Logf("TRUSTRANK : %v", trustRank)
+
 		// TODO: need to factor in the size of a request in decisions - above we were just sorting them by confidence
 		for i := 0; i < len(trustRank); i++ {
 			offeredTo := trustRank[i].island
-			offeredAmount := receivedRequests[offeredTo]
+			offeredAmount := receivedRequests[offeredTo] * shared.GiftRequest(trustRank[i].trust/100)
 
 			if offeredAmount >= shared.GiftRequest(maxToGive) {
 				offeredAmount = shared.GiftRequest(maxToGive)
@@ -126,6 +141,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			}
 
 			offers[offeredTo] = shared.GiftOffer(offeredAmount)
+			c.Logf("Predatory Lending 1: %v", offers)
 
 			// to keep track in our history
 			newGiftRequest := GiftInfo{
@@ -141,7 +157,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			}
 		}
 	}
-
+	c.Logf("Predatory Lending 2: %v", receivedRequests)
 	return offers
 }
 
@@ -166,7 +182,7 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 			// it could potentially crash if we receive a gift we didn't ask for... this entry would be a null pointer
 			requested: weRequested,
 			gifted:    shared.GiftOffer(responses[client].AcceptedAmount),
-			reason:    shared.AcceptReason(responses[client].AcceptedAmount),
+			reason:    shared.AcceptReason(responses[client].Reason),
 		}
 		c.giftHist[client].OurRequest[turn] = newGiftRequest
 	}
@@ -188,7 +204,7 @@ func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 		newGiftRequest := GiftInfo{
 			requested: c.giftHist[island].IslandRequest[turn].requested,
 			gifted:    shared.GiftOffer(response.AcceptedAmount),
-			reason:    shared.AcceptReason(response.AcceptedAmount),
+			reason:    shared.AcceptReason(response.Reason),
 		}
 		c.giftHist[island].IslandRequest[turn] = newGiftRequest
 	}
