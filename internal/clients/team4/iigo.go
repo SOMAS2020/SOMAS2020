@@ -34,7 +34,7 @@ func (c *client) evaluateParamVector(decisionVector *mat.VecDense, agent shared.
 
 func (c *client) RequestAllocation() shared.Resources {
 	ourLifeStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
-	allocationGranted := c.obs.iigoObs.allocationGranted
+	allocationGranted := c.BaseClient.RequestAllocation() //c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0
 	importance := c.importances.requestAllocationImportance
 	commonPool := c.ServerReadHandle.GetGameState().CommonPool
@@ -100,9 +100,9 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	for contentType, content := range data {
 		switch contentType {
 		case shared.IIGOTaxDecision:
-			c.obs.iigoObs.taxDemanded = shared.Resources(content.IntegerData)
+			c.obs.iigoObs.taxDemanded = content.IIGOValueData.Amount //shared.Resources(content.IntegerData)
 		case shared.IIGOAllocationDecision:
-			c.obs.iigoObs.allocationGranted = shared.Resources(content.IntegerData)
+			c.obs.iigoObs.allocationGranted = content.IIGOValueData.Amount //shared.Resources(content.IntegerData)
 		case shared.RuleName:
 		// currentRuleID := content.TextData
 		// if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
@@ -230,11 +230,15 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 // GetTaxContribution gives value of how much the island wants to pay in taxes
 // The tax is the minimum contribution, you can pay more if you want to
 // COMPULSORY
+
 func (c *client) GetTaxContribution() shared.Resources {
-	valToBeReturned := shared.Resources(0)
+	valToBeReturned := c.BaseClient.GetTaxContribution() // c.obs.iigoObs.taxDemanded
+
+	c.Logf("Team4 tax expected: %v", valToBeReturned)
+
 	currentWealth := c.getOurResources()
 
-	collaborationThreshold := 1.0
+	collaborationThreshold := 3.0
 	wealthThreshold := 5 * valToBeReturned
 
 	// Initialise importance vector and parameters vector.
@@ -252,11 +256,16 @@ func (c *client) GetTaxContribution() shared.Resources {
 	if collaborationLevel > collaborationThreshold &&
 		currentWealth > wealthThreshold {
 		// Deliberately pay more (collaborationLevel is larger than 1)
-		valToBeReturned = valToBeReturned * shared.Resources(collaborationLevel)
+		valToBeReturned = valToBeReturned * shared.Resources(0.2*(collaborationLevel-collaborationThreshold))
 
 	}
 
+<<<<<<< HEAD
 	c.Logf("Tax paid: %v", valToBeReturned)
+=======
+	c.Logf("Team4 tax paid: %v", valToBeReturned)
+
+>>>>>>> d023eccf00a68e663e7dce9fe85842697efbf919
 	return valToBeReturned
 
 }

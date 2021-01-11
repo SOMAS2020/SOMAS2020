@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetJudgePointer(t *testing.T) {
-	testClient := newClientInternal(id)
+	testClient := newClientInternal(id, honest)
 	testServer := fakeServerHandle{}
 	testClient.Initialise(testServer)
 	j := testClient.GetClientJudgePointer()
@@ -63,7 +63,7 @@ func TestUpdateTrustFromHistory(t *testing.T) {
 			}
 
 			testServer := fakeServerHandle{clients: clients}
-			testClient := newClientInternal(id)
+			testClient := newClientInternal(id, honest)
 			testClient.Initialise(testServer)
 
 			testClient.savedHistory = &tc.savedHistory

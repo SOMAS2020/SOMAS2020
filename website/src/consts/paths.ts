@@ -8,4 +8,5 @@ export const iigovisualisation = `/visualisation/iigo`
 export const iifovisualisation = `/visualisation/iifo`
 export const rolesvisualisation = `/visualisation/roles`
 export const resourcesvisualisation = `/visualisation/resources`
+export const iigopaymentsvisualisation = `/visualisation/iigopayments`
 export const achievementsvisualisation = `/visualisation/achievements`

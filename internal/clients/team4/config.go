@@ -10,6 +10,7 @@ const (
 	honest ClientConfig = iota
 	dishonest
 	middle
+	forTesting
 )
 
 func configureClient(config ClientConfig) (retConfig internalParameters) {
@@ -45,6 +46,36 @@ func configureClient(config ClientConfig) (retConfig internalParameters) {
 			monitoringResultChange:       0.05, // in range [0,1]
 		}
 	case middle: // middle
+		retConfig = internalParameters{
+			greediness:                   0.5,
+			selfishness:                  0.5,
+			fairness:                     0.5,
+			collaboration:                0.5,
+			riskTaking:                   0.5,
+			maxPardonTime:                5,
+			maxTierToPardon:              shared.SanctionTier3,
+			minTrustToPardon:             0.6,
+			historyWeight:                1,    // in range [0,1]
+			historyFullTruthfulnessBonus: 0.15, // in range [0,1]
+			monitoringWeight:             1,    // in range [0,1]
+			monitoringResultChange:       0.07, // in range [0,1]
+		}
+	case forTesting: // testing only
+		retConfig = internalParameters{
+			greediness:                   0.5,
+			selfishness:                  0.5,
+			fairness:                     0.5,
+			collaboration:                0.5,
+			riskTaking:                   0.5,
+			maxPardonTime:                5,
+			maxTierToPardon:              shared.SanctionTier3,
+			minTrustToPardon:             0.6,
+			historyWeight:                1,   // in range [0,1]
+			historyFullTruthfulnessBonus: 0.1, // in range [0,1]
+			monitoringWeight:             1,   // in range [0,1]
+			monitoringResultChange:       0.1, // in range [0,1]
+		}
+	default:
 		retConfig = internalParameters{
 			greediness:                   0.5,
 			selfishness:                  0.5,
