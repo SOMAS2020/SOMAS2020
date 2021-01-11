@@ -18,10 +18,10 @@ const Payments = (props: { output: OutputJSONType }) => {
   const data = processPaymentsData(props.output)
 
   const legend = new Map([
-    ['actualTax', '#094fdb'],
-    ['expectedTax', '#507cd4'],
-    ['actualAlloc', '#cf1763'],
-    ['expectedAlloc', '#c76f94'],
+    ['Actual Tax', '#094fdb'],
+    ['Expected Tax', '#507cd4'],
+    ['Actual Allocation', '#cf1763'],
+    ['expected Allocation', '#c76f94'],
   ])
 
   return (
@@ -30,20 +30,36 @@ const Payments = (props: { output: OutputJSONType }) => {
       <ResponsiveContainer height={460} width="100%">
         <BarChart data={data} layout="horizontal">
           <XAxis type="category" dataKey="name" />
-          <YAxis
-            type="number"
-            domain={['dataMin', 'dataMax']}
-            tickCount={20}
-            allowDecimals={false}
-          />
+          <YAxis type="number" tickCount={20} allowDecimals={false} />
           <Tooltip />
-          <Legend verticalAlign="top" />
-          <Bar dataKey="expectedTax" fill="#094fbd" />
-          <Bar dataKey="actualTax" fill="#507cd4" />
-          <Bar dataKey="expectedAlloc" fill="#cf1763" />
-          <Bar dataKey="actualAlloc" fill="#c76f94" />
-          <Bar dataKey="expectedSanction" fill="#EBA421" />
-          <Bar dataKey="actualSanction" fill="#e6c891" />
+          <Legend
+            verticalAlign="top"
+            wrapperStyle={{
+              paddingLeft: '10px',
+            }}
+          />
+          <Bar dataKey="expectedTax" fill="#094fbd" name="Expected Tax" />
+          <Bar dataKey="actualTax" fill="#507cd4" name="Actual Tax Paid" />
+          <Bar
+            dataKey="expectedAlloc"
+            fill="#cf1763"
+            name="Allocation Given by President"
+          />
+          <Bar
+            dataKey="actualAlloc"
+            fill="#c76f94"
+            name="Actual Allocation Taken"
+          />
+          <Bar
+            dataKey="expectedSanction"
+            fill="#EBA421"
+            name="Expected Sanction Charged"
+          />
+          <Bar
+            dataKey="actualSanction"
+            fill="#e6c891"
+            name="Actual Sanction Paid"
+          />
         </BarChart>
       </ResponsiveContainer>
       <p className={styles.graphLabel}>Team</p>
