@@ -129,7 +129,15 @@ func (s *SOMASServer) runDeerHunt(contributions map[shared.ClientID]shared.Resou
 
 func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]shared.Resources, huntReport foraging.ForagingReport) {
 	// distribute return amongst participants
-	totalContributions := huntReport.InputResources
+
+	totalContributions := shared.Resources(0)
+	for _, c := range huntReport.ParticipantContributions {
+		totalContributions += c
+	}
+
+	if len(huntReport.ParticipantContributions) == 0 {
+		return // to prevent div0 below. Also, no need to evaluate further
+	}
 
 	// auxiliary return info. Just to avoid repetition.
 	type auxReturnInfo struct {
@@ -156,12 +164,15 @@ func (s *SOMASServer) distributeForageReturn(contributions map[shared.ClientID]s
 				case shared.InputProportionalSplit:
 					participantReturn = (contribution / totalContributions) * huntReport.TotalUtility
 				case shared.EqualSplit, shared.RankProportionalSplit: // RankProportional is just same as equal split for now
-					participantReturn = huntReport.TotalUtility / shared.Resources(huntReport.NumberParticipants) // this casting is a bit lazy
+					participantReturn = huntReport.TotalUtility / shared.Resources(len(huntReport.ParticipantContributions)) // this casting is a bit lazy
 				}
 			}
 		}
 
-		s.giveResources(participantID, participantReturn, retReason)
+		err := s.giveResources(participantID, participantReturn, retReason)
+		if err != nil {
+			s.logf("Ignoring failure to give resources in distributeForageReturn: %v", err)
+		}
 		s.clientMap[participantID].ForageUpdate(shared.ForageDecision{
 			Type:         huntReport.ForageType,
 			Contribution: contribution,

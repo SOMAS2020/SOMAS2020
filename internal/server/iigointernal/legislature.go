@@ -3,6 +3,7 @@ package iigointernal
 import (
 	"fmt"
 	"reflect"
+	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -94,6 +95,16 @@ func (l *legislature) setVotingResult(clientIDs []shared.ClientID) (bool, error)
 	}
 
 	returnVote := l.clientSpeaker.DecideVote(l.ruleToVote, clientIDs)
+	returnedIslands := make([]shared.ClientID, len(returnVote.ParticipatingIslands))
+	copy(returnedIslands, returnVote.ParticipatingIslands)
+	sort.Sort(shared.SortClientByID(returnedIslands))
+	sort.Sort(shared.SortClientByID(clientIDs))
+
+	//log rule: All islands must participate in voting
+	variablesToCache := []rules.VariableFieldName{rules.AllIslandsAllowedToVote}
+	valuesToCache := [][]float64{{boolToFloat(reflect.DeepEqual(returnedIslands, clientIDs))}}
+	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
+
 	if returnVote.ActionTaken && returnVote.ContentType == shared.SpeakerVote {
 		if !l.incurServiceCharge(l.gameConf.SetVotingResultActionCost) {
 			return voteCalled, errors.Errorf("Insufficient Budget in common Pool: setVotingResult")
@@ -130,17 +141,13 @@ func (l *legislature) RunVote(ruleMatrix rules.RuleMatrix, clientIDs []shared.Cl
 	//TODO: log of clientIDs vs islandsAllowedToVote
 	//TODO: log of ruleMatrix vs s.RuleToVote
 
-	variablesToCache := []rules.VariableFieldName{rules.IslandsAllowedToVote}
-	valuesToCache := [][]float64{{float64(len(clientIDs))}}
-	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
-
 	rulesEqual := false
 	if reflect.DeepEqual(ruleMatrix, l.ruleToVote) {
 		rulesEqual = true
 	}
 
-	variablesToCache = []rules.VariableFieldName{rules.SpeakerProposedPresidentRule}
-	valuesToCache = [][]float64{{boolToFloat(rulesEqual)}}
+	variablesToCache := []rules.VariableFieldName{rules.SpeakerProposedPresidentRule}
+	valuesToCache := [][]float64{{boolToFloat(rulesEqual)}}
 
 	l.monitoring.addToCache(l.SpeakerID, variablesToCache, valuesToCache)
 
@@ -263,6 +270,7 @@ func (l *legislature) appointNextJudge(monitoring shared.MonitorResult, currentJ
 	} else {
 		appointedJudge = currentJudge
 	}
+	l.gameState.IIGOElection = append(l.gameState.IIGOElection, election.GetVotingInfo())
 	return appointedJudge, nil
 }
 

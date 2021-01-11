@@ -15,6 +15,7 @@ import (
 // Client is a base interface to be implemented by each client struct.
 type Client interface {
 	Echo(s string) string
+
 	GetID() shared.ClientID
 	Initialise(ServerReadHandle)
 	StartOfTurn()
