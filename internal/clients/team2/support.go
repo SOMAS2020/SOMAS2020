@@ -18,6 +18,10 @@ func (c *client) criticalStatus() bool {
 	return false
 }
 
+func (c *client) StartOfTurn() {
+	c.commonPoolUpdate()
+}
+
 // If a disaster is reported, append the turn and report of the latest disaster to the disaster history
 func (c *client) DisasterNotification(report disasters.DisasterReport, effects disasters.DisasterEffects) {
 	disaster := DisasterOccurrence{
@@ -157,8 +161,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			}
 
 			// Add a new sanction to the sanction hist
-			sanctions := c.sanctionHist[c.gameState().JudgeID]
-			c.sanctionHist[c.gameState().JudgeID] = append(sanctions, sanction)
+			c.sanctionHist[c.gameState().JudgeID] = append(c.sanctionHist[c.gameState().JudgeID], sanction)
 		default:
 			// will NOT execute logic for other conditions
 		}

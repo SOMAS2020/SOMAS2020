@@ -114,9 +114,9 @@ func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.C
 		c.Logf("[Exp [%v] Real [%v]]:", situationExp, situationReal)
 		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
 		c.Logf("Calculated new confidence: %v", newConf)
-		situationHist = append(situationHist, c.setLimits(newConf))
+		updatedHist := append(situationHist, c.setLimits(newConf))
 
-		c.opinionHist[otherIsland].Histories[situation] = situationHist
+		c.opinionHist[otherIsland].Histories[situation] = updatedHist
 		c.Logf("[did it really append?]:", c.opinionHist[otherIsland].Histories[situation])
 	}
 }
@@ -221,8 +221,6 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	}
 
 	c.opinionHist[island].Histories["Gifts"] = append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
-	c.Logf("[Gift situation updated]:", c.opinionHist[island].Histories["Gifts"])
-	c.Logf("[Length of gift situation after update]:", len(c.opinionHist[island].Histories["Gifts"]))
 
 	return pastConfidence
 }
@@ -254,6 +252,8 @@ func (c *client) updatePresidentTrust() {
 		percWeTake := shared.Resources(0)
 		percWeGet := shared.Resources(0)
 
+		c.Logf("are there taxes", c.taxAmount)
+
 		if runMeanTax != 0 {
 			percChangeTax = 100.0 * (c.taxAmount - runMeanTax) / runMeanTax
 		}
@@ -280,16 +280,18 @@ func (c *client) updatePresidentTrust() {
 		real: reality,
 	}
 
-	if perf, ok := c.opinionHist[currPres].Performances["President"]; ok {
-		islandSituationPerf.exp = perf.exp
-		c.Logf("updated island situation performance here tho", islandSituationPerf)
-
+	if history, ok := c.opinionHist[currPres].Histories["President"]; ok {
+		tempsum := 0.0
+		for _, item := range history {
+			tempsum += (float64(item) / float64(len(history)))
+		}
+		islandSituationPerf.exp = int(tempsum)
+		c.Logf("updated island  s ituation performance here tho", islandSituationPerf)
 	}
 
 	// TODO: shouldn't this be inside the if...if it doesn't exist we're accessing something that doesnt
 	c.Logf("Previous performance for President", c.opinionHist[currPres].Performances["President"])
 	c.Logf("Updated performance for President", islandSituationPerf)
-	c.confidence("President", currPres)
 	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
 }
 

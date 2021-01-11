@@ -6,15 +6,13 @@ import (
 )
 
 // Updates Common Pool History with current Common Pool Level
-// TODO: this is never used
-func commonPoolUpdate(c *client, commonPoolHistory CommonPoolHistory) {
+func (c *client) commonPoolUpdate() {
 	c.commonPoolHistory[c.gameState().Turn] = c.gameState().CommonPool
-	c.Logf("Common Pool History updated: ", commonPoolHistory)
+	c.Logf("Common Pool History updated: ", c.commonPoolHistory)
 }
 
 // Updates Resource Level History with our current resource Level
-// TODO: this is never used
-func resourceHistoryUpdate(c *client, resourceLevelHistory ResourcesLevelHistory) {
+func (c *client) resourceHistoryUpdate(resourceLevelHistory ResourcesLevelHistory) {
 	c.resourceLevelHistory[c.gameState().Turn] = c.gameState().ClientInfo.Resources
 	c.Logf("Resource Level History updated: ", resourceLevelHistory)
 }
