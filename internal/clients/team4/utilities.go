@@ -143,4 +143,3 @@ func (c *client) getOurResources() shared.Resources {
 	}
 	return 0
 }
-
