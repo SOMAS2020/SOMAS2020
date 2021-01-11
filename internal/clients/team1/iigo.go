@@ -168,7 +168,8 @@ func (c *client) RequestAllocation() shared.Resources {
 		return c.gameState().CommonPool
 	}
 
-	allocation := allocationPair.Values[0]
+	// Unintentionally nicking from commonPool so limiting amount. GetRecommendation is too powerful.
+	allocation := math.Min(allocationPair.Values[0], 2*float64(c.gameConfig().CostOfLiving))
 	if allocation != 0 {
 		c.Logf("Taking %v from common pool", allocation)
 	}
