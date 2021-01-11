@@ -12,8 +12,6 @@ const id = shared.Team2
 
 type AgentStrategy uint
 
-// TODO: URGENT - THIS IS NOT BEING USED PROPERLY IN ANY OF THE SECTIONS
-// TODO: THERE ARE FUNCTIONS THAT INCORRECTLY USE NUMBERS INSTEAD OF THE WORDS IN COMMON POOL AND OTHER PLACES
 const (
 	Selfish AgentStrategy = iota
 	FairSharer
@@ -33,7 +31,7 @@ const (
 	PresidentOp Situation = "President"
 	JudgeOp     Situation = "Judge"
 	RoleOpinion Situation = "RoleOpinion"
-	Foraging    Situation = "Foraging"
+	Disaster    Situation = "Disaster"
 	Gifts       Situation = "Gifts"
 )
 
@@ -75,16 +73,11 @@ type IslandSanctionInfo struct {
 }
 
 type CommonPoolInfo struct {
-	turn            uint
 	tax             shared.Resources
 	requestedToPres shared.Resources
 	allocatedByPres shared.Resources
 	takenFromCP     shared.Resources
 }
-
-// Currently what want to use to get archipelago geography but talking to Yannis to get this fixed
-// Because it doesn't work atm
-//archipelagoGeography := c.gamestate().Environment.Geography
 
 // A set of constants that define tuning parameters
 type clientConfig struct {
@@ -93,10 +86,10 @@ type clientConfig struct {
 	TuningParamG                     float64
 	VarianceCapMagnitude             float64
 	BaseResourcesToGiveDivisor       shared.Resources
-	BaseDisasterProtectionDivisor    shared.Resources
-	TimeLeftIncreaseDisProtection    float64
+	InitialThresholdProportionGuess  float64
+	TimeLeftIncreaseDisProtection    uint
 	DisasterSoonProtectionMultiplier float64
-	DefaultFirstTurnContribution     shared.Resources
+	DefaultContribution              shared.Resources
 	SelfishStartTurns                uint
 	SwitchToSelfishFactor            float64
 	SwitchToAltruistFactor           float64
@@ -104,9 +97,14 @@ type clientConfig struct {
 	AltruistFactorOfAvToGive         float64
 	ConfidenceRetrospectFactor       float64
 	ForageDecisionThreshold          float64
+	PatientTurns                     uint
 	SlightRiskForageDivisor          shared.Resources
 	HelpCritOthersDivisor            shared.Resources
-	InitialDisasterTurnGuess         float64
+	InitialDisasterTurnGuess         uint
+	CombinedDisasterPred             shared.DisasterPrediction
+	InitialCommonPoolThresholdGuess  shared.Resources
+	TargetRequestGift                shared.Resources
+	MaxGiftOffersMultiplier          shared.Resources
 }
 
 type OpinionHist map[shared.ClientID]Opinion
@@ -119,7 +117,12 @@ type DisasterHistory []DisasterOccurrence
 type IslandSanctions map[shared.ClientID]IslandSanctionInfo
 type TierLevels map[int]int
 type SanctionHist map[shared.ClientID][]IslandSanctionInfo
-type PresCommonPoolHist map[shared.ClientID][]CommonPoolInfo
+type PresCommonPoolHist map[shared.ClientID]map[uint]CommonPoolInfo
+
+// DisasterVulnerabilityDict is a map from island ID to an islands DVP
+type DisasterVulnerabilityDict map[shared.ClientID]float64
+
+type StrategyHistory map[uint]AgentStrategy
 
 type client struct {
 	*baseclient.BaseClient
@@ -135,11 +138,18 @@ type client struct {
 	disasterHistory      DisasterHistory
 	sanctionHist         SanctionHist
 	presCommonPoolHist   PresCommonPoolHist
+	strategyHistory      StrategyHistory
 
 	currStrategy  AgentStrategy
 	currPresident President
 	currJudge     Judge
 	currSpeaker   Speaker
+
+	islandDVPs DisasterVulnerabilityDict
+
+	// Define a global variable that holds the last prediction we shared
+	AgentDisasterPred    shared.DisasterPredictionInfo
+	CombinedDisasterPred shared.DisasterPrediction
 
 	taxAmount            shared.Resources
 	commonPoolAllocation shared.Resources
@@ -149,6 +159,9 @@ type client struct {
 	config clientConfig
 
 	declaredResources map[shared.ClientID]shared.Resources
+
+	lastForageType   shared.ForageType
+	lastForageAmount shared.Resources
 }
 
 func init() {
@@ -160,6 +173,7 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		BaseClient:           baseclient.NewClient(clientID),
 		commonPoolHistory:    CommonPoolHistory{},
 		resourceLevelHistory: ResourcesLevelHistory{},
+		strategyHistory:      StrategyHistory{},
 		opinionHist:          OpinionHist{},
 		predictionHist:       PredictionsHist{},
 		foragingReturnsHist:  ForagingReturnsHist{},
@@ -172,17 +186,18 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 		disasterHistory:      DisasterHistory{},
 		config: clientConfig{
 			TuningParamK:                     1.0,
+			PatientTurns:                     2,
 			VarianceCapTimeRemaining:         10000,
 			TuningParamG:                     1.0,
 			VarianceCapMagnitude:             10000,
 			BaseResourcesToGiveDivisor:       4.0,
-			BaseDisasterProtectionDivisor:    4.0,
+			InitialThresholdProportionGuess:  0.3,
 			TimeLeftIncreaseDisProtection:    3.0,
 			DisasterSoonProtectionMultiplier: 1.2,
-			DefaultFirstTurnContribution:     20,
+			DefaultContribution:              20,
 			SelfishStartTurns:                3,
 			SwitchToSelfishFactor:            0.3,
-			SwitchToAltruistFactor:           0.5,
+			SwitchToAltruistFactor:           0.9,
 			FairShareFactorOfAvToGive:        1.0,
 			AltruistFactorOfAvToGive:         2.0,
 			ConfidenceRetrospectFactor:       0.5,
@@ -190,6 +205,9 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			SlightRiskForageDivisor:          2.0,
 			HelpCritOthersDivisor:            2.0,
 			InitialDisasterTurnGuess:         7.0,
+			InitialCommonPoolThresholdGuess:  100, // this value is meaningless for now
+			TargetRequestGift:                1.5,
+			MaxGiftOffersMultiplier:          0.5,
 		},
 	}
 }
@@ -209,6 +227,16 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	// Set the initial strategy to selfish (can put anything here)
 	c.currStrategy = Selfish
 
+	// Initialise Disaster Prediction variables
+	c.CombinedDisasterPred = shared.DisasterPrediction{}
+	c.AgentDisasterPred = shared.DisasterPredictionInfo{}
+	c.strategyHistory = StrategyHistory{}
+
+	// Compute DVP for each Island based on Geography
+	c.islandDVPs = DisasterVulnerabilityDict{}
+	c.getIslandDVPs(c.gameState().Geography)
+
+	// Initialise Roles
 	c.currSpeaker = Speaker{c: c}
 	c.currJudge = Judge{c: c}
 	c.currPresident = President{c: c}

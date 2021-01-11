@@ -40,6 +40,10 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		trustRank = append(trustRank, islandConf)
 	}
 
+	if situation == "Judge" {
+		c.updateJudgeTrust()
+	}
+
 	sort.Sort(trustRank)
 	bordaList := make([]shared.ClientID, 0)
 
@@ -54,22 +58,22 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 //COMPULOSRY: must be implemented
 // TODO: This function is not implemented
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
-	return false
+	return true
 }
 
 // DecideIIGOMonitoringAnnouncement decides whether to share the result of monitoring a role and what result to share
 // COMPULSORY: must be implemented
 // TODO: This function is not implemented
 func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
-	resultToShare = false
-	announce = false
+	resultToShare = monitoringResult
+	announce = true
 	return
 }
 
 // Returns a ResourceReport - if Agent Strategy is selfish lies about resources
 // Otherwise accurately shares resources
 func (c *client) ResourceReport() shared.ResourcesReport {
-	mood := c.setAgentStrategy()
+	mood := c.getAgentStrategy()
 	switch mood {
 	case Selfish:
 		return shared.ResourcesReport{

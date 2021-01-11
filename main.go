@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"path"
 	"runtime"
@@ -36,7 +37,7 @@ var (
 	)
 	logLevel = flag.Uint(
 		"logLevel",
-		2,
+		0,
 		"Logging verbosity level. Note that output artifacts will remain the same.\n"+
 			"0: No logs at all\n"+
 			"1: Game logs (identical to logs.txt) (to stderr)\n"+
@@ -46,6 +47,8 @@ var (
 
 func main() {
 	timeStart := time.Now()
+	rand.Seed(timeStart.UTC().UnixNano())
+
 	flag.Parse()
 
 	var err error
@@ -70,7 +73,10 @@ func main() {
 		log.Fatalf("Flag parse error: %v\nUse --help.", err)
 	}
 
-	s := server.NewSOMASServer(gameConfig)
+	s, err := server.NewSOMASServer(gameConfig)
+	if err != nil {
+		log.Fatalf("Failed to initial SOMASServer: %v", err)
+	}
 	if gameStates, err := s.EntryPoint(); err != nil {
 		log.Fatalf("Run failed with: %+v", err)
 	} else {
