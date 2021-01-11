@@ -261,7 +261,6 @@ func (c *client) updatePresidentTrust() {
 		}
 	}
 
-	c.Logf("Updated performance for President", islandSituationPerf)
 	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
 }
 
@@ -275,7 +274,6 @@ func (c *client) updateJudgeTrust() {
 	reality := 50
 
 	if _, ok := c.sanctionHist[currJudge]; ok {
-		c.Logf("sanction hist for judge ", c.sanctionHist[currJudge])
 		prevTier := c.sanctionHist[currJudge][0].Tier
 		for i, sanction := range c.sanctionHist[currJudge] {
 			// turn := int(c.gameState().Turn - sanction.Turn)
@@ -372,7 +370,6 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 			IslandActualPrivateResources:   emptyInt,
 			IslandReportedPrivateResources: emptyInt,
 		}
-		c.Logf("IslandInfo ", islandInfo)
 	}
 
 	for _, accountability := range iigoHistory {
@@ -434,7 +431,6 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 			}
 		}
 
-		c.Logf("islandResourceDiff", islandResourceDiff)
 		reality := c.setLimits(100 - taxContribDiff - allocationDiff - sanctionDiff - islandResourceDiff)
 		islandSituationPerf := ExpectationReality{
 			exp:  50,
@@ -447,7 +443,6 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 			c.initialiseOpinionForIsland(island)
 		}
 
-		c.Logf("Updated performance    ", islandSituationPerf)
 		c.opinionHist[island].Performances["RoleOpinion"] = islandSituationPerf
 	}
 }
