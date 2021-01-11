@@ -11,6 +11,7 @@ import (
 // ForagingReport holds information about the result of a foraging session
 type ForagingReport struct {
 	ForageType               shared.ForageType
+	InputResources         shared.Resources // combined input resources
 	ParticipantContributions map[shared.ClientID]shared.Resources
 	NumberCaught             uint             // number of deer/fish/... caught
 	TotalUtility             shared.Resources // total return of foraging session before distribution
