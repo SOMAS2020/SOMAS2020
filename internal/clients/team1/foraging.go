@@ -83,27 +83,43 @@ func (c client) regressionForage() (shared.ForageDecision, error) {
 	var decision shared.ForageDecision
 
 	for forageType := range c.forageHistory {
-		r, err := outcomeRegression(c.forageHistory[forageType])
-		if err != nil {
-			return shared.ForageDecision{}, err
-		}
-
-		contribution := c.regressionOptimalContribution(r)
-		if contribution > c.gameState().ClientInfo.Resources {
-			contribution = c.gameState().ClientInfo.Resources
-		}
-
-		expectedRewardF, err := r.Predict([]float64{float64(contribution)})
-		if err != nil {
-			return shared.ForageDecision{}, err
-		}
-		expectedReward := shared.Resources(expectedRewardF)
-
-		if expectedReward > bestReward {
-			bestReward = expectedReward
+		var expectedReward shared.Resources
+		var contribution shared.Resources
+		// Regression throws an error when the size of array is less than 2
+		if len(c.forageHistory[forageType]) < 2 {
+			if forageType == shared.DeerForageType {
+				c.Logf("[Forage decision] Ha! jokes. Flipping instead")
+				contribution = c.flipForage().Contribution
+			} else {
+				c.Logf("[Forage decision] Ha! jokes. random instead")
+				contribution = shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources
+			}
 			decision = shared.ForageDecision{
 				Type:         forageType,
 				Contribution: contribution,
+			}
+		} else {
+			r, err := outcomeRegression(c.forageHistory[forageType])
+			if err != nil {
+				return shared.ForageDecision{}, err
+			}
+			contribution := c.regressionOptimalContribution(r)
+			if contribution > c.gameState().ClientInfo.Resources {
+				contribution = c.gameState().ClientInfo.Resources
+			}
+
+			expectedRewardF, err := r.Predict([]float64{float64(contribution)})
+			if err != nil {
+				return shared.ForageDecision{}, err
+			}
+			expectedReward = shared.Resources(expectedRewardF)
+
+			if expectedReward > bestReward {
+				bestReward = expectedReward
+				decision = shared.ForageDecision{
+					Type:         forageType,
+					Contribution: contribution,
+				}
 			}
 		}
 	}
@@ -115,6 +131,7 @@ func (c client) regressionForage() (shared.ForageDecision, error) {
 // forages deer, with an amount inversely proportional to the sum of contributed
 // resources
 func (c client) flipForage() shared.ForageDecision {
+	resources := c.gameState().ClientInfo.Resources
 	deerHistory := c.forageHistory[shared.DeerForageType]
 	totalContributionLastTurn := shared.Resources(0)
 	totalHuntersLastTurn := 0
@@ -127,10 +144,23 @@ func (c client) flipForage() shared.ForageDecision {
 		}
 	}
 
-	if totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0 {
+	if c.forageType == shared.FishForageType {
+		return shared.ForageDecision{
+			Contribution: shared.Resources(0.1*rand.Float64()) * c.gameState().ClientInfo.Resources,
+			Type:         shared.FishForageType,
+		}
+	}
+
+	if c.forageType == shared.DeerForageType && (totalContributionLastTurn == shared.Resources(0) || totalHuntersLastTurn == 0) {
+		contribution := shared.Resources(math.Min(
+			float64(shared.Resources(
+				c.config.forageContributionCapPercent)*resources,
+			),
+			float64(c.config.soloDeerHuntContribution),
+		))
 		// Big contribution
 		return shared.ForageDecision{
-			Contribution: 0.3 * c.gameState().ClientInfo.Resources,
+			Contribution: contribution,
 			Type:         shared.DeerForageType,
 		}
 	}
@@ -138,13 +168,15 @@ func (c client) flipForage() shared.ForageDecision {
 	// Proxy for population
 	totalROI := totalRevenueLastTurn / totalContributionLastTurn
 	averageContribution := totalContributionLastTurn / shared.Resources(totalHuntersLastTurn)
-
 	contribution := shared.Resources(c.config.flipForageScale) * totalROI * averageContribution
+	contribution += shared.Resources(c.config.forageContributionNoisePercent) * resources
 	contribution = shared.Resources(math.Min(
-		float64(0.2*c.gameState().ClientInfo.Resources),
+		float64(shared.Resources(
+			c.config.forageContributionCapPercent)*resources,
+		),
 		float64(contribution),
 	))
-
+	c.Logf("[Forage decision] flipping results: %v", contribution)
 	return shared.ForageDecision{
 		Contribution: contribution,
 		Type:         shared.DeerForageType,
@@ -204,12 +236,9 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	} else if c.emotionalState() == Desperate {
 		c.Logf("[Forage decision]: desperate")
 		return c.desperateForage(), nil
-	} else if len(c.livingClients()) > 1 {
+	} else {
 		c.Logf("[Forage decision]: flip")
 		return c.flipForage(), nil
-	} else {
-		c.Logf("[Forage decision]: constant")
-		return c.constantForage(0.2), nil
 	}
 }
 
@@ -221,14 +250,31 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, revenue shar
 		participant:  c.GetID(),
 	})
 
-	c.Logf(
-		"[Forage result]: %v(%05.3f) | Expectation: %+05.3f | Reward: %+05.3f | Error: %.0f%%",
-		forageDecision.Type,
-		forageDecision.Contribution,
-		c.expectedForageReward,
-		revenue,
-		((c.expectedForageReward-revenue)/revenue)*100,
-	)
+	notEnoughMoney := revenue < 2*c.gameConfig().CostOfLiving
+	if notEnoughMoney || revenue/forageDecision.Contribution < 1 {
+		switch c.forageType {
+		case shared.DeerForageType:
+			c.forageType = shared.FishForageType
+		case shared.FishForageType:
+			c.forageType = shared.DeerForageType
+		}
+	}
+
+	if revenue == 0 {
+		c.Logf(
+			"[Forage result]: %v(%05.3f) | Reward: 0 ",
+			forageDecision.Type,
+			forageDecision.Contribution,
+		)
+	} else {
+		c.Logf(
+			"[Forage result]: %v(%05.3f) | Reward: %+05.3f | Error: %.0f%%",
+			forageDecision.Type,
+			forageDecision.Contribution,
+			revenue,
+			((c.expectedForageReward-revenue)/revenue)*100,
+		)
+	}
 }
 
 /************************/
