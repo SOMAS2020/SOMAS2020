@@ -162,7 +162,7 @@ func (c *client) StartOfTurn() {
 	if c.gameState().Turn == 1 {
 		c.disasterInfo.meanDisaster = disasters.DisasterReport{}
 		c.forageType = shared.DeerForageType
-		if c.gameConfig().DisasterConfig.DisasterPeriod.Valid == true {
+		if c.gameConfig().DisasterConfig.DisasterPeriod.Valid {
 			c.disasterInfo.estimatedDDay = c.gameConfig().DisasterConfig.DisasterPeriod.Value
 		} else {
 			c.disasterInfo.estimatedDDay = uint(rand.Intn(10))
