@@ -260,12 +260,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 	}
 
-<<<<<<< HEAD
 	c.Logf("Tax paid: %v", valToBeReturned)
-=======
-	c.Logf("Team4 tax paid: %v", valToBeReturned)
-
->>>>>>> d023eccf00a68e663e7dce9fe85842697efbf919
 	return valToBeReturned
 
 }
