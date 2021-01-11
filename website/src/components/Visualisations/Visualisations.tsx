@@ -33,6 +33,20 @@ import Roles from './Roles/Roles'
 import IIGOPayments from './IIGOPayments/IIGOPayments'
 import Achievements from './Achievements/Achievements'
 import FourOhFour from '../FourOhFour/FourOhFour'
+import styles from './Visualisations.module.css'
+import logo from '../../assets/logo/logo512.png'
+
+const VisualisationsHome = () => {
+  return (
+    <div className={styles.root}>
+      <h1>Visualisations</h1>
+      <p style={{ fontSize: '1.2em' }}>
+        Choose a visualisation category above to continue.
+      </p>
+      <img src={logo} className={styles.appLogo} alt="logo" />
+    </div>
+  )
+}
 
 const Visualisations = () => {
   const [output, setOutput] = useState<OutputJSONType | undefined>(undefined)
@@ -48,7 +62,6 @@ const Visualisations = () => {
       const o = await loadLocalVisOutput()
       if (o) {
         setOutput(o)
-        history.push(gamevisualisation)
       }
     } catch (err) {
       // if error, just assume not stored at all
@@ -190,6 +203,11 @@ const Visualisations = () => {
                     path={iigopaymentsvisualisation}
                     exact
                     component={() => <IIGOPayments output={output} />}
+                  />
+                  <Route
+                    path={visualisations}
+                    exact
+                    component={VisualisationsHome}
                   />
                   <Route component={FourOhFour} />
                 </Switch>
