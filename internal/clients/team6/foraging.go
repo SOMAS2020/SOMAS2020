@@ -42,6 +42,7 @@ func (c *client) changeForageType() shared.ForageType {
 			deerParticipant2++
 		}
 	}
+
 	if deerParticipant > 0 {
 		deerAverageRoi = deerRoiTotal / float64(deerParticipant)
 	} else {
@@ -83,6 +84,7 @@ func (c *client) changeForageType() shared.ForageType {
 		}
 		if deerAverageRoi > deerAverageRoi2 {
 			c.clientConfig.multiplier += 0.06
+
 		}
 		return shared.DeerForageType
 	}
@@ -117,6 +119,7 @@ func (c *client) randomForage() shared.ForageDecision {
 		forageType = shared.DeerForageType
 	}
 	tmp := rand.Float64()
+
 	if tmp > 0.3 { //up to 30% resources
 		resources = 0.3 * c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	} else {

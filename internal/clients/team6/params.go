@@ -24,7 +24,7 @@ type GiftsReceivedHistory map[shared.ClientID]shared.Resources
 type GiftsRequestedHistory map[shared.ClientID]shared.Resources
 
 // DisastersHistory records the sequences of disastered happened
-type DisastersHistory []baseclient.DisasterInfo
+type DisastersHistory baseclient.PastDisastersList
 
 // DisasterPredictions records the disasater disasters from other islands
 type DisasterPredictions map[shared.ClientID]shared.DisasterPrediction

@@ -2,6 +2,8 @@
 package team6
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -119,7 +121,6 @@ func (c *client) updateFriendship() {
 }
 
 func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disasters.DisasterEffects) {
-	// TODO: effects may be recorded
 	currTurn := c.ServerReadHandle.GetGameState().Turn
 
 	disasterhappening := baseclient.DisasterInfo{
@@ -129,9 +130,19 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 		Turn:        currTurn,
 	}
 
-	//for team, prediction := range c.receivedDisasterPredictions {
-	// TODO: increases the trust rank based on the predictions
-	//}
+	ourDiff := math.Abs(c.disasterPredictions[c.GetID()].Magnitude - disasterhappening.Magnitude)
+	theirDiff := float64(0)
+
+	for team, prediction := range c.disasterPredictions {
+		theirDiff = math.Abs(prediction.Magnitude - disasterhappening.Magnitude)
+
+		c.trustRank[team] += (ourDiff - theirDiff) / ourDiff
+
+		if c.trustRank[team] < 0 {
+			c.trustRank[team] = 0
+			continue
+		}
+	}
 
 	c.disastersHistory = append(c.disastersHistory, disasterhappening)
 }
