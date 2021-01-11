@@ -51,8 +51,10 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourSpeaker = speaker{c: c, BaseSpeaker: &baseclient.BaseSpeaker{GameState: c.ServerReadHandle.GetGameState()}}
 	c.ourJudge = judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 	c.ourPresident = president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
-
 	c.initgiftOpinions()
+	if c.params.adv != nil {
+		c.params.adv.Initialise()
+	}
 
 	// Set trust scores
 	c.trustScore = make(map[shared.ClientID]float64)

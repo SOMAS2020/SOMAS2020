@@ -2,6 +2,7 @@
 package team3
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/adv"
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -98,6 +99,7 @@ type islandParams struct {
 	sensitivity             float64
 	localPoolThreshold      float64
 	giftInflationPercentage float64
+	adv                     adv.Adv
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
 

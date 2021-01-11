@@ -15,7 +15,29 @@ type president struct {
 	c *client
 }
 
+// CallSpeakerElection is called by the executive to decide on power-transfer
+// COMPULSORY: decide when to call an election following relevant rulesInPlay if you wish
+func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	// example implementation calls an election if monitoring was performed and the result was negative
+	// or if the number of turnsInPower exceeds 3
+	if p.c.params.adv != nil {
+		ret, done := p.c.params.adv.CallSpeakerElection(monitoring, turnsInPower, allIslands)
+		if done {
+			return ret
+		}
+	}
+
+	return p.BasePresident.CallSpeakerElection(monitoring, turnsInPower, allIslands)
+}
+
 func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
+	if p.c.params.adv != nil {
+		ret, done := p.c.params.adv.DecideNextSpeaker(winner)
+		if done {
+			return ret
+		}
+	}
+
 	p.c.clientPrint("choosing speaker")
 	// Naively choose group 0
 	return mostTrusted(p.c.trustScore)
@@ -128,6 +150,14 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 }
 
 func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) shared.PresidentReturnContent {
+
+	if p.c.params.adv != nil {
+		val, done := p.c.params.adv.SetTaxationAmount(islandsResources)
+		if done {
+			return val
+		}
+	}
+
 	//decide if we want to run SetTaxationAmount
 	p.c.declaredResources = make(map[shared.ClientID]shared.Resources)
 	for island, report := range islandsResources {
