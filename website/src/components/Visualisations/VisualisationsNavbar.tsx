@@ -10,6 +10,7 @@ import {
   resourcesvisualisation,
   achievementsvisualisation,
   visualisations,
+  iigopaymentsvisualisation,
 } from '../../consts/paths'
 
 const VisualisationsNavbar = (props: { reset: () => any }) => {
@@ -44,6 +45,7 @@ const VisualisationsNavbar = (props: { reset: () => any }) => {
             {getNavLink('Transactions', transactionvisualisation)}
             {getNavLink('Roles', rolesvisualisation)}
             {getNavLink('Resources', resourcesvisualisation)}
+            {getNavLink('IIGOPayments', iigopaymentsvisualisation)}
             {getNavLink('Achievements', achievementsvisualisation)}
           </Nav>
           <Nav>
