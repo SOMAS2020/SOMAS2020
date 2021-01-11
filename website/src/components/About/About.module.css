@@ -1,0 +1,11 @@
+.text {
+  font-size: 2em;
+  font-weight: 600;
+}
+
+.root {
+  margin: auto;
+  margin-right: 80px;
+  margin-left: 80px;
+  text-align: left;
+}
