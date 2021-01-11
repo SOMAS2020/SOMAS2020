@@ -12,7 +12,7 @@ import (
 )
 
 const id = shared.Team4
-const clientConfiguration = middle // used to tweak the behavouir of our agent
+const clientConfiguration = honest // used to tweak the behavouir of our agent
 
 func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
