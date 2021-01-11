@@ -201,9 +201,7 @@ func createClientSet(lst []shared.ClientID) []shared.ClientID {
 	uniqueMap := make(map[shared.ClientID]bool)
 	var uniqueLst []shared.ClientID
 	for _, e := range lst {
-
-		_, ok := uniqueMap[e]
-		if !ok {
+		if _, ok := uniqueMap[e]; !ok {
 			uniqueMap[e] = true
 			uniqueLst = append(uniqueLst, e)
 		}
