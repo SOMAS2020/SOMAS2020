@@ -12,12 +12,12 @@ var (
 	// config.Config
 	maxSeasons = flag.Uint(
 		"maxSeasons",
-		100,
+		50,
 		"The maximum number of 1-indexed seasons to run the game.",
 	)
 	maxTurns = flag.Uint(
 		"maxTurns",
-		100,
+		50,
 		"The maximum numbers of 1-indexed turns to run the game.",
 	)
 	initialResources = flag.Float64(
@@ -27,7 +27,7 @@ var (
 	)
 	initialCommonPool = flag.Float64(
 		"initialCommonPool",
-		1000,
+		500,
 		"The default number of resources in the common pool at the start of the game.",
 	)
 	costOfLiving = flag.Float64(
@@ -57,7 +57,7 @@ var (
 	)
 	foragingDeerIncrementalInputDecay = flag.Float64(
 		"foragingDeerIncrementalInputDecay",
-		0.8,
+		0.99,
 		"Determines decay of incremental input cost of hunting more deer.",
 	)
 	foragingDeerBernoulliProb = flag.Float64(
@@ -77,7 +77,7 @@ var (
 	)
 	foragingDeerOutputScaler = flag.Float64(
 		"foragingDeerOutputScaler",
-		18,
+		25,
 		"scalar value that adjusts deer returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingDeerDistributionStrategy = flag.Int(
@@ -87,12 +87,12 @@ var (
 	)
 	foragingDeerThetaCritical = flag.Float64(
 		"foragingDeerThetaCritical",
-		0.8,
+		0.65,
 		"Bernoulli prob of catching deer when population ratio = running population/max deer per hunt = 1",
 	)
 	foragingDeerThetaMax = flag.Float64(
 		"foragingDeerThetaMax",
-		0.95,
+		0.90,
 		"Bernoulli prob of catching deer when population is at carrying capacity (max population)",
 	)
 	foragingDeerMaxPopulation = flag.Uint(
@@ -109,7 +109,7 @@ var (
 	// config.ForagingConfig.FishingConfig
 	foragingFishMaxPerHunt = flag.Uint(
 		"foragingMaxFishPerHunt",
-		6,
+		8,
 		"Max possible catch (num. fish) on a single expedition (regardless of number of participants).",
 	)
 	foragingFishingIncrementalInputDecay = flag.Float64(
@@ -124,22 +124,22 @@ var (
 	)
 	foragingFishingVariance = flag.Float64(
 		"foragingFishingVariance",
-		0.2,
+		0.1,
 		"Determines variance of normal distribution of fishing return (see foraging README)",
 	)
 	foragingFishingInputScaler = flag.Float64(
 		"foragingFishingInputScaler",
-		10,
+		8,
 		"scalar value that adjusts input resources to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingOutputScaler = flag.Float64(
 		"foragingFishingOutputScaler",
-		12,
+		18,
 		"scalar value that adjusts returns to be in a range that is commensurate with cost of living, salaries etc.",
 	)
 	foragingFishingDistributionStrategy = flag.Int(
 		"foragingFishingDistributionStrategy",
-		int(shared.EqualSplit),
+		int(shared.InputProportionalSplit),
 		shared.HelpResourceDistributionStrategy(),
 	)
 
@@ -181,7 +181,7 @@ var (
 	)
 	disasterMagnitudeResourceMultiplier = flag.Float64(
 		"disasterMagnitudeResourceMultiplier",
-		500,
+		50,
 		"Multiplier to map disaster magnitude to CP resource deductions",
 	)
 	disasterCommonpoolThreshold = flag.Float64(
