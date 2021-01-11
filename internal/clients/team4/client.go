@@ -212,7 +212,7 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 
 			if currentAuxValue == 0 {
 				// ==0 condition
-				if idealValue != 0 {
+				if idealValue > 0 {
 					distance += math.Abs(idealValue-actualValue) / idealValue
 				} else {
 					distance += math.Abs(idealValue - actualValue)
@@ -220,19 +220,31 @@ func (c *client) decideRuleDistance(ruleMatrix rules.RuleMatrix) float64 {
 			} else if currentAuxValue == 1 {
 				// TODO: ACTUALLY IMPLEMENT THESE CONDITIONS
 				// >0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 			} else if currentAuxValue == 2 {
 				// <=0 condition
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += idealValue - actualValue
+				}
 			} else if currentAuxValue == 3 {
 				// !=0 condition
 				if idealValue != 0 {
 					distance += math.Abs(idealValue-actualValue) / idealValue
 				} else {
-					distance += math.Abs(idealValue - actualValue)
+					distance += idealValue - actualValue
 				}
 			} else if currentAuxValue == 4 {
-				distance += math.Abs(idealValue-actualValue) / idealValue
+				if idealValue > 0 {
+					distance += math.Abs(idealValue-actualValue) / idealValue
+				} else {
+					distance += math.Abs(idealValue - actualValue)
+				}
 				// it returns the value of the calculation
 			}
 		}

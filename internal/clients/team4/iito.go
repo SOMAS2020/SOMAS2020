@@ -2,6 +2,7 @@ package team4
 
 import (
 	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"gonum.org/v1/gonum/mat"
 )
@@ -13,14 +14,14 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	requests := shared.GiftRequestDict{}
 	ourResources := c.getOurResources()
 	importance := c.importances.getGiftRequestsImportance
-	
+
 	parameters := mat.NewVecDense(4, []float64{
 		c.internalParam.greediness,
 		c.internalParam.selfishness,
 		c.internalParam.fairness,
 		c.internalParam.collaboration,
 	})
-	// greedinessLevel designed to be greater than 1 for high selfishness/greediness 
+	// greedinessLevel designed to be greater than 1 for high selfishness/greediness
 	//or low collaboration/fairness.
 	greedinessLevel := mat.Dot(importance, parameters)
 
@@ -30,7 +31,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	// You can fetch the clients which are alive like this:
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 		if status == shared.Critical ||
-		   wealthGoal > ourResources {
+			wealthGoal > ourResources {
 			requests[team] = shared.GiftRequest(giftSize)
 		} else {
 			requests[team] = shared.GiftRequest(0.0)
@@ -64,25 +65,25 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	resourcesThreshold := 100.0
 
 	// have a cap at 100 in case we are too selfless
-	wealthGoal := math.Max(selflessLevel * float64(ourResources), resourcesThreshold)
-	
+	wealthGoal := math.Max(selflessLevel*float64(ourResources), resourcesThreshold)
+
 	// giftSize is the maximum we can afford giving away.
-	giftSize :=  float64(ourResources) - wealthGoal
+	giftSize := float64(ourResources) - wealthGoal
 
 	// You can fetch the clients which are alive like this:
 	for team, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
 		teamTrust := c.getTrust(team)
-		offerSize:= 0.0
+		offerSize := 0.0
 		if status == shared.Critical &&
-		   giftSize > 0 {
+			giftSize > 0 {
 			// If an island is critical takes precedence!
 			// We donate everything we can according to our giftSize until we satisfy their
 			// request.
 			offerSize = math.Min(float64(receivedRequests[team]), giftSize)
 			offers[team] = shared.GiftOffer(offerSize)
 		} else if giftSize > 0 &&
-				  teamTrust > trustThreshold {
-			// If an island is not critical and we can still donate something.		
+			teamTrust > trustThreshold {
+			// If an island is not critical and we can still donate something.
 			// We offer them a proportional amount based on how much we trust them.
 			// teamTrust is less or equal to 1.
 			offerSize = giftSize * teamTrust
@@ -98,7 +99,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 // they want to fulfill a gift offer they have made.
 // COMPULSORY, you need to implement this method
 func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resources) shared.Resources {
-	
+
 	// THIS JUST REPLICATES THE CODE IN "GetGiftOffers" to find our wealthGoal
 	ourResources := c.getOurResources()
 	// same as for requests. Now we will consider when you are more collaborative than greedy.
@@ -117,15 +118,15 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 	resourcesThreshold := 100.0
 
 	// have a cap at 100 in case we are too selfless
-	wealthGoal := math.Max(selflessLevel * float64(ourResources), resourcesThreshold)
-	
+	wealthGoal := math.Max(selflessLevel*float64(ourResources), resourcesThreshold)
+
 	// giftSize is the maximum we can afford giving away.
-	giftSize :=  float64(ourResources) - wealthGoal
+	giftSize := float64(ourResources) - wealthGoal
 
 	// Lets just return the min of "giftSize" and giftOffer.
-	// The idea is that we are very careful in the function that 
+	// The idea is that we are very careful in the function that
 	// makes offers, so here we just keep our word as long as it does not
-	// put us in a stressful state / our selfishness and greediness have 
+	// put us in a stressful state / our selfishness and greediness have
 	// increased since we made the offer.
 	actualGift := math.Min(float64(giftOffer), giftSize)
 	return shared.Resources(actualGift)
@@ -136,24 +137,23 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 // COMPULSORY, you need to implement this method
 func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 	// You can check your updated resources like this:
-	myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	myResources := c.getOurResources()
 	percentageDonated := 0.0
 	// avoid div 0
-	if float64(sent + myResources) > 0 {
+	if float64(sent+myResources) > 0 {
 		percentageDonated = float64(sent / (sent + myResources))
 	}
 	bumpThreshold := 0.2
 	currentGreediness := c.internalParam.greediness
-	maxGreedBump := math.Min(currentGreediness + bumpThreshold, 1.0)
-	
+	maxGreedBump := math.Min(currentGreediness+bumpThreshold, 1.0)
+
 	currentSelfishness := c.internalParam.selfishness
-	maxSelfishBump := math.Min(currentSelfishness + bumpThreshold, 1.0)
-	
+	maxSelfishBump := math.Min(currentSelfishness+bumpThreshold, 1.0)
+
 	// Bump up greediness and selfishness.
 	// We use a maximum bump to cap at 1 and reduce the volatility.
-	c.internalParam.greediness = math.Min(currentGreediness + percentageDonated, maxGreedBump)
-	c.internalParam.selfishness = math.Min(currentSelfishness + percentageDonated, maxSelfishBump)
-	
+	c.internalParam.greediness = math.Min(currentGreediness+percentageDonated, maxGreedBump)
+	c.internalParam.selfishness = math.Min(currentSelfishness+percentageDonated, maxSelfishBump)
 
 }
 
@@ -162,7 +162,7 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 // COMPULSORY, you need to implement this method
 func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 	// You can check your updated resources like this:
-	myResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	myResources := c.getOurResources()
 	percentageDonated := 0.0
 	// avoid div 0
 	if float64(myResources) > 0 {
@@ -171,12 +171,12 @@ func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 	bumpThreshold := 0.2
 
 	currentCollab := c.internalParam.collaboration
-	maxCollabBump := math.Min(currentCollab + bumpThreshold, 1.0)
+	maxCollabBump := math.Min(currentCollab+bumpThreshold, 1.0)
 
 	currentAgentTrust := c.trustMatrix.GetClientTrust(from)
-	maxTrustBump := math.Min(currentAgentTrust + bumpThreshold, 1.0)
+	maxTrustBump := math.Min(currentAgentTrust+bumpThreshold, 1.0)
 	// Bump up collaboration and agent trust.
 	// We use a maximum bump to cap at 1 and reduce the volatility.
-	c.internalParam.collaboration = math.Min(currentCollab + percentageDonated, maxCollabBump)
-	c.trustMatrix.SetClientTrust(from, math.Min(currentAgentTrust + percentageDonated, maxTrustBump))
+	c.internalParam.collaboration = math.Min(currentCollab+percentageDonated, maxCollabBump)
+	c.trustMatrix.SetClientTrust(from, math.Min(currentAgentTrust+percentageDonated, maxTrustBump))
 }
