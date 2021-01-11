@@ -47,7 +47,7 @@ func (c *client) GetClientPresidentPointer() roles.President {
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
 
 	// Get relevant map of past performance
-	var pastRolePerformance map[shared.ClientID]int
+	var pastRolePerformance = make(map[shared.ClientID]int)
 	if roleToElect == shared.President {
 		pastRolePerformance = c.presidentPerformance
 	}
@@ -58,7 +58,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	}
 
 	// Calculate combined trust and past performance metric
-	var trustPerformanceScore map[shared.ClientID]float64
+	var trustPerformanceScore = make(map[shared.ClientID]float64)
 	for island, trustScore := range c.trustScore {
 		trustPerformanceScore[island] = trustScore + float64(pastRolePerformance[island])
 	}
@@ -87,9 +87,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		}
 		returnList = append(returnList, highscoreIsland)
 	}
-
 	return returnList
-
 }
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
