@@ -133,7 +133,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 			contribution := shared.ForageDecision{Type: c.lastForageType, Contribution: c.lastForageAmount}
 			return shared.ForageShareInfo{
 				DecisionMade:     contribution,
-				ResourceObtained: c.foragingReturnsHist[c.GetID()][len(c.foragingReturnsHist)-1].ResourcesObtained,
+				ResourceObtained: c.foragingReturnsHist[c.GetID()][len(c.foragingReturnsHist[c.GetID()])-1].ResourcesObtained,
 				ShareTo:          c.getIslandsToShareWith(),
 			}
 		}

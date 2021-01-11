@@ -143,7 +143,7 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 				probDeerHunting -= (float64(prevTurnsHunters[i]) /
 					float64(c.getTurn()-i)) *
 					c.config.DecreasePerHunterInLookBack *
-					(0.5 + float64(noCaught[i]))
+					(0.5 * float64(noCaught[i]))
 			}
 
 			// Logger
