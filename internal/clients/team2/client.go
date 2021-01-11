@@ -31,7 +31,7 @@ const (
 	PresidentOp Situation = "President"
 	JudgeOp     Situation = "Judge"
 	RoleOpinion Situation = "RoleOpinion"
-	Foraging    Situation = "Foraging"
+	Disaster    Situation = "Disaster"
 	Gifts       Situation = "Gifts"
 )
 

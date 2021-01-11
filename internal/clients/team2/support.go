@@ -25,11 +25,17 @@ func (c *client) DisasterNotification(report disasters.DisasterReport, effects d
 		Report: report,
 	}
 
+	c.Logf("THERE HAS BEEN A DISASTER")
+
 	c.disasterHistory = append(c.disasterHistory, disaster)
+	c.updateDisasterConf()
+	for _, island := range c.getAliveClients() {
+		c.confidenceRestrospect("Disaster", island)
+	}
 }
 
 // getIslandsToShareWith returns a slice of the islands we want to share our prediction with.
-// We decided to always share our prediction with all islands to improve arhcipelago decisions as a whole.
+// We decided to always share our prediction with all islands to improve archipelago decisions as a whole.
 func (c *client) getIslandsToShareWith() []shared.ClientID {
 	islandsToShareWith := make([]shared.ClientID, len(shared.TeamIDs))
 	for index, id := range shared.TeamIDs {

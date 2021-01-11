@@ -70,6 +70,7 @@ func (j *Judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			}
 			outMap[clientID] = tempReturn
 		}
+		j.c.updateRoleTrust(iigoHistory)
 		// We've calculated the reality and the expectation before already
 		j.c.confidenceRestrospect("RoleOpinion", clientID)
 	}

@@ -42,6 +42,10 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		trustRank = append(trustRank, islandConf)
 	}
 
+	if situation == "Judge" {
+		c.updateJudgeTrust()
+	}
+
 	sort.Sort(trustRank)
 	bordaList := make([]shared.ClientID, 0)
 

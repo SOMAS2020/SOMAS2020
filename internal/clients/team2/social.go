@@ -15,15 +15,15 @@ type IslandTrustMap map[int]GiftInfo
 func (p IslandTrustMap) Len() int      { return len(p) }
 func (p IslandTrustMap) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
-// func (p IslandTrustMap) Less(i, j int) bool { return p[i].trust < p[j].trust }
+// func (p IslandTrustMap) Less(i, j int) bool { return p[i] < p[j] }
 
 func (c *client) initialiseOpinionForIsland(otherIsland shared.ClientID) {
 	Histories := make(map[Situation][]int)
 	Histories["President"] = []int{50}
 	Histories["RoleOpinion"] = []int{50}
 	Histories["Judge"] = []int{50}
-	Histories["Foraging"] = []int{50}
 	Histories["Gifts"] = []int{50}
+	Histories["Disaster"] = []int{50}
 	c.opinionHist[otherIsland] = Opinion{
 		Histories:    Histories,
 		Performances: map[Situation]ExpectationReality{},
@@ -47,7 +47,10 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 	c.Logf("Situation ", situation)
 	c.Logf("Island ", otherIsland)
 	c.Logf("History with island ", islandHist)
+
 	situationHist := islandHist[situation]
+
+	c.Logf("did something fucked up", situationHist)
 
 	// Check if there is a history to take a weighted average from
 	if len(situationHist) != 0 {
@@ -58,14 +61,20 @@ func (c *client) confidence(situation Situation, otherIsland shared.ClientID) in
 			sum += (situationHist[i-1]) * i
 			div += i
 		}
+
 		trust = sum / div
 	}
 
 	// Set the expectation to the weighted past average or the default 50
 	islandSituationPerf := ExpectationReality{
 		exp:  trust,
-		real: 0,
+		real: 50,
 	}
+	if perf, ok := c.opinionHist[otherIsland].Performances[situation]; ok {
+		islandSituationPerf.real = perf.real
+		c.Logf("updated island situation performance here tho", islandSituationPerf)
+	}
+
 	c.Logf("[Situation Performance (exp)]:", islandSituationPerf)
 
 	//c.Logf("island opinions", c.opinionHist[shared.ClientID(4)])
@@ -88,26 +97,24 @@ func (c *client) setLimits(confidence int) int {
 // performance with the reality
 // Should be called after an action (with an island) has occurred
 func (c *client) confidenceRestrospect(situation Situation, otherIsland shared.ClientID) {
-	c.Logf("[our opinion of others]:", c.opinionHist[otherIsland])
+	c.Logf("Our opinion of %v:%v", otherIsland, c.opinionHist[otherIsland])
 	if opinion, ok := c.opinionHist[otherIsland]; ok {
-		islandHist := opinion.Histories
-		situationHist := islandHist[situation]
+		situationHist := opinion.Histories[situation]
 		c.Logf("situation we're dealing with ", situation)
 		c.Logf("[situation before]:", situationHist)
 		islandSituationPerf := opinion.Performances[situation]
 		situationExp := islandSituationPerf.exp
 		situationReal := islandSituationPerf.real
-		c.Logf("[current performance]:", islandSituationPerf)
 
 		percentageDiff := situationReal
 		if situationExp != 0 { // Forgiveness principle: if we had 0 expectation, give them a chance to improve
 			// between -100 and 100
-			percentageDiff = 100 * (situationReal - situationExp) / situationExp
+			percentageDiff = situationReal - situationExp
 		}
+		c.Logf("[Exp [%v] Real [%v]]:", situationExp, situationReal)
 		newConf := int(float64(percentageDiff)*c.config.ConfidenceRetrospectFactor + float64(situationExp))
+		c.Logf("Calculated new confidence: %v", newConf)
 		updatedHist := append(situationHist, c.setLimits(newConf))
-		c.Logf("[situation after]:", updatedHist)
-		c.Logf("[appended yuhuuu]:", len(updatedHist))
 
 		c.opinionHist[otherIsland].Histories[situation] = updatedHist
 		c.Logf("[did it really append?]:", c.opinionHist[otherIsland].Histories[situation])
@@ -159,83 +166,61 @@ func (c *client) updateGiftConfidence(island shared.ClientID) int {
 	if hist, ok := c.giftHist[island]; ok {
 		ourReqMap = hist.OurRequest
 		theirReqMap = hist.IslandRequest
-		c.Logf("ourReqMap: ", ourReqMap)
-		c.Logf("theirReqMap: ", theirReqMap)
-	} else {
-		// TODO: this could be something
-		return pastConfidence
+		ourKeys := make([]int, 0)
+
+		for k := range ourReqMap {
+			ourKeys = append(ourKeys, int(k))
+		}
+
+		theirKeys := make([]int, 0)
+		for k := range theirReqMap {
+			theirKeys = append(theirKeys, int(k))
+		}
+
+		// Sort the keys in decreasing order
+		sort.Ints(ourKeys)
+		sort.Ints(theirKeys)
+
+		// Take running average of the interactions
+		// The individual turn values will be scaled wrt to the "distance" from the current turn
+		// ie transactions further in the past are valued less
+		if MinInt(len(ourKeys), len(theirKeys)) == 0 {
+			updatedHist := append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
+			c.opinionHist[island].Histories["Gifts"] = updatedHist
+			return pastConfidence
+		}
+		c.Logf("Bufferlen %v", bufferLen)
+		for i := 0; i < MinInt(bufferLen, len(ourKeys)); i++ {
+			// Get the transaction distance to the previous transaction
+			ourTransDist := turn - uint(ourKeys[i]) + 1
+			// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
+			runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
+			runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
+		}
+		for i := 0; i < MinInt(bufferLen, len(theirKeys)); i++ {
+			// Get the transaction distance to the previous transaction
+			theirTransDist := turn - uint(theirKeys[i]) + 1
+			// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
+			runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
+			runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
+		}
+
+		// TODO: this is an issue if runMeanWeReq is 0 we should set the value somehow differently
+		usRatio := 1.0
+		themRatio := 1.0
+
+		if runMeanWeReq != 0 {
+			usRatio = runMeanTheyDon / runMeanWeReq // between 0 and 1
+		}
+
+		if runMeanTheyReq != 0 {
+			themRatio = runMeanWeDon / runMeanTheyReq // between 0 and 1
+		}
+
+		diff := usRatio - themRatio // between -1 and 1
+		pastConfidence = int((pastConfidence + int(diff*100)) / 2)
 	}
 
-	ourKeys := make([]int, 0)
-	for k := range ourReqMap {
-		ourKeys = append(ourKeys, int(k))
-	}
-
-	theirKeys := make([]int, 0)
-	for k := range theirReqMap {
-		theirKeys = append(theirKeys, int(k))
-	}
-
-	// Sort the keys in decreasing order
-	sort.Ints(ourKeys)
-	sort.Ints(theirKeys)
-
-	// Take running average of the interactions
-	// The individual turn values will be scaled wrt to the "distance" from the current turn
-	// ie transactions further in the past are valued less
-	if MinInt(len(ourKeys), len(theirKeys)) == 0 {
-		return pastConfidence
-	}
-
-	c.Logf("Bufferlen %v", bufferLen)
-	for i := 0; i < MinInt(bufferLen, len(ourKeys)); i++ {
-		// Get the transaction distance to the previous transaction
-		ourTransDist := turn - uint(ourKeys[i]) + 1
-		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
-		runMeanTheyDon = runMeanTheyDon + (float64(ourReqMap[uint(ourKeys[i])].gifted)/float64(ourTransDist)-float64(runMeanTheyDon))/float64(i+1)
-		runMeanWeReq = runMeanWeReq + (float64(ourReqMap[uint(ourKeys[i])].requested)/float64(ourTransDist)-float64(runMeanWeReq))/float64(i+1)
-	}
-
-	for i := 0; i < MinInt(bufferLen, len(theirKeys)); i++ {
-		// Get the transaction distance to the previous transaction
-		theirTransDist := turn - uint(theirKeys[i]) + 1
-		// Update the respective running mean factoring in the transactionDistance (inv proportioanl to transactionDistance so farther transactions are weighted less)
-		runMeanTheyReq = runMeanTheyReq + (float64(theirReqMap[uint(theirKeys[i])].requested)/float64(theirTransDist)-float64(runMeanTheyReq))/float64(i+1)
-		runMeanWeDon = runMeanWeDon + (float64(theirReqMap[uint(theirKeys[i])].gifted))/float64(theirTransDist) - float64(runMeanWeDon)/float64(i+1)
-	}
-
-	// TODO: if this checkDivZero returns 1 this is not between 0 and 1
-	usRatio := runMeanTheyDon / checkDivZero(runMeanWeReq)   // between 0 and 1
-	themRatio := runMeanWeDon / checkDivZero(runMeanTheyReq) // between 0 and 1
-	diff := usRatio - themRatio                              // between -1 and 1
-	// confidence increases if usRatio >= themRatio
-	// confidence decreases if not
-
-	// e.g. 1 pastConfidnece = 50%
-	// diff = 100% in our favour 1.0
-	// inc pastConfidence = (50 + 100)/2 = 75
-
-	// e.g. 2 pastConfidence = 90%
-	// diff = 70% in our favour
-	// inc pastConfidence = (90 + 70)/2 = 80
-
-	// e.g. 3 pastConfidence = 80%
-	// diff = 30% against us
-	// inc pastConfidence = (80 - 30)/2 = 25
-
-	// e.g. 4 pastConfidence = 100%
-	// diff = 100% against us
-	// inc pastConfidence = (100 - 100)/2 = 0
-
-	// e.g. 5 pastConfidence = 0%
-	// diff = 100% in our favour
-	// inc pastConfidence = (0 + 100)/2 = 50
-
-	// TODO: improve how ratios are used to improve pastConfidence
-	// pastConfidence = (pastConfidence + sensitivity*diff*100) / 2
-	c.Logf("[Past confidence (GIFTS)]:", pastConfidence)
-	c.Logf("[Diff added (GIFTS)]: ", diff)
-	pastConfidence = int((pastConfidence + int(diff*100)) / 2)
 	updatedHist := append(c.opinionHist[island].Histories["Gifts"], c.setLimits(pastConfidence))
 	c.Logf("[Gift situation updated]:", updatedHist)
 	c.Logf("[Length of gift situation after update]:", len(updatedHist))
@@ -268,13 +253,27 @@ func (c *client) updatePresidentTrust() {
 			counter++
 		}
 
-		percChangeTax := 100 * (c.taxAmount - runMeanTax) / shared.Resources(checkDivZero(float64(runMeanTax)))
+		percChangeTax := shared.Resources(0)
+		percWeTake := shared.Resources(0)
+		percWeGet := shared.Resources(0)
+
+		if runMeanTax != 0 {
+			percChangeTax = 100.0 * (c.taxAmount - runMeanTax) / runMeanTax
+		}
 
 		// How much less we're giveen
-		percWeGet := 100 * (runMeanWeRequest - runMeanWeAllocated) / shared.Resources(checkDivZero(float64(runMeanWeAllocated)))
+		if runMeanWeAllocated != 0 {
+			percWeGet = 100.0 * (runMeanWeRequest - runMeanWeAllocated) / runMeanWeAllocated
+		}
 
 		// How much more we've taken
-		percWeTake := 100 * (runMeanWeAllocated - runMeanWeTake) / shared.Resources(checkDivZero(float64(runMeanWeTake)))
+		if runMeanWeTake != 0 {
+			percWeTake = 100.0 * (runMeanWeAllocated - runMeanWeTake) / runMeanWeTake
+		}
+
+		c.Logf("percChangeTax: % v", percChangeTax)
+		c.Logf("percWeTake: %v", percWeGet)
+		c.Logf("percPercWeGet: % v", percWeTake)
 
 		reality = c.setLimits(int(100 - percWeGet - percChangeTax + percWeTake))
 	}
@@ -286,10 +285,14 @@ func (c *client) updatePresidentTrust() {
 
 	if perf, ok := c.opinionHist[currPres].Performances["President"]; ok {
 		islandSituationPerf.exp = perf.exp
+		c.Logf("updated island situation performance here tho", islandSituationPerf)
+
 	}
 
+	// TODO: shouldn't this be inside the if...if it doesn't exist we're accessing something that doesnt
 	c.Logf("Previous performance for President", c.opinionHist[currPres].Performances["President"])
 	c.Logf("Updated performance for President", islandSituationPerf)
+	c.confidence("President", currPres)
 	c.opinionHist[currPres].Performances["President"] = islandSituationPerf
 }
 
@@ -306,10 +309,10 @@ func (c *client) updateJudgeTrust() {
 		c.Logf("sanction hist for judge ", c.sanctionHist[currJudge])
 		prevTier := c.sanctionHist[currJudge][0].Tier
 		for i, sanction := range c.sanctionHist[currJudge] {
-			turn := int(c.gameState().Turn - sanction.Turn)
+			// turn := int(c.gameState().Turn - sanction.Turn)
 			div := i + 1
 
-			runMeanScore += (sanction.Amount/turn - runMeanScore) / div
+			runMeanScore = runMeanScore + (sanction.Amount-runMeanScore)/div
 			if prevTier == sanction.Tier {
 				numConsecTier++
 			} else {
@@ -328,12 +331,17 @@ func (c *client) updateJudgeTrust() {
 		percChangeScore := int(100 * int((lastScore.Amount-runMeanScore)/runMeanScore))
 		reality = c.setLimits(100 - (avgTurnsPerTier * percChangeScore))
 	}
+
 	islandSituationPerf := ExpectationReality{
 		exp:  50, // Would not get overwritten if we have no current expectation, so default should be 50
 		real: reality,
 	}
+
 	if perf, ok := c.opinionHist[currJudge].Performances["Judge"]; ok {
 		islandSituationPerf.exp = perf.exp
+	} else {
+		c.Logf("THIS SHOULDNT BE HAPPENING")
+		c.initialiseOpinionForIsland(currJudge)
 	}
 
 	islandSituationPerf.real = reality
@@ -456,8 +464,7 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 			}
 		}
 
-		c.Logf("Role trust for turn ", c.gameState().Turn)
-		c.Logf("For island ", island)
+		c.Logf("Role trust for turn %v and island %v", c.gameState().Turn, island)
 		c.Logf("Accountability map", accountability)
 		c.Logf("IIGO History", iigoHistory)
 		c.Logf("taxContribDiff", taxContribDiff)
@@ -474,9 +481,9 @@ func (c *client) updateRoleTrust(iigoHistory []shared.Accountability) {
 		} else {
 			c.initialiseOpinionForIsland(island)
 		}
-		c.Logf("Updated performance ", islandSituationPerf)
+		c.confidence("RoleOpinion", island)
+		c.Logf("Updated performance    ", islandSituationPerf)
 		c.opinionHist[island].Performances["RoleOpinion"] = islandSituationPerf
-
 	}
 
 }
@@ -527,11 +534,16 @@ func (c *client) updateDisasterConf() {
 
 		predConf := 100 - c.setLimits(predError)
 
-		c.opinionHist[island].Performances["DisasterPred"] = ExpectationReality{
+		islandSituationPerf := ExpectationReality{
+			exp:  50,
 			real: predConf,
 		}
 
-		c.confidenceRestrospect("DisasterPred", island)
+		if _, ok := c.opinionHist[island]; ok {
+			islandSituationPerf.exp = c.opinionHist[island].Performances["Disaster"].exp
+		}
+		c.opinionHist[island].Performances["Disaster"] = islandSituationPerf
+		c.confidenceRestrospect("Disaster", island)
 
 	}
 
