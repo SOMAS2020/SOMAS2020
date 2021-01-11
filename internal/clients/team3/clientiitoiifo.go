@@ -151,13 +151,13 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 
 	localPool := c.getLocalResources()
 
-	resourcesNeeded := c.params.localPoolThreshold - float64(localPool)
+	resourcesNeeded := float64(c.initialResourcesAtStartOfGame - localPool)
 	//fmt.Println("resources needed: ", resourcesNeeded)
 	if resourcesNeeded > 0 {
 		resourcesNeeded *= (1 + c.params.giftInflationPercentage)
 		totalRequestAmt = resourcesNeeded
 	} else {
-		totalRequestAmt = c.params.giftInflationPercentage * c.params.localPoolThreshold
+		totalRequestAmt = c.params.giftInflationPercentage * float64(c.initialResourcesAtStartOfGame)
 	}
 	//fmt.Println("total request amount: ", totalRequestAmt)
 
