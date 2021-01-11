@@ -7,6 +7,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -82,6 +83,9 @@ func (c *client) getNumAliveClients() int {
 
 // Stores the information we receive from IIGO
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	if c.LocalVariableCache == nil {
+		return
+	}
 	c.Communications[sender] = append(c.Communications[sender], data)
 	for contentType, content := range data {
 		commonPool := CommonPoolInfo{
@@ -93,6 +97,10 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		switch contentType {
 		// How much tax we must pay
 		case shared.IIGOTaxDecision:
+
+			c.LocalVariableCache[rules.ExpectedTaxContribution] = content.IIGOValueData.Expected
+			c.LocalVariableCache[rules.TaxDecisionMade] = content.IIGOValueData.DecisionMade
+
 			if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
 				// Create map if it doesn't exist
 				c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
@@ -104,14 +112,16 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 					commonPool = pastInfo
 				}
 			}
-			c.taxAmount = shared.Resources(content.IntegerData)
-			commonPool.tax = shared.Resources(content.IntegerData)
+			c.taxAmount = shared.Resources(content.IIGOValueData.Expected.Values[0])
+			commonPool.tax = shared.Resources(content.IIGOValueData.Expected.Values[0])
 
 			// Update the history
 			c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
 
 		// How many resources we've been allocated from the CP by the President
 		case shared.IIGOAllocationDecision:
+			c.LocalVariableCache[rules.ExpectedAllocation] = content.IIGOValueData.Expected
+			c.LocalVariableCache[rules.AllocationMade] = content.IIGOValueData.DecisionMade
 			if _, ok := c.presCommonPoolHist[c.gameState().PresidentID]; !ok {
 				// Create map if it doesn't exist
 				c.presCommonPoolHist[c.gameState().PresidentID] = make(map[uint]CommonPoolInfo)
@@ -123,8 +133,8 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 					commonPool = pastInfo
 				}
 			}
-			c.commonPoolAllocation = shared.Resources(content.IntegerData)
-			commonPool.allocatedByPres = shared.Resources(content.IntegerData)
+			c.commonPoolAllocation = shared.Resources(content.IIGOValueData.Expected.Values[0])
+			commonPool.allocatedByPres = shared.Resources(content.IIGOValueData.Expected.Values[0])
 
 			// Update the history
 			c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
@@ -143,6 +153,10 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			c.tierLevels[content.IntegerData] = content.IntegerData
 		// What sanction score we have
 		case shared.SanctionAmount:
+			c.LocalVariableCache[rules.SanctionExpected] = rules.VariableValuePair{
+				VariableName: rules.SanctionExpected,
+				Values:       []float64{float64(content.IntegerData)},
+			}
 			if _, ok := c.sanctionHist[c.gameState().JudgeID]; !ok {
 				c.sanctionHist[c.gameState().JudgeID] = make([]IslandSanctionInfo, 0)
 			}
