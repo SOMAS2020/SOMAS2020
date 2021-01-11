@@ -145,7 +145,7 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 		// sets the cap of trust rank from 0 to 1
 		if c.trustRank[team] < 0 {
 			c.trustRank[team] = 0
-		} else if c.turstRank[team] > 1 {
+		} else if c.trustRank[team] > 1 {
 			c.trustRank[team] = 1
 		}
 	}
