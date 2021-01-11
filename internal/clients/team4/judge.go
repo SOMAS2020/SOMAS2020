@@ -147,7 +147,7 @@ func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 	}
 
 	// calculate whether the term has ended
-	termEnded := uint(turnsInPower) > j.parent.getTurnLength(shared.President)
+	termEnded := uint(turnsInPower) > j.parent.getTermLength(shared.President)
 
 	j.parent.LocalVariableCache[rules.TermEnded] = rules.VariableValuePair{
 		VariableName: rules.TermEnded,

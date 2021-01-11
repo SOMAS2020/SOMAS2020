@@ -71,6 +71,7 @@ func newClientInternal(clientID shared.ClientID) client {
 
 	baseJudge := baseclient.BaseJudge{}
 	baseSpeaker := baseclient.BaseSpeaker{}
+	basePresident := baseclient.BasePresident{}
 
 	team4client := client{
 		BaseClient:  baseclient.NewClient(id),
@@ -92,12 +93,18 @@ func newClientInternal(clientID shared.ClientID) client {
 				"AppointNextJudge",
 			},
 		},
+		clientPresident:    president{BasePresident: &basePresident},
 		obs:                &obs,
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
 		savedHistory:       &judgeHistory,
 		trustMatrix:        &trustMatrix,
 		importances:        &importancesMatrix,
+		forage: &forageStorage{
+			preferedForageMethod: 0,
+			forageHistory:        nil,
+			receivedForageData:   nil,
+		},
 	}
 
 	team4client.updateParents()
@@ -117,12 +124,14 @@ type client struct {
 	//custom fields
 	clientJudge        judge
 	clientSpeaker      speaker
+	clientPresident    president
 	obs                *observation        //observation is the raw input into our client
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
 	savedHistory       *accountabilityHistory
 	trustMatrix        *trust
 	importances        *importances
+	forage             *forageStorage
 }
 
 type importances struct {
@@ -197,6 +206,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 func (c *client) updateParents() {
 	c.clientJudge.parent = c
 	c.clientSpeaker.parent = c
+	c.clientPresident.parent = c
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
