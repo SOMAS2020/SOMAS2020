@@ -9,7 +9,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = shared.Team3
 const printTeam3Logs = false
 
 // DefaultClient creates the client that will be used for most simulations. All
