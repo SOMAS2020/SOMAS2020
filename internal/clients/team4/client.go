@@ -38,6 +38,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	iigoObs := iigoObservation{
 		allocationGranted: shared.Resources(0),
 		taxDemanded:       shared.Resources(0),
+		sanctionTiers:     make(map[shared.ClientID]shared.IIGOSanctionsTier),
 	}
 	iifoObs := iifoObservation{}
 	iitoObs := iitoObservation{}
@@ -74,9 +75,25 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	basePresident := baseclient.BasePresident{}
 
 	team4client := client{
-		BaseClient:         baseclient.NewClient(id),
-		clientJudge:        judge{BaseJudge: &baseJudge, t: testing},
-		clientSpeaker:      speaker{BaseSpeaker: &baseSpeaker},
+		BaseClient:  baseclient.NewClient(id),
+		clientJudge: judge{BaseJudge: &baseJudge, t: testing},
+		clientSpeaker: speaker{
+			BaseSpeaker: &baseSpeaker,
+			SpeakerActionOrder: []string{
+				"SetVotingResult",
+				"SetRuleToVote",
+				"AnnounceVotingResult",
+				"UpdateRules",
+				"AppointNextJudge",
+			},
+			SpeakerActionPriorities: []string{
+				"SetVotingResult",
+				"SetRuleToVote",
+				"AnnounceVotingResult",
+				"UpdateRules",
+				"AppointNextJudge",
+			},
+		},
 		clientPresident:    president{BasePresident: &basePresident},
 		obs:                &obs,
 		internalParam:      &internalConfig,
@@ -138,6 +155,7 @@ type observation struct {
 type iigoObservation struct {
 	allocationGranted shared.Resources
 	taxDemanded       shared.Resources
+	sanctionTiers     map[shared.ClientID]shared.IIGOSanctionsTier
 }
 
 type iifoObservation struct {
