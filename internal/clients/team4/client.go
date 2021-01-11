@@ -2,7 +2,7 @@
 package team4
 
 import (
-	"math"
+	"math"e
 	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -19,20 +19,7 @@ func init() {
 
 func newClientInternal(clientID shared.ClientID) client {
 	// have some config json file or something?
-	internalConfig := internalParameters{
-		greediness:                   0,
-		selfishness:                  0,
-		fairness:                     0,
-		collaboration:                0,
-		riskTaking:                   0,
-		maxPardonTime:                3,
-		maxTierToPardon:              shared.SanctionTier3,
-		minTrustToPardon:             0.6,
-		historyWeight:                1,   // in range [0,1]
-		historyFullTruthfulnessBonus: 0.1, // in range [0,1]
-		monitoringWeight:             1,   // in range [0,1]
-		monitoringResultChange:       0.1, // in range [0,1]
-	}
+	internalConfig := configureClient(C2)
 
 	iigoObs := iigoObservation{
 		allocationGranted: shared.Resources(0),
