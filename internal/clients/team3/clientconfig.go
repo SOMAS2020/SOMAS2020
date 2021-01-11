@@ -2,16 +2,22 @@ package team3
 
 func getislandParams() islandParams {
 	return islandParams{
-		equity:                  0.1, // 0-1
-		complianceLevel:         0.1, // 0-1
-		resourcesSkew:           1.3, // >1
-		saveCriticalIsland:      true,
-		selfishness:             0.9, //0-1
-		recidivism:              0.3, // real number
-		riskFactor:              0.2, // 0-1
-		friendliness:            0.3, // 0-1
-		localPoolThreshold:      100, // % of common pool
-		giftInflationPercentage: 0.1, // 0-1
-		adv:                     nil,
+		equity:                  1, // 0-1 // do we need this or can it be replaced?
+		complianceLevel:         0.5,   // 0-1 //this seems good
+		resourcesSkew:           1.3, // >1 //same as equity
+		saveCriticalIsland:      true, //seems like this will always be true
+		selfishness:             1,   //0-1 //higher is better for us
+		recidivism:              1, // real number //dont know the effect/importance of this
+		riskFactor:              0.2, // 0-1 // increasing this has mixed results
+		friendliness:            1,   // 0-1 // agent performs better when this matches selfishness
+		adv:                     nil, // keep it off pls
+		localPoolThreshold:      100, // % of common pool //if we're not touching this do we need it as a parameter?
+		giftInflationPercentage: 1, // 0-1 //this doesn't have a noticeable effect
 	}
 }
+
+// TODOS: 
+// 1. finalize the list of parameters.
+// 2. pick 3 sets of values that correspond to different behaviours & submit to naim. play mainly with selfishness, risk, friendliness.
+// 3. Improve foraging if we can
+// 4. WE ARE NOT VOTING WELL! Add a sensitivity parameter and use lists changed by evalPerformance to vote

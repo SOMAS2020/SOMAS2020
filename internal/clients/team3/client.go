@@ -86,6 +86,8 @@ type client struct {
 	forageData map[shared.ForageType][]ForageData
 
 	minimumResourcesWeWant shared.Resources
+
+	initialResourcesAtStartOfGame shared.Resources
 }
 
 type islandParams struct {

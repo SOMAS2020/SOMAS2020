@@ -380,7 +380,8 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	ourResources := currentState.ClientInfo.Resources
 	distCriticalThreshold := c.criticalThreshold - ourResources
 
-	request = c.ServerReadHandle.GetGameConfig().CostOfLiving
+	//request = c.ServerReadHandle.GetGameConfig().CostOfLiving
+	request = shared.Resources(math.Max(float64(c.initialResourcesAtStartOfGame-ourResources), 0))
 	// Try to escape critical
 	if currentState.ClientInfo.LifeStatus == shared.Critical {
 		request += distCriticalThreshold
@@ -388,7 +389,11 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	if c.shouldICheat() {
 		request += shared.Resources(float64(request) * c.params.selfishness)
 	}
-	// TODO request based on disaster prediction
+	
+	if currentState.CommonPool <= request {
+		request = shared.Resources(float64(currentState.CommonPool) * c.params.selfishness)
+	}
+
 	c.clientPrint("Our Request: %f", request)
 	return request
 }

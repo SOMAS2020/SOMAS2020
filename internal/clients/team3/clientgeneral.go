@@ -87,6 +87,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 	c.criticalThreshold = serverReadHandle.GetGameConfig().MinimumResourceThreshold
 	c.minimumResourcesWeWant = c.criticalThreshold * (2 - shared.Resources(c.params.riskFactor))
+	c.initialResourcesAtStartOfGame = c.ServerReadHandle.GetGameState().ClientInfo.Resources
 }
 
 // updatetrustMapAgg adds the amount to the aggregate trust map list for given client

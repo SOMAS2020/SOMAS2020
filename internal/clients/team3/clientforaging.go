@@ -48,7 +48,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		}
 	}
 
-	if c.getLocalResources() < c.minimumResourcesWeWant && c.computeRecentExpectedROI(forageType) < 100 {
+	if c.getLocalResources() < c.minimumResourcesWeWant || c.computeRecentExpectedROI(forageType) < 100 {
 		foragingInvestment = 0.0
 	}
 
