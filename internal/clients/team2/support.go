@@ -21,7 +21,6 @@ func (c *client) criticalStatus() bool {
 func (c *client) StartOfTurn() {
 	c.commonPoolUpdate()
 	c.setAgentStrategy()
-	c.Logf("Set New Agent Strategy: ", c.getAgentStrategy())
 }
 
 // If a disaster is reported, append the turn and report of the latest disaster to the disaster history
@@ -190,7 +189,6 @@ func (c *client) setAgentStrategy() {
 
 		// Percentage change in common pool from previous running mean
 		percentageChange := (c.commonPoolHistory[c.gameState().Turn] - runningMean) / runningMean
-		c.Logf("Percentage change: ", percentageChange)
 
 		if c.gameState().Turn > c.config.PatientTurns && c.patienceRunOut() {
 			c.currStrategy = Selfish
