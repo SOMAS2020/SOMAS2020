@@ -61,7 +61,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		resourceReportImportance:                   mat.NewVecDense(6, []float64{5.0, 5.0, -5.0, -5.0, 1.0, 5.0}),
 		getTaxContributionImportance:               mat.NewVecDense(4, []float64{-2.0, -2.0, 4.0, 1.0}),
 		decideIIGOMonitoringAnnouncementImportance: mat.NewVecDense(3, []float64{1.0, -1.0, 1.0}),
-		getGiftRequestsImportance:					mat.NewVecDense(4, []float64{2.0, 1.0, -1.0, -1.0}),
+		getGiftRequestsImportance:                  mat.NewVecDense(4, []float64{2.0, 1.0, -1.0, -1.0}),
 	}
 
 	team4client := client{
@@ -107,7 +107,7 @@ type importances struct {
 	resourceReportImportance                   *mat.VecDense
 	getTaxContributionImportance               *mat.VecDense
 	decideIIGOMonitoringAnnouncementImportance *mat.VecDense
-	getGiftRequestsImportance				   *mat.VecDense
+	getGiftRequestsImportance                  *mat.VecDense
 }
 
 // Store extra information which is not in the server and is helpful for our client
@@ -183,7 +183,6 @@ func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]
 // GetVoteForRule returns the client's vote in favour of or against a rule.
 // COMPULSORY: vote to represent your island's opinion on a rule
 func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
-	// TODO implement decision on voting that considers the rule
 	ruleDistance := c.decideRuleDistance(ruleMatrix)
 	if ruleDistance < 5 { // TODO: calibrate the distance ranges
 		return shared.Reject
@@ -286,7 +285,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	speakerID := c.getSpeaker()
 	judgeID := c.getJudge()
 	clientID := id
-	ourResources:= c.getOurResources()
+	ourResources := c.getOurResources()
 	// TODO: Choose sensible thresholds!
 	trustThreshold := 0.5
 	resourcesThreshold := shared.Resources(100)

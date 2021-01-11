@@ -1,6 +1,7 @@
 package team4
 
 import (
+	"math"
 	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
@@ -30,10 +31,11 @@ func (c *client) evaluateParamVector(decisionVector *mat.VecDense, agent shared.
 }
 
 func (c *client) RequestAllocation() shared.Resources {
-	//TODO: check rules for how much we are allocated
+	ourLifeStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
 	allocationGranted := c.obs.iigoObs.allocationGranted
 	uncomplianceThreshold := 5.0
 	importance := c.importances.requestAllocationImportance
+	commonPool := c.ServerReadHandle.GetGameState().CommonPool
 
 	parameters := mat.NewVecDense(6, []float64{
 		c.internalParam.greediness,
@@ -51,6 +53,21 @@ func (c *client) RequestAllocation() shared.Resources {
 	allocDemanded := allocationGranted
 	if uncomplianceLevel > 0 {
 		allocDemanded = allocationGranted * shared.Resources((uncomplianceLevel + 1))
+	}
+	if ourLifeStatus == shared.Critical {
+		maxTurnsInCritical := c.ServerReadHandle.GetGameConfig().MaxCriticalConsecutiveTurns
+		turnsInCritical := c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter
+		resNeeded := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - c.getOurResources()
+		if turnsInCritical == maxTurnsInCritical {
+			allocDemanded = shared.Resources(math.Min(float64(resNeeded*5), float64(commonPool)))
+		} else if turnsInCritical == maxTurnsInCritical-1 {
+			allocDemanded = shared.Resources(math.Min(float64(resNeeded*3), float64(commonPool)))
+		} else if turnsInCritical == maxTurnsInCritical-2 {
+			allocDemanded = shared.Resources(math.Min(float64(resNeeded*1.5), float64(commonPool)))
+
+		}
+	} else if ourLifeStatus == shared.Dead {
+		allocDemanded = shared.Resources(0)
 	}
 
 	return allocDemanded
@@ -103,14 +120,17 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 
 	resNeeded := shared.Resources(0)
-	if numClientAlive != 0 {
-		resNeeded = commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
+	if numClientAlive != 0 && ourLifeStatus != shared.Dead {
+		eachClient := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
+		resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - ourResource
+		if ourLifeStatus == shared.Alive {
+			resNeeded *= shared.Resources(1.1)
+		} else if ourLifeStatus == shared.Critical {
+			resNeeded *= shared.Resources(2)
+		}
+		resNeeded = shared.Resources(math.Min(float64(eachClient), float64(resNeeded)))
 	} else {
 		resNeeded = commonPoolLevel * shared.Resources(rand.Float64())
-	}
-	if ourLifeStatus == shared.Critical {
-		// turnsInCriticalState := c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter //TODO: probably don't need this, only need this in RequestAllocation()
-		resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold - ourResource
 	}
 
 	greedyThreshold := 2.5
@@ -142,7 +162,7 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 
 	presidentID := c.ServerReadHandle.GetGameState().PresidentID
 	// If collaboration and trust are above average chose to report, otherwise abstain!
-	if (c.internalParam.collaboration + c.trustMatrix.GetClientTrust(presidentID)) < 1 { // agent trust towards the president, TODO: change to president index
+	if (c.internalParam.collaboration + c.trustMatrix.GetClientTrust(presidentID)) < 1 { // agent trust towards the president
 		reporting = false
 	}
 
