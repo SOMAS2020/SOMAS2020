@@ -11,7 +11,7 @@
 //the factor which we multiply the fair_sharer average by: tune_average
 //the factor which we multiply the altruist value by: tune_alt
 
-
+```
 Func (c *client)AverageCommonPoolDilemma() float64{
 
 	var default_strat float64=x    //this parameter will determine how much we contribute on the first turn when there is no data to make a decision 
@@ -67,8 +67,9 @@ Func determine_fair(ResourceHistory,turn uint) int{     //can make more sophisti
 		}
 	}
 }
+```
 
-
+```
 ///////////////////////////  TESTBENCH ////////////////////////////////
 package main
 import "fmt"
@@ -143,3 +144,4 @@ func determine_fair(turn uint,ResourceHistory map[uint]float64) float64 {
 	}
 	return 0
 }
+```
