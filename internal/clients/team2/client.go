@@ -8,8 +8,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = shared.Team2
-
 type AgentStrategy uint
 
 const (
