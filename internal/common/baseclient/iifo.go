@@ -50,7 +50,7 @@ func (c *BaseClient) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	prediction.Confidence = determineConfidence(pastDisastersList, meanDisaster, varianceLimit)
 
 	// For MVP, share this prediction with all islands since trust has not yet been implemented
-	trustedIslands := make([]shared.ClientID, len(RegisteredClientFactories))
+	trustedIslands := make([]shared.ClientID, len(shared.TeamIDs))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}

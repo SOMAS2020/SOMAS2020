@@ -229,3 +229,11 @@ func (c *client) getRole(role shared.Role) shared.ClientID {
 	}
 	return 0
 }
+
+func (c *client) printConfig() {
+	c.Logf("Client resources: %v", c.getResources())
+	c.Logf("Internal Config: greediness %v, selfishness %v, colaboration %v, risk-taking %v",
+		c.internalParam.greediness, c.internalParam.selfishness, c.internalParam.collaboration, c.internalParam.riskTaking)
+
+	c.Logf("Trust: %v", c.trustMatrix.trustMap)
+}
