@@ -8,20 +8,10 @@ import (
 
 type speaker struct {
 	*baseclient.BaseSpeaker
-	parent *client
+	parent                  *client
+	SpeakerActionOrder      []string
+	SpeakerActionPriorities []string
 }
-
-//SpeakerActionOrder indicate speaker actions in order of execution
-var SpeakerActionOrder = []string{
-	"SetVotingResult",
-	"SetRuleToVote",
-	"AnnounceVotingResult",
-	"UpdateRules",
-	"AppointNextJudge",
-}
-
-//SpeakerActionPriorities indicate speaker actions in order of priority
-var SpeakerActionPriorities = SpeakerActionOrder
 
 func (s *speaker) getSpeakerBudget() shared.Resources {
 	return s.parent.ServerReadHandle.GetGameState().IIGORolesBudget[shared.Speaker]
@@ -45,24 +35,24 @@ func (s *speaker) getActionsCost(actions []string) shared.Resources {
 
 func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resources {
 	//find where the action is in the order
-	actionindex := len(SpeakerActionOrder)
-	for i, action := range SpeakerActionOrder {
+	actionindex := len(s.SpeakerActionOrder)
+	for i, action := range s.SpeakerActionOrder {
 		if action == baseaction {
 			actionindex = i
 		}
 	}
 	//find where the action is in the priorities
-	priorityindex := len(SpeakerActionPriorities)
-	for i, action := range SpeakerActionPriorities {
+	priorityindex := len(s.SpeakerActionPriorities)
+	for i, action := range s.SpeakerActionPriorities {
 		if action == baseaction {
 			priorityindex = i
 		}
 	}
 	//add to return slice if the higher priority action has not been executed yet
 	var SAPcopy = make([]string, 0)
-	for _, action1 := range SpeakerActionPriorities[:priorityindex] {
+	for _, action1 := range s.SpeakerActionPriorities[:priorityindex] {
 		alreadyExecuted := false
-		for _, action2 := range SpeakerActionOrder[:actionindex] {
+		for _, action2 := range s.SpeakerActionOrder[:actionindex] {
 			if action1 == action2 {
 				alreadyExecuted = true
 			}
@@ -74,37 +64,41 @@ func (s *speaker) getHigherPriorityActionsCost(baseaction string) shared.Resourc
 	return s.getActionsCost(SAPcopy)
 }
 
-func sendToBack(str string, array []string) {
-	index := len(array) - 1
-	for i, el := range array {
+func (s *speaker) sendActionToBack(str string) {
+	index := len(s.SpeakerActionPriorities) - 1
+	for i, el := range s.SpeakerActionPriorities {
 		if el == str {
 			index = i
 		}
 	}
-	if index != len(array)-1 {
-		array = append(append(array[:index], array[(index+1):]...), array[index])
+	if index != len(s.SpeakerActionPriorities)-1 {
+		part1 := s.SpeakerActionPriorities[:index]
+		part2 := s.SpeakerActionPriorities[(index + 1):]
+		part3 := s.SpeakerActionPriorities[index]
+		s.SpeakerActionPriorities = append(append(part1, part2...), part3)
 	}
-
 }
 
 func (s *speaker) reorderPriorities() {
-	SpeakerActionPriorities = SpeakerActionOrder
+	copy(s.SpeakerActionPriorities, s.SpeakerActionOrder)
 	_, ok := s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["vote_called_rule"]
 	if !ok {
-		sendToBack("SetRuleToVote", SpeakerActionPriorities)
+		s.sendActionToBack("SetRuleToVote")
 	}
 	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["islands_allowed_to_vote_rule"]
 	if !ok {
-		sendToBack("SetVotingResult", SpeakerActionPriorities)
+		s.sendActionToBack("SetVotingResult")
 	}
 	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["vote_result_rule"]
 	if !ok {
-		sendToBack("AnnounceVotingResult", SpeakerActionPriorities)
+		s.sendActionToBack("AnnounceVotingResult")
 	}
 	_, ok = s.parent.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay["roles_must_hold_election"]
 	if !ok {
-		sendToBack("AppointNextJudge", SpeakerActionPriorities)
+		s.sendActionToBack("AppointNextJudge")
 	}
+	s.parent.Logf("Order: %v", s.SpeakerActionOrder)
+	s.parent.Logf("Priorities: %v", s.SpeakerActionPriorities)
 }
 
 // PayJudge is used for paying judge for his service

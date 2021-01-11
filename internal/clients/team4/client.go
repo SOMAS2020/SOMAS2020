@@ -65,9 +65,25 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	}
 
 	team4client := client{
-		BaseClient:         baseclient.NewClient(id),
-		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
-		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		BaseClient:  baseclient.NewClient(id),
+		clientJudge: judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
+		clientSpeaker: speaker{
+			BaseSpeaker: &baseclient.BaseSpeaker{},
+			SpeakerActionOrder: []string{
+				"SetVotingResult",
+				"SetRuleToVote",
+				"AnnounceVotingResult",
+				"UpdateRules",
+				"AppointNextJudge",
+			},
+			SpeakerActionPriorities: []string{
+				"SetVotingResult",
+				"SetRuleToVote",
+				"AnnounceVotingResult",
+				"UpdateRules",
+				"AppointNextJudge",
+			},
+		},
 		obs:                &obs,
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
