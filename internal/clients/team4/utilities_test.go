@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
 func makeSingleVar(variable rules.VariableFieldName, value float64) rules.VariableValuePair {
@@ -104,6 +105,55 @@ func TestBuildHistoryInfo(t *testing.T) {
 				}
 			}
 
+		})
+	}
+}
+
+func TestCheckIfClientIsInList(t *testing.T) {
+	cases := []struct {
+		name     string
+		lst      []shared.ClientID
+		client   shared.ClientID
+		expected bool
+	}{
+		{
+			name:     "Empty list",
+			lst:      []shared.ClientID{},
+			client:   shared.ClientID(0),
+			expected: false,
+		},
+		{
+			name:     "Single Entry true",
+			lst:      []shared.ClientID{shared.ClientID(1)},
+			client:   shared.ClientID(1),
+			expected: true,
+		},
+		{
+			name:     "Single Entry false",
+			lst:      []shared.ClientID{shared.ClientID(1)},
+			client:   shared.ClientID(2),
+			expected: false,
+		},
+		{
+			name:     "Longer list false",
+			lst:      []shared.ClientID{shared.ClientID(1), shared.ClientID(2), shared.ClientID(4), shared.ClientID(5)},
+			client:   shared.ClientID(3),
+			expected: false,
+		},
+		{
+			name:     "Longer list true",
+			lst:      []shared.ClientID{shared.ClientID(1), shared.ClientID(2), shared.ClientID(4), shared.ClientID(5)},
+			client:   shared.ClientID(5),
+			expected: true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ret := checkIfClientIsInList(tc.lst, tc.client)
+			if ret != tc.expected {
+				t.Errorf("%v - Failed. Input (%v, %v). Expected %v, got %v",
+					tc.name, tc.lst, tc.client, tc.expected, ret)
+			}
 		})
 	}
 }
