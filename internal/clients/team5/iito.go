@@ -304,7 +304,7 @@ func (c *client) updateGiftOpinions() {
 		// If we get OFFERED LESS than we Requested
 		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].offered) <
 			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].requested) {
-			c.opinions[team].updateOpinion(generalBasis, -0.005*c.getMood())
+			c.opinions[team].updateOpinion(generalBasis, -0.025*c.getMood())
 		}
 		// If we ACTUALLY get LESS than they OFFERED us
 		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].actualReceived) <
@@ -322,7 +322,7 @@ func (c *client) updateGiftOpinions() {
 		// If they GIVE MORE than OFFERED then increase it a bit (can be abused)
 		if shared.Resources(c.giftHistory[team].ourRequest[lastTurn].actualReceived) >=
 			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].offered) {
-			c.opinions[team].updateOpinion(generalBasis, 0.025*c.getMood())
+			c.opinions[team].updateOpinion(generalBasis, 0.05*c.getMood())
 		}
 
 		// If we RECEIVE MORE than WE REQUESTED
@@ -330,7 +330,7 @@ func (c *client) updateGiftOpinions() {
 			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].requested) &&
 			shared.Resources(c.giftHistory[team].ourRequest[lastTurn].actualReceived) >
 				shared.Resources(c.giftHistory[team].ourRequest[lastTurn].requested) {
-			c.opinions[team].updateOpinion(generalBasis, 0.10*c.getMood())
+			c.opinions[team].updateOpinion(generalBasis, 0.05*c.getMood())
 		}
 
 		// If they REQUEST the LEAST compared to other islands
