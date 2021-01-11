@@ -159,9 +159,7 @@ func (c *client) StartOfTurn() {
 	c.Logf("Emotional state: %v", c.emotionalState())
 	c.Logf("Resources: %v", c.gameState().ClientInfo.Resources)
 
-	// c.Logf("[IIGO] WHO DAFUQ IS JUDGE, PRESIDENT, SPEAKER: %v, %v, %v", c.gameState().JudgeID, c.gameState().PresidentID, c.gameState().SpeakerID)
-
-	// Initialise President with gamestate1
+	// Initialise President with gamestate
 	c.BasePresident.GameState = c.gameState()
 
 	// This should only happen at the start of the game.

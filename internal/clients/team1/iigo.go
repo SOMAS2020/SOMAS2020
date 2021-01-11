@@ -35,8 +35,6 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 		resources := clientReport.ReportedAmount
 		livingCost := c.BaseClient.ServerReadHandle.GetGameConfig().CostOfLiving
 
-		// c.Logf("[IIGO]: Reported Resources %v, Current: %v", resources, c.gameState().ClientInfo.Resources)
-
 		switch {
 		case resources < 2*livingCost:
 			taxRate = 0
