@@ -174,7 +174,7 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 
 	if len(p.c.globalDisasterPredictions) > int(p.c.ServerReadHandle.GetGameState().Turn) {
 		disaster := p.c.globalDisasterPredictions[int(p.c.ServerReadHandle.GetGameState().Turn)]
-		resourcesRequired += disaster.Magnitude - float64(gameState.CommonPool)/float64(disaster.TimeLeft+1)
+		resourcesRequired += disaster.Magnitude - safeDivFloat(float64(gameState.CommonPool), float64(disaster.TimeLeft+1))
 	}
 
 	length := math.Max(float64(len(p.c.declaredResources)), 1.0)

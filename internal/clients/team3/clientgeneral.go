@@ -335,6 +335,6 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 	if c.areWeCritical() || !c.shouldICheat() {
 		return shared.ResourcesReport{ReportedAmount: resource, Reported: true}
 	}
-	skewedResource := resource / shared.Resources(c.params.resourcesSkew)
+	skewedResource := safeDivResources(resource, shared.Resources(c.params.resourcesSkew))
 	return shared.ResourcesReport{ReportedAmount: skewedResource, Reported: true}
 }
