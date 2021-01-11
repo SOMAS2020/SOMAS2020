@@ -11,7 +11,7 @@ import (
 func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 
 	var predictionInfo shared.DisasterPredictionInfo
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClientFactories))
+	trustedIslands := make([]shared.ClientID, len(c.BaseClient.ServerReadHandle.GetGameState().ClientLifeStatuses))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}
@@ -169,7 +169,7 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	}
 
 	for island, status := range c.ServerReadHandle.GetGameState().ClientLifeStatuses {
-		if island == id {
+		if island == c.GetID() {
 			continue
 		}
 		if status == shared.Critical || status == shared.Dead {
@@ -229,7 +229,7 @@ func (c *client) sigmoidAndNormalise(island shared.ClientID) shared.GiftOffer {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 
-	islandStatusCritical := c.isClientStatusCritical(id)
+	islandStatusCritical := c.isClientStatusCritical(c.GetID())
 
 	if islandStatusCritical {
 		for _, island := range c.getAliveIslands() {
@@ -250,7 +250,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	//fmt.Println("original amounts: ", amounts)
 
 	for _, island := range c.getAliveIslands() {
-		if island != id && amounts[island] == 0.0 {
+		if island != c.GetID() && amounts[island] == 0.0 {
 			amounts[island] = shared.GiftOffer(c.trustScore[island] * (c.params.friendliness / 30))
 		}
 	}
@@ -363,7 +363,7 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
 
-	trustedIslands := make([]shared.ClientID, len(baseclient.RegisteredClientFactories))
+	trustedIslands := make([]shared.ClientID, len(c.ServerReadHandle.GetGameState().ClientLifeStatuses))
 	for index, id := range shared.TeamIDs {
 		trustedIslands[index] = id
 	}

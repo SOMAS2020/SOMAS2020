@@ -47,7 +47,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	// Vote based on trust, rank on trust
 	candidateNum := len(candidateList)
 	var returnList []shared.ClientID
-	returnList = append(returnList, shared.ClientID(id))
+	returnList = append(returnList, c.GetID())
 	highscore := 0.0
 	var highscoreIsland shared.ClientID
 
