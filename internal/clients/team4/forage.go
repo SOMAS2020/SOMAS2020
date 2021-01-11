@@ -17,7 +17,7 @@ type forageHistory struct {
 
 func (c *client) analyseHistory() shared.ForageType {
 	constLookBack := 5
-	if c.getTurn() < 5 {
+	if c.getTurn() < 3 {
 		return shared.DeerForageType
 	}
 
@@ -30,7 +30,7 @@ func (c *client) analyseHistory() shared.ForageType {
 	}
 	for _, e := range c.forage.forageHistory[len(c.forage.forageHistory)-constLookBack:] {
 		var ratio float64
-		if e.decision.Contribution <= 0 {
+		if e.decision.Contribution <= 1 {
 			ratio = 1
 		} else {
 			ratio = float64(e.resourceReturn) / float64(e.decision.Contribution)
@@ -44,7 +44,7 @@ func (c *client) analyseHistory() shared.ForageType {
 	for _, e := range c.forage.receivedForageData[len(c.forage.receivedForageData)-constLookBack:] {
 		for _, teamEntry := range e {
 			var ratio float64
-			if teamEntry.DecisionMade.Contribution <= 0 {
+			if teamEntry.DecisionMade.Contribution <= 5 {
 				ratio = 1
 			} else {
 				ratio = float64(teamEntry.ResourceObtained) / float64(teamEntry.DecisionMade.Contribution)
@@ -55,7 +55,7 @@ func (c *client) analyseHistory() shared.ForageType {
 			totalResources[teamEntry.DecisionMade.Type] = totalResources[teamEntry.DecisionMade.Type] * ratio
 		}
 	}
-	c.Logf("Foraging: FishingRatio %v, DeerRatio %v", totalResources[shared.DeerForageType], totalResources[shared.FishForageType])
+	c.Logf("Foraging: FishingRatio %v, DeerRatio %v", totalResources[shared.FishForageType], totalResources[shared.DeerForageType])
 	if totalResources[shared.DeerForageType] >= totalResources[shared.FishForageType] {
 		return shared.DeerForageType
 	}
@@ -63,15 +63,21 @@ func (c *client) analyseHistory() shared.ForageType {
 }
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
-	ft := c.analyseHistory()
-	scale := 5 * c.getSafeResourceLevel()
-	forageContribution := c.getResources() - (2-shared.Resources(c.internalParam.riskTaking))*scale
+	forageMax := 0.6 * c.getResources()
 
+	ft := c.analyseHistory()
+
+	scale := 1.4 * c.getSafeResourceLevel()
+	forageContribution := c.getResources() - (2-shared.Resources(c.internalParam.riskTaking))*scale
+	c.Logf("team4 resource level: %v", c.getResources())
 	if c.getSafeResourceLevel()*2 > c.getResources()-forageContribution {
 		forageContribution = c.getResources() - c.getSafeResourceLevel()*2
 	}
 	if forageContribution < 0 {
 		forageContribution = 0
+	}
+	if forageContribution < forageMax {
+		forageContribution = forageMax
 	}
 	c.Logf("Foraging: Decision %v, Resources %v", ft, forageContribution)
 	return shared.ForageDecision{

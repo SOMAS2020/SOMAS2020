@@ -9,7 +9,7 @@ type ClientConfig int
 const (
 	honest ClientConfig = iota
 	dishonest
-	middle
+	moderate
 	forTesting
 )
 
@@ -23,7 +23,7 @@ func configureClient(config ClientConfig) (retConfig internalParameters) {
 			collaboration:                0.7,
 			riskTaking:                   0.3,
 			maxPardonTime:                2,
-			maxTierToPardon:              shared.SanctionTier2,
+			maxTierToPardon:              shared.SanctionTier3,
 			minTrustToPardon:             0.65,
 			historyWeight:                1,   // in range [0,1]
 			historyFullTruthfulnessBonus: 0.1, // in range [0,1]
@@ -45,7 +45,7 @@ func configureClient(config ClientConfig) (retConfig internalParameters) {
 			monitoringWeight:             0.7,  // in range [0,1]
 			monitoringResultChange:       0.05, // in range [0,1]
 		}
-	case middle: // middle
+	case moderate: // middle
 		retConfig = internalParameters{
 			greediness:                   0.5,
 			selfishness:                  0.5,
@@ -77,18 +77,18 @@ func configureClient(config ClientConfig) (retConfig internalParameters) {
 		}
 	default:
 		retConfig = internalParameters{
-			greediness:                   0.5,
-			selfishness:                  0.5,
-			fairness:                     0.5,
-			collaboration:                0.5,
-			riskTaking:                   0.5,
-			maxPardonTime:                5,
+			greediness:                   0.2,
+			selfishness:                  0.4,
+			fairness:                     0.8,
+			collaboration:                0.7,
+			riskTaking:                   0.3,
+			maxPardonTime:                2,
 			maxTierToPardon:              shared.SanctionTier3,
-			minTrustToPardon:             0.6,
-			historyWeight:                1,    // in range [0,1]
-			historyFullTruthfulnessBonus: 0.15, // in range [0,1]
-			monitoringWeight:             1,    // in range [0,1]
-			monitoringResultChange:       0.07, // in range [0,1]
+			minTrustToPardon:             0.65,
+			historyWeight:                1,   // in range [0,1]
+			historyFullTruthfulnessBonus: 0.1, // in range [0,1]
+			monitoringWeight:             1,   // in range [0,1]
+			monitoringResultChange:       0.1, // in range [0,1]
 		}
 	}
 	return retConfig

@@ -21,8 +21,14 @@ func DefaultClient(id shared.ClientID) baseclient.Client {
 	return NewClient(id, honest)
 }
 
+// DishonestClient creates a dishonest client
 func DishonestClient(id shared.ClientID) baseclient.Client {
 	return NewClient(id, dishonest)
+}
+
+// ModerateClient creates a moderate client
+func ModerateClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id, moderate)
 }
 
 func newClientInternal(clientID shared.ClientID, clientConfig ClientConfig) client {
