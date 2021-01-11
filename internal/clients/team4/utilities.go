@@ -136,3 +136,11 @@ func boolToFloat(input bool) float64 {
 	}
 	return 0
 }
+
+func (c *client) getOurResources() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	}
+	return 0
+}
+
