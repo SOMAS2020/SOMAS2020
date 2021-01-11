@@ -55,16 +55,18 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 		multiplier := shared.Resources(0)
 		switch c.getAgentStrategy() {
 		case Altruist:
-			multiplier = 0.4
+			multiplier = 0.8
 		case FairSharer:
-			multiplier = 0.5
-		case Selfish:
 			multiplier = 1
+		case Selfish:
+			multiplier = 2
 		}
 		request = request*multiplier + c.gameConfig().MinimumResourceThreshold
 	} else {
 		request = c.taxAmount
 	}
+
+	c.Logf("Common Pool Resource Request: ", request)
 
 	c.presCommonPoolUpdate(request)
 
@@ -79,13 +81,21 @@ func (c *client) RequestAllocation() shared.Resources {
 	switch c.getAgentStrategy() {
 	case Selfish:
 		spiteFactor := shared.Resources(1.2)
+		c.Logf("Taking out of spite: ", request*spiteFactor)
+
 		if request > c.commonPoolAllocation {
 			return request * spiteFactor
 		}
 
 		request = c.commonPoolAllocation
 	case Altruist:
+		c.Logf("Taking out as Altruist: ", request, c.commonPoolAllocation)
 		request = Min(request, c.commonPoolAllocation)
+
+		if request == 0 {
+			request = c.gameConfig().CostOfLiving
+		}
+
 	default:
 		// Leave request as is if Fair Strategy
 	}
@@ -108,6 +118,8 @@ func (c *client) RequestAllocation() shared.Resources {
 	}
 
 	c.presCommonPoolHist[c.gameState().PresidentID][c.gameState().Turn] = commonPool
+
+	c.Logf("Common Pool Resources Taken: ", request)
 
 	return request
 }
