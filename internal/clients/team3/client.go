@@ -107,7 +107,6 @@ type islandParams struct {
 	riskFactor              float64
 	friendliness            float64
 	sensitivity             float64
-	localPoolThreshold      float64
 	giftInflationPercentage float64
 	adv                     adv.Adv
 	//minimumInvestment			float64	// When fish foraging is implemented
