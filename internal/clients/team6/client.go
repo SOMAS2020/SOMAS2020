@@ -31,8 +31,8 @@ type client struct {
 	clientConfig ClientConfig
 }
 
-func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id);
 }
 
 // NewClient creates a client objects for our island
