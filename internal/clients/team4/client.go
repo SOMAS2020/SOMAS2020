@@ -367,12 +367,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 		// If we are the Judge.
 		monitoring = (c.getTrust(speakerID) < trustThreshold ||
 			c.getTrust(judgeID) < trustThreshold) &&
-<<<<<<< HEAD
-			(c.ServerReadHandle.GetGameState().ClientInfo.Resources > resourcesThreshold)
-	default:
-=======
 			(ourResources > resourcesThreshold)
->>>>>>> a852688aa93b147cfe547f107018434701fde395
 	}
 	return monitoring
 }
