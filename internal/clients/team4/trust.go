@@ -55,7 +55,7 @@ func (t *trust) expectedTrustSum() float64 {
 
 //normalise ensures that trust values are always in range [0,1]
 func (t *trust) normalise() {
-	// diff is percentage to increase trust for clientID ie. diff in range [0,1]
+	// it ensures that the general trust sums to 0.5 * number of clients
 	if len(t.trustMap) > 0 && t.totalTrustSum() > 0 {
 		normaliseCoef := t.expectedTrustSum() / t.totalTrustSum()
 		for clientID, trust := range t.trustMap {
@@ -69,4 +69,15 @@ func (t *trust) initialise() {
 		t.trustMap[clientID] = 0.5
 	}
 	t.normalise()
+}
+
+//Return a list of clients above a trust threshold
+func (t *trust) trustedClients(threshold float64) []shared.ClientID {
+	var lst []shared.ClientID
+	for client, val := range t.trustMap {
+		if val > threshold {
+			lst = append(lst, client)
+		}
+	}
+	return lst
 }

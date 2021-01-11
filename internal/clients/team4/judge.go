@@ -1,9 +1,6 @@
 package team4
 
 import (
-	"fmt"
-	"testing"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -12,7 +9,6 @@ import (
 type judge struct {
 	*baseclient.BaseJudge
 	parent *client
-	t      *testing.T
 }
 
 // GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
@@ -34,18 +30,31 @@ type valuePair struct {
 }
 
 type judgeHistoryInfo struct {
-	Resources  valuePair // amount of resources available and reported by the island
-	Taxation   valuePair // amount of tax paid and expected
-	Allocation valuePair // amount of allocation taken and granted
-	Lied       int       // number of times the island has lied
+	Resources   valuePair // amount of resources available and reported by the island
+	Taxation    valuePair // amount of tax paid and expected
+	Allocation  valuePair // amount of allocation taken and granted
+	LawfulRatio float64   // ratio of truth/all in each island report
 }
 
 type accountabilityHistory struct {
-	history map[uint]map[shared.ClientID]judgeHistoryInfo // stores accountablity history of all turns
-	updated bool                                          // indicates whether a judge has updated the history
+	history     map[uint]map[shared.ClientID]judgeHistoryInfo // stores accountablity history of all turns
+	updated     bool                                          // indicates whether a judge has updated the history
+	updatedTurn uint                                          // indicates a turn which was updated
 }
 
-func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts *map[shared.ClientID]int, turn uint) {
+func (h *accountabilityHistory) getNewInfo() map[shared.ClientID]judgeHistoryInfo {
+	if newInfo, ok := h.history[h.updatedTurn]; ok {
+		return newInfo
+	}
+	return map[shared.ClientID]judgeHistoryInfo{}
+}
+
+func (h *accountabilityHistory) update(turn uint) {
+	h.updated = true
+	h.updatedTurn = turn
+}
+
+func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, truthfulness *map[shared.ClientID]float64, turn uint) {
 	accountabilityMap := map[shared.ClientID][]rules.VariableValuePair{}
 	for _, clientID := range shared.TeamIDs {
 		accountabilityMap[clientID] = []rules.VariableValuePair{}
@@ -59,24 +68,23 @@ func (j *judge) saveHistoryInfo(iigoHistory *[]shared.Accountability, lieCounts 
 	for client, pairs := range accountabilityMap {
 		clientInfo, ok := buildHistoryInfo(pairs)
 		if ok {
-			clientLied := (*lieCounts)[client]
-			clientInfo.Lied = clientLied
+			truthfulRatio := (*truthfulness)[client]
+			clientInfo.LawfulRatio = truthfulRatio
 			if j.parent.savedHistory.history[turn] != nil {
 				j.parent.savedHistory.history[turn][client] = clientInfo
 			} else {
 				j.parent.savedHistory.history[turn] = map[shared.ClientID]judgeHistoryInfo{client: clientInfo}
 			}
-			j.parent.savedHistory.updated = true
+			j.parent.savedHistory.update(turn)
 		}
 	}
 }
 
 func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool) {
-
 	outputmap, state := j.BaseJudge.InspectHistory(iigoHistory, turnsAgo)
 
 	turn := j.parent.getTurn() - uint(turnsAgo)
-	lieCounts := map[shared.ClientID]int{}
+	truthfulness := map[shared.ClientID]float64{}
 
 	// Check number of times clients lied
 	for client, eval := range outputmap {
@@ -86,10 +94,16 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 				lieCount++
 			}
 		}
-		lieCounts[client] = lieCount
+
+		if len(eval.Evaluations) == 0 {
+			truthfulness[client] = 1.0
+		} else {
+			truthfulness[client] = 1.0 - float64(lieCount)/float64(len(eval.Evaluations))
+		}
+		// lieCounts[client] = float64(lieCount) / float64(len(eval.Evaluations))
 	}
 
-	j.saveHistoryInfo(&iigoHistory, &lieCounts, turn)
+	j.saveHistoryInfo(&iigoHistory, &truthfulness, turn)
 
 	return outputmap, state
 }
@@ -133,7 +147,7 @@ func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 	}
 
 	// calculate whether the term has ended
-	termEnded := uint(turnsInPower) > j.parent.getTurnLength(shared.President)
+	termEnded := uint(turnsInPower) > j.parent.getTermLength(shared.President)
 
 	j.parent.LocalVariableCache[rules.TermEnded] = rules.VariableValuePair{
 		VariableName: rules.TermEnded,
@@ -164,9 +178,3 @@ func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 
 // DecideNextPresident returns the ID of chosen next President
 // OPTIONAL: override to manipulate the result of the election
-
-func (j *judge) logf(format string, a ...interface{}) {
-	if j.t != nil {
-		j.t.Log(fmt.Sprintf(format, a...))
-	}
-}

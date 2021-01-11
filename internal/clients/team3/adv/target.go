@@ -89,9 +89,6 @@ func (m *Target) CallPresidentElection(monitoring shared.MonitorResult, turnsInP
 }
 
 func (m *Target) DecideNextPresident(winner shared.ClientID) (shared.ClientID, bool) {
-	if winner != m.TargetID {
-		return winner, true
-	}
 	return shared.Team3, true
 }
 
@@ -104,9 +101,6 @@ func (m *Target) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower
 }
 
 func (m *Target) DecideNextJudge(winner shared.ClientID) (shared.ClientID, bool) {
-	if winner != m.TargetID {
-		return winner, true
-	}
 	return shared.Team3, true
 }
 
@@ -119,9 +113,6 @@ func (m *Target) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPow
 }
 
 func (m *Target) DecideNextSpeaker(winner shared.ClientID) (shared.ClientID, bool) {
-	if winner != m.TargetID {
-		return winner, true
-	}
 	return shared.Team3, true
 }
 

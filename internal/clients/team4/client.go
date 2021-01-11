@@ -4,7 +4,6 @@ package team4
 import (
 	"math"
 	"sort"
-	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -18,22 +17,27 @@ func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
-func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
+func newClientInternal(clientID shared.ClientID) client {
 	// have some config json file or something?
 	internalConfig := internalParameters{
-		greediness:       0,
-		selfishness:      0,
-		fairness:         0,
-		collaboration:    0,
-		riskTaking:       0,
-		maxPardonTime:    3,
-		maxTierToPardon:  shared.SanctionTier3,
-		minTrustToPardon: 0.6,
+		greediness:                   0,
+		selfishness:                  0,
+		fairness:                     0,
+		collaboration:                0,
+		riskTaking:                   0,
+		maxPardonTime:                3,
+		maxTierToPardon:              shared.SanctionTier3,
+		minTrustToPardon:             0.6,
+		historyWeight:                1,   // in range [0,1]
+		historyFullTruthfulnessBonus: 0.1, // in range [0,1]
+		monitoringWeight:             1,   // in range [0,1]
+		monitoringResultChange:       0.1, // in range [0,1]
 	}
 
 	iigoObs := iigoObservation{
 		allocationGranted: shared.Resources(0),
 		taxDemanded:       shared.Resources(0),
+		sanctionTiers:     make(map[shared.ClientID]shared.IIGOSanctionsTier),
 	}
 	iifoObs := iifoObservation{}
 	iitoObs := iitoObservation{}
@@ -45,8 +49,9 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	}
 
 	judgeHistory := accountabilityHistory{
-		history: map[uint]map[shared.ClientID]judgeHistoryInfo{},
-		updated: false,
+		history:     map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		updated:     false,
+		updatedTurn: 0,
 	}
 
 	emptyRuleCache := map[string]rules.RuleMatrix{}
@@ -64,16 +69,42 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		getGiftRequestsImportance:                  mat.NewVecDense(4, []float64{2.0, 1.0, -1.0, -1.0}),
 	}
 
+	baseJudge := baseclient.BaseJudge{}
+	baseSpeaker := baseclient.BaseSpeaker{}
+	basePresident := baseclient.BasePresident{}
+
 	team4client := client{
-		BaseClient:         baseclient.NewClient(id),
-		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
-		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		BaseClient:  baseclient.NewClient(id),
+		clientJudge: judge{BaseJudge: &baseJudge},
+		clientSpeaker: speaker{
+			BaseSpeaker: &baseSpeaker,
+			SpeakerActionOrder: []string{
+				"SetVotingResult",
+				"SetRuleToVote",
+				"AnnounceVotingResult",
+				"UpdateRules",
+				"AppointNextJudge",
+			},
+			SpeakerActionPriorities: []string{
+				"SetVotingResult",
+				"SetRuleToVote",
+				"AnnounceVotingResult",
+				"UpdateRules",
+				"AppointNextJudge",
+			},
+		},
+		clientPresident:    president{BasePresident: &basePresident},
 		obs:                &obs,
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
 		savedHistory:       &judgeHistory,
 		trustMatrix:        &trustMatrix,
 		importances:        &importancesMatrix,
+		forage: &forageStorage{
+			preferedForageMethod: 0,
+			forageHistory:        nil,
+			receivedForageData:   nil,
+		},
 	}
 
 	team4client.updateParents()
@@ -83,7 +114,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 
 // NewClient is a function that creates a new empty client
 func NewClient(clientID shared.ClientID) baseclient.Client {
-	team4client := newClientInternal(clientID, nil)
+	team4client := newClientInternal(clientID)
 	return &team4client
 }
 
@@ -93,12 +124,14 @@ type client struct {
 	//custom fields
 	clientJudge        judge
 	clientSpeaker      speaker
+	clientPresident    president
 	obs                *observation        //observation is the raw input into our client
 	internalParam      *internalParameters //internal parameter store the useful parameters for the our agent
 	idealRulesCachePtr *map[string]rules.RuleMatrix
 	savedHistory       *accountabilityHistory
 	trustMatrix        *trust
 	importances        *importances
+	forage             *forageStorage
 }
 
 type importances struct {
@@ -121,12 +154,13 @@ type observation struct {
 type iigoObservation struct {
 	allocationGranted shared.Resources
 	taxDemanded       shared.Resources
+	sanctionTiers     map[shared.ClientID]shared.IIGOSanctionsTier
 }
 
 type iifoObservation struct {
-	receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
-	ourDisasterPrediction       shared.DisasterPredictionInfo
-	finalDisasterPrediction     shared.DisasterPrediction
+	// receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
+	ourDisasterPrediction   shared.DisasterPredictionInfo
+	finalDisasterPrediction shared.DisasterPrediction
 }
 
 type iitoObservation struct {
@@ -148,6 +182,13 @@ type internalParameters struct {
 	maxTierToPardon shared.IIGOSanctionsTier
 	// we will only consider pardoning islands which we trust with at least this value
 	minTrustToPardon float64
+
+	// Trust config
+	historyWeight                float64
+	historyFullTruthfulnessBonus float64
+	monitoringWeight             float64
+	monitoringResultChange       float64
+	giftExtra                    bool
 }
 
 // type personality struct {
@@ -165,7 +206,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 func (c *client) updateParents() {
 	c.clientJudge.parent = c
 	c.clientSpeaker.parent = c
-
+	c.clientPresident.parent = c
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
@@ -285,7 +326,43 @@ func (c *client) StartOfTurn() {
 
 func (c *client) updateTrustFromSavedHistory() {
 	if c.savedHistory.updated {
+		newInfo := c.savedHistory.getNewInfo()
 
+		if len(newInfo) > 0 {
+			var lawfulnessSum float64
+
+			for _, history := range newInfo {
+				lawfulnessSum += history.LawfulRatio
+			}
+			averageTruthfulness := lawfulnessSum / float64(len(newInfo))
+
+			for clientID, history := range newInfo {
+				lawfulness := history.LawfulRatio
+
+				c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyWeight*(lawfulness-averageTruthfulness)) //potentially add * historyWeight to scale the update
+
+				if floatEqual(lawfulness, 1) { //bonus for being fully truthful
+					c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyFullTruthfulnessBonus)
+				}
+			}
+		}
+		c.savedHistory.updated = false
+	}
+}
+
+func (c *client) updateTrustMonitoring(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	if roleMonitored, ok := data[shared.RoleMonitored]; ok && roleMonitored.T == shared.CommunicationIIGORole {
+		if monitoringResult, ok := data[shared.MonitoringResult]; ok && monitoringResult.T == shared.CommunicationBool {
+			roleID := c.getRole(roleMonitored.IIGORoleData)
+
+			if monitoringResult.BooleanData {
+				// Monitored role was truthful
+				c.trustMatrix.ChangeClientTrust(roleID, c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange) // config?
+			} else {
+				// Monitored role cheated
+				c.trustMatrix.ChangeClientTrust(roleID, -c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange)
+			}
+		}
 	}
 }
 

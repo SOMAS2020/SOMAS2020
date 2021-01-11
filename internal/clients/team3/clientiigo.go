@@ -442,3 +442,10 @@ func safeDivResources(numerator shared.Resources, denominator shared.Resources) 
 	}
 	return numerator
 }
+
+func safeDivFloat(numerator float64, denominator float64) float64 {
+	if denominator != 0 {
+		return numerator / denominator
+	}
+	return numerator
+}

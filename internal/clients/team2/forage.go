@@ -6,103 +6,120 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
+// no. teams that we know (they have shared the info with us)
+// total from all the teams we know
 type ForagingResults struct {
-	Hunters int //no. teams that we know (they have shared the info with us)
+	Hunters int
 	Fishers int
-	Result  shared.Resources //total from all the teams we know
+	Result  shared.Resources
 }
 
+// Returns a forage decision and an error that includes our intended foraging type and foraging resource allocation
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 	// implement a normal distribution which shifts closer to hunt or fish
-	var Threshold float64 = c.decideHuntingLikelihood() //number from 0 to 1
-	var forageDecision shared.ForageType
-	if rand.Float64() > Threshold { //we fish when above the threshold
-		forageDecision = 1
-	} else { // we hunt when below the threshold
-		forageDecision = 0
+	// number from 0 to 1
+	var threshold float64 = c.decideHuntingLikelihood()
+	forageDecision := shared.FishForageType
+
+	if rand.Float64() > threshold {
+		// we fish when above the threshold
+		forageDecision = shared.FishForageType
+	} else {
+		// we hunt when below the threshold
+		forageDecision = shared.DeerForageType
 	}
+
+	// Update last forage type and amount
+	c.lastForageType = forageDecision
+	c.lastForageAmount = shared.Resources(c.DecideForageAmount(threshold))
+
 	return shared.ForageDecision{
-		Type:         shared.ForageType(forageDecision),
-		Contribution: shared.Resources(20), //contribute fixed amount for now
+		Type:         forageDecision,
+		Contribution: shared.Resources(c.DecideForageAmount(threshold)),
 	}, nil
 }
 
-//Decide amount of resources to put into foraging
+// Returns decision on amount of resources to put into foraging
 func (c *client) DecideForageAmount(foragingDecisionThreshold float64) shared.Resources {
-	ourResources := c.gameState().ClientInfo.Resources // we have given to the pool already by this point in the turn
-	if criticalStatus(c) {
-		return 0
+	// Note: we have given to the pool already by this point in the turn so act cautiously if we're in danger
+	if c.criticalStatus() || c.getAgentExcessResources() == 0 {
+		return shared.Resources(0)
 	}
-	if ourResources < c.internalThreshold() && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
-		return (ourResources - c.internalThreshold()) / 2 //tune divisor
-	}
-	resourcesForForaging := (ourResources - c.internalThreshold())
-	return resourcesForForaging
+
+	// Otherwise we have excess to allocate to foraging
+
+	resourcesForForaging := c.getAgentExcessResources()
+
+	return shared.Resources(resourcesForForaging)
 }
 
-// 	if rand.Float64() > Threshold { //we fish when above the threshold
-// 		ft := 1
-// 	} else { // we hunt when below the threshold
-// 		ft := 0
-// 	}
-// 	return shared.ForageDecision{
-// 		Type:         shared.ForageType(ft),
-// 		Contribution: shared.Resources(20), //contribute fixed amount for now
-// 	}, nil
-// }
-
-// //Decide amount of resources to put into foraging
-// func (c *client) DecideForageAmount(foragingDecisionThreshold) shared.Resources {
-// 	ourResources := c.gameState().ClientInfo.Resources // we have given to the pool already by this point in the turn
-// 	if criticalStatus(c) {
-// 		return 0
-// 	}
-// 	if ourResources < internalThreshold(c) && foragingDecisionThreshold < 0.6 { //tune threshold (lower threshold = more likely to have better reward from foraging)
-// 		return (ourResources - determineThreshold(c)) / 2 //tune divisor
-// 	}
-// 	resourcesForForaging := (ourResources - internalThreshold)
-// 	return resourcesForForaging
-// }
-
-//being the only agent to hunt is undesirable, having one hunting partner is the desirable, the more hunters after that the less we want to hunt
-func (c *client) decideHuntingLikelihood() float64 { //will move the threshold, higher value means more likely to hunt
+// being the only agent to hunt is undesirable, having one hunting partner is the desirable, the more hunters after that the less we want to hunt
+// will move the threshold, higher value means more likely to hunt
+func (c *client) decideHuntingLikelihood() float64 {
+	// Todo: this could be null
 	hunters := c.otherHunters()
-	if hunters == 1.0 { //in the case when one other person only is hunting
-		return 0.95
-	} else if hunters > 1 { //if no one is likely to hunt then we do default probability
-		return 0.95 - (hunters * 0.15) //default hunt probability is 10%, the less people hunting the more likely we do it
+	multiplier := 1.0
 
-	} else {
-		return 0.1 //when no one is likely to hunt we have a default 10% chance of hunting just in the off chance another person hunts
+	// We want to shift our likelihood of hunting up if it likely hunting will result in higher utility
+	switch c.getAgentStrategy() {
+	case Selfish:
+		multiplier = 1.2
+	case Altruist:
+		multiplier = 1.1
+	default:
+		multiplier = 1.15
 	}
+
+	// ideal 2 hunters, 4 fishers
+
+	// in the case when one other person only is hunting
+	if hunters > 1.0 && hunters < 1.2 {
+		return 0.8 * multiplier
+	} else if hunters >= 1.2 {
+		// If no one is likely to hunt then we do default probability
+		// default hunt probability is 10%, the less people hunting the more likely we do it
+		return (0.95 - (hunters * 0.15)) * multiplier
+	}
+
+	//when no one is likely to hunt we have a default 10% chance of hunting just in the off chance another person hunts
+	return 0.1 * multiplier
 }
 
-//EXTRA FUNCTIONALITY: find the probability based off of how agents act in specific circumstances not just the agents themselves
-func (c *client) otherHunters() float64 { //will return a value of how many agents will likely hunt
+// Returns the expected number of other hunters based on previous foraging behaviour
+func (c *client) otherHunters() float64 {
+	aliveClients := c.getAliveClients()
+	HuntNum := 0.00
 
-	HuntNum := 0.00                                                //this the average number of likely hunters
-	for id, lifeStatus := range c.gameState().ClientLifeStatuses { //loop through every agent
-		if lifeStatus != shared.Dead { //client is dead ignore their decisions
-			for _, forageInfo := range c.foragingReturnsHist[id] { //loop through the agents array and add their average to HuntNum
-				HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(c.foragingReturnsHist[id])) //add the agents decision to HuntNum and then average
+	for _, id := range aliveClients {
+		if islandForageHist, ok := c.foragingReturnsHist[id]; ok {
+			for _, forageInfo := range islandForageHist {
+				if len(islandForageHist) != 0 {
+					HuntNum += float64(forageInfo.DecisionMade.Type) / float64(len(islandForageHist))
+				}
 			}
 		}
 	}
+
 	return HuntNum
 }
 
-//TODO: This function needs to be changed according to Eirik, I have no idea how
-func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
-	// updates our foragingReturnsHist with the decisions everyone made
-	roi := map[shared.ClientID]shared.Resources{}
-	for _, val := range neighbourForaging {
-		/*c.foragingReturnsHist[val.SharedFrom].append(
-		shared.ForageInfo{ DecisionMade: val.DecisionMade, //this needs to change
-			ResourcesObtained: val.ResourcesObtained})
-		*/
-		if val.DecisionMade.Type == shared.DeerForageType {
-			roi[val.SharedFrom] = val.ResourceObtained / shared.Resources(val.DecisionMade.Contribution) * 100
+// ForageUpdate is called by the server upon completion of a foraging session. This handler can be used by clients to
+// analyse their returns - resources returned to them, as well as number of fish/deer caught.
+func (c *client) ForageUpdate(initialDecision shared.ForageDecision, resourceReturn shared.Resources, numberCaught uint) {
+	ourForageInfo := ForageInfo{
+		DecisionMade:      initialDecision,
+		ResourcesObtained: resourceReturn,
+	}
+	c.foragingReturnsHist[c.GetID()] = append(c.foragingReturnsHist[c.GetID()], ourForageInfo)
+}
+
+func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
+	for _, info := range forageInfos {
+		forageInfo := ForageInfo{
+			DecisionMade:      info.DecisionMade,
+			ResourcesObtained: info.ResourceObtained,
 		}
+		c.foragingReturnsHist[info.SharedFrom] = append(c.foragingReturnsHist[info.SharedFrom], forageInfo)
 	}
 }
 
@@ -110,6 +127,23 @@ func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
 // other clients.
 // OPTIONAL. If this is not implemented then all values are nil.
 func (c *client) MakeForageInfo() shared.ForageShareInfo {
-	contribution := shared.ForageDecision{Type: shared.DeerForageType, Contribution: 0}
-	return shared.ForageShareInfo{DecisionMade: contribution, ResourceObtained: 0, ShareTo: []shared.ClientID{}}
+
+	if val, ok := c.foragingReturnsHist[c.GetID()]; ok {
+		if len(val) != 0 {
+			contribution := shared.ForageDecision{Type: c.lastForageType, Contribution: c.lastForageAmount}
+			return shared.ForageShareInfo{
+				DecisionMade:     contribution,
+				ResourceObtained: c.foragingReturnsHist[c.GetID()][len(c.foragingReturnsHist[c.GetID()])-1].ResourcesObtained,
+				ShareTo:          c.getIslandsToShareWith(),
+			}
+		}
+	}
+
+	noInfo := shared.ForageShareInfo{
+		DecisionMade:     shared.ForageDecision{},
+		ResourceObtained: shared.Resources(0),
+		ShareTo:          []shared.ClientID{},
+	}
+
+	return noInfo
 }

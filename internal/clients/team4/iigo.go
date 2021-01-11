@@ -10,10 +10,12 @@ import (
 )
 
 func (c *client) GetClientJudgePointer() roles.Judge {
+	c.clientJudge.GameState = c.ServerReadHandle.GetGameState()
 	return &c.clientJudge
 }
 
 func (c *client) GetClientSpeakerPointer() roles.Speaker {
+	c.clientSpeaker.GameState = c.ServerReadHandle.GetGameState()
 	return &c.clientSpeaker
 }
 
@@ -47,27 +49,38 @@ func (c *client) RequestAllocation() shared.Resources {
 	})
 
 	uncomplianceLevel := mat.Dot(importance, parameters) - uncomplianceThreshold
-	// TODO: if we're in critical state, take the resource needed to get us out of it. Maybe take a protion of what we need
-	// until the very last turns in which we're about to die and take all we need to get out of critical state.
-	// c.ServerReadHandle.GetGameConfig().maxCriticalConsecutiveTurns
+
+	// if alive and compliant then take nothing if granted nothing
 	allocDemanded := allocationGranted
-	if uncomplianceLevel > 0 {
-		allocDemanded = allocationGranted * shared.Resources((uncomplianceLevel + 1))
+	if allocationGranted == 0 {
+		c.internalParam.giftExtra = false
 	}
+	resNeeded := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - c.getOurResources()
+
 	if ourLifeStatus == shared.Critical {
+		c.internalParam.giftExtra = false
 		maxTurnsInCritical := c.ServerReadHandle.GetGameConfig().MaxCriticalConsecutiveTurns
 		turnsInCritical := c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter
-		resNeeded := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - c.getOurResources()
 		if turnsInCritical == maxTurnsInCritical {
 			allocDemanded = shared.Resources(math.Min(float64(resNeeded*5), float64(commonPool)))
 		} else if turnsInCritical == maxTurnsInCritical-1 {
 			allocDemanded = shared.Resources(math.Min(float64(resNeeded*3), float64(commonPool)))
 		} else if turnsInCritical == maxTurnsInCritical-2 {
-			allocDemanded = shared.Resources(math.Min(float64(resNeeded*1.5), float64(commonPool)))
+			allocDemanded = shared.Resources(math.Min(float64(resNeeded*2), float64(commonPool)))
 
 		}
 	} else if ourLifeStatus == shared.Dead {
+		c.internalParam.giftExtra = false
 		allocDemanded = shared.Resources(0)
+	} else if ourLifeStatus == shared.Alive {
+		if uncomplianceLevel > 0 {
+			if allocationGranted == 0 {
+				c.internalParam.giftExtra = false
+				allocDemanded = shared.Resources(math.Min(float64(resNeeded*2)*(uncomplianceLevel+1), float64(commonPool)))
+			} else {
+				allocDemanded = allocationGranted * shared.Resources((uncomplianceLevel + 1))
+			}
+		}
 	}
 
 	return allocDemanded
@@ -78,6 +91,8 @@ func (c *client) RequestAllocation() shared.Resources {
 func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	c.BaseClient.ReceiveCommunication(sender, data)
 	// TODO parse sanction info
+	c.updateTrustMonitoring(data)
+
 	for contentType, content := range data {
 		switch contentType {
 		case shared.IIGOTaxDecision:
@@ -85,18 +100,21 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		case shared.IIGOAllocationDecision:
 			c.obs.iigoObs.allocationGranted = shared.Resources(content.IntegerData)
 		case shared.RuleName:
-			// currentRuleID := content.TextData
-			// if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
-			// 	c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
-			// 	c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
-			// } else {
-			// 	c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
-			// }
-		case shared.RoleMonitored:
-			// TODO: modify trust matrix based on monitor result
-			// c.iigoInfo.monitoringDeclared[content.IIGORoleData] = true
-			// c.iigoInfo.monitoringOutcomes[content.IIGORoleData] = data[shared.MonitoringResult].BooleanData
+		// currentRuleID := content.TextData
+		// if _, ok := c.iigoInfo.ruleVotingResults[currentRuleID]; ok {
+		// 	c.iigoInfo.ruleVotingResults[currentRuleID].resultAnnounced = true
+		// 	c.iigoInfo.ruleVotingResults[currentRuleID].result = data[shared.RuleVoteResult].BooleanData
+		// } else {
+		// 	c.iigoInfo.ruleVotingResults[currentRuleID] = &ruleVoteInfo{resultAnnounced: true, result: data[shared.RuleVoteResult].BooleanData}
+		// }
+		case shared.SanctionClientID:
+			if sanctionTier, ok := data[shared.IIGOSanctionTier]; ok {
+				sanctionedClient := shared.ClientID(content.IntegerData)
+				sanctionTierData := shared.IIGOSanctionsTier(sanctionTier.IntegerData)
+				c.obs.iigoObs.sanctionTiers[sanctionedClient] = sanctionTierData
+			}
 		default: //[exhaustive] reported by reviewdog 🐶
+			return
 			//missing cases in switch of type shared.CommunicationFieldName: BallotID, IIGOSanctionScore, IIGOSanctionTier, MonitoringResult, PardonClientID, PardonTier, PresidentID, ResAllocID, RoleConducted, RuleVoteResult, SanctionAmount, SanctionClientID, SpeakerID (exhaustive)
 
 		}
@@ -107,6 +125,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	// TODO: Implement needs based on resource request.
 
 	// available observations
+	c.internalParam.giftExtra = false
 	commonPoolLevel := c.ServerReadHandle.GetGameState().CommonPool
 	ourResource := c.getOurResources()
 	ourLifeStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
@@ -120,17 +139,22 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 
 	resNeeded := shared.Resources(0)
-	if numClientAlive != 0 && ourLifeStatus != shared.Dead {
-		eachClient := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
-		resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - ourResource
-		if ourLifeStatus == shared.Alive {
-			resNeeded *= shared.Resources(1.1)
-		} else if ourLifeStatus == shared.Critical {
-			resNeeded *= shared.Resources(2)
+	if ourLifeStatus != shared.Dead {
+		if numClientAlive != 0 {
+			eachClient := commonPoolLevel / shared.Resources(numClientAlive) //tempcomment: Allocation is taken before taxation before disaster
+			resNeeded = c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - ourResource
+			if ourLifeStatus == shared.Alive {
+				resNeeded *= shared.Resources(2)
+				resNeeded += shared.Resources(numClientAlive * 10)
+				c.internalParam.giftExtra = true
+
+			} else if ourLifeStatus == shared.Critical {
+				resNeeded *= shared.Resources(3)
+			}
+			resNeeded = shared.Resources(math.Min(float64(eachClient), float64(resNeeded)))
+		} else {
+			resNeeded = commonPoolLevel * shared.Resources(rand.Float64())
 		}
-		resNeeded = shared.Resources(math.Min(float64(eachClient), float64(resNeeded)))
-	} else {
-		resNeeded = commonPoolLevel * shared.Resources(rand.Float64())
 	}
 
 	greedyThreshold := 2.5

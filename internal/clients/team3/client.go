@@ -95,7 +95,6 @@ type islandParams struct {
 	recidivism              float64
 	riskFactor              float64
 	friendliness            float64
-	aggression              float64
 	sensitivity             float64
 	localPoolThreshold      float64
 	giftInflationPercentage float64

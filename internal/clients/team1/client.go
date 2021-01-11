@@ -120,7 +120,7 @@ func defaultConfig() team1Config {
 		flipForageScale:                0.3,
 		forageContributionCapPercent:   0.2,
 		forageContributionNoisePercent: 0.01,
-		evadeTaxes:                     true,
+		evadeTaxes:                     false,
 		kickstartTaxPercent:            0,
 		desperateStealAmount:           30,
 		maxOpinion:                     10,
