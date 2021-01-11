@@ -19,6 +19,10 @@ type forageHistory struct {
 
 func (c *client) analyseHistory() {
 	constLookBack := 5
+	if c.getTurn() < 5 {
+		c.forage.preferedForageMethod = shared.DeerForageType
+		return
+	}
 
 	totalResources := make(map[shared.ForageType]float64)
 	totalResources[shared.DeerForageType] = 1.1
@@ -53,7 +57,7 @@ func (c *client) analyseHistory() {
 		if totalResources[shared.DeerForageType] >= totalResources[shared.FishForageType] {
 			c.forage.preferedForageMethod = shared.DeerForageType
 		} else {
-			c.forage.preferedForageMethod = shared.DeerForageType
+			c.forage.preferedForageMethod = shared.FishForageType
 		}
 	}
 }
