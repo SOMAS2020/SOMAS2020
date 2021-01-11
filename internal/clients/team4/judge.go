@@ -1,9 +1,6 @@
 package team4
 
 import (
-	"fmt"
-	"testing"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -12,7 +9,6 @@ import (
 type judge struct {
 	*baseclient.BaseJudge
 	parent *client
-	t      *testing.T
 }
 
 // GetRuleViolationSeverity returns a custom map of named rules and how severe the sanction should be for transgressing them
@@ -182,9 +178,3 @@ func (j *judge) CallPresidentElection(monitoring shared.MonitorResult, turnsInPo
 
 // DecideNextPresident returns the ID of chosen next President
 // OPTIONAL: override to manipulate the result of the election
-
-func (j *judge) logf(format string, a ...interface{}) {
-	if j.t != nil {
-		j.t.Log(fmt.Sprintf(format, a...))
-	}
-}

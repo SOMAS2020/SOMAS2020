@@ -4,7 +4,6 @@ package team4
 import (
 	"math"
 	"sort"
-	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -18,7 +17,7 @@ func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
 
-func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
+func newClientInternal(clientID shared.ClientID) client {
 	// have some config json file or something?
 	internalConfig := internalParameters{
 		greediness:                   0,
@@ -75,7 +74,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 
 	team4client := client{
 		BaseClient:  baseclient.NewClient(id),
-		clientJudge: judge{BaseJudge: &baseJudge, t: testing},
+		clientJudge: judge{BaseJudge: &baseJudge},
 		clientSpeaker: speaker{
 			BaseSpeaker: &baseSpeaker,
 			SpeakerActionOrder: []string{
@@ -108,7 +107,7 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 
 // NewClient is a function that creates a new empty client
 func NewClient(clientID shared.ClientID) baseclient.Client {
-	team4client := newClientInternal(clientID, nil)
+	team4client := newClientInternal(clientID)
 	return &team4client
 }
 

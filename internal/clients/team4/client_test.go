@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetJudgePointer(t *testing.T) {
-	testClient := newClientInternal(id, t)
+	testClient := newClientInternal(id)
 	testServer := fakeServerHandle{}
 	testClient.Initialise(testServer)
 	j := testClient.GetClientJudgePointer()
