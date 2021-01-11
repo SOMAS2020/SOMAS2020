@@ -21,14 +21,18 @@ func init() {
 func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	// have some config json file or something?
 	internalConfig := internalParameters{
-		greediness:       0,
-		selfishness:      0,
-		fairness:         0,
-		collaboration:    0,
-		riskTaking:       0,
-		maxPardonTime:    3,
-		maxTierToPardon:  shared.SanctionTier3,
-		minTrustToPardon: 0.6,
+		greediness:                   0,
+		selfishness:                  0,
+		fairness:                     0,
+		collaboration:                0,
+		riskTaking:                   0,
+		maxPardonTime:                3,
+		maxTierToPardon:              shared.SanctionTier3,
+		minTrustToPardon:             0.6,
+		historyWeight:                1,   // in range [0,1]
+		historyFullTruthfulnessBonus: 0.1, // in range [0,1]
+		monitoringWeight:             1,   // in range [0,1]
+		monitoringResultChange:       0.1, // in range [0,1]
 	}
 
 	iigoObs := iigoObservation{
@@ -45,8 +49,9 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 	}
 
 	judgeHistory := accountabilityHistory{
-		history: map[uint]map[shared.ClientID]judgeHistoryInfo{},
-		updated: false,
+		history:     map[uint]map[shared.ClientID]judgeHistoryInfo{},
+		updated:     false,
+		updatedTurn: 0,
 	}
 
 	emptyRuleCache := map[string]rules.RuleMatrix{}
@@ -64,10 +69,13 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		getGiftRequestsImportance:                  mat.NewVecDense(4, []float64{2.0, 1.0, -1.0, -1.0}),
 	}
 
+	baseJudge := baseclient.BaseJudge{}
+	baseSpeaker := baseclient.BaseSpeaker{}
+
 	team4client := client{
 		BaseClient:         baseclient.NewClient(id),
-		clientJudge:        judge{BaseJudge: &baseclient.BaseJudge{}, t: testing},
-		clientSpeaker:      speaker{BaseSpeaker: &baseclient.BaseSpeaker{}},
+		clientJudge:        judge{BaseJudge: &baseJudge, t: testing},
+		clientSpeaker:      speaker{BaseSpeaker: &baseSpeaker},
 		obs:                &obs,
 		internalParam:      &internalConfig,
 		idealRulesCachePtr: &emptyRuleCache,
@@ -124,9 +132,9 @@ type iigoObservation struct {
 }
 
 type iifoObservation struct {
-	receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
-	ourDisasterPrediction       shared.DisasterPredictionInfo
-	finalDisasterPrediction     shared.DisasterPrediction
+	// receivedDisasterPredictions shared.ReceivedDisasterPredictionsDict
+	ourDisasterPrediction   shared.DisasterPredictionInfo
+	finalDisasterPrediction shared.DisasterPrediction
 }
 
 type iitoObservation struct {
@@ -148,6 +156,12 @@ type internalParameters struct {
 	maxTierToPardon shared.IIGOSanctionsTier
 	// we will only consider pardoning islands which we trust with at least this value
 	minTrustToPardon float64
+
+	// Trust config
+	historyWeight                float64
+	historyFullTruthfulnessBonus float64
+	monitoringWeight             float64
+	monitoringResultChange       float64
 }
 
 // type personality struct {
@@ -165,7 +179,6 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 func (c *client) updateParents() {
 	c.clientJudge.parent = c
 	c.clientSpeaker.parent = c
-
 }
 
 func deepCopyRulesCache(AvailableRules map[string]rules.RuleMatrix) *map[string]rules.RuleMatrix {
@@ -285,7 +298,43 @@ func (c *client) StartOfTurn() {
 
 func (c *client) updateTrustFromSavedHistory() {
 	if c.savedHistory.updated {
+		newInfo := c.savedHistory.getNewInfo()
 
+		if len(newInfo) > 0 {
+			var lawfulnessSum float64
+
+			for _, history := range newInfo {
+				lawfulnessSum += history.LawfulRatio
+			}
+			averageTruthfulness := lawfulnessSum / float64(len(newInfo))
+
+			for clientID, history := range newInfo {
+				lawfulness := history.LawfulRatio
+
+				c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyWeight*(lawfulness-averageTruthfulness)) //potentially add * historyWeight to scale the update
+
+				if floatEqual(lawfulness, 1) { //bonus for being fully truthful
+					c.trustMatrix.ChangeClientTrust(clientID, c.internalParam.historyFullTruthfulnessBonus)
+				}
+			}
+		}
+		c.savedHistory.updated = false
+	}
+}
+
+func (c *client) updateTrustMonitoring(data map[shared.CommunicationFieldName]shared.CommunicationContent) {
+	if roleMonitored, ok := data[shared.RoleMonitored]; ok && roleMonitored.T == shared.CommunicationIIGORole {
+		if monitoringResult, ok := data[shared.MonitoringResult]; ok && monitoringResult.T == shared.CommunicationBool {
+			roleID := c.getRole(roleMonitored.IIGORoleData)
+
+			if monitoringResult.BooleanData {
+				// Monitored role was truthful
+				c.trustMatrix.ChangeClientTrust(roleID, c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange) // config?
+			} else {
+				// Monitored role cheated
+				c.trustMatrix.ChangeClientTrust(roleID, -c.internalParam.monitoringWeight*c.internalParam.monitoringResultChange)
+			}
+		}
 	}
 }
 
