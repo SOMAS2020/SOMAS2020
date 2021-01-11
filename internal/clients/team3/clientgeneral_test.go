@@ -217,7 +217,6 @@ func TestUpdateCompliance(t *testing.T) {
 				numTimeCaught:   100,
 				compliance:      0.2,
 				params: islandParams{
-					recidivism:      1.0,
 					complianceLevel: 0.1,
 				},
 			},
@@ -230,7 +229,6 @@ func TestUpdateCompliance(t *testing.T) {
 				numTimeCaught:   1,
 				compliance:      1.0,
 				params: islandParams{
-					recidivism:      1.0,
 					complianceLevel: 0.0,
 				},
 			},
@@ -243,7 +241,6 @@ func TestUpdateCompliance(t *testing.T) {
 				numTimeCaught:   10,
 				compliance:      1.0,
 				params: islandParams{
-					recidivism:      1.0,
 					complianceLevel: 1.0,
 				},
 			},

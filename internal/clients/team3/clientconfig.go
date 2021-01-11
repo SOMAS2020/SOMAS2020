@@ -7,7 +7,6 @@ func getislandParams() islandParams {
 		resourcesSkew:           2,    // >1 //same as equity
 		saveCriticalIsland:      true, //seems like this will always be true
 		selfishness:             0.7,  //0-1 //higher is better for us
-		recidivism:              100,  // real number //dont know the effect/importance of this
 		riskFactor:              0.2,  // 0-1 // increasing this has mixed results
 		friendliness:            1,    // 0-1 // agent performs better when this matches selfishness
 		adv:                     nil,  // keep it off pls

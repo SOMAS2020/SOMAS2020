@@ -47,12 +47,10 @@ func (l *locator) calculateMetaStrategy() {
 	newMetaStrategy.conquest = !currentParams.saveCriticalIsland && currentParams.friendliness < 0.5
 	newMetaStrategy.saviour = currentParams.saveCriticalIsland && currentParams.friendliness >= 0.5
 	newMetaStrategy.democrat = currentParams.complianceLevel > 0.5 && currentParams.selfishness < 0.5
-	newMetaStrategy.generous = currentParams.selfishness < 0.5 && currentParams.saveCriticalIsland && currentParams.recidivism < 0.5 && currentParams.friendliness > 0.3
+	newMetaStrategy.generous = currentParams.selfishness < 0.5 && currentParams.saveCriticalIsland && currentParams.friendliness > 0.3
 	newMetaStrategy.lawful = currentParams.complianceLevel > 0.50 && currentParams.selfishness < 0.50
 	newMetaStrategy.legislative = currentParams.equity > 0.50
-	newMetaStrategy.executive = currentParams.recidivism < 0.50
 	newMetaStrategy.fury = !currentParams.saveCriticalIsland
-	newMetaStrategy.independent = currentParams.recidivism > 0.50
 	l.locationStrategy = newMetaStrategy
 }
 

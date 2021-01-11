@@ -323,7 +323,7 @@ func (c *client) updateCompliance() {
 		c.numTimeCaught++
 	} else {
 		c.compliance = c.params.complianceLevel + (1.0-c.params.complianceLevel)*
-			math.Exp(-float64(c.timeSinceCaught)/math.Pow((float64(c.numTimeCaught)+1.0), c.params.recidivism))
+			math.Exp(-float64(c.timeSinceCaught)/float64(c.numTimeCaught)+1.0)
 		c.timeSinceCaught++
 	}
 }

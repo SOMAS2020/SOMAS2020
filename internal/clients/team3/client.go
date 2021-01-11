@@ -103,7 +103,6 @@ type islandParams struct {
 	resourcesSkew           float64
 	saveCriticalIsland      bool
 	selfishness             float64
-	recidivism              float64
 	riskFactor              float64
 	friendliness            float64
 	sensitivity             float64
