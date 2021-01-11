@@ -120,13 +120,13 @@ func (c *client) MakeDisasterPrediction() shared.DisasterPredictionInfo {
 	prediction := shared.DisasterPrediction{
 		CoordinateX: predictedX,
 		CoordinateY: predictedY,
-		Magnitude:   c.getMeanMagnitude(),
 	}
 	teamsOfferingTo := []shared.ClientID{}
 
 	if period != 0 {
 		prediction.TimeLeft = c.getTimeLeft(isStochastic, period)
 		prediction.Confidence = c.determineConfidence(isStochastic, period)
+		prediction.Magnitude = c.getMeanMagnitude()
 		teamsOfferingTo = shared.TeamIDs[:]
 	}
 
