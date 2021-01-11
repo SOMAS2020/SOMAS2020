@@ -5,9 +5,8 @@ import (
 )
 
 type forageStorage struct {
-	preferedForageMethod shared.ForageType
-	forageHistory        []forageHistory
-	receivedForageData   [][]shared.ForageShareInfo
+	forageHistory      []forageHistory
+	receivedForageData [][]shared.ForageShareInfo
 }
 
 type forageHistory struct {
