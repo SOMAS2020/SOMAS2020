@@ -43,8 +43,26 @@ func (c *client) GetClientPresidentPointer() roles.President {
 	return &c.ourPresident
 }
 
+// Vote based on island's past performance in the role and trust score if they have not previously held that role
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
-	// Vote based on trust, rank on trust
+
+	// Get relevant map of past performance
+	var pastRolePerformance map[shared.ClientID]int
+	if roleToElect == shared.President {
+		pastRolePerformance = c.presidentPerformance
+	}
+	if roleToElect == shared.Judge {
+		pastRolePerformance = c.judgePerformance
+	} else {
+		pastRolePerformance = c.speakerPerformance
+	}
+
+	// Calculate combined trust and past performance metric
+	var trustPerformanceScore map[shared.ClientID]float64
+	for island, trustScore := range c.trustScore {
+		trustPerformanceScore[island] = trustScore + float64(pastRolePerformance[island])
+	}
+
 	candidateNum := len(candidateList)
 	var returnList []shared.ClientID
 	returnList = append(returnList, shared.ClientID(id))
@@ -54,7 +72,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	for i := 0; i < candidateNum; i++ {
 		// Find current top scorer from non voted for islands
 		for _, island := range candidateList {
-			if c.trustScore[island] > highscore {
+			if trustPerformanceScore[island] > highscore {
 				// Check if already in return list
 				present := false
 				for _, votedIsland := range returnList {
@@ -70,7 +88,6 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		returnList = append(returnList, highscoreIsland)
 	}
 
-	// TODO Vote based on performance
 	return returnList
 
 }
@@ -389,7 +406,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	if c.shouldICheat() {
 		request += shared.Resources(float64(request) * c.params.selfishness)
 	}
-	
+
 	if currentState.CommonPool <= request {
 		request = shared.Resources(float64(currentState.CommonPool) * c.params.selfishness)
 	}
