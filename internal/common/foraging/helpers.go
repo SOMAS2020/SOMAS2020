@@ -34,6 +34,7 @@ func compileForagingReport(
 
 	fR := ForagingReport{
 		ForageType:               forageType,
+	        InputResources:           getTotalInput(contribs),
 		ParticipantContributions: contribs,
 		CatchSizes:               make([]float64, 0),
 	}
