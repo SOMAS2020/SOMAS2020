@@ -24,5 +24,9 @@ func (a *Account) LoadTaxation(calcVal shared.Resources) {
 }
 
 func (a *Account) GetAllocMin() shared.Resources {
+	if a.turnTarget < 0 {
+		a.TargetVal += -1 * a.turnTarget
+		return a.turnTarget * -1
+	}
 	return a.turnTarget
 }

@@ -3,6 +3,7 @@ package team3
 // General client functions
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"math"
 	"math/rand"
 
@@ -44,6 +45,8 @@ func (c *client) StartOfTurn() {
 	c.lastSanction = c.iigoInfo.sanctions.ourSanction
 
 	c.resetIIGOInfo()
+	c.account.UpdatePersonalPool(c.ServerReadHandle.GetGameState().ClientInfo.Resources)
+	c.account.Cycle()
 	c.Logf("Our Status: %+v\n", c.ServerReadHandle.GetGameState().ClientInfo)
 }
 
@@ -88,6 +91,11 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.criticalThreshold = serverReadHandle.GetGameConfig().MinimumResourceThreshold
 	c.minimumResourcesWeWant = c.criticalThreshold * (2 - shared.Resources(c.params.riskFactor))
 	c.initialResourcesAtStartOfGame = c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	c.account = dynamics.Account{
+		Id:        c.GetID(),
+		TargetVal: shared.Resources(math.Min(float64(c.initialResourcesAtStartOfGame*2), float64(c.ServerReadHandle.GetGameState().CommonPool))),
+		Coeff:     1,
+	}
 }
 
 // updatetrustMapAgg adds the amount to the aggregate trust map list for given client
