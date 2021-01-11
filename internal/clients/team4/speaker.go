@@ -97,8 +97,6 @@ func (s *speaker) reorderPriorities() {
 	if !ok {
 		s.sendActionToBack("AppointNextJudge")
 	}
-	s.parent.Logf("Order: %v", s.SpeakerActionOrder)
-	s.parent.Logf("Priorities: %v", s.SpeakerActionPriorities)
 }
 
 // PayJudge is used for paying judge for his service
