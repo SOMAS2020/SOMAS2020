@@ -15,10 +15,11 @@ import (
 
 func (c *client) DecideForage() (shared.ForageDecision, error) {
 
-	safetyFactor := 1.0 + (0.5/100)*c.params.riskFactor
+	// No risk -> minimum is 2 times the critical threshold, Full risk -> minimum is the critical threshold
+	safetyFactor := 2.0 - c.params.riskFactor
 
 	//we want to have more than the critical threshold leftover after foraging
-	var minimumLeftoverResources = float64(c.criticalStatePrediction.upperBound) * safetyFactor
+	var minimumLeftoverResources = float64(c.criticalThreshold) * safetyFactor
 
 	var foragingInvestment = 0.0
 	//for now we invest everything we can, because foraging is iffy.
@@ -26,18 +27,61 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		foragingInvestment = math.Max(float64(c.ServerReadHandle.GetGameState().ClientInfo.Resources)-minimumLeftoverResources, 0)
 	}
 
-	// ## When fishing foraging is implemnented ##
+	var forageType shared.ForageType
 
-	// deerForagingInvestment := p.riskFactor * foragingInvestment
-	// deerForagingInvestment := (1 - p.riskFactor) * foragingInvestment
-
-	// math.Max(deerForagingInvestment, p.minimunInvestment)
-	// math.Max(fishForagingInvestment, p.minimunInvestment)
+	fishingROI := c.computeRecentExpectedROI(shared.FishForageType)
+	deerHuntingROI := c.computeRecentExpectedROI(shared.DeerForageType)
+	if deerHuntingROI != 0 && fishingROI != 0 || (deerHuntingROI > 100 || fishingROI > 100) {
+		if deerHuntingROI > fishingROI {
+			forageType = shared.DeerForageType
+		} else {
+			forageType = shared.FishForageType
+		}
+	} else {
+		if fishingROI == 0 {
+			forageType = shared.FishForageType
+		}
+		if deerHuntingROI == 0 {
+			forageType = shared.DeerForageType
+		}
+	}
 
 	return shared.ForageDecision{
-		Type:         shared.DeerForageType,
-		Contribution: shared.Resources(foragingInvestment),
+		Type:         forageType,
+		Contribution: shared.Resources(foragingInvestment * c.params.riskFactor),
 	}, nil
 }
 
-// Increment p.minimumInvestment when receiving forage update and no deer/fish was caughgt.
+func (c *client) computeRecentExpectedROI(forageType shared.ForageType) float64 {
+	data := c.forageData[forageType]
+	var sumOfROI float64
+	var numberOfROI uint
+
+	for _, forage := range data {
+		if uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-1 || uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-2 {
+			if forage.amountContributed != 0 {
+				sumOfROI += float64((forage.amountReturned / forage.amountContributed) * 100)
+				numberOfROI++
+			}
+		}
+	}
+
+	if numberOfROI == 0 {
+		return 0
+	}
+
+	c.Logf("Expected return of %v: %v", forageType, (sumOfROI / float64(numberOfROI)))
+	return sumOfROI / float64(numberOfROI)
+}
+
+func (c *client) ForageUpdate(forageDecision shared.ForageDecision, outcome shared.Resources, numberCaught uint) {
+	c.forageData[forageDecision.Type] =
+		append(
+			c.forageData[forageDecision.Type],
+			ForageData{
+				amountContributed: forageDecision.Contribution,
+				amountReturned:    outcome,
+				turn:              c.ServerReadHandle.GetGameState().Turn,
+			},
+		)
+}

@@ -2,6 +2,8 @@
 package team6
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
@@ -24,6 +26,7 @@ type client struct {
 	disasterPredictions   DisasterPredictions
 	forageHistory         ForageHistory
 	payingTax             shared.Resources
+	payingSanction        shared.Resources
 
 	clientConfig ClientConfig
 }
@@ -31,10 +34,6 @@ type client struct {
 func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
 }
-
-// ########################
-// ######  General  #######
-// ########################
 
 // NewClient creates a client objects for our island
 func NewClient(clientID shared.ClientID) baseclient.Client {
@@ -57,6 +56,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.disasterPredictions = DisasterPredictions{}
 	c.forageHistory = ForageHistory{}
 	c.payingTax = 0.0
+	c.payingSanction = 0.0
 
 	for _, team := range shared.TeamIDs {
 		if team == c.GetID() {
@@ -84,11 +84,12 @@ func (c *client) updateConfig() {
 	costOfLiving := c.ServerReadHandle.GetGameConfig().CostOfLiving
 
 	updatedConfig := ClientConfig{
-		minFriendship:          0.0,
-		maxFriendship:          100.0,
-		friendshipChangingRate: 20.0,
+		minFriendship:          c.clientConfig.minFriendship,
+		maxFriendship:          c.clientConfig.maxFriendship,
+		friendshipChangingRate: c.clientConfig.friendshipChangingRate,
 		selfishThreshold:       minThreshold + 3.0*costOfLiving + ourResources/10.0,
 		normalThreshold:        minThreshold + 6.0*costOfLiving + ourResources/10.0,
+		multiplier:             c.clientConfig.multiplier,
 	}
 
 	c.clientConfig = ClientConfig(updatedConfig)
@@ -120,7 +121,6 @@ func (c *client) updateFriendship() {
 }
 
 func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disasters.DisasterEffects) {
-	// TODO: effects may be recorded
 	currTurn := c.ServerReadHandle.GetGameState().Turn
 
 	disasterhappening := baseclient.DisasterInfo{
@@ -130,9 +130,25 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 		Turn:        currTurn,
 	}
 
-	//for team, prediction := range c.receivedDisasterPredictions {
-	// TODO: increases the trust rank based on the predictions
-	//}
+	ourDiff := math.Abs(c.disasterPredictions[c.GetID()].Magnitude - disasterhappening.Magnitude)
+	theirDiff := float64(0)
+
+	for team, prediction := range c.disasterPredictions {
+		theirDiff = math.Abs(prediction.Magnitude - disasterhappening.Magnitude)
+
+		if ourDiff != 0 {
+			c.trustRank[team] += (ourDiff - theirDiff) / ourDiff
+		} else {
+			c.trustRank[team] = c.trustRank[team] / float64(2)
+		}
+
+		// sets the cap of trust rank from 0 to 1
+		if c.trustRank[team] < 0 {
+			c.trustRank[team] = 0
+		} else if c.trustRank[team] > 1 {
+			c.trustRank[team] = 1
+		}
+	}
 
 	c.disastersHistory = append(c.disastersHistory, disasterhappening)
 }
