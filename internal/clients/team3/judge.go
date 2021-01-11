@@ -121,8 +121,20 @@ func (j *judge) GetRuleViolationSeverity() map[string]shared.IIGOSanctionsScore 
 
 // GetSanctionThresholds returns a custom map of sanction score thresholds for different sanction tiers
 // For any unfilled sanction tiers will be filled with default values (given in judiciary.go)
+// All sanction tiers have linear scaling and hence it is easier (than default) to fall in higher
+// sanction tiers. The aim is to enforce harsher penalties with hope to encourage more obedient
+// behaviour from other agents.
 func (j *judge) GetSanctionThresholds() map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore {
-	return j.BaseJudge.GetSanctionThresholds()
+
+	// Linear increase of 5 per sanction tier.
+	return map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore{
+		shared.SanctionTier1: 1,
+		shared.SanctionTier2: 6,
+		shared.SanctionTier3: 11,
+		shared.SanctionTier4: 16,
+		shared.SanctionTier5: 21,
+	}
+
 }
 
 // GetPardonedIslands decides which islands to pardon i.e. no longer impose sanctions on
@@ -152,6 +164,5 @@ func (j *judge) HistoricalRetributionEnabled() bool {
 	if res.RulePasses && res.EvalError == nil {
 		ans = true
 	}
-	j.c.Logf("[TEAM3]: Historical Rule Cache: %v, %v", res.RulePasses, ans)
 	return ans
 }
