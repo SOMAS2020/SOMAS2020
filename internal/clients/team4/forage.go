@@ -66,7 +66,13 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	c.analyseHistory()
 	ft := c.forage.preferedForageMethod
 	scale := 5 * c.getSafeResourceLevel()
-	resources := c.getResources() - c.getSafeResourceLevel()*(2-shared.Resources(c.internalParam.riskTaking))*scale
+	resources := c.getResources() - (2-shared.Resources(c.internalParam.riskTaking))*scale
+	if resources < c.getSafeResourceLevel() {
+		resources = c.getResources() - c.getSafeResourceLevel()*2
+	}
+	if resources < 0 {
+		resources = 0
+	}
 	return shared.ForageDecision{
 		Type:         shared.ForageType(ft),
 		Contribution: shared.Resources(resources),
