@@ -7,6 +7,7 @@ import (
 )
 
 type Malice struct {
+	id             shared.ClientID
 	rulesToPropose map[string]rules.RuleMatrix
 }
 
@@ -120,7 +121,7 @@ func (m *Malice) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) 
 		lst := make([]bool, len(sanctionList))
 		pardons[key] = lst
 		for index, sanction := range sanctionList {
-			if sanction.ClientID == shared.Team3 {
+			if sanction.ClientID == m.id {
 				pardons[key][index] = true
 			} else {
 				pardons[key][index] = false
@@ -139,7 +140,7 @@ func (m *Malice) CallPresidentElection(monitoring shared.MonitorResult, turnsInP
 }
 
 func (m *Malice) DecideNextPresident(winner shared.ClientID) (shared.ClientID, bool) {
-	return shared.Team3, true
+	return m.id, true
 }
 
 func (m *Malice) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) (shared.ElectionSettings, bool) {
@@ -151,7 +152,7 @@ func (m *Malice) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower
 }
 
 func (m *Malice) DecideNextJudge(winner shared.ClientID) (shared.ClientID, bool) {
-	return shared.Team3, true
+	return m.id, true
 }
 
 func (m *Malice) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) (shared.ElectionSettings, bool) {
@@ -163,7 +164,7 @@ func (m *Malice) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPow
 }
 
 func (m *Malice) DecideNextSpeaker(winner shared.ClientID) (shared.ClientID, bool) {
-	return shared.Team3, true
+	return m.id, true
 }
 
 func (m *Malice) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool, bool) {
