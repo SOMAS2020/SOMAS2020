@@ -26,7 +26,9 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 	turn := c.gameState().Turn
 	requests := shared.GiftRequestDict{}
 	ourAgentCritical := c.criticalStatus()
-	giftTarget := 1.5 * (c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold) * c.giftReliance()
+	giftTarget := c.giftReliance() * (c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold)
+
+	c.Logf("TARGETGIFT : %v", giftTarget)
 
 	if ourAgentCritical || giftTarget != 0 {
 		var trustRank IslandTrustList
@@ -66,12 +68,10 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 			targetToFulfill -= requestAmount
 
 			if targetToFulfill <= 0 {
-				c.Logf("doink requests : %v", requests)
 				return requests
 			}
 		}
 	}
-	c.Logf("doink requests 2 : %v", requests)
 	return requests
 }
 
@@ -90,6 +90,10 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	excess := c.gameState().ClientInfo.Resources - c.taxAmount + c.gameConfig().CostOfLiving + c.gameConfig().MinimumResourceThreshold
 	maxToGive := excess * c.config.MaxGiftOffersMultiplier
 
+	if maxToGive > 50 {
+		maxToGive = 50
+	}
+
 	// prioritize giving gifts to islands we trust (for now confidence)
 	var trustRank IslandTrustList
 	if !ourAgentCritical && maxToGive > 0 {
@@ -105,7 +109,6 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			}
 		}
 
-		//TODO: Our trust rank is always empty
 		if len(trustRank) != 0 {
 			sort.Sort(trustRank)
 		}
@@ -114,14 +117,19 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			offeredTo := trustRank[i].island
 			offeredAmount := receivedRequests[offeredTo] * (shared.GiftRequest(trustRank[i].trust) / 100)
 
-			if offeredAmount >= shared.GiftRequest(maxToGive) {
+			//returning the minimum of costpfliving, offeredamount and maxtogive
+			//costofliving is just 10, maybe increase a bit
+			if offeredAmount >= shared.GiftRequest(c.gameConfig().CostOfLiving) && maxToGive >= c.gameConfig().CostOfLiving {
+				offeredAmount = shared.GiftRequest(c.gameConfig().CostOfLiving)
+				maxToGive -= c.gameConfig().CostOfLiving
+			} else if offeredAmount <= shared.GiftRequest(c.gameConfig().CostOfLiving) && shared.GiftRequest(maxToGive) >= offeredAmount {
+				maxToGive -= shared.Resources(offeredAmount)
+			} else if offeredAmount >= shared.GiftRequest(maxToGive) {
 				offeredAmount = shared.GiftRequest(maxToGive)
 				maxToGive = 0
 			}
 
 			offers[offeredTo] = shared.GiftOffer(offeredAmount)
-			c.Logf("Predatory Requests 1: %v", receivedRequests)
-			c.Logf("Predatory Lending 1: %v", offers)
 
 			// to keep track in our history
 			newGiftRequest := GiftInfo{
@@ -139,8 +147,6 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 			}
 		}
 	}
-	c.Logf("Predatory Requests 2: %v", receivedRequests)
-	c.Logf("Predatory Lending 2: %v", offers)
 	return offers
 }
 
@@ -172,8 +178,6 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 		c.giftHist[client].OurRequest[turn] = newGiftRequest
 	}
 
-	c.Logf("People giving us stuff:  %v", receivedOffers)
-
 	return responses
 }
 
@@ -183,12 +187,6 @@ func (c *client) GetGiftResponses(receivedOffers shared.GiftOfferDict) shared.Gi
 // COMPULSORY, you need to implement this method
 func (c *client) UpdateGiftInfo(receivedResponses shared.GiftResponseDict) {
 	for island, response := range receivedResponses {
-		// newGiftRequest := GiftInfo{
-		// 	requested: c.giftHist[island].IslandRequest[turn].requested,
-		// 	gifted:    shared.GiftOffer(response.AcceptedAmount),
-		// 	reason:    shared.AcceptReason(response.Reason),
-		// }
-		// c.giftHist[island].IslandRequest[turn] = newGiftRequest
 		c.Logf("Island[%v] accepted [%v] Resources ", island, response.AcceptedAmount)
 	}
 }
@@ -254,13 +252,13 @@ func (c *client) giftReliance() shared.Resources {
 	switch c.getAgentStrategy() {
 	case Altruist:
 		// Pool Level is LOW, rely 80% on gifts
-		multiplier = 0.8
+		multiplier = c.config.AltruistMultiplier
 	case FairSharer:
 		// Pool Level is OK, rely 60% on gifts
-		multiplier = 0.6
+		multiplier = c.config.FairSharerMultipler
 	case Selfish:
 		// Pool Level is HIGH, rely 20% on gifts
-		multiplier = 0.2
+		multiplier = c.config.FreeRiderMultipler
 	}
 
 	return multiplier
