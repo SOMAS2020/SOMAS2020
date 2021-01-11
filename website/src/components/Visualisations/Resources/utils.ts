@@ -30,7 +30,7 @@ export const outputToResourceLevels = (
             Turn: 0, // set 0 for now, set below
         }
         resLevel.TotalResources = Object.values(resLevel).reduce(
-            (a, b) => Number(a) + Number(b),
+            (a, b) => a + b,
             0
         )
         resLevel.Turn = g.Turn
