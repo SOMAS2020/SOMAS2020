@@ -56,6 +56,7 @@ func (c *client) analyseHistory() shared.ForageType {
 			totalResources[teamEntry.DecisionMade.Type] = totalResources[teamEntry.DecisionMade.Type] * ratio
 		}
 	}
+	c.Logf("Foraging: FishingRatio %v, DeerRatio %", totalResources[shared.DeerForageType], totalResources[shared.FishForageType])
 	if totalResources[shared.DeerForageType] >= totalResources[shared.FishForageType] {
 		return shared.DeerForageType
 	}
@@ -72,6 +73,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if resources < 0 {
 		resources = 0
 	}
+	c.Logf("Foraging: Decision %v, Resources %v", ft, resources)
 	return shared.ForageDecision{
 		Type:         shared.ForageType(ft),
 		Contribution: shared.Resources(resources),
