@@ -238,7 +238,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 	currentWealth := c.getOurResources()
 
-	collaborationThreshold := 1.0
+	collaborationThreshold := 3.0
 	wealthThreshold := 5 * valToBeReturned
 
 	// Initialise importance vector and parameters vector.
@@ -256,7 +256,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 	if collaborationLevel > collaborationThreshold &&
 		currentWealth > wealthThreshold {
 		// Deliberately pay more (collaborationLevel is larger than 1)
-		valToBeReturned = valToBeReturned * shared.Resources(collaborationLevel)
+		valToBeReturned = valToBeReturned * shared.Resources(0.2*(collaborationLevel-collaborationThreshold))
 
 	}
 
