@@ -1,4 +1,4 @@
-package baseclient
+package team4
 
 import (
 	"math"
@@ -7,9 +7,9 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-// DecideForage makes a foraging decision
+// DecideForage makes a foraging decision, currently you can only forage deer, but fishing will be available later
 // the forageContribution can not be larger than the total resources available
-func (c *BaseClient) DecideForage() (shared.ForageDecision, error) {
+func (c *client) DecideForage() (shared.ForageDecision, error) {
 	ft := int(math.Round(rand.Float64())) // 0 or 1 with equal prob.
 	return shared.ForageDecision{
 		Type:         shared.ForageType(ft),
@@ -19,5 +19,5 @@ func (c *BaseClient) DecideForage() (shared.ForageDecision, error) {
 
 // ForageUpdate is called by the server upon completion of a foraging session. This handler can be used by clients to
 // analyse their returns - resources returned to them, as well as number of fish/deer caught.
-func (c *BaseClient) ForageUpdate(initialDecision shared.ForageDecision, resourceReturn shared.Resources, numberCaught uint) {
+func (c *client) ForageUpdate(initialDecision shared.ForageDecision, resourceReturn shared.Resources, numberCaught uint) {
 }
