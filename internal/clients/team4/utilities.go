@@ -208,3 +208,25 @@ func createClientSet(lst []shared.ClientID) []shared.ClientID {
 	}
 	return uniqueLst
 }
+
+func (c *client) getOurResources() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	}
+	return 0
+}
+
+func (c *client) getRole(role shared.Role) shared.ClientID {
+	if c.ServerReadHandle != nil {
+		switch role {
+		case shared.Judge:
+			return c.getJudge()
+		case shared.President:
+			return c.getPresident()
+		case shared.Speaker:
+			return c.getSpeaker()
+		}
+	}
+	return 0
+}
+
