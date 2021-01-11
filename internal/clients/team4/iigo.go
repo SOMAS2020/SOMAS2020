@@ -52,6 +52,9 @@ func (c *client) RequestAllocation() shared.Resources {
 
 	// if alive and compliant then take nothing if granted nothing
 	allocDemanded := allocationGranted
+	if allocationGranted == 0 {
+		c.internalParam.giftExtra = false
+	}
 	resNeeded := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - c.getOurResources()
 
 	if ourLifeStatus == shared.Critical {
