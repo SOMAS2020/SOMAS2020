@@ -48,6 +48,35 @@ func (c *client) getTermLength(role shared.Role) uint {
 	return 0
 }
 
+func (c *client) getResources() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	}
+	return 0
+}
+
+func (c *client) getLifeStatus() shared.ClientLifeStatus {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+	}
+	return 0
+}
+
+func (c *client) getAllLifeStatus() map[shared.ClientID]shared.ClientLifeStatus {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientLifeStatuses
+	}
+	return make(map[shared.ClientID]shared.ClientLifeStatus)
+}
+
+func (c *client) getSafeResourceLevel() shared.Resources {
+	if c.ServerReadHandle != nil {
+		conf := c.ServerReadHandle.GetGameConfig()
+		return conf.MinimumResourceThreshold + conf.CostOfLiving
+	}
+	return 0
+}
+
 func (c *client) getTrust(clientID shared.ClientID) float64 {
 	return c.trustMatrix.GetClientTrust(clientID)
 }
@@ -118,6 +147,19 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 	return retInfo, ok
 }
 
+/*func dump(filename string, format string, v ...interface{}) {
+	//f, err := os.Create(filename)
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	_, err2 := f.WriteString(fmt.Sprintf(format, v...))
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+}*/
+
 func (c *client) getPresident() shared.ClientID {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameState().PresidentID
@@ -139,26 +181,32 @@ func (c *client) getJudge() shared.ClientID {
 	return 0
 }
 
-// func dump(filename string, format string, v ...interface{}) {
-// 	//f, err := os.Create(filename)
-// 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	defer f.Close()
-
-// 	_, err2 := f.WriteString(fmt.Sprintf(format, v...))
-
-// 	if err2 != nil {
-// 		log.Fatal(err2)
-// 	}
-
-// }
 func boolToFloat(input bool) float64 {
 	if input {
 		return 1
 	}
 	return 0
+}
+
+func checkIfClientIsInList(lst []shared.ClientID, c shared.ClientID) bool {
+	for _, e := range lst {
+		if e == c {
+			return true
+		}
+	}
+	return false
+}
+
+func createClientSet(lst []shared.ClientID) []shared.ClientID {
+	uniqueMap := make(map[shared.ClientID]bool)
+	var uniqueLst []shared.ClientID
+	for _, e := range lst {
+
+		_, ok := uniqueMap[e]
+		if !ok {
+			uniqueMap[e] = true
+			uniqueLst = append(uniqueLst, e)
+		}
+	}
+	return uniqueLst
 }

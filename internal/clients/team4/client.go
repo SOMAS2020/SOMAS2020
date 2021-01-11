@@ -74,6 +74,11 @@ func newClientInternal(clientID shared.ClientID, testing *testing.T) client {
 		savedHistory:       &judgeHistory,
 		trustMatrix:        &trustMatrix,
 		importances:        &importancesMatrix,
+		forage: &forageStorage{
+			preferedForageMethod: 0,
+			forageHistory:        nil,
+			receivedForageData:   nil,
+		},
 	}
 
 	team4client.updateParents()
@@ -100,6 +105,7 @@ type client struct {
 	savedHistory       *accountabilityHistory
 	trustMatrix        *trust
 	importances        *importances
+	forage             *forageStorage
 }
 
 type importances struct {

@@ -129,12 +129,63 @@ func (c *client) ReceiveDisasterPredictions(receivedPredictions shared.ReceivedD
 // MakeForageInfo allows clients to share their most recent foraging DecisionMade, ResourceObtained from it to
 // other clients.
 // OPTIONAL. If this is not implemented then all values are nil.
-// func (c *client) MakeForageInfo() shared.ForageShareInfo {
-// }
+func (c *client) MakeForageInfo() shared.ForageShareInfo {
 
-// ReceiveForageInfo lets clients know what other clients has obtained from their most recent foraging attempt.
-// Most recent foraging attempt includes information about: foraging DecisionMade and ResourceObtained as well
-// as where this information came from.
-// OPTIONAL.
-// func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
-// }
+	// Who to share to
+	var shareTo []shared.ClientID
+	for id, status := range c.getAllLifeStatus() {
+		if status != shared.Dead {
+			if c.getTurn() < 5 {
+				// Send to everyone for the first five rounds
+				shareTo = append(shareTo, id)
+			} else {
+				// Send only to island who sent to us in the previous round
+				shareTo = c.returnPreviousForagers()
+				// Maybe also add island we trust incase they won't send to us unless we send to them?
+				shareTo = append(shareTo, c.trustMatrix.trustedClients(0.70)...)
+				shareTo = createClientSet(shareTo)
+			}
+		}
+	}
+
+	// Greediness and selfishness to lie?
+	var resourceObtained shared.Resources = 0
+	var decisionMade shared.ForageDecision = shared.ForageDecision{}
+	if len(c.forage.forageHistory) > 0 {
+		lastRound := c.forage.forageHistory[len(c.forage.forageHistory)-1]
+		decisionMade = lastRound.decision
+		resourceObtained = lastRound.resourceReturn
+	}
+
+	forageInfo := shared.ForageShareInfo{
+		ShareTo:          shareTo,
+		ResourceObtained: resourceObtained,
+		DecisionMade:     decisionMade,
+		SharedFrom:       c.GetID(),
+	}
+	return forageInfo
+}
+
+//ReceiveForageInfo lets clients know what other clients has obtained from their most recent foraging attempt.
+//Most recent foraging attempt includes information about: foraging DecisionMade and ResourceObtained as well
+//as where this information came from.
+
+func (c *client) ReceiveForageInfo(neighbourForaging []shared.ForageShareInfo) {
+	c.forage.receivedForageData = append(c.forage.receivedForageData, neighbourForaging)
+	//Give trust to island that contribute to this?
+}
+
+func (c *client) returnPreviousForagers() []shared.ClientID {
+	data := c.forage.receivedForageData
+	if len(data) < 1 {
+		return nil
+	}
+	lastEntry := data[len(data)-1]
+
+	var shareTo []shared.ClientID
+	for _, teamReturns := range lastEntry {
+
+		shareTo = append(shareTo, teamReturns.SharedFrom)
+	}
+	return shareTo
+}
