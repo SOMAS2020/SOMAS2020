@@ -48,7 +48,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
-			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, j.c.LocalVariableCache)
+			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, copyOfGlobalVarCache)
 			if !updatedVariable {
 				return map[shared.ClientID]shared.EvaluationReturn{}, false
 			}
