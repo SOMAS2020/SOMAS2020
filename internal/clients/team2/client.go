@@ -103,6 +103,9 @@ type clientConfig struct {
 	InitialCommonPoolThresholdGuess  shared.Resources
 	TargetRequestGift                shared.Resources
 	MaxGiftOffersMultiplier          shared.Resources
+	AltruistMultiplier               shared.Resources
+	FreeRiderMultipler               shared.Resources
+	FairSharerMultipler              shared.Resources
 }
 
 type OpinionHist map[shared.ClientID]Opinion
@@ -212,6 +215,9 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			InitialCommonPoolThresholdGuess:  100, // this value is meaningless for now
 			TargetRequestGift:                1.5,
 			MaxGiftOffersMultiplier:          0.5,
+			AltruistMultiplier:               7.2,
+			FreeRiderMultipler:               4.8,
+			FairSharerMultipler:              6.4,
 		},
 	}
 }

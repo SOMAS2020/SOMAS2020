@@ -13,9 +13,8 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	var intRefinedCandidateList []int
 	// Take out our ID
 	for _, islandID := range candidateList {
-		if islandID != shared.Team5 && islandID != shared.Team3 {
+		if islandID != shared.Team5 {
 			refinedCandidateList = append(refinedCandidateList, islandID)
-
 		}
 	}
 	// translate to int
@@ -26,12 +25,6 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	opinionSortByScore := c.opinionSortByTeam(intRefinedCandidateList)
 	opinionSortByScore = c.opinionSortByScore(opinionSortByScore)
 	ballot := c.sortedMapOfOpinion(c.findIndexOfScore(opinionSortByScore, opinionSortByTeam, intRefinedCandidateList), intRefinedCandidateList)
-	//last one
-	for _, islandID := range candidateList {
-		if islandID == shared.Team3 {
-			ballot = append(ballot, shared.Team3)
-		}
-	}
 	c.Logf("[DEBUG] - Ballot: %v", ballot)
 
 	return ballot
