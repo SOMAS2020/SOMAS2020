@@ -23,8 +23,8 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		switch fieldName {
 		case shared.IIGOTaxDecision:
 			c.payingTax = shared.Resources(content.IIGOValueData.Amount)
-		case shared.IIGOAllocationDecision:
-			c.payingSanction = shared.Resources(content.IIGOValueData.Amount)
+		case shared.SanctionAmount:
+			c.payingSanction = shared.Resources(content.IntegerData)
 			//add sth else
 		default:
 		}
