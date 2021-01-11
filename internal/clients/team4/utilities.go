@@ -78,7 +78,6 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 	return retInfo, ok
 }
 
-
 func (c *client) getPresident() shared.ClientID {
 	if c.ServerReadHandle != nil {
 		return c.ServerReadHandle.GetGameState().PresidentID
@@ -124,3 +123,9 @@ func boolToFloat(input bool) float64 {
 	return 0
 }
 
+func (c *client) getOurResources() shared.Resources {
+	if c.ServerReadHandle != nil {
+		return c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	}
+	return 0
+}
