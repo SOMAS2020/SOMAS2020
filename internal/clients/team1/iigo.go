@@ -139,6 +139,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	switch c.emotionalState() {
+	case Normal:
+		return shared.Resources(2 * float64(c.gameConfig().CostOfLiving))
 	case Desperate, Anxious:
 		amount := shared.Resources(c.config.resourceRequestScale) * c.gameConfig().CostOfLiving
 		c.Logf("Common pool request: %v", amount)
@@ -148,6 +150,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 }
 
+// Gets called at the end of IIGO
 func (c *client) RequestAllocation() shared.Resources {
 	if c.emotionalState() == Desperate && c.config.desperateStealAmount != 0 {
 		allocation := c.config.desperateStealAmount
@@ -157,11 +160,6 @@ func (c *client) RequestAllocation() shared.Resources {
 		)
 	}
 
-	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
-		VariableName: rules.IslandAllocation,
-		Values:       []float64{float64(c.gameState().CommonPool)},
-	}
-
 	allocationPair, success := c.GetRecommendation(rules.IslandAllocation)
 	if !success {
 		c.Logf("Cannot determine allocation, trying to get all resources in CP.")
@@ -169,7 +167,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	}
 
 	// Unintentionally nicking from commonPool so limiting amount. GetRecommendation is too powerful.
-	allocation := math.Min(allocationPair.Values[0], 2*float64(c.gameConfig().CostOfLiving))
+	allocation := allocationPair.Values[0]
 	if allocation != 0 {
 		c.Logf("Taking %v from common pool", allocation)
 	}
