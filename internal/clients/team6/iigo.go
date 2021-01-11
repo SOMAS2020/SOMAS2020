@@ -33,7 +33,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 }
 
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
-	return false
+	return true
 }
 
 func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
@@ -43,19 +43,25 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
+	var reqResource shared.Resources = 0
 	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
 	ownResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-	if ownResources > minThreshold { //if current resource > threshold, our agent skip to request resource from common pool
-		return 0
+	if ownResources < minThreshold { //if current resource > threshold, our agent skip to request resource from common pool
+		reqResource = minThreshold - ownResources
 	}
-	return minThreshold - ownResources
+	c.Logf("Request %v from common pool", reqResource)
+	return reqResource
 }
 
 func (c *client) RequestAllocation() shared.Resources {
-	//we will take 10% of the common pool when we are critical or dying
+	numberAlive := shared.Resources(c.getNumOfAliveIslands())
 	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
 	if ourStatus == shared.Critical || ourStatus == shared.Dead {
-		return c.ServerReadHandle.GetGameState().CommonPool / 10
+		if numberAlive > 0 {
+			takenResource := c.ServerReadHandle.GetGameState().CommonPool / numberAlive
+			c.Logf("Taken %v from common pool", takenResource)
+			return takenResource
+		}
 	}
 	return 0
 }
@@ -80,14 +86,25 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 }
 
 func (c *client) GetTaxContribution() shared.Resources {
+	var total shared.Resources = 0
+	prediction, ok := c.disasterPredictions[c.GetID()]
+	if ok && prediction.TimeLeft == 1 {
+		total = shared.Resources(prediction.Magnitude * prediction.Confidence / 100)
+	}
+
 	ourPersonality := c.getPersonality()
-	if ourPersonality == Selfish { //evade tax when we are selfish
-		return 0
+	if ourPersonality == Selfish {
+		if total > c.payingTax {
+			return c.payingTax
+		}
+		return total
+	}
+	if total > c.payingTax {
+		return total
 	}
 	return c.payingTax
 }
 
-// ------ TODO: COMPULSORY -----
 func (c *client) GetSanctionPayment() shared.Resources {
 	return c.payingSanction
 }

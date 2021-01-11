@@ -11,10 +11,38 @@ func (c *client) VoteForRule(ruleMatrix rules.RuleMatrix) shared.RuleVoteType {
 	return shared.Abstain
 }
 
+func (c *client) rolesInfro() map[shared.Role]shared.ClientID {
+	rolesInfro := make(map[shared.Role]shared.ClientID)
+	rolesInfro[shared.President] = c.ServerReadHandle.GetGameState().PresidentID
+	rolesInfro[shared.Speaker] = c.ServerReadHandle.GetGameState().SpeakerID
+	rolesInfro[shared.Judge] = c.ServerReadHandle.GetGameState().JudgeID
+	return rolesInfro
+}
+
+//Figure out whether we already have role(s) except for the one to be changed. 
+func (c *client) doWeHaveRoles(roleToElect shared.Role) bool {
+	doWeHaveRoles := false
+	numOfRoles := 0
+	for role, roleID := range c.rolesInfro() {
+		if roleID == id {
+			numOfRoles++
+			if role == roleToElect {
+				numOfRoles--
+			}
+		}
+	}
+	if numOfRoles > 0 {
+		doWeHaveRoles = true
+	}
+	return doWeHaveRoles
+}
+
 // VoteForElection returns the client's Borda vote for the role to be elected.
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
 	//Create a slice for id
 	idToSlice := []shared.ClientID{id}
+
+	doWeHaveRoles := c.doWeHaveRoles(roleToElect)
 	
 	//Rank candidates except yourself according to friendship level
 	for i, candidateID := range candidateList {
@@ -32,11 +60,11 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		}
 	}
 
-	//Votes for itself according to the preference for different roles when more than 3 islands alive,
-	//put yourself in the first, second or third place in the preference list according to rolePreference
-	//Otherwise put yourself at the last place of the list(3 or less than 3 islands alive)
+	//Votes for ourselves according to the preference for different roles when more than 3 islands alive and we don't have roles
+	//put ourselves in the first, second or third place in the preference list according to rolePreference
+	//Otherwise put ourselves at the last place of the list(3 or less than 3 islands alive)
 	rolePreference := []shared.Role{shared.President, shared.Speaker, shared.Judge}
-	if len(candidateList) > 3 {
+	if len(candidateList) > 3 && doWeHaveRoles == false {
 		for i, role := range rolePreference {
 			if role == roleToElect {
 				insertID := append(candidateList[:i], idToSlice...)

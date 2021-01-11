@@ -42,8 +42,17 @@ func (c *client) changeForageType() shared.ForageType {
 			deerParticipant2++
 		}
 	}
-	deerAverageRoi = deerRoiTotal / float64(deerParticipant)
-	deerAverageRoi2 = deerRoiTotal2 / float64(deerParticipant2)
+
+	if deerParticipant > 0 {
+		deerAverageRoi = deerRoiTotal / float64(deerParticipant)
+	} else {
+		deerAverageRoi = 0
+	}
+	if deerParticipant2 > 0 {
+		deerAverageRoi2 = deerRoiTotal2 / float64(deerParticipant2)
+	} else {
+		deerAverageRoi2 = 0
+	}
 
 	for _, fishResults := range c.forageHistory[shared.FishForageType] {
 		if fishResults.turn == c.ServerReadHandle.GetGameState().Turn-1 {
@@ -56,17 +65,26 @@ func (c *client) changeForageType() shared.ForageType {
 		}
 	}
 
-	fishAverageRoi = fishRoiTotal / float64(fishParticipant)
-	fishAverageRoi2 = fishRoiTotal2 / float64(fishParticipant2)
+	if fishParticipant > 0 {
+		fishAverageRoi = fishRoiTotal / float64(fishParticipant)
+	} else {
+		fishAverageRoi = 0
+	}
+	if fishParticipant2 > 0 {
+		fishAverageRoi2 = fishRoiTotal2 / float64(fishParticipant2)
+	} else {
+		fishAverageRoi2 = 0
+	}
 
 	if fishAverageRoi < deerAverageRoi {
 		if deerAverageRoi < deerAverageRoi2 {
-			if c.clientConfig.multiplier-0.05 > 0 {
-				c.clientConfig.multiplier -= 0.05
+			if c.clientConfig.multiplier-0.06 > 0 {
+				c.clientConfig.multiplier -= 0.06
 			}
 		}
 		if deerAverageRoi > deerAverageRoi2 {
-			c.clientConfig.multiplier += 0.03
+			c.clientConfig.multiplier += 0.06
+
 		}
 		return shared.DeerForageType
 	}
@@ -101,7 +119,8 @@ func (c *client) randomForage() shared.ForageDecision {
 		forageType = shared.DeerForageType
 	}
 	tmp := rand.Float64()
-	if tmp > 0.3 { //up to 20% resources
+
+	if tmp > 0.3 { //up to 30% resources
 		resources = 0.3 * c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	} else {
 		resources = shared.Resources(tmp) * c.ServerReadHandle.GetGameState().ClientInfo.Resources
