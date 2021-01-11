@@ -76,7 +76,7 @@ func (c *client) RequestAllocation() shared.Resources {
 		if uncomplianceLevel > 0 {
 			if allocationGranted == 0 {
 				c.internalParam.giftExtra = false
-				allocDemanded = shared.Resources(math.Min(float64(resNeeded*2), float64(commonPool))) * shared.Resources((uncomplianceLevel + 1))
+				allocDemanded = shared.Resources(math.Min(float64(resNeeded*2)*(uncomplianceLevel+1), float64(commonPool)))
 			} else {
 				allocDemanded = allocationGranted * shared.Resources((uncomplianceLevel + 1))
 			}
