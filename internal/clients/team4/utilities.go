@@ -1,10 +1,6 @@
 package team4
 
 import (
-	"fmt"
-	"log"
-	"os"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
@@ -111,7 +107,7 @@ func buildHistoryInfo(pairs []rules.VariableValuePair) (retInfo judgeHistoryInfo
 	return retInfo, ok
 }
 
-func dump(filename string, format string, v ...interface{}) {
+/*func dump(filename string, format string, v ...interface{}) {
 	//f, err := os.Create(filename)
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -122,7 +118,7 @@ func dump(filename string, format string, v ...interface{}) {
 	if err2 != nil {
 		log.Fatal(err2)
 	}
-}
+}*/
 
 func (c *client) getPresident() shared.ClientID {
 	if c.ServerReadHandle != nil {

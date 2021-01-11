@@ -16,7 +16,12 @@ type forageHistory struct {
 	numberCaught   uint
 }
 
+//func (c *client) analyseHistory() {
+//lookBack
+//}
+
 func (c *client) DecideForage() (shared.ForageDecision, error) {
+	//analyseHistory()
 	ft := c.forage.preferedForageMethod
 	scale := 5 * c.getSafeResourceLevel()
 	resources := c.getResources() - c.getSafeResourceLevel()*(2-shared.Resources(c.internalParam.riskTaking)*scale)
