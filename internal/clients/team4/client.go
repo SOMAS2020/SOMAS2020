@@ -13,8 +13,8 @@ import (
 
 const id = shared.Team4
 
-func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id);
 }
 
 func newClientInternal(clientID shared.ClientID) client {
