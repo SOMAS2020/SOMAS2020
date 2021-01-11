@@ -38,7 +38,7 @@ type client struct {
 // someone on the simulation team that you would like it to be included in
 // testing
 func DefaultClient(id shared.ClientID) baseclient.Client {
-	return NewClient(id);
+	return NewClient(id)
 }
 
 // NewClient creates a client objects for our island
@@ -92,8 +92,8 @@ func (c *client) updateConfig() {
 		minFriendship:          c.clientConfig.minFriendship,
 		maxFriendship:          c.clientConfig.maxFriendship,
 		friendshipChangingRate: c.clientConfig.friendshipChangingRate,
-		selfishThreshold:       minThreshold + 3.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/6.0,
-		normalThreshold:        minThreshold + 9.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/6.0,
+		selfishThreshold:       minThreshold + 3.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/12.0,
+		normalThreshold:        minThreshold + 6.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/6.0,
 		multiplier:             c.clientConfig.multiplier,
 	}
 
@@ -104,11 +104,12 @@ func (c *client) updateConfig() {
 func (c *client) updateFriendship() {
 	defer c.Logf("Friendship status: %v", c.friendship)
 
-	for team, requested := range c.giftsRequestedHistory {
-		if c.ServerReadHandle.GetGameState().ClientLifeStatuses[team] != shared.Alive {
+	for _, team := range shared.TeamIDs[:] {
+		if c.ServerReadHandle.GetGameState().ClientLifeStatuses[team] != shared.Alive || team == c.GetID() {
 			// doesn't judge if they are not able to survive themselves
 			continue
 		} else {
+			requested := c.giftsRequestedHistory[team]
 			received := c.giftsReceivedHistory[team]
 			offered := c.giftsSentHistory[team]
 
@@ -149,7 +150,7 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 			c.trustRank[team] = c.trustRank[team] / float64(2)
 		}
 
-		// sets the cap of trust rank from 0 to 1
+		// sets the caps of trust ranks from 0 to 1
 		if c.trustRank[team] < 0 {
 			c.trustRank[team] = 0
 		} else if c.trustRank[team] > 1 {
