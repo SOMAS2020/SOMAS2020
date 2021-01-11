@@ -31,7 +31,7 @@ func MakeTestClient(gamestate gamestate.ClientGameState) client {
 // NewTestClient is a client for testing purposes
 func NewTestClient(clientID shared.ClientID) baseclient.Client {
 	return &client{
-		BaseClient:              baseclient.NewClient(ourClientID),
+		BaseClient:              baseclient.NewClient(clientID),
 		cpRequestHistory:        cpRequestHistory{},
 		cpAllocationHistory:     cpAllocationHistory{},
 		forageHistory:           forageHistory{},
