@@ -165,7 +165,7 @@ func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	rand.Seed(time.Now().UnixNano())
 	oparray := []opinionScore{}
 	for id, opinion := range p.c.opinions { //stores scores except team 5's in an array
-		if id != ourClientID {
+		if id != p.c.GetID() {
 			oparray = append(oparray, opinion.getScore())
 		}
 	}

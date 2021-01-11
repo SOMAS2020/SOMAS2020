@@ -8,11 +8,11 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func init() {
-	baseclient.RegisterClientFactory(ourClientID, func() baseclient.Client { return createClient() })
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return createClient(id);
 }
 
-func createClient() *client {
+func createClient(ourClientID shared.ClientID) *client {
 	return &client{
 		BaseClient:              baseclient.NewClient(ourClientID),
 		cpRequestHistory:        cpRequestHistory{},
