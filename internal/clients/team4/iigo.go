@@ -56,7 +56,9 @@ func (c *client) RequestAllocation() shared.Resources {
 		c.internalParam.giftExtra = false
 	}
 	resNeeded := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving - c.getOurResources()
-
+	if resNeeded < 0 {
+		resNeeded = (c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold + c.ServerReadHandle.GetGameConfig().CostOfLiving) * shared.Resources(1+c.internalParam.greediness)
+	}
 	if ourLifeStatus == shared.Critical {
 		c.internalParam.giftExtra = false
 		maxTurnsInCritical := c.ServerReadHandle.GetGameConfig().MaxCriticalConsecutiveTurns

@@ -2,7 +2,7 @@
 package team4
 
 import (
-	"math"e
+	"math"
 	"sort"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -12,6 +12,7 @@ import (
 )
 
 const id = shared.Team4
+const clientConfiguration = middle // used to tweak the behavouir of our agent
 
 func init() {
 	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
@@ -19,7 +20,7 @@ func init() {
 
 func newClientInternal(clientID shared.ClientID) client {
 	// have some config json file or something?
-	internalConfig := configureClient(C2)
+	internalConfig := configureClient(clientConfiguration)
 
 	iigoObs := iigoObservation{
 		allocationGranted: shared.Resources(0),
@@ -309,6 +310,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 
 func (c *client) StartOfTurn() {
 	c.updateTrustFromSavedHistory()
+	c.printConfig()
 }
 
 func (c *client) updateTrustFromSavedHistory() {

@@ -5,44 +5,60 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 // ClientConfig is the data type for the different client configs available
 type ClientConfig int
 
-// TeamIDs
+// Team 4 client configurations
 const (
-	C1 ClientConfig = iota
-	C2
+	honest ClientConfig = iota
+	dishonest
+	middle
 )
 
-func configureClient(config ClientConfig) internalParameters {
+func configureClient(config ClientConfig) (retConfig internalParameters) {
 	switch config {
-	case C1:
-		return internalParameters{
-			greediness:                   0,
-			selfishness:                  0,
-			fairness:                     0,
-			collaboration:                0,
-			riskTaking:                   0,
-			maxPardonTime:                3,
-			maxTierToPardon:              shared.SanctionTier3,
-			minTrustToPardon:             0.6,
+	case honest: // honest
+		retConfig = internalParameters{
+			greediness:                   0.2,
+			selfishness:                  0.4,
+			fairness:                     0.8,
+			collaboration:                0.7,
+			riskTaking:                   0.3,
+			maxPardonTime:                2,
+			maxTierToPardon:              shared.SanctionTier2,
+			minTrustToPardon:             0.65,
 			historyWeight:                1,   // in range [0,1]
 			historyFullTruthfulnessBonus: 0.1, // in range [0,1]
 			monitoringWeight:             1,   // in range [0,1]
 			monitoringResultChange:       0.1, // in range [0,1]
 		}
-	case C2:
-		return internalParameters{
-			greediness:                   0,
-			selfishness:                  0,
-			fairness:                     0,
-			collaboration:                0,
-			riskTaking:                   0,
-			maxPardonTime:                3,
+	case dishonest: // dishonest
+		retConfig = internalParameters{
+			greediness:                   0.8,
+			selfishness:                  0.7,
+			fairness:                     0.3,
+			collaboration:                0.5,
+			riskTaking:                   0.8,
+			maxPardonTime:                10,
+			maxTierToPardon:              shared.SanctionTier5,
+			minTrustToPardon:             0.3,
+			historyWeight:                1,    // in range [0,1]
+			historyFullTruthfulnessBonus: 0.05, // in range [0,1]
+			monitoringWeight:             0.7,  // in range [0,1]
+			monitoringResultChange:       0.05, // in range [0,1]
+		}
+	case middle: // middle
+		retConfig = internalParameters{
+			greediness:                   0.5,
+			selfishness:                  0.5,
+			fairness:                     0.5,
+			collaboration:                0.5,
+			riskTaking:                   0.5,
+			maxPardonTime:                5,
 			maxTierToPardon:              shared.SanctionTier3,
 			minTrustToPardon:             0.6,
-			historyWeight:                1,   // in range [0,1]
-			historyFullTruthfulnessBonus: 0.1, // in range [0,1]
-			monitoringWeight:             1,   // in range [0,1]
-			monitoringResultChange:       0.1, // in range [0,1]
+			historyWeight:                1,    // in range [0,1]
+			historyFullTruthfulnessBonus: 0.15, // in range [0,1]
+			monitoringWeight:             1,    // in range [0,1]
+			monitoringResultChange:       0.07, // in range [0,1]
 		}
 	}
-
+	return retConfig
 }
