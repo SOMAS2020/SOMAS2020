@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"math/rand"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
@@ -70,6 +71,10 @@ func createSOMASServer(
 	}
 
 	availableRules, rulesInPlay := rules.InitialRuleRegistration(gameConfig.IIGOConfig.StartWithRulesInPlay)
+	initRoles, err := getNRandClientIDsUniqueIfPossible(clientIDs, 3)
+	if err != nil {
+		return nil, errors.Errorf("Cannot initialise IIGO roles: %v", err)
+	}
 
 	server := &SOMASServer{
 		clientMap:  clientMap,
@@ -94,9 +99,9 @@ func createSOMASServer(
 				shared.Judge:     0,
 				shared.Speaker:   0,
 			},
-			SpeakerID:   shared.Team1,
-			JudgeID:     shared.Team2,
-			PresidentID: shared.Team3,
+			SpeakerID:   initRoles[0],
+			JudgeID:     initRoles[1],
+			PresidentID: initRoles[2],
 			CommonPool:  gameConfig.InitialCommonPool,
 			RulesInfo: gamestate.RulesContext{
 				AvailableRules:     availableRules,
@@ -171,4 +176,23 @@ func (s ServerForClient) GetGameState() gamestate.ClientGameState {
 // GetGameConfig returns ClientConfig which is a subset of the entire Config that is visible to clients.
 func (s ServerForClient) GetGameConfig() config.ClientConfig {
 	return s.server.gameConfig.GetClientConfig()
+}
+
+func getNRandClientIDsUniqueIfPossible(input []shared.ClientID, n int) ([]shared.ClientID, error) {
+	if len(input) == 0 {
+		return nil, errors.Errorf("empty list")
+	}
+
+	lst := make([]shared.ClientID, len(input))
+	copy(lst, input)
+
+	// make lst's length longer than n
+	for len(lst) < n {
+		lst = append(lst, lst...)
+	}
+
+	// shuffle lst
+	rand.Shuffle(len(lst), func(i, j int) { lst[i], lst[j] = lst[j], lst[i] })
+
+	return lst[:n], nil
 }

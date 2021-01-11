@@ -12,6 +12,8 @@ import (
 // This function asking permission from the President to take resource from the commonpool legally
 // The President will reply with an allocation amount
 func (c *client) CommonPoolResourceRequest() shared.Resources {
+	// c.evaluateRoles()
+	// Initially, request the minimum
 	turn := c.getTurn()
 	season := c.getSeason()
 	currentCP := c.getCP()
@@ -69,7 +71,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	} else if allocationAmount < c.cpRequestHistory[turn] && allocationAmount >= currentCP/6 { // if some allocation, then just a bit of score
 		c.opinions[presidentID].updateOpinion(generalBasis, 0.05*c.getMood())
 	} else if allocationAmount >= c.cpRequestHistory[turn] {
-		c.opinions[presidentID].updateOpinion(generalBasis, 0.2*c.getMood())
+		c.opinions[presidentID].updateOpinion(generalBasis, 0.1*c.getMood())
 	}
 
 	//Debug
@@ -80,8 +82,6 @@ func (c *client) RequestAllocation() shared.Resources {
 
 // calculate the amount to take away from the common pool
 func (c *client) calculateAllocationFromCP(currentTier wealthTier, currentCP shared.Resources, allocationMade bool, allocationAmount shared.Resources) (allocation shared.Resources) {
-	// allocationMade := c.BaseClient.LocalVariableCache[rules.AllocationMade].Values[0] != 0
-	// allocationAmount := shared.Resources(0)
 	if currentTier == imperialStudent || currentTier == dying {
 		if c.config.imperialThreshold < (currentCP / 6) {
 			if (currentCP / 6) > allocationAmount {
@@ -194,24 +194,28 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 	} else if predictionInfo.confidence > 0.5 && predictionInfo.confidence < 0.8 {
 		idealContribution = shared.
 			Resources((float64(predictionInfo.mag) * 100) / minDistance)
+		c.Logf("prediction mag: %v, minDisatance: %v idealContribution %v", predictionInfo.mag, minDistance, idealContribution)
 	} else if predictionInfo.confidence >= 0.8 {
 		idealContribution = shared.Resources((float64(predictionInfo.mag) * 200) / minDistance)
 	}
 
 	//update idealContribution based on our financial status
-	if currentResource < idealContribution {
-		idealContribution = shared.Resources(0.5) * currentResource
-	}
+	// if currentResource < idealContribution {
+	// 	idealContribution = shared.Resources(0.5) * currentResource
+	// }
 
 	//Only contribute if disaster is coming in 1 days
 	// Contribute mostly on the day of the disaster to prevent people taking CP resource
-	c.Logf("currentTurn: %v, lastDisaster: %v ", currentTurn, lastDisaster)
 	if currentTurn-lastDisaster == predictionInfo.period-1 {
 		contribution = shared.Resources(0.2) * idealContribution
 	} else if currentTurn-lastDisaster == predictionInfo.period {
 		contribution = shared.Resources(0.8) * idealContribution
 	} else {
 		contribution = 0
+		return contribution
+	}
+	if currentResource < contribution {
+		contribution = shared.Resources(0.5) * currentResource
 	}
 	return contribution
 }
@@ -219,10 +223,21 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 //------------------------------------------------------------------------------------------//
 
 //-----------------------------------Monitor IIGO------------------------------------------//
-//MonitorIIGORole decides whether to perform monitoring on a role
-//COMPULOSRY: must be implemented
-//always monitor a role
+// Only monitor the foes
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
+	var roleID shared.ClientID
+	if roleName == shared.Speaker {
+		roleID = c.gameState().SpeakerID
+	} else if roleName == shared.Judge {
+		roleID = c.gameState().JudgeID
+	} else {
+		roleID = c.gameState().PresidentID
+	}
+	if roleID == shared.Team5 {
+		return false
+	} else if c.opinions[roleID].getScore() > 0.5 && roleID != shared.Team3 {
+		return false
+	}
 	return true
 }
 

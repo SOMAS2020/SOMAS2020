@@ -20,6 +20,7 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 		gameState:   g,
 		iigoClients: iIGOClients,
 		logger:      logger,
+		config:      gameConf,
 	}
 
 	logger("President %v, Speaker %v, Judge %v", g.PresidentID, g.SpeakerID, g.JudgeID)
@@ -193,6 +194,10 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	voteCalled, insufficientBudget := legislativeBranch.setVotingResult(aliveClientIds)
 	if insufficientBudget != nil {
 		return false, "Common pool resources insufficient for legislativeBranch setVotingResult"
+	}
+	err := legislativeBranch.updateRules(legislativeBranch.ruleToVote, legislativeBranch.votingResult)
+	if err != nil {
+		logger("Error updating rules with result: %v", err)
 	}
 	resultAnnounced, insufficientBudget := legislativeBranch.announceVotingResult()
 	if insufficientBudget != nil {
