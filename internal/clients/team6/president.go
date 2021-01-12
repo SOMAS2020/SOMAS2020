@@ -108,8 +108,38 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 	}
 }
 
+func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	currSpeakerID := p.client.ServerReadHandle.GetGameState().SpeakerID
+	otherIslands := []shared.ClientID{}
+
+	for _, team := range allIslands {
+		if currSpeakerID == team {
+			continue
+		}
+
+		otherIslands = append(otherIslands, team)
+	}
+
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Runoff,
+		IslandsToVote: otherIslands,
+		HoldElection:  false,
+	}
+	if monitoring.Performed && !monitoring.Result {
+		electionsettings.HoldElection = true
+	}
+	if turnsInPower >= 2 {
+		electionsettings.HoldElection = true
+	}
+	return electionsettings
+}
+
 func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
 	if winner == p.client.ServerReadHandle.GetGameState().SpeakerID {
+		return p.client.GetID()
+	}
+
+	if p.client.friendship[winner] < p.clientConfig.maxFriendship/1.5 {
 		return p.client.GetID()
 	}
 
