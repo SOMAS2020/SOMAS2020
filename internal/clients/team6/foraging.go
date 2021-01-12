@@ -97,7 +97,7 @@ func (c *client) changeForageType() shared.ForageType {
 	if fishAverageRoi > fishAverageRoi2 {
 		c.clientConfig.multiplier += 0.03
 	}
-	return shared.DeerForageType
+	return shared.FishForageType
 }
 
 func (c *client) decideContribution() shared.Resources {
