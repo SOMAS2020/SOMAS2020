@@ -116,6 +116,7 @@ func TestEvaluateCache(t *testing.T) {
 						AvailableRules: avail,
 					},
 					IIGORoleMonitoringCache: tc.iigoCache,
+					IIGORulesBrokenByRoles:  map[shared.Role][]string{},
 				},
 			}
 			res := monitoring.evaluateCache(tc.roleID, shared.President, ruleStore)
