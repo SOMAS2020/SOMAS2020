@@ -348,9 +348,10 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 		for _, FOutcome := range c.forageHistory {
 			for _, returns := range FOutcome {
 				if c.getTurn() > c.config.DeerTurnsToLookBack && // prevent looking at negative turns
-					c.getTurn() >= c.getTurn()-c.config.DeerTurnsToLookBack { // Turns greater than look back
-					for _, team := range c.getAliveTeams(false) { // For all alive teams
-						if returns.team == team { // If a certain team within a certain range of turns
+					returns.turn >= c.getTurn()-c.config.DeerTurnsToLookBack { // Turns greater than look back
+					for team := range c.gameState().ClientLifeStatuses { // For all alive teams
+						if returns.team == team &&
+							returns.team != shared.Team5 { // If a certain team within a certain range of turns
 							shareTo = append(shareTo, team) // add to shrae to list if they shared to us
 						}
 					}
