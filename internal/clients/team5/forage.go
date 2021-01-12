@@ -320,19 +320,24 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 			)
 	}
 
+	var goodGuys []shared.ClientID
+	var allGuys []shared.ClientID
 	c.Logf("[ReceiveForageInfo][%v]: %+v", c.getTurn(), forageInfos)
 	for _, forageInfo := range forageInfos {
-		if forageInfo.DecisionMade.Contribution >= 1 { // has to be meaningful forage
-			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, c.changeOpinion(+0.04)) // Thanks for the information dude
+		if forageInfo.DecisionMade.Contribution >= 0.1 { // has to be meaningful forage
+			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, c.changeOpinion(+0.01)) // Thanks for the information dude
+			goodGuys = append(goodGuys, forageInfo.SharedFrom)                                    // add to shrae to list if they shared to us
 		}
 	}
 
-	for _, team := range c.getAliveTeams(true) {
-		for _, gaveInfo := range forageInfos {
-			if team != gaveInfo.SharedFrom { // has to be meaningful forage
-				c.opinions[team].updateOpinion(generalBasis, c.changeOpinion(-0.025)) // Thanks for the information dude
-			}
-		}
+	for _, teams := range c.getAliveTeams(false) { // get all the teams
+		allGuys = append(allGuys, teams)
+	}
+
+	missingPeeps := difference(allGuys, goodGuys) // Finds difference between slice allGuys and gooGuys (the )
+
+	for _, teams := range missingPeeps {
+		c.opinions[teams].updateOpinion(generalBasis, c.changeOpinion(-0.05)) // Thanks for the information dude
 	}
 }
 
@@ -342,22 +347,16 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 	if c.getTurn() > c.config.InitialForageTurns { // for the turns we are NOT doing initial forage
 		for _, FOutcome := range c.forageHistory {
 			for _, returns := range FOutcome {
-				for _, team := range c.getAliveTeams(false) { // For all alive teams
-					if c.getTurn() > c.config.DeerTurnsToLookBack { // Turns greater than look back
-						if returns.turn > c.getTurn()-c.config.DeerTurnsToLookBack &&
-							returns.turn <= c.getTurn() &&
-							returns.team == team { // If a certain team within a certain range
+				if c.getTurn() > c.config.DeerTurnsToLookBack && // prevent looking at negative turns
+					returns.turn >= c.getTurn()-c.config.DeerTurnsToLookBack { // Turns greater than look back
+					for team := range c.gameState().ClientLifeStatuses { // For all alive teams
+						if returns.team == team &&
+							returns.team != shared.Team5 { // If a certain team within a certain range of turns
 							shareTo = append(shareTo, team) // add to shrae to list if they shared to us
-						}
-					} else {
-						startOfGame := uint(0) // case that the deerTurnsTo look back is greater than turns
-						if returns.turn > startOfGame &&
-							returns.turn <= c.getTurn() &&
-							returns.team == team {
-							shareTo = append(shareTo, team)
 						}
 					}
 				}
+
 			}
 		}
 		// Delete the repeated teams in the shareTO list
@@ -406,4 +405,23 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 
 	c.Logf("[MakeForageInfo][%v]: %+v", c.getTurn(), forageInfo)
 	return forageInfo
+}
+
+// difference between 2 slices (yes I ripped it off online)
+func difference(slice1 []shared.ClientID, slice2 []shared.ClientID) []shared.ClientID {
+	var diff []shared.ClientID
+	for _, s1 := range slice1 {
+		found := false
+		for _, s2 := range slice2 {
+			if s1 == s2 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			diff = append(diff, s1)
+		}
+	}
+
+	return diff
 }
