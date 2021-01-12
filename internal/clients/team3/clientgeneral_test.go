@@ -3,7 +3,6 @@ package team3
 // General client functions testing
 
 import (
-	"math"
 	"reflect"
 	"testing"
 
@@ -217,7 +216,6 @@ func TestUpdateCompliance(t *testing.T) {
 				numTimeCaught:   100,
 				compliance:      0.2,
 				params: islandParams{
-					recidivism:      1.0,
 					complianceLevel: 0.1,
 				},
 			},
@@ -230,11 +228,10 @@ func TestUpdateCompliance(t *testing.T) {
 				numTimeCaught:   1,
 				compliance:      1.0,
 				params: islandParams{
-					recidivism:      1.0,
 					complianceLevel: 0.0,
 				},
 			},
-			expectedVal: math.Exp(-0.5),
+			expectedVal: 1,
 		},
 		{
 			name: "Compliance decay - fully-compliant agent",
@@ -243,7 +240,6 @@ func TestUpdateCompliance(t *testing.T) {
 				numTimeCaught:   10,
 				compliance:      1.0,
 				params: islandParams{
-					recidivism:      1.0,
 					complianceLevel: 1.0,
 				},
 			},
