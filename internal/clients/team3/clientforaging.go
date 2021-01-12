@@ -58,27 +58,24 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 
 	coef := c.params.riskFactor
 	var decay float64
-	if forageType == shared.DeerForageType {
-		var sumOfCaught uint
-		var numberOfHunters uint
-		for _, forage := range c.forageData[forageType] {
-			if uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-1 || uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-2 {
-				sumOfCaught += forage.caught
-				numberOfHunters++
-			}
+	var sumOfCaught uint
+	var numberOfHunters uint
+	for _, forage := range c.forageData[forageType] {
+		if uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-1 || uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-2 {
+			sumOfCaught += forage.caught
+			numberOfHunters++
 		}
-
-		if numberOfHunters == 0 {
-			decay = 0
-		} else {
-			decay = (float64(sumOfCaught) + 1) * float64(numberOfHunters)
-		}
-
-		coef = math.Max(c.params.riskFactor-0.1*decay, 0.1)
-
-		c.Logf("coef: %v, sumOfCaught: %v, numberOfHunter: %v, decay: %v", coef, sumOfCaught, numberOfHunters, decay)
-
 	}
+
+	if numberOfHunters == 0 {
+		decay = 0
+	} else {
+		decay = (float64(sumOfCaught) + 1) * float64(numberOfHunters)
+	}
+
+	coef = math.Max(c.params.riskFactor-0.1*decay, 0.1)
+
+	c.Logf("coef: %v, sumOfCaught: %v, numberOfHunter: %v, decay: %v", coef, sumOfCaught, numberOfHunters, decay)
 
 	return shared.ForageDecision{
 		Type:         forageType,
