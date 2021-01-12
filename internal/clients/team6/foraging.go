@@ -97,11 +97,11 @@ func (c *client) changeForageType() shared.ForageType {
 	if fishAverageRoi > fishAverageRoi2 {
 		c.clientConfig.multiplier += 0.03
 	}
-	return shared.DeerForageType
+	return shared.FishForageType
 }
 
 func (c *client) decideContribution() shared.Resources {
-	safetyBuffer := c.ServerReadHandle.GetGameConfig().CostOfLiving + c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+	safetyBuffer := 3*c.ServerReadHandle.GetGameConfig().CostOfLiving + c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	if ourResources > safetyBuffer {
 		return shared.Resources(c.clientConfig.multiplier) * (ourResources - safetyBuffer)

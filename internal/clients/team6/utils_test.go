@@ -34,7 +34,7 @@ func TestRaiseFriendshipLevel(t *testing.T) {
 			want: Friendship{
 				shared.Team1: 50.0,
 				shared.Team2: 50.0,
-				shared.Team3: 60.0,
+				shared.Team3: 60,
 				shared.Team4: 50.0,
 				shared.Team5: 50.0,
 			},
@@ -52,7 +52,7 @@ func TestRaiseFriendshipLevel(t *testing.T) {
 				clientConfig: getClientConfig(),
 			},
 			testTeam:      shared.Team5,
-			testIncrement: FriendshipLevel(100.0),
+			testIncrement: FriendshipLevel(200),
 			want: Friendship{
 				shared.Team1: 50.0,
 				shared.Team2: 50.0,
@@ -98,7 +98,7 @@ func TestLowerFriendshipLevel(t *testing.T) {
 			want: Friendship{
 				shared.Team1: 50.0,
 				shared.Team2: 50.0,
-				shared.Team3: 40.0,
+				shared.Team3: 40,
 				shared.Team4: 50.0,
 				shared.Team5: 50.0,
 			},
@@ -116,7 +116,7 @@ func TestLowerFriendshipLevel(t *testing.T) {
 				clientConfig: getClientConfig(),
 			},
 			testTeam:      shared.Team5,
-			testDeduction: FriendshipLevel(100.0),
+			testDeduction: FriendshipLevel(200.0),
 			want: Friendship{
 				shared.Team1: 50.0,
 				shared.Team2: 50.0,

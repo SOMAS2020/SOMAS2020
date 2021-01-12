@@ -19,7 +19,7 @@ type mockInit struct {
 	disastersHistory      DisastersHistory
 	disasterPredictions   DisasterPredictions
 	forageHistory         ForageHistory
-	payingTax             shared.Resources
+	taxDemanded           shared.Resources
 }
 
 func newMockClient(clientID shared.ClientID, init mockInit) client {
@@ -37,7 +37,7 @@ func newMockClient(clientID shared.ClientID, init mockInit) client {
 	mockClient.disastersHistory = init.disastersHistory
 	mockClient.disasterPredictions = init.disasterPredictions
 	mockClient.forageHistory = init.forageHistory
-	mockClient.payingTax = init.payingTax
+	mockClient.taxDemanded = init.taxDemanded
 
 	return mockClient
 }
