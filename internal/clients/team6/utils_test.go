@@ -98,7 +98,7 @@ func TestLowerFriendshipLevel(t *testing.T) {
 			want: Friendship{
 				shared.Team1: 50.0,
 				shared.Team2: 50.0,
-				shared.Team3: 47.5,
+				shared.Team3: 40,
 				shared.Team4: 50.0,
 				shared.Team5: 50.0,
 			},
