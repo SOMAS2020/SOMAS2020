@@ -1,6 +1,7 @@
 .text {
   font-size: 2em;
   font-weight: 600;
+  padding-bottom: 20px;
 }
 
 .root {
