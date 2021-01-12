@@ -11,6 +11,7 @@ import {
   resourcesvisualisation,
   rolesvisualisation,
   achievementsvisualisation,
+  metricsvisualisation,
   iigopaymentsvisualisation,
 } from '../../consts/paths'
 import { OutputJSONType } from '../../consts/types'
@@ -32,6 +33,7 @@ import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
 import IIGOPayments from './IIGOPayments/IIGOPayments'
 import Achievements from './Achievements/Achievements'
+import Metrics from './Metrics/Metrics'
 import FourOhFour from '../FourOhFour/FourOhFour'
 import styles from './Visualisations.module.css'
 import logo from '../../assets/logo/logo512.png'
@@ -193,6 +195,11 @@ const Visualisations = () => {
                     path={achievementsvisualisation}
                     exact
                     component={() => <Achievements output={output} />}
+                  />
+                  <Route
+                    path={metricsvisualisation}
+                    exact
+                    component={() => <Metrics output={output} />}
                   />
                   <Route
                     path={resourcesvisualisation}
