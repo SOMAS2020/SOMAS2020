@@ -90,7 +90,9 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	allocationMap := make(map[shared.ClientID]shared.Resources)
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
-
+		if allocation < 0 {
+			allocation = 0
+		}
 		if allocation <= s.gameState.CommonPool {
 			err := s.giveResources(clientID, allocation, "allocation")
 			if err != nil {
