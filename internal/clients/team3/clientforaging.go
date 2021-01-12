@@ -41,29 +41,56 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		}
 	} else {
 		if fishingROI == 0 {
-			forageType = shared.FishForageType
-		}
-		if deerHuntingROI == 0 {
 			forageType = shared.DeerForageType
 		}
+		if deerHuntingROI == 0 {
+			forageType = shared.FishForageType
+		}
+	}
+
+	if len(c.getAliveIslands()) == 1 {
+		forageType = shared.FishForageType
 	}
 
 	if c.getLocalResources() < c.minimumResourcesWeWant || c.computeRecentExpectedROI(forageType) < 100 {
 		foragingInvestment = 0.0
 	}
 
+	coef := c.params.riskFactor
+	var decay float64
+	if forageType == shared.DeerForageType {
+		var sumOfCaught uint
+		var numberOfHunters uint
+		for _, forage := range c.forageData[forageType] {
+			if uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-1 || uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-2 {
+				sumOfCaught += forage.caught
+				numberOfHunters++
+			}
+		}
+
+		if numberOfHunters == 0 {
+			decay = 0
+		} else {
+			decay = float64(sumOfCaught) * float64(numberOfHunters)
+		}
+
+		coef = math.Max(c.params.riskFactor-0.1*decay, 0.1)
+
+		c.Logf("coef: %v, sumOfCaught: %v, numberOfHunter: %v, decay: %v", coef, sumOfCaught, numberOfHunters, decay)
+
+	}
+
 	return shared.ForageDecision{
 		Type:         forageType,
-		Contribution: shared.Resources(foragingInvestment * c.params.riskFactor),
+		Contribution: shared.Resources(foragingInvestment * coef),
 	}, nil
 }
 
 func (c *client) computeRecentExpectedROI(forageType shared.ForageType) float64 {
-	data := c.forageData[forageType]
 	var sumOfROI float64
 	var numberOfROI uint
 
-	for _, forage := range data {
+	for _, forage := range c.forageData[forageType] {
 		if uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-1 || uint(forage.turn) == c.ServerReadHandle.GetGameState().Turn-2 {
 			if forage.amountContributed != 0 {
 				sumOfROI += float64((forage.amountReturned / forage.amountContributed) * 100)
@@ -88,6 +115,7 @@ func (c *client) ForageUpdate(forageDecision shared.ForageDecision, outcome shar
 				amountContributed: forageDecision.Contribution,
 				amountReturned:    outcome,
 				turn:              c.ServerReadHandle.GetGameState().Turn,
+				caught:            numberCaught,
 			},
 		)
 }

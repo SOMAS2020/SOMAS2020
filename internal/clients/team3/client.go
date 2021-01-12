@@ -123,6 +123,7 @@ type ForageData struct {
 	amountContributed shared.Resources
 	amountReturned    shared.Resources
 	turn              uint
+	caught            uint
 }
 
 type iigoCommunicationInfo struct {
