@@ -9,17 +9,25 @@ const IIGOStatus = (props: { output: OutputJSONType }) => {
   const data = getIIGOStatuses(props.output)
   return (
     <div>
-      <h3> IIGO Status </h3>
+      <p className={styles.text}>IIGO Run Status</p>
       <div style={{ overflow: 'scroll', height: '10em' }}>
-        <Table striped bordered hover size="sm" responsive>
-          {data.map((item) => {
-            return (
-              <tr>
-                <td>{item.turn}</td>
-                <td className="text-left">{item.status}</td>
-              </tr>
-            )
-          })}
+        <Table striped bordered hover size="sm">
+          <thead>
+            <tr>
+              <th>Turn</th>
+              <th>Run Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item) => {
+              return (
+                <tr>
+                  <td>{item.turn}</td>
+                  <td>{item.status}</td>
+                </tr>
+              )
+            })}
+          </tbody>
         </Table>
       </div>
     </div>

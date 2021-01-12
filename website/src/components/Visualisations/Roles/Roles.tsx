@@ -70,8 +70,8 @@ const Roles = (props: { output: OutputJSONType }) => {
 
   const teams = ['Team1', 'Team2', 'Team3', 'Team4', 'Team5', 'Team6', 'NotRun']
 
-  const ourTeamColors: Map<string, string> = teamColors
-  ourTeamColors.set('NotRun', '#787878')
+  const localTeamColor: Map<string, string> = teamColors
+  localTeamColor.set('NotRun', '#787878')
 
   return (
     <div className={styles.root}>
@@ -94,7 +94,7 @@ const Roles = (props: { output: OutputJSONType }) => {
               value: team,
               type: 'square',
               id: `${team}${i}`,
-              color: ourTeamColors.get(team),
+              color: localTeamColor.get(team),
             }))}
           />
           {data[0].occupied.map((a, i) => [
@@ -102,7 +102,7 @@ const Roles = (props: { output: OutputJSONType }) => {
               <Bar
                 dataKey={`occupied[${i}].${team}`}
                 stackId="a"
-                fill={ourTeamColors.get(team)}
+                fill={localTeamColor.get(team)}
                 key={`${i.toString()}${team}`}
               />
             )),

@@ -49,6 +49,7 @@ export const processRoleData = (data: OutputJSONType): ProcessedRoleData => {
         retData.map((elem) => {
             elem.occupied = data.GameStates.slice(0, -1).reduce(
                 (acc, gameState, index) => {
+                    // taking index+1 because the IIGO status is only reported the next turn
                     const DidntRun = data.GameStates[
                         index + 1
                     ].IIGORunStatus.includes('broadcastTaxation')

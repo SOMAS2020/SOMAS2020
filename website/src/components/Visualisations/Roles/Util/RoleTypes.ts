@@ -202,9 +202,9 @@ export type ProcessedRoleElem = {
 
 export type ProcessedRoleData = ProcessedRoleElem[]
 
-export type IIGOStatus = {
+export type IIGOInfo = {
     turn: number
     status: string
 }
 
-export type IIGOStatuses = IIGOStatus[]
+export type IIGOInfos = IIGOInfo[]
