@@ -77,8 +77,16 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 func (c *client) StartOfTurn() {
 	defer c.Logf("There are %v islands left in this game", c.getNumOfAliveIslands())
 
+	for _, team := range shared.TeamIDs[:] {
+		if team == c.GetID() {
+			continue
+		}
+		if c.giftsReceivedHistory[team] == 0 && c.ServerReadHandle.GetGameState().Turn != 1 {
+			c.lowerFriendshipLevel(team, 99*c.clientConfig.friendshipChangingRate)
+		}
+	}
+
 	c.updateConfig()
-	c.updateFriendship()
 }
 
 // updateConfig will be called at the start of each turn to set the newest config
@@ -100,28 +108,25 @@ func (c *client) updateConfig() {
 	c.clientConfig = ClientConfig(updatedConfig)
 }
 
-// updateFriendship will be called at the start of each turn to update our friendships
-func (c *client) updateFriendship() {
+// updateFriendship will be called every time a gift is exchanged; neg for sending, pos for receiving
+func (c *client) updateFriendship(giftAmount shared.Resources, team shared.ClientID) {
 	defer c.Logf("Friendship status: %v", c.friendship)
+	c.Logf("%v", c.giftsReceivedHistory)
+	c.Logf("%v", c.giftsRequestedHistory)
+	c.Logf("%v", c.giftsSentHistory)
 
-	for _, team := range shared.TeamIDs[:] {
-		if c.ServerReadHandle.GetGameState().ClientLifeStatuses[team] != shared.Alive || team == c.GetID() {
-			// doesn't judge if they are not able to survive themselves
-			continue
-		} else {
-			requested := c.giftsRequestedHistory[team]
-			received := c.giftsReceivedHistory[team]
-			offered := c.giftsSentHistory[team]
+	friendshipChangingRate := c.clientConfig.friendshipChangingRate
+	receivedSum := c.giftsReceivedHistory[team]
+	sentSum := c.giftsSentHistory[team]
+	requestedSum := c.giftsReceivedHistory[team]
 
-			if received < offered && received < requested {
-				// will be sad if the island give us very little
-				c.lowerFriendshipLevel(team, c.clientConfig.friendshipChangingRate*FriendshipLevel(offered/(received+requested+shared.Resources(1.0))))
-			} else if received >= offered && received >= requested {
-				c.raiseFriendshipLevel(team, c.clientConfig.friendshipChangingRate*FriendshipLevel(received/(offered+requested+shared.Resources(1.0))))
-			} else {
-				// keeps the current friendship level
-				continue
-			}
+	if sentSum+requestedSum+receivedSum == 0 {
+		return
+	} else {
+		if receivedSum >= sentSum && giftAmount > 0 {
+			c.raiseFriendshipLevel(team, friendshipChangingRate*FriendshipLevel(receivedSum-sentSum+giftAmount))
+		} else if receivedSum < sentSum && giftAmount < 0 {
+			c.lowerFriendshipLevel(team, friendshipChangingRate*FriendshipLevel(sentSum-receivedSum-giftAmount))
 		}
 	}
 }
