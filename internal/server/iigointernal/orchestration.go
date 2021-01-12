@@ -81,6 +81,12 @@ func RunIIGO(logger shared.Logger, g *gamestate.GameState, clientMap *map[shared
 	g.IIGOTurnsInPower[shared.Speaker]++
 	g.IIGOTurnsInPower[shared.Judge]++
 
+	//Reset allocation and tax in gamestate in case of IIGO not running (for Vis)
+	g.IIGOTaxAmount = make(map[shared.ClientID]shared.Resources)
+	g.IIGOAllocationMade = false
+	g.RulesBrokenByIslands = make(map[shared.ClientID][]string)
+	g.IIGORulesBrokenByRoles = make(map[shared.Role][]string)
+
 	// Pass in gamestate and IIGO configs
 	// So that we don't have to pass gamestate as arguments in every function in roles
 	judicialBranch.syncWithGame(g, &gameConf.IIGOConfig)

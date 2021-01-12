@@ -100,6 +100,7 @@ func (c *client) changeOpinion(opinionChange float64) float64 {
 	switch c.config.agentMentality {
 	case okBoomer: // Strict opinion (greedy)
 		if opinionChange >= 0 { // positive case
+<<<<<<< HEAD
 			opinionChange = opinionChange * 0.1 * c.getMood() // less emphasis on positive
 		} else {
 			opinionChange = opinionChange * 2 * c.getMood() // more emphasis on negative
@@ -116,6 +117,19 @@ func (c *client) changeOpinion(opinionChange float64) float64 {
 		} else {
 			opinionChange = opinionChange * 1 * c.getMood() // less emphasis on negative
 		}
+=======
+			opinionChange = opinionChange * 0.75 * c.getMood() // less emphasis on positive
+		} else {
+			opinionChange = opinionChange * 1.25 * c.getMood() // more emphasis on negative
+		}
+	case millennial: // You get a positive opinion, You get a positive opinion, everyone gets a positive opinion
+		if opinionChange >= 0 { // positive case
+			opinionChange = opinionChange * 1.25 * c.getMood() // more emphasis on positive
+		} else {
+			opinionChange = opinionChange * 0.75 * c.getMood() // less emphasis on negative
+		}
+	case normal: // Foff github dog
+>>>>>>> upstream/main
 	}
 
 	return opinionChange

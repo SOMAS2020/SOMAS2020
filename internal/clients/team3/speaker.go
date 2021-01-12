@@ -31,13 +31,13 @@ func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 			chosenClients = append(chosenClients, islandID)
 		}
 	}
-	if s.c.shouldICheat() {
+	/*if s.c.shouldICheat() {
 		for _, islandID := range aliveClients {
-			if s.c.trustScore[islandID] > 50 {
+			if s.c.trustScore[islandID] > 35 {
 				chosenClients = append(chosenClients, islandID)
 			}
 		}
-	}
+	}*/
 
 	return shared.SpeakerReturnContent{
 		ContentType:          shared.SpeakerVote,
@@ -50,14 +50,14 @@ func (s *speaker) DecideVote(ruleMatrix rules.RuleMatrix, aliveClients []shared.
 
 func (s *speaker) DecideAnnouncement(ruleMatrix rules.RuleMatrix, result bool) shared.SpeakerReturnContent {
 
-	if s.c.shouldICheat() {
+	/*if s.c.shouldICheat() {
 		res := s.c.iigoInfo.ruleVotingResults[ruleMatrix.RuleName].ourVote
 		if res == shared.Approve {
 			result = true
 		} else {
 			result = false
 		}
-	}
+	}*/
 
 	return shared.SpeakerReturnContent{
 		ContentType:  shared.SpeakerAnnouncement,

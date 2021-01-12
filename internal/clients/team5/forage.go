@@ -324,19 +324,33 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	var allGuys []shared.ClientID
 	c.Logf("[ReceiveForageInfo][%v]: %+v", c.getTurn(), forageInfos)
 	for _, forageInfo := range forageInfos {
+<<<<<<< HEAD
 		if forageInfo.DecisionMade.Contribution >= 0.1 { // has to be meaningful forage
 			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, c.changeOpinion(+0.01)) // Thanks for the information dude
 			goodGuys = append(goodGuys, forageInfo.SharedFrom)                                    // add to shrae to list if they shared to us
+=======
+		if forageInfo.DecisionMade.Contribution >= 1 { // has to be meaningful forage
+			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, c.changeOpinion(+0.04)) // Thanks for the information dude
+>>>>>>> upstream/main
 		}
 	}
 	for _, teams := range c.getAliveTeams(false) { // get all the teams
 		allGuys = append(allGuys, teams)
 	}
 
+<<<<<<< HEAD
 	missingPeeps := difference(allGuys, goodGuys) // Finds difference between slice allGuys and gooGuys (the )
 
 	for _, teams := range missingPeeps {
 		c.opinions[teams].updateOpinion(generalBasis, c.changeOpinion(-0.05)) // Thanks for the information dude
+=======
+	for _, team := range c.getAliveTeams(true) {
+		for _, gaveInfo := range forageInfos {
+			if team != gaveInfo.SharedFrom { // has to be meaningful forage
+				c.opinions[team].updateOpinion(generalBasis, c.changeOpinion(-0.025)) // Thanks for the information dude
+			}
+		}
+>>>>>>> upstream/main
 	}
 }
 

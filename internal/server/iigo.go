@@ -19,6 +19,7 @@ func (s *SOMASServer) runIIGO() error {
 	if !iigoSuccessful {
 		s.logf(iigoStatus)
 	}
+	s.gameState.IIGORunStatus = iigoStatus
 	return nil
 }
 
@@ -86,6 +87,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	s.logf("start runIIGOAllocations")
 	defer s.logf("finish runIIGOAllocations")
 	clientMap := getNonDeadClients(s.gameState.ClientInfos, s.clientMap)
+	allocationMap := make(map[shared.ClientID]shared.Resources)
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
 
@@ -96,18 +98,39 @@ func (s *SOMASServer) runIIGOAllocations() error {
 			}
 			s.gameState.CommonPool -= allocation
 
-			s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{
-				{
-					VariableName: rules.IslandAllocation,
-					Values:       []float64{float64(allocation)},
-				},
-				{
-					VariableName: rules.ExpectedAllocation,
-					Values:       []float64{float64(s.gameState.IIGOAllocationMap[clientID])},
-				},
-			})
+			if s.gameState.IIGOAllocationMade {
+				s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{
+					{
+						VariableName: rules.IslandAllocation,
+						Values:       []float64{float64(allocation)},
+					},
+					{
+						VariableName: rules.ExpectedAllocation,
+						Values:       []float64{float64(s.gameState.IIGOAllocationMap[clientID])},
+					},
+				})
+			} else {
+				allocationMap[clientID] = allocation
+				//Allow islands to take what they want if no allocations made
+				s.updateIIGOHistoryAndRules(clientID, []rules.VariableValuePair{
+					{
+						VariableName: rules.IslandAllocation,
+						Values:       []float64{float64(allocation)},
+					},
+					{
+						VariableName: rules.ExpectedAllocation,
+						Values:       []float64{float64(allocation)},
+					},
+				})
+
+			}
 
 		}
+	}
+
+	//Update gamestate for visualisation
+	if !s.gameState.IIGOAllocationMade {
+		s.gameState.IIGOAllocationMap = allocationMap
 	}
 	return nil
 }

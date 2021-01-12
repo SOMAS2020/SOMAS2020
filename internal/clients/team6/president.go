@@ -13,7 +13,13 @@ type president struct {
 func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.ClientID]shared.Resources, availCommonPool shared.Resources) shared.PresidentReturnContent {
 	resourceAllocation := make(map[shared.ClientID]shared.Resources)
 	ourPersonality := p.client.getPersonality()
-	evaluationCoeff := shared.Resources(0.75)
+	evaluationCoeff := shared.Resources(0.5)
+
+	friendCoeffsOnAllocation := make(map[shared.ClientID]shared.Resources)
+
+	for team, fsc := range p.client.getFriendshipCoeffs() {
+		friendCoeffsOnAllocation[team] = shared.Resources(fsc)
+	}
 
 	if ourPersonality != Selfish {
 		requestSum := shared.Resources(0.0)
@@ -23,26 +29,28 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 		}
 
 		if requestSum <= evaluationCoeff*availCommonPool || requestSum == 0 {
-			resourceAllocation = resourceRequest
+			for team, request := range resourceRequest {
+				resourceAllocation[team] = friendCoeffsOnAllocation[team] * request
+			}
 		} else {
-			for id, request := range resourceRequest {
-				resourceAllocation[id] = evaluationCoeff * availCommonPool * request / requestSum
+			for team, request := range resourceRequest {
+				resourceAllocation[team] = friendCoeffsOnAllocation[team] * evaluationCoeff * availCommonPool * request / requestSum
 			}
 		}
 	} else {
 		// trying to be a selfish president
-		commonPoolLeft := availCommonPool
+		commonPoolLeft := evaluationCoeff * availCommonPool
 		otherRequestSum := shared.Resources(0.0)
 
-		for id, request := range resourceRequest {
-			if id == p.client.GetID() {
+		for team, request := range resourceRequest {
+			if team == p.client.GetID() {
 				if request <= evaluationCoeff*availCommonPool {
-					resourceAllocation[id] = request
+					resourceAllocation[team] = request
 				} else {
-					resourceAllocation[id] = evaluationCoeff * availCommonPool
+					resourceAllocation[team] = evaluationCoeff * availCommonPool
 				}
 
-				commonPoolLeft = availCommonPool - resourceAllocation[id]
+				commonPoolLeft = evaluationCoeff*availCommonPool - resourceAllocation[id]
 
 				continue
 			}
@@ -50,21 +58,21 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 			otherRequestSum += request
 		}
 
-		if otherRequestSum <= evaluationCoeff*commonPoolLeft || otherRequestSum == 0 {
-			for id, request := range resourceRequest {
-				if id == p.client.GetID() {
+		if otherRequestSum <= commonPoolLeft || otherRequestSum == 0 {
+			for team, request := range resourceRequest {
+				if team == p.client.GetID() {
 					continue
 				}
 
-				resourceAllocation[id] = request
+				resourceAllocation[team] = friendCoeffsOnAllocation[team] * request
 			}
 		} else {
-			for id, request := range resourceRequest {
-				if id == p.client.GetID() {
+			for team, request := range resourceRequest {
+				if team == p.client.GetID() {
 					continue
 				}
 
-				resourceAllocation[id] = evaluationCoeff * commonPoolLeft * request / otherRequestSum
+				resourceAllocation[team] = friendCoeffsOnAllocation[team] * evaluationCoeff * commonPoolLeft * request / otherRequestSum
 			}
 		}
 	}
@@ -98,4 +106,42 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		ResourceMap: taxAmountMap,
 		ActionTaken: true,
 	}
+}
+
+func (p *president) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) shared.ElectionSettings {
+	currSpeakerID := p.client.ServerReadHandle.GetGameState().SpeakerID
+	otherIslands := []shared.ClientID{}
+
+	for _, team := range allIslands {
+		if currSpeakerID == team {
+			continue
+		}
+
+		otherIslands = append(otherIslands, team)
+	}
+
+	var electionsettings = shared.ElectionSettings{
+		VotingMethod:  shared.Runoff,
+		IslandsToVote: otherIslands,
+		HoldElection:  false,
+	}
+	if monitoring.Performed && !monitoring.Result {
+		electionsettings.HoldElection = true
+	}
+	if turnsInPower >= 2 {
+		electionsettings.HoldElection = true
+	}
+	return electionsettings
+}
+
+func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
+	if winner == p.client.ServerReadHandle.GetGameState().SpeakerID {
+		return p.client.GetID()
+	}
+
+	if p.client.friendship[winner] < p.clientConfig.maxFriendship/1.5 {
+		return p.client.GetID()
+	}
+
+	return winner
 }

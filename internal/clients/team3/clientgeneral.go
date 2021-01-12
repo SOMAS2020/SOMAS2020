@@ -3,6 +3,8 @@ package team3
 // General client functions
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/adv"
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"math"
 	"math/rand"
 
@@ -27,6 +29,8 @@ func (c *client) StartOfTurn() {
 
 	// update Trust Scores at the start of every turn
 	c.updateTrustScore(c.trustMapAgg)
+	c.Logf("[TEAM3]: Trust Score Map: %v", c.trustScore)
+
 	c.updateTheirTrustScore(c.theirTrustMapAgg)
 
 	// Initialise trustMap and theirtrustMap local cache to empty maps
@@ -42,6 +46,8 @@ func (c *client) StartOfTurn() {
 	c.lastSanction = c.iigoInfo.sanctions.ourSanction
 
 	c.resetIIGOInfo()
+	c.account.UpdatePersonalPool(c.ServerReadHandle.GetGameState().ClientInfo.Resources)
+	c.account.Cycle()
 	c.Logf("Our Status: %+v\n", c.ServerReadHandle.GetGameState().ClientInfo)
 }
 
@@ -52,8 +58,16 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourJudge = judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 	c.ourPresident = president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 	c.initgiftOpinions()
-	if c.params.adv != nil {
-		c.params.adv.Initialise()
+	if c.params.advType != adv.NoAdv {
+		if c.params.advType == adv.MaliceAdv {
+			c.params.adv = &adv.Malice{}
+			c.params.adv.Initialise(c.GetID())
+		} else if c.params.advType == adv.TargetAdv {
+			c.params.adv = &adv.Target{TargetID: shared.ClientID(rand.Intn(len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)))}
+			c.params.adv.Initialise(c.GetID())
+		}
+	} else {
+		c.params.adv = nil
 	}
 
 	// Set trust scores
@@ -84,6 +98,13 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	}
 
 	c.criticalThreshold = serverReadHandle.GetGameConfig().MinimumResourceThreshold
+	c.minimumResourcesWeWant = c.criticalThreshold * (2 - shared.Resources(c.params.riskFactor))
+	c.initialResourcesAtStartOfGame = c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	c.account = dynamics.Account{
+		Id:        c.GetID(),
+		TargetVal: shared.Resources(math.Min(float64(c.initialResourcesAtStartOfGame*2), float64(c.ServerReadHandle.GetGameState().CommonPool))),
+		Coeff:     1,
+	}
 }
 
 // updatetrustMapAgg adds the amount to the aggregate trust map list for given client
@@ -311,7 +332,7 @@ func (c *client) updateCompliance() {
 		c.numTimeCaught++
 	} else {
 		c.compliance = c.params.complianceLevel + (1.0-c.params.complianceLevel)*
-			math.Exp(-float64(c.timeSinceCaught)/math.Pow((float64(c.numTimeCaught)+1.0), c.params.recidivism))
+			math.Exp(-float64(c.timeSinceCaught)/float64(c.numTimeCaught)+1.0)
 		c.timeSinceCaught++
 	}
 }

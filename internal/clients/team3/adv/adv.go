@@ -6,8 +6,16 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+type Spec int
+
+const (
+	NoAdv Spec = iota
+	MaliceAdv
+	TargetAdv
+)
+
 type Adv interface {
-	Initialise()
+	Initialise(clientID shared.ClientID)
 	ProposeRule(availableRules map[string]rules.RuleMatrix) (rules.RuleMatrix, bool)
 	GetRuleViolationSeverity() (map[string]shared.IIGOSanctionsScore, bool)
 	GetPardonedIslands(currentSanctions map[int][]shared.Sanction) (map[int][]bool, bool)
