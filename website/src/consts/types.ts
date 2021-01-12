@@ -27,6 +27,46 @@ export type OutputJSONType = ChangeKeyType<
     'GameStates',
     GameStates
 >
+type Config = {
+    MaxSeasons: number
+    MaxTurns: number
+    InitialResources: number
+    InitialCommonPool: number
+    CostOfLiving: number
+    MinimumResourceThreshold: number
+    MaxCriticalConsecutiveTurns: number
+    ForagingConfig: ForagingConfig
+    DisasterConfig: any
+    IIGOConfig: any
+}
+
+type ForagingConfig = {
+    DeerHuntConfig: DeerHuntConfig
+    FishingConfig: FishingConfig
+}
+
+type DeerHuntConfig = {
+    MaxDeerPerHunt: number
+    IncrementalInputDecay: number
+    BernoulliProb: number
+    ExponentialRate: number
+    InputScaler: number
+    OutputScaler: number
+    DistributionStrategy: string
+    ThetaCritical: number
+    ThetaMax: number
+    MaxDeerPopulation: number
+    DeerGrowthCoefficient: number
+}
+type FishingConfig = {
+    MaxFishPerHunt: number
+    IncrementalInputDecay: number
+    Mean: number
+    Variance: number
+    InputScaler: number
+    OutputScaler: number
+    DistributionStrategy: string
+}
 
 type GameStates = GameState[]
 type GameState = {
@@ -36,7 +76,7 @@ type GameState = {
     ClientInfos: any
     Environment: any
     DeerPopulation: any
-    ForagingHistory: any
+    ForagingHistory: ForagingHistory
     RulesInfo: any
     IIGOHistory: IIGOHistory
     IIGORolesBudget: any
@@ -81,4 +121,21 @@ export type GiftResponseDict = {
 export type GiftResponse = {
     AcceptedAmount: number
     Reason: number
+}
+
+export type ForagingHistory = {
+    DeerForageType: ForagingInfo[]
+    FishForageType: ForagingInfo[]
+}
+export type ForagingInfo = {
+    ForageType: string
+    InputResources: number
+    ParticipantContributions: ParticipantContributions
+    NumberCaught: number
+    TotalUtility: number
+    CatchSizes: number[]
+    Turn: number
+}
+export type ParticipantContributions = {
+    [team: number]: number
 }
