@@ -90,8 +90,8 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	allocationMap := make(map[shared.ClientID]shared.Resources)
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
-		if allocation < 0 {
-			s.logf("Negative allocation of %v by %v. Changing allocation to 0", allocation, clientID)
+		if allocation < 0 || math.IsNaN(allocation) {
+			s.logf("Invalid allocation of %v by %v. Changing allocation to 0", allocation, clientID)
 			allocation = 0
 		}
 		if allocation <= s.gameState.CommonPool {
