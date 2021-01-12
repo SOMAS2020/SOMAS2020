@@ -127,8 +127,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 		return contribution + disasterMitigation
 	}
 	actualTax := calculateTaxContribution(expectedTax, turn, season, currentTier)
-	c.Logf("%v+v", c.getCP())
-	c.Logf("[DEBUG] - Team 5 paying tax %v out of %v, contribute %v for community, %v for disaster mitigation", actualTax, expectedTax, contribution, disasterMitigation)
+	// c.Logf("%v+v", c.getCP())
+	c.Logf("Team 5 paying tax %v out of %v, contribute %v for community, %v for disaster mitigation", actualTax, expectedTax, contribution, disasterMitigation)
 	return actualTax + contribution + disasterMitigation
 }
 
@@ -156,7 +156,7 @@ func (c *client) calculateCPContribution(turn uint, season uint, currentTier wea
 		if currentTier != imperialStudent && currentTier != dying {
 			// other days we contribute based on cashflow of commonpool
 			difference := c.cpResourceHistory[turn] - c.cpResourceHistory[turn-1]
-			c.Logf("[DEBUG] - CP Cashflow: %v - %v = %v", c.cpResourceHistory[turn], c.cpResourceHistory[turn-1], difference)
+			c.Logf("CP Cashflow: %v - %v = %v", c.cpResourceHistory[turn], c.cpResourceHistory[turn-1], difference)
 			if difference < 0 {
 				contribution = 0
 			} else {
