@@ -98,6 +98,7 @@ func main() {
 			}
 			//timeEnd := time.Now()
 			averageGameState = gamestate.AverageGameStates(averageGameState, gameStates)
+			//TODO: Include at your peril
 			//err = outputJSON(output{
 			//	GameStates: gameStates,
 			//	Config:     gameConfig,
