@@ -129,7 +129,6 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		}
 	}
 
-	c.Logf("offerr %v", offers)
 	return offers
 }
 

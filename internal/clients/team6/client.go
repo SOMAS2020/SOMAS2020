@@ -113,9 +113,6 @@ func (c *client) updateConfig() {
 // updateFriendship will be called every time a gift is exchanged; neg for sending, pos for receiving
 func (c *client) updateFriendship(giftAmount shared.Resources, team shared.ClientID) {
 	defer c.Logf("Friendship status: %v", c.friendship)
-	c.Logf("%v", c.giftsReceivedHistory)
-	c.Logf("%v", c.giftsRequestedHistory)
-	c.Logf("%v", c.giftsSentHistory)
 
 	friendshipChangingRate := c.clientConfig.friendshipChangingRate
 	receivedSum := c.giftsReceivedHistory[team]
