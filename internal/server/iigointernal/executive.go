@@ -102,11 +102,13 @@ func (e *executive) getRuleForSpeaker() (shared.PresidentReturnContent, error) {
 // broadcastTaxation broadcasts the tax amount decided by the president to all island still in the game.
 func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]shared.ResourcesReport, aliveIslands []shared.ClientID) error {
 	if !CheckEnoughInCommonPool(e.gameConf.BroadcastTaxationActionCost, e.gameState) {
+		e.gameState.IIGOTaxAmount = make(map[shared.ClientID]shared.Resources)
 		return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 	}
 	taxMapReturn := e.getTaxMap(islandsResources)
 	if taxMapReturn.ActionTaken && taxMapReturn.ContentType == shared.PresidentTaxation {
 		if !e.incurServiceCharge(e.gameConf.BroadcastTaxationActionCost) {
+			e.gameState.IIGOTaxAmount = make(map[shared.ClientID]shared.Resources)
 			return errors.Errorf("Insufficient Budget in common Pool: broadcastTaxation")
 		}
 		e.gameState.IIGOTaxAmount = taxMapReturn.ResourceMap
@@ -118,9 +120,12 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		e.Logf("Tax: %v", taxMapReturn.ResourceMap)
 	} else {
 		// default case when president doesn't take an action. send tax = 0
+		taxAmountMap := make(map[shared.ClientID]shared.Resources)
 		for _, islandID := range aliveIslands {
+			taxAmountMap[islandID] = shared.Resources(0)
 			e.sendNoDecision(islandID, shared.IIGOTaxDecision)
 		}
+		e.gameState.IIGOTaxAmount = taxAmountMap
 	}
 
 	return nil
@@ -150,12 +155,14 @@ func (e *executive) requestAllocationRequest(aliveIslands []shared.ClientID) err
 // to all islands alive
 func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, error) {
 	if !CheckEnoughInCommonPool(e.gameConf.ReplyAllocationRequestsActionCost, e.gameState) {
+		e.gameState.IIGOAllocationMade = false
 		return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 	}
 	returnContent := e.getAllocationRequests(commonPool)
 	allocationsMade := false
 	if returnContent.ActionTaken && returnContent.ContentType == shared.PresidentAllocation {
 		if !e.incurServiceCharge(e.gameConf.ReplyAllocationRequestsActionCost) {
+			e.gameState.IIGOAllocationMade = false
 			return false, errors.Errorf("Insufficient Budget in common Pool: replyAllocationRequest")
 		}
 		e.Logf("Resource Allocation: %v", returnContent.ResourceMap)
@@ -169,6 +176,7 @@ func (e *executive) replyAllocationRequest(commonPool shared.Resources) (bool, e
 			e.sendNoDecision(islandID, shared.IIGOAllocationDecision)
 		}
 	}
+	e.gameState.IIGOAllocationMade = allocationsMade
 	return allocationsMade, nil
 }
 
