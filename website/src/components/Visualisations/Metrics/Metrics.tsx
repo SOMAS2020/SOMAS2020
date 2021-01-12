@@ -51,6 +51,7 @@ const IndivMetric = ({ title, desc, metrics }: MetricBarProps) => {
                 {metrics.map((metric) => (
                   <ListItemText
                     primary={[metric.teamName, ': ', metric.value.toFixed(2)]}
+                    key={metric.teamName.toString()}
                   />
                 ))}
               </List>
