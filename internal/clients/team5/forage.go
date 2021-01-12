@@ -323,14 +323,14 @@ func (c *client) ReceiveForageInfo(forageInfos []shared.ForageShareInfo) {
 	c.Logf("[ReceiveForageInfo][%v]: %+v", c.getTurn(), forageInfos)
 	for _, forageInfo := range forageInfos {
 		if forageInfo.DecisionMade.Contribution >= 1 { // has to be meaningful forage
-			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, +0.05*c.getMood()) // Thanks for the information dude
+			c.opinions[forageInfo.SharedFrom].updateOpinion(generalBasis, c.changeOpinion(+0.04)) // Thanks for the information dude
 		}
 	}
 
 	for _, team := range c.getAliveTeams(true) {
 		for _, gaveInfo := range forageInfos {
 			if team != gaveInfo.SharedFrom { // has to be meaningful forage
-				c.opinions[team].updateOpinion(generalBasis, -0.025*c.getMood()) // Thanks for the information dude
+				c.opinions[team].updateOpinion(generalBasis, c.changeOpinion(-0.025)) // Thanks for the information dude
 			}
 		}
 	}

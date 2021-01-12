@@ -6,7 +6,7 @@ import ResourceGraph from './ResourceGraph'
 const Resources = (props: { output: OutputJSONType }) => {
   return (
     <div className={styles.root}>
-      <h1>Resources over Time</h1>
+      <p className={styles.text}>Resources over Time</p>
       <p>
         Select teams to show/hide by clicking the team at the top of the chart.
         Use the slider at the bottom to change which turns are displayed.
