@@ -11,5 +11,9 @@ type speaker struct {
 }
 
 func (s *speaker) DecideNextJudge(winner shared.ClientID) shared.ClientID {
-	return s.client.GetID()
+	if s.client.friendship[winner] <= s.client.clientConfig.maxFriendship/2 {
+		return s.client.GetID()
+	}
+
+	return winner
 }

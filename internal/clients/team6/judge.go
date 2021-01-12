@@ -28,5 +28,9 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 }
 
 func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
-	return j.client.GetID()
+	if j.client.friendship[winner] <= j.client.clientConfig.maxFriendship/2 {
+		return j.client.GetID()
+	}
+
+	return winner
 }

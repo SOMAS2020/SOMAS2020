@@ -109,5 +109,9 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 }
 
 func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
-	return p.client.GetID()
+	if p.client.friendship[winner] <= p.client.clientConfig.maxFriendship/2 {
+		return p.client.GetID()
+	}
+
+	return winner
 }
