@@ -3,7 +3,6 @@ package team3
 // General client functions testing
 
 import (
-	"math"
 	"reflect"
 	"testing"
 
@@ -232,7 +231,7 @@ func TestUpdateCompliance(t *testing.T) {
 					complianceLevel: 0.0,
 				},
 			},
-			expectedVal: math.Exp(-0.5),
+			expectedVal: 1,
 		},
 		{
 			name: "Compliance decay - fully-compliant agent",

@@ -1,17 +1,23 @@
 package team3
 
+import (
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/adv"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+)
+
 func getislandParams() islandParams {
 	return islandParams{
-		equity:                  1,    // 0-1 // do we need this or can it be replaced?
-		complianceLevel:         0.5,  // 0-1 //this seems good
-		resourcesSkew:           2,    // >1 //same as equity
-		saveCriticalIsland:      true, //seems like this will always be true
-		selfishness:             0.7,  //0-1 //higher is better for us
-		riskFactor:              0.2,  // 0-1 // increasing this has mixed results
-		friendliness:            1,    // 0-1 // agent performs better when this matches selfishness
-		adv:                     nil,  // keep it off pls
-		giftInflationPercentage: 1,    // 0-1 //this doesn't have a noticeable effect
-		sensitivity:             0.5,  // 0-1
+		equity:                  1,                             // 0-1 // do we need this or can it be replaced?
+		complianceLevel:         0.5,                           // 0-1 //this seems good
+		resourcesSkew:           2,                             // >1 //same as equity
+		saveCriticalIsland:      true,                          //seems like this will always be true
+		selfishness:             1,                             //0-1 //higher is better for us
+		riskFactor:              0.8,                           // 0-1 // increasing this has mixed results
+		friendliness:            1,                             // 0-1 // agent performs better when this matches selfishness
+		adv:                     &adv.Malice{Id: shared.Team3}, // keep it off pls
+		giftInflationPercentage: 1,                             // 0-1 //this doesn't have a noticeable effect
+		sensitivity:             0.5,                           // 0-1
+		controlLoop:             true,
 	}
 }
 
