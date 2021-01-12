@@ -14,6 +14,7 @@ import styles from './Roles.module.css'
 import { ProcessedRoleData, TeamAndTurns, RoleName } from './Util/RoleTypes'
 import { processRoleData } from './Util/ProcessedRoleData'
 import { OutputJSONType } from '../../../consts/types'
+import IIGOStatus from './IIGOStatus'
 
 type CustomTooltipProps = {
   active: boolean
@@ -109,6 +110,7 @@ const Roles = (props: { output: OutputJSONType }) => {
         </BarChart>
       </ResponsiveContainer>
       <p className={styles.graphLabel}>Turns</p>
+      <IIGOStatus output={props.output} />
     </div>
   )
 }
