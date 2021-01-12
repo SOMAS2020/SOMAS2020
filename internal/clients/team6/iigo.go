@@ -23,9 +23,10 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 		switch fieldName {
 		case shared.IIGOTaxDecision:
 			c.payingTax = shared.Resources(content.IIGOValueData.Amount)
+		case shared.SanctionAmount:
+			c.payingSanction = shared.Resources(content.IntegerData)
 		case shared.IIGOAllocationDecision:
-			c.payingSanction = shared.Resources(content.IIGOValueData.Amount)
-			//add sth else
+			c.allocation = shared.Resources(content.IIGOValueData.Amount)
 		default:
 		}
 
@@ -71,6 +72,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 func (c *client) RequestAllocation() shared.Resources {
 	numberAlive := shared.Resources(c.getNumOfAliveIslands())
 	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+	//if we are critical or dying
 	if ourStatus == shared.Critical || ourStatus == shared.Dead {
 		if numberAlive > 0 {
 			takenResource := c.ServerReadHandle.GetGameState().CommonPool / numberAlive
@@ -78,7 +80,7 @@ func (c *client) RequestAllocation() shared.Resources {
 			return takenResource
 		}
 	}
-	return 0
+	return c.allocation
 }
 
 func (c *client) ResourceReport() shared.ResourcesReport {
