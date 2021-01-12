@@ -2,6 +2,7 @@ package iigointernal
 
 import (
 	"fmt"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/baseclient"
@@ -41,7 +42,7 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 		decideToMonitor := roleAccountable.MonitorIIGORole(roleName)
 		evaluationResult := true
 		if decideToMonitor {
-			evaluationResult = m.evaluateCache(roleToMonitor, m.gameState.RulesInfo.CurrentRulesInPlay)
+			evaluationResult = m.evaluateCache(roleToMonitor, roleName, m.gameState.RulesInfo.CurrentRulesInPlay)
 		}
 
 		m.Logf("Monitoring of %v result %v ", roleToMonitor, evaluationResult)
@@ -75,7 +76,7 @@ func (m *monitor) monitorRole(roleAccountable baseclient.Client) shared.MonitorR
 	return result
 }
 
-func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[string]rules.RuleMatrix) bool {
+func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, roleName shared.Role, ruleStore map[string]rules.RuleMatrix) bool {
 	performedRoleCorrectly := true
 	var rulesAffected []string
 	for _, entry := range m.gameState.IIGORoleMonitoringCache {
@@ -95,7 +96,7 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, ruleStore map[s
 		if ret.EvalError == nil {
 			performedRoleCorrectly = ret.RulePasses && performedRoleCorrectly
 			if !ret.RulePasses {
-				m.Logf("Rule: %v , broken by: %v", rule, roleToMonitorID)
+				m.Logf("Rule: %v , broken by: %v %v", rule, roleToMonitorID, roleName)
 			}
 		}
 	}

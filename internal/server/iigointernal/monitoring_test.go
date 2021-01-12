@@ -118,7 +118,7 @@ func TestEvaluateCache(t *testing.T) {
 					IIGORoleMonitoringCache: tc.iigoCache,
 				},
 			}
-			res := monitoring.evaluateCache(tc.roleID, ruleStore)
+			res := monitoring.evaluateCache(tc.roleID, shared.President, ruleStore)
 			if !reflect.DeepEqual(res, tc.expectedVal) {
 				t.Errorf("Expected evaluation of internalIIGOCache to be %v got %v", tc.expectedVal, res)
 			}
