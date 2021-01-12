@@ -70,6 +70,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 		if team == c.GetID() {
 			c.friendship[team] = c.clientConfig.maxFriendship
 			c.trustRank[team] = 1
+
+			continue
 		}
 
 		c.friendship[team] = 50
