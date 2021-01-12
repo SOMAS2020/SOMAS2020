@@ -27,6 +27,7 @@ type client struct {
 	forageHistory         ForageHistory
 	payingTax             shared.Resources
 	payingSanction        shared.Resources
+	allocation            shared.Resources
 
 	clientConfig ClientConfig
 }
@@ -63,6 +64,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.forageHistory = ForageHistory{}
 	c.payingTax = 0.0
 	c.payingSanction = 0.0
+	c.allocation = 0.0
 
 	for _, team := range shared.TeamIDs {
 		if team == c.GetID() {

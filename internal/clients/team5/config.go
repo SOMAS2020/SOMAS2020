@@ -4,6 +4,8 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
 // define config structure here
 type clientConfig struct {
+	// Agent mentaility
+	agentMentality mindSet
 
 	// ==================== Foraging ====================
 	// Initial non planned foraging
@@ -55,6 +57,17 @@ type clientConfig struct {
 // set param values here. In order to add a new value, you need to add a definition in struct above.
 func getClientConfig() clientConfig {
 	return clientConfig{
+		// AGENT MENTALITY
+		agentMentality: normal, // okBoomer = Greedy (low / strict opinion of others) ,
+		// Normal = normal agent
+		// millennial = altruistic (communist, all about giving his wealth away for equality and has high opinions of people)
+
+		// Threshold for wealth as multiplier
+		jbThreshold:       2.0,
+		middleThreshold:   1.0,
+		imperialThreshold: 0.3, // surely should be - 100e6? (your right we are so far indebt)
+		//  Dying threshold is 0 < Dying < Imperial
+
 		//Variables for initial forage
 		InitialForageTurns:      3,
 		MinimumForagePercentage: 0.10,
@@ -74,12 +87,6 @@ func getClientConfig() clientConfig {
 		NormalRandomChange:  0.05,
 		MaxForagePercentage: 0.40,
 		bestInputProfitPerc: 0.8,
-
-		// Threshold for wealth as multiplier
-		jbThreshold:       2.0,
-		middleThreshold:   1.0,
-		imperialThreshold: 0.3, // surely should be - 100e6? (your right we are so far indebt)
-		//  Dying threshold is 0 < Dying < Imperial
 
 		// Gifts Config (multipliers of cost of living)
 		dyingGiftRequestAmount:    2,   // multiplier of the cost of living
