@@ -45,6 +45,9 @@ type GameState struct {
 	// IIGO Allocation Amount Map
 	IIGOAllocationMap map[shared.ClientID]shared.Resources
 
+	// IIGO Allocation Made
+	IIGOAllocationMade bool
+
 	// IIGO Sanction Amount Map
 	IIGOSanctionMap map[shared.ClientID]shared.Resources
 
