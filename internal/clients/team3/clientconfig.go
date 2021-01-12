@@ -4,6 +4,7 @@ import "github.com/SOMAS2020/SOMAS2020/internal/clients/team3/adv"
 
 func getislandParams() islandParams {
 	return islandParams{
+<<<<<<< HEAD
 		equity:                  1,             // 0-1 // do we need this or can it be replaced?
 		complianceLevel:         0.5,           // 0-1 //this seems good
 		resourcesSkew:           2,             // >1 //same as equity
@@ -14,6 +15,18 @@ func getislandParams() islandParams {
 		adv:                     &adv.Malice{}, // keep it off pls
 		giftInflationPercentage: 1,             // 0-1 //this doesn't have a noticeable effect
 		sensitivity:             0.5,           // 0-1
+=======
+		equity:                  1,    // 0-1 // do we need this or can it be replaced?
+		complianceLevel:         0.5,  // 0-1 //this seems good
+		resourcesSkew:           2,    // >1 //same as equity
+		saveCriticalIsland:      true, //seems like this will always be true
+		selfishness:             1,    //0-1 //higher is better for us
+		riskFactor:              0.8,  // 0-1 // increasing this has mixed results
+		friendliness:            1,
+		advType:                 adv.NoAdv, // 0-1 // agent performs better when this matches selfishness
+		giftInflationPercentage: 1,         // 0-1 //this doesn't have a noticeable effect
+		sensitivity:             0.5,       // 0-1
+>>>>>>> main
 		controlLoop:             true,
 	}
 }
