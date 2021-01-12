@@ -26,3 +26,7 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 
 	return pardons
 }
+
+func (j *judge) DecideNextPresident(winner shared.ClientID) shared.ClientID {
+	return j.client.GetID()
+}
