@@ -161,7 +161,7 @@ const fishForagingResultCollection = (data: OutputJSONType) => {
 
 const fishForagingEfficiencyCollection = (data: OutputJSONType) => {
     const metrics = emptyMetrics()
-    const numberOfTimesGoneFishing = emptyMetrics()
+    const totalSpent = emptyMetrics()
 
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
@@ -178,24 +178,26 @@ const fishForagingEfficiencyCollection = (data: OutputJSONType) => {
         )
         Participants.forEach(([team, value]) => {
             if (FishingDistributionStrategy === 'EqualSplit') {
-                metrics[team] +=
-                    forageRound.TotalUtility / (Participants.length * value)
+                metrics[team] += forageRound.TotalUtility / Participants.length
             } else {
                 metrics[team] +=
-                    forageRound.TotalUtility / forageRound.InputResources
+                    forageRound.TotalUtility /
+                    (forageRound.InputResources / value)
             }
-            numberOfTimesGoneFishing[team] += 1
+            totalSpent[team] += value
         })
     })
-    Object.entries(numberOfTimesGoneFishing).forEach(([team, turnsFishing]) => {
-        metrics[team] /= turnsFishing
+    Object.entries(totalSpent).forEach(([team, spent]) => {
+        if (spent > 0) {
+            metrics[team] /= spent
+        }
     })
     return metrics
 }
 
 const deerForagingEfficiencyCollection = (data: OutputJSONType) => {
     const metrics = emptyMetrics()
-    const numberOfTimesGoneFishing = emptyMetrics()
+    const totalSpent = emptyMetrics()
 
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
@@ -212,17 +214,19 @@ const deerForagingEfficiencyCollection = (data: OutputJSONType) => {
         )
         Participants.forEach(([team, value]) => {
             if (HuntingDistributionStrategy === 'EqualSplit') {
-                metrics[team] +=
-                    forageRound.TotalUtility / (Participants.length * value)
+                metrics[team] += forageRound.TotalUtility / Participants.length
             } else {
                 metrics[team] +=
-                    forageRound.TotalUtility / forageRound.InputResources
+                    forageRound.TotalUtility /
+                    (forageRound.InputResources / value)
             }
-            numberOfTimesGoneFishing[team] += 1
+            totalSpent[team] += value
         })
     })
-    Object.entries(numberOfTimesGoneFishing).forEach(([team, turnsFishing]) => {
-        metrics[team] /= turnsFishing
+    Object.entries(totalSpent).forEach(([team, spent]) => {
+        if (spent > 0) {
+            metrics[team] /= spent
+        }
     })
     return metrics
 }
