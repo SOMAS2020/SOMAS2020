@@ -41,19 +41,15 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		}
 	} else {
 		if fishingROI == 0 {
-			forageType = shared.DeerForageType
+			forageType = shared.FishForageType
 		}
 		if deerHuntingROI == 0 {
-			forageType = shared.FishForageType
+			forageType = shared.DeerForageType
 		}
 	}
 
 	if len(c.getAliveIslands()) == 1 {
 		forageType = shared.FishForageType
-	}
-
-	if c.getLocalResources() < c.minimumResourcesWeWant || c.computeRecentExpectedROI(forageType) < 100 {
-		foragingInvestment = 0.0
 	}
 
 	coef := c.params.riskFactor
@@ -73,13 +69,19 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 		decay = (float64(sumOfCaught) + 1) * float64(numberOfHunters)
 	}
 
-	coef = math.Max(c.params.riskFactor-0.1*decay, 0.1)
+	coef = math.Max(c.params.riskFactor-0.01*decay, 0.1)
+
+	finalForagingInvestment := foragingInvestment * coef
+
+	if c.getLocalResources() < c.minimumResourcesWeWant || c.computeRecentExpectedROI(forageType) < 100 {
+		finalForagingInvestment = 0.01
+	}
 
 	c.Logf("coef: %v, sumOfCaught: %v, numberOfHunter: %v, decay: %v", coef, sumOfCaught, numberOfHunters, decay)
 
 	return shared.ForageDecision{
 		Type:         forageType,
-		Contribution: shared.Resources(foragingInvestment * coef),
+		Contribution: shared.Resources(finalForagingInvestment),
 	}, nil
 }
 
