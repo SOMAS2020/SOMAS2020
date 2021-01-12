@@ -88,8 +88,6 @@ func (c *client) RequestAllocation() shared.Resources {
 	commonPool := c.ServerReadHandle.GetGameState().CommonPool
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 
-	defer c.Logf("Taken %v from common pool", resourceTaken)
-
 	//if we are critical or dying
 	if ourStatus == shared.Critical {
 		return minThreshold - ourResources

@@ -118,7 +118,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 	if c.ServerReadHandle.GetGameState().Turn == 1 {
 		for _, team := range shared.TeamIDs[:] {
-			offers[team] = shared.GiftOffer(minThreshold)
+			offers[team] = shared.GiftOffer(1)
 		}
 	}
 

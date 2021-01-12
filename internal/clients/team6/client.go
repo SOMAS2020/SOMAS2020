@@ -77,6 +77,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 		c.friendship[team] = 50
 		c.trustRank[team] = 0.5
 	}
+
+	c.updateConfig()
 }
 
 func (c *client) StartOfTurn() {
@@ -106,7 +108,7 @@ func (c *client) updateConfig() {
 		maxFriendship:          c.clientConfig.maxFriendship,
 		friendshipChangingRate: c.clientConfig.friendshipChangingRate,
 		selfishThreshold:       minThreshold + 3.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/12.0,
-		normalThreshold:        minThreshold + 6.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/6.0,
+		normalThreshold:        minThreshold + 12.0*costOfLiving + c.ServerReadHandle.GetGameState().CommonPool/6.0,
 		multiplier:             c.clientConfig.multiplier,
 	}
 
