@@ -85,6 +85,7 @@ type GameState = {
     IIGOAllocationMap: any
     IIGOSanctionMap: any
     IIGOSanctionCache: any
+    IIGORunStatus: any
     IIGOHistoryCache: any
     IIGORoleMonitoringCache: any
     IITOTransactions: IITOTransactions
