@@ -4,12 +4,11 @@ import styles from './Foraging.module.css'
 import { OutputJSONType } from '../../../consts/types'
 import ForagingPlot from './Util/ForagingPlot'
 import processForagingData from './Util/processForagingData'
-import { ForagingHistory } from './Util/ForagingTypes'
+import { ForagingTurn } from './Util/ForagingTypes'
 
-const IIFO = (props: { output: OutputJSONType }) => {
-  const foragingHistory: ForagingHistory = processForagingData(props.output)
+const Foraging = (props: { output: OutputJSONType }) => {
+  const foragingHistory: ForagingTurn[] = processForagingData(props.output)
 
-  console.log({ foragingHistory })
   return (
     <div className={styles.root}>
       <h2 className={styles.text}>Foraging Visualisation</h2>
@@ -20,4 +19,4 @@ const IIFO = (props: { output: OutputJSONType }) => {
   )
 }
 
-export default IIFO
+export default Foraging

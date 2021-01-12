@@ -8,12 +8,12 @@ import {
   Tooltip,
   Legend,
 } from 'recharts'
-import { ForagingHistory } from './ForagingTypes'
+import { ForagingTurn } from './ForagingTypes'
 
 // TODO: Add axis labels
 // plot: deer population, fish population, foraging return, foraging input
-const ForagingPlot = ({ data }: { data: ForagingHistory }) => {
-  const [result, setResult] = useState<ForagingHistory>([])
+const ForagingPlot = ({ data }: { data: ForagingTurn[] }) => {
+  const [result, setResult] = useState<ForagingTurn[]>([])
 
   useEffect(() => {
     console.log('charts props:', data)
@@ -21,7 +21,6 @@ const ForagingPlot = ({ data }: { data: ForagingHistory }) => {
     console.log('results updated')
   })
 
-  console.log({ data })
   return (
     <LineChart
       width={900}
@@ -50,7 +49,11 @@ const ForagingPlot = ({ data }: { data: ForagingHistory }) => {
       <YAxis yAxisId="left" />
 
       {/* name of the value that corresponds to right axis */}
-      <YAxis yAxisId="right" orientation="right" />
+      <YAxis
+        yAxisId="right"
+        orientation="right"
+        label={{ value: 'Number Participants', angle: 90 }}
+      />
       <Tooltip />
       <Legend
         verticalAlign="bottom"
@@ -61,31 +64,45 @@ const ForagingPlot = ({ data }: { data: ForagingHistory }) => {
         }}
       />
       <Line
-        yAxisId="right"
+        yAxisId="left"
         type="monotone"
-        dataKey="deerNumParticipants"
-        stroke="#F1538A"
+        dataKey="deerInputResources"
+        stroke="#0095FF"
         activeDot={{ r: 8 }}
       />
       <Line
         yAxisId="right"
         type="monotone"
-        dataKey="fishNumParticipants"
-        stroke="#F1238F"
+        dataKey="deerNumCaught"
+        stroke="#ff0000"
         activeDot={{ r: 8 }}
       />
       <Line
         yAxisId="left"
         type="monotone"
-        dataKey="deerInputResources"
-        stroke="#8884d8"
+        dataKey="deerTotalUtility"
+        stroke="#802FF0"
+        activeDot={{ r: 8 }}
+      />
+      <Line
+        yAxisId="right"
+        type="monotone"
+        dataKey="fishNumCaught"
+        stroke="#00c49f"
         activeDot={{ r: 8 }}
       />
       <Line
         yAxisId="left"
         type="monotone"
         dataKey="fishInputResources"
-        stroke="#82ca9d"
+        stroke="#ffbb29"
+        activeDot={{ r: 8 }}
+      />
+      <Line
+        yAxisId="left"
+        type="monotone"
+        dataKey="fishTotalUtility"
+        stroke="#ff8042"
         activeDot={{ r: 8 }}
       />
     </LineChart>

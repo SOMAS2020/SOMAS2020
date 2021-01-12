@@ -1,84 +1,71 @@
-import _ from 'lodash'
-import { OutputJSONType } from '../../../../consts/types'
-import { ForagingTurn, ForagingHistory } from './ForagingTypes'
+import {
+    OutputJSONType,
+    ForagingHistory,
+    ForagingInfo,
+} from '../../../../consts/types'
+import { ForagingTurn } from './ForagingTypes'
 
-const processForagingData: (data: OutputJSONType) => ForagingHistory = (
+const processForagingData: (data: OutputJSONType) => ForagingTurn[] = (
     data: OutputJSONType
 ) => {
-    // TODO: poor form: probably don't need all these interemediate datastructures
-    const fishTurns: number[] = []
-    const deerTurns: number[] = []
-    const deerInputResources: number[] = []
-    const deerNumParticipants: number[] = []
-    const deerNumCaught: number[] = []
-    const deerTotalUtility: number[] = []
-    const fishInputResources: number[] = []
-    const fishNumParticipants: number[] = []
-    const fishNumCaught: number[] = []
-    const fishTotalUtility: number[] = []
+    const turns = data.GameStates.length - 1
+    let res: ForagingTurn[] = new Array(turns)
 
-    // reduce the full foraging hist into single foragingTurn objects
-    // map through each foraging type and merge the result of that map all into one object
+    const fillRange = (start, end) => {
+        return [...Array(end - start + 1)].map((item, index) => ({
+            turn: index,
+            deerInputResources: 0,
+            deerNumCaught: 0,
+            deerTotalUtility: 0,
+            fishInputResources: 0,
+            fishNumCaught: 0,
+            fishTotalUtility: 0,
+        }))
+    }
+
+    // Fill in the blanks and turns
+    res = fillRange(0, turns)
 
     Object.entries(
         data.GameStates[data.GameStates.length - 1].ForagingHistory
     ).forEach((foragingType) => {
-        // this happens twice so we get twice the no of turns
         const foragingTypeData = foragingType[1]
-        foragingTypeData.forEach((turn) => {
-            switch (turn.ForageType) {
+        foragingTypeData.forEach((forageInfo) => {
+            switch (forageInfo.ForageType) {
                 case 'DeerForageType':
-                    deerInputResources.push(turn.InputResources)
-                    deerNumParticipants.push(turn.NumberParticipants)
-                    deerNumCaught.push(turn.NumberCaught)
-                    deerTotalUtility.push(turn.TotalUtility)
-                    deerTurns.push(turn.Turn)
+                    res[forageInfo.Turn - 1] = {
+                        turn: res[forageInfo.Turn - 1].turn,
+                        fishInputResources:
+                            res[forageInfo.Turn - 1].fishInputResources,
+                        fishNumCaught: res[forageInfo.Turn - 1].fishNumCaught,
+                        fishTotalUtility:
+                            res[forageInfo.Turn - 1].fishTotalUtility,
+                        deerInputResources: forageInfo.InputResources,
+                        deerNumCaught: forageInfo.NumberCaught,
+                        deerTotalUtility: forageInfo.TotalUtility,
+                    }
                     break
                 case 'FishForageType':
-                    fishInputResources.push(turn.InputResources)
-                    fishNumParticipants.push(turn.NumberParticipants)
-                    fishNumCaught.push(turn.NumberCaught)
-                    fishTotalUtility.push(turn.TotalUtility)
-                    fishTurns.push(turn.Turn)
+                    res[forageInfo.Turn - 1] = {
+                        turn: res[forageInfo.Turn - 1].turn,
+                        fishInputResources: forageInfo.InputResources,
+                        fishNumCaught: forageInfo.NumberCaught,
+                        fishTotalUtility: forageInfo.TotalUtility,
+                        deerInputResources:
+                            res[forageInfo.Turn - 1].deerInputResources,
+                        deerNumCaught: res[forageInfo.Turn - 1].deerNumCaught,
+                        deerTotalUtility:
+                            res[forageInfo.Turn - 1].deerTotalUtility,
+                    }
+
                     break
                 default:
-                // shouldn't happen
+                // this shouldn't happen
             }
         })
     })
 
-    const acc: ForagingTurn[] = []
-
-    deerTurns.forEach((turn) => {
-        acc.push({
-            turn,
-            deerInputResources: _.isUndefined(deerInputResources[turn - 1])
-                ? 0
-                : deerInputResources[turn - 1],
-            deerNumParticipants: _.isUndefined(deerNumParticipants[turn - 1])
-                ? 0
-                : deerNumParticipants[turn - 1],
-            deerNumCaught: _.isUndefined(deerNumCaught[turn - 1])
-                ? 0
-                : deerNumCaught[turn - 1],
-            deerTotalUtility: _.isUndefined(deerTotalUtility[turn - 1])
-                ? 0
-                : deerTotalUtility[turn - 1],
-            fishNumParticipants: _.isUndefined(fishNumParticipants[turn - 1])
-                ? 0
-                : fishNumParticipants[turn - 1],
-            fishInputResources: _.isUndefined(fishInputResources[turn - 1])
-                ? 0
-                : fishInputResources[turn - 1],
-            fishNumCaught: _.isUndefined(fishNumCaught[turn - 1])
-                ? 0
-                : fishNumCaught[turn - 1],
-            fishTotalUtility: _.isUndefined(fishTotalUtility[turn - 1])
-                ? 0
-                : fishTotalUtility[turn - 1],
-        })
-    })
-    return acc
+    return res
 }
 
 export default processForagingData

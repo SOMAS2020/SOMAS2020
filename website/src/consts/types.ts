@@ -93,19 +93,6 @@ type GameState = {
     PresidentID: string
 }
 
-export type ForagingHistory = {
-    [forageType: string]: ForagingType[]
-}
-export type ForagingType = {
-    ForageType: string
-    InputResources: number
-    NumberParticipants: number
-    NumberCaught: number
-    TotalUtility: number
-    CatchSizes: number[]
-    Turn: number
-}
-
 // IIGOHistory will be at most data.Config.Maxturns long, containing an "Accountability" occurrence for a given client.
 // Returns undefined if the accessing an unavailable key
 export type IIGOHistory = {
@@ -140,6 +127,7 @@ export type ForagingHistory = {
     DeerForageType: ForagingInfo[]
     FishForageType: ForagingInfo[]
 }
+
 export type ForagingInfo = {
     ForageType: string
     InputResources: number

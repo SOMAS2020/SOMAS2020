@@ -1,13 +1,9 @@
 export type ForagingTurn = {
     turn: number
     deerInputResources: number
-    deerNumParticipants: number
-    deerNumCaught: number
-    deerTotalUtility: number
     fishInputResources: number
-    fishNumParticipants: number
+    deerNumCaught: number
     fishNumCaught: number
+    deerTotalUtility: number
     fishTotalUtility: number
 }
-
-export type ForagingHistory = ForagingTurn[]
