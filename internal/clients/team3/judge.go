@@ -48,7 +48,7 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 			if foundRules {
 				rulesAffected = append(rulesAffected, valuesToBeAdded...)
 			}
-			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, j.c.LocalVariableCache)
+			updatedVariable := rules.UpdateVariableInternal(variable.VariableName, variable, copyOfGlobalVarCache)
 			if !updatedVariable {
 				return map[shared.ClientID]shared.EvaluationReturn{}, false
 			}
@@ -78,7 +78,11 @@ func (j *judge) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int
 					return outMap, false
 				}
 				tempReturn.Rules = append(tempReturn.Rules, j.c.ServerReadHandle.GetGameState().RulesInfo.CurrentRulesInPlay[rule])
-				tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation.RulePasses)
+				if clientID == j.c.GetID() {
+					tempReturn.Evaluations = append(tempReturn.Evaluations, true)
+				} else {
+					tempReturn.Evaluations = append(tempReturn.Evaluations, evaluation.RulePasses)
+				}
 			}
 			outMap[clientID] = tempReturn
 		}
@@ -179,7 +183,7 @@ func (j *judge) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) m
 		lst := make([]bool, len(sanctionList))
 		pardons[key] = lst
 		for index, sanction := range sanctionList {
-			if j.c.trustScore[sanction.ClientID] > 50 && j.c.params.friendliness > 0.4 {
+			if (j.c.trustScore[sanction.ClientID] >= 50 && j.c.params.friendliness > 0.5) || sanction.ClientID == j.c.GetID() {
 				pardons[key][index] = true
 			} else {
 				pardons[key][index] = false

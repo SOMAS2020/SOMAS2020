@@ -213,69 +213,69 @@ var (
 	// config.IIGOConfig - Executive branch
 	iigoGetRuleForSpeakerActionCost = flag.Float64(
 		"iigoGetRuleForSpeakerActionCost",
-		10,
+		2,
 		"IIGO action cost for getRuleForSpeaker action",
 	)
 	iigoBroadcastTaxationActionCost = flag.Float64(
 		"iigoBroadcastTaxationActionCost",
-		10,
+		2,
 		"IIGO action cost for broadcastTaxation action",
 	)
 	iigoReplyAllocationRequestsActionCost = flag.Float64(
 		"iigoReplyAllocationRequestsActionCost",
-		10,
+		2,
 		"IIGO action cost for replyAllocationRequests action",
 	)
 	iigoRequestAllocationRequestActionCost = flag.Float64(
 		"iigoRequestAllocationRequestActionCost",
-		10,
+		2,
 		"IIGO action cost for requestAllocationRequest action",
 	)
 	iigoRequestRuleProposalActionCost = flag.Float64(
 		"iigoRequestRuleProposalActionCost",
-		10,
+		2,
 		"IIGO action cost for requestRuleProposal action",
 	)
 	iigoAppointNextSpeakerActionCost = flag.Float64(
 		"iigoAppointNextSpeakerActionCost",
-		10,
+		2,
 		"IIGO action cost for appointNextSpeaker action",
 	)
 
 	// config.IIGOConfig - Judiciary branch
 	iigoInspectHistoryActionCost = flag.Float64(
 		"iigoInspectHistoryActionCost",
-		10,
+		2,
 		"IIGO action cost for inspectHistory",
 	)
 
 	historicalRetributionActionCost = flag.Float64(
 		"historicalRetributionActionCost",
-		10,
+		2,
 		"IIGO action cost for inspectHistory retroactively (in turns before the last one)",
 	)
 
 	iigoInspectBallotActionCost = flag.Float64(
 		"iigoInspectBallotActionCost",
-		10,
+		2,
 		"IIGO action cost for inspectBallot",
 	)
 
 	iigoInspectAllocationActionCost = flag.Float64(
 		"iigoInspectAllocationActionCost",
-		10,
+		2,
 		"IIGO action cost for inspectAllocation",
 	)
 
 	iigoAppointNextPresidentActionCost = flag.Float64(
 		"iigoAppointNextPresidentActionCost",
-		10,
+		2,
 		"IIGO action cost for appointNextPresident",
 	)
 
 	iigoDefaultSanctionScore = flag.Uint(
 		"iigoDefaultSanctionScore",
-		5,
+		2,
 		"Default penalty score for breaking a rule",
 	)
 
@@ -293,44 +293,44 @@ var (
 
 	iigoAssumedResourcesNoReport = flag.Uint(
 		"iigoAssumedResourcesNoReport",
-		500,
+		100,
 		"If an island doesn't report usaged this value is assumed for sanction calculations",
 	)
 
 	iigoSanctionLength = flag.Uint(
 		"iigoSanctionLength",
-		2,
+		5,
 		"Sanction length for all sanctions",
 	)
 
 	// config.IIGOConfig - Legislative branch
 	iigoSetVotingResultActionCost = flag.Float64(
 		"iigoSetVotingResultActionCost",
-		10,
+		2,
 		"IIGO action cost for setVotingResult",
 	)
 
 	iigoSetRuleToVoteActionCost = flag.Float64(
 		"iigoSetRuleToVoteActionCost",
-		10,
+		2,
 		"IIGO action cost for setRuleToVote action",
 	)
 
 	iigoAnnounceVotingResultActionCost = flag.Float64(
 		"iigoAnnounceVotingResultActionCost",
-		10,
+		2,
 		"IIGO action cost for announceVotingResult action",
 	)
 
 	iigoUpdateRulesActionCost = flag.Float64(
 		"iigoUpdateRulesActionCost",
-		10,
+		2,
 		"IIGO action cost for updateRules action",
 	)
 
 	iigoAppointNextJudgeActionCost = flag.Float64(
 		"iigoAppointNextJudgeActionCost",
-		10,
+		2,
 		"IIGO action cost for appointNextJudge action",
 	)
 

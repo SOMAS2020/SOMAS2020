@@ -219,11 +219,11 @@ func (p *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.Pre
 		ActionTaken:        true,
 	}
 
-	if p.c.params.complianceLevel > 0.5 {
+	/*if p.c.params.complianceLevel > 0.5 {
 		return ret
 	}
 
-	ret.ProposedRuleMatrix = p.c.RuleProposal()
+	ret.ProposedRuleMatrix = p.c.RuleProposal()*/
 
 	return ret
 }
