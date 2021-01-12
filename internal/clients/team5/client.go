@@ -8,11 +8,17 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-func init() {
-	baseclient.RegisterClientFactory(ourClientID, func() baseclient.Client { return createClient() })
+// DefaultClient creates the client that will be used for most simulations. All
+// other personalities are considered alternatives. To give a different
+// personality for your agent simply create another (exported) function with the
+// same signature as "DefaultClient" that creates a different agent, and inform
+// someone on the simulation team that you would like it to be included in
+// testing
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return createClient(id)
 }
 
-func createClient() *client {
+func createClient(ourClientID shared.ClientID) *client {
 	return &client{
 		BaseClient:              baseclient.NewClient(ourClientID),
 		cpRequestHistory:        cpRequestHistory{},
@@ -33,6 +39,7 @@ func createClient() *client {
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
+
 	c.ServerReadHandle = serverReadHandle // don't change this
 	c.LocalVariableCache = rules.CopyVariableMap(c.gameState().RulesInfo.VariableMap)
 	c.initOpinions()
@@ -51,7 +58,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.config.offertoDyingIslands = (float64(c.getGameConfig().CostOfLiving)) * c.config.offertoDyingIslands
 	// Print the Thresholds
 	c.Logf("[Initialise [%v]] JB TH %v | Middle TH %v | Imperial TH %v",
-		c.getTurn(), c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
+		c.config.agentMentality, c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn
