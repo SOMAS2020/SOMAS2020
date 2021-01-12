@@ -96,6 +96,7 @@ func (m *monitor) evaluateCache(roleToMonitorID shared.ClientID, roleName shared
 		if ret.EvalError == nil {
 			performedRoleCorrectly = ret.RulePasses && performedRoleCorrectly
 			if !ret.RulePasses {
+				m.gameState.IIGORulesBrokenByRoles[roleName] = append(m.gameState.IIGORulesBrokenByRoles[roleName], rule)
 				m.Logf("Rule: %v , broken by: %v %v", rule, roleToMonitorID, roleName)
 			}
 		}
