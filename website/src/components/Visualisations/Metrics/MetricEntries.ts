@@ -277,12 +277,6 @@ const metricList: MetricEntry[] = [
         evalLargest: true,
     },
     {
-        title: 'Deer Foraging Spent',
-        description: 'Total deer foraging resources spent',
-        collectMetrics: deerForagingResultCollection,
-        evalLargest: true,
-    },
-    {
         title: 'Fish Foraging Spent',
         description: 'Total fish foraging resources spent',
         collectMetrics: fishForagingResultCollection,
@@ -292,6 +286,12 @@ const metricList: MetricEntry[] = [
         title: 'Fish Foraging Efficiency',
         description: 'Total fish foraging resources efficency',
         collectMetrics: fishForagingEfficiencyCollection,
+        evalLargest: true,
+    },
+    {
+        title: 'Deer Foraging Spent',
+        description: 'Total deer foraging resources spent',
+        collectMetrics: deerForagingResultCollection,
         evalLargest: true,
     },
     {

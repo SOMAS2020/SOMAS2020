@@ -1,6 +1,8 @@
 import React from 'react'
-import { List, ListItemText } from '@material-ui/core'
+import { IconButton, List, ListItemText, Collapse } from '@material-ui/core'
 import { Col, Container, Row } from 'react-bootstrap'
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
 import confetti from 'canvas-confetti'
 import styles from './Metrics.module.css'
 import { OutputJSONType } from '../../../consts/types'
@@ -13,6 +15,8 @@ type MetricBarProps = {
 }
 
 const IndivMetric = ({ title, desc, metrics }: MetricBarProps) => {
+  const [open, setOpen] = React.useState(false)
+
   function handleAchievementClick() {
     confetti({
       particleCount: 300,
@@ -33,16 +37,24 @@ const IndivMetric = ({ title, desc, metrics }: MetricBarProps) => {
             <p style={{ textAlign: 'left' }}>{desc}</p>
           </Col>
         </Row>
+        <IconButton
+          aria-label="expand row"
+          size="small"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+        </IconButton>
         <Row>
           <Col className={styles.centerColumn}>
-            <List component="nav">
-              {metrics.map((metric) => (
-                <ListItemText
-                  primary={metric.teamName}
-                  secondary={metric.value.toFixed(2)}
-                />
-              ))}
-            </List>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+              <List component="nav">
+                {metrics.map((metric) => (
+                  <ListItemText
+                    primary={[metric.teamName, ': ', metric.value.toFixed(2)]}
+                  />
+                ))}
+              </List>
+            </Collapse>
           </Col>
         </Row>
       </Container>
