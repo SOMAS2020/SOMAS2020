@@ -22,11 +22,11 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 	for fieldName, content := range data {
 		switch fieldName {
 		case shared.IIGOTaxDecision:
-			c.payingTax = shared.Resources(content.IIGOValueData.Amount)
+			c.taxDemanded = shared.Resources(content.IIGOValueData.Amount)
 		case shared.SanctionAmount:
-			c.payingSanction = shared.Resources(content.IntegerData)
+			c.sanctionDemanded = shared.Resources(content.IntegerData)
 		case shared.IIGOAllocationDecision:
-			c.allocation = shared.Resources(content.IIGOValueData.Amount)
+			c.allocationAllowed = shared.Resources(content.IIGOValueData.Amount)
 		default:
 		}
 
@@ -34,7 +34,7 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 }
 
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
-	return true
+	return false
 }
 
 func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (resultToShare bool, announce bool) {
@@ -49,38 +49,54 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	numberAlive := shared.Resources(c.getNumOfAliveIslands())
 	livingCost := c.ServerReadHandle.GetGameConfig().CostOfLiving
 	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
-	ownResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
-
+	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
 	cprLeft := c.ServerReadHandle.GetGameState().CommonPool
+
+	defer c.Logf("Request %v from common pool", reqResource)
 	//when common pool does not have enough resource, will not request
-	if cprLeft < numberAlive*livingCost {
-		return 0
-	}
-	if ownResources < minThreshold {
-		reqResource = minThreshold - ownResources + livingCost
+
+	if ourStatus == shared.Critical {
+		return minThreshold - ourResources
+	} else if ourResources-livingCost < minThreshold {
+		reqResource = livingCost - (ourResources - minThreshold)
 	} else {
 		if ourPersonality == Selfish {
 			reqResource = 2 * livingCost
-		} else {
+		} else if ourPersonality == Normal {
 			reqResource = livingCost
+		} else if cprLeft < numberAlive*livingCost {
+			reqResource = 0
 		}
 	}
-	c.Logf("Request %v from common pool", reqResource)
+
 	return reqResource
 }
 
 func (c *client) RequestAllocation() shared.Resources {
+	resourceTaken := c.allocationAllowed
 	numberAlive := shared.Resources(c.getNumOfAliveIslands())
 	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+	ourPersonality := c.getPersonality()
+	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+	livingCost := c.ServerReadHandle.GetGameConfig().CostOfLiving
+	commonPool := c.ServerReadHandle.GetGameState().CommonPool
+	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+
+	defer c.Logf("Taken %v from common pool", resourceTaken)
+
 	//if we are critical or dying
-	if ourStatus == shared.Critical || ourStatus == shared.Dead {
-		if numberAlive > 0 {
-			takenResource := c.ServerReadHandle.GetGameState().CommonPool / numberAlive
-			c.Logf("Taken %v from common pool", takenResource)
-			return takenResource
-		}
+	if ourStatus == shared.Critical {
+		return minThreshold - ourResources
 	}
-	return c.allocation
+
+	if numberAlive <= 1 {
+		return commonPool
+	} else if ourPersonality != Generous && c.allocationAllowed < livingCost && commonPool >= livingCost*numberAlive {
+		resourceTaken = livingCost
+	}
+
+	return resourceTaken
 }
 
 func (c *client) ResourceReport() shared.ResourcesReport {
@@ -103,19 +119,37 @@ func (c *client) ResourceReport() shared.ResourcesReport {
 }
 
 func (c *client) GetTaxContribution() shared.Resources {
-	var total shared.Resources = 0
+	payTax := c.taxDemanded
 	prediction, ok := c.disasterPredictions[c.GetID()]
-	if ok && prediction.TimeLeft < 1 {
-		total = shared.Resources(prediction.Magnitude*prediction.Confidence/3) + c.payingTax
+	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	ourPersonality := c.getPersonality()
+	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+
+	if ourStatus == shared.Critical {
+		return 0
+	} else if ourResources-c.taxDemanded < minThreshold {
+		payTax = ourResources - minThreshold
 	}
 
-	ourPersonality := c.getPersonality()
-	if ourPersonality == Selfish {
-		return c.payingTax
+	if ok && prediction.TimeLeft < 1 && ourPersonality == Generous {
+		payTax = shared.Resources(prediction.Magnitude*prediction.Confidence/3) + c.taxDemanded
 	}
-	return total
+
+	return payTax
 }
 
 func (c *client) GetSanctionPayment() shared.Resources {
-	return c.payingSanction
+	paySanction := c.sanctionDemanded
+	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
+	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
+	minThreshold := c.ServerReadHandle.GetGameConfig().MinimumResourceThreshold
+
+	if ourStatus == shared.Critical {
+		return 0
+	} else if ourResources-c.sanctionDemanded < minThreshold {
+		paySanction = ourResources - minThreshold
+	}
+
+	return paySanction
 }
