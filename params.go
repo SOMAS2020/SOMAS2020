@@ -10,6 +10,13 @@ import (
 
 var (
 	// config.Config
+
+	numRuns = flag.Uint(
+		"numRuns",
+		100,
+		"Number of whole system runs for resource and IIGOPayment analysis",
+	)
+
 	maxSeasons = flag.Uint(
 		"maxSeasons",
 		100,
@@ -461,6 +468,7 @@ func parseConfig() (config.Config, error) {
 	}
 
 	return config.Config{
+		NumRuns:                     int(*numRuns),
 		MaxSeasons:                  *maxSeasons,
 		MaxTurns:                    *maxTurns,
 		InitialResources:            shared.Resources(*initialResources),

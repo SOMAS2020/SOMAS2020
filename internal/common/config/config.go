@@ -7,6 +7,8 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
 // Config is the type for the game configuration.
 type Config struct {
+	NumRuns int
+
 	// MaxSeasons is the maximum number of 1-indexed seasons to run the game.
 	MaxSeasons uint
 

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,6 +15,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/server"
@@ -77,35 +79,60 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initial SOMASServer: %v", err)
 	}
-	if gameStates, err := s.EntryPoint(); err != nil {
-		log.Fatalf("Run failed with: %+v", err)
-	} else {
-		if *logLevel >= 2 {
-			fmt.Printf("===== GAME CONFIGURATION =====\n")
-			fmt.Printf("%#v\n", gameConfig)
-			for _, st := range gameStates {
-				fmt.Printf("===== START OF TURN %v (END OF TURN %v) =====\n", st.Turn, st.Turn-1)
-				fmt.Printf("%#v\n", st)
+	averageGameState, errX := s.EntryPoint()
+	if errX != nil {
+		log.Fatalf("Run failed with: %+v", errX)
+	}
+	for i := 1; i < gameConfig.NumRuns; i++ {
+		s, err = server.NewSOMASServer(gameConfig)
+		if gameStates, err := s.EntryPoint(); err != nil {
+			log.Fatalf("Run failed with: %+v", err)
+		} else {
+			if *logLevel >= 2 {
+				fmt.Printf("===== GAME CONFIGURATION =====\n")
+				fmt.Printf("%#v\n", gameConfig)
+				for _, st := range gameStates {
+					fmt.Printf("===== START OF TURN %v (END OF TURN %v) =====\n", st.Turn, st.Turn-1)
+					fmt.Printf("%#v\n", st)
+				}
 			}
+			//timeEnd := time.Now()
+			averageGameState = gamestate.AverageGameStates(averageGameState, gameStates)
+			//err = outputJSON(output{
+			//	GameStates: gameStates,
+			//	Config:     gameConfig,
+			//	GitInfo:    getGitInfo(),
+			//	AuxInfo:    getAuxInfo(),
+			//	RunInfo: runInfo{
+			//		TimeStart:       timeStart,
+			//		TimeEnd:         timeEnd,
+			//		DurationSeconds: timeEnd.Sub(timeStart).Seconds(),
+			//		Version:         runtime.Version(),
+			//		GOOS:            runtime.GOOS,
+			//		GOARCH:          runtime.GOARCH,
+			//	},
+			//}, absOutputDir, i)
+			//if err != nil {
+			//	log.Fatalf("Failed to output JSON: %v", err)
+			//}
 		}
-		timeEnd := time.Now()
-		err = outputJSON(output{
-			GameStates: gameStates,
-			Config:     gameConfig,
-			GitInfo:    getGitInfo(),
-			AuxInfo:    getAuxInfo(),
-			RunInfo: runInfo{
-				TimeStart:       timeStart,
-				TimeEnd:         timeEnd,
-				DurationSeconds: timeEnd.Sub(timeStart).Seconds(),
-				Version:         runtime.Version(),
-				GOOS:            runtime.GOOS,
-				GOARCH:          runtime.GOARCH,
-			},
-		}, absOutputDir)
-		if err != nil {
-			log.Fatalf("Failed to output JSON: %v", err)
-		}
+	}
+	err = outputJSON(output{
+		GameStates: averageGameState,
+		Config:     gameConfig,
+		GitInfo:    getGitInfo(),
+		AuxInfo:    getAuxInfo(),
+		RunInfo: runInfo{
+			TimeStart:       timeStart,
+			TimeEnd:         time.Now(),
+			DurationSeconds: 1,
+			Version:         runtime.Version(),
+			GOOS:            runtime.GOOS,
+			GOARCH:          runtime.GOARCH,
+		},
+	}, absOutputDir, 0)
+	if err != nil {
+		log.Fatalf("Failed to output JSON: %v", err)
 	}
 }
 
@@ -144,8 +171,11 @@ func prepareLogger(absOutputDir string) error {
 	return nil
 }
 
-func outputJSON(o output, absOutputDir string) error {
-	outputJSONFilePath := path.Join(absOutputDir, outputJSONFileName)
+const outputJSONFileNamePart1 = "output"
+const outputJSONFileNamePart2 = ".json"
+
+func outputJSON(o output, absOutputDir string, iteration int) error {
+	outputJSONFilePath := path.Join(absOutputDir, outputJSONFileNamePart1+strconv.Itoa(iteration)+outputJSONFileNamePart2)
 
 	log.Printf("Writing JSON output to '%v'\n", outputJSONFilePath)
 	jsonBuf, err := json.MarshalIndent(o, "", "\t")
