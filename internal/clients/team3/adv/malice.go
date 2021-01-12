@@ -7,7 +7,7 @@ import (
 )
 
 type Malice struct {
-	id             shared.ClientID
+	Id             shared.ClientID
 	rulesToPropose map[string]rules.RuleMatrix
 }
 
@@ -87,7 +87,23 @@ func (m *Malice) Initialise() {
 }
 
 func (m *Malice) SetTaxationAmount(islandsResources map[shared.ClientID]shared.ResourcesReport) (shared.PresidentReturnContent, bool) {
-	return shared.PresidentReturnContent{}, false
+	generatedMap := map[shared.ClientID]shared.Resources{}
+	for id, val := range islandsResources {
+		if id != m.Id {
+			if val.Reported {
+				generatedMap[id] = val.ReportedAmount
+			} else {
+				generatedMap[id] = 500
+			}
+		} else {
+			generatedMap[id] = 0
+		}
+	}
+	return shared.PresidentReturnContent{
+		ContentType: shared.PresidentTaxation,
+		ResourceMap: generatedMap,
+		ActionTaken: true,
+	}, true
 }
 
 func (m *Malice) ProposeRule(availableRules map[string]rules.RuleMatrix) (rules.RuleMatrix, bool) {
@@ -121,7 +137,7 @@ func (m *Malice) GetPardonedIslands(currentSanctions map[int][]shared.Sanction) 
 		lst := make([]bool, len(sanctionList))
 		pardons[key] = lst
 		for index, sanction := range sanctionList {
-			if sanction.ClientID == m.id {
+			if sanction.ClientID == m.Id {
 				pardons[key][index] = true
 			} else {
 				pardons[key][index] = false
@@ -140,7 +156,7 @@ func (m *Malice) CallPresidentElection(monitoring shared.MonitorResult, turnsInP
 }
 
 func (m *Malice) DecideNextPresident(winner shared.ClientID) (shared.ClientID, bool) {
-	return m.id, true
+	return m.Id, true
 }
 
 func (m *Malice) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) (shared.ElectionSettings, bool) {
@@ -152,7 +168,7 @@ func (m *Malice) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower
 }
 
 func (m *Malice) DecideNextJudge(winner shared.ClientID) (shared.ClientID, bool) {
-	return m.id, true
+	return m.Id, true
 }
 
 func (m *Malice) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) (shared.ElectionSettings, bool) {
@@ -164,7 +180,7 @@ func (m *Malice) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPow
 }
 
 func (m *Malice) DecideNextSpeaker(winner shared.ClientID) (shared.ClientID, bool) {
-	return m.id, true
+	return m.Id, true
 }
 
 func (m *Malice) InspectHistory(iigoHistory []shared.Accountability, turnsAgo int) (map[shared.ClientID]shared.EvaluationReturn, bool, bool) {
