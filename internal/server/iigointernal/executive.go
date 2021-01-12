@@ -119,13 +119,11 @@ func (e *executive) broadcastTaxation(islandsResources map[shared.ClientID]share
 		}
 		e.Logf("Tax: %v", taxMapReturn.ResourceMap)
 	} else {
-		// default case when president doesn't take an action. send tax = 0
-		taxAmountMap := make(map[shared.ClientID]shared.Resources)
+		// default case when president doesn't take an action. Update gamestate with tax = 0
 		for _, islandID := range aliveIslands {
-			taxAmountMap[islandID] = shared.Resources(0)
 			e.sendNoDecision(islandID, shared.IIGOTaxDecision)
 		}
-		e.gameState.IIGOTaxAmount = taxAmountMap
+		e.gameState.IIGOTaxAmount = make(map[shared.ClientID]shared.Resources)
 	}
 
 	return nil
