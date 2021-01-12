@@ -107,7 +107,9 @@ type islandParams struct {
 	friendliness            float64
 	sensitivity             float64
 	giftInflationPercentage float64
+	advType                 adv.Spec
 	adv                     adv.Adv
+	controlLoop             bool
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
 

@@ -386,7 +386,9 @@ func (c *client) RequestAllocation() shared.Resources {
 			c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
 		}
 	}
-	//return shared.Resources(math.Max(float64(c.account.GetAllocMin()), float64(takenAlloc)))
+	if c.params.controlLoop {
+		return shared.Resources(math.Max(float64(c.account.GetAllocMin()), float64(takenAlloc)))
+	}
 	return takenAlloc
 }
 
@@ -414,7 +416,9 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 
 	c.clientPrint("Our Request: %f", request)
-	//return shared.Resources(math.Max(float64(c.account.GetAllocMin()), float64(request)))
+	if c.params.controlLoop {
+		return shared.Resources(math.Max(float64(c.account.GetAllocMin()), float64(request)))
+	}
 	return request
 }
 

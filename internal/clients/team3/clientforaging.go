@@ -66,7 +66,7 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	if numberOfHunters == 0 {
 		decay = 0
 	} else {
-		decay = (float64(sumOfCaught) + 1) * float64(numberOfHunters)
+		decay = (float64(sumOfCaught) + 1) * float64(numberOfHunters) * 0.5
 	}
 
 	coef = math.Max(c.params.riskFactor-0.01*decay, 0.1)
