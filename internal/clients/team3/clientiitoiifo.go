@@ -262,8 +262,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 	}
 
 	localPool := c.getLocalResources()
-	giftBudget := shared.GiftOffer((float64(localPool) + totalRequestedAmt) * ((1 - c.params.selfishness) / 2))
-
+	giftBudget := shared.GiftOffer(float64(localPool) * ((1 - c.params.selfishness) / 2))
 	rankedIslands := make([]shared.ClientID, 0.0, len(c.trustScore))
 
 	for island := range c.trustScore {
