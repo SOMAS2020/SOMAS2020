@@ -48,6 +48,13 @@ const turnsAlive = (data: OutputJSONType, team: TeamName): number =>
         (gameState) => gameState.ClientInfos[team].LifeStatus !== 'Dead'
     ).length
 
+const seasonsAlive = (data: OutputJSONType, team: TeamName): number =>
+    data.GameStates.filter(
+        (gameState) =>
+            gameState.ClientInfos[team].LifeStatus !== 'Dead' &&
+            gameState.Environment.LastDisasterReport.Magnitude !== 0
+    ).length
+
 export const evaluateMetrics = (
     data: OutputJSONType,
     aEntry: MetricEntry
@@ -118,6 +125,18 @@ const returnsFromCriticalMetricCollection = (data: OutputJSONType) => {
                 occurred: 0,
             }
         ).occurred
+    })
+    return metrics
+}
+
+const rulesBrokenPerTeamCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    // Since IIGOHistories is repeated, take the one from the LAST GameState and
+    // do Object.entries to make it iterable. List of array'ed tuples.
+    data.GameStates.forEach((gameState) => {
+        Object.entries(gameState.RulesBrokenByIslands).forEach((island) => {
+            metrics[island[0]] += island[1].length
+        })
     })
     return metrics
 }
@@ -299,6 +318,14 @@ const turnsAliveMetricCollection = (data: OutputJSONType) => {
     return metrics
 }
 
+const seasonsAliveMetricCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    teamNames().forEach((team) => {
+        metrics[team] = seasonsAlive(data, team)
+    })
+    return metrics
+}
+
 const turnsAsRoleMetricCollection = (
     data: OutputJSONType,
     role: 'PresidentID' | 'SpeakerID' | 'JudgeID'
@@ -320,8 +347,14 @@ const turnsInPowerMetricCollection = (data: OutputJSONType) =>
 const metricList: MetricEntry[] = [
     {
         title: 'Island longevity',
-        description: 'Island alive the longest',
+        description: 'Turns island is alive',
         collectMetrics: turnsAliveMetricCollection,
+        evalLargest: true,
+    },
+    {
+        title: 'Island disaster longevity',
+        description: 'Island survived n disasters',
+        collectMetrics: seasonsAliveMetricCollection,
         evalLargest: true,
     },
     {
@@ -396,6 +429,12 @@ const metricList: MetricEntry[] = [
         title: 'Power Hungry',
         description: 'Island who spent the most time in power',
         collectMetrics: turnsInPowerMetricCollection,
+        evalLargest: true,
+    },
+    {
+        title: 'Criminal',
+        description: 'Number of rules broken',
+        collectMetrics: rulesBrokenPerTeamCollection,
         evalLargest: true,
     },
 ]

@@ -91,6 +91,7 @@ type GameState = {
     SpeakerID: string
     JudgeID: string
     PresidentID: string
+    RulesBrokenByIslands: RulesBrokenByIslands
 }
 
 // IIGOHistory will be at most data.Config.Maxturns long, containing an "Accountability" occurrence for a given client.
@@ -138,4 +139,8 @@ export type ForagingInfo = {
 }
 export type ParticipantContributions = {
     [team: number]: number
+}
+
+export type RulesBrokenByIslands = {
+    [team: number]: string[]
 }
