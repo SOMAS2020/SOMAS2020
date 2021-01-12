@@ -1,6 +1,8 @@
 package server
 
 import (
+	"math"
+
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -90,7 +92,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	allocationMap := make(map[shared.ClientID]shared.Resources)
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
-		if allocation < 0 || math.IsNaN(allocation) {
+		if allocation < 0 || math.IsNaN(float64(allocation)) {
 			s.logf("Invalid allocation of %v by %v. Changing allocation to 0", allocation, clientID)
 			allocation = 0
 		}
