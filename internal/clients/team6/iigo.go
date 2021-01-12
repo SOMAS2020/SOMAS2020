@@ -29,11 +29,16 @@ func (c *client) ReceiveCommunication(sender shared.ClientID, data map[shared.Co
 			c.allocationAllowed = shared.Resources(content.IIGOValueData.Amount)
 		default:
 		}
-
 	}
 }
 
 func (c *client) MonitorIIGORole(roleName shared.Role) bool {
+	currPresident := c.ServerReadHandle.GetGameState().PresidentID
+
+	if currPresident == c.GetID() {
+		return true
+	}
+
 	return false
 }
 
