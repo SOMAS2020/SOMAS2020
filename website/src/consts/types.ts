@@ -128,6 +128,7 @@ export type ForagingHistory = {
     DeerForageType: ForagingInfo[]
     FishForageType: ForagingInfo[]
 }
+
 export type ForagingInfo = {
     ForageType: string
     InputResources: number

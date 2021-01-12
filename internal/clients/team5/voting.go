@@ -25,7 +25,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	opinionSortByScore := c.opinionSortByTeam(intRefinedCandidateList)
 	opinionSortByScore = c.opinionSortByScore(opinionSortByScore)
 	ballot := c.sortedMapOfOpinion(c.findIndexOfScore(opinionSortByScore, opinionSortByTeam, intRefinedCandidateList), intRefinedCandidateList)
-	c.Logf("[DEBUG] - Ballot: %v", ballot)
+	// c.Logf("[DEBUG] - Ballot: %v", ballot)
 
 	return ballot
 }
