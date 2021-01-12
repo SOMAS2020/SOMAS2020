@@ -123,6 +123,17 @@ func (c *client) GetTaxContribution() shared.Resources {
 	contribution := shared.Resources(0)
 	strategicContribution := c.getStrategicContribution()
 
+	contri, success := c.BaseClient.GetRecommendation(rules.IslandTaxContribution)
+	if !success {
+		c.Logf("Cannot determine correct tax, paying 0")
+		return 0
+	}
+
+	c.Logf("strategicContribution : %v", strategicContribution)
+	c.Logf("Tax amount: %v", c.taxAmount)
+	c.Logf(" Expected Tax amount: %v", contri.Values[0])
+	c.Logf("AGENT excess resources: %v", c.getAgentExcessResources())
+
 	if c.getAgentExcessResources() == 0 || c.criticalStatus() {
 		contribution = shared.Resources(0)
 	} else if c.getAgentExcessResources() < strategicContribution {
@@ -140,6 +151,7 @@ func (c *client) GetTaxContribution() shared.Resources {
 	c.updatePresidentTrust()
 	c.confidenceRestrospect("President", c.gameState().PresidentID)
 
+	c.Logf("FINAL contribution : %v", contribution)
 	return contribution
 }
 
@@ -167,8 +179,9 @@ func (c *client) getTurnsUntilDisaster() uint {
 func (c *client) getAgentExcessResources() shared.Resources {
 	// At a minimum we should be able to pay cost of living
 	excess := c.gameState().ClientInfo.Resources
-	excess -= c.gameConfig().CostOfLiving - c.gameConfig().MinimumResourceThreshold
-	return Min(0, excess)
+	excess = excess - c.gameConfig().CostOfLiving - c.gameConfig().MinimumResourceThreshold
+	c.Logf("EXCESS : %v", Max(0, excess))
+	return shared.Resources(Max(0, excess))
 }
 
 // getStrategicContribution finds the best contribution to the common pool based on the method of play we
@@ -248,6 +261,7 @@ func (c *client) GetSanctionPayment() shared.Resources {
 			return 0
 
 		} else {
+			c.Logf("Our Sanctions Paid: %v", value.Values[rules.SingleValueVariableEntry])
 			return shared.Resources(value.Values[rules.SingleValueVariableEntry])
 		}
 	}

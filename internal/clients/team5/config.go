@@ -4,6 +4,8 @@ import "github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 
 // define config structure here
 type clientConfig struct {
+	// Agent mentaility
+	agentMentality mindSet
 
 	// ==================== Foraging ====================
 	// Initial non planned foraging
@@ -55,6 +57,17 @@ type clientConfig struct {
 // set param values here. In order to add a new value, you need to add a definition in struct above.
 func getClientConfig() clientConfig {
 	return clientConfig{
+		// AGENT MENTALITY
+		agentMentality: normal, // okBoomer = Greedy (low / strict opinion of others) ,
+		// Normal = normal agent
+		// millennial = altruistic (communist, all about giving his wealth away for equality and has high opinions of people)
+
+		// Threshold for wealth as multiplier
+		jbThreshold:       2.0,
+		middleThreshold:   1.0,
+		imperialThreshold: 0.3, // surely should be - 100e6? (your right we are so far indebt)
+		//  Dying threshold is 0 < Dying < Imperial
+
 		//Variables for initial forage
 		InitialForageTurns:      3,
 		MinimumForagePercentage: 0.10,
@@ -63,11 +76,11 @@ func getClientConfig() clientConfig {
 
 		// Deciding foraging type
 		RandomChanceToFish:           0.10, // Chacne to switch to Hunting/Fishing
-		RandomChanceToHunt:           0.25,
-		IncreasePerHunterLastTurn:    0.00,  // % increase for each Hunter
-		IncreasePerFisherMenLastTurn: 0.00,  // % incrase for each Fisher
-		DeerTurnsToLookBack:          3,     // Number of turns to look back at for deer (not including last)
-		DecreasePerHunterInLookBack:  0.035, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
+		RandomChanceToHunt:           0.15,
+		IncreasePerHunterLastTurn:    0.05, // % increase for each Hunter
+		IncreasePerFisherMenLastTurn: 0.00, // % incrase for each Fisher
+		DeerTurnsToLookBack:          3,    // Number of turns to look back at for deer (not including last)
+		DecreasePerHunterInLookBack:  0.05, // lower for less emphasis on looking at previous turn hunters (MAX 0.07 will skip if 6 hunters in 5 turns)
 
 		// Normal Forage
 		SkipForage:          1,
@@ -75,20 +88,14 @@ func getClientConfig() clientConfig {
 		MaxForagePercentage: 0.40,
 		bestInputProfitPerc: 0.8,
 
-		// Threshold for wealth as multiplier
-		jbThreshold:       2.0,
-		middleThreshold:   1.0,
-		imperialThreshold: 0.3, // surely should be - 100e6? (your right we are so far indebt)
-		//  Dying threshold is 0 < Dying < Imperial
-
 		// Gifts Config (multipliers of cost of living)
 		dyingGiftRequestAmount:    2,   // multiplier of the cost of living
 		imperialGiftRequestAmount: 1,   // The cost of living
 		middleGiftRequestAmount:   0.5, //
 		offertoDyingIslands:       1.5, // is a multiple of cost of living
 
-		opinionThresholdRequest:  0.3, // Above opinion we request less this people (0.1 lowest)
-		opinionRequestMultiplier: 0.3, // We request the threshold at the above amount of opinion
+		opinionThresholdRequest:  0.2, // Above opinion we request less this people (0.1 lowest)
+		opinionRequestMultiplier: 0.2, // We request the threshold at the above amount of opinion
 
 		// Disasters and IIFO
 		forecastTrustTreshold: 0.0, // neutral opinion

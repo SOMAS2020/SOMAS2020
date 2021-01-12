@@ -8,8 +8,6 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = shared.Team2
-
 type AgentStrategy uint
 
 const (
@@ -105,6 +103,9 @@ type clientConfig struct {
 	InitialCommonPoolThresholdGuess  shared.Resources
 	TargetRequestGift                shared.Resources
 	MaxGiftOffersMultiplier          shared.Resources
+	AltruistMultiplier               shared.Resources
+	FreeRiderMultipler               shared.Resources
+	FairSharerMultipler              shared.Resources
 }
 
 type OpinionHist map[shared.ClientID]Opinion
@@ -164,8 +165,14 @@ type client struct {
 	lastForageAmount shared.Resources
 }
 
-func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+// DefaultClient creates the client that will be used for most simulations. All
+// other personalities are considered alternatives. To give a different
+// personality for your agent simply create another (exported) function with the
+// same signature as "DefaultClient" that creates a different agent, and inform
+// someone on the simulation team that you would like it to be included in
+// testing
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id);
 }
 
 func NewClient(clientID shared.ClientID) baseclient.Client {
@@ -208,6 +215,9 @@ func NewClient(clientID shared.ClientID) baseclient.Client {
 			InitialCommonPoolThresholdGuess:  100, // this value is meaningless for now
 			TargetRequestGift:                1.5,
 			MaxGiftOffersMultiplier:          0.5,
+			AltruistMultiplier:               7.2,
+			FreeRiderMultipler:               4.8,
+			FairSharerMultipler:              6.4,
 		},
 	}
 }

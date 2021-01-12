@@ -67,11 +67,11 @@ func (c *client) RequestAllocation() shared.Resources {
 	// update opinion on President based on allocation
 	presidentID := c.gameState().PresidentID
 	if allocationAmount <= 0 { // if no allocation, then minus
-		c.opinions[presidentID].updateOpinion(generalBasis, -0.1*c.getMood())
+		c.opinions[presidentID].updateOpinion(generalBasis, c.changeOpinion(-0.1))
 	} else if allocationAmount < c.cpRequestHistory[turn] && allocationAmount >= currentCP/6 { // if some allocation, then just a bit of score
-		c.opinions[presidentID].updateOpinion(generalBasis, 0.05*c.getMood())
+		c.opinions[presidentID].updateOpinion(generalBasis, c.changeOpinion(0.05))
 	} else if allocationAmount >= c.cpRequestHistory[turn] {
-		c.opinions[presidentID].updateOpinion(generalBasis, 0.1*c.getMood())
+		c.opinions[presidentID].updateOpinion(generalBasis, c.changeOpinion(0.1))
 	}
 
 	//Debug
@@ -235,7 +235,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	}
 	if roleID == shared.Team5 {
 		return false
-	} else if c.opinions[roleID].getScore() > 0.5 && roleID != shared.Team3 {
+	} else if c.opinions[roleID].getScore() > 0.5 {
 		return false
 	}
 	return true

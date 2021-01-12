@@ -92,15 +92,15 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		case opinion < -c.config.maxOpinion:
 			// Do not make an offer
 		case opinion > c.config.maxOpinion:
-			offers[id] = shared.GiftOffer(request)
+			offers[teamID] = shared.GiftOffer(request)
 			resourcesAvailable -= shared.Resources(request)
-		case teamStatus[id] == shared.Critical:
-			offers[id] = shared.GiftOffer(request)
+		case teamStatus[teamID] == shared.Critical:
+			offers[teamID] = shared.GiftOffer(request)
 			resourcesAvailable -= shared.Resources(request)
 		default:
 			offerResource := giveLeftoverResources(resourcesAvailable, c.config.anxietyThreshold, shared.Resources(request))
 			if offerResource != -1 {
-				offers[id] = shared.GiftOffer(offerResource)
+				offers[teamID] = shared.GiftOffer(offerResource)
 				resourcesAvailable -= offerResource
 			}
 		}
@@ -172,7 +172,7 @@ func (c *client) DecideGiftAmount(toTeam shared.ClientID, giftOffer shared.Resou
 		return 0
 	case c.teamOpinions[toTeam] > c.config.maxOpinion:
 		return giftOffer
-	case teamStatus[id] == shared.Critical:
+	case teamStatus[toTeam] == shared.Critical:
 		// We are trying to be nice.
 		return giftOffer
 	default:

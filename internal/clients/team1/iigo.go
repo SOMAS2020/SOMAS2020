@@ -26,7 +26,7 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 		if !clientReport.Reported {
 			// If they are not reporting their wealth, they will probably also
 			// not pay tax.
-			taxAmountMap[clientID] = 9999999
+			taxAmountMap[clientID] = 20 * c.gameConfig().CostOfLiving
 			c.teamOpinions[clientID]--
 			continue
 		}
@@ -124,7 +124,13 @@ func (c *client) VoteForElection(
 /*************************/
 
 func (c *client) GetTaxContribution() shared.Resources {
-	contribution, success := c.BaseClient.GetRecommendation(rules.ExpectedTaxContribution)
+	valToBeReturned := shared.Resources(0)
+	c.LocalVariableCache[rules.IslandTaxContribution] = rules.VariableValuePair{
+		VariableName: rules.IslandTaxContribution,
+		Values:       []float64{float64(valToBeReturned)},
+	}
+	c.Logf("[IIGO]: Expected Tax Contribution: %v", c.LocalVariableCache[rules.ExpectedTaxContribution].Values)
+	contribution, success := c.GetRecommendation(rules.IslandTaxContribution)
 	if !success {
 		c.Logf("Cannot determine correct tax, paying 0")
 		return 0
@@ -139,6 +145,8 @@ func (c *client) GetTaxContribution() shared.Resources {
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
 	switch c.emotionalState() {
+	case Normal:
+		return shared.Resources(2 * float64(c.gameConfig().CostOfLiving))
 	case Desperate, Anxious:
 		amount := shared.Resources(c.config.resourceRequestScale) * c.gameConfig().CostOfLiving
 		c.Logf("Common pool request: %v", amount)
@@ -148,6 +156,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	}
 }
 
+// Gets called at the end of IIGO
 func (c *client) RequestAllocation() shared.Resources {
 	if c.emotionalState() == Desperate && c.config.desperateStealAmount != 0 {
 		allocation := c.config.desperateStealAmount
@@ -159,7 +168,7 @@ func (c *client) RequestAllocation() shared.Resources {
 
 	c.LocalVariableCache[rules.IslandAllocation] = rules.VariableValuePair{
 		VariableName: rules.IslandAllocation,
-		Values:       []float64{float64(c.gameState().CommonPool)},
+		Values:       []float64{float64(c.ServerReadHandle.GetGameState().CommonPool)},
 	}
 
 	allocationPair, success := c.GetRecommendation(rules.IslandAllocation)
@@ -169,7 +178,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	}
 
 	// Unintentionally nicking from commonPool so limiting amount. GetRecommendation is too powerful.
-	allocation := math.Min(allocationPair.Values[0], 2*float64(c.gameConfig().CostOfLiving))
+	allocation := allocationPair.Values[0]
 	if allocation != 0 {
 		c.Logf("Taking %v from common pool", allocation)
 	}
