@@ -1,8 +1,4 @@
-import {
-    OutputJSONType,
-    ForagingHistory,
-    ForagingInfo,
-} from '../../../../consts/types'
+import { OutputJSONType } from '../../../../consts/types'
 import { ForagingTurn } from './ForagingTypes'
 
 const processForagingData: (data: OutputJSONType) => ForagingTurn[] = (

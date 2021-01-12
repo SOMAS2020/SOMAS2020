@@ -10,8 +10,6 @@ import {
 } from 'recharts'
 import { ForagingTurn } from './ForagingTypes'
 
-// TODO: Add axis labels
-// plot: deer population, fish population, foraging return, foraging input
 const ForagingPlot = ({ data }: { data: ForagingTurn[] }) => {
   const [result, setResult] = useState<ForagingTurn[]>([])
 
@@ -35,7 +33,6 @@ const ForagingPlot = ({ data }: { data: ForagingTurn[] }) => {
     >
       <CartesianGrid strokeDasharray="3 3" />
 
-      {/* Name of the x axis */}
       <XAxis
         dataKey="turn"
         label={{
@@ -45,10 +42,8 @@ const ForagingPlot = ({ data }: { data: ForagingTurn[] }) => {
         }}
       />
 
-      {/* name of the value that corresponds to left axis */}
       <YAxis yAxisId="left" />
 
-      {/* name of the value that corresponds to right axis */}
       <YAxis
         yAxisId="right"
         orientation="right"
