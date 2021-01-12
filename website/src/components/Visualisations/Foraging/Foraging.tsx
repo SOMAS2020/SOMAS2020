@@ -1,5 +1,5 @@
 import React from 'react'
-import styles from './IIFO.module.css'
+import styles from './Foraging.module.css'
 
 import { OutputJSONType } from '../../../consts/types'
 import ForagingPlot from './Util/ForagingPlot'

@@ -6,7 +6,7 @@ import {
   gamevisualisation,
   visualisations,
   iigovisualisation,
-  iifovisualisation,
+  foragingvisualisation,
   transactionvisualisation,
   resourcesvisualisation,
   rolesvisualisation,
@@ -25,7 +25,7 @@ import {
   storeLocalVisOutput,
 } from './utils'
 import Game from './Game/Game'
-import IIFO from './IIFO/IIFO'
+import Foraging from './Foraging/Foraging'
 import Transactions from './Transactions/Transactions'
 import IIGO from './IIGO/IIGO'
 import Resources from './Resources/Resources'
@@ -167,9 +167,9 @@ const Visualisations = () => {
                     component={() => <Transactions output={output} />}
                   />
                   <Route
-                    path={iifovisualisation}
+                    path={foragingvisualisation}
                     exact
-                    component={() => <IIFO output={output} />}
+                    component={() => <Foraging output={output} />}
                   />
                   <Route
                     path={rolesvisualisation}

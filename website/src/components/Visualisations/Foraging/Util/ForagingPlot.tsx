@@ -37,7 +37,14 @@ const ForagingPlot = ({ data }: { data: ForagingHistory }) => {
       <CartesianGrid strokeDasharray="3 3" />
 
       {/* Name of the x axis */}
-      <XAxis dataKey="turn" />
+      <XAxis
+        dataKey="turn"
+        label={{
+          value: 'Turn',
+          position: 'bottom',
+          dy: 0,
+        }}
+      />
 
       {/* name of the value that corresponds to left axis */}
       <YAxis yAxisId="left" />
@@ -45,7 +52,14 @@ const ForagingPlot = ({ data }: { data: ForagingHistory }) => {
       {/* name of the value that corresponds to right axis */}
       <YAxis yAxisId="right" orientation="right" />
       <Tooltip />
-      <Legend />
+      <Legend
+        verticalAlign="bottom"
+        align="center"
+        height={20}
+        wrapperStyle={{
+          paddingTop: '15px',
+        }}
+      />
       <Line
         yAxisId="right"
         type="monotone"
