@@ -70,7 +70,11 @@ func (c *client) DecideForage() (shared.ForageDecision, error) {
 	}
 
 	// A bit arbitrary
-	coef = math.Max(c.params.riskFactor-0.01*(1-c.params.riskFactor)/4*decay, 0.1)
+	if decay == 0 {
+		coef = 0.1
+	} else {
+		coef = math.Max(c.params.riskFactor-0.01*(1-c.params.riskFactor)/4*decay, 0.1)
+	}
 
 	finalForagingInvestment := foragingInvestment * coef
 
