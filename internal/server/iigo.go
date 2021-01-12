@@ -19,6 +19,7 @@ func (s *SOMASServer) runIIGO() error {
 	if !iigoSuccessful {
 		s.logf(iigoStatus)
 	}
+	s.gameState.IIGORunStatus = iigoStatus
 	return nil
 }
 
