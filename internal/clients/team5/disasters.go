@@ -63,8 +63,8 @@ func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disas
 			for _, val := range perfMap {
 				valSum += val
 			}
-			meanPerf := valSum / float64(len(perfMap))                    // this len is always > 0
-			c.opinions[cID].updateOpinion(forecastingBasis, meanPerf*0.4) // 0.4 to control size of update
+			meanPerf := valSum / float64(len(perfMap))                                     // this len is always > 0
+			c.opinions[cID].updateOpinion(forecastingBasis, meanPerf*c.changeOpinion(0.4)) // 0.4 to control size of update
 		}
 	}
 }

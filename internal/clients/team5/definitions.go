@@ -110,6 +110,14 @@ const (
 	jeffBezos
 )
 
+type mindSet int
+
+const (
+	okBoomer mindSet = iota
+	normal
+	millennial
+)
+
 //================================================================
 /*	Functions */
 //=================================================================
