@@ -68,7 +68,8 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 
 	for _, team := range shared.TeamIDs {
 		if team == c.GetID() {
-			continue
+			c.friendship[team] = c.clientConfig.maxFriendship
+			c.trustRank[team] = 1
 		}
 
 		c.friendship[team] = 50
@@ -121,13 +122,14 @@ func (c *client) updateFriendship(giftAmount shared.Resources, team shared.Clien
 
 	if sentSum+requestedSum+receivedSum == 0 {
 		return
-	} else {
-		if receivedSum >= sentSum && giftAmount > 0 {
-			c.raiseFriendshipLevel(team, friendshipChangingRate*FriendshipLevel(receivedSum-sentSum+giftAmount))
-		} else if receivedSum < sentSum && giftAmount < 0 {
-			c.lowerFriendshipLevel(team, friendshipChangingRate*FriendshipLevel(sentSum-receivedSum-giftAmount))
-		}
 	}
+
+	if receivedSum >= sentSum && giftAmount > 0 {
+		c.raiseFriendshipLevel(team, friendshipChangingRate*FriendshipLevel(receivedSum-sentSum+giftAmount))
+	} else if receivedSum < sentSum && giftAmount < 0 {
+		c.lowerFriendshipLevel(team, friendshipChangingRate*FriendshipLevel(sentSum-receivedSum-giftAmount))
+	}
+
 }
 
 func (c *client) DisasterNotification(dR disasters.DisasterReport, effects disasters.DisasterEffects) {

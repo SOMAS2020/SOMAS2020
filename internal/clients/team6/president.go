@@ -39,18 +39,18 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 		}
 	} else {
 		// trying to be a selfish president
-		commonPoolLeft := availCommonPool
+		commonPoolLeft := evaluationCoeff * availCommonPool
 		otherRequestSum := shared.Resources(0.0)
 
-		for id, request := range resourceRequest {
-			if id == p.client.GetID() {
+		for team, request := range resourceRequest {
+			if team == p.client.GetID() {
 				if request <= evaluationCoeff*availCommonPool {
-					resourceAllocation[id] = request
+					resourceAllocation[team] = request
 				} else {
-					resourceAllocation[id] = evaluationCoeff * availCommonPool
+					resourceAllocation[team] = evaluationCoeff * availCommonPool
 				}
 
-				commonPoolLeft = availCommonPool - resourceAllocation[id]
+				commonPoolLeft = evaluationCoeff*availCommonPool - resourceAllocation[id]
 
 				continue
 			}
@@ -58,13 +58,13 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 			otherRequestSum += request
 		}
 
-		if otherRequestSum <= evaluationCoeff*commonPoolLeft || otherRequestSum == 0 {
+		if otherRequestSum <= commonPoolLeft || otherRequestSum == 0 {
 			for team, request := range resourceRequest {
 				if team == p.client.GetID() {
 					continue
 				}
 
-				resourceAllocation[id] = request
+				resourceAllocation[team] = friendCoeffsOnAllocation[team] * request
 			}
 		} else {
 			for team, request := range resourceRequest {
