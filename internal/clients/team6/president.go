@@ -107,3 +107,11 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		ActionTaken: true,
 	}
 }
+
+func (p *president) DecideNextSpeaker(winner shared.ClientID) shared.ClientID {
+	if winner == p.client.ServerReadHandle.GetGameState().SpeakerID {
+		return p.client.GetID()
+	}
+
+	return winner
+}

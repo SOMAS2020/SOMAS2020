@@ -49,7 +49,6 @@ func (c *client) DecideIIGOMonitoringAnnouncement(monitoringResult bool) (result
 }
 
 func (c *client) CommonPoolResourceRequest() shared.Resources {
-	var reqResource shared.Resources = 0
 	ourPersonality := c.getPersonality()
 	numberAlive := shared.Resources(c.getNumOfAliveIslands())
 	livingCost := c.ServerReadHandle.GetGameConfig().CostOfLiving
@@ -57,22 +56,17 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 	ourStatus := c.ServerReadHandle.GetGameState().ClientInfo.LifeStatus
 	cprLeft := c.ServerReadHandle.GetGameState().CommonPool
+	reqResource := shared.Resources(3.0 * livingCost)
 
 	defer c.Logf("Request %v from common pool", reqResource)
 	//when common pool does not have enough resource, will not request
 
 	if ourStatus == shared.Critical {
 		return minThreshold - ourResources
-	} else if ourResources-livingCost < minThreshold {
-		reqResource = livingCost - (ourResources - minThreshold)
-	} else {
-		if ourPersonality == Selfish {
-			reqResource = 2 * livingCost
-		} else if ourPersonality == Normal {
-			reqResource = livingCost
-		} else if cprLeft < numberAlive*livingCost {
-			reqResource = 0
-		}
+	}
+
+	if ourPersonality == Generous && cprLeft/numberAlive < livingCost {
+		reqResource = livingCost
 	}
 
 	return reqResource
@@ -89,13 +83,17 @@ func (c *client) RequestAllocation() shared.Resources {
 	ourResources := c.ServerReadHandle.GetGameState().ClientInfo.Resources
 
 	//if we are critical or dying
+	if c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter == 2 {
+		return minThreshold - ourResources + shared.Resources(0.01)
+	}
+
 	if ourStatus == shared.Critical {
-		return minThreshold - ourResources
+		return minThreshold - ourResources + livingCost
 	}
 
 	if numberAlive <= 1 {
 		return commonPool
-	} else if ourPersonality != Generous && c.allocationAllowed < livingCost && commonPool >= livingCost*numberAlive {
+	} else if ourPersonality == Selfish && c.allocationAllowed < livingCost && commonPool >= livingCost*numberAlive {
 		resourceTaken = livingCost
 	}
 
