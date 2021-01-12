@@ -149,6 +149,12 @@ const NewRun = () => {
     return ret
   }
 
+  const exportFlags = (fs: Map<string, Flag>): string => {
+    const res = ''
+    fs.forEach((flag) => res.concat(`${flag.Name}=${flag.Value}\n`))
+    return res
+  }
+
   const resetFlags = async () => {
     const fs = await loadFlags(false)
     clearLocalFlags()
@@ -210,6 +216,12 @@ const NewRun = () => {
           <div>
             <Button variant="danger" size="lg" onClick={reset}>
               Reset Run
+            </Button>
+          </div>
+
+          <div>
+            <Button size="lg" onClick={reset}>
+              Export Config to Clipboard
             </Button>
           </div>
 
