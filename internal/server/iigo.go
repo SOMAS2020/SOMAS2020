@@ -91,6 +91,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 	for clientID, v := range clientMap {
 		allocation := v.RequestAllocation()
 		if allocation < 0 {
+			s.logf("Negative allocation of %v by %v", allocation, clientID)
 			allocation = 0
 		}
 		if allocation <= s.gameState.CommonPool {
@@ -124,9 +125,7 @@ func (s *SOMASServer) runIIGOAllocations() error {
 						Values:       []float64{float64(allocation)},
 					},
 				})
-
 			}
-
 		}
 	}
 
