@@ -11,7 +11,8 @@ type Malice struct {
 	rulesToPropose map[string]rules.RuleMatrix
 }
 
-func (m *Malice) Initialise() {
+func (m *Malice) Initialise(id shared.ClientID) {
+	m.Id = id
 	m.rulesToPropose = map[string]rules.RuleMatrix{
 		"iigo_economic_sanction_2": {
 			RuleName: "iigo_economic_sanction_2",

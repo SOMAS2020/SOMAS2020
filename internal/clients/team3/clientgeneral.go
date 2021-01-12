@@ -3,6 +3,7 @@ package team3
 // General client functions
 
 import (
+	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/adv"
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"math"
 	"math/rand"
@@ -57,8 +58,16 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.ourJudge = judge{c: c, BaseJudge: &baseclient.BaseJudge{GameState: c.ServerReadHandle.GetGameState()}}
 	c.ourPresident = president{c: c, BasePresident: &baseclient.BasePresident{GameState: c.ServerReadHandle.GetGameState()}}
 	c.initgiftOpinions()
-	if c.params.adv != nil {
-		c.params.adv.Initialise()
+	if c.params.advType != adv.NoAdv {
+		if c.params.advType == adv.MaliceAdv {
+			c.params.adv = &adv.Malice{}
+			c.params.adv.Initialise(c.GetID())
+		} else if c.params.advType == adv.TargetAdv {
+			c.params.adv = &adv.Target{TargetID: shared.ClientID(rand.Intn(len(c.ServerReadHandle.GetGameState().ClientLifeStatuses)))}
+			c.params.adv.Initialise(c.GetID())
+		}
+	} else {
+		c.params.adv = nil
 	}
 
 	// Set trust scores
