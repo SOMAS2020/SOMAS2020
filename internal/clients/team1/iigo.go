@@ -26,7 +26,7 @@ func (c *client) SetTaxationAmount(islandsResources map[shared.ClientID]shared.R
 		if !clientReport.Reported {
 			// If they are not reporting their wealth, they will probably also
 			// not pay tax.
-			taxAmountMap[clientID] = 9999999
+			taxAmountMap[clientID] = 20 * c.gameConfig().CostOfLiving
 			c.teamOpinions[clientID]--
 			continue
 		}
@@ -124,7 +124,13 @@ func (c *client) VoteForElection(
 /*************************/
 
 func (c *client) GetTaxContribution() shared.Resources {
-	contribution, success := c.BaseClient.GetRecommendation(rules.ExpectedTaxContribution)
+	valToBeReturned := shared.Resources(0)
+	c.LocalVariableCache[rules.IslandTaxContribution] = rules.VariableValuePair{
+		VariableName: rules.IslandTaxContribution,
+		Values:       []float64{float64(valToBeReturned)},
+	}
+	c.Logf("[IIGO]: Expected Tax Contribution: %v", c.LocalVariableCache[rules.ExpectedTaxContribution].Values)
+	contribution, success := c.GetRecommendation(rules.IslandTaxContribution)
 	if !success {
 		c.Logf("Cannot determine correct tax, paying 0")
 		return 0

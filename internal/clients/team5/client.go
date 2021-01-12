@@ -15,7 +15,7 @@ import (
 // someone on the simulation team that you would like it to be included in
 // testing
 func DefaultClient(id shared.ClientID) baseclient.Client {
-	return createClient(id);
+	return createClient(id)
 }
 
 func createClient(ourClientID shared.ClientID) *client {
@@ -39,6 +39,7 @@ func createClient(ourClientID shared.ClientID) *client {
 }
 
 func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
+
 	c.ServerReadHandle = serverReadHandle // don't change this
 	c.LocalVariableCache = rules.CopyVariableMap(c.gameState().RulesInfo.VariableMap)
 	c.initOpinions()
@@ -57,7 +58,7 @@ func (c *client) Initialise(serverReadHandle baseclient.ServerReadHandle) {
 	c.config.offertoDyingIslands = (float64(c.getGameConfig().CostOfLiving)) * c.config.offertoDyingIslands
 	// Print the Thresholds
 	c.Logf("[Initialise [%v]] JB TH %v | Middle TH %v | Imperial TH %v",
-		c.getTurn(), c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
+		c.config.agentMentality, c.config.jbThreshold, c.config.middleThreshold, c.config.imperialThreshold)
 }
 
 // StartOfTurn functions that are needed when our agent starts its turn

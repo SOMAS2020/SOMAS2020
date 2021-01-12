@@ -9,6 +9,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
@@ -156,7 +157,7 @@ func (c *client) StartOfTurn() {
 
 	// Initialise President with gamestate
 	c.BasePresident.GameState = c.gameState()
-
+	c.LocalVariableCache = map[rules.VariableFieldName]rules.VariableValuePair{}
 	// This should only happen at the start of the game.
 	if c.gameState().Turn == 1 {
 		c.disasterInfo.meanDisaster = disasters.DisasterReport{}
