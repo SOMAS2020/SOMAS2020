@@ -59,7 +59,7 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	reqResource := shared.Resources(3.0 * livingCost)
 
 	if ourStatus == shared.Critical && ourResources < minThreshold {
-		return minThreshold - ourResources + shared.Resources(0.01)
+		return minThreshold - ourResources
 	}
 
 	//when common pool does not have enough resource, will not request
@@ -85,7 +85,7 @@ func (c *client) RequestAllocation() shared.Resources {
 	//if we are critical or dying
 	if c.ServerReadHandle.GetGameState().ClientInfo.CriticalConsecutiveTurnsCounter == 2 {
 		if ourResources < minThreshold {
-			return minThreshold - ourResources + shared.Resources(0.01)
+			return minThreshold - ourResources
 		}
 	}
 
