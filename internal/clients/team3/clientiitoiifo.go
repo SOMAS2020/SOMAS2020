@@ -229,11 +229,17 @@ func (c *client) sigmoidAndNormalise(island shared.ClientID) shared.GiftOffer {
 func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.GiftOfferDict {
 	offers := shared.GiftOfferDict{}
 
+	localPool := c.getLocalResources()
 	islandStatusCritical := c.isClientStatusCritical(c.GetID())
 
 	if islandStatusCritical {
 		for _, island := range c.getAliveIslands() {
 			offers[island] = 0.0
+		}
+		return offers
+	} else if localPool < c.initialResourcesAtStartOfGame*0.1 {
+		for _, island := range c.getAliveIslands() {
+			offers[island] = 0.01
 		}
 		return offers
 	}
@@ -261,9 +267,7 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 		totalRequestedAmt += float64(requests)
 	}
 
-	localPool := c.getLocalResources()
-	giftBudget := shared.GiftOffer((float64(localPool) + totalRequestedAmt) * ((1 - c.params.selfishness) / 2))
-
+	giftBudget := shared.GiftOffer(float64(localPool) * ((1 - c.params.selfishness) / 2))
 	rankedIslands := make([]shared.ClientID, 0.0, len(c.trustScore))
 
 	for island := range c.trustScore {
@@ -337,6 +341,7 @@ func (c *client) SentGift(sent shared.Resources, to shared.ClientID) {
 // and trust scores are then incremented and decremented based on the received difference.
 func (c *client) ReceivedGift(received shared.Resources, from shared.ClientID) {
 
+	c.Logf("Requested: %v and received: %v", c.requestedGiftAmounts[from], received)
 	requestedFromIsland := c.requestedGiftAmounts[from]
 	trustAdjustor := received - shared.Resources(requestedFromIsland)
 	newTrustScore := 10 + (trustAdjustor * 0.2)

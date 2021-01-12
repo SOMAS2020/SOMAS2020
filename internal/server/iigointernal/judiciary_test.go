@@ -1969,6 +1969,7 @@ func defaultInitJudiciary() judiciary {
 			shared.Judge:     10,
 		},
 		IIGORoleMonitoringCache: []shared.Accountability{},
+		RulesBrokenByIslands:    map[shared.ClientID][]string{},
 	}
 	return judiciary{
 		JudgeID:               0,
