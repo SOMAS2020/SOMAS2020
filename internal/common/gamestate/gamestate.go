@@ -60,8 +60,17 @@ type GameState struct {
 	// IIGO Role Monitoring Cache is used in the IIGO accountability cycle
 	IIGORoleMonitoringCache []shared.Accountability
 
+	// Rules broken by islands in this turn
+	RulesBrokenByIslands map[shared.ClientID][]string
+
+	// Internal IIGO rules broken by IIGO roles in this turn
+	IIGORulesBrokenByRoles map[shared.Role][]string
+
 	// IIGO Role Voting
 	IIGOElection []VotingInfo
+
+	// IIGO Run Status
+	IIGORunStatus string
 
 	// IITO Transactions
 	IITOTransactions map[shared.ClientID]shared.GiftResponseDict

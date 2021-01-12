@@ -12,7 +12,8 @@ type Target struct {
 	rulesToPropose map[string]rules.RuleMatrix
 }
 
-func (m *Target) Initialise() {
+func (m *Target) Initialise(id shared.ClientID) {
+	m.id = id
 }
 
 func (m *Target) ProposeRule(availableRules map[string]rules.RuleMatrix) (rules.RuleMatrix, bool) {
