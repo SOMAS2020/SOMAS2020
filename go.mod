@@ -3,6 +3,7 @@ module github.com/SOMAS2020/SOMAS2020
 go 1.15
 
 require (
+	github.com/DataDog/go-python3 v0.0.0-20191126174558-6ed25e33b3c4 // indirect
 	github.com/aclements/go-moremath v0.0.0-20201123183122-222cfcba2589
 	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/google/go-cmp v0.5.4

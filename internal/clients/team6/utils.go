@@ -7,7 +7,7 @@ import (
 // increases the friendship level with some other islands
 func (c *client) raiseFriendshipLevel(clientID shared.ClientID, increment FriendshipLevel) {
 	currFriendship := c.friendship[clientID]
-	logIncrement := (increment / (c.friendship[clientID] + increment)) * (c.clientConfig.maxFriendship / 5)
+	logIncrement := (increment / (c.friendship[clientID] + increment)) * c.clientConfig.friendshipChangingRate
 	raisedFriendship := currFriendship + logIncrement
 
 	if raisedFriendship > c.clientConfig.maxFriendship {
@@ -21,7 +21,7 @@ func (c *client) raiseFriendshipLevel(clientID shared.ClientID, increment Friend
 // decreases the friendship level with some other islands
 func (c *client) lowerFriendshipLevel(clientID shared.ClientID, deduction FriendshipLevel) {
 	currFriendship := c.friendship[clientID]
-	logDeduction := (deduction / (c.friendship[clientID] + deduction)) * (c.clientConfig.maxFriendship / 5)
+	logDeduction := (deduction / (c.friendship[clientID] + deduction)) * c.clientConfig.friendshipChangingRate
 	loweredFriendship := currFriendship - logDeduction
 
 	if loweredFriendship < c.clientConfig.minFriendship {
