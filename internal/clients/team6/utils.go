@@ -11,7 +11,6 @@ func (c *client) raiseFriendshipLevel(clientID shared.ClientID, increment Friend
 	raisedFriendship := currFriendship + logIncrement
 
 	if raisedFriendship > c.clientConfig.maxFriendship {
-		// c.Logf("Friendship with island[%v] is at maximum!", clientID)
 		c.friendship[clientID] = c.clientConfig.maxFriendship
 	} else {
 		c.friendship[clientID] = raisedFriendship
@@ -25,7 +24,6 @@ func (c *client) lowerFriendshipLevel(clientID shared.ClientID, deduction Friend
 	loweredFriendship := currFriendship - logDeduction
 
 	if loweredFriendship < c.clientConfig.minFriendship {
-		// c.Logf("Friendship with island[%v] is at minimum!", clientID)
 		c.friendship[clientID] = c.clientConfig.minFriendship
 	} else {
 		c.friendship[clientID] = loweredFriendship
