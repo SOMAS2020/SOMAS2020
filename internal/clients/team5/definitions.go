@@ -11,7 +11,6 @@ import (
 //================================================================
 /*	Types */
 //=================================================================
-const ourClientID = shared.Team5
 const startTurn = 1
 
 //================ Common Pool =========================================
@@ -109,6 +108,14 @@ const (
 	imperialStudent
 	middleClass
 	jeffBezos
+)
+
+type mindSet int
+
+const (
+	okBoomer mindSet = iota
+	normal
+	millennial
 )
 
 //================================================================

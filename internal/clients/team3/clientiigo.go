@@ -43,18 +43,36 @@ func (c *client) GetClientPresidentPointer() roles.President {
 	return &c.ourPresident
 }
 
+// Vote based on island's past performance in the role and trust score if they have not previously held that role
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
-	// Vote based on trust, rank on trust
+
+	// Get relevant map of past performance
+	var pastRolePerformance = make(map[shared.ClientID]int)
+	if roleToElect == shared.President {
+		pastRolePerformance = c.presidentPerformance
+	}
+	if roleToElect == shared.Judge {
+		pastRolePerformance = c.judgePerformance
+	} else {
+		pastRolePerformance = c.speakerPerformance
+	}
+
+	// Calculate combined trust and past performance metric
+	var trustPerformanceScore = make(map[shared.ClientID]float64)
+	for island, trustScore := range c.trustScore {
+		trustPerformanceScore[island] = trustScore + float64(pastRolePerformance[island])
+	}
+
 	candidateNum := len(candidateList)
 	var returnList []shared.ClientID
-	returnList = append(returnList, shared.ClientID(id))
+	returnList = append(returnList, c.GetID())
 	highscore := 0.0
 	var highscoreIsland shared.ClientID
 
 	for i := 0; i < candidateNum; i++ {
 		// Find current top scorer from non voted for islands
 		for _, island := range candidateList {
-			if c.trustScore[island] > highscore {
+			if trustPerformanceScore[island] > highscore {
 				// Check if already in return list
 				present := false
 				for _, votedIsland := range returnList {
@@ -69,10 +87,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		}
 		returnList = append(returnList, highscoreIsland)
 	}
-
-	// TODO Vote based on performance
 	return returnList
-
 }
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
@@ -157,6 +172,9 @@ func (c *client) GetTaxContribution() shared.Resources {
 			c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
 		}
 	}
+
+	c.account.LoadTaxation(toPay)
+
 	return toPay
 
 }
@@ -368,6 +386,9 @@ func (c *client) RequestAllocation() shared.Resources {
 			c.oldBrokenRules = append(c.oldBrokenRules, affectedRules...)
 		}
 	}
+	if c.params.controlLoop {
+		return shared.Resources(math.Max(float64(c.account.GetAllocMin()), float64(takenAlloc)))
+	}
 	return takenAlloc
 }
 
@@ -380,16 +401,24 @@ func (c *client) CommonPoolResourceRequest() shared.Resources {
 	ourResources := currentState.ClientInfo.Resources
 	distCriticalThreshold := c.criticalThreshold - ourResources
 
-	request = c.ServerReadHandle.GetGameConfig().CostOfLiving
+	//request = c.ServerReadHandle.GetGameConfig().CostOfLiving
+	request = shared.Resources(math.Max(float64(c.initialResourcesAtStartOfGame-ourResources), 0))
 	// Try to escape critical
-	if (currentState.ClientInfo.LifeStatus == shared.Critical) && (request < distCriticalThreshold) {
-		request = distCriticalThreshold
+	if currentState.ClientInfo.LifeStatus == shared.Critical {
+		request += distCriticalThreshold
 	}
 	if c.shouldICheat() {
 		request += shared.Resources(float64(request) * c.params.selfishness)
 	}
-	// TODO request based on disaster prediction
+
+	if currentState.CommonPool <= request {
+		request = shared.Resources(float64(currentState.CommonPool) * c.params.selfishness)
+	}
+
 	c.clientPrint("Our Request: %f", request)
+	if c.params.controlLoop {
+		return shared.Resources(math.Max(float64(c.account.GetAllocMin()), float64(request)))
+	}
 	return request
 }
 

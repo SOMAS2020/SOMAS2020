@@ -72,7 +72,7 @@ func (c *client) initOpinions() {
 		c.opinions[team] = &wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}} // start with neutral opinion score
 	}
 	c.opinionHistory[startTurn] = c.opinions // 0th turn is how we start before the game starts - our initial bias
-	c.Logf("Opinions at first turn (turn %v): %v", startTurn, c.opinionHistory)
+	// c.Logf("Opinions at first turn (turn %v): %v", startTurn, c.opinionHistory)
 }
 
 func (o opinion) String() string {

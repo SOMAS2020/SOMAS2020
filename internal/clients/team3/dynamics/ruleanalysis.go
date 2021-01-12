@@ -88,7 +88,7 @@ func FindClosestApproach(ruleMatrix rules.RuleMatrix, namedInputs map[rules.Vari
 			return laceOutputs(bestPosition, ruleMatrix, droppedInputs, namedInputs)
 		}
 	}
-	return map[rules.VariableFieldName]Input{}
+	return namedInputs
 }
 
 func Shift(ruleMatrix rules.RuleMatrix, namedInputs map[rules.VariableFieldName]Input) (newMatrix rules.RuleMatrix, edited bool) {
@@ -469,6 +469,10 @@ func decodeWithConst(rm rules.RuleMatrix, values map[rules.VariableFieldName][]f
 func evaluateSingle(rm rules.RuleMatrix, values map[rules.VariableFieldName][]float64) (outputVec mat.VecDense, success bool) {
 	varVect := decodeWithConst(rm, values)
 	if varVect != nil {
+		nrows, ncols := rm.ApplicableMatrix.Dims()
+		if nrows == 0 || ncols == 0 {
+			return mat.VecDense{}, false
+		}
 		results := ruleevaluation.RuleMul(*varVect, rm.ApplicableMatrix)
 		return *results, true
 	}

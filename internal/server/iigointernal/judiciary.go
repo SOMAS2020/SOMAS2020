@@ -90,6 +90,16 @@ func (j *judiciary) inspectHistory(iigoHistory []shared.Accountability) (map[sha
 	finalResults := getBaseEvalResults(shared.TeamIDs)
 	tempResults, actionTakenByClient := j.clientJudge.InspectHistory(iigoHistory, 0)
 
+	if actionTakenByClient {
+		for island, results := range tempResults {
+			for index, eval := range results.Evaluations {
+				if !eval {
+					j.gameState.RulesBrokenByIslands[island] = append(j.gameState.RulesBrokenByIslands[island], results.Rules[index].RuleName)
+				}
+			}
+		}
+	}
+
 	//Log rule: "Judge has the obligation to inspect history"
 	variablesToCache := []rules.VariableFieldName{rules.JudgeInspectionPerformed}
 	valuesToCache := [][]float64{{boolToFloat(actionTakenByClient)}}

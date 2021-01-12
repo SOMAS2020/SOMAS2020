@@ -7,11 +7,13 @@ import (
 )
 
 type Target struct {
+	id             shared.ClientID
 	TargetID       shared.ClientID
 	rulesToPropose map[string]rules.RuleMatrix
 }
 
-func (m *Target) Initialise() {
+func (m *Target) Initialise(id shared.ClientID) {
+	m.id = id
 }
 
 func (m *Target) ProposeRule(availableRules map[string]rules.RuleMatrix) (rules.RuleMatrix, bool) {
@@ -89,7 +91,7 @@ func (m *Target) CallPresidentElection(monitoring shared.MonitorResult, turnsInP
 }
 
 func (m *Target) DecideNextPresident(winner shared.ClientID) (shared.ClientID, bool) {
-	return shared.Team3, true
+	return m.id, true
 }
 
 func (m *Target) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) (shared.ElectionSettings, bool) {
@@ -101,7 +103,7 @@ func (m *Target) CallJudgeElection(monitoring shared.MonitorResult, turnsInPower
 }
 
 func (m *Target) DecideNextJudge(winner shared.ClientID) (shared.ClientID, bool) {
-	return shared.Team3, true
+	return m.id, true
 }
 
 func (m *Target) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPower int, allIslands []shared.ClientID) (shared.ElectionSettings, bool) {
@@ -113,7 +115,7 @@ func (m *Target) CallSpeakerElection(monitoring shared.MonitorResult, turnsInPow
 }
 
 func (m *Target) DecideNextSpeaker(winner shared.ClientID) (shared.ClientID, bool) {
-	return shared.Team3, true
+	return m.id, true
 }
 
 func fetchCheckTaxationRule() rules.RuleMatrix {

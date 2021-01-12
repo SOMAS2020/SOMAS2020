@@ -100,7 +100,7 @@ func (p *president) EvaluateAllocationRequests(resourceRequest map[shared.Client
 	for island, resource := range resources {
 		allocations[island] = float64(avgRequest) + p.c.params.equity*(float64(avgResource-resource)+float64(resourceRequest[island]-avgRequest))
 		// p.c.clientPrint("Allocation for island %v: %f", island, allocations[island])
-		if island == id {
+		if island == p.c.GetID() {
 			allocations[island] += math.Max(float64(resourceRequest[island])-allocations[island]*p.c.params.selfishness, 0)
 		} else {
 			allocations[island] = math.Min(float64(resourceRequest[island]), allocations[island]) // to prevent overallocating
@@ -219,11 +219,11 @@ func (p *president) PickRuleToVote(rulesProposals []rules.RuleMatrix) shared.Pre
 		ActionTaken:        true,
 	}
 
-	if p.c.params.complianceLevel > 0.5 {
+	/*if p.c.params.complianceLevel > 0.5 {
 		return ret
 	}
 
-	ret.ProposedRuleMatrix = p.c.RuleProposal()
+	ret.ProposedRuleMatrix = p.c.RuleProposal()*/
 
 	return ret
 }

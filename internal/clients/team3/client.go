@@ -9,11 +9,16 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const id = shared.Team3
 const printTeam3Logs = false
 
-func init() {
-	baseclient.RegisterClientFactory(id, func() baseclient.Client { return NewClient(id) })
+// DefaultClient creates the client that will be used for most simulations. All
+// other personalities are considered alternatives. To give a different
+// personality for your agent simply create another (exported) function with the
+// same signature as "DefaultClient" that creates a different agent, and inform
+// someone on the simulation team that you would like it to be included in
+// testing
+func DefaultClient(id shared.ClientID) baseclient.Client {
+	return NewClient(id)
 }
 
 type client struct {
@@ -84,6 +89,12 @@ type client struct {
 	lastSanction shared.IIGOSanctionsScore
 
 	forageData map[shared.ForageType][]ForageData
+
+	minimumResourcesWeWant shared.Resources
+
+	initialResourcesAtStartOfGame shared.Resources
+
+	account dynamics.Account
 }
 
 type islandParams struct {
@@ -92,14 +103,13 @@ type islandParams struct {
 	resourcesSkew           float64
 	saveCriticalIsland      bool
 	selfishness             float64
-	recidivism              float64
 	riskFactor              float64
 	friendliness            float64
-	aggression              float64
 	sensitivity             float64
-	localPoolThreshold      float64
 	giftInflationPercentage float64
+	advType                 adv.Spec
 	adv                     adv.Adv
+	controlLoop             bool
 	//minimumInvestment			float64	// When fish foraging is implemented
 }
 
@@ -115,6 +125,7 @@ type ForageData struct {
 	amountContributed shared.Resources
 	amountReturned    shared.Resources
 	turn              uint
+	caught            uint
 }
 
 type iigoCommunicationInfo struct {

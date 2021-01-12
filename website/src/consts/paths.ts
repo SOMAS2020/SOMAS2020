@@ -10,3 +10,4 @@ export const rolesvisualisation = `/visualisation/roles`
 export const resourcesvisualisation = `/visualisation/resources`
 export const iigopaymentsvisualisation = `/visualisation/iigopayments`
 export const achievementsvisualisation = `/visualisation/achievements`
+export const metricsvisualisation = `/visualisation/metrics`
