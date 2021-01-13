@@ -11,6 +11,7 @@ const CIOutput = () => {
   return (
     <div style={{ paddingTop: 24 }}>
       <h1>CI Output</h1>
+      <p>Note that max turns is set to 20</p>
       <h3 style={{ marginTop: 24 }}>Artifacts</h3>
       <Artifacts output={outputJSON} logs={processedOutputLog} />
 
