@@ -62,42 +62,42 @@ const ForagingPlot = ({ data }: { data: ForagingTurn[] }) => {
         yAxisId="left"
         type="monotone"
         dataKey="deerInputResources"
-        stroke="#0095FF"
+        stroke="#AAFFAA"
         activeDot={{ r: 8 }}
       />
       <Line
         yAxisId="right"
         type="monotone"
         dataKey="deerNumCaught"
-        stroke="#ff0000"
+        stroke="#00ff00"
         activeDot={{ r: 8 }}
       />
       <Line
         yAxisId="left"
         type="monotone"
         dataKey="deerTotalUtility"
-        stroke="#802FF0"
+        stroke="#88ff88"
         activeDot={{ r: 8 }}
       />
       <Line
         yAxisId="right"
         type="monotone"
         dataKey="fishNumCaught"
-        stroke="#00c49f"
+        stroke="#0000ff"
         activeDot={{ r: 8 }}
       />
       <Line
         yAxisId="left"
         type="monotone"
         dataKey="fishInputResources"
-        stroke="#ffbb29"
+        stroke="#aaaaff"
         activeDot={{ r: 8 }}
       />
       <Line
         yAxisId="left"
         type="monotone"
         dataKey="fishTotalUtility"
-        stroke="#ff8042"
+        stroke="#8888ff"
         activeDot={{ r: 8 }}
       />
     </LineChart>
