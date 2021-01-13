@@ -172,7 +172,8 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 		Logger: j.logger,
 	}
 	var appointedPresident shared.ClientID
-	electionSettings := j.clientJudge.CallPresidentElection(monitoring, int(j.gameState.IIGOTurnsInPower[shared.President]), allIslands)
+	allIslandsCopy1 := copyClientList(allIslands)
+	electionSettings := j.clientJudge.CallPresidentElection(monitoring, int(j.gameState.IIGOTurnsInPower[shared.President]), allIslandsCopy1)
 
 	//Log election rule
 	termCondition := j.gameState.IIGOTurnsInPower[shared.President] > j.gameConf.IIGOTermLengths[shared.President]
@@ -185,7 +186,8 @@ func (j *judiciary) appointNextPresident(monitoring shared.MonitorResult, curren
 			return j.gameState.PresidentID, errors.Errorf("Insufficient Budget in common Pool: appointNextPresident")
 		}
 		election.ProposeElection(shared.President, electionSettings.VotingMethod)
-		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
+		allIslandsCopy2 := copyClientList(allIslands)
+		election.OpenBallot(electionSettings.IslandsToVote, allIslandsCopy2)
 		election.Vote(j.iigoClients)
 		j.gameState.IIGOTurnsInPower[shared.President] = 0
 		electedPresident := election.CloseBallot(j.iigoClients)
