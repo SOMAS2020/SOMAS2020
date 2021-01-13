@@ -119,8 +119,8 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	if len(candidateList) > 3 && doWeHaveRoles == false {
 		for i, role := range rolePreference {
 			if role == roleToElect {
-				insertID := append(candidateList[:i], idToSlice...)
-				candidateList = append(insertID, candidateList[i:]...)
+				insertID := append(idToSlice, candidateList[i:]...)
+				candidateList = append(candidateList[:i], insertID...)
 			}
 		}
 	} else {
