@@ -13,13 +13,16 @@ export class TeamAndTurns {
 
     Team6: number
 
+    NotRun: number
+
     constructor(
         team1: number = 0,
         team2: number = 0,
         team3: number = 0,
         team4: number = 0,
         team5: number = 0,
-        team6: number = 0
+        team6: number = 0,
+        NotRun: number = 0
     ) {
         this.Team1 = team1
         this.Team2 = team2
@@ -27,6 +30,7 @@ export class TeamAndTurns {
         this.Team4 = team4
         this.Team5 = team5
         this.Team6 = team6
+        this.NotRun = NotRun
     }
 
     set(key: string, val: number) {
@@ -55,6 +59,10 @@ export class TeamAndTurns {
                 this.Team6 = val
                 break
             }
+            case 'NotRun': {
+                this.NotRun = val
+                break
+            }
             default:
                 break
         }
@@ -74,6 +82,8 @@ export class TeamAndTurns {
                 return this.Team5
             case 'Team6':
                 return this.Team6
+            case 'NotRun':
+                return this.NotRun
             default:
                 return 0
         }
@@ -93,6 +103,8 @@ export class TeamAndTurns {
                 return this.Team5 !== 0
             case 'Team6':
                 return this.Team6 !== 0
+            case 'NotRun':
+                return this.NotRun !== 0
             default:
                 return false
         }
@@ -124,6 +136,10 @@ export class TeamAndTurns {
                 this.Team6 += val
                 break
             }
+            case 'NotRun': {
+                this.NotRun += val
+                break
+            }
 
             default:
                 break
@@ -137,7 +153,8 @@ export class TeamAndTurns {
             this.Team3 !== 0 ||
             this.Team4 !== 0 ||
             this.Team5 !== 0 ||
-            this.Team6 !== 0
+            this.Team6 !== 0 ||
+            this.NotRun !== 0
         )
     }
 
@@ -148,7 +165,8 @@ export class TeamAndTurns {
             this.Team3 +
             this.Team4 +
             this.Team5 +
-            this.Team6
+            this.Team6 +
+            this.NotRun
         )
     }
 
@@ -159,7 +177,8 @@ export class TeamAndTurns {
             this.Team3 + teamAndTurns.Team3,
             this.Team4 + teamAndTurns.Team4,
             this.Team5 + teamAndTurns.Team5,
-            this.Team6 + teamAndTurns.Team6
+            this.Team6 + teamAndTurns.Team6,
+            this.NotRun + teamAndTurns.NotRun
         )
     }
 
@@ -171,6 +190,7 @@ export class TeamAndTurns {
             func('Team4', this.Team4),
             func('Team5', this.Team5),
             func('Team6', this.Team6),
+            func('NotRun', this.NotRun),
         ]
     }
 }
@@ -181,3 +201,10 @@ export type ProcessedRoleElem = {
 }
 
 export type ProcessedRoleData = ProcessedRoleElem[]
+
+export type IIGOInfo = {
+    turn: number
+    status: string
+}
+
+export type IIGOInfos = IIGOInfo[]
