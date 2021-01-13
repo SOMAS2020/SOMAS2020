@@ -121,6 +121,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 			if role == roleToElect {
 				insertID := append(idToSlice, candidateList[i:]...)
 				candidateList = append(candidateList[:i], insertID...)
+				break
 			}
 		}
 	} else {
