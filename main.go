@@ -37,11 +37,12 @@ var (
 	)
 	logLevel = flag.Uint(
 		"logLevel",
-		0,
+		1,
 		"Logging verbosity level. Note that output artifacts will remain the same.\n"+
 			"0: No logs at all\n"+
-			"1: Game logs (identical to logs.txt) (to stderr)\n"+
-			"2: As in 1 plus game states (similar to output.json) (to stdout)\n",
+			"1: Logs in logs.txt\n"+
+			"2: 1 + logs to stderr\n"+
+			"3: 2 + game states to stdout\n",
 	)
 )
 
@@ -80,7 +81,7 @@ func main() {
 	if gameStates, err := s.EntryPoint(); err != nil {
 		log.Fatalf("Run failed with: %+v", err)
 	} else {
-		if *logLevel >= 2 {
+		if *logLevel >= 3 {
 			fmt.Printf("===== GAME CONFIGURATION =====\n")
 			fmt.Printf("%#v\n", gameConfig)
 			for _, st := range gameStates {
@@ -124,16 +125,19 @@ func prepareOutputFolder(absOutputDir string) error {
 }
 
 func prepareLogger(absOutputDir string) error {
-	outputLogFilePath := path.Join(absOutputDir, outputLogFileName)
-
-	f, err := os.OpenFile(outputLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
-	if err != nil {
-		return errors.Errorf("Unable to open log file, try running using sudo: %v", err)
-	}
-
-	writers := []io.Writer{f}
+	writers := []io.Writer{}
 
 	if *logLevel >= 1 {
+		outputLogFilePath := path.Join(absOutputDir, outputLogFileName)
+		f, err := os.OpenFile(outputLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
+		if err != nil {
+			return errors.Errorf("Unable to open log file, try running using sudo: %v", err)
+		}
+
+		writers = append(writers, f)
+	}
+
+	if *logLevel >= 2 {
 		writers = append(writers, os.Stderr)
 	}
 
