@@ -312,6 +312,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		trustToID[trustScore] = candidateList[i]
 		trustList = append(trustList, trustScore)
 	}
+
 	sort.Float64s(trustList)
 
 	for i := len(trustList) - 1; i >= 0; i-- {

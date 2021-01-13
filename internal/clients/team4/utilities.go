@@ -78,6 +78,9 @@ func (c *client) getSafeResourceLevel() shared.Resources {
 }
 
 func (c *client) getTrust(clientID shared.ClientID) float64 {
+	if c.GetID() == clientID {
+		return 0.4 + (0.6 * c.internalParam.selfishness)
+	}
 	return c.trustMatrix.GetClientTrust(clientID)
 }
 
