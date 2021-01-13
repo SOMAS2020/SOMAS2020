@@ -187,7 +187,7 @@ func (c *client) updateTheirTrustScore(theirTrustMapAgg map[shared.ClientID][]fl
 func (c *client) evalJudgePerformance() {
 	previousJudgeID := c.iigoInfo.startOfTurnJudgeID
 	previousPresidentID := c.iigoInfo.startOfTurnPresidentID
-	evalOfJudge := float64(c.judgePerformance[previousJudgeID])
+	evalOfJudge := c.judgePerformance[previousJudgeID]
 
 	// If the judge didn't evaluate the speaker, the judge didn't do a good job
 	if c.iigoInfo.monitoringDeclared[shared.Speaker] == false {
@@ -221,7 +221,7 @@ func (c *client) evalJudgePerformance() {
 	// Did the judge sanction us?
 	sanctionAmount := c.iigoInfo.sanctions.ourSanction
 	evalOfJudge -= float64(sanctionAmount) * c.params.sensitivity
-
+	c.judgePerformance[previousJudgeID] = evalOfJudge
 }
 
 // Internal function that evaluates the performance of the president for the purposes of opinion formation.
@@ -229,7 +229,7 @@ func (c *client) evalJudgePerformance() {
 func (c *client) evalPresidentPerformance() {
 	previousSpeakerID := c.iigoInfo.startOfTurnSpeakerID
 	previousPresidentID := c.iigoInfo.startOfTurnPresidentID
-	evalOfPresident := float64(c.presidentPerformance[previousPresidentID])
+	evalOfPresident := c.presidentPerformance[previousPresidentID]
 
 	// If the president didn't evaluate the judge, the president didn't do a good job
 	if c.iigoInfo.monitoringDeclared[shared.Judge] == false {
@@ -269,6 +269,7 @@ func (c *client) evalPresidentPerformance() {
 	// If our third choice was voted in (ourRankingChosen == 2), no effect on President Performance.
 	// Anything better/worse than third is rewarded/penalized proportionally.
 	evalOfPresident += c.params.sensitivity * float64((2 - ourRankingChosen))
+	c.presidentPerformance[previousPresidentID] = evalOfPresident
 }
 
 // Internal function that evaluates the performance of the speaker for the purposes of opinion formation.
@@ -321,6 +322,7 @@ func (c *client) evalSpeakerPerformance() {
 	// If our third choice was voted in (ourRankingChosen == 2), no effect on President Performance.
 	// Anything better/worse than third is rewarded/penalized proportionally.
 	evalOfSpeaker += c.params.sensitivity * float64((2 - ourRankingChosen))
+	c.speakerPerformance[previousSpeakerID] = evalOfSpeaker
 }
 
 // updateCompliance updates the compliance variable at the beginning of each turn.

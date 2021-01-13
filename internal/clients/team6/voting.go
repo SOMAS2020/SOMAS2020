@@ -116,13 +116,15 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	//put ourselves in the first, second or third place in the preference list according to rolePreference
 	//Otherwise put ourselves at the last place of the list(3 or less than 3 islands alive)
 	rolePreference := []shared.Role{shared.President, shared.Speaker, shared.Judge}
+	roleIndex := 0
 	if len(candidateList) > 3 && doWeHaveRoles == false {
 		for i, role := range rolePreference {
 			if role == roleToElect {
-				insertID := append(candidateList[:i], idToSlice...)
-				candidateList = append(insertID, candidateList[i:]...)
+				roleIndex = i
 			}
 		}
+		insertID := append(idToSlice, candidateList[roleIndex:]...)
+		candidateList = append(candidateList[:roleIndex], insertID...)
 	} else {
 		candidateList = append(candidateList, idToSlice...)
 	}

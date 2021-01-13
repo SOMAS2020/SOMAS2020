@@ -44,9 +44,9 @@ type client struct {
 
 	// ## Role performance ##
 
-	judgePerformance     map[shared.ClientID]int
-	speakerPerformance   map[shared.ClientID]int
-	presidentPerformance map[shared.ClientID]int
+	judgePerformance     map[shared.ClientID]float64
+	speakerPerformance   map[shared.ClientID]float64
+	presidentPerformance map[shared.ClientID]float64
 
 	// ## IIGO ##
 	ruleVotedOn string
