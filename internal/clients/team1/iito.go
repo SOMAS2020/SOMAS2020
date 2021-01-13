@@ -78,6 +78,12 @@ func (c *client) GetGiftOffers(receivedRequests shared.GiftRequestDict) shared.G
 
 	// Sort so that we go through those we like first.
 	teamOpinionList := []opinionOnTeam{}
+	for id, opinion := range c.teamOpinions {
+		teamOpinionList = append(teamOpinionList, opinionOnTeam{
+			clientID: id,
+			opinion: opinion,
+		})
+	}
 	sort.Sort(sortByOpinion(teamOpinionList))
 
 	for _, teamOpinion := range teamOpinionList {
