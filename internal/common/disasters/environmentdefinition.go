@@ -32,6 +32,7 @@ type disasterParameters struct {
 type DisasterReport struct {
 	Magnitude shared.Magnitude
 	X, Y      shared.Coordinate
+	Effects   DisasterEffects
 }
 
 // DisasterEffects encapsulates various types of effects on each island after a disaster. These include
@@ -88,9 +89,14 @@ func (e Environment) computeUnmitigatedDisasterEffects() DisasterEffects {
 		individualEffect[island.ID] = math.Min(effect, e.LastDisasterReport.Magnitude)      // to prevent divide by zero -> inf
 		totalEffect = totalEffect + individualEffect[island.ID]
 	}
-
-	for _, island := range e.Geography.Islands {
-		proportionalEffect[island.ID] = individualEffect[island.ID] / totalEffect
+	if totalEffect == 0 {
+		for _, island := range e.Geography.Islands {
+			proportionalEffect[island.ID] = individualEffect[island.ID]
+		}
+	} else {
+		for _, island := range e.Geography.Islands {
+			proportionalEffect[island.ID] = individualEffect[island.ID] / totalEffect
+		}
 	}
 	return DisasterEffects{Absolute: individualEffect, Proportional: proportionalEffect} // ommit CP mitigated effect here - not relevant
 }
