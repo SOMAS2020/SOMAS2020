@@ -1,13 +1,13 @@
 package team3
 
 import (
-	"math"
-	"math/rand"
-
 	"github.com/SOMAS2020/SOMAS2020/internal/clients/team3/dynamics"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/roles"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
+	"math"
+	"math/rand"
+	"sort"
 )
 
 /*
@@ -47,7 +47,7 @@ func (c *client) GetClientPresidentPointer() roles.President {
 func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared.ClientID) []shared.ClientID {
 
 	// Get relevant map of past performance
-	var pastRolePerformance = make(map[shared.ClientID]int)
+	var pastRolePerformance = make(map[shared.ClientID]float64)
 	if roleToElect == shared.President {
 		pastRolePerformance = c.presidentPerformance
 	}
@@ -57,37 +57,31 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 		pastRolePerformance = c.speakerPerformance
 	}
 
+	returnList := []shared.ClientID{c.GetID()}
+
 	// Calculate combined trust and past performance metric
 	var trustPerformanceScore = make(map[shared.ClientID]float64)
-	for island, trustScore := range c.trustScore {
-		trustPerformanceScore[island] = trustScore + float64(pastRolePerformance[island])
-	}
-
-	candidateNum := len(candidateList)
-	var returnList []shared.ClientID
-	returnList = append(returnList, c.GetID())
-	highscore := 0.0
-	var highscoreIsland shared.ClientID
-
-	for i := 0; i < candidateNum; i++ {
-		// Find current top scorer from non voted for islands
-		for _, island := range candidateList {
-			if trustPerformanceScore[island] > highscore {
-				// Check if already in return list
-				present := false
-				for _, votedIsland := range returnList {
-					if island == votedIsland {
-						present = true
-					}
-				}
-				if !present {
-					highscoreIsland = island
-				}
+	for _, island := range candidateList {
+		if island != c.GetID() {
+			trustPerformanceScore[island] = c.trustScore[island]
+			if val, ok := pastRolePerformance[island]; ok {
+				trustPerformanceScore[island] += val
 			}
 		}
-		returnList = append(returnList, highscoreIsland)
 	}
-	return returnList
+
+	return append(returnList, sortTrustPerformanceScore(trustPerformanceScore)...)
+}
+
+func sortTrustPerformanceScore(trustPerformanceScore map[shared.ClientID]float64) []shared.ClientID {
+	final := []shared.ClientID{}
+	for k := range trustPerformanceScore {
+		final = append(final, k)
+	}
+	sort.Slice(final, func(i, j int) bool {
+		return trustPerformanceScore[final[i]] > trustPerformanceScore[final[j]]
+	})
+	return final
 }
 
 //resetIIGOInfo clears the island's information regarding IIGO at start of turn
