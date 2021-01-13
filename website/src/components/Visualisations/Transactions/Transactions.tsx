@@ -21,6 +21,18 @@ const Transactions = (props: { output: OutputJSONType }) => {
         textAlign: 'center',
       }}
     >
+      <h2>Transactions Visualisation</h2>
+      <p style={{ textAlign: 'left' }}>
+        The following plot visualises the transactions between islands and with
+        the common pool. The size of a bubble represents the total magnitude of
+        resources traded by each island. The width of each connecting edge
+        between two entities represents the magnitude of transactions between
+        the two islands. Entities that gave more resources than they receive
+        have a red border, while islands that received more than they gave have
+        a green border. Unlike the IITO Visualisation, this plot includes
+        transaction information from Sanctions, Role salary payments, gifting,
+        and donations to/requests from the common pool.
+      </p>
       <ForceGraph
         linksData={links}
         nodesData={nodes}

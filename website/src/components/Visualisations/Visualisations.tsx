@@ -6,6 +6,7 @@ import {
   gamevisualisation,
   visualisations,
   iigovisualisation,
+  iitovisualisation,
   foragingvisualisation,
   transactionvisualisation,
   resourcesvisualisation,
@@ -29,6 +30,7 @@ import Game from './Game/Game'
 import Foraging from './Foraging/Foraging'
 import Transactions from './Transactions/Transactions'
 import IIGO from './IIGO/IIGO'
+import IITO from './IITO/IITO'
 import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
 import IIGOPayments from './IIGOPayments/IIGOPayments'
@@ -175,6 +177,11 @@ const Visualisations = () => {
                     path={iigovisualisation}
                     exact
                     component={() => <IIGO output={output} />}
+                  />
+                  <Route
+                    path={iitovisualisation}
+                    exact
+                    component={() => <IITO output={output} />}
                   />
                   <Route
                     path={transactionvisualisation}
