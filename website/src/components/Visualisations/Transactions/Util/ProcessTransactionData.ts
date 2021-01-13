@@ -174,31 +174,33 @@ function processTransactionData(data: OutputJSONType) {
     }
 
     const bubbleIds = [0, 1, 2, 3, 4, 5, 6]
+    let maxMag = 1000
+    const magnitudes = bubbleIds.map((team) =>
+        allTransactions
+            .filter(
+                (transaction) =>
+                    transaction.from === team || transaction.to === team
+            )
+            .reduce<number>(
+                (acc, curr) =>
+                    curr.to === team ? acc + curr.amount : acc - curr.amount,
+                0
+            )
+    )
 
-    nodes = bubbleIds
-        .map((team) =>
-            allTransactions
-                .filter(
-                    (transaction) =>
-                        transaction.from === team || transaction.to === team
-                )
-                .reduce<number>(
-                    (acc, curr) =>
-                        curr.to === team
-                            ? acc + curr.amount
-                            : acc - curr.amount,
-                    0
-                )
-        )
-        .map((mag, teamNo) => {
-            const thisTeamColor = teamColors.get(`Team${teamNo}`)
-            return {
-                id: teamNo,
-                colorStatus: mag < 0 ? 'red' : 'green',
-                islandColor: thisTeamColor ?? '#031927',
-                magnitude: normaliseMag(Math.abs(mag), 125, 15, 1000, 0),
-            }
-        })
+    magnitudes.forEach((mag) => {
+        maxMag = mag > maxMag ? mag : maxMag
+    })
+
+    nodes = magnitudes.map((mag, teamNo) => {
+        const thisTeamColor = teamColors.get(`Team${teamNo}`)
+        return {
+            id: teamNo,
+            colorStatus: mag < 0 ? 'red' : 'green',
+            islandColor: thisTeamColor ?? '#031927',
+            magnitude: normaliseMag(Math.abs(mag), 125, 15, maxMag, 0),
+        }
+    })
 
     // remove the duplicate elements of zero magnitude
     return { nodes, links }
