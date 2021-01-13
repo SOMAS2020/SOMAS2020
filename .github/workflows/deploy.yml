@@ -41,6 +41,7 @@ jobs:
       run: |
         cd website
         yarn build
+        test -f build/index.html
     - name: Deploy website
       uses: Cecilapp/GitHub-Pages-deploy@v3
       env:
