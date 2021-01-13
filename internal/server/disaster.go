@@ -14,6 +14,7 @@ func (s *SOMASServer) probeDisaster() (disasters.Environment, error) {
 
 	e := s.gameState.Environment
 	e = e.SampleForDisaster(s.gameConfig.DisasterConfig, s.gameState.Turn) // update env instance with sampled disaster info
+	e.LastDisasterReport.Effects = e.ComputeDisasterEffects(s.gameState.CommonPool, s.gameConfig.DisasterConfig)
 
 	disasterReport := e.DisplayReport(s.gameState.CommonPool, s.gameConfig.DisasterConfig) // displays disaster info and effects
 	s.logf(disasterReport)

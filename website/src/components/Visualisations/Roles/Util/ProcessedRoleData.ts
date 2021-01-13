@@ -29,8 +29,7 @@ const increment = (occupied: TeamAndTurns[], team: string): TeamAndTurns[] => {
 }
 
 export const processRoleData = (data: OutputJSONType): ProcessedRoleData => {
-    if (data.GameStates.length === 0) return []
-
+    if (data.GameStates.length <= 1) return []
     const retData: ProcessedRoleData = [
         {
             role: 'Pres',
@@ -48,34 +47,41 @@ export const processRoleData = (data: OutputJSONType): ProcessedRoleData => {
 
     return standardise(
         retData.map((elem) => {
-            elem.occupied = data.GameStates.reduce((acc, gameState) => {
-                switch (elem.role) {
-                    case 'Pres': {
-                        elem.occupied = increment(
-                            elem.occupied,
-                            gameState.PresidentID
-                        )
-                        break
+            elem.occupied = data.GameStates.slice(0, -1).reduce(
+                (acc, gameState, index) => {
+                    // taking index+1 because the IIGO status is only reported the next turn
+                    const DidntRun = data.GameStates[
+                        index + 1
+                    ].IIGORunStatus.includes('broadcastTaxation')
+                    switch (elem.role) {
+                        case 'Pres': {
+                            elem.occupied = increment(
+                                elem.occupied,
+                                DidntRun ? 'NotRun' : gameState.PresidentID
+                            )
+                            break
+                        }
+                        case 'Judge': {
+                            elem.occupied = increment(
+                                elem.occupied,
+                                DidntRun ? 'NotRun' : gameState.JudgeID
+                            )
+                            break
+                        }
+                        case 'Speaker': {
+                            elem.occupied = increment(
+                                elem.occupied,
+                                DidntRun ? 'NotRun' : gameState.SpeakerID
+                            )
+                            break
+                        }
+                        default:
+                            break
                     }
-                    case 'Judge': {
-                        elem.occupied = increment(
-                            elem.occupied,
-                            gameState.JudgeID
-                        )
-                        break
-                    }
-                    case 'Speaker': {
-                        elem.occupied = increment(
-                            elem.occupied,
-                            gameState.SpeakerID
-                        )
-                        break
-                    }
-                    default:
-                        break
-                }
-                return acc
-            }, elem.occupied)
+                    return acc
+                },
+                elem.occupied
+            )
             return elem
         })
     )
