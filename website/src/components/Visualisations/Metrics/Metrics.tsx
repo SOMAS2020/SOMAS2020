@@ -24,7 +24,9 @@ const Metrics = (props: { output: OutputJSONType }) => {
         <tbody>
           {metricList.map((metric) => (
             <tr key={metric.title}>
-              <td style={{ textAlign: 'left' }}>{metric.title}</td>
+              <td style={{ textAlign: 'left' }}>
+                <b>{metric.title}</b>
+              </td>
               <td style={{ textAlign: 'left' }}>{metric.description}</td>
               {evaluateMetrics(props.output, metric).map((team) => (
                 <td
