@@ -20,7 +20,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Run
-      run: go run .
+      run: go run . --maxTurns=20 # fight OOM error
     - name: Output output.json
       run: cat output/output.json
     - name: Install yarn 
