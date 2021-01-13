@@ -24,3 +24,5 @@ output
 *.idea
 
 *checkpoint.ipynb
+
+.DS_Store

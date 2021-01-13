@@ -14,6 +14,7 @@ import styles from './Roles.module.css'
 import { ProcessedRoleData, TeamAndTurns, RoleName } from './Util/RoleTypes'
 import { processRoleData } from './Util/ProcessedRoleData'
 import { OutputJSONType } from '../../../consts/types'
+import IIGOStatus from './IIGOStatus'
 
 type CustomTooltipProps = {
   active: boolean
@@ -67,7 +68,11 @@ const Roles = (props: { output: OutputJSONType }) => {
     setData(processRoleData(props.output))
   }, [props.output])
 
-  const teams = ['Team1', 'Team2', 'Team3', 'Team4', 'Team5', 'Team6']
+  const teams = ['Team1', 'Team2', 'Team3', 'Team4', 'Team5', 'Team6', 'NotRun']
+
+  const localTeamColor: Map<string, string> = teamColors
+  localTeamColor.set('NotRun', '#787878')
+
   return (
     <div className={styles.root}>
       <p className={styles.text}>Role Visualisation</p>
@@ -89,7 +94,7 @@ const Roles = (props: { output: OutputJSONType }) => {
               value: team,
               type: 'square',
               id: `${team}${i}`,
-              color: teamColors.get(team),
+              color: localTeamColor.get(team),
             }))}
           />
           {data[0].occupied.map((a, i) => [
@@ -97,7 +102,7 @@ const Roles = (props: { output: OutputJSONType }) => {
               <Bar
                 dataKey={`occupied[${i}].${team}`}
                 stackId="a"
-                fill={teamColors.get(team)}
+                fill={localTeamColor.get(team)}
                 key={`${i.toString()}${team}`}
               />
             )),
@@ -105,6 +110,7 @@ const Roles = (props: { output: OutputJSONType }) => {
         </BarChart>
       </ResponsiveContainer>
       <p className={styles.graphLabel}>Turns</p>
+      <IIGOStatus output={props.output} />
     </div>
   )
 }

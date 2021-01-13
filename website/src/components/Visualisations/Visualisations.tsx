@@ -6,11 +6,12 @@ import {
   gamevisualisation,
   visualisations,
   iigovisualisation,
-  iifovisualisation,
+  foragingvisualisation,
   transactionvisualisation,
   resourcesvisualisation,
   rolesvisualisation,
   achievementsvisualisation,
+  metricsvisualisation,
   iigopaymentsvisualisation,
 } from '../../consts/paths'
 import { OutputJSONType } from '../../consts/types'
@@ -25,13 +26,14 @@ import {
   storeLocalVisOutput,
 } from './utils'
 import Game from './Game/Game'
-import IIFO from './IIFO/IIFO'
+import Foraging from './Foraging/Foraging'
 import Transactions from './Transactions/Transactions'
 import IIGO from './IIGO/IIGO'
 import Resources from './Resources/Resources'
 import Roles from './Roles/Roles'
 import IIGOPayments from './IIGOPayments/IIGOPayments'
 import Achievements from './Achievements/Achievements'
+import Metrics from './Metrics/Metrics'
 import FourOhFour from '../FourOhFour/FourOhFour'
 import styles from './Visualisations.module.css'
 import logo from '../../assets/logo/logo512.png'
@@ -180,9 +182,9 @@ const Visualisations = () => {
                     component={() => <Transactions output={output} />}
                   />
                   <Route
-                    path={iifovisualisation}
+                    path={foragingvisualisation}
                     exact
-                    component={() => <IIFO output={output} />}
+                    component={() => <Foraging output={output} />}
                   />
                   <Route
                     path={rolesvisualisation}
@@ -193,6 +195,11 @@ const Visualisations = () => {
                     path={achievementsvisualisation}
                     exact
                     component={() => <Achievements output={output} />}
+                  />
+                  <Route
+                    path={metricsvisualisation}
+                    exact
+                    component={() => <Metrics output={output} />}
                   />
                   <Route
                     path={resourcesvisualisation}

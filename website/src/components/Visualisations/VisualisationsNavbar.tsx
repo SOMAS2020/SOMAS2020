@@ -4,13 +4,14 @@ import { LinkContainer } from 'react-router-bootstrap'
 import {
   gamevisualisation,
   iigovisualisation,
-  iifovisualisation,
+  foragingvisualisation,
   transactionvisualisation,
   rolesvisualisation,
   resourcesvisualisation,
   achievementsvisualisation,
   visualisations,
   iigopaymentsvisualisation,
+  metricsvisualisation,
 } from '../../consts/paths'
 
 const VisualisationsNavbar = (props: { reset: () => any }) => {
@@ -41,12 +42,13 @@ const VisualisationsNavbar = (props: { reset: () => any }) => {
           <Nav className="mr-auto">
             {getNavLink('Game', gamevisualisation)}
             {getNavLink('IIGO', iigovisualisation)}
-            {getNavLink('IIFO', iifovisualisation)}
+            {getNavLink('Foraging', foragingvisualisation)}
             {getNavLink('Transactions', transactionvisualisation)}
             {getNavLink('Roles', rolesvisualisation)}
             {getNavLink('Resources', resourcesvisualisation)}
             {getNavLink('IIGOPayments', iigopaymentsvisualisation)}
             {getNavLink('Achievements', achievementsvisualisation)}
+            {getNavLink('Metrics', metricsvisualisation)}
           </Nav>
           <Nav>
             <LinkContainer exact to={visualisations} onClick={handleReset}>
