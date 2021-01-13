@@ -44,4 +44,5 @@ jobs:
         cd website
         yarn test
         yarn build
-        yarn lint         
+        yarn lint 
+        test -f build/index.html
