@@ -36,7 +36,7 @@ type Config = {
     MinimumResourceThreshold: number
     MaxCriticalConsecutiveTurns: number
     ForagingConfig: ForagingConfig
-    DisasterConfig: any
+    DisasterConfig: DisasterConfig
     IIGOConfig: any
 }
 
@@ -67,14 +67,28 @@ type FishingConfig = {
     OutputScaler: number
     DistributionStrategy: string
 }
-
+type DisasterConfig = {
+    XMin: number
+    XMax: number
+    YMin: number
+    YMax: number
+    Period: number
+    SpatialPDFType: string
+    MagnitudeLambda: number
+    MagnitudeResourceMultiplier: number
+    CommonpoolThreshold: number
+    StochasticPeriod: boolean
+    CommonpoolThresholdVisible: boolean
+    PeriodVisible: boolean
+    StochasticPeriodVisible: boolean
+}
 type GameStates = GameState[]
 type GameState = {
     Season: number
     Turn: number
     CommonPool: number
     ClientInfos: any
-    Environment: any
+    Environment: Environment
     DeerPopulation: any
     ForagingHistory: ForagingHistory
     RulesInfo: any
@@ -92,7 +106,7 @@ type GameState = {
     SpeakerID: string
     JudgeID: string
     PresidentID: string
-    RulesBrokenByIslands: RulesBrokenByIslands
+    RulesBrokenByIslands: RulesBrokenByIslands | null
 }
 
 // IIGOHistory will be at most data.Config.Maxturns long, containing an "Accountability" occurrence for a given client.
@@ -145,4 +159,25 @@ export type ParticipantContributions = {
 
 export type RulesBrokenByIslands = {
     [team: number]: string[]
+}
+
+export type Environment = {
+    Geography: any
+    LastDisasterReport: LastDisasterReport
+}
+
+export type LastDisasterReport = {
+    Magnitude: number
+    X: number
+    Y: number
+    Effects: DisasterEffects
+}
+export type DisasterEffects = {
+    Absolute: IslandMap | null
+    Proportional: IslandMap | null
+    CommonPoolMitigated: IslandMap | null
+}
+
+export type IslandMap = {
+    [team: number]: number
 }

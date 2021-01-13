@@ -134,9 +134,61 @@ const rulesBrokenPerTeamCollection = (data: OutputJSONType) => {
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
     data.GameStates.forEach((gameState) => {
-        Object.entries(gameState.RulesBrokenByIslands).forEach((island) => {
-            metrics[island[0]] += island[1].length
-        })
+        if (gameState.RulesBrokenByIslands !== null) {
+            Object.entries(gameState.RulesBrokenByIslands).forEach((island) => {
+                metrics[island[0]] += island[1].length
+            })
+        }
+    })
+    return metrics
+}
+const totalDisasterImpactCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    // Since IIGOHistories is repeated, take the one from the LAST GameState and
+    // do Object.entries to make it iterable. List of array'ed tuples.
+    data.GameStates.forEach((gameState) => {
+        if (
+            gameState.Environment.LastDisasterReport.Effects
+                .CommonPoolMitigated !== null
+        ) {
+            Object.entries(
+                gameState.Environment.LastDisasterReport.Effects
+                    .CommonPoolMitigated
+            ).forEach((island) => {
+                metrics[island[0]] += island[1]
+            })
+        }
+    })
+    return metrics
+}
+
+const totalDisasterImpactMitigatedCollection = (data: OutputJSONType) => {
+    const metrics = emptyMetrics()
+    // Since IIGOHistories is repeated, take the one from the LAST GameState and
+    // do Object.entries to make it iterable. List of array'ed tuples.
+    data.GameStates.forEach((gameState) => {
+        if (
+            gameState.Environment.LastDisasterReport.Effects.Absolute !== null
+        ) {
+            Object.entries(
+                gameState.Environment.LastDisasterReport.Effects.Absolute
+            ).forEach((island) => {
+                metrics[island[0]] +=
+                    island[1] *
+                    data.Config.DisasterConfig.MagnitudeResourceMultiplier
+            })
+        }
+        if (
+            gameState.Environment.LastDisasterReport.Effects
+                .CommonPoolMitigated !== null
+        ) {
+            Object.entries(
+                gameState.Environment.LastDisasterReport.Effects
+                    .CommonPoolMitigated
+            ).forEach((island) => {
+                metrics[island[0]] -= island[1]
+            })
+        }
     })
     return metrics
 }
@@ -355,6 +407,18 @@ const metricList: MetricEntry[] = [
         title: 'Island disaster longevity',
         description: 'Island survived n disasters',
         collectMetrics: seasonsAliveMetricCollection,
+        evalLargest: true,
+    },
+    {
+        title: 'Island disaster impact',
+        description: 'Island suffered this much from disasters',
+        collectMetrics: totalDisasterImpactCollection,
+        evalLargest: true,
+    },
+    {
+        title: 'Island disaster mitigated',
+        description: 'Common pool disaster mitigation for each team',
+        collectMetrics: totalDisasterImpactMitigatedCollection,
         evalLargest: true,
     },
     {
