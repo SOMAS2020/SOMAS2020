@@ -20,7 +20,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Run
-      run: go run .
+      run: go run . 
     - name: Output output.json
       run: cat output/output.json
     - name: Install yarn 
@@ -41,6 +41,7 @@ jobs:
       run: |
         cd website
         yarn build
+        test -f build/index.html
     - name: Deploy website
       uses: Cecilapp/GitHub-Pages-deploy@v3
       env:

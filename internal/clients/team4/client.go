@@ -304,9 +304,15 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	returnList := []shared.ClientID{}
 	for i := 0; i < len(candidateList); i++ {
 		trustScore := c.trustMatrix.GetClientTrust(candidateList[i]) //c.internalParam.agentsTrust[candidateList[i]]
+		_, ok := trustToID[trustScore]
+		for ok {
+			trustScore += 0.000001 // Tiny increment to make it unique
+			_, ok = trustToID[trustScore]
+		}
 		trustToID[trustScore] = candidateList[i]
 		trustList = append(trustList, trustScore)
 	}
+
 	sort.Float64s(trustList)
 
 	for i := len(trustList) - 1; i >= 0; i-- {

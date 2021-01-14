@@ -184,7 +184,8 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 		Logger: e.logger,
 	}
 	var appointedSpeaker shared.ClientID
-	electionSettings := e.clientPresident.CallSpeakerElection(monitoring, int(e.gameState.IIGOTurnsInPower[shared.Speaker]), allIslands)
+	allIslandsCopy1 := copyClientList(allIslands)
+	electionSettings := e.clientPresident.CallSpeakerElection(monitoring, int(e.gameState.IIGOTurnsInPower[shared.Speaker]), allIslandsCopy1)
 
 	//Log election rule
 	termCondition := e.gameState.IIGOTurnsInPower[shared.Speaker] > e.gameConf.IIGOTermLengths[shared.Speaker]
@@ -197,7 +198,8 @@ func (e *executive) appointNextSpeaker(monitoring shared.MonitorResult, currentS
 			return e.gameState.SpeakerID, errors.Errorf("Insufficient Budget in common Pool: appointNextSpeaker")
 		}
 		election.ProposeElection(shared.Speaker, electionSettings.VotingMethod)
-		election.OpenBallot(electionSettings.IslandsToVote, allIslands)
+		allIslandsCopy2 := copyClientList(allIslands)
+		election.OpenBallot(electionSettings.IslandsToVote, allIslandsCopy2)
 		election.Vote(e.iigoClients)
 		e.gameState.IIGOTurnsInPower[shared.Speaker] = 0
 		electedSpeaker := election.CloseBallot(e.iigoClients)

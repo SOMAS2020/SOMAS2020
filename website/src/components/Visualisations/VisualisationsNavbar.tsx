@@ -4,6 +4,7 @@ import { LinkContainer } from 'react-router-bootstrap'
 import {
   gamevisualisation,
   iigovisualisation,
+  iitovisualisation,
   foragingvisualisation,
   transactionvisualisation,
   rolesvisualisation,
@@ -42,6 +43,7 @@ const VisualisationsNavbar = (props: { reset: () => any }) => {
           <Nav className="mr-auto">
             {getNavLink('Game', gamevisualisation)}
             {getNavLink('IIGO', iigovisualisation)}
+            {getNavLink('IITO', iitovisualisation)}
             {getNavLink('Foraging', foragingvisualisation)}
             {getNavLink('Transactions', transactionvisualisation)}
             {getNavLink('Roles', rolesvisualisation)}

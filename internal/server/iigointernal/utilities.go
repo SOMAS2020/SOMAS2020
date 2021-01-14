@@ -67,6 +67,12 @@ func boolToFloat(input bool) float64 {
 	return 0
 }
 
+func copyClientList(in []shared.ClientID) []shared.ClientID {
+	ret := make([]shared.ClientID, len(in))
+	copy(ret, in)
+	return ret
+}
+
 // if an IIGO role is dead, it is replaced with a random living island
 func removeDeadBodiesFromOffice(g *gamestate.GameState) {
 	aliveClientIds := []shared.ClientID{}
