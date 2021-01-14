@@ -148,12 +148,7 @@ class ResourceGraph extends React.Component<IProps, IState> {
           />
           <Tooltip content={CustomTooltip} />
           {getSeasonEnds(output).map((seasonEnd) => (
-            <ReferenceLine
-              x={seasonEnd}
-              label="Season End"
-              stroke="black"
-              strokeDasharray="3 3"
-            />
+            <ReferenceLine x={seasonEnd} stroke="black" strokeDasharray="3 3" />
           ))}
           {!disabled.includes('CriticalThreshold') && (
             <ReferenceArea
