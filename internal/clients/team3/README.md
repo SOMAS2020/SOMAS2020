@@ -17,3 +17,7 @@ Design and infrastructure of Rules and Inter Island Governmental Organisation (I
 | | Ramon Jutaviriya | rj917 | ramon15749 |
 | | Kunal Katarya | kk3415 | kunjzk  |
 | | Agrim Manchanda | am9717 | agrimmanchanda|
+
+### Picture
+
+[![Foo](https://i.ibb.co/87NJP91/somas-2.jpg)](One happy family)
