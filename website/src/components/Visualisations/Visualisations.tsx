@@ -3,7 +3,6 @@ import { Button, Alert, Row, Col, Container } from 'react-bootstrap'
 import { useHistory, Route, Switch } from 'react-router-dom'
 import VisualisationsNavbar from './VisualisationsNavbar'
 import {
-  gamevisualisation,
   visualisations,
   iigovisualisation,
   iitovisualisation,
@@ -26,7 +25,6 @@ import {
   clearLocalVisOutput,
   storeLocalVisOutput,
 } from './utils'
-import Game from './Game/Game'
 import Foraging from './Foraging/Foraging'
 import Transactions from './Transactions/Transactions'
 import IIGO from './IIGO/IIGO'
@@ -129,7 +127,6 @@ const Visualisations = () => {
     } catch (err) {
       setError(err.message)
     }
-    history.push(gamevisualisation)
     setLoading(initialLoadingState)
   }
 
@@ -168,11 +165,6 @@ const Visualisations = () => {
             <Col>
               {output ? (
                 <Switch>
-                  <Route
-                    path={gamevisualisation}
-                    exact
-                    component={() => <Game output={output} />}
-                  />
                   <Route
                     path={iigovisualisation}
                     exact

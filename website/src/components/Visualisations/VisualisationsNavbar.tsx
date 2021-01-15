@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Navbar, Nav } from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import {
-  gamevisualisation,
   iigovisualisation,
   iitovisualisation,
   foragingvisualisation,
@@ -41,7 +40,6 @@ const VisualisationsNavbar = (props: { reset: () => any }) => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={closeNav} />
         <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
           <Nav className="mr-auto">
-            {getNavLink('Game', gamevisualisation)}
             {getNavLink('IIGO', iigovisualisation)}
             {getNavLink('IITO', iitovisualisation)}
             {getNavLink('Foraging', foragingvisualisation)}

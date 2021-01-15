@@ -2,7 +2,6 @@ export const about = `/about`
 export const cioutput = `/cioutput`
 export const newrun = `/newrun`
 export const visualisations = `/visualisation`
-export const gamevisualisation = `/visualisation/game`
 export const transactionvisualisation = `/visualisation/transactions`
 export const iigovisualisation = `/visualisation/iigo`
 export const iitovisualisation = `/visualisation/iito`
