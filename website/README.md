@@ -27,10 +27,6 @@ sudo npm i -g yarn
 
 ## Scripts
 
-### `yarn prestart`
-
-This runs `copyOutput.js` for you ahead of starting the development server. Other necessary actions can be bundled here in the future.
-
 ### `yarn start`
 
 Runs the app in the development mode.\
@@ -60,9 +56,6 @@ This should be run automatically by CI. -->
 
 - This website uses [React](https://reactjs.org/) and [TypeScript](https://www.typescriptlang.org/).
 - The library used for UI/UX is [React Bootstrap](https://react-bootstrap.github.io/).
-- The graphing library used is [d3.js](https://d3js.org/).
-  - You do not strictly need to use d3: You can use any language to produce visualisations, then include them on the website. Please talk to core infra--you should make available clear instructions on how produce your visualisations so that they can be automated.
-
 ## Deployment
 
 Deployment is done automatically via GitHub Actions whenever a push occurs in the `main` branch (which includes a PR merged into `main`).
