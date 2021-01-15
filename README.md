@@ -1,12 +1,16 @@
 # SOMAS 2020
 
-Main repository for SOMAS2020 Coursework.
+Main repository for Self-Organising Multi-Agent Systems (SOMAS) Coursework for 2020, Imperial College London.
 
 - [Setup & Rules](./docs/SETUP.md)
+- [Final Report Repository](https://github.com/SOMAS2020/SOMAS-Final-Report)
+- [Website](https://somas2020.github.io/SOMAS2020/)
 - [Infra Info](./docs/INFRA.md)
 - [Simulation Execution Order](./docs/EXECUTION_ORDER.md)
 
 ## Running code
+See [Setup & Rules](./docs/SETUP.md) for requirements.
+
 ```bash
 # Approach 1
 go run . # Linux and macOS: Use `sudo go run .` if you encounter any "Permission denied" errors.
@@ -47,7 +51,7 @@ On Linux/maxOS,
 
 On Windows,
 ```bash
-build_cmd.cmd
+build_wasm.cmd
 ```
 
 ## Testing

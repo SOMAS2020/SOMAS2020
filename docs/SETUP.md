@@ -12,7 +12,7 @@
 
 ## Coding rules
 
-1. Trust the language server. Red lines == death. Yellow lines == close to death. An example where it might be very tempting to let yellow lines pass are in structs:
+1. Trust the language server. Red lines == death. Yellow lines == close to death. An example where it might be very tempting to let yellow lines pass are in `struct`s:
 ```golang
 type S struct {
     name string
@@ -32,7 +32,7 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 4. Do not use `panic` or `die`--return an `error` instead!
 
-5. Do not use system-specific pacakges (e.g. `internal/syscall/unix`).
+5. Do not use system-specific packages (e.g. `internal/syscall/unix`).
 
 6. Keep your team repo base up to date with the main repo.
 
@@ -55,4 +55,4 @@ s4 := S{name: "pittson"} // OK if `pittson`'s age is 0
 
 ## Dependencies
 
-1. The usual way of getting dependencies for Golang should work, i.e. `go get <MODULE_LINK>`. Try to refrain from including rarely-used or dodgy-looking dependencies: everyone running the code needs to get the code on their computer (golang does this automatically). If in doubt, ask.
+1. The usual way of getting dependencies for Golang should work, i.e. `go get <MODULE_LINK>`. Try to refrain from including rarely-used or dodgy-looking dependencies: everyone running the code needs to get the code on their computer (Golang does this automatically). If in doubt, ask.
