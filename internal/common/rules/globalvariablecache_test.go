@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-// TestRegisterNewVariable tests whther the global variable cache can register new values
+// TestRegisterNewVariable tests whether the global variable cache can register new values
 func TestRegisterNewVariable(t *testing.T) {
 	VariableMapTesting := generateTestVariableStore()
 	registerTestVariable(VariableMapTesting)
-	if val, ok := VariableMapTesting["Test variable"]; !ok {
+	if val, ok := VariableMapTesting[TestVariable]; !ok {
 		t.Errorf("Global variable map unable to register new variables")
 	} else {
 		if val.Values[0] != 5 {
@@ -17,14 +17,14 @@ func TestRegisterNewVariable(t *testing.T) {
 	}
 }
 
-func generateTestVariableStore() map[string]VariableValuePair {
-	return map[string]VariableValuePair{}
+func generateTestVariableStore() map[VariableFieldName]VariableValuePair {
+	return map[VariableFieldName]VariableValuePair{}
 }
 
-func registerTestVariable(variableStore map[string]VariableValuePair) {
+func registerTestVariable(variableStore map[VariableFieldName]VariableValuePair) {
 	pair := VariableValuePair{
-		VariableName: "Test variable",
+		VariableName: TestVariable,
 		Values:       []float64{5},
 	}
-	_ = registerNewVariableInternal(pair, variableStore)
+	_ = RegisterNewVariableInternal(pair, variableStore)
 }

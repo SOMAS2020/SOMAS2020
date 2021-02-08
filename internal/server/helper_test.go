@@ -1,7 +1,9 @@
 package server
 
 import (
+	"math"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
@@ -180,6 +182,164 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 				t.Errorf("want '%#v' got '%#v'", tc.want, got)
 			}
 			testutils.CompareTestErrors(tc.wantErr, err, t)
+		})
+	}
+}
+
+func TestGetNonDeadClientIDs(t *testing.T) {
+	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
+		shared.Team1: {
+			LifeStatus: shared.Alive,
+		},
+		shared.Team2: {
+			LifeStatus: shared.Critical,
+		},
+		shared.Team3: {
+			LifeStatus: shared.Dead,
+		},
+	}
+	want := []shared.ClientID{
+		shared.Team1, shared.Team2,
+	}
+	got := getNonDeadClientIDs(clientInfos)
+
+	sort.Sort(shared.SortClientByID(want))
+	sort.Sort(shared.SortClientByID(got))
+
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("want '%v' got '%v'", want, got)
+	}
+}
+
+func TestTakeResources(t *testing.T) {
+	cases := []struct {
+		name      string
+		resources shared.Resources
+		takeAmt   shared.Resources
+		want      shared.Resources
+		wantErr   error
+	}{
+		{
+			name:      "normal",
+			resources: 42,
+			takeAmt:   3,
+			want:      39,
+		},
+		{
+			name:      "take 0",
+			resources: 42,
+			takeAmt:   0,
+			want:      42,
+		},
+		{
+			name:      "Go to 0",
+			resources: 42,
+			takeAmt:   42,
+			want:      0,
+		},
+		{
+			name:      "Go below 0",
+			resources: 10,
+			takeAmt:   15,
+			want:      10,
+			wantErr:   errors.Errorf("Client %v did not have enough resources. Requested %v, only had %v", shared.Team1, 15, 10),
+		},
+		{
+			name:      "NaN",
+			resources: 42,
+			takeAmt:   shared.Resources(math.NaN()),
+			want:      42,
+			wantErr: errors.Errorf("Cannot take invalid number of resources %v from client %v",
+				math.NaN(), shared.Team1),
+		},
+		{
+			name:      "try take negative",
+			resources: 42,
+			takeAmt:   shared.Resources(-42),
+			want:      42,
+			wantErr: errors.Errorf("Cannot take invalid number of resources %v from client %v",
+				-42, shared.Team1),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := SOMASServer{
+				gameState: gamestate.GameState{
+					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+						shared.Team1: {Resources: tc.resources},
+					},
+				},
+			}
+
+			err := s.takeResources(shared.Team1, tc.takeAmt, tc.name)
+			got := s.gameState.ClientInfos[shared.Team1].Resources
+
+			testutils.CompareTestErrors(tc.wantErr, err, t)
+
+			if tc.want != got {
+				t.Errorf("want '%v' got '%v'", tc.want, got)
+			}
+		})
+	}
+}
+
+func TestGiveResources(t *testing.T) {
+	cases := []struct {
+		name      string
+		resources shared.Resources
+		giveAmt   shared.Resources
+		want      shared.Resources
+		wantErr   error
+	}{
+		{
+			name:      "normal",
+			resources: 42,
+			giveAmt:   3,
+			want:      45,
+		},
+		{
+			name:      "Give 0",
+			resources: 42,
+			giveAmt:   0,
+			want:      42,
+		},
+		{
+			name:      "Give NaN",
+			resources: 42,
+			giveAmt:   shared.Resources(math.NaN()),
+			want:      42,
+			wantErr: errors.Errorf("Cannot give invalid number of resources %v to client %v",
+				math.NaN(), shared.Team1),
+		},
+		{
+			name:      "Give -42",
+			resources: 42,
+			giveAmt:   -42,
+			want:      42,
+			wantErr: errors.Errorf("Cannot give invalid number of resources %v to client %v",
+				-42, shared.Team1),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := SOMASServer{
+				gameState: gamestate.GameState{
+					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
+						shared.Team1: {Resources: tc.resources},
+					},
+				},
+			}
+
+			err := s.giveResources(shared.Team1, tc.giveAmt, tc.name)
+			got := s.gameState.ClientInfos[shared.Team1].Resources
+
+			testutils.CompareTestErrors(tc.wantErr, err, t)
+
+			if tc.want != got {
+				t.Errorf("want '%v' got '%v'", tc.want, got)
+			}
 		})
 	}
 }

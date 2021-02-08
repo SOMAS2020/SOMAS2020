@@ -11,20 +11,22 @@ import (
 // ClientID is an enum for client IDs
 type ClientID int
 
+// TeamIDs
 const (
-	// Team1 ID
 	Team1 ClientID = iota
-	// Team2 ID
 	Team2
-	// Team3 ID
 	Team3
-	// Team4 ID
 	Team4
-	// Team5 ID
 	Team5
-	// Team6 ID
 	Team6
 )
+
+// SortClientByID implements sort.Interface for []ClientID
+type SortClientByID []ClientID
+
+func (a SortClientByID) Len() int           { return len(a) }
+func (a SortClientByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a SortClientByID) Less(i, j int) bool { return a[i] < a[j] }
 
 // TeamIDs contain sequential IDs of all teams
 var TeamIDs = [...]ClientID{Team1, Team2, Team3, Team4, Team5, Team6}
@@ -51,3 +53,10 @@ func (c ClientID) MarshalText() ([]byte, error) {
 func (c ClientID) MarshalJSON() ([]byte, error) {
 	return miscutils.MarshalJSONForString(c.String())
 }
+
+// Logger type for convenience in other definitions
+type Logger func(format string, a ...interface{})
+
+// Resources represents amounts of resources.
+// Used for foraging inputs and utility outputs (returns)
+type Resources float64

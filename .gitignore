@@ -19,3 +19,12 @@ SOMAS2020
 output
 
 .vscode
+*.wasm
+
+*.idea
+
+*checkpoint.ipynb
+
+.DS_Store
+
+pprof

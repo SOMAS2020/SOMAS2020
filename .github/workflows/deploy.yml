@@ -20,19 +20,32 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Run
-      run: go run .
+      run: go run . 
+    - name: Output output.json
+      run: cat output/output.json
+    - name: Install yarn 
+      run: npm i -g yarn        
+    - name: Cache node_modules #speed things up significantly
+      id: cache-node-modules
+      uses: actions/cache@v2
+      with:
+        path: |
+          **/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+    - name: Install Dependencies
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: |
+        cd website
+        yarn install      
     - name: Build website
       run: |
         cd website
-        npm i -g yarn
-        yarn install
         yarn build
+        test -f build/index.html
     - name: Deploy website
-      uses: JamesIves/github-pages-deploy-action@3.7.1
-      with:
+      uses: Cecilapp/GitHub-Pages-deploy@v3
+      env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages 
-        FOLDER: website/build 
-        CLEAN: true
-      
-    
+      with:
+        build_dir: website/build
+        branch: gh-pages

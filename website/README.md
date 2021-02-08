@@ -1,14 +1,28 @@
 # SOMAS2020 Visualisation Website
 
-## Getting started 
+https://somas2020.github.io/SOMAS2020
+
+## Getting started
 
 ### Requirements
+
 - [Node.js 14.x.x](https://nodejs.org/en/)
-    - `node -v` should produce `v14.x.x`
+  - `node -v` should produce `v14.x.x`
 - [Yarn 1.22.x](https://yarnpkg.com/getting-started/install)
-    - `yarn --version` should produce `1.22.x`
+  - `yarn --version` should produce `1.22.x`
+
+### Make sure you have yarn installed on your local machine
+
+Install yarn if you do not already have it installed. Yarn manages the dependencies for the website. The easiest way to do this is
+
+```bash
+npm i -g yarn
+# On a mac or if you get permission errors
+sudo npm i -g yarn
+```
 
 ### Install dependencies
+
 `yarn install`
 
 ## Scripts
@@ -39,8 +53,11 @@ Deploy the app into [GitHub Pages](https://somas2020.github.com/SOMAS2020).\
 This should be run automatically by CI. -->
 
 ## Information
+
 - This website uses [React](https://reactjs.org/) and [TypeScript](https://www.typescriptlang.org/).
-- The library used for UI/UX is [antd](https://ant.design/).
-- The graphing library used is [d3.js](https://d3js.org/). 
-    - You do not strictly need to use d3: You can use any language to produce visualisations, then include them
-    in the website.
+- The library used for UI/UX is [React Bootstrap](https://react-bootstrap.github.io/).
+## Deployment
+
+Deployment is done automatically via GitHub Actions whenever a push occurs in the `main` branch (which includes a PR merged into `main`).
+
+You can enable GitHub pages in your own fork to have your own fork's website. Just go to "Settings" on your fork, set the GitHub Pages Source to the `gh-pages` branch and save it. The next merge into your `main` branch should deploy a new version of the page.

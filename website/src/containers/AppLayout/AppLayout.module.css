@@ -1,0 +1,9 @@
+.root {
+    margin: auto;
+}
+
+.content {
+    padding: 56px 0;
+    min-height: 95vh;
+    text-align: center;
+}

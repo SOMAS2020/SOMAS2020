@@ -1,10 +1,6 @@
 package server
 
 import (
-	"sync"
-
-	"github.com/SOMAS2020/SOMAS2020/internal/common/config"
-	"github.com/SOMAS2020/SOMAS2020/internal/common/gamestate"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 	"github.com/pkg/errors"
 )
@@ -16,7 +12,7 @@ func (s *SOMASServer) runTurn() error {
 
 	s.logf("TURN: %v, Season: %v", s.gameState.Turn, s.gameState.Season)
 
-	s.startOfTurnUpdate()
+	s.startOfTurn()
 
 	// run all orgs
 	err := s.runOrgs()
@@ -29,6 +25,14 @@ func (s *SOMASServer) runTurn() error {
 	}
 
 	return nil
+}
+
+func (s *SOMASServer) startOfTurn() {
+	s.logf("start startOfTurn")
+	defer s.logf("finish startOfTurn")
+	for _, clientID := range getNonDeadClientIDs(s.gameState.ClientInfos) {
+		s.clientMap[clientID].StartOfTurn()
+	}
 }
 
 // runOrgs runs all the orgs
@@ -51,92 +55,55 @@ func (s *SOMASServer) runOrgs() error {
 	return nil
 }
 
-// startOfTurnUpdate sends the gameState at the start of the turn to all non-Dead clients.
-func (s *SOMASServer) startOfTurnUpdate() {
-	s.logf("start startOfTurnUpdate")
-	defer s.logf("finish startOfTurnUpdate")
-
-	// send update of entire gameState to alive clients
-	N := len(s.gameState.ClientInfos)
-	var wg sync.WaitGroup
-	wg.Add(N)
-	for id, ci := range s.gameState.ClientInfos {
-		go func(id shared.ClientID, ci gamestate.ClientInfo) {
-			defer wg.Done()
-			if ci.LifeStatus != shared.Dead {
-				c := s.clientMap[id]
-				c.StartOfTurnUpdate(s.gameState.GetClientGameStateCopy(id))
-			}
-		}(id, ci)
-	}
-	wg.Wait()
-}
-
-// gameStateUpdate sends the gameState mid-turn to all non-Dead clients.
-// For use by orgs to update game state after dispatching actions.
-func (s *SOMASServer) gameStateUpdate() {
-	s.logf("start gameStateUpdate")
-	defer s.logf("finish gameStateUpdate")
-
-	N := len(s.gameState.ClientInfos)
-	var wg sync.WaitGroup
-	wg.Add(N)
-	for id, ci := range s.gameState.ClientInfos {
-		go func(id shared.ClientID, ci gamestate.ClientInfo) {
-			defer wg.Done()
-			if ci.LifeStatus != shared.Dead {
-				c := s.clientMap[id]
-				c.GameStateUpdate(s.gameState.GetClientGameStateCopy(id))
-			}
-		}(id, ci)
-	}
-	wg.Wait()
-}
-
 // endOfTurn performs end of turn updates
+// TODO: organise order of end of turn actions
 func (s *SOMASServer) endOfTurn() error {
 	s.logf("start endOfTurn")
 	defer s.logf("finish endOfTurn")
 
-	err := s.runOrgsEndOfTurn()
-	if err != nil {
-		return errors.Errorf("Failed to run orgs end of turn: %v", err)
+	if err := s.runIIGOAllocations(); err != nil {
+		return errors.Errorf("Failed to get common pool allocations at end of turn: %v", err)
 	}
 
-	// probe for disaster
-	disasterHappened, err := s.probeDisaster()
-	if err != nil {
-		return errors.Errorf("Failed to probe disaster: %v", err)
-	}
-	// increment turn & season if needed
-	s.incrementTurnAndSeason(disasterHappened)
-
-	// deduct cost of living
-	s.deductCostOfLiving(config.GameConfig().CostOfLiving)
-
-	err = s.updateIslandLivingStatus()
-	if err != nil {
-		return errors.Errorf("Failed to update island living status: %v", err)
-	}
-
-	return nil
-}
-
-// runOrgsEndOfTurn runs all the end of turn variants of the orgs.
-func (s *SOMASServer) runOrgsEndOfTurn() error {
-	s.logf("start runOrgsEndOfTurn")
-	defer s.logf("finish runOrgsEndOfTurn")
-
-	if err := s.runIIGOEndOfTurn(); err != nil {
-		return errors.Errorf("IIGO EndOfTurn error: %v", err)
+	// TODO : break foraging down into foraging investments and foraging returns
+	if err := s.runForage(); err != nil {
+		return errors.Errorf("Failed to run hunt at end of turn: %v", err)
 	}
 
 	if err := s.runIIFOEndOfTurn(); err != nil {
 		return errors.Errorf("IIFO EndOfTurn error: %v", err)
 	}
 
+	// TODO: break IITO down into giving gifts and receiving gifts
 	if err := s.runIITOEndOfTurn(); err != nil {
 		return errors.Errorf("IITO EndOfTurn error: %v", err)
+	}
+
+	if err := s.runIIGOTax(); err != nil {
+		return errors.Errorf("Failed to put taxes into common pool at end of turn: %v", err)
+	}
+
+	// probe for disaster
+	updatedEnv, err := s.probeDisaster()
+	if err != nil {
+		return errors.Errorf("Failed to probe disaster: %v", err)
+	}
+	s.gameState.Environment = updatedEnv
+	// increment turn & season if needed
+	disasterHappened := updatedEnv.LastDisasterReport.Magnitude > 0
+
+	if disasterHappened {
+		s.applyDisasterEffects()    // compute effects taking into account CP and deduct resources accordingly
+		s.notifyClientsOfDisaster() // sends disaster report and effects to all non-dead clients
+	}
+	s.incrementTurnAndSeason(disasterHappened)
+
+	// deduct cost of living
+	s.deductCostOfLiving(s.gameConfig.CostOfLiving)
+
+	err = s.updateIslandLivingStatus()
+	if err != nil {
+		return errors.Errorf("Failed to update island living status: %v", err)
 	}
 
 	return nil
@@ -153,36 +120,31 @@ func (s *SOMASServer) incrementTurnAndSeason(disasterHappened bool) {
 	}
 }
 
+func (s *SOMASServer) notifyClientsOfDisaster() {
+	s.logf("start notifying clients of disaster")
+	defer s.logf("finish notifying clients of disaster")
+
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		c := s.clientMap[id]
+		effects := s.gameState.Environment.ComputeDisasterEffects(s.gameState.CommonPool, s.gameConfig.DisasterConfig) // gets effects of most recent disaster
+		c.DisasterNotification(s.gameState.Environment.LastDisasterReport, effects)
+	}
+}
+
 // deductCostOfLiving deducts CoL for all living islands, including critical ones
-func (s *SOMASServer) deductCostOfLiving(costOfLiving int) {
+func (s *SOMASServer) deductCostOfLiving(costOfLiving shared.Resources) {
 	s.logf("start deductCostOfLiving")
 	defer s.logf("finish deductCostOfLiving")
 
-	N := len(s.gameState.ClientInfos)
-	resChan := make(chan clientInfoUpdateResult, N)
-	wg := &sync.WaitGroup{}
-	wg.Add(N)
-
-	for id, ci := range s.gameState.ClientInfos {
-		go func(id shared.ClientID, ci gamestate.ClientInfo) {
-			defer wg.Done()
-			if ci.LifeStatus != shared.Dead {
-				ci.Resources -= costOfLiving
-			}
-			resChan <- clientInfoUpdateResult{
-				Id:  id,
-				Ci:  ci,
-				Err: nil,
-			}
-		}(id, ci)
-	}
-
-	wg.Wait()
-	close(resChan)
-
-	for res := range resChan {
-		id, ci := res.Id, res.Ci
-		// fine to ignore error, always nil
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		ci := s.gameState.ClientInfos[id]
+		if ci.Resources < costOfLiving {
+			ci.Resources = 0
+		} else {
+			ci.Resources -= costOfLiving
+		}
 		s.gameState.ClientInfos[id] = ci
 	}
 }
@@ -194,35 +156,10 @@ func (s *SOMASServer) updateIslandLivingStatus() error {
 	s.logf("start updateIslandLivingStatus")
 	defer s.logf("finish updateIslandLivingStatus")
 
-	N := len(s.gameState.ClientInfos)
-	resChan := make(chan clientInfoUpdateResult, N)
-	wg := &sync.WaitGroup{}
-	wg.Add(N)
-
-	for id, ci := range s.gameState.ClientInfos {
-		go func(id shared.ClientID, ci gamestate.ClientInfo) {
-			defer wg.Done()
-			var ciNew gamestate.ClientInfo
-			var err error
-			if ci.LifeStatus != shared.Dead {
-				ciNew, err = updateIslandLivingStatusForClient(ci,
-					config.GameConfig().MinimumResourceThreshold, config.GameConfig().MaxCriticalConsecutiveTurns)
-			} else {
-				ciNew = ci
-			}
-			resChan <- clientInfoUpdateResult{
-				Id:  id,
-				Ci:  ciNew,
-				Err: err,
-			}
-		}(id, ci)
-	}
-
-	wg.Wait()
-	close(resChan)
-
-	for res := range resChan {
-		id, ci, err := res.Id, res.Ci, res.Err
+	nonDeadClients := getNonDeadClientIDs(s.gameState.ClientInfos)
+	for _, id := range nonDeadClients {
+		ci, err := updateIslandLivingStatusForClient(s.gameState.ClientInfos[id],
+			s.gameConfig.MinimumResourceThreshold, s.gameConfig.MaxCriticalConsecutiveTurns)
 		if err != nil {
 			return errors.Errorf("Failed to update island living status for '%v': %v", id, err)
 		}
