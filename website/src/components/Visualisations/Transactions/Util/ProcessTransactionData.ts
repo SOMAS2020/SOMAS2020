@@ -1,9 +1,15 @@
-import { Transaction, OutputJSONType, TeamName } from '../../../../consts/types'
+import { Transaction, OutputJSONType } from '../../../../consts/types'
 import { Link, Node } from './ForceGraph'
-import { teamColors } from '../../utils'
+import { generateColours, TeamNameGen, numAgents } from '../../utils'
+
+// export const TeamName: Record<string, number> = genDic(totalAgents)
 
 export const getIIGOTransactions = (data: OutputJSONType) => {
     const acc: Transaction[] = []
+
+    const totalAgents = numAgents(data)
+
+    const TeamName: Record<string, number> = TeamNameGen(totalAgents)
 
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
@@ -26,7 +32,7 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
                             from: TeamName.CommonPool,
                             to:
                                 TeamName[
-                                    teamAction.ClientID as keyof typeof TeamName
+                                    teamAction.ClientID // as keyof typeof TeamName
                                 ],
                             amount: teamAction.Pairs[0].Values[0],
                         }
@@ -35,12 +41,12 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
                         transaction = {
                             from:
                                 TeamName[
-                                    teamAction.ClientID as keyof typeof TeamName
+                                    teamAction.ClientID // as keyof typeof TeamName
                                 ],
                             to:
                                 TeamName[
                                     data.GameStates[Number(turnNumber)]
-                                        .SpeakerID as keyof typeof TeamName
+                                        .SpeakerID // as keyof typeof TeamName
                                 ],
                             amount: teamAction.Pairs[0].Values[0],
                         }
@@ -49,12 +55,11 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
                         transaction = {
                             from:
                                 TeamName[
-                                    teamAction.ClientID as keyof typeof TeamName
+                                    teamAction.ClientID // as keyof typeof TeamName
                                 ],
                             to:
                                 TeamName[
-                                    data.GameStates[Number(turnNumber)]
-                                        .JudgeID as keyof typeof TeamName
+                                    data.GameStates[Number(turnNumber)].JudgeID // as keyof typeof TeamName
                                 ],
                             amount: teamAction.Pairs[0].Values[0],
                         }
@@ -63,12 +68,12 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
                         transaction = {
                             from:
                                 TeamName[
-                                    teamAction.ClientID as keyof typeof TeamName
+                                    teamAction.ClientID // as keyof typeof TeamName
                                 ],
                             to:
                                 TeamName[
                                     data.GameStates[Number(turnNumber)]
-                                        .PresidentID as keyof typeof TeamName
+                                        .PresidentID // as keyof typeof TeamName
                                 ],
                             amount: teamAction.Pairs[0].Values[0],
                         }
@@ -78,7 +83,7 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
                         transaction = {
                             from:
                                 TeamName[
-                                    teamAction.ClientID as keyof typeof TeamName
+                                    teamAction.ClientID // as keyof typeof TeamName
                                 ],
                             to: TeamName.CommonPool,
                             amount: teamAction.Pairs[0].Values[0],
@@ -98,6 +103,10 @@ export const getIIGOTransactions = (data: OutputJSONType) => {
 // islandGifts should get a list of IITO Transactions that happened in that turn.
 // TODO: Try getting the newly written types to fit these functions
 export const getIITOTransactions = (data: OutputJSONType) => {
+    const totalAgents = numAgents(data)
+
+    const TeamName: Record<string, number> = TeamNameGen(totalAgents)
+
     return data.GameStates.map((turnState) => {
         // Guard to prevent crashing on the first turn where it's undefined
         if (turnState.IITOTransactions) {
@@ -115,11 +124,11 @@ export const getIITOTransactions = (data: OutputJSONType) => {
                                         transactionsForThisIsland.push({
                                             from:
                                                 TeamName[
-                                                    fromTeam as keyof typeof TeamName
+                                                    fromTeam // as keyof typeof TeamName
                                                 ],
                                             to:
                                                 TeamName[
-                                                    toTeam as keyof typeof TeamName
+                                                    toTeam // as keyof typeof TeamName
                                                 ],
                                             amount: response.AcceptedAmount,
                                         })
@@ -147,6 +156,7 @@ function processTransactionData(data: OutputJSONType) {
         getIITOTransactions(data)
     )
     // const allTransactions = getIIGOTransactions(data)
+    const totalAgents = numAgents(data)
 
     if (allTransactions) {
         links = allTransactions.map((item) => {
@@ -173,7 +183,7 @@ function processTransactionData(data: OutputJSONType) {
         return color
     }
 
-    const bubbleIds = [0, 1, 2, 3, 4, 5, 6]
+    const bubbleIds = Array.from({ length: totalAgents + 1 }, (_, i) => i)
     let maxMag = 1000
     const magnitudes = bubbleIds.map((team) =>
         allTransactions
@@ -192,17 +202,20 @@ function processTransactionData(data: OutputJSONType) {
         maxMag = mag > maxMag ? mag : maxMag
     })
 
+    const teamColors = generateColours(totalAgents)
+
     nodes = magnitudes.map((mag, teamNo) => {
-        const thisTeamColor = teamColors.get(`Team${teamNo}`)
+        const thisTeamColor = teamColors[`team${teamNo}`]
         return {
             id: teamNo,
             colorStatus: mag < 0 ? 'red' : 'green',
-            islandColor: thisTeamColor ?? '#031927',
+            islandColor: thisTeamColor ?? '#101D42',
             magnitude: normaliseMag(Math.abs(mag), 125, 15, maxMag, 0),
         }
     })
 
     // remove the duplicate elements of zero magnitude
+
     return { nodes, links }
 }
 

@@ -1,197 +1,73 @@
 export type RoleName = 'Pres' | 'Judge' | 'Speaker'
 
 export class TeamAndTurns {
-    Team1: number
+    allTeams: Record<string, number>
 
-    Team2: number
+    totalAgents: number
 
-    Team3: number
+    constructor(totalAgents: number, preMadeDict: Record<string, number> = {}) {
+        this.allTeams = preMadeDict
+        this.totalAgents = totalAgents
 
-    Team4: number
-
-    Team5: number
-
-    Team6: number
-
-    NotRun: number
-
-    constructor(
-        team1: number = 0,
-        team2: number = 0,
-        team3: number = 0,
-        team4: number = 0,
-        team5: number = 0,
-        team6: number = 0,
-        NotRun: number = 0
-    ) {
-        this.Team1 = team1
-        this.Team2 = team2
-        this.Team3 = team3
-        this.Team4 = team4
-        this.Team5 = team5
-        this.Team6 = team6
-        this.NotRun = NotRun
+        if (Object.keys(this.allTeams).length === 0) {
+            for (let i = 0; i < totalAgents; i++) {
+                this.allTeams[`Team${i + 1}`] = 0
+            }
+            this.allTeams.NotRun = 0
+        }
     }
 
     set(key: string, val: number) {
-        switch (key) {
-            case 'Team1': {
-                this.Team1 = val
-                break
-            }
-            case 'Team2': {
-                this.Team2 = val
-                break
-            }
-            case 'Team3': {
-                this.Team3 = val
-                break
-            }
-            case 'Team4': {
-                this.Team4 = val
-                break
-            }
-            case 'Team5': {
-                this.Team5 = val
-                break
-            }
-            case 'Team6': {
-                this.Team6 = val
-                break
-            }
-            case 'NotRun': {
-                this.NotRun = val
-                break
-            }
-            default:
-                break
-        }
+        this.allTeams[key] = val
     }
 
     get(key: string): number {
-        switch (key) {
-            case 'Team1':
-                return this.Team1
-            case 'Team2':
-                return this.Team2
-            case 'Team3':
-                return this.Team3
-            case 'Team4':
-                return this.Team4
-            case 'Team5':
-                return this.Team5
-            case 'Team6':
-                return this.Team6
-            case 'NotRun':
-                return this.NotRun
-            default:
-                return 0
-        }
+        return this.allTeams[key]
     }
 
     has(key: string): boolean {
-        switch (key) {
-            case 'Team1':
-                return this.Team1 !== 0
-            case 'Team2':
-                return this.Team2 !== 0
-            case 'Team3':
-                return this.Team3 !== 0
-            case 'Team4':
-                return this.Team4 !== 0
-            case 'Team5':
-                return this.Team5 !== 0
-            case 'Team6':
-                return this.Team6 !== 0
-            case 'NotRun':
-                return this.NotRun !== 0
-            default:
-                return false
-        }
+        return key in this.allTeams && this.allTeams[key] !== 0
     }
 
     increment(key: string, val: number = 1) {
-        switch (key) {
-            case 'Team1': {
-                this.Team1 += val
-                break
-            }
-            case 'Team2': {
-                this.Team2 += val
-                break
-            }
-            case 'Team3': {
-                this.Team3 += val
-                break
-            }
-            case 'Team4': {
-                this.Team4 += val
-                break
-            }
-            case 'Team5': {
-                this.Team5 += val
-                break
-            }
-            case 'Team6': {
-                this.Team6 += val
-                break
-            }
-            case 'NotRun': {
-                this.NotRun += val
-                break
-            }
-
-            default:
-                break
-        }
+        this.allTeams[key] += val
     }
 
     touched(): boolean {
-        return (
-            this.Team1 !== 0 ||
-            this.Team2 !== 0 ||
-            this.Team3 !== 0 ||
-            this.Team4 !== 0 ||
-            this.Team5 !== 0 ||
-            this.Team6 !== 0 ||
-            this.NotRun !== 0
-        )
+        const teams = Object.values(this.allTeams)
+
+        for (let i = 0; i < teams.length; i++) {
+            if (teams[i] !== 0) {
+                return true
+            }
+        }
+        return false
     }
 
     turns(): number {
-        return (
-            this.Team1 +
-            this.Team2 +
-            this.Team3 +
-            this.Team4 +
-            this.Team5 +
-            this.Team6 +
-            this.NotRun
-        )
+        return Object.values(this.allTeams).reduce((a, b) => a + b)
     }
 
     add(teamAndTurns: TeamAndTurns): TeamAndTurns {
-        return new TeamAndTurns(
-            this.Team1 + teamAndTurns.Team1,
-            this.Team2 + teamAndTurns.Team2,
-            this.Team3 + teamAndTurns.Team3,
-            this.Team4 + teamAndTurns.Team4,
-            this.Team5 + teamAndTurns.Team5,
-            this.Team6 + teamAndTurns.Team6,
-            this.NotRun + teamAndTurns.NotRun
-        )
+        const adder: Record<string, number> = {}
+        for (let i = 0; i < this.totalAgents; i++) {
+            adder[`Team${i + 1}`] =
+                this.allTeams[`Team${i + 1}`] +
+                teamAndTurns.allTeams[`Team${i + 1}`]
+        }
+        adder.NotRun = this.allTeams.NotRun + teamAndTurns.allTeams.NotRun
+
+        return new TeamAndTurns(this.totalAgents, adder)
     }
 
     map<T>(func: (team: string, turns: number) => T): T[] {
-        return [
-            func('Team1', this.Team1),
-            func('Team2', this.Team2),
-            func('Team3', this.Team3),
-            func('Team4', this.Team4),
-            func('Team5', this.Team5),
-            func('Team6', this.Team6),
-            func('NotRun', this.NotRun),
-        ]
+        const mapper: T[] = []
+        for (let i = 0; i < this.totalAgents; i++) {
+            mapper.push(func(`Team${i + 1}`, this.allTeams[`Team${i + 1}`]))
+        }
+        mapper.push(func('NotRun', this.allTeams.NotRun))
+
+        return mapper
     }
 }
 

@@ -1,34 +1,23 @@
 import { OutputJSONType } from '../../../consts/types'
 import { notUndefined } from '../../../utils/filter'
 
-export type ResourceLevel = {
-    team1: number
-    team2: number
-    team3: number
-    team4: number
-    team5: number
-    team6: number
-    CommonPool: number
-    TotalResources: number
-    Turn: number
-}
-
 export const outputToResourceLevels = (
     output: OutputJSONType
-): ResourceLevel[] => {
+): Record<string, number>[] => {
     return output.GameStates.map((g) => {
         const cis = g.ClientInfos
-        const resLevel: ResourceLevel = {
-            team1: cis.Team1.Resources,
-            team2: cis.Team2.Resources,
-            team3: cis.Team3.Resources,
-            team4: cis.Team4.Resources,
-            team5: cis.Team5.Resources,
-            team6: cis.Team6.Resources,
+        const numTeams = Object.keys(cis).length
+
+        const resLevel: Record<string, number> = {
             CommonPool: g.CommonPool,
             TotalResources: 0, // set 0 for now, calculate below
             Turn: 0, // set 0 for now, set below
         }
+
+        for (let i = 0; i < numTeams; i++) {
+            resLevel[`team${i + 1}`] = cis[`Team${i + 1}`].Resources
+        }
+
         resLevel.TotalResources = Object.values(resLevel).reduce(
             (a, b) => a + b,
             0

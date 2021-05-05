@@ -1,8 +1,11 @@
-import { Transaction, OutputJSONType, TeamName } from '../../../../consts/types'
+import { Transaction, OutputJSONType } from '../../../../consts/types'
 import { Link, Node } from './ForceGraph'
-import { teamColors } from '../../utils'
+import { numAgents, generateColours, TeamNameGen } from '../../utils'
 
 export const getIITOTransactions = (data: OutputJSONType) => {
+    const totalAgents = numAgents(data)
+    const TeamName = TeamNameGen(totalAgents)
+
     return data.GameStates.map((turnState) => {
         // Guard to prevent crashing on the first turn where it's undefined
         if (turnState.IITOTransactions) {
@@ -20,11 +23,11 @@ export const getIITOTransactions = (data: OutputJSONType) => {
                                         transactionsForThisIsland.push({
                                             from:
                                                 TeamName[
-                                                    fromTeam as keyof typeof TeamName
+                                                    fromTeam // as keyof typeof TeamName
                                                 ],
                                             to:
                                                 TeamName[
-                                                    toTeam as keyof typeof TeamName
+                                                    toTeam // as keyof typeof TeamName
                                                 ],
                                             amount: response.AcceptedAmount,
                                         })
@@ -48,6 +51,7 @@ function processTransactionData(data: OutputJSONType) {
     let nodes: Node[] = []
     let links: Link[] = []
 
+    const totalAgents = numAgents(data)
     const allTransactions = getIITOTransactions(data)
     // const allTransactions = getIIGOTransactions(data)
 
@@ -76,7 +80,7 @@ function processTransactionData(data: OutputJSONType) {
         return color
     }
 
-    const bubbleIds = [0, 1, 2, 3, 4, 5, 6]
+    const bubbleIds = Array.from({ length: totalAgents + 1 }, (_, i) => i)
     let maxMag = 1000
     const magnitudes = bubbleIds.map((team) =>
         allTransactions
@@ -95,8 +99,10 @@ function processTransactionData(data: OutputJSONType) {
         maxMag = mag > maxMag ? mag : maxMag
     })
 
+    const teamColors = generateColours(totalAgents)
+
     nodes = magnitudes.map((mag, teamNo) => {
-        const thisTeamColor = teamColors.get(`Team${teamNo}`)
+        const thisTeamColor = teamColors[`team${teamNo}`]
         return {
             id: teamNo,
             colorStatus: mag < 0 ? 'red' : 'green',

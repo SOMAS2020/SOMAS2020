@@ -10,9 +10,8 @@ import {
 } from 'recharts'
 import styles from './IIGOPayments.module.css'
 
-import { ProcessedTaxData } from './Util/IIGOPaymentsTypes'
 import { processPaymentsData } from './Util/ProcessedPaymentsData'
-import { OutputJSONType, TeamName } from '../../../consts/types'
+import { OutputJSONType } from '../../../consts/types'
 
 const Payments = (props: { output: OutputJSONType }) => {
   const data = processPaymentsData(props.output)

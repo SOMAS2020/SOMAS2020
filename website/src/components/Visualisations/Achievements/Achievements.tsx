@@ -3,20 +3,24 @@ import { Col, Container, Row } from 'react-bootstrap'
 import confetti from 'canvas-confetti'
 import styles from './Achievements.module.css'
 import { OutputJSONType } from '../../../consts/types'
-import acheivementList, {
-  evaluateMetrics,
-  TeamName,
-} from './AcheivementEntries'
+import acheivementList, { evaluateMetrics } from './AcheivementEntries'
+import { numAgents } from '../utils'
 
 type AchievementBarProps = {
+  totalAgents: number
   title: string
   desc: string
-  winArr: TeamName[]
+  winArr: string[]
 }
 
-const IndivAchievement = ({ title, desc, winArr }: AchievementBarProps) => {
+const IndivAchievement = ({
+  totalAgents,
+  title,
+  desc,
+  winArr,
+}: AchievementBarProps) => {
   const winners =
-    winArr.length === 6 || winArr.length === 0
+    winArr.length === totalAgents || winArr.length === 0
       ? 'No winners :('
       : winArr.join(', ')
   function handleAchievementClick() {
@@ -49,6 +53,7 @@ const IndivAchievement = ({ title, desc, winArr }: AchievementBarProps) => {
 }
 
 const Achievements = (props: { output: OutputJSONType }) => {
+  const totalAgents = numAgents(props.output)
   return (
     <div className={styles.root}>
       <p className={styles.text} style={{ marginBottom: 30 }}>
@@ -56,6 +61,7 @@ const Achievements = (props: { output: OutputJSONType }) => {
       </p>
       {acheivementList.map((achievement) => (
         <IndivAchievement
+          totalAgents={totalAgents}
           key={achievement.title}
           title={achievement.title}
           desc={achievement.description}

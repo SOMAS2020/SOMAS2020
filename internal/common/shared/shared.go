@@ -4,7 +4,6 @@ package shared
 
 import (
 	"fmt"
-
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
 )
 
@@ -19,6 +18,12 @@ const (
 	Team4
 	Team5
 	Team6
+	Team7
+	Team8
+	Team9
+	Team10
+	// Team11
+	// Team12
 )
 
 // SortClientByID implements sort.Interface for []ClientID
@@ -29,10 +34,10 @@ func (a SortClientByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a SortClientByID) Less(i, j int) bool { return a[i] < a[j] }
 
 // TeamIDs contain sequential IDs of all teams
-var TeamIDs = [...]ClientID{Team1, Team2, Team3, Team4, Team5, Team6}
+var TeamIDs = [...]ClientID{Team1, Team2, Team3, Team4, Team5, Team6, Team7, Team8, Team9, Team10}//, Team11}//, Team12}
 
 func (c ClientID) String() string {
-	clientIDStrings := [...]string{"Team1", "Team2", "Team3", "Team4", "Team5", "Team6"}
+	clientIDStrings := [...]string{"Team1", "Team2", "Team3", "Team4", "Team5", "Team6", "Team7", "Team8", "Team9", "Team10"}//, "Team11"}//, "Team12"}
 	if c >= 0 && int(c) < len(clientIDStrings) {
 		return clientIDStrings[c]
 	}

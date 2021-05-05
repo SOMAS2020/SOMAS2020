@@ -88,6 +88,8 @@ export default function runForceGraph(
     div.transition().duration(200).style('opacity', 0)
   }
 
+  // console.log(nodes)
+
   const simulation = d3
     .forceSimulation(nodes)
     .force(

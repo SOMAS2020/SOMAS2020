@@ -8,7 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { teamColors } from '../utils'
+import { numAgents, generateColours } from '../utils'
 import styles from './Roles.module.css'
 
 import { ProcessedRoleData, TeamAndTurns, RoleName } from './Util/RoleTypes'
@@ -24,11 +24,16 @@ type CustomTooltipProps = {
 }
 
 const CustomTooltip = ({ active, label, data }: CustomTooltipProps) => {
+  const { totalAgents } = data[0].occupied[0]
+  const teamColors = generateColours(totalAgents)
+
   const getTurnsAsTeams = (role: RoleName): TeamAndTurns =>
     data
       .find((elem) => elem.role === role)
-      ?.occupied?.reduce((acc, tAndT) => acc.add(tAndT), new TeamAndTurns()) ??
-    new TeamAndTurns()
+      ?.occupied?.reduce(
+        (acc, tAndT) => acc.add(tAndT),
+        new TeamAndTurns(totalAgents)
+      ) ?? new TeamAndTurns(totalAgents)
 
   if (active && data.length > 0) {
     const turnsAsTeams = getTurnsAsTeams(label as RoleName)
@@ -46,7 +51,7 @@ const CustomTooltip = ({ active, label, data }: CustomTooltipProps) => {
           <p
             className={styles.content}
             key={team}
-            style={{ color: teamColors.get(team) }}
+            style={{ color: teamColors[team.toLowerCase()] }}
           >
             {`Turns as ${team}: ${turns} (${(
               (turns * 100) /
@@ -68,10 +73,18 @@ const Roles = (props: { output: OutputJSONType }) => {
     setData(processRoleData(props.output))
   }, [props.output])
 
-  const teams = ['Team1', 'Team2', 'Team3', 'Team4', 'Team5', 'Team6', 'NotRun']
+  const teams: string[] = []
+  const JSON = props.output
+  const totalAgents = numAgents(JSON)
 
-  const localTeamColor: Map<string, string> = teamColors
-  localTeamColor.set('NotRun', '#787878')
+  for (let i = 0; i < totalAgents; i++) {
+    teams.push(`Team${i + 1}`)
+  }
+
+  teams.push('NotRun')
+
+  const localTeamColor: Record<string, string> = generateColours(totalAgents)
+  localTeamColor.NotRun = '#787878'
 
   return (
     <div className={styles.root}>
@@ -94,15 +107,15 @@ const Roles = (props: { output: OutputJSONType }) => {
               value: team,
               type: 'square',
               id: `${team}${i}`,
-              color: localTeamColor.get(team),
+              color: localTeamColor[`team${i + 1}`],
             }))}
           />
-          {data[0].occupied.map((a, i) => [
+          {data[0].occupied.map((_, i) => [
             teams.map((team) => (
               <Bar
-                dataKey={`occupied[${i}].${team}`}
+                dataKey={`occupied[${i}].allTeams.${team}`}
                 stackId="a"
-                fill={localTeamColor.get(team)}
+                fill={localTeamColor[team.toLowerCase()]}
                 key={`${i.toString()}${team}`}
               />
             )),

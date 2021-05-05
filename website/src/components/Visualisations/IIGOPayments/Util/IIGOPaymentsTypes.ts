@@ -1,4 +1,4 @@
-import { TeamName } from '../../../../consts/types'
+// import { TeamName } from '../../../../consts/types'
 
 export type RoleName = 'Pres' | 'Judge' | 'Speaker'
 
@@ -12,7 +12,7 @@ export type TaxData = {
 }
 
 export type ProcessedTaxDataElem = {
-    name: TeamName
+    name: number
     expectedTax: number
     actualTax: number
     actualAlloc: number

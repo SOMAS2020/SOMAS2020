@@ -3,8 +3,16 @@ import { Table } from 'react-bootstrap'
 import styles from './Metrics.module.css'
 import { OutputJSONType } from '../../../consts/types'
 import metricList, { evaluateMetrics, Metric } from './MetricEntries'
+import { numAgents } from '../utils'
 
 const Metrics = (props: { output: OutputJSONType }) => {
+  const totalAgents = numAgents(props.output)
+  const teamHeadings: string[] = []
+
+  for (let i = 0; i < totalAgents; i++) {
+    teamHeadings.push(`Team${i + 1}`)
+  }
+
   return (
     <>
       <h2 className={styles.text}>Metrics Summary</h2>
@@ -13,12 +21,9 @@ const Metrics = (props: { output: OutputJSONType }) => {
           <tr>
             <th>Metric</th>
             <th>Description</th>
-            <th>Team 1</th>
-            <th>Team 2</th>
-            <th>Team 3</th>
-            <th>Team 4</th>
-            <th>Team 5</th>
-            <th>Team 6</th>
+            {teamHeadings.map((val) => (
+              <th>{val}</th>
+            ))}
           </tr>
         </thead>
         <tbody>

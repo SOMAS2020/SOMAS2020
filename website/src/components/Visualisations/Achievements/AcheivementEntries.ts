@@ -1,45 +1,38 @@
 import { OutputJSONType } from '../../../consts/types'
+import { numAgents } from '../utils'
 
-export type TeamName = 'Team1' | 'Team2' | 'Team3' | 'Team4' | 'Team5' | 'Team6'
-
-type MetricsType = {
-    [key in TeamName]: number
+const emptyMetrics = (totalAgents: number): Record<string, number> => {
+    const output: Record<string, number> = {}
+    for (let i = 0; i < totalAgents; i++) {
+        output[`Team${i + 1}`] = 0
+    }
+    return output
 }
 
-const emptyMetrics = (): MetricsType => ({
-    Team1: 0,
-    Team2: 0,
-    Team3: 0,
-    Team4: 0,
-    Team5: 0,
-    Team6: 0,
-})
-
-const teamNames = (): TeamName[] => [
-    'Team1',
-    'Team2',
-    'Team3',
-    'Team4',
-    'Team5',
-    'Team6',
-]
+const teamNames = (totalAgents: number): string[] => {
+    const output: string[] = []
+    for (let i = 0; i < totalAgents; i++) {
+        output.push(`Team${i + 1}`)
+    }
+    return output
+}
 
 export type AcheivementEntry = {
     title: string
     description: string
-    collectMetrics: (data: OutputJSONType) => MetricsType
+    collectMetrics: (data: OutputJSONType) => Record<string, number>
     evalLargest: boolean
 }
 
-const addMetrics = (metArr: MetricsType[]) =>
+const addMetrics = (totalAgents: number, metArr: Record<string, number>[]) =>
     metArr.reduce((metrics, currMet) => {
-        teamNames().forEach((team) => {
+        teamNames(totalAgents).forEach((team) => {
             metrics[team] += currMet[team]
         })
         return metrics
-    }, emptyMetrics())
+    }, emptyMetrics(totalAgents))
 
-const turnsAlive = (data: OutputJSONType, team: TeamName): number =>
+const turnsAlive = (data: OutputJSONType, team: string): number =>
     data.GameStates.filter(
         (gameState) => gameState.ClientInfos[team].LifeStatus !== 'Dead'
     ).length
@@ -47,10 +40,11 @@ const turnsAlive = (data: OutputJSONType, team: TeamName): number =>
 export const evaluateMetrics = (
     data: OutputJSONType,
     aEntry: AcheivementEntry
-): TeamName[] => {
+): string[] => {
+    const totalAgents = numAgents(data)
     const metrics = aEntry.collectMetrics(data)
-    const ret = teamNames().reduce(
-        (maxTeams: { val: number; teams: TeamName[] }, team: TeamName) => {
+    const ret = teamNames(totalAgents).reduce(
+        (maxTeams: { val: number; teams: string[] }, team: string) => {
             if (aEntry.evalLargest && metrics[team] > maxTeams.val)
                 return { val: metrics[team], teams: [team] }
 
@@ -68,10 +62,13 @@ export const evaluateMetrics = (
     return ret
 }
 
-const peakResourcesMetricCollection = (data: OutputJSONType): MetricsType =>
-    data.GameStates.reduce(
-        (metrics: MetricsType, gameState) =>
-            teamNames().reduce((metAcc, teamName) => {
+const peakResourcesMetricCollection = (
+    data: OutputJSONType
+): Record<string, number> => {
+    const totalAgents = numAgents(data)
+    return data.GameStates.reduce(
+        (metrics: Record<string, number>, gameState) =>
+            teamNames(totalAgents).reduce((metAcc, teamName) => {
                 const teamResources: number =
                     gameState.ClientInfos[teamName].Resources
                 metAcc[teamName] =
@@ -80,29 +77,32 @@ const peakResourcesMetricCollection = (data: OutputJSONType): MetricsType =>
                         : metAcc[teamName]
                 return metAcc
             }, metrics),
-        emptyMetrics()
+        emptyMetrics(totalAgents)
     )
+}
 
 const averageResourcesMetricCollection = (
     data: OutputJSONType
-): MetricsType => {
+): Record<string, number> => {
+    const totalAgents = numAgents(data)
     const retMetrics = data.GameStates.reduce(
-        (metrics: MetricsType, gameState) =>
-            teamNames().reduce((metAcc, teamName) => {
+        (metrics: Record<string, number>, gameState) =>
+            teamNames(totalAgents).reduce((metAcc, teamName) => {
                 metAcc[teamName] += gameState.ClientInfos[teamName].Resources
                 return metAcc
             }, metrics),
-        emptyMetrics()
+        emptyMetrics(totalAgents)
     )
-    teamNames().forEach((team) => {
+    teamNames(totalAgents).forEach((team) => {
         retMetrics[team] /= turnsAlive(data, team)
     })
     return retMetrics
 }
 
 const returnsFromCriticalMetricCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    teamNames().forEach((team) => {
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
+    teamNames(totalAgents).forEach((team) => {
         metrics[team] = data.GameStates.reduce(
             (status, gameState) => {
                 const lifeStatus = gameState.ClientInfos[team].LifeStatus
@@ -126,8 +126,9 @@ const returnsFromCriticalMetricCollection = (data: OutputJSONType) => {
 }
 
 const turnsAliveMetricCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    teamNames().forEach((team) => {
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
+    teamNames(totalAgents).forEach((team) => {
         metrics[team] = turnsAlive(data, team)
     })
     return metrics
@@ -137,19 +138,22 @@ const turnsAsRoleMetricCollection = (
     data: OutputJSONType,
     role: 'PresidentID' | 'SpeakerID' | 'JudgeID'
 ) => {
-    const metrics = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
     data.GameStates.forEach((gameState) => {
         metrics[gameState[role]]++
     })
     return metrics
 }
 
-const turnsInPowerMetricCollection = (data: OutputJSONType) =>
-    addMetrics([
+const turnsInPowerMetricCollection = (data: OutputJSONType) => {
+    const totalAgents = numAgents(data)
+    return addMetrics(totalAgents, [
         turnsAsRoleMetricCollection(data, 'PresidentID'),
         turnsAsRoleMetricCollection(data, 'JudgeID'),
         turnsAsRoleMetricCollection(data, 'SpeakerID'),
     ])
+}
 
 const acheivementList: AcheivementEntry[] = [
     {

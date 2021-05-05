@@ -1,20 +1,8 @@
 import outputJSONData from '../output/output.json'
 
-// TODO: what if there are more islands - dynamic typing
-// eslint-disable-next-line no-shadow
-export enum TeamName {
-    'CommonPool',
-    'Team1',
-    'Team2',
-    'Team3',
-    'Team4',
-    'Team5',
-    'Team6',
-}
-
 export type Transaction = {
-    from: TeamName
-    to: TeamName
+    from: number
+    to: number
     amount: number
 }
 // Custom utility type

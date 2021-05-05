@@ -1,54 +1,48 @@
 import { OutputJSONType } from '../../../consts/types'
+import { numAgents } from '../utils'
 
-export type TeamName = 'Team1' | 'Team2' | 'Team3' | 'Team4' | 'Team5' | 'Team6'
-
-export type MetricsType = {
-    [key in TeamName]: number
-}
 export type Metric = {
     teamName: string
     value: number
 }
 
-const emptyMetrics = (): MetricsType => ({
-    Team1: 0,
-    Team2: 0,
-    Team3: 0,
-    Team4: 0,
-    Team5: 0,
-    Team6: 0,
-})
+const emptyMetrics = (totalAgents: number): Record<string, number> => {
+    const output: Record<string, number> = {}
+    for (let i = 0; i < totalAgents; i++) {
+        output[`Team${i + 1}`] = 0
+    }
+    return output
+}
 
-const teamNames = (): TeamName[] => [
-    'Team1',
-    'Team2',
-    'Team3',
-    'Team4',
-    'Team5',
-    'Team6',
-]
+const teamNames = (totalAgents: number): string[] => {
+    const output: string[] = []
+    for (let i = 0; i < totalAgents; i++) {
+        output.push(`Team${i + 1}`)
+    }
+    return output
+}
 
 export type MetricEntry = {
     title: string
     description: string
-    collectMetrics: (data: OutputJSONType) => MetricsType
+    collectMetrics: (data: OutputJSONType) => Record<string, number>
     evalLargest: boolean
 }
 
-const addMetrics = (metArr: MetricsType[]) =>
+const addMetrics = (totalAgents: number, metArr: Record<string, number>[]) =>
     metArr.reduce((metrics, currMet) => {
-        teamNames().forEach((team) => {
+        teamNames(totalAgents).forEach((team) => {
             metrics[team] += currMet[team]
         })
         return metrics
-    }, emptyMetrics())
+    }, emptyMetrics(totalAgents))
 
-const turnsAlive = (data: OutputJSONType, team: TeamName): number =>
+const turnsAlive = (data: OutputJSONType, team: string): number =>
     data.GameStates.filter(
         (gameState) => gameState.ClientInfos[team].LifeStatus !== 'Dead'
     ).length
 
-const seasonsAlive = (data: OutputJSONType, team: TeamName): number =>
+const seasonsAlive = (data: OutputJSONType, team: string): number =>
     data.GameStates.filter(
         (gameState) =>
             gameState.ClientInfos[team].LifeStatus !== 'Dead' &&
@@ -72,10 +66,13 @@ export const evaluateMetrics = (
     return acc
 }
 
-const peakResourcesMetricCollection = (data: OutputJSONType): MetricsType =>
-    data.GameStates.reduce(
-        (metrics: MetricsType, gameState) =>
-            teamNames().reduce((metAcc, teamName) => {
+const peakResourcesMetricCollection = (
+    data: OutputJSONType
+): Record<string, number> => {
+    const totalAgents = numAgents(data)
+    return data.GameStates.reduce(
+        (metrics: Record<string, number>, gameState) =>
+            teamNames(totalAgents).reduce((metAcc, teamName) => {
                 const teamResources: number =
                     gameState.ClientInfos[teamName].Resources
                 metAcc[teamName] =
@@ -84,29 +81,32 @@ const peakResourcesMetricCollection = (data: OutputJSONType): MetricsType =>
                         : metAcc[teamName]
                 return metAcc
             }, metrics),
-        emptyMetrics()
+        emptyMetrics(totalAgents)
     )
+}
 
 const averageResourcesMetricCollection = (
     data: OutputJSONType
-): MetricsType => {
+): Record<string, number> => {
+    const totalAgents = numAgents(data)
     const retMetrics = data.GameStates.reduce(
-        (metrics: MetricsType, gameState) =>
-            teamNames().reduce((metAcc, teamName) => {
+        (metrics: Record<string, number>, gameState) =>
+            teamNames(totalAgents).reduce((metAcc, teamName) => {
                 metAcc[teamName] += gameState.ClientInfos[teamName].Resources
                 return metAcc
             }, metrics),
-        emptyMetrics()
+        emptyMetrics(totalAgents)
     )
-    teamNames().forEach((team) => {
+    teamNames(totalAgents).forEach((team) => {
         retMetrics[team] /= turnsAlive(data, team)
     })
     return retMetrics
 }
 
 const returnsFromCriticalMetricCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    teamNames().forEach((team) => {
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
+    teamNames(totalAgents).forEach((team) => {
         metrics[team] = data.GameStates.reduce(
             (status, gameState) => {
                 const lifeStatus = gameState.ClientInfos[team].LifeStatus
@@ -130,7 +130,8 @@ const returnsFromCriticalMetricCollection = (data: OutputJSONType) => {
 }
 
 const rulesBrokenPerTeamCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
     data.GameStates.forEach((gameState) => {
@@ -143,7 +144,8 @@ const rulesBrokenPerTeamCollection = (data: OutputJSONType) => {
     return metrics
 }
 const totalDisasterImpactCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
     data.GameStates.forEach((gameState) => {
@@ -163,7 +165,8 @@ const totalDisasterImpactCollection = (data: OutputJSONType) => {
 }
 
 const totalDisasterImpactMitigatedCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
     data.GameStates.forEach((gameState) => {
@@ -194,7 +197,8 @@ const totalDisasterImpactMitigatedCollection = (data: OutputJSONType) => {
 }
 
 const deerForagingResultCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
     const DeerForageHistory = Object.entries(
@@ -212,7 +216,8 @@ const deerForagingResultCollection = (data: OutputJSONType) => {
     return metrics
 }
 const fishForagingResultCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
     const FishForageHistory = Object.entries(
@@ -231,8 +236,9 @@ const fishForagingResultCollection = (data: OutputJSONType) => {
 }
 
 const fishForagingEfficiencyCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    const totalSpent = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
+    const totalSpent = emptyMetrics(totalAgents)
 
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
@@ -267,8 +273,9 @@ const fishForagingEfficiencyCollection = (data: OutputJSONType) => {
 }
 
 const deerForagingEfficiencyCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    const totalSpent = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
+    const totalSpent = emptyMetrics(totalAgents)
 
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
@@ -303,8 +310,9 @@ const deerForagingEfficiencyCollection = (data: OutputJSONType) => {
 }
 
 const totalForagingEfficiencyCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    const totalSpent = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
+    const totalSpent = emptyMetrics(totalAgents)
 
     // Since IIGOHistories is repeated, take the one from the LAST GameState and
     // do Object.entries to make it iterable. List of array'ed tuples.
@@ -363,16 +371,18 @@ const totalForagingEfficiencyCollection = (data: OutputJSONType) => {
 }
 
 const turnsAliveMetricCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    teamNames().forEach((team) => {
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
+    teamNames(totalAgents).forEach((team) => {
         metrics[team] = turnsAlive(data, team)
     })
     return metrics
 }
 
 const seasonsAliveMetricCollection = (data: OutputJSONType) => {
-    const metrics = emptyMetrics()
-    teamNames().forEach((team) => {
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
+    teamNames(totalAgents).forEach((team) => {
         metrics[team] = seasonsAlive(data, team)
     })
     return metrics
@@ -382,19 +392,22 @@ const turnsAsRoleMetricCollection = (
     data: OutputJSONType,
     role: 'PresidentID' | 'SpeakerID' | 'JudgeID'
 ) => {
-    const metrics = emptyMetrics()
+    const totalAgents = numAgents(data)
+    const metrics = emptyMetrics(totalAgents)
     data.GameStates.forEach((gameState) => {
         metrics[gameState[role]]++
     })
     return metrics
 }
 
-const turnsInPowerMetricCollection = (data: OutputJSONType) =>
-    addMetrics([
+const turnsInPowerMetricCollection = (data: OutputJSONType) => {
+    const totalAgents = numAgents(data)
+    return addMetrics(totalAgents, [
         turnsAsRoleMetricCollection(data, 'PresidentID'),
         turnsAsRoleMetricCollection(data, 'JudgeID'),
         turnsAsRoleMetricCollection(data, 'SpeakerID'),
     ])
+}
 
 const metricList: MetricEntry[] = [
     {

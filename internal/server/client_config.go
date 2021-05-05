@@ -21,5 +21,11 @@ func DefaultClientConfig() map[shared.ClientID]ClientFactory {
 		shared.Team4: team4.DefaultClient,
 		shared.Team5: team5.DefaultClient,
 		shared.Team6: team6.DefaultClient,
+		shared.Team7: team1.DefaultClient,
+		shared.Team8: team3.DefaultClient,
+		shared.Team9: team6.DefaultClient,
+		shared.Team10: team4.DefaultClient,
+		// shared.Team11: team1.DefaultClient,
+		// shared.Team12: team1.DefaultClient,
 	}
 }

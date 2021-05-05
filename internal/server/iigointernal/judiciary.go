@@ -532,7 +532,7 @@ func knitPardonCommunications(originalCommunications map[shared.ClientID][]map[s
 	return originalCommunications
 }
 
-func processSingleTimeStep(sanctions []shared.Sanction, pardons []bool, allTeamIds [6]shared.ClientID) (sanctionsAfterPardons []shared.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func processSingleTimeStep(sanctions []shared.Sanction, pardons []bool, allTeamIds [len(shared.TeamIDs)]shared.ClientID) (sanctionsAfterPardons []shared.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	finalSanctions := []shared.Sanction{}
 	finalComms := generateEmptyCommunicationsMap(allTeamIds)
 	for entry, pardoned := range pardons {
@@ -580,7 +580,7 @@ func checkSizes(sanctionCache map[int][]shared.Sanction, pardons map[int][]bool)
 	return true
 }
 
-func getBaseEvalResults(teamIDs [6]shared.ClientID) map[shared.ClientID]shared.EvaluationReturn {
+func getBaseEvalResults(teamIDs [len(shared.TeamIDs)]shared.ClientID) map[shared.ClientID]shared.EvaluationReturn {
 	baseResults := map[shared.ClientID]shared.EvaluationReturn{}
 	for _, teamID := range teamIDs {
 		baseResults[teamID] = shared.EvaluationReturn{

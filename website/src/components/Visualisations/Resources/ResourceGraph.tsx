@@ -21,7 +21,8 @@ import {
 } from 'recharts'
 import { OutputJSONType } from '../../../consts/types'
 import styles from './Resources.module.css'
-import { getSeasonEnds, outputToResourceLevels, ResourceLevel } from './utils'
+import { getSeasonEnds, outputToResourceLevels } from './utils'
+import { numAgents, generateColours } from '../utils'
 
 const CustomTooltip = ({ active, label, payload }: TooltipProps) => {
   return (
@@ -52,19 +53,12 @@ interface IState {
   disabled: string[]
 }
 
-const legendColours = {
-  team1: '#0095FF',
-  team2: '#FF0000',
-  team3: '#802FF0',
-  team4: '#00C49F',
-  team5: '#FFBB28',
-  team6: '#FF8042',
-  CommonPool: '#ACE600',
-  TotalResources: '	#FF69B4',
-  CriticalThreshold: '#B7B4B0',
-}
 class ResourceGraph extends React.Component<IProps, IState> {
-  private chartData: ResourceLevel[]
+  private chartData: Record<string, number>[]
+
+  public totalAgents: number
+
+  public legendColours: Record<string, string>
 
   constructor(props) {
     super(props)
@@ -73,6 +67,8 @@ class ResourceGraph extends React.Component<IProps, IState> {
       disabled: [],
     }
     this.chartData = outputToResourceLevels(output)
+    this.totalAgents = numAgents(output)
+    this.legendColours = generateColours(this.totalAgents)
   }
 
   handleClick = (dataKey: string) => {
@@ -127,7 +123,7 @@ class ResourceGraph extends React.Component<IProps, IState> {
           data={this.chartData}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
         >
-          {Object.entries(legendColours)
+          {Object.entries(this.legendColours)
             .filter(([id]) => !disabled.includes(id))
             .map(([id, colour]) => (
               <Line name={id} type="monotone" dataKey={id} stroke={colour} />
@@ -164,7 +160,7 @@ class ResourceGraph extends React.Component<IProps, IState> {
             align="center"
             height={20}
             wrapperStyle={{ top: 0, left: 25, right: 0, width: 'auto' }}
-            payload={Object.entries(legendColours).map(([id, colour]) => ({
+            payload={Object.entries(this.legendColours).map(([id, colour]) => ({
               value: id,
               color: colour,
               type: 'circle',

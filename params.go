@@ -27,7 +27,7 @@ var (
 	)
 	initialCommonPool = flag.Float64(
 		"initialCommonPool",
-		0,
+		10,
 		"The default number of resources in the common pool at the start of the game.",
 	)
 	costOfLiving = flag.Float64(
