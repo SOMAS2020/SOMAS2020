@@ -496,7 +496,7 @@ func getTierSanctionMap() map[shared.IIGOSanctionsTier]string {
 	}
 }
 
-func implementPardons(sanctionCache map[int][]shared.Sanction, pardons map[int][]bool, allTeamIds [len(shared.TeamIDs)]shared.ClientID) (bool, map[int][]shared.Sanction, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func implementPardons(sanctionCache map[int][]shared.Sanction, pardons map[int][]bool, allTeamIds []shared.ClientID) (bool, map[int][]shared.Sanction, map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	if validatePardons(sanctionCache, pardons) {
 		finalSanctionCache := sanctionCache
 		communicationsAboutPardons := generateEmptyCommunicationsMap(allTeamIds)
@@ -510,7 +510,7 @@ func implementPardons(sanctionCache map[int][]shared.Sanction, pardons map[int][
 	return false, sanctionCache, nil
 }
 
-func generateEmptyCommunicationsMap(allTeamIds [len(shared.TeamIDs)]shared.ClientID) map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
+func generateEmptyCommunicationsMap(allTeamIds []shared.ClientID) map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent {
 	commsMap := map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{}
 	for _, clientID := range allTeamIds {
 		commsMap[clientID] = []map[shared.CommunicationFieldName]shared.CommunicationContent{}
@@ -532,7 +532,7 @@ func knitPardonCommunications(originalCommunications map[shared.ClientID][]map[s
 	return originalCommunications
 }
 
-func processSingleTimeStep(sanctions []shared.Sanction, pardons []bool, allTeamIds [len(shared.TeamIDs)]shared.ClientID) (sanctionsAfterPardons []shared.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
+func processSingleTimeStep(sanctions []shared.Sanction, pardons []bool, allTeamIds []shared.ClientID) (sanctionsAfterPardons []shared.Sanction, commsForPardons map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent) {
 	finalSanctions := []shared.Sanction{}
 	finalComms := generateEmptyCommunicationsMap(allTeamIds)
 	for entry, pardoned := range pardons {
@@ -580,7 +580,7 @@ func checkSizes(sanctionCache map[int][]shared.Sanction, pardons map[int][]bool)
 	return true
 }
 
-func getBaseEvalResults(teamIDs [len(shared.TeamIDs)]shared.ClientID) map[shared.ClientID]shared.EvaluationReturn {
+func getBaseEvalResults(teamIDs []shared.ClientID) map[shared.ClientID]shared.EvaluationReturn {
 	baseResults := map[shared.ClientID]shared.EvaluationReturn{}
 	for _, teamID := range teamIDs {
 		baseResults[teamID] = shared.EvaluationReturn{

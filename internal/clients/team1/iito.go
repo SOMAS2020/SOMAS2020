@@ -1,7 +1,6 @@
 package team1
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -63,8 +62,6 @@ func (c *client) GetGiftRequests() shared.GiftRequestDict {
 		for clientID, status := range c.gameState().ClientLifeStatuses {
 			friendship := float32(c.teamOpinions[clientID])
 			friendshipMultiplier := shared.Resources((friendship + 1.0) / 20.0) //maxes at 2, reconsider so "desperate" isn't dumb. Add 1, otherwise no trades ever made
-			fmt.Println(friendship, friendshipMultiplier)
-			// fmt.Println(friendship, friendshipMultiplier)
 			if status != shared.Dead && clientID != c.GetID() {
 				requests[clientID] = shared.GiftRequest(friendshipMultiplier * c.gameConfig().CostOfLiving)
 			}
