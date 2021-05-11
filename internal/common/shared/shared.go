@@ -4,7 +4,7 @@ package shared
 
 import (
 	"fmt"
-	"os"
+	// "os"
 	"strconv"
 
 	"github.com/SOMAS2020/SOMAS2020/pkg/miscutils"
@@ -44,21 +44,21 @@ func (a SortClientByID) Less(i, j int) bool { return a[i] < a[j] }
 // TeamIDs contain sequential IDs of all teams
 // var TeamIDs = [...]ClientID{Team1, Team2, Team3, Team4, Team5, Team6, Team7, Team8, Team9, Team10, Team11, Team12}
 
-var TeamIDs []ClientID
+// var TeamIDs []ClientID
 
-// var TeamIDs = make([]ClientID, TotalTeams)
+var TeamIDs = make([]ClientID, TotalTeams)
 
 func init() {
 
-	var args = os.Args
+	// var args = os.Args
 
-	if len(args) > 1 {
-		TotalTeams, _ = strconv.Atoi(args[1])
-	} else {
-		TotalTeams = 6
-	}
+	// if len(args) > 1 {
+	// 	TotalTeams, _ = strconv.Atoi(args[1])
+	// } else {
+	// 	TotalTeams = 6
+	// }
 
-	TeamIDs = make([]ClientID, TotalTeams)
+	// TeamIDs = make([]ClientID, TotalTeams)
 
 	for i := 0; i < TotalTeams; i++ {
 		TeamIDs[i] = ClientID(i)

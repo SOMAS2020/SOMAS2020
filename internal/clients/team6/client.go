@@ -10,9 +10,7 @@ import (
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
 )
 
-const (
-	id = shared.Team6
-)
+var id = shared.Teams["Team6"]
 
 type client struct {
 	*baseclient.BaseClient

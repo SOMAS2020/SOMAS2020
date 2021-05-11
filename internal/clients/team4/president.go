@@ -195,7 +195,7 @@ func (p *president) SetTaxationAmount(islandsResources map[shared.ClientID]share
 		}
 
 		//Excuse ourselves if we are not fair
-		if clientID == shared.Team4 {
+		if clientID == shared.Teams["Team4"] {
 			taxAmountMap[clientID] = shared.Resources(float64(taxAmountMap[clientID]) * p.parent.internalParam.fairness)
 		}
 	}

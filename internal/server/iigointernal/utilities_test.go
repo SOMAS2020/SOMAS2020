@@ -202,9 +202,9 @@ func TestWithdrawFromCommonPool(t *testing.T) {
 			gamestate: &gamestate.GameState{
 				CommonPool: 300,
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 100},
-					shared.Team3: {Resources: 100},
+					shared.Teams["Team1"]: {Resources: 100},
+					shared.Teams["Team2"]: {Resources: 100},
+					shared.Teams["Team3"]: {Resources: 100},
 				},
 			},
 			inputValue:       100,
@@ -217,9 +217,9 @@ func TestWithdrawFromCommonPool(t *testing.T) {
 			gamestate: &gamestate.GameState{
 				CommonPool: 300,
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 100},
-					shared.Team3: {Resources: 100},
+					shared.Teams["Team1"]: {Resources: 100},
+					shared.Teams["Team2"]: {Resources: 100},
+					shared.Teams["Team3"]: {Resources: 100},
 				},
 			},
 			inputValue:       -80,
@@ -232,9 +232,9 @@ func TestWithdrawFromCommonPool(t *testing.T) {
 			gamestate: &gamestate.GameState{
 				CommonPool: 100,
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 70},
-					shared.Team3: {Resources: 30},
+					shared.Teams["Team1"]: {Resources: 100},
+					shared.Teams["Team2"]: {Resources: 70},
+					shared.Teams["Team3"]: {Resources: 30},
 				},
 			},
 			inputValue:       250,
@@ -269,39 +269,39 @@ func TestDepositIntoClientPrivatePool(t *testing.T) {
 			name: "Deposit amount",
 			gamestate: &gamestate.GameState{
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 100},
-					shared.Team3: {Resources: 100},
+					shared.Teams["Team1"]: {Resources: 100},
+					shared.Teams["Team2"]: {Resources: 100},
+					shared.Teams["Team3"]: {Resources: 100},
 				},
 			},
 			inputValue:       80,
-			inputID:          shared.Team2,
+			inputID:          shared.Teams["Team2"],
 			expectedResource: 180,
 		},
 		{
 			name: "Negative amount",
 			gamestate: &gamestate.GameState{
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 100},
-					shared.Team3: {Resources: 100},
+					shared.Teams["Team1"]: {Resources: 100},
+					shared.Teams["Team2"]: {Resources: 100},
+					shared.Teams["Team3"]: {Resources: 100},
 				},
 			},
 			inputValue:       -80,
-			inputID:          shared.Team1,
+			inputID:          shared.Teams["Team1"],
 			expectedResource: 20,
 		},
 		{
 			name: "Negative resources",
 			gamestate: &gamestate.GameState{
 				ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-					shared.Team1: {Resources: 100},
-					shared.Team2: {Resources: 70},
-					shared.Team3: {Resources: 30},
+					shared.Teams["Team1"]: {Resources: 100},
+					shared.Teams["Team2"]: {Resources: 70},
+					shared.Teams["Team3"]: {Resources: 30},
 				},
 			},
 			inputValue:       -80,
-			inputID:          shared.Team3,
+			inputID:          shared.Teams["Team3"],
 			expectedResource: -50,
 		},
 	}
@@ -319,19 +319,19 @@ func TestDepositIntoClientPrivatePool(t *testing.T) {
 
 func TestRemoveDead(t *testing.T) {
 	clientinfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team4: {
+		shared.Teams["Team4"]: {
 			LifeStatus: shared.Dead,
 		},
-		shared.Team5: {
+		shared.Teams["Team5"]: {
 			LifeStatus: shared.Dead,
 		},
 	}

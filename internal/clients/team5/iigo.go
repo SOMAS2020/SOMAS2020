@@ -183,7 +183,7 @@ func (c *client) calculateDisasterContributionCP(currentTurn uint, currentResour
 	idealContribution := shared.Resources(0)
 	contribution := shared.Resources(0)
 	//how far is the epicenter from our island
-	minDistance := math.Sqrt(math.Pow(geography.Islands[shared.Team5].X-predictionInfo.epiX, 2) + math.Pow(geography.Islands[shared.Team5].Y-predictionInfo.epiY, 2))
+	minDistance := math.Sqrt(math.Pow(geography.Islands[shared.Teams["Team5"]].X-predictionInfo.epiX, 2) + math.Pow(geography.Islands[shared.Teams["Team5"]].Y-predictionInfo.epiY, 2))
 	if minDistance < 1 {
 		minDistance = 1
 	}
@@ -233,7 +233,7 @@ func (c *client) MonitorIIGORole(roleName shared.Role) bool {
 	} else {
 		roleID = c.gameState().PresidentID
 	}
-	if roleID == shared.Team5 {
+	if roleID == shared.Teams["Team5"] {
 		return false
 	} else if c.opinions[roleID].getScore() > 0.5 {
 		return false

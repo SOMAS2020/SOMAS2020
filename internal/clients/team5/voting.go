@@ -13,7 +13,7 @@ func (c *client) VoteForElection(roleToElect shared.Role, candidateList []shared
 	var intRefinedCandidateList []int
 	// Take out our ID
 	for _, islandID := range candidateList {
-		if islandID != shared.Team5 {
+		if islandID != shared.Teams["Team5"] {
 			refinedCandidateList = append(refinedCandidateList, islandID)
 		}
 	}
@@ -64,7 +64,7 @@ func (c *client) findIndexOfScore(opinionSortByScore []float64, opinionSortByTea
 // translate int to shared.clientID but put our ID first and someone last
 // assume that we are always alive when this function is called
 func (c *client) sortedMapOfOpinion(rank []int, candidateList []int) (sortedTeamByOpinion []shared.ClientID) {
-	sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Team5)
+	sortedTeamByOpinion = append(sortedTeamByOpinion, shared.Teams["Team5"])
 	for _, clientID := range rank {
 		sortedTeamByOpinion = append(sortedTeamByOpinion, shared.ClientID(clientID))
 	}

@@ -211,13 +211,13 @@ func TestInspectHistory(t *testing.T) {
 			historicalCache: map[int][]shared.Accountability{},
 			iigoHistory: []shared.Accountability{
 				{
-					ClientID: shared.Team1,
+					ClientID: shared.Teams["Team1"],
 					Pairs:    []rules.VariableValuePair{rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{5.0})},
 				},
 			},
 			clientJudge: &mockJudge{
 				inspectHistoryReturn: map[shared.ClientID]shared.EvaluationReturn{
-					shared.Team1: {
+					shared.Teams["Team1"]: {
 						Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0]},
 						Evaluations: []bool{true},
 					},
@@ -226,7 +226,7 @@ func TestInspectHistory(t *testing.T) {
 				historicalRetribution: false,
 			},
 			expectedResults: mergeEvaluationReturn(map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0]},
 					Evaluations: []bool{true},
 				},
@@ -238,21 +238,21 @@ func TestInspectHistory(t *testing.T) {
 			historicalCache: map[int][]shared.Accountability{},
 			iigoHistory: []shared.Accountability{
 				{
-					ClientID: shared.Team1,
+					ClientID: shared.Teams["Team1"],
 					Pairs:    []rules.VariableValuePair{rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{5.0})},
 				},
 				{
-					ClientID: shared.Team2,
+					ClientID: shared.Teams["Team2"],
 					Pairs:    []rules.VariableValuePair{rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{5.0})},
 				},
 			},
 			clientJudge: &mockJudge{
 				inspectHistoryReturn: map[shared.ClientID]shared.EvaluationReturn{
-					shared.Team1: {
+					shared.Teams["Team1"]: {
 						Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0]},
 						Evaluations: []bool{true},
 					},
-					shared.Team2: {
+					shared.Teams["Team2"]: {
 						Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[1]},
 						Evaluations: []bool{false},
 					},
@@ -261,11 +261,11 @@ func TestInspectHistory(t *testing.T) {
 				historicalRetribution: false,
 			},
 			expectedResults: mergeEvaluationReturn(map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0]},
 					Evaluations: []bool{true},
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[1]},
 					Evaluations: []bool{false},
 				},
@@ -277,28 +277,28 @@ func TestInspectHistory(t *testing.T) {
 			historicalCache: map[int][]shared.Accountability{
 				1: {
 					{
-						ClientID: shared.Team1,
+						ClientID: shared.Teams["Team1"],
 						Pairs:    []rules.VariableValuePair{rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{5.0})},
 					},
 					{
-						ClientID: shared.Team2,
+						ClientID: shared.Teams["Team2"],
 						Pairs:    []rules.VariableValuePair{rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{5.0})},
 					},
 				},
 			},
 			iigoHistory: []shared.Accountability{
 				{
-					ClientID: shared.Team1,
+					ClientID: shared.Teams["Team1"],
 					Pairs:    []rules.VariableValuePair{rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{5.0})},
 				},
 				{
-					ClientID: shared.Team2,
+					ClientID: shared.Teams["Team2"],
 					Pairs:    []rules.VariableValuePair{rules.MakeVariableValuePair(rules.ExpectedAllocation, []float64{5.0})},
 				},
 			},
 			clientJudge: &mockJudge{
 				inspectHistoryReturn: map[shared.ClientID]shared.EvaluationReturn{
-					shared.Team1: {
+					shared.Teams["Team1"]: {
 						Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0]},
 						Evaluations: []bool{true},
 					},
@@ -307,7 +307,7 @@ func TestInspectHistory(t *testing.T) {
 				historicalRetribution: true,
 			},
 			expectedResults: mergeEvaluationReturn(map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0], generateDummyRuleMatrices()[0]},
 					Evaluations: []bool{true, true},
 				},
@@ -343,7 +343,7 @@ func TestUpdateSanctionScore(t *testing.T) {
 		{
 			name: "Basic update sanction score check",
 			evaluationResults: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0]},
 					Evaluations: []bool{false},
 				},
@@ -352,17 +352,17 @@ func TestUpdateSanctionScore(t *testing.T) {
 				"inspect_ballot_rule": 50,
 			},
 			expectedIslandScores: map[shared.ClientID]shared.IIGOSanctionsScore{
-				shared.Team1: 50,
+				shared.Teams["Team1"]: 50,
 			},
 		},
 		{
 			name: "Normal update sanction score check",
 			evaluationResults: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0]},
 					Evaluations: []bool{false},
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0], generateDummyRuleMatrices()[1]},
 					Evaluations: []bool{false, true},
 				},
@@ -371,22 +371,22 @@ func TestUpdateSanctionScore(t *testing.T) {
 				"inspect_ballot_rule": 50,
 			},
 			expectedIslandScores: map[shared.ClientID]shared.IIGOSanctionsScore{
-				shared.Team1: 50,
-				shared.Team2: 50,
+				shared.Teams["Team1"]: 50,
+				shared.Teams["Team2"]: 50,
 			},
 		},
 		{
 			name: "Complex update sanction score scenario",
 			evaluationResults: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0], generateDummyRuleMatrices()[0]},
 					Evaluations: []bool{false, false},
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[0], generateDummyRuleMatrices()[1]},
 					Evaluations: []bool{false, false},
 				},
-				shared.Team3: {
+				shared.Teams["Team3"]: {
 					Rules:       []rules.RuleMatrix{generateDummyRuleMatrices()[4], generateDummyRuleMatrices()[5]},
 					Evaluations: []bool{false, true},
 				},
@@ -396,9 +396,9 @@ func TestUpdateSanctionScore(t *testing.T) {
 				"iigo_economic_sanction_1": 100,
 			},
 			expectedIslandScores: map[shared.ClientID]shared.IIGOSanctionsScore{
-				shared.Team1: 100,
-				shared.Team2: 55,
-				shared.Team3: 100,
+				shared.Teams["Team1"]: 100,
+				shared.Teams["Team2"]: 55,
+				shared.Teams["Team3"]: 100,
 			},
 		},
 	}
@@ -426,13 +426,13 @@ func TestApplySanctions(t *testing.T) {
 		{
 			name: "Basic sanction scenario",
 			sanctionRecord: map[shared.ClientID]shared.IIGOSanctionsScore{
-				shared.Team1: 4,
+				shared.Teams["Team1"]: 4,
 			},
 			sanctionThresholds: getDefaultSanctionThresholds(),
 			sanctionLength:     2,
 			expectedSanctions: []shared.Sanction{
 				{
-					ClientID:     shared.Team1,
+					ClientID:     shared.Teams["Team1"],
 					SanctionTier: shared.SanctionTier1,
 					TurnsLeft:    2,
 				},
@@ -441,25 +441,25 @@ func TestApplySanctions(t *testing.T) {
 		{
 			name: "Normal sanction scenario",
 			sanctionRecord: map[shared.ClientID]shared.IIGOSanctionsScore{
-				shared.Team1: 4,
-				shared.Team2: 5,
-				shared.Team3: 10,
+				shared.Teams["Team1"]: 4,
+				shared.Teams["Team2"]: 5,
+				shared.Teams["Team3"]: 10,
 			},
 			sanctionThresholds: getDefaultSanctionThresholds(),
 			sanctionLength:     2,
 			expectedSanctions: []shared.Sanction{
 				{
-					ClientID:     shared.Team1,
+					ClientID:     shared.Teams["Team1"],
 					SanctionTier: shared.SanctionTier1,
 					TurnsLeft:    2,
 				},
 				{
-					ClientID:     shared.Team2,
+					ClientID:     shared.Teams["Team2"],
 					SanctionTier: shared.SanctionTier2,
 					TurnsLeft:    2,
 				},
 				{
-					ClientID:     shared.Team3,
+					ClientID:     shared.Teams["Team3"],
 					SanctionTier: shared.SanctionTier3,
 					TurnsLeft:    2,
 				},
@@ -468,9 +468,9 @@ func TestApplySanctions(t *testing.T) {
 		{
 			name: "Custom sanction thresholds",
 			sanctionRecord: map[shared.ClientID]shared.IIGOSanctionsScore{
-				shared.Team1: 4,
-				shared.Team2: 5,
-				shared.Team3: 10,
+				shared.Teams["Team1"]: 4,
+				shared.Teams["Team2"]: 5,
+				shared.Teams["Team3"]: 10,
 			},
 			sanctionThresholds: map[shared.IIGOSanctionsTier]shared.IIGOSanctionsScore{
 				shared.SanctionTier1: 5,
@@ -482,17 +482,17 @@ func TestApplySanctions(t *testing.T) {
 			sanctionLength: 5,
 			expectedSanctions: []shared.Sanction{
 				{
-					ClientID:     shared.Team1,
+					ClientID:     shared.Teams["Team1"],
 					SanctionTier: shared.NoSanction,
 					TurnsLeft:    5,
 				},
 				{
-					ClientID:     shared.Team2,
+					ClientID:     shared.Teams["Team2"],
 					SanctionTier: shared.SanctionTier1,
 					TurnsLeft:    5,
 				},
 				{
-					ClientID:     shared.Team3,
+					ClientID:     shared.Teams["Team3"],
 					SanctionTier: shared.SanctionTier4,
 					TurnsLeft:    5,
 				},
@@ -524,12 +524,12 @@ func TestCreateBroadcastForSanction(t *testing.T) {
 	}{
 		{
 			name:     "Basic broadcast",
-			clientID: shared.Team1,
+			clientID: shared.Teams["Team1"],
 			tier:     shared.SanctionTier4,
 			expectedComms: map[shared.CommunicationFieldName]shared.CommunicationContent{
 				shared.SanctionClientID: {
 					T:           shared.CommunicationInt,
-					IntegerData: int(shared.Team1),
+					IntegerData: int(shared.Teams["Team1"]),
 				},
 				shared.IIGOSanctionTier: {
 					T:           shared.CommunicationInt,
@@ -632,7 +632,7 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 			name:               "Basic evaluations: no sanction",
 			localSanctionCache: DefaultInitLocalSanctionCache(3),
 			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					ReportedAmount: 50,
 					Reported:       true,
 				},
@@ -644,160 +644,160 @@ func TestRunEvaluationRulesOnSanctions(t *testing.T) {
 			name: "Basic evaluations: singleSanction",
 			localSanctionCache: augmentBasicSanctionCache(0, []shared.Sanction{
 				{
-					ClientID:     shared.Team1,
+					ClientID:     shared.Teams["Team1"],
 					SanctionTier: shared.SanctionTier1,
 					TurnsLeft:    2,
 				},
 			}),
 			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					ReportedAmount: 50,
 					Reported:       true,
 				},
 			},
 			rulesCache: generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{
-				shared.Team1: 0,
+				shared.Teams["Team1"]: 0,
 			},
 		},
 		{
 			name: "Basic evaluations: multiple sanction",
 			localSanctionCache: augmentBasicSanctionCache(0, []shared.Sanction{
 				{
-					ClientID:     shared.Team1,
+					ClientID:     shared.Teams["Team1"],
 					SanctionTier: shared.SanctionTier2,
 					TurnsLeft:    2,
 				},
 				{
-					ClientID:     shared.Team3,
+					ClientID:     shared.Teams["Team3"],
 					SanctionTier: shared.SanctionTier3,
 					TurnsLeft:    2,
 				},
 			}),
 			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					ReportedAmount: 50,
 					Reported:       true,
 				},
-				shared.Team3: {
+				shared.Teams["Team3"]: {
 					ReportedAmount: 100,
 					Reported:       true,
 				},
 			},
 			rulesCache: generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{
-				shared.Team1: 5,
-				shared.Team3: 30,
+				shared.Teams["Team1"]: 5,
+				shared.Teams["Team3"]: 30,
 			},
 		},
 		{
 			name: "Evaluations: multiple sanction with timeout",
 			localSanctionCache: augmentBasicSanctionCache(0, []shared.Sanction{
 				{
-					ClientID:     shared.Team1,
+					ClientID:     shared.Teams["Team1"],
 					SanctionTier: shared.SanctionTier2,
 					TurnsLeft:    2,
 				},
 				{
-					ClientID:     shared.Team3,
+					ClientID:     shared.Teams["Team3"],
 					SanctionTier: shared.SanctionTier3,
 					TurnsLeft:    2,
 				},
 				{
-					ClientID:     shared.Team4,
+					ClientID:     shared.Teams["Team4"],
 					SanctionTier: shared.SanctionTier3,
 					TurnsLeft:    0,
 				},
 			}),
 			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Reported:       true,
 					ReportedAmount: 50,
 				},
-				shared.Team3: {
+				shared.Teams["Team3"]: {
 					ReportedAmount: 100,
 					Reported:       true,
 				},
-				shared.Team4: {
+				shared.Teams["Team4"]: {
 					ReportedAmount: 150,
 					Reported:       true,
 				},
 			},
 			rulesCache: generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{
-				shared.Team1: 5,
-				shared.Team3: 30,
-				shared.Team4: 0,
+				shared.Teams["Team1"]: 5,
+				shared.Teams["Team3"]: 30,
+				shared.Teams["Team4"]: 0,
 			},
 		},
 		{
 			name: "Evaluations: complex case",
 			localSanctionCache: augmentBasicSanctionCache(1, []shared.Sanction{
 				{
-					ClientID:     shared.Team1,
+					ClientID:     shared.Teams["Team1"],
 					SanctionTier: shared.SanctionTier2,
 					TurnsLeft:    2,
 				},
 				{
-					ClientID:     shared.Team2,
+					ClientID:     shared.Teams["Team2"],
 					SanctionTier: shared.SanctionTier2,
 					TurnsLeft:    2,
 				},
 				{
-					ClientID:     shared.Team3,
+					ClientID:     shared.Teams["Team3"],
 					SanctionTier: shared.SanctionTier3,
 					TurnsLeft:    2,
 				},
 				{
-					ClientID:     shared.Team4,
+					ClientID:     shared.Teams["Team4"],
 					SanctionTier: shared.SanctionTier4,
 					TurnsLeft:    0,
 				},
 				{
-					ClientID:     shared.Team5,
+					ClientID:     shared.Teams["Team5"],
 					SanctionTier: shared.SanctionTier5,
 					TurnsLeft:    3,
 				},
 				{
-					ClientID:     shared.Team6,
+					ClientID:     shared.Teams["Team6"],
 					SanctionTier: shared.SanctionTier1,
 					TurnsLeft:    0,
 				},
 			}),
 			reportedIslandResources: map[shared.ClientID]shared.ResourcesReport{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					ReportedAmount: 50,
 					Reported:       true,
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					ReportedAmount: 50,
 					Reported:       true,
 				},
-				shared.Team3: {
+				shared.Teams["Team3"]: {
 					ReportedAmount: 100,
 					Reported:       true,
 				},
-				shared.Team4: {
+				shared.Teams["Team4"]: {
 					ReportedAmount: 150,
 					Reported:       true,
 				},
-				shared.Team5: {
+				shared.Teams["Team5"]: {
 					ReportedAmount: 20,
 					Reported:       true,
 				},
-				shared.Team6: {
+				shared.Teams["Team6"]: {
 					ReportedAmount: 100,
 					Reported:       true,
 				},
 			},
 			rulesCache: generateRuleStore(),
 			expectedSanctions: map[shared.ClientID]shared.Resources{
-				shared.Team1: 5,
-				shared.Team2: 5,
-				shared.Team3: 30,
-				shared.Team4: 0,
-				shared.Team5: 16,
-				shared.Team6: 0,
+				shared.Teams["Team1"]: 5,
+				shared.Teams["Team2"]: 5,
+				shared.Teams["Team3"]: 30,
+				shared.Teams["Team4"]: 0,
+				shared.Teams["Team5"]: 16,
+				shared.Teams["Team6"]: 0,
 			},
 		},
 	}
@@ -824,7 +824,7 @@ func TestDecrementSanctionTime(t *testing.T) {
 			initialSanctions: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier2,
 						TurnsLeft:    2,
 					},
@@ -833,7 +833,7 @@ func TestDecrementSanctionTime(t *testing.T) {
 			updatedSanctions: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier2,
 						TurnsLeft:    1,
 					},
@@ -845,19 +845,19 @@ func TestDecrementSanctionTime(t *testing.T) {
 			initialSanctions: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier2,
 						TurnsLeft:    2,
 					},
 					{
-						ClientID:     shared.Team3,
+						ClientID:     shared.Teams["Team3"],
 						SanctionTier: shared.SanctionTier4,
 						TurnsLeft:    8,
 					},
 				},
 				2: {
 					{
-						ClientID:     shared.Team4,
+						ClientID:     shared.Teams["Team4"],
 						SanctionTier: shared.SanctionTier4,
 						TurnsLeft:    1,
 					},
@@ -866,19 +866,19 @@ func TestDecrementSanctionTime(t *testing.T) {
 			updatedSanctions: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier2,
 						TurnsLeft:    1,
 					},
 					{
-						ClientID:     shared.Team3,
+						ClientID:     shared.Teams["Team3"],
 						SanctionTier: shared.SanctionTier4,
 						TurnsLeft:    7,
 					},
 				},
 				2: {
 					{
-						ClientID:     shared.Team4,
+						ClientID:     shared.Teams["Team4"],
 						SanctionTier: shared.SanctionTier4,
 						TurnsLeft:    0,
 					},
@@ -909,7 +909,7 @@ func TestMergeEvalResults(t *testing.T) {
 		{
 			name: "Simple merge test",
 			set1: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[0],
 						availableRules[1],
@@ -919,7 +919,7 @@ func TestMergeEvalResults(t *testing.T) {
 			},
 			set2: map[shared.ClientID]shared.EvaluationReturn{},
 			expect: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[0],
 						availableRules[1],
@@ -931,7 +931,7 @@ func TestMergeEvalResults(t *testing.T) {
 		{
 			name: "Complex Merge Test",
 			set1: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[0],
 						availableRules[1],
@@ -940,7 +940,7 @@ func TestMergeEvalResults(t *testing.T) {
 				},
 			},
 			set2: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[2],
 						availableRules[3],
@@ -949,14 +949,14 @@ func TestMergeEvalResults(t *testing.T) {
 				},
 			},
 			expect: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[0],
 						availableRules[1],
 					},
 					Evaluations: []bool{true, false},
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[2],
 						availableRules[3],
@@ -968,7 +968,7 @@ func TestMergeEvalResults(t *testing.T) {
 		{
 			name: "Patchwork merge test",
 			set1: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[0],
 						availableRules[1],
@@ -977,14 +977,14 @@ func TestMergeEvalResults(t *testing.T) {
 				},
 			},
 			set2: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[0],
 						availableRules[1],
 					},
 					Evaluations: []bool{true, false},
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[2],
 						availableRules[3],
@@ -993,7 +993,7 @@ func TestMergeEvalResults(t *testing.T) {
 				},
 			},
 			expect: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[0],
 						availableRules[1],
@@ -1002,7 +1002,7 @@ func TestMergeEvalResults(t *testing.T) {
 					},
 					Evaluations: []bool{true, false, true, false},
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[2],
 						availableRules[3],
@@ -1097,7 +1097,7 @@ func TestCullCheckedRules(t *testing.T) {
 			name: "Basic cull test",
 			history: []shared.Accountability{
 				{
-					ClientID: shared.Team1,
+					ClientID: shared.Teams["Team1"],
 					Pairs: []rules.VariableValuePair{
 						{
 							VariableName: rules.SanctionPaid,
@@ -1111,7 +1111,7 @@ func TestCullCheckedRules(t *testing.T) {
 				},
 			},
 			evalRes: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[9],
 					},
@@ -1124,7 +1124,7 @@ func TestCullCheckedRules(t *testing.T) {
 			name: "More Advanced Cull",
 			history: []shared.Accountability{
 				{
-					ClientID: shared.Team1,
+					ClientID: shared.Teams["Team1"],
 					Pairs: []rules.VariableValuePair{
 						{
 							VariableName: rules.SanctionPaid,
@@ -1137,7 +1137,7 @@ func TestCullCheckedRules(t *testing.T) {
 					},
 				},
 				{
-					ClientID: shared.Team2,
+					ClientID: shared.Teams["Team2"],
 					Pairs: []rules.VariableValuePair{
 						{
 							VariableName: rules.SanctionPaid,
@@ -1151,7 +1151,7 @@ func TestCullCheckedRules(t *testing.T) {
 				},
 			},
 			evalRes: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[9],
 					},
@@ -1160,7 +1160,7 @@ func TestCullCheckedRules(t *testing.T) {
 			},
 			expected: []shared.Accountability{
 				{
-					ClientID: shared.Team2,
+					ClientID: shared.Teams["Team2"],
 					Pairs: []rules.VariableValuePair{
 						{
 							VariableName: rules.SanctionPaid,
@@ -1178,7 +1178,7 @@ func TestCullCheckedRules(t *testing.T) {
 			name: "Even More Advanced Cull",
 			history: []shared.Accountability{
 				{
-					ClientID: shared.Team1,
+					ClientID: shared.Teams["Team1"],
 					Pairs: []rules.VariableValuePair{
 						{
 							VariableName: rules.SanctionPaid,
@@ -1191,7 +1191,7 @@ func TestCullCheckedRules(t *testing.T) {
 					},
 				},
 				{
-					ClientID: shared.Team2,
+					ClientID: shared.Teams["Team2"],
 					Pairs: []rules.VariableValuePair{
 						{
 							VariableName: rules.SanctionPaid,
@@ -1205,13 +1205,13 @@ func TestCullCheckedRules(t *testing.T) {
 				},
 			},
 			evalRes: map[shared.ClientID]shared.EvaluationReturn{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[9],
 					},
 					Evaluations: []bool{true},
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					Rules: []rules.RuleMatrix{
 						availableRules[8],
 					},
@@ -1220,7 +1220,7 @@ func TestCullCheckedRules(t *testing.T) {
 			},
 			expected: []shared.Accountability{
 				{
-					ClientID: shared.Team2,
+					ClientID: shared.Teams["Team2"],
 					Pairs: []rules.VariableValuePair{
 						{
 							VariableName: rules.SanctionPaid,
@@ -1292,7 +1292,7 @@ func TestImplementPardons(t *testing.T) {
 			sanctionCache: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
@@ -1308,7 +1308,7 @@ func TestImplementPardons(t *testing.T) {
 			expFinCache: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
@@ -1320,12 +1320,12 @@ func TestImplementPardons(t *testing.T) {
 			sanctionCache: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
 					{
-						ClientID:     shared.Team2,
+						ClientID:     shared.Teams["Team2"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
@@ -1339,11 +1339,11 @@ func TestImplementPardons(t *testing.T) {
 			},
 			expValidity: true,
 			expComms: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					{
 						shared.PardonClientID: {
 							T:           shared.CommunicationInt,
-							IntegerData: int(shared.Team1),
+							IntegerData: int(shared.Teams["Team1"]),
 						},
 						shared.PardonTier: {
 							T:           shared.CommunicationInt,
@@ -1351,16 +1351,16 @@ func TestImplementPardons(t *testing.T) {
 						},
 					},
 				},
-				shared.Team2: {},
-				shared.Team3: {},
-				shared.Team4: {},
-				shared.Team5: {},
-				shared.Team6: {},
+				shared.Teams["Team2"]: {},
+				shared.Teams["Team3"]: {},
+				shared.Teams["Team4"]: {},
+				shared.Teams["Team5"]: {},
+				shared.Teams["Team6"]: {},
 			},
 			expFinCache: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team2,
+						ClientID:     shared.Teams["Team2"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
@@ -1372,17 +1372,17 @@ func TestImplementPardons(t *testing.T) {
 			sanctionCache: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
 					{
-						ClientID:     shared.Team2,
+						ClientID:     shared.Teams["Team2"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
 					{
-						ClientID:     shared.Team3,
+						ClientID:     shared.Teams["Team3"],
 						SanctionTier: shared.SanctionTier2,
 						TurnsLeft:    2,
 					},
@@ -1397,11 +1397,11 @@ func TestImplementPardons(t *testing.T) {
 			},
 			expValidity: true,
 			expComms: map[shared.ClientID][]map[shared.CommunicationFieldName]shared.CommunicationContent{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					{
 						shared.PardonClientID: {
 							T:           shared.CommunicationInt,
-							IntegerData: int(shared.Team1),
+							IntegerData: int(shared.Teams["Team1"]),
 						},
 						shared.PardonTier: {
 							T:           shared.CommunicationInt,
@@ -1409,11 +1409,11 @@ func TestImplementPardons(t *testing.T) {
 						},
 					},
 				},
-				shared.Team3: {
+				shared.Teams["Team3"]: {
 					{
 						shared.PardonClientID: {
 							T:           shared.CommunicationInt,
-							IntegerData: int(shared.Team3),
+							IntegerData: int(shared.Teams["Team3"]),
 						},
 						shared.PardonTier: {
 							T:           shared.CommunicationInt,
@@ -1421,15 +1421,15 @@ func TestImplementPardons(t *testing.T) {
 						},
 					},
 				},
-				shared.Team2: {},
-				shared.Team4: {},
-				shared.Team5: {},
-				shared.Team6: {},
+				shared.Teams["Team2"]: {},
+				shared.Teams["Team4"]: {},
+				shared.Teams["Team5"]: {},
+				shared.Teams["Team6"]: {},
 			},
 			expFinCache: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team2,
+						ClientID:     shared.Teams["Team2"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
@@ -1441,17 +1441,17 @@ func TestImplementPardons(t *testing.T) {
 			sanctionCache: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
 					{
-						ClientID:     shared.Team2,
+						ClientID:     shared.Teams["Team2"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
 					{
-						ClientID:     shared.Team3,
+						ClientID:     shared.Teams["Team3"],
 						SanctionTier: shared.SanctionTier2,
 						TurnsLeft:    2,
 					},
@@ -1467,17 +1467,17 @@ func TestImplementPardons(t *testing.T) {
 			expFinCache: map[int][]shared.Sanction{
 				1: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
 					{
-						ClientID:     shared.Team2,
+						ClientID:     shared.Teams["Team2"],
 						SanctionTier: shared.SanctionTier3,
 						TurnsLeft:    3,
 					},
 					{
-						ClientID:     shared.Team3,
+						ClientID:     shared.Teams["Team3"],
 						SanctionTier: shared.SanctionTier2,
 						TurnsLeft:    2,
 					},
@@ -1890,7 +1890,7 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 		{
 			name: "Excess pay",
 			bJudge: judiciary{
-				JudgeID: shared.Team1,
+				JudgeID: shared.Teams["Team1"],
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
 					IIGORolesBudget: map[shared.Role]shared.Resources{
@@ -1908,7 +1908,7 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 		{
 			name: "Negative Budget",
 			bJudge: judiciary{
-				JudgeID: shared.Team1,
+				JudgeID: shared.Teams["Team1"],
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
 					IIGORolesBudget: map[shared.Role]shared.Resources{
@@ -1926,7 +1926,7 @@ func TestJudgeIncureServiceCharge(t *testing.T) {
 		{
 			name: "Limited common pool",
 			bJudge: judiciary{
-				JudgeID: shared.Team1,
+				JudgeID: shared.Teams["Team1"],
 				gameState: &gamestate.GameState{
 					CommonPool: 40,
 					IIGORolesBudget: map[shared.Role]shared.Resources{

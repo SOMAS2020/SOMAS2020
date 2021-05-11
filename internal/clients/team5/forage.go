@@ -112,12 +112,12 @@ func (c *client) bestHistoryForaging(forageHistory forageHistory) shared.ForageT
 			for _, returns := range FOutcome {
 				if forageType == shared.DeerForageType && //Deer Hunters
 					returns.turn == c.getTurn()-1 && // Last turn
-					returns.team != shared.Team5 &&
+					returns.team != shared.Teams["Team5"] &&
 					returns.input > 0 { // Not including us
 					probDeerHunting += c.config.IncreasePerHunterLastTurn // Incremenet the probability we hunt
 				} else if forageType == shared.FishForageType &&
 					returns.turn == c.getTurn()-1 &&
-					returns.team != shared.Team5 &&
+					returns.team != shared.Teams["Team5"] &&
 					returns.input > 0 {
 					probFishing += c.config.IncreasePerFisherMenLastTurn
 				}
@@ -277,7 +277,7 @@ func (c *client) lastHopeForage() shared.ForageDecision {
 //ForageUpdate Updates the foraging history
 func (c *client) ForageUpdate(forageDecision shared.ForageDecision, output shared.Resources, numberCaught uint) {
 	c.forageHistory[forageDecision.Type] = append(c.forageHistory[forageDecision.Type], forageOutcome{ // Append new data
-		team:   shared.Team5,
+		team:   shared.Teams["Team5"],
 		turn:   c.getTurn(),
 		input:  forageDecision.Contribution,
 		output: output,
@@ -351,7 +351,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 					returns.turn >= c.getTurn()-c.config.DeerTurnsToLookBack { // Turns greater than look back
 					for team := range c.gameState().ClientLifeStatuses { // For all alive teams
 						if returns.team == team &&
-							returns.team != shared.Team5 { // If a certain team within a certain range of turns
+							returns.team != shared.Teams["Team5"] { // If a certain team within a certain range of turns
 							shareTo = append(shareTo, team) // add to shrae to list if they shared to us
 						}
 					}
@@ -400,7 +400,7 @@ func (c *client) MakeForageInfo() shared.ForageShareInfo {
 		DecisionMade:     contribution, // contribution and Resources obtained
 		ResourceObtained: output,       // How much we got back
 		ShareTo:          shareTo,      // []shared.ClientIDs
-		SharedFrom:       shared.Team5,
+		SharedFrom:       shared.Teams["Team5"],
 	}
 
 	c.Logf("[MakeForageInfo][%v]: %+v", c.getTurn(), forageInfo)

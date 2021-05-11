@@ -347,7 +347,7 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 		{
 			name: "Excess pay",
 			bSpeaker: legislature{
-				SpeakerID: shared.Team1,
+				SpeakerID: shared.Teams["Team1"],
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
 					IIGORolesBudget: map[shared.Role]shared.Resources{
@@ -365,7 +365,7 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 		{
 			name: "Negative Budget",
 			bSpeaker: legislature{
-				SpeakerID: shared.Team1,
+				SpeakerID: shared.Teams["Team1"],
 				gameState: &gamestate.GameState{
 					CommonPool: 400,
 					IIGORolesBudget: map[shared.Role]shared.Resources{
@@ -383,7 +383,7 @@ func TestSpeakerIncureServiceCharge(t *testing.T) {
 		{
 			name: "Limited common pool",
 			bSpeaker: legislature{
-				SpeakerID: shared.Team1,
+				SpeakerID: shared.Teams["Team1"],
 				gameState: &gamestate.GameState{
 					CommonPool: 40,
 					IIGORolesBudget: map[shared.Role]shared.Resources{
