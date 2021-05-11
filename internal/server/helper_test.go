@@ -21,10 +21,10 @@ func TestAnyClientsAlive(t *testing.T) {
 		{
 			name: "all alive",
 			cis: map[shared.ClientID]gamestate.ClientInfo{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					LifeStatus: shared.Alive,
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					LifeStatus: shared.Critical, // still alive
 				},
 			},
@@ -33,10 +33,10 @@ func TestAnyClientsAlive(t *testing.T) {
 		{
 			name: "one alive",
 			cis: map[shared.ClientID]gamestate.ClientInfo{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					LifeStatus: shared.Alive,
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					LifeStatus: shared.Dead,
 				},
 			},
@@ -44,10 +44,10 @@ func TestAnyClientsAlive(t *testing.T) {
 		}, {
 			name: "none alive",
 			cis: map[shared.ClientID]gamestate.ClientInfo{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					LifeStatus: shared.Dead,
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					LifeStatus: shared.Dead,
 				},
 			},
@@ -188,18 +188,18 @@ func TestUpdateIslandLivingStatusForClient(t *testing.T) {
 
 func TestGetNonDeadClientIDs(t *testing.T) {
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Critical,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Dead,
 		},
 	}
 	want := []shared.ClientID{
-		shared.Team1, shared.Team2,
+		shared.Teams["Team1"], shared.Teams["Team2"],
 	}
 	got := getNonDeadClientIDs(clientInfos)
 
@@ -242,7 +242,7 @@ func TestTakeResources(t *testing.T) {
 			resources: 10,
 			takeAmt:   15,
 			want:      10,
-			wantErr:   errors.Errorf("Client %v did not have enough resources. Requested %v, only had %v", shared.Team1, 15, 10),
+			wantErr:   errors.Errorf("Client %v did not have enough resources. Requested %v, only had %v", shared.Teams["Team1"], 15, 10),
 		},
 		{
 			name:      "NaN",
@@ -250,7 +250,7 @@ func TestTakeResources(t *testing.T) {
 			takeAmt:   shared.Resources(math.NaN()),
 			want:      42,
 			wantErr: errors.Errorf("Cannot take invalid number of resources %v from client %v",
-				math.NaN(), shared.Team1),
+				math.NaN(), shared.Teams["Team1"]),
 		},
 		{
 			name:      "try take negative",
@@ -258,7 +258,7 @@ func TestTakeResources(t *testing.T) {
 			takeAmt:   shared.Resources(-42),
 			want:      42,
 			wantErr: errors.Errorf("Cannot take invalid number of resources %v from client %v",
-				-42, shared.Team1),
+				-42, shared.Teams["Team1"]),
 		},
 	}
 
@@ -267,13 +267,13 @@ func TestTakeResources(t *testing.T) {
 			s := SOMASServer{
 				gameState: gamestate.GameState{
 					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-						shared.Team1: {Resources: tc.resources},
+						shared.Teams["Team1"]: {Resources: tc.resources},
 					},
 				},
 			}
 
-			err := s.takeResources(shared.Team1, tc.takeAmt, tc.name)
-			got := s.gameState.ClientInfos[shared.Team1].Resources
+			err := s.takeResources(shared.Teams["Team1"], tc.takeAmt, tc.name)
+			got := s.gameState.ClientInfos[shared.Teams["Team1"]].Resources
 
 			testutils.CompareTestErrors(tc.wantErr, err, t)
 
@@ -310,7 +310,7 @@ func TestGiveResources(t *testing.T) {
 			giveAmt:   shared.Resources(math.NaN()),
 			want:      42,
 			wantErr: errors.Errorf("Cannot give invalid number of resources %v to client %v",
-				math.NaN(), shared.Team1),
+				math.NaN(), shared.Teams["Team1"]),
 		},
 		{
 			name:      "Give -42",
@@ -318,7 +318,7 @@ func TestGiveResources(t *testing.T) {
 			giveAmt:   -42,
 			want:      42,
 			wantErr: errors.Errorf("Cannot give invalid number of resources %v to client %v",
-				-42, shared.Team1),
+				-42, shared.Teams["Team1"]),
 		},
 	}
 
@@ -327,13 +327,13 @@ func TestGiveResources(t *testing.T) {
 			s := SOMASServer{
 				gameState: gamestate.GameState{
 					ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-						shared.Team1: {Resources: tc.resources},
+						shared.Teams["Team1"]: {Resources: tc.resources},
 					},
 				},
 			}
 
-			err := s.giveResources(shared.Team1, tc.giveAmt, tc.name)
-			got := s.gameState.ClientInfos[shared.Team1].Resources
+			err := s.giveResources(shared.Teams["Team1"], tc.giveAmt, tc.name)
+			got := s.gameState.ClientInfos[shared.Teams["Team1"]].Resources
 
 			testutils.CompareTestErrors(tc.wantErr, err, t)
 

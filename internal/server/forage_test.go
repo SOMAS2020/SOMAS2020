@@ -64,7 +64,7 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 				}
 
 				clientMap := map[shared.ClientID]baseclient.Client{
-					shared.Team1: &client,
+					shared.Teams["Team1"]: &client,
 				}
 
 				clientIDs := make([]shared.ClientID, 0, len(clientMap))
@@ -79,7 +79,7 @@ func TestForagingCallsForageUpdate(t *testing.T) {
 				s := SOMASServer{
 					gameState: gamestate.GameState{
 						ClientInfos: map[shared.ClientID]gamestate.ClientInfo{
-							shared.Team1: {
+							shared.Teams["Team1"]: {
 								LifeStatus: shared.Alive,
 								Resources:  100,
 							},

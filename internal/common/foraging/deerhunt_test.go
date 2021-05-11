@@ -47,7 +47,7 @@ func TestTotalInput(t *testing.T) {
 		MaxDeerPopulation:     12,
 		DeerGrowthCoefficient: 0.4,
 	}
-	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
+	huntParticipants := map[shared.ClientID]shared.Resources{shared.Teams["Team1"]: 1.0, shared.Teams["Team2"]: 0.9} // arbitrarily chosen for test
 	dummyLogger := func(format string, a ...interface{}) {
 		t.Logf("[DEERHUNT]: %v", fmt.Sprintf(format, a...))
 	}

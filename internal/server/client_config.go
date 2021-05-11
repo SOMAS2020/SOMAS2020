@@ -34,7 +34,6 @@ type ClientFactory func(shared.ClientID) baseclient.Client
 
 func DefaultClientConfig() map[shared.ClientID]ClientFactory {
 	clientMapping := make(map[shared.ClientID]ClientFactory)
-
 	for i := 0; i < shared.TotalTeams; i++ {
 		clientMapping[shared.Teams["Team"+strconv.Itoa(i+1)]] = team1.DefaultClient
 	}

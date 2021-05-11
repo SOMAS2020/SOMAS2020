@@ -44,7 +44,7 @@ func TestFishUtilityTier(t *testing.T) {
 
 // Checks if total fish input is correct
 func TestTotalFishInput(t *testing.T) {
-	huntParticipants := map[shared.ClientID]shared.Resources{shared.Team1: 1.0, shared.Team2: 0.9} // arbitrarily chosen for test
+	huntParticipants := map[shared.ClientID]shared.Resources{shared.Teams["Team1"]: 1.0, shared.Teams["Team2"]: 0.9} // arbitrarily chosen for test
 
 	fishingConfig := config.FishingConfig{
 		MaxFishPerHunt:        6,

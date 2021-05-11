@@ -12,22 +12,22 @@ func TestSortClientByID(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
 	clients := []ClientID{
-		Team2,
-		Team4,
-		Team6,
-		Team1,
-		Team3,
-		Team5,
+		2,
+		4,
+		6,
+		1,
+		3,
+		5,
 	}
 	rand.Shuffle(len(clients), func(i, j int) { clients[i], clients[j] = clients[j], clients[i] })
 
 	want := []ClientID{
-		Team1,
-		Team2,
-		Team3,
-		Team4,
-		Team5,
-		Team6,
+		1,
+		2,
+		3,
+		4,
+		5,
+		6,
 	}
 
 	sort.Sort(SortClientByID(clients))

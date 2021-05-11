@@ -90,7 +90,7 @@ func TestInitTrustMapAgg(t *testing.T) {
 					4: {-10.3},
 					5: {6.42},
 				},
-				BaseClient: baseclient.NewClient(shared.Team3),
+				BaseClient: baseclient.NewClient(shared.Teams["Team3"]),
 			},
 			expectedVal: map[shared.ClientID][]float64{
 				0: {},
@@ -110,7 +110,7 @@ func TestInitTrustMapAgg(t *testing.T) {
 					4: {-10.3, 6.58, 3.74, -65.78, -78.98, 34.56},
 					5: {6.42, 69.69, 98.87, -60.7857, 99.9999, 0.00001, 0.05},
 				},
-				BaseClient: baseclient.NewClient(shared.Team3),
+				BaseClient: baseclient.NewClient(shared.Teams["Team3"]),
 			},
 			expectedVal: map[shared.ClientID][]float64{
 				0: {},

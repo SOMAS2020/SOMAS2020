@@ -45,7 +45,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 		{
 			name: "Single client simple",
 			clientVariables: map[shared.ClientID][]rules.VariableFieldName{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -55,7 +55,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 				},
 			},
 			truthfulness: map[shared.ClientID]float64{
-				shared.Team1: 0.6,
+				shared.Teams["Team1"]: 0.6,
 			},
 			turn: 12,
 			reps: 1,
@@ -63,7 +63,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 		{
 			name: "Multiple clients simple",
 			clientVariables: map[shared.ClientID][]rules.VariableFieldName{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -71,7 +71,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.IslandAllocation,
 					rules.ExpectedAllocation,
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -79,7 +79,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.IslandAllocation,
 					rules.ExpectedAllocation,
 				},
-				shared.Team3: {
+				shared.Teams["Team3"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -89,9 +89,9 @@ func TestSaveHistoryInfo(t *testing.T) {
 				},
 			},
 			truthfulness: map[shared.ClientID]float64{
-				shared.Team1: 0.99,
-				shared.Team2: 1,
-				shared.Team3: 0.2,
+				shared.Teams["Team1"]: 0.99,
+				shared.Teams["Team2"]: 1,
+				shared.Teams["Team3"]: 0.2,
 			},
 			turn: 1,
 			reps: 1,
@@ -99,7 +99,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 		{
 			name: "Multiple clients mixed",
 			clientVariables: map[shared.ClientID][]rules.VariableFieldName{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -107,7 +107,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.IslandAllocation,
 					rules.ExpectedAllocation,
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -118,7 +118,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.ConstSanctionAmount,
 					rules.HasIslandReportPrivateResources,
 				},
-				shared.Team3: {
+				shared.Teams["Team3"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -127,9 +127,9 @@ func TestSaveHistoryInfo(t *testing.T) {
 				},
 			},
 			truthfulness: map[shared.ClientID]float64{
-				shared.Team1: 0.99,
-				shared.Team2: 1,
-				shared.Team3: 0.2,
+				shared.Teams["Team1"]: 0.99,
+				shared.Teams["Team2"]: 1,
+				shared.Teams["Team3"]: 0.2,
 			},
 			turn: 13,
 			reps: 1,
@@ -137,7 +137,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 		{
 			name: "Multiple clients mixed repeat",
 			clientVariables: map[shared.ClientID][]rules.VariableFieldName{
-				shared.Team1: {
+				shared.Teams["Team1"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -145,7 +145,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.IslandAllocation,
 					rules.ExpectedAllocation,
 				},
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -156,7 +156,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 					rules.ConstSanctionAmount,
 					rules.HasIslandReportPrivateResources,
 				},
-				shared.Team3: {
+				shared.Teams["Team3"]: {
 					rules.IslandReportedPrivateResources,
 					rules.IslandActualPrivateResources,
 					rules.IslandTaxContribution,
@@ -165,9 +165,9 @@ func TestSaveHistoryInfo(t *testing.T) {
 				},
 			},
 			truthfulness: map[shared.ClientID]float64{
-				shared.Team1: 0.99,
-				shared.Team2: 1,
-				shared.Team3: 0.5,
+				shared.Teams["Team1"]: 0.99,
+				shared.Teams["Team2"]: 1,
+				shared.Teams["Team3"]: 0.5,
 			},
 			turn: 13,
 			reps: 3,
@@ -176,7 +176,7 @@ func TestSaveHistoryInfo(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			testClient := newClientInternal(shared.Team4, forTesting)
+			testClient := newClientInternal(shared.Teams["Team4"], forTesting)
 			j := testClient.clientJudge
 
 			wholeHistory := map[uint]map[shared.ClientID]judgeHistoryInfo{}
@@ -293,7 +293,7 @@ func TestCallPresidentElection(t *testing.T) {
 				ElectionRuleInPlay: tc.electionRuleInPlay,
 			}
 
-			testClient := newClientInternal(shared.Team4, honest)
+			testClient := newClientInternal(shared.Teams["Team4"], honest)
 
 			testClient.Initialise(testServer)
 
@@ -326,12 +326,12 @@ func TestGetPardonedIslands(t *testing.T) {
 			sanctions: map[int][]shared.Sanction{
 				0: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.NoSanction,
 						TurnsLeft:    5,
 					},
 					{
-						ClientID:     shared.Team2,
+						ClientID:     shared.Teams["Team2"],
 						SanctionTier: shared.NoSanction,
 						TurnsLeft:    5,
 					},
@@ -341,8 +341,8 @@ func TestGetPardonedIslands(t *testing.T) {
 				0: {false, false},
 			},
 			trust: map[shared.ClientID]float64{
-				shared.Team1: 0.5,
-				shared.Team2: 0.5,
+				shared.Teams["Team1"]: 0.5,
+				shared.Teams["Team2"]: 0.5,
 			},
 		},
 		{
@@ -350,7 +350,7 @@ func TestGetPardonedIslands(t *testing.T) {
 			sanctions: map[int][]shared.Sanction{
 				0: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier1,
 						TurnsLeft:    3,
 					},
@@ -360,8 +360,8 @@ func TestGetPardonedIslands(t *testing.T) {
 				0: {true},
 			},
 			trust: map[shared.ClientID]float64{
-				shared.Team1: 0.8,
-				shared.Team2: 0.2,
+				shared.Teams["Team1"]: 0.8,
+				shared.Teams["Team2"]: 0.2,
 			},
 		},
 		{
@@ -369,12 +369,12 @@ func TestGetPardonedIslands(t *testing.T) {
 			sanctions: map[int][]shared.Sanction{
 				0: {
 					{
-						ClientID:     shared.Team1,
+						ClientID:     shared.Teams["Team1"],
 						SanctionTier: shared.SanctionTier1,
 						TurnsLeft:    3,
 					},
 					{
-						ClientID:     shared.Team2,
+						ClientID:     shared.Teams["Team2"],
 						SanctionTier: shared.SanctionTier4, // this will prevent getting a pardon
 						TurnsLeft:    2,
 					},
@@ -384,8 +384,8 @@ func TestGetPardonedIslands(t *testing.T) {
 				0: {true, false},
 			},
 			trust: map[shared.ClientID]float64{
-				shared.Team1: 0.7,
-				shared.Team2: 0.3,
+				shared.Teams["Team1"]: 0.7,
+				shared.Teams["Team2"]: 0.3,
 			},
 		},
 	}
@@ -398,7 +398,7 @@ func TestGetPardonedIslands(t *testing.T) {
 			}
 
 			testServer := fakeServerHandle{clients: clients}
-			testClient := newClientInternal(shared.Team4, forTesting)
+			testClient := newClientInternal(shared.Teams["Team4"], forTesting)
 			testClient.Initialise(testServer)
 
 			for client, clientTrust := range tc.trust {

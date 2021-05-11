@@ -1,9 +1,10 @@
 package gamestate
 
 import (
-	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 	"reflect"
 	"testing"
+
+	"github.com/SOMAS2020/SOMAS2020/internal/common/rules"
 
 	"github.com/SOMAS2020/SOMAS2020/internal/common/disasters"
 	"github.com/SOMAS2020/SOMAS2020/internal/common/shared"
@@ -11,9 +12,9 @@ import (
 
 func TestGetClientGameStateCopy(t *testing.T) {
 	islandLocation := map[shared.ClientID]disasters.IslandLocationInfo{
-		shared.Team1: {ID: shared.Team1, X: shared.Coordinate(5), Y: shared.Coordinate(0)},
-		shared.Team2: {ID: shared.Team2, X: shared.Coordinate(6), Y: shared.Coordinate(1)},
-		shared.Team3: {ID: shared.Team3, X: shared.Coordinate(7), Y: shared.Coordinate(2)},
+		shared.Teams["Team1"]: {ID: shared.Teams["Team1"], X: shared.Coordinate(5), Y: shared.Coordinate(0)},
+		shared.Teams["Team2"]: {ID: shared.Teams["Team2"], X: shared.Coordinate(6), Y: shared.Coordinate(1)},
+		shared.Teams["Team3"]: {ID: shared.Teams["Team3"], X: shared.Coordinate(7), Y: shared.Coordinate(2)},
 	}
 
 	geography := disasters.ArchipelagoGeography{
@@ -30,17 +31,17 @@ func TestGetClientGameStateCopy(t *testing.T) {
 		Turn:        4,
 		Environment: env,
 		ClientInfos: map[shared.ClientID]ClientInfo{
-			shared.Team1: {
+			shared.Teams["Team1"]: {
 				Resources:                       10,
 				LifeStatus:                      shared.Alive,
 				CriticalConsecutiveTurnsCounter: 0,
 			},
-			shared.Team2: {
+			shared.Teams["Team2"]: {
 				Resources:                       20,
 				LifeStatus:                      shared.Critical,
 				CriticalConsecutiveTurnsCounter: 1,
 			},
-			shared.Team3: {
+			shared.Teams["Team3"]: {
 				Resources:                       30,
 				LifeStatus:                      shared.Dead,
 				CriticalConsecutiveTurnsCounter: 2,
@@ -65,12 +66,12 @@ func TestGetClientGameStateCopy(t *testing.T) {
 	}
 
 	lifeStatuses := map[shared.ClientID]shared.ClientLifeStatus{
-		shared.Team1: gameState.ClientInfos[shared.Team1].LifeStatus,
-		shared.Team2: gameState.ClientInfos[shared.Team2].LifeStatus,
-		shared.Team3: gameState.ClientInfos[shared.Team3].LifeStatus,
+		shared.Teams["Team1"]: gameState.ClientInfos[shared.Teams["Team1"]].LifeStatus,
+		shared.Teams["Team2"]: gameState.ClientInfos[shared.Teams["Team2"]].LifeStatus,
+		shared.Teams["Team3"]: gameState.ClientInfos[shared.Teams["Team3"]].LifeStatus,
 	}
 
-	cases := []shared.ClientID{shared.Team1, shared.Team2, shared.Team3}
+	cases := []shared.ClientID{shared.Teams["Team1"], shared.Teams["Team2"], shared.Teams["Team3"]}
 
 	for _, tc := range cases {
 		t.Run(tc.String(), func(t *testing.T) {

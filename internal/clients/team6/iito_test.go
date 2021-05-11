@@ -25,12 +25,12 @@ func TestDecideGiftAmount(t *testing.T) {
 					ServerReadHandle: stubServerReadHandle{
 						gameState: gamestate.ClientGameState{
 							ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
-								shared.Team1: shared.Alive,
-								shared.Team2: shared.Critical,
-								shared.Team3: shared.Alive,
-								shared.Team4: shared.Critical,
-								shared.Team5: shared.Alive,
-								shared.Team6: shared.Critical,
+								shared.Teams["Team1"]: shared.Alive,
+								shared.Teams["Team2"]: shared.Critical,
+								shared.Teams["Team3"]: shared.Alive,
+								shared.Teams["Team4"]: shared.Critical,
+								shared.Teams["Team5"]: shared.Alive,
+								shared.Teams["Team6"]: shared.Critical,
 							},
 						},
 						gameConfig: config.ClientConfig{
@@ -40,7 +40,7 @@ func TestDecideGiftAmount(t *testing.T) {
 				},
 				clientConfig: getClientConfig(),
 			},
-			testToTeam:    shared.Team2,
+			testToTeam:    shared.Teams["Team2"],
 			testGiftOffer: 3.0,
 			want:          5.0,
 		},
@@ -51,12 +51,12 @@ func TestDecideGiftAmount(t *testing.T) {
 					ServerReadHandle: stubServerReadHandle{
 						gameState: gamestate.ClientGameState{
 							ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
-								shared.Team1: shared.Alive,
-								shared.Team2: shared.Critical,
-								shared.Team3: shared.Alive,
-								shared.Team4: shared.Critical,
-								shared.Team5: shared.Alive,
-								shared.Team6: shared.Critical,
+								shared.Teams["Team1"]: shared.Alive,
+								shared.Teams["Team2"]: shared.Critical,
+								shared.Teams["Team3"]: shared.Alive,
+								shared.Teams["Team4"]: shared.Critical,
+								shared.Teams["Team5"]: shared.Alive,
+								shared.Teams["Team6"]: shared.Critical,
 							},
 						},
 						gameConfig: config.ClientConfig{
@@ -66,7 +66,7 @@ func TestDecideGiftAmount(t *testing.T) {
 				},
 				clientConfig: getClientConfig(),
 			},
-			testToTeam:    shared.Team4,
+			testToTeam:    shared.Teams["Team4"],
 			testGiftOffer: 10.0,
 			want:          10.0,
 		},
@@ -77,12 +77,12 @@ func TestDecideGiftAmount(t *testing.T) {
 					ServerReadHandle: stubServerReadHandle{
 						gameState: gamestate.ClientGameState{
 							ClientLifeStatuses: map[shared.ClientID]shared.ClientLifeStatus{
-								shared.Team1: shared.Alive,
-								shared.Team2: shared.Critical,
-								shared.Team3: shared.Alive,
-								shared.Team4: shared.Critical,
-								shared.Team5: shared.Alive,
-								shared.Team6: shared.Critical,
+								shared.Teams["Team1"]: shared.Alive,
+								shared.Teams["Team2"]: shared.Critical,
+								shared.Teams["Team3"]: shared.Alive,
+								shared.Teams["Team4"]: shared.Critical,
+								shared.Teams["Team5"]: shared.Alive,
+								shared.Teams["Team6"]: shared.Critical,
 							},
 						},
 						gameConfig: config.ClientConfig{
@@ -92,7 +92,7 @@ func TestDecideGiftAmount(t *testing.T) {
 				},
 				clientConfig: getClientConfig(),
 			},
-			testToTeam:    shared.Team5,
+			testToTeam:    shared.Teams["Team5"],
 			testGiftOffer: 20.0,
 			want:          20.0,
 		},

@@ -12,14 +12,14 @@ func TestElection(t *testing.T) {
 	var ele Election
 	ele.roleToElect = 0
 	ele.votingMethod = 0
-	ele.candidateList = []shared.ClientID{shared.Team1, shared.Team2, shared.Team3, shared.Team4, shared.Team5, shared.Team6}
+	ele.candidateList = []shared.ClientID{shared.Teams["Team1"], shared.Teams["Team2"], shared.Teams["Team3"], shared.Teams["Team4"], shared.Teams["Team5"], shared.Teams["Team6"]}
 	ele.voterList = ele.candidateList
-	ele.votes = [][]shared.ClientID{{shared.Team3, shared.Team2, shared.Team1, shared.Team6, shared.Team5, shared.Team4},
-		{shared.Team4, shared.Team6, shared.Team5, shared.Team2, shared.Team3, shared.Team1},
-		{shared.Team3, shared.Team6, shared.Team1, shared.Team4, shared.Team5, shared.Team2},
-		{shared.Team2, shared.Team5, shared.Team6, shared.Team4, shared.Team3, shared.Team1},
-		{shared.Team6, shared.Team4, shared.Team1, shared.Team5, shared.Team2, shared.Team3},
-		{shared.Team5, shared.Team2, shared.Team3, shared.Team6, shared.Team1, shared.Team4}}
+	ele.votes = [][]shared.ClientID{{shared.Teams["Team3"], shared.Teams["Team2"], shared.Teams["Team1"], shared.Teams["Team6"], shared.Teams["Team5"], shared.Teams["Team4"]},
+		{shared.Teams["Team4"], shared.Teams["Team6"], shared.Teams["Team5"], shared.Teams["Team2"], shared.Teams["Team3"], shared.Teams["Team1"]},
+		{shared.Teams["Team3"], shared.Teams["Team6"], shared.Teams["Team1"], shared.Teams["Team4"], shared.Teams["Team5"], shared.Teams["Team2"]},
+		{shared.Teams["Team2"], shared.Teams["Team5"], shared.Teams["Team6"], shared.Teams["Team4"], shared.Teams["Team3"], shared.Teams["Team1"]},
+		{shared.Teams["Team6"], shared.Teams["Team4"], shared.Teams["Team1"], shared.Teams["Team5"], shared.Teams["Team2"], shared.Teams["Team3"]},
+		{shared.Teams["Team5"], shared.Teams["Team2"], shared.Teams["Team3"], shared.Teams["Team6"], shared.Teams["Team1"], shared.Teams["Team4"]}}
 	clientMap := make(map[shared.ClientID]baseclient.Client)
 
 	var c baseclient.BaseClient

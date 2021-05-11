@@ -21,7 +21,7 @@ func (h testServerHandle) GetGameConfig() config.ClientConfig {
 }
 
 func MakeTestClient(gamestate gamestate.ClientGameState) client {
-	c := NewTestClient(shared.Team5)
+	c := NewTestClient(shared.Teams["Team5"])
 	c.Initialise(testServerHandle{
 		clientGameState: gamestate,
 	})

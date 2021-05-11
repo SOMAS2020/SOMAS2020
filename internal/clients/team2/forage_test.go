@@ -9,9 +9,9 @@ import (
 // Testing logic, sue me for bad practice time is of essence haha
 func TestOtherHunters(t *testing.T) {
 	foragingReturnsHist := map[shared.ClientID][]int{
-		shared.Team1: {0, 0, 1, 0, 1},
-		shared.Team2: {1, 1, 1, 1, 1},
-		shared.Team3: {1, 1, 1, 1, 1},
+		shared.Teams["Team1"]: {0, 0, 1, 0, 1},
+		shared.Teams["Team2"]: {1, 1, 1, 1, 1},
+		shared.Teams["Team3"]: {1, 1, 1, 1, 1},
 	}
 	HuntNum := 0.00                       //this the average number of likely hunters
 	for id := range foragingReturnsHist { //loop through every agent

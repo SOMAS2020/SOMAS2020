@@ -24,7 +24,7 @@ func TestDisasterEffects(t *testing.T) {
 		MagnitudeResourceMultiplier: 100,
 	}
 
-	clientIDs := []shared.ClientID{shared.Team1, shared.Team2}
+	clientIDs := []shared.ClientID{shared.Teams["Team1"], shared.Teams["Team2"]}
 	clientMap := map[shared.ClientID]baseclient.Client{}
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{}
 	for _, cid := range clientIDs {

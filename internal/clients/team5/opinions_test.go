@@ -7,16 +7,16 @@ import (
 )
 
 var opinions = opinionMap{
-	shared.Team1: &wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}},
-	shared.Team2: &wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}},
+	shared.Teams["Team1"]: &wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}},
+	shared.Teams["Team2"]: &wrappedOpininon{opinion: opinion{score: 0, forecastReputation: 0}},
 }
 var opHistory = opinionHistory{}
 
 func TestUpdateOpinion(t *testing.T) {
 	nTurns := 5
 
-	op1 := opinions[shared.Team1]
-	op2 := opinions[shared.Team2]
+	op1 := opinions[shared.Teams["Team1"]]
+	op2 := opinions[shared.Teams["Team2"]]
 
 	for i := 1; i <= nTurns; i++ {
 		// update history
@@ -39,7 +39,7 @@ func TestUpdateOpinion(t *testing.T) {
 }
 
 func TestOpinionCapping(t *testing.T) {
-	op1 := opinions[shared.Team1]
+	op1 := opinions[shared.Teams["Team1"]]
 
 	op1.updateOpinion(generalBasis, -0.9)
 	op1.updateOpinion(generalBasis, -0.9)

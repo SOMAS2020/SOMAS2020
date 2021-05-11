@@ -148,14 +148,14 @@ func TestGetCommonPoolContribution(t *testing.T) {
 
 func TestCalculateDisasterContributionCP(t *testing.T) {
 	ourLocationInfo := disasters.IslandLocationInfo{
-		ID: shared.Team5,
+		ID: shared.Teams["Team5"],
 		X:  6,
 		Y:  0,
 	}
 	geography := disasters.ArchipelagoGeography{
 		Islands: make(map[shared.ClientID]disasters.IslandLocationInfo),
 	}
-	geography.Islands[shared.Team5] = ourLocationInfo
+	geography.Islands[shared.Teams["Team5"]] = ourLocationInfo
 	//case 1 where there is no forecast initially
 	currentTurn := uint(1)
 	currentResource := shared.Resources(1000)

@@ -8,7 +8,7 @@ import (
 )
 
 func TestSamplingOfCertainties(t *testing.T) {
-	clientIDs := []shared.ClientID{shared.Team1, shared.Team2} // arbitrarily chosen for test
+	clientIDs := []shared.ClientID{shared.Teams["Team1"], shared.Teams["Team2"]} // arbitrarily chosen for test
 
 	disasterConf := config.DisasterConfig{
 		XMin:             0.0,
@@ -51,7 +51,7 @@ func TestDeterministicPeriod(t *testing.T) {
 		MagnitudeLambda:  1.0,
 		StochasticPeriod: false,
 	}
-	clientIDs := []shared.ClientID{shared.Team1, shared.Team2} // arbitrarily chosen for test
+	clientIDs := []shared.ClientID{shared.Teams["Team1"], shared.Teams["Team2"]} // arbitrarily chosen for test
 	env := InitEnvironment(clientIDs, disasterConf)
 	nDisasters := uint(0)
 	for i := uint(1); i <= nTurns; i++ {
@@ -67,7 +67,7 @@ func TestDeterministicPeriod(t *testing.T) {
 
 func TestDisasterEffects(t *testing.T) {
 
-	clientIDs := []shared.ClientID{shared.Team1, shared.Team2, shared.Team3} // arbitrarily chosen for test
+	clientIDs := []shared.ClientID{shared.Teams["Team1"], shared.Teams["Team2"], shared.Teams["Team3"]} // arbitrarily chosen for test
 
 	disasterConf := config.DisasterConfig{
 		XMin:                        0.0,
@@ -104,11 +104,11 @@ func TestDisasterEffects(t *testing.T) {
 
 	// test differential impact
 	eA := effects.Absolute
-	if !(eA[shared.Team1] < eA[shared.Team2] && eA[shared.Team2] < eA[shared.Team3]) {
+	if !(eA[shared.Teams["Team1"]] < eA[shared.Teams["Team2"]] && eA[shared.Teams["Team2"]] < eA[shared.Teams["Team3"]]) {
 		t.Error("Expected (descending) order of abs effects to be Team3, Team2, Team1")
 	}
 	eA = effects.CommonPoolMitigated
-	if !(eA[shared.Team1] < eA[shared.Team2] && eA[shared.Team2] < eA[shared.Team3]) {
+	if !(eA[shared.Teams["Team1"]] < eA[shared.Teams["Team2"]] && eA[shared.Teams["Team2"]] < eA[shared.Teams["Team3"]]) {
 		t.Error("Expected (descending) order of CP-mitigated effects to be Team3, Team2, Team1")
 	}
 

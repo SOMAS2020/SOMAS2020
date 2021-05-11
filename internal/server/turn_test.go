@@ -13,37 +13,37 @@ import (
 func TestDeductCostOfLiving(t *testing.T) {
 	const costOfLiving = 42
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			Resources:  43,
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			Resources:  44,
 			LifeStatus: shared.Critical,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			Resources:  45,
 			LifeStatus: shared.Dead,
 		},
-		shared.Team4: {
+		shared.Teams["Team4"]: {
 			Resources:  20,
 			LifeStatus: shared.Alive,
 		},
 	}
 	wantClientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			Resources:  1,
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			Resources:  2,
 			LifeStatus: shared.Critical,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			Resources:  45,
 			LifeStatus: shared.Dead,
 		},
-		shared.Team4: {
+		shared.Teams["Team4"]: {
 			Resources:  0,
 			LifeStatus: shared.Alive,
 		},
@@ -68,21 +68,21 @@ func TestUpdateIslandLivingStatus(t *testing.T) {
 	// this does not test for updateIslandLivingStatusForClient
 	// those are covered in TestUpdateIslandLivingStatusForClient
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 			Resources:  minimumResourceThreshold - 1,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Critical,
 			Resources:  minimumResourceThreshold,
 		},
 	}
 	wantClientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Critical,
 			Resources:  minimumResourceThreshold - 1,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Alive,
 			Resources:  minimumResourceThreshold,
 		},
@@ -117,7 +117,7 @@ func TestGameOver(t *testing.T) {
 		{
 			name: "game not over",
 			clientInfos: map[shared.ClientID]gamestate.ClientInfo{
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					LifeStatus: shared.Alive,
 				},
 			},
@@ -128,7 +128,7 @@ func TestGameOver(t *testing.T) {
 		{
 			name: "all clients dead",
 			clientInfos: map[shared.ClientID]gamestate.ClientInfo{
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					LifeStatus: shared.Dead,
 				},
 			},
@@ -139,7 +139,7 @@ func TestGameOver(t *testing.T) {
 		{
 			name: "maxTurns reached",
 			clientInfos: map[shared.ClientID]gamestate.ClientInfo{
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					LifeStatus: shared.Alive,
 				},
 			},
@@ -150,7 +150,7 @@ func TestGameOver(t *testing.T) {
 		{
 			name: "maxSeasons reached",
 			clientInfos: map[shared.ClientID]gamestate.ClientInfo{
-				shared.Team2: {
+				shared.Teams["Team2"]: {
 					LifeStatus: shared.Alive,
 				},
 			},

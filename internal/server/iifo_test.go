@@ -81,32 +81,32 @@ func receiveDisasterPrediction(prediction shared.DisasterPrediction, sharedFrom 
 
 func TestGetForageSharingWorks(t *testing.T) {
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Critical,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Dead,
 		},
 	}
 
 	clientMap := map[shared.ClientID]baseclient.Client{
-		shared.Team1: &mockClientIIFO{
-			foragingValues: makeForagingInfo(52.7, 64, []shared.ClientID{shared.Team2, shared.Team3}),
+		shared.Teams["Team1"]: &mockClientIIFO{
+			foragingValues: makeForagingInfo(52.7, 64, []shared.ClientID{shared.Teams["Team2"], shared.Teams["Team3"]}),
 		},
-		shared.Team2: &mockClientIIFO{
+		shared.Teams["Team2"]: &mockClientIIFO{
 			foragingValues: makeForagingInfo(22.2, 22.3, []shared.ClientID{}),
 		},
-		shared.Team3: &mockClientIIFO{
-			foragingValues: makeForagingInfo(33.2, 233.3, []shared.ClientID{shared.Team2}),
+		shared.Teams["Team3"]: &mockClientIIFO{
+			foragingValues: makeForagingInfo(33.2, 233.3, []shared.ClientID{shared.Teams["Team2"]}),
 		},
 	}
 
 	want := shared.ForagingOfferDict{
-		shared.Team1: makeForagingInfo(52.7, 64, []shared.ClientID{shared.Team2, shared.Team3}),
-		shared.Team2: makeForagingInfo(22.2, 22.3, []shared.ClientID{}),
+		shared.Teams["Team1"]: makeForagingInfo(52.7, 64, []shared.ClientID{shared.Teams["Team2"], shared.Teams["Team3"]}),
+		shared.Teams["Team2"]: makeForagingInfo(22.2, 22.3, []shared.ClientID{}),
 	}
 
 	server := &SOMASServer{
@@ -125,37 +125,37 @@ func TestGetForageSharingWorks(t *testing.T) {
 
 func TestDistributeForageSharing(t *testing.T) {
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Critical,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Dead,
 		},
 	}
 
 	mockClient := map[shared.ClientID]*mockClientIIFO{
-		shared.Team1: {},
-		shared.Team2: {},
-		shared.Team3: {},
+		shared.Teams["Team1"]: {},
+		shared.Teams["Team2"]: {},
+		shared.Teams["Team3"]: {},
 	}
 
 	clientMap := map[shared.ClientID]baseclient.Client{
-		shared.Team1: mockClient[shared.Team1],
-		shared.Team2: mockClient[shared.Team2],
-		shared.Team3: mockClient[shared.Team3],
+		shared.Teams["Team1"]: mockClient[shared.Teams["Team1"]],
+		shared.Teams["Team2"]: mockClient[shared.Teams["Team2"]],
+		shared.Teams["Team3"]: mockClient[shared.Teams["Team3"]],
 	}
 
 	input := shared.ForagingOfferDict{
-		shared.Team1: makeForagingInfo(52.7, 64, []shared.ClientID{shared.Team2, shared.Team3}),
-		shared.Team2: makeForagingInfo(22.2, 22.3, []shared.ClientID{}),
+		shared.Teams["Team1"]: makeForagingInfo(52.7, 64, []shared.ClientID{shared.Teams["Team2"], shared.Teams["Team3"]}),
+		shared.Teams["Team2"]: makeForagingInfo(22.2, 22.3, []shared.ClientID{}),
 	}
 
 	want := shared.ForagingReceiptDict{
-		shared.Team1: []shared.ForageShareInfo(nil),
-		shared.Team2: []shared.ForageShareInfo{receiveForagingInfo(52.7, 64, shared.Team1)},
+		shared.Teams["Team1"]: []shared.ForageShareInfo(nil),
+		shared.Teams["Team2"]: []shared.ForageShareInfo{receiveForagingInfo(52.7, 64, shared.Teams["Team1"])},
 	}
 
 	server := &SOMASServer{
@@ -178,27 +178,27 @@ func TestDistributeForageSharing(t *testing.T) {
 
 func TestDistributePredictions(t *testing.T) {
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Critical,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Dead,
 		},
 	}
 
 	mockClient := map[shared.ClientID]*mockClientIIFO{
-		shared.Team1: {},
-		shared.Team2: {},
-		shared.Team3: {},
+		shared.Teams["Team1"]: {},
+		shared.Teams["Team2"]: {},
+		shared.Teams["Team3"]: {},
 	}
 
 	clientMap := map[shared.ClientID]baseclient.Client{
-		shared.Team1: mockClient[shared.Team1],
-		shared.Team2: mockClient[shared.Team2],
-		shared.Team3: mockClient[shared.Team3],
+		shared.Teams["Team1"]: mockClient[shared.Teams["Team1"]],
+		shared.Teams["Team2"]: mockClient[shared.Teams["Team2"]],
+		shared.Teams["Team3"]: mockClient[shared.Teams["Team3"]],
 	}
 	team1Prediction := shared.DisasterPrediction{
 		CoordinateX: 0,
@@ -208,13 +208,13 @@ func TestDistributePredictions(t *testing.T) {
 		Confidence:  100,
 	}
 	input := shared.DisasterPredictionInfoDict{
-		shared.Team1: makeDisasterPrediction(team1Prediction, []shared.ClientID{shared.Team2, shared.Team3}),
-		shared.Team2: makeDisasterPrediction(shared.DisasterPrediction{}, []shared.ClientID{}),
-		shared.Team3: makeDisasterPrediction(shared.DisasterPrediction{}, []shared.ClientID{shared.Team1, shared.Team2}),
+		shared.Teams["Team1"]: makeDisasterPrediction(team1Prediction, []shared.ClientID{shared.Teams["Team2"], shared.Teams["Team3"]}),
+		shared.Teams["Team2"]: makeDisasterPrediction(shared.DisasterPrediction{}, []shared.ClientID{}),
+		shared.Teams["Team3"]: makeDisasterPrediction(shared.DisasterPrediction{}, []shared.ClientID{shared.Teams["Team1"], shared.Teams["Team2"]}),
 	}
 	want := map[shared.ClientID]shared.ReceivedDisasterPredictionsDict{
-		shared.Team1: shared.ReceivedDisasterPredictionsDict(nil),
-		shared.Team2: {shared.Team1: receiveDisasterPrediction(team1Prediction, shared.Team1)},
+		shared.Teams["Team1"]: shared.ReceivedDisasterPredictionsDict(nil),
+		shared.Teams["Team2"]: {shared.Teams["Team1"]: receiveDisasterPrediction(team1Prediction, shared.Teams["Team1"])},
 	}
 
 	server := &SOMASServer{

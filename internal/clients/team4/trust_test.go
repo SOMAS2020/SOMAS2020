@@ -16,9 +16,9 @@ func TestGetTrustMatrix(t *testing.T) {
 		{
 			name: "simple",
 			clientMap: map[shared.ClientID]float64{
-				shared.Team1: 0.5,
-				shared.Team2: 0.5,
-				shared.Team3: 0.5,
+				shared.Teams["Team1"]: 0.5,
+				shared.Teams["Team2"]: 0.5,
+				shared.Teams["Team3"]: 0.5,
 			},
 			expectedTrustMatrix: []float64{0.5, 0.5, 0.5},
 		},
@@ -43,19 +43,19 @@ func TestNormalise(t *testing.T) {
 		{
 			name: "simple normalise",
 			clientMap: map[shared.ClientID]float64{
-				shared.Team1: 0.5,
-				shared.Team2: 0.7,
-				shared.Team3: 0.5,
-				shared.Team4: 0.5,
+				shared.Teams["Team1"]: 0.5,
+				shared.Teams["Team2"]: 0.7,
+				shared.Teams["Team3"]: 0.5,
+				shared.Teams["Team4"]: 0.5,
 			},
 		},
 		{
 			name: "simple normalise 2",
 			clientMap: map[shared.ClientID]float64{
-				shared.Team1: 0.2,
-				shared.Team2: 0.7,
-				shared.Team3: 0.6,
-				shared.Team4: 0.55,
+				shared.Teams["Team1"]: 0.2,
+				shared.Teams["Team2"]: 0.7,
+				shared.Teams["Team3"]: 0.6,
+				shared.Teams["Team4"]: 0.55,
 			},
 		},
 	}
@@ -88,13 +88,13 @@ func TestIncreaseClientTrust(t *testing.T) {
 		{
 			name: "",
 			clientMap: map[shared.ClientID]float64{
-				shared.Team1: 0.5,
-				shared.Team2: 0.5,
-				shared.Team3: 0.5,
-				shared.Team4: 0.5,
+				shared.Teams["Team1"]: 0.5,
+				shared.Teams["Team2"]: 0.5,
+				shared.Teams["Team3"]: 0.5,
+				shared.Teams["Team4"]: 0.5,
 			},
 			change: map[shared.ClientID]float64{
-				shared.Team1: -0.4,
+				shared.Teams["Team1"]: -0.4,
 			},
 		},
 	}

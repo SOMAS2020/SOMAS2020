@@ -7,14 +7,14 @@ import (
 )
 
 func TestGetJudgePointer(t *testing.T) {
-	testClient := newClientInternal(shared.Team4, honest)
+	testClient := newClientInternal(shared.Teams["Team4"], honest)
 	testServer := fakeServerHandle{}
 	testClient.Initialise(testServer)
 	j := testClient.GetClientJudgePointer()
 
-	winner := j.DecideNextPresident(shared.Team1)
+	winner := j.DecideNextPresident(shared.Teams["Team1"])
 
-	if winner != shared.Team1 {
+	if winner != shared.Teams["Team1"] {
 		t.Errorf("Got wrong judge pointer. Winner is %v", winner)
 	}
 }
@@ -29,22 +29,22 @@ func TestUpdateTrustFromHistory(t *testing.T) {
 			savedHistory: accountabilityHistory{
 				history: map[uint]map[shared.ClientID]judgeHistoryInfo{
 					1: {
-						shared.Team1: {
+						shared.Teams["Team1"]: {
 							LawfulRatio: 0.2,
 						},
-						shared.Team2: {
+						shared.Teams["Team2"]: {
 							LawfulRatio: 0.4,
 						},
-						shared.Team3: {
+						shared.Teams["Team3"]: {
 							LawfulRatio: 0.87,
 						},
-						shared.Team4: {
+						shared.Teams["Team4"]: {
 							LawfulRatio: 1,
 						},
-						shared.Team5: {
+						shared.Teams["Team5"]: {
 							LawfulRatio: 0.675,
 						},
-						shared.Team6: {
+						shared.Teams["Team6"]: {
 							LawfulRatio: 0.55,
 						},
 					},
@@ -63,7 +63,7 @@ func TestUpdateTrustFromHistory(t *testing.T) {
 			}
 
 			testServer := fakeServerHandle{clients: clients}
-			testClient := newClientInternal(shared.Team4, honest)
+			testClient := newClientInternal(shared.Teams["Team4"], honest)
 			testClient.Initialise(testServer)
 
 			testClient.savedHistory = &tc.savedHistory

@@ -49,12 +49,12 @@ func TestGetEcho(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			mClient := &mockClientEcho{
-				id:   shared.Team1,
+				id:   shared.Teams["Team1"],
 				echo: tc.reply,
 			}
 			server := &SOMASServer{
 				clientMap: map[shared.ClientID]baseclient.Client{
-					shared.Team1: mClient,
+					shared.Teams["Team1"]: mClient,
 				},
 			}
 
@@ -80,9 +80,9 @@ func TestSOMASServerFactoryInitialisesClients(t *testing.T) {
 	// because we need access to initialiseCalled. We can then convert this to a
 	// map of baseClient.Client, just to pass to createSOMASServer.
 	clientPtrsMap := map[shared.ClientID]*initTestClient{
-		shared.Team1: {Client: baseclient.NewClient(shared.Team1)},
-		shared.Team2: {Client: baseclient.NewClient(shared.Team2)},
-		shared.Team3: {Client: baseclient.NewClient(shared.Team3)},
+		shared.Teams["Team1"]: {Client: baseclient.NewClient(shared.Teams["Team1"])},
+		shared.Teams["Team2"]: {Client: baseclient.NewClient(shared.Teams["Team2"])},
+		shared.Teams["Team3"]: {Client: baseclient.NewClient(shared.Teams["Team3"])},
 	}
 
 	clientMap := map[shared.ClientID]baseclient.Client{}

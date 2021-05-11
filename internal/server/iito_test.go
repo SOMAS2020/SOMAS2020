@@ -71,28 +71,28 @@ func (c *mockClientIITO) getOtherIslandsCommonPoolContribution() shared.Received
 func TestServerGetGiftRequests(t *testing.T) {
 	// Mock a bunch of clients
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Critical,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Dead,
 		},
 	}
 
 	clientMap := map[shared.ClientID]baseclient.Client{
 		// Team 1 makes 1 valid request: 50 to team 2.
-		shared.Team1: &mockClientIITO{requests: shared.GiftRequestDict{shared.Team1: 50, shared.Team2: 50, shared.Team3: 50}},
+		shared.Teams["Team1"]: &mockClientIITO{requests: shared.GiftRequestDict{shared.Teams["Team1"]: 50, shared.Teams["Team2"]: 50, shared.Teams["Team3"]: 50}},
 		// Team 2 makes no valid requests: a zero'ed entry, one to itself and one to a dead team.
-		shared.Team2: &mockClientIITO{requests: shared.GiftRequestDict{shared.Team1: 0, shared.Team2: 50, shared.Team3: 50}},
+		shared.Teams["Team2"]: &mockClientIITO{requests: shared.GiftRequestDict{shared.Teams["Team1"]: 0, shared.Teams["Team2"]: 50, shared.Teams["Team3"]: 50}},
 		// Team 3 is dead boi
-		shared.Team3: &mockClientIITO{},
+		shared.Teams["Team3"]: &mockClientIITO{},
 	}
 
 	want := map[shared.ClientID]shared.GiftRequestDict{
-		shared.Team1: {shared.Team2: 50},
+		shared.Teams["Team1"]: {shared.Teams["Team2"]: 50},
 	}
 
 	// Mock a server
@@ -111,13 +111,13 @@ func TestServerGetGiftRequests(t *testing.T) {
 
 func TestOfferKnapsackPacker(t *testing.T) {
 	offers := shared.GiftOfferDict{
-		shared.Team1: 200,
-		shared.Team2: 500,
-		shared.Team3: 500,
+		shared.Teams["Team1"]: 200,
+		shared.Teams["Team2"]: 500,
+		shared.Teams["Team3"]: 500,
 	}
 
 	want := shared.GiftOffer(1000)
-	wantCombi := []shared.ClientID{shared.Team2, shared.Team3}
+	wantCombi := []shared.ClientID{shared.Teams["Team2"], shared.Teams["Team3"]}
 
 	got, optimal := offersKnapsackSolver(1000, offers)
 	sort.Sort(shared.SortClientByID(optimal))
@@ -132,19 +132,19 @@ func TestOfferKnapsackPacker(t *testing.T) {
 func TestServerGetGiftOffers(t *testing.T) {
 
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			Resources:  500,
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			Resources:  500,
 			LifeStatus: shared.Alive,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			Resources:  50,
 			LifeStatus: shared.Alive,
 		},
-		shared.Team4: {
+		shared.Teams["Team4"]: {
 			Resources:  50,
 			LifeStatus: shared.Dead,
 		},
@@ -152,18 +152,18 @@ func TestServerGetGiftOffers(t *testing.T) {
 
 	clientMap := map[shared.ClientID]baseclient.Client{
 		// Team 1 makes 1 valid offer: 500 to team 2.
-		shared.Team1: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 50, shared.Team2: 500, shared.Team4: 50}},
+		shared.Teams["Team1"]: &mockClientIITO{offers: shared.GiftOfferDict{shared.Teams["Team1"]: 50, shared.Teams["Team2"]: 500, shared.Teams["Team4"]: 50}},
 		// TODO: Team 2 attempts to offer more than it has to team 1 and 4.
-		shared.Team2: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 400, shared.Team3: 150}},
+		shared.Teams["Team2"]: &mockClientIITO{offers: shared.GiftOfferDict{shared.Teams["Team1"]: 400, shared.Teams["Team3"]: 150}},
 		// Team 3 makes no offers.
-		shared.Team3: &mockClientIITO{},
+		shared.Teams["Team3"]: &mockClientIITO{},
 		// Team 4 is dead, should not show up.
-		shared.Team4: &mockClientIITO{offers: shared.GiftOfferDict{shared.Team1: 600}},
+		shared.Teams["Team4"]: &mockClientIITO{offers: shared.GiftOfferDict{shared.Teams["Team1"]: 600}},
 	}
 
 	want := map[shared.ClientID]shared.GiftOfferDict{
-		shared.Team1: {shared.Team2: 500},
-		shared.Team2: {shared.Team1: 400},
+		shared.Teams["Team1"]: {shared.Teams["Team2"]: 500},
+		shared.Teams["Team2"]: {shared.Teams["Team1"]: 400},
 	}
 
 	// Mock a server
@@ -184,61 +184,61 @@ func TestServerGetGiftOffers(t *testing.T) {
 func TestServerGetGiftResponses(t *testing.T) {
 
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team4: {
+		shared.Teams["Team4"]: {
 			LifeStatus: shared.Alive,
 		},
 	}
 
 	offers := map[shared.ClientID]shared.GiftOfferDict{
-		shared.Team1: {shared.Team2: 500},
-		shared.Team2: {shared.Team1: 500},
-		shared.Team3: {shared.Team2: 100},
-		shared.Team4: {shared.Team3: 100},
+		shared.Teams["Team1"]: {shared.Teams["Team2"]: 500},
+		shared.Teams["Team2"]: {shared.Teams["Team1"]: 500},
+		shared.Teams["Team3"]: {shared.Teams["Team2"]: 100},
+		shared.Teams["Team4"]: {shared.Teams["Team3"]: 100},
 	}
 
 	clientMap := map[shared.ClientID]baseclient.Client{
 		// Team 1 accepts team 2's offer, and accepts an offer that was never made by team 3.
-		shared.Team1: &mockClientIITO{
+		shared.Teams["Team1"]: &mockClientIITO{
 			responses: shared.GiftResponseDict{
-				shared.Team2: {AcceptedAmount: 500, Reason: shared.Accept},
-				shared.Team3: {AcceptedAmount: 700, Reason: shared.Accept},
+				shared.Teams["Team2"]: {AcceptedAmount: 500, Reason: shared.Accept},
+				shared.Teams["Team3"]: {AcceptedAmount: 700, Reason: shared.Accept},
 			},
 		},
 
 		// Team 2 tries to accept more than it was offered, and ignores team 3's offer.
-		shared.Team2: &mockClientIITO{
+		shared.Teams["Team2"]: &mockClientIITO{
 			responses: shared.GiftResponseDict{
-				shared.Team1: {AcceptedAmount: 700, Reason: shared.Accept},
+				shared.Teams["Team1"]: {AcceptedAmount: 700, Reason: shared.Accept},
 			},
 		},
 		// Team 3 has a malformed reply.
-		shared.Team3: &mockClientIITO{
+		shared.Teams["Team3"]: &mockClientIITO{
 			responses: shared.GiftResponseDict{
-				shared.Team4: {AcceptedAmount: 300, Reason: shared.DeclineDontLikeYou},
+				shared.Teams["Team4"]: {AcceptedAmount: 300, Reason: shared.DeclineDontLikeYou},
 			},
 		},
-		shared.Team4: &mockClientIITO{},
+		shared.Teams["Team4"]: &mockClientIITO{},
 	}
 
 	want := map[shared.ClientID]shared.GiftResponseDict{
-		shared.Team1: {
-			shared.Team2: {AcceptedAmount: 500, Reason: shared.Accept},
+		shared.Teams["Team1"]: {
+			shared.Teams["Team2"]: {AcceptedAmount: 500, Reason: shared.Accept},
 		},
-		shared.Team2: {
-			shared.Team1: {AcceptedAmount: 500, Reason: shared.Accept},
-			shared.Team3: {AcceptedAmount: 0, Reason: shared.Ignored},
+		shared.Teams["Team2"]: {
+			shared.Teams["Team1"]: {AcceptedAmount: 500, Reason: shared.Accept},
+			shared.Teams["Team3"]: {AcceptedAmount: 0, Reason: shared.Ignored},
 		},
-		shared.Team3: {
-			shared.Team4: {AcceptedAmount: 0, Reason: shared.DeclineDontLikeYou},
+		shared.Teams["Team3"]: {
+			shared.Teams["Team4"]: {AcceptedAmount: 0, Reason: shared.DeclineDontLikeYou},
 		},
 	}
 
@@ -259,13 +259,13 @@ func TestServerGetGiftResponses(t *testing.T) {
 func TestDistributeGiftHistory(t *testing.T) {
 
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Alive,
 		},
 	}
@@ -274,43 +274,43 @@ func TestDistributeGiftHistory(t *testing.T) {
 	c2 := mockClientIITO{}
 	c3 := mockClientIITO{}
 	clientMap := map[shared.ClientID]baseclient.Client{
-		shared.Team1: &c1,
-		shared.Team2: &c2,
-		shared.Team3: &c3,
+		shared.Teams["Team1"]: &c1,
+		shared.Teams["Team2"]: &c2,
+		shared.Teams["Team3"]: &c3,
 	}
 
 	dontNeed := shared.GiftResponse{AcceptedAmount: 0, Reason: shared.DeclineDontNeed}
 	responses := map[shared.ClientID]shared.GiftResponseDict{
 		// Everybody loves team 1 and team 1 loves everybody.
-		shared.Team1: {
-			shared.Team2: {AcceptedAmount: 100, Reason: shared.Accept},
-			shared.Team3: {AcceptedAmount: 100, Reason: shared.Accept},
+		shared.Teams["Team1"]: {
+			shared.Teams["Team2"]: {AcceptedAmount: 100, Reason: shared.Accept},
+			shared.Teams["Team3"]: {AcceptedAmount: 100, Reason: shared.Accept},
 		},
 		// Team 2 hates receiving gifts.
-		shared.Team2: {
-			shared.Team1: {AcceptedAmount: 200, Reason: shared.Accept},
-			shared.Team3: {AcceptedAmount: 0, Reason: shared.Ignored},
+		shared.Teams["Team2"]: {
+			shared.Teams["Team1"]: {AcceptedAmount: 200, Reason: shared.Accept},
+			shared.Teams["Team3"]: {AcceptedAmount: 0, Reason: shared.Ignored},
 		},
 		// Team 3
-		shared.Team3: {
-			shared.Team1: dontNeed,
-			shared.Team2: dontNeed,
+		shared.Teams["Team3"]: {
+			shared.Teams["Team1"]: dontNeed,
+			shared.Teams["Team2"]: dontNeed,
 		},
 	}
 
 	want1 := shared.GiftResponseDict{
-		shared.Team2: {AcceptedAmount: 200, Reason: shared.Accept},
-		shared.Team3: dontNeed,
+		shared.Teams["Team2"]: {AcceptedAmount: 200, Reason: shared.Accept},
+		shared.Teams["Team3"]: dontNeed,
 	}
 
 	want2 := shared.GiftResponseDict{
-		shared.Team1: {AcceptedAmount: 100, Reason: shared.Accept},
-		shared.Team3: dontNeed,
+		shared.Teams["Team1"]: {AcceptedAmount: 100, Reason: shared.Accept},
+		shared.Teams["Team3"]: dontNeed,
 	}
 
 	want3 := shared.GiftResponseDict{
-		shared.Team1: {AcceptedAmount: 100, Reason: shared.Accept},
-		shared.Team2: {AcceptedAmount: 0, Reason: shared.Ignored},
+		shared.Teams["Team1"]: {AcceptedAmount: 100, Reason: shared.Accept},
+		shared.Teams["Team2"]: {AcceptedAmount: 0, Reason: shared.Ignored},
 	}
 
 	// Mock a server
@@ -337,39 +337,39 @@ func TestDistributeGiftHistory(t *testing.T) {
 
 func TestDistributeContributions(t *testing.T) {
 	clientInfos := map[shared.ClientID]gamestate.ClientInfo{
-		shared.Team1: {
+		shared.Teams["Team1"]: {
 			LifeStatus: shared.Alive,
 		},
-		shared.Team2: {
+		shared.Teams["Team2"]: {
 			LifeStatus: shared.Critical,
 		},
-		shared.Team3: {
+		shared.Teams["Team3"]: {
 			LifeStatus: shared.Dead,
 		},
 	}
 
 	mockClient := map[shared.ClientID]*mockClientIITO{
-		shared.Team1: {},
-		shared.Team2: {},
-		shared.Team3: {},
+		shared.Teams["Team1"]: {},
+		shared.Teams["Team2"]: {},
+		shared.Teams["Team3"]: {},
 	}
 
 	clientMap := map[shared.ClientID]baseclient.Client{
-		shared.Team1: mockClient[shared.Team1],
-		shared.Team2: mockClient[shared.Team2],
-		shared.Team3: mockClient[shared.Team3],
+		shared.Teams["Team1"]: mockClient[shared.Teams["Team1"]],
+		shared.Teams["Team2"]: mockClient[shared.Teams["Team2"]],
+		shared.Teams["Team3"]: mockClient[shared.Teams["Team3"]],
 	}
 
 	team1Contribution := shared.Resources(1)
 
 	input := shared.IntendedContributionDict{
-		shared.Team1: shareIntendedContribution(team1Contribution, []shared.ClientID{shared.Team2, shared.Team3}),
-		shared.Team2: shareIntendedContribution(0.0, []shared.ClientID{}),
-		shared.Team3: shareIntendedContribution(0.0, []shared.ClientID{shared.Team1, shared.Team2}),
+		shared.Teams["Team1"]: shareIntendedContribution(team1Contribution, []shared.ClientID{shared.Teams["Team2"], shared.Teams["Team3"]}),
+		shared.Teams["Team2"]: shareIntendedContribution(0.0, []shared.ClientID{}),
+		shared.Teams["Team3"]: shareIntendedContribution(0.0, []shared.ClientID{shared.Teams["Team1"], shared.Teams["Team2"]}),
 	}
 	want := map[shared.ClientID]shared.ReceivedIntendedContributionDict{
-		shared.Team1: shared.ReceivedIntendedContributionDict(nil),
-		shared.Team2: {shared.Team1: receiveIntendedContribution(team1Contribution, shared.Team1)},
+		shared.Teams["Team1"]: shared.ReceivedIntendedContributionDict(nil),
+		shared.Teams["Team2"]: {shared.Teams["Team1"]: receiveIntendedContribution(team1Contribution, shared.Teams["Team1"])},
 	}
 
 	server := &SOMASServer{

@@ -47,43 +47,43 @@ func TestGenerateForecast(t *testing.T) {
 
 func TestUpdateForecastingReputations(t *testing.T) {
 	receivedPreds := shared.ReceivedDisasterPredictionsDict{
-		shared.Team1: shared.ReceivedDisasterPredictionInfo{
+		shared.Teams["Team1"]: shared.ReceivedDisasterPredictionInfo{
 			PredictionMade: shared.DisasterPrediction{
 				Confidence: 60,
 			},
-			SharedFrom: shared.Team1,
+			SharedFrom: shared.Teams["Team1"],
 		},
-		shared.Team2: shared.ReceivedDisasterPredictionInfo{
+		shared.Teams["Team2"]: shared.ReceivedDisasterPredictionInfo{
 			PredictionMade: shared.DisasterPrediction{
 				Confidence: 20,
 			},
-			SharedFrom: shared.Team2,
+			SharedFrom: shared.Teams["Team2"],
 		},
-		shared.Team3: shared.ReceivedDisasterPredictionInfo{
+		shared.Teams["Team3"]: shared.ReceivedDisasterPredictionInfo{
 			PredictionMade: shared.DisasterPrediction{
 				Confidence: 100,
 			},
-			SharedFrom: shared.Team3,
+			SharedFrom: shared.Teams["Team3"],
 		},
 	}
 	c.opinions = opinionMap{
-		shared.Team1: &wrappedOpininon{opinion{forecastReputation: 0.0}},
-		shared.Team2: &wrappedOpininon{opinion{forecastReputation: 0.0}},
-		shared.Team3: &wrappedOpininon{opinion{forecastReputation: 0.0}},
+		shared.Teams["Team1"]: &wrappedOpininon{opinion{forecastReputation: 0.0}},
+		shared.Teams["Team2"]: &wrappedOpininon{opinion{forecastReputation: 0.0}},
+		shared.Teams["Team3"]: &wrappedOpininon{opinion{forecastReputation: 0.0}},
 	}
 	c.disasterHistory = disasterHistory{} // no disasters recorded
 	c.updateForecastingReputations(receivedPreds)
-	if c.opinions[shared.Team1].getForecastingRep() >= 0 {
+	if c.opinions[shared.Teams["Team1"]].getForecastingRep() >= 0 {
 		t.Error("Received prediction with confidence > 50 percent with no disasters")
 	}
 
-	if c.opinions[shared.Team2].getForecastingRep() < 0 {
+	if c.opinions[shared.Teams["Team2"]].getForecastingRep() < 0 {
 		t.Error("Expected no negative change to reputation after sensible prediction")
 	}
 	c.disasterHistory = disasterHistory{1: disasterInfo{}, 5: disasterInfo{}} // no disasters recorded
 	c.updateForecastingReputations(receivedPreds)
 
-	if c.opinions[shared.Team3].getForecastingRep() >= 0 {
+	if c.opinions[shared.Teams["Team3"]].getForecastingRep() >= 0 {
 		t.Error("Received perfectly confident prediction. Expected rep. to decrease.")
 	}
 
@@ -106,7 +106,7 @@ func TestComputeForecastPerformance(t *testing.T) {
 	xSamples := [][]float64{{0, 0.5, 0.75}, {0.5, 0.5}}
 	xTargets := []float64{1, 0}
 
-	conf := createClient(shared.Team5).config
+	conf := createClient(shared.Teams["Team5"]).config
 	decay := conf.forecastTemporalDecay
 
 	forecastErrors, err := computeForecastingPerformance(dh, fh, conf)
@@ -131,6 +131,6 @@ func TestComputeForecastPerformance(t *testing.T) {
 }
 
 func initClient() *client {
-	c := createClient(shared.Team5)
+	c := createClient(shared.Teams["Team5"])
 	return c
 }
